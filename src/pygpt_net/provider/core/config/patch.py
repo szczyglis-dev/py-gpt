@@ -1077,6 +1077,8 @@ class Patch:
                 print("Migrating config from < 2.1.15...")
                 if 'ctx.edit_icons' not in data:
                     data["ctx.edit_icons"] = False
+                if 'llama.idx.auto.modes' not in data:
+                    data["llama.idx.auto.modes"] = "chat,completion,vision,assistant,langchain,llama_index,agent"
                 if 'ctx.allow_item_delete' in data:
                     del data["ctx.allow_item_delete"]
                 updated = True

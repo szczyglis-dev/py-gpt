@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -227,6 +227,6 @@ class Flow:
         self.stop = True
         self.finished = False  # reset finished flag
 
-        # update index if auto-index enabled, sync mode
+        # update index if auto-index enabled
         if auto:
-            self.window.controller.idx.on_ctx_end(None, sync=False)
+            self.window.controller.idx.on_ctx_end(ctx=None, mode="agent")

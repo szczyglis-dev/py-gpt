@@ -141,9 +141,11 @@ The following basic options can be modified directly within the application:
 
 * ``Use local models in Video/Audio and Image (vision) loaders``: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
 
-* ``Auto-index DB in real time``: Enables conversation context auto-indexing.
+* ``Auto-index DB in real time``: Enables conversation context auto-indexing in defined modes.
 
 * ``ID of index for auto-indexing``: Index to use if auto-indexing of conversation context is enabled.
+
+* ``Enable auto-index in modes``: List of modes with enabled context auto-index, separated by comma.
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)``: Index the data – batch indexing is available here.
 

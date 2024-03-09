@@ -28,14 +28,15 @@ class Input:
         self.generating = False
         self.no_api_key_allowed = [
             "langchain",
-            "llama_index"
+            "llama_index",
+            "agent",
         ]
         self.no_ctx_idx_modes = [
-            "img",
+            # "img",
             "assistant",
             # "llama_index",
             "agent",
-        ]  # assistant handled in async, agent handled in agent flow
+        ]  # assistant is handled in async, agent is handled in agent flow
 
     def send_input(self, force: bool = False):
         """
@@ -237,8 +238,8 @@ class Input:
         self.generating = False  # unlock
 
         if mode not in self.no_ctx_idx_modes and not self.window.controller.agent.enabled():
-            self.window.controller.idx.on_ctx_end(ctx)  # update ctx DB index
-            # disabled in agent mode to prevent load everything at once when runs finished.
+            self.window.controller.idx.on_ctx_end(ctx, mode=mode)  # update ctx DB index
+            # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
 
         self.log("End.")
 

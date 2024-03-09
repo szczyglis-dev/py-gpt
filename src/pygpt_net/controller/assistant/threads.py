@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 04:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 import json
@@ -59,7 +59,7 @@ class Threads:
         self.window.core.ctx.update_item(ctx)
 
         # index ctx (llama-index)
-        self.window.controller.idx.on_ctx_end(ctx)
+        self.window.controller.idx.on_ctx_end(ctx, mode="assistant")
 
         # update ctx list
         self.window.controller.ctx.update()
@@ -173,7 +173,7 @@ class Threads:
         self.window.core.ctx.update_item(ctx)
 
         # index ctx (llama-index)
-        self.window.controller.idx.on_ctx_end(ctx)
+        self.window.controller.idx.on_ctx_end(ctx, mode="assistant")
 
         # check if there are any response, if not send empty response
         if not ctx.reply:

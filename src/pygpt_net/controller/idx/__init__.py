@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -141,23 +141,42 @@ class Idx:
         if items is not None:
             self.window.ui.toolbox.indexes.update(items)
 
-    def on_ctx_end(self, ctx: CtxItem = None, sync: bool = False):
+    def auto_idx_allowed(self, mode: str) -> bool:
+        """
+        Check if auto idx is allowed
+
+        :param mode: mode name
+        :return: True if allowed
+        """
+        modes = self.window.core.config.get('llama.idx.auto.modes')
+        if modes is not None:
+            modes_list = modes.replace(" ", "").split(',')
+            if mode in modes_list:
+                return True
+        return False
+
+    def on_ctx_end(self, ctx: CtxItem = None, mode: str = None, sync: bool = False):
         """
         After context item updated (request + response received)
 
         :param ctx: Context item instance
+        :param mode: Mode
         :param sync: Synchronous call
         """
+        # ignore if disallowed mode
+        if mode is not None and not self.auto_idx_allowed(mode):
+            return
+
         # ignore if manually stopped
         if self.window.controller.chat.input.stop:
             return
 
-        idx = "base"
+        idx = "base"  # default index
         if self.window.core.config.has('llama.idx.auto') and self.window.core.config.get('llama.idx.auto'):
             if self.window.core.config.has('llama.idx.auto.index'):
                 idx = self.window.core.config.get('llama.idx.auto.index')
 
-            # index items from previously indexed only
+            # index items from previously indexed time only
             current_ctx = self.window.core.ctx.current
             if current_ctx is not None:
                 meta = self.window.core.ctx.get_meta_by_id(current_ctx)

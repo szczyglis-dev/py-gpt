@@ -94,6 +94,7 @@
   "llama.hub.loaders.use_local": false,
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
+  "llama.idx.auto.modes": "chat,completion,vision,assistant,langchain,llama_index,agent",
   "llama.idx.current": "base",
   "llama.idx.db.index": "base",
   "llama.idx.db.last": 0,

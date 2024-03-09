@@ -780,6 +780,20 @@
         "advanced": false,
         "tab": "update"
     },
+    "llama.idx.auto.modes": {
+        "section": "llama-index",
+        "type": "text",
+        "slider": false,
+        "label": "settings.llama.extra.btn.idx_auto.modes",
+        "description": "model.mode.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "update"
+    },
     "agent.mode": {
         "section": "agent",
         "type": "combo",
