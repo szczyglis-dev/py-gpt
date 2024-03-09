@@ -229,4 +229,4 @@ class Flow:
 
         # update index if auto-index enabled, sync mode
         if auto:
-            self.window.controller.idx.on_ctx_end(None, sync=True)
+            self.window.controller.idx.on_ctx_end(None, sync=False)
