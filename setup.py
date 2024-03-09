@@ -28,6 +28,7 @@ setup(
         'data/css/*',
         'data/fonts/*',
         'data/fonts/Lato/*',
+        'data/icons/chat/*',
         'data/locale/*',
         'data/config/*',
         'data/config/presets/*'
