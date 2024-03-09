@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.controller.ctx.common import Common
-from pygpt_net.controller.ctx.summarizer import Summarizer
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+
+from .common import Common
+from .summarizer import Summarizer
+from .extra import Extra
 
 from pygpt_net.utils import trans
 
@@ -27,6 +29,11 @@ class Ctx:
         self.window = window
         self.common = Common(window)
         self.summarizer = Summarizer(window)
+        self.extra = Extra(window)
+
+        # current edit IDs
+        self.edit_meta_id = None
+        self.edit_item_id = None
 
     def setup(self):
         """Setup ctx"""

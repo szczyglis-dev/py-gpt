@@ -312,19 +312,6 @@
         "step": null,
         "advanced": false
     },
-    "ctx.allow_item_delete": {
-        "section": "ctx",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.allow_item_delete",
-        "description": "settings.ctx.allow_item_delete.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "ctx.auto_summary": {
         "section": "ctx",
         "type": "bool",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -204,6 +204,18 @@ class Input:
         self.window.ui.nodes['input.stop_btn'].clicked.connect(
             lambda: self.window.controller.chat.common.stop())
 
+        # update button
+        self.window.ui.nodes['input.update_btn'] = QPushButton(trans("input.btn.update"))
+        self.window.ui.nodes['input.update_btn'].setVisible(False)
+        self.window.ui.nodes['input.update_btn'].clicked.connect(
+            lambda: self.window.controller.ctx.extra.edit_submit())
+
+        # cancel button
+        self.window.ui.nodes['input.cancel_btn'] = QPushButton(trans("input.btn.cancel"))
+        self.window.ui.nodes['input.cancel_btn'].setVisible(False)
+        self.window.ui.nodes['input.cancel_btn'].clicked.connect(
+            lambda: self.window.controller.ctx.extra.edit_cancel())
+
         # layout
         self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()
         self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stream'])
@@ -213,6 +225,8 @@ class Input:
         self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_none'])
         self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_btn'])
         self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stop_btn'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.cancel_btn'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.update_btn'])
         self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
 
         return self.window.ui.nodes['ui.input.buttons']

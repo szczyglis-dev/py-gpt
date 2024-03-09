@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
+import os
 import re
 import html
 from datetime import datetime
@@ -209,18 +210,71 @@ class Renderer(BaseRenderer):
                 except Exception as e:
                     pass
 
-        # append delete link
-        if self.window.core.config.get("ctx.allow_item_delete"):
-            self.get_output_node().append(
-                '<a href="delete:{}"><span class="cmd">[{}]</span></a>'.format(
-                    item.id,
-                    trans("ctx.delete.item.link")
-                )
-            )
+        # extra action icons
+        if self.window.core.config.get('ctx.edit_icons'):
+            self.get_output_node().append(" ".join(self.get_action_icons(item)))
 
         # jump to end
         if len(appended) > 0:
             self.to_end()
+
+    def get_action_icons(self, item: CtxItem) -> list:
+        """
+        Get action icons for context item
+
+        :param item: context item
+        :return: list of icons
+        """
+        icons = []
+
+        # audio read
+        icons.append(
+            '<a href="extra-audio-read:{}"><span class="cmd">{}</span></a>'.format(
+                item.id,
+                self.get_icon("audio", trans("ctx.extra.audio"))
+            )
+        )
+        # copy item
+        icons.append(
+            '<a href="extra-copy:{}"><span class="cmd">{}</span></a>'.format(
+                item.id,
+                self.get_icon("copy", trans("ctx.extra.copy"))
+            )
+        )
+        # regen link
+        icons.append(
+            '<a href="extra-replay:{}"><span class="cmd">{}</span></a>'.format(
+                item.id,
+                self.get_icon("reload", trans("ctx.extra.reply"))
+            )
+        )
+        # edit link
+        icons.append(
+            '<a href="extra-edit:{}"><span class="cmd">{}</span></a>'.format(
+                item.id,
+                self.get_icon("edit", trans("ctx.extra.edit"))
+            )
+        )
+        # delete link
+        icons.append(
+            '<a href="extra-delete:{}"><span class="cmd">{}</span></a>'.format(
+                item.id,
+                self.get_icon("delete", trans("ctx.extra.delete"))
+            )
+        )
+        return icons
+
+    def get_icon(self, icon: str, title: str = None) -> str:
+        """
+        Get icon
+
+        :param icon: icon name
+        :param title: icon title
+        :return: icon HTML
+        """
+        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
+        return '<img src="{}" width="20" height="20" title="{}" alt="">'.format(icon, title, title)
+        # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """

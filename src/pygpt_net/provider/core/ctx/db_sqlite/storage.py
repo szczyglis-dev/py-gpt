@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -245,6 +245,25 @@ class Storage:
         stmt = text("""
             DELETE FROM ctx_item WHERE id = :id
         """).bindparams(id=id)
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
+    def delete_items_from(self, meta_id: int, item_id: int) -> bool:
+        """
+        Delete ctx items from ID
+
+        :param meta_id: ctx meta ID
+        :param item_id: ctx item ID
+        :return: True if deleted
+        """
+        stmt = text("""
+            DELETE FROM ctx_item WHERE id >= :item_id AND meta_id = :meta_id
+        """).bindparams(
+            meta_id=meta_id,
+            item_id=item_id,
+        )
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(stmt)

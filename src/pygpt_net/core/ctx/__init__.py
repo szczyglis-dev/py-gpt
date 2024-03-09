@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -285,6 +285,17 @@ class Ctx:
         if idx < len(self.items):
             return self.items[idx]
 
+    def get_item_by_id(self, id: int) -> CtxItem:
+        """
+        Return ctx item by id
+
+        :param id: item id
+        :return: context item
+        """
+        for item in self.items:
+            if item.id == id:
+                return item
+
     def get_meta(self, reload: bool = False) -> dict:
         """
         Get ctx items sorted descending by date
@@ -400,6 +411,15 @@ class Ctx:
                 self.items.remove(item)
                 self.provider.remove_item(id)
                 break
+
+    def remove_items_from(self, meta_id: int, item_id: int):
+        """
+        Remove ctx items from meta_id
+
+        :param meta_id: meta_id
+        :param item_id: item_id
+        """
+        return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):
         """Delete all ctx"""

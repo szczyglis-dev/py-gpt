@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -41,13 +41,32 @@ class ChatOutput(QTextBrowser):
 
         :param url: url
         """
+        extra_schemes = ['extra-delete', 'extra-edit', 'extra-copy', 'extra-replay', 'extra-audio-read', 'extra-join']
+
         # local file
-        if not url.scheme().startswith('http') and url.scheme() != 'delete':
+        if not url.scheme().startswith('http') and url.scheme() not in extra_schemes:
             self.window.controller.files.open(url.toLocalFile())
-        elif url.scheme() == 'delete':
-            # ctx item delete
+
+        # extra actions
+        elif url.scheme() == 'extra-delete':  # ctx item delete
             id = url.toString().split(':')[1]
-            self.window.controller.ctx.delete_item(int(id))
+            self.window.controller.ctx.extra.delete_item(int(id))
+        elif url.scheme() == 'extra-edit':  # ctx item edit
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.edit_item(int(id))
+        elif url.scheme() == 'extra-copy':  # ctx item copy
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.copy_item(int(id))
+        elif url.scheme() == 'extra-replay':  # ctx regen response
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.replay_item(int(id))
+        elif url.scheme() == 'extra-audio-read':  # ctx audio read
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.audio_read_item(int(id))
+        elif url.scheme() == 'extra-join':  # ctx join
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.join_item(int(id))
+
         else:
             # external link
             QDesktopServices.openUrl(url)

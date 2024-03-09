@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 01:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -157,6 +157,13 @@ class Output:
                 self.window.ui.nodes['output.raw'].isChecked())
         )
 
+        # edit icons
+        self.window.ui.nodes['output.edit'] = QCheckBox(trans('output.edit'))
+        self.window.ui.nodes['output.edit'].clicked.connect(
+            lambda: self.window.controller.chat.common.toggle_edit_icons(
+                self.window.ui.nodes['output.edit'].isChecked())
+        )
+
         # inline vision
         self.window.ui.nodes['inline.vision'] = QCheckBox(trans('inline.vision'))
         self.window.ui.nodes['inline.vision'].clicked.connect(
@@ -182,6 +189,7 @@ class Output:
         # opts_layout.setSpacing(2)  #
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
+        opts_layout.addWidget(self.window.ui.nodes['output.edit'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
         opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.setAlignment(Qt.AlignLeft)

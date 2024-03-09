@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
+
 import os
 
 from PySide6.QtGui import QTextCursor
@@ -67,6 +68,10 @@ class Common:
         # raw (plain) output
         self.window.ui.nodes['output.raw'].setChecked(self.window.core.config.get('render.plain'))
 
+        # edit icons
+        if self.window.core.config.has('ctx.edit_icons'):
+            self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
+
         # images generation
         if self.window.core.config.get('img_raw'):
             self.window.ui.config['global']['img_raw'].setChecked(True)
@@ -101,6 +106,10 @@ class Common:
 
         # update tokens counter
         self.window.controller.ui.update_tokens()
+
+    def clear_input(self):
+        """Clear input"""
+        self.window.ui.nodes['input'].clear()
 
     def toggle_stream(self, value: bool):
         """
@@ -238,6 +247,16 @@ class Common:
 
         # restore previous font size
         self.window.controller.ui.update_font_size()
+
+    def toggle_edit_icons(self, value: bool):
+        """
+        Toggle edit icons
+
+        :param value: value of the checkbox
+        """
+        self.window.core.config.set('ctx.edit_icons', value)
+        self.window.core.config.save()
+        self.window.controller.ctx.refresh()
 
     def img_enable_raw(self):
         """Enable help for images"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -151,6 +151,19 @@ class Patch:
                     if model.id.startswith("gpt-") and model.id not in exclude:
                         if "agent" not in model.mode:
                             model.mode.append("agent")
+                updated = True
+
+            # fix typo in gpt-4 turbo preview for llama
+            if old < parse_version("2.1.15"):
+                print("Migrating models from < 2.1.15...")
+                if "gpt-4-turbo-preview" in data:
+                    data["gpt-4-turbo-preview"].llama_index["args"] = [
+                        {
+                            "name": "model",
+                            "value": "gpt-4-turbo-preview",
+                            "type": "str",
+                        }
+                    ]
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -48,6 +48,9 @@ class BaseProvider:
         pass
 
     def remove_item(self, id):
+        pass
+
+    def remove_items_from(self, meta_id: int, item_id: int):
         pass
 
     def truncate(self):

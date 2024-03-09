@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -67,6 +67,7 @@ class Mapping:
 
         # output
         nodes['output.timestamp'] = 'output.timestamp'
+        nodes['output.edit'] = 'output.edit'
 
         # painter
         nodes['painter.btn.brush'] = 'painter.mode.paint'
@@ -105,6 +106,8 @@ class Mapping:
         nodes['input.send_none'] = 'input.radio.none'
         nodes['input.send_clear'] = 'input.send_clear'
         nodes['input.send_btn'] = 'input.btn.send'
+        nodes['input.update_btn'] = 'input.btn.update'
+        nodes['input.cancel_btn'] = 'input.btn.cancel'
         nodes['input.stop_btn'] = 'input.btn.stop'
         nodes['input.stream'] = 'input.stream'
 

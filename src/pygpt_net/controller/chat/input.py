@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.09 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -43,6 +43,11 @@ class Input:
 
         :param force: force send
         """
+        # check if not in edit mode
+        if not force and self.window.controller.ctx.extra.is_editing():
+            self.window.controller.ctx.extra.edit_submit()
+            return
+
         # get text from input
         text = self.window.ui.nodes['input'].toPlainText().strip()
         mode = self.window.core.config.get('mode')
