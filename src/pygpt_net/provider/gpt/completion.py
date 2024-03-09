@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.09 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -48,6 +48,11 @@ class Completion:
             user_name=user_name,
             model=model,
         )
+
+        # check if max tokens not exceeded
+        available_tokens = model.ctx - self.input_tokens
+        if available_tokens < max_tokens:
+            max_tokens = available_tokens
 
         # prepare stop word if user_name is set
         stop = ""
