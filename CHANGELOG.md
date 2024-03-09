@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.14 (2024-03-09)
+
+- Added restoration of "All counters" checkbox status in calendar on tab init.
+- Added new line with Shift+Enter in input if sending mode is "Enter" - issue #26.
+
 # 2.1.13 (2024-03-08)
 
 - Fixed context auto-indexing in autonomous/agent mode - issue #23.

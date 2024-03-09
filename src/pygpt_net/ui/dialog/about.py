@@ -37,6 +37,7 @@ class About:
             "gfsysa",
             "kaneda2004",
             "moritz-t-w",
+            "oleksii-honchar",
             "yf007",
         ]
 

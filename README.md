@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.13** | build: **2024.03.08** | Python: **>=3.10, <3.12**
+Release: **2.1.14** | build: **2024.03.09** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2895,6 +2895,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.14 (2024-03-09)
+
+- Added restoration of "All counters" checkbox status in calendar on tab init.
+- Added new line with Shift+Enter in input if sending mode is "Enter" - issue #26.
+
 # 2.1.13 (2024-03-08)
 
 - Fixed context auto-indexing in autonomous/agent mode - issue #23.
@@ -2969,6 +2974,8 @@ GitHub community:
 - **kaneda2004**
 
 - **moritz-t-w**
+
+- **oleksii-honchar**
 
 - **yf007**
 
