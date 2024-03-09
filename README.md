@@ -2650,8 +2650,6 @@ Config -> Settings...
 
 - `Store Time in History`: Chooses whether timestamps are added to the .txt files.
 
-- `Allow context item delete`: Enable display of the delete conversation item link.
-
 - `Context Auto-summary`: Enables automatic generation of titles for contexts, Default: True.
 
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
