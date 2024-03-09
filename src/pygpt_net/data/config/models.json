@@ -384,7 +384,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "gpt-4-turbo-previeww",
+                        "value": "gpt-4-turbo-preview",
                         "type": "str"
                     }
                 ],
