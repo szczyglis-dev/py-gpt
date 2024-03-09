@@ -212,7 +212,8 @@ class Renderer(BaseRenderer):
 
         # extra action icons
         if self.window.core.config.get('ctx.edit_icons'):
-            self.get_output_node().append(" ".join(self.get_action_icons(item)))
+            icons_html = " ".join(self.get_action_icons(item))
+            self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
 
         # jump to end
         if len(appended) > 0:
@@ -273,7 +274,7 @@ class Renderer(BaseRenderer):
         :return: icon HTML
         """
         icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="{}" width="20" height="20" title="{}" alt="">'.format(icon, title, title)
+        return '<img src="{}" width="20" height="20" title="{}" alt="{}">'.format(icon, title, title)
         # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
