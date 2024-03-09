@@ -100,9 +100,13 @@ class UI:
         self.window.setCentralWidget(self.window.ui.splitters['main'])
 
         # set window title
+        suffix = self.window.core.platforms.get_env_suffix()
         self.window.setWindowTitle(
-            'PyGPT - Desktop AI Assistant v{} | build {}'.format(self.window.meta['version'],
-                                                                 self.window.meta['build'])
+            'PyGPT - Desktop AI Assistant v{} | build {}{}'.format(
+                self.window.meta['version'],
+                self.window.meta['build'],
+                suffix,
+            )
         )
 
     def post_setup(self):

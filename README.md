@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.14** | build: **2024.03.09** | Python: **>=3.10, <3.12**
+Release: **2.1.15** | build: **2024.03.09** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2894,6 +2894,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.15 (2024-03-09)
+
+- Added Edit mode in chat output with options: read response (audio), copy to clipboard, regenerate response, edit and regenerate, and delete context item.
+- Added dynamic max output tokens calculation in completion mode - issue #28.
+- Added config option "Modes to auto-index" in Llama-index settings.
+- Fixed typo in gpt-4-turbo-preview model config args for Llama-index provider - issue #29.
 
 # 2.1.14 (2024-03-09)
 

@@ -121,12 +121,20 @@ class Platforms:
 
         :return: platform as string
         """
-        extra = ''
+        return self.get_os() + ', ' + self.get_architecture() + self.get_env_suffix()
+
+    def get_env_suffix(self) -> str:
+        """
+        Return platform suffix as string
+
+        :return: platform as string
+        """
+        suffix = ''
         if self.is_snap():
-            extra = ' (snap)'
+            suffix = ' (snap)'
         elif self.window.core.config.is_compiled():
-            extra = ' (standalone)'
-        return self.get_os() + ', ' + self.get_architecture() + extra
+            suffix = ' (standalone)'
+        return suffix
 
     def is_svg_supported(self) -> bool:
         """Check if SVG is supported"""
