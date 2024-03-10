@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.18 (2024-03-10)
+
+- Added horizontal splitters and min width for lists in settings dialogs - issue #30.
+- Added audio icon display config option in Settings -> Context.
+
 # 2.1.17 (2024-03-10)
 
 - Improved audio handling.

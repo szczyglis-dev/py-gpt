@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.17** | build: **2024.03.10** | Python: **>=3.10, <3.12**
+Release: **2.1.18** | build: **2024.03.10** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2898,6 +2898,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.18 (2024-03-10)
+
+- Added horizontal splitters and min width for lists in settings dialogs - issue #30.
+- Added audio icon display config option in Settings -> Context.
 
 # 2.1.17 (2024-03-10)
 
