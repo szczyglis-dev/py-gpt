@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -64,11 +64,9 @@ class Prompt:
         # prompt
         option = self.window.controller.presets.editor.get_option('prompt')
         self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset', 'prompt', option)
-        self.window.ui.nodes['preset.prompt'].real_time = True
-        self.window.ui.nodes['preset.prompt'].update_ui = False
         self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.window.ui.nodes['preset.prompt'].textChanged.connect(
-            lambda: self.window.controller.ui.update_tokens())
+            lambda: self.on_prompt_changed())
 
         self.window.ui.nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), self.window)
 
@@ -84,3 +82,14 @@ class Prompt:
         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return widget
+
+    def on_prompt_changed(self):
+        """On prompt changed"""
+        # hook update
+        self.window.controller.config.input.on_update(
+            self.window.ui.nodes['preset.prompt'].parent_id,
+            self.window.ui.nodes['preset.prompt'].id,
+            self.window.ui.nodes['preset.prompt'].option,
+            self.window.ui.nodes['preset.prompt'].toPlainText(),
+        )
+        self.window.controller.ui.update_tokens()
