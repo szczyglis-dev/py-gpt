@@ -179,14 +179,11 @@ class Audio:
         if event == Event.AUDIO_READ_TEXT:
             self.window.ui.status("")
 
-    def on_stop(self, event: str):
+    def on_stop(self):
         """
         On audio playback stopped (force)
-
-        :param event: event name
         """
-        if event == Event.AUDIO_READ_TEXT:
-            self.window.ui.status(trans("status.audio.stopped"))
+        self.window.ui.status(trans("status.audio.stopped"))
 
     def is_playing(self) -> bool:
         """
