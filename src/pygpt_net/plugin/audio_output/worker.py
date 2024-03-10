@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 22:00:00                  #
+# Updated Date: 2024.03.09 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -14,7 +14,7 @@ from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
 class WorkerSignals(BaseSignals):
-    playback = Signal(object)
+    playback = Signal(object, str)
     stop = Signal()
 
 
@@ -26,6 +26,7 @@ class Worker(BaseWorker):
         self.kwargs = kwargs
         self.plugin = None
         self.text = None
+        self.event = None
 
     @Slot()
     def run(self):
@@ -47,7 +48,7 @@ class Worker(BaseWorker):
 
         :param playback: playback object
         """
-        self.signals.playback.emit(playback)
+        self.signals.playback.emit(playback, self.event)
 
     def stop_playback(self):
         """Stop audio playback"""

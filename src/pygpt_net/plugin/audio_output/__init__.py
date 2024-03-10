@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.09 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -140,7 +140,7 @@ class Plugin(BasePlugin):
             Event.CTX_AFTER,
             Event.AUDIO_READ_TEXT
         ]:
-            self.on_ctx_after(ctx)
+            self.on_ctx_after(ctx, name)
 
         elif name == Event.AUDIO_OUTPUT_STOP:
             self.stop_audio()
@@ -153,11 +153,12 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def on_ctx_after(self, ctx: CtxItem):
+    def on_ctx_after(self, ctx: CtxItem, name: str):
         """
         Events: CTX_AFTER, AUDIO_READ_TEXT
 
         :param ctx: CtxItem
+        :param name: event name
         """
         # check if provider is configured
         if not self.get_provider().is_configured():
@@ -171,6 +172,7 @@ class Plugin(BasePlugin):
                 # worker
                 worker = Worker()
                 worker.plugin = self
+                worker.event = name
                 worker.text = self.window.core.audio.clean_text(text)
 
                 # signals
@@ -181,7 +183,10 @@ class Plugin(BasePlugin):
 
                 # start
                 self.window.threadpool.start(worker)
-                self.window.controller.audio.on_begin(worker.text)
+
+                # only for manual reading
+                if name == Event.AUDIO_READ_TEXT:
+                    self.window.controller.audio.on_begin(worker.text)
 
         except Exception as e:
             self.error(e)
@@ -221,17 +226,17 @@ class Plugin(BasePlugin):
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
-            self.window.controller.audio.on_stop()
 
-    @Slot(object)
-    def handle_playback(self, playback):
+    @Slot(object, str)
+    def handle_playback(self, playback, event: str):
         """
         Handle thread playback object
 
         :param playback: playback object
+        :param event: event name
         """
         self.playback = playback
-        self.window.controller.audio.on_play()
+        self.window.controller.audio.on_play(event)
 
     @Slot()
     def handle_stop(self):

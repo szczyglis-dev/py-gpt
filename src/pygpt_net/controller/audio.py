@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.09 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -135,12 +135,8 @@ class Audio:
         """
         ctx = CtxItem()
         ctx.output = text
-        all = False
-        if self.window.controller.audio.is_output_enabled():
-            event = Event(Event.CTX_AFTER)
-        else:
-            all = True  # to all plugins (even if disabled)
-            event = Event(Event.AUDIO_READ_TEXT)
+        all = True  # to all plugins (even if disabled)
+        event = Event(Event.AUDIO_READ_TEXT)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event, all=all)
 
@@ -174,13 +170,23 @@ class Audio:
         """
         self.window.ui.status(trans("status.audio.start"))
 
-    def on_play(self):
-        """On audio playback start"""
-        self.window.ui.status("")
+    def on_play(self, event: str):
+        """
+        On audio playback start
 
-    def on_stop(self):
-        """On audio playback stopped (force)"""
-        self.window.ui.status(trans("status.audio.stopped"))
+        :param event: event name
+        """
+        if event == Event.AUDIO_READ_TEXT:
+            self.window.ui.status("")
+
+    def on_stop(self, event: str):
+        """
+        On audio playback stopped (force)
+
+        :param event: event name
+        """
+        if event == Event.AUDIO_READ_TEXT:
+            self.window.ui.status(trans("status.audio.stopped"))
 
     def is_playing(self) -> bool:
         """
