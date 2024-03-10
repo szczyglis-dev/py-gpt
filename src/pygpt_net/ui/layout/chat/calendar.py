@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -105,10 +105,12 @@ class Calendar:
         :return: QSplitter
         """
         # calendar
+        select_layout = QVBoxLayout()
         self.window.ui.calendar['select'] = CalendarSelect(self.window)
         self.window.ui.calendar['select'].setMinimumHeight(200)
         self.window.ui.calendar['select'].setMinimumWidth(200)
         self.window.ui.calendar['select'].setGridVisible(True)
+        select_layout.addWidget(self.window.ui.calendar['select'])
 
         self.window.ui.calendar['note'] = CalendarNote(self.window)
 
@@ -126,10 +128,14 @@ class Calendar:
         widget.setLayout(layout)
 
         filters = self.setup_filters()
+        select_layout.addWidget(filters)
+
+        select_widget = QWidget()
+        select_widget.setLayout(select_layout)
 
         # layout / splitter
         self.window.ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['calendar'].addWidget(self.window.ui.calendar['select'])
+        self.window.ui.splitters['calendar'].addWidget(select_widget)
         self.window.ui.splitters['calendar'].addWidget(widget)
         self.window.ui.splitters['calendar'].setStretchFactor(0, 6)  # 60%
         self.window.ui.splitters['calendar'].setStretchFactor(1, 4)  # 40%
@@ -139,7 +145,7 @@ class Calendar:
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['calendar'])
-        layout.addWidget(filters)
+        #layout.addWidget(filters)
 
         widget = QWidget()
         widget.setLayout(layout)
