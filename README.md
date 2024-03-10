@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.16** | build: **2024.03.10** | Python: **>=3.10, <3.12**
+Release: **2.1.17** | build: **2024.03.10** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2896,6 +2896,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.17 (2024-03-10)
+
+- Improved audio handling.
+- Added options to context debug.
+- Added context meta load on demand if not on list.
 
 # 2.1.16 (2024-03-10)
 

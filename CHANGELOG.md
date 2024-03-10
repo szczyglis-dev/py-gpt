@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.17 (2024-03-10)
+
+- Improved audio handling.
+- Added options to context debug.
+- Added context meta load on demand if not on list.
+
 # 2.1.16 (2024-03-10)
 
 - Added "merge" icon in context responses (allows merging selected response with the previous response).
