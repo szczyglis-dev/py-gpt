@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.15** | build: **2024.03.09** | Python: **>=3.10, <3.12**
+Release: **2.1.16** | build: **2024.03.10** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2896,6 +2896,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.16 (2024-03-10)
+
+- Added "merge" icon in context responses (allows merging selected response with the previous response).
+- Added display of Llama-index used sources in the context response.
+- Fixed word-wrap in code blocks - issue #27.
+- Improved audio playback status indication for responses.
 
 # 2.1.15 (2024-03-09)
 
