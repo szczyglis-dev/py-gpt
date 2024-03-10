@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
+import json
 import os
 import re
 import html
@@ -214,6 +215,17 @@ class Renderer(BaseRenderer):
         if self.window.core.config.get('ctx.edit_icons'):
             icons_html = " ".join(self.get_action_icons(item))
             self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+            self.to_end()
+
+        # docs json
+        if self.window.core.config.get('ctx.sources'):
+            if len(item.doc_ids) > 0:
+                try:
+                    docs = self.get_docs_html(item.doc_ids)
+                    self.get_output_node().append(docs)
+                    self.to_end()
+                except Exception as e:
+                    pass
 
         # jump to end
         if len(appended) > 0:
@@ -263,6 +275,15 @@ class Renderer(BaseRenderer):
                 self.get_icon("delete", trans("ctx.extra.delete"))
             )
         )
+
+        # join link
+        if not self.window.core.ctx.is_first_item(item.id):
+            icons.append(
+                '<a href="extra-join:{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    self.get_icon("join", trans("ctx.extra.join"))
+                )
+            )
         return icons
 
     def get_icon(self, icon: str, title: str = None) -> str:
@@ -392,6 +413,42 @@ class Renderer(BaseRenderer):
         return """<br/><b>{prefix}:</b> <a href="{url}">{url}</a><br/>""".\
             format(prefix=trans('chat.prefix.url'),
                    url=url)
+
+    def get_docs_html(self, docs: list) -> str:
+        """
+        Get Llama-index doc metadata HTML
+
+        :param docs: list of document metadata
+        :return: HTML code
+        """
+        html = ""
+        html_sources = ""
+        num = 1
+        for doc_json in docs:
+            try:
+                """
+                Example doc (file metadata):
+                {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
+                    'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
+                    'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
+                    'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
+                    'last_accessed_date': '2024-03-03'}}
+                """
+                doc_id = list(doc_json.keys())[0]
+                doc_parts = []
+                for key in doc_json[doc_id]:
+                    doc_parts.append("<b>{}:</b> {}".format(key, doc_json[doc_id][key]))
+                html_sources += "[{}] {}: {}".format(num, doc_id, ", ".join(doc_parts))
+                num +=1
+            except Exception as e:
+                pass
+
+        if html_sources != "":
+            html += "<p><b>{prefix}:</b></p><div class=\"cmd\">".format(prefix=trans('chat.prefix.doc'))
+            html += "<p>" + html_sources + "</p>"
+            html += "</div> "
+
+        return html
 
     def get_file_html(self, url: str) -> str:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -195,6 +195,16 @@ class Renderer(BaseRenderer):
                 except Exception as e:
                     pass
 
+        # docs json
+        if self.window.core.config.get('ctx.sources'):
+            if len(item.doc_ids) > 0:
+                try:
+                    docs = self.get_docs_html(item.doc_ids)
+                    self.get_output_node().append(docs)
+                    self.to_end()
+                except Exception as e:
+                    pass
+
         # jump to end
         if len(appended) > 0:
             self.to_end()
@@ -303,6 +313,41 @@ class Renderer(BaseRenderer):
         return """\n{prefix}: {url}\n""".\
             format(prefix=trans('chat.prefix.url'),
                    url=url)
+
+    def get_docs_html(self, docs: list) -> str:
+        """
+        Get Llama-index doc metadata HTML
+
+        :param docs: list of document metadata
+        :return: HTML code
+        """
+        html = ""
+        html_sources = ""
+        num = 1
+        for doc_json in docs:
+            try:
+                """
+                Example doc (file metadata):
+                {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
+                    'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
+                    'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
+                    'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
+                    'last_accessed_date': '2024-03-03'}}
+                """
+                doc_id = list(doc_json.keys())[0]
+                doc_parts = []
+                for key in doc_json[doc_id]:
+                    doc_parts.append("{}: {}".format(key, doc_json[doc_id][key]))
+                html_sources += "[{}] {}: {}".format(num, doc_id, ", ".join(doc_parts))
+                num +=1
+            except Exception as e:
+                pass
+
+        if html_sources != "":
+            html += "\n{prefix}:\n\n".format(prefix=trans('chat.prefix.doc'))
+            html += html_sources
+
+        return html
 
     def get_file_html(self, url: str) -> str:
         """

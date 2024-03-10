@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -145,14 +145,30 @@ class Extra:
                 self.window.controller.audio.read_text(item.output)
                 self.audio_play_id = item_id
             elif self.audio_play_id == item_id:
-                self.window.controller.audio.stop_output()
-                self.audio_play_id = None
+                if not self.window.controller.audio.is_playing():
+                    self.window.controller.audio.read_text(item.output)
+                else:
+                    self.window.controller.audio.stop_output()
+                    self.audio_play_id = None
 
-    def join_item(self, item_id: int):
+    def join_item(self, item_id: int, force: bool = False):
         """
         Join ctx items
 
         :param item_id: Item id
+        :param force: Force join
         """
-        # TODO: implement context item join with selected item (append to previous)
-        pass
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.join_item',
+                id=item_id,
+                msg=trans('ctx.join.item.confirm'),
+            )
+            return
+        prev_item = self.window.core.ctx.get_previous_item(item_id)
+        current_item = self.window.core.ctx.get_item_by_id(item_id)
+        if prev_item is not None and current_item is not None:
+            prev_item.output += current_item.output
+            self.window.core.ctx.update_item(prev_item)
+            self.window.core.ctx.remove_item(current_item.id)
+            self.window.controller.ctx.refresh()

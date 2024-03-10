@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -358,6 +358,41 @@ class Ctx:
         """
         if len(self.items) > 0:
             return self.items[-1]
+        return None
+
+    def is_first_item(self, item_id: int) -> bool:
+        """
+        Check if item is first in ctx
+
+        :param item_id: item id
+        :return: True if first
+        """
+        if len(self.items) > 0:
+            return self.items[0].id == item_id
+        return False
+
+    def is_last_item(self, item_id: int) -> bool:
+        """
+        Check if item is last in ctx
+
+        :param item_id: item id
+        :return: True if last
+        """
+        if len(self.items) > 0:
+            return self.items[-1].id == item_id
+        return False
+
+    def get_previous_item(self, item_id: int) -> CtxItem or None:
+        """
+        Get previous item from ctx
+
+        :param item_id: item id
+        :return: ctx item
+        """
+        for i in range(len(self.items)):
+            if self.items[i].id == item_id:
+                if i > 0:
+                    return self.items[i - 1]
         return None
 
     def prepare(self):
