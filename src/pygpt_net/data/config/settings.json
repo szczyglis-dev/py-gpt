@@ -362,6 +362,18 @@
         "step": null,
         "advanced": false
     },
+    "ctx.audio": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.audio",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.auto_summary.model": {
         "section": "ctx",
         "type": "combo",

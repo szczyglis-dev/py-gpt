@@ -212,9 +212,12 @@ class Renderer(BaseRenderer):
                     pass
 
         # extra action icons
-        icons_html = " ".join(self.get_action_icons(item, all=self.window.core.config.get('ctx.edit_icons')))
-        self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
-        self.to_end()
+        show_edit = self.window.core.config.get('ctx.edit_icons')
+        show_audio = self.window.core.config.get('ctx.audio')
+        if show_edit or show_audio:
+            icons_html = " ".join(self.get_action_icons(item, all=show_edit))
+            self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+            self.to_end()
 
         # docs json
         if self.window.core.config.get('ctx.sources'):

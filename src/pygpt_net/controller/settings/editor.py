@@ -158,7 +158,7 @@ class Editor:
         self.window.controller.idx.indexer.update_explorer()
 
         # update chat output
-        if self.config_changed('ctx.sources'):
+        if self.config_changed('ctx.sources') or self.config_changed('ctx.audio'):
             self.window.controller.ctx.refresh()
 
         self.before_config = copy.deepcopy(self.window.core.config.all())

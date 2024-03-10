@@ -1089,6 +1089,12 @@ class Patch:
                     data["ctx.sources"] = True
                 updated = True
 
+            if old < parse_version("2.1.18"):
+                print("Migrating config from < 2.1.18...")
+                if 'ctx.audio' not in data:
+                    data["ctx.audio"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:
