@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser, QMenu
-from PySide6.QtGui import QDesktopServices, QAction, QIcon
+from PySide6.QtGui import QDesktopServices, QAction, QIcon, QTextOption
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -34,6 +34,7 @@ class ChatOutput(QTextBrowser):
         self.setOpenExternalLinks(False)
         self.setOpenLinks(False)
         self.anchorClicked.connect(self.open_external_link)
+        self.setWordWrapMode(QTextOption.WordWrap)
 
     def open_external_link(self, url):
         """

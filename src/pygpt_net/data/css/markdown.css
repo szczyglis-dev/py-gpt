@@ -1,3 +1,6 @@
+body {{ 
+  word-wrap: break-word;
+}}
 a {{
     color: #fff;
 }}
@@ -27,7 +30,10 @@ pre {{
     background-color: #202225;
     font-family: 'Lato';
     display: block;
+    word-wrap: break-word;
+    white-space: pre-wrap;
 }}
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    word-wrap: break-word;
 }}
