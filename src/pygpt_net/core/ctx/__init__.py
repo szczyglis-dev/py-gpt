@@ -88,6 +88,9 @@ class Ctx:
 
         :param id: context meta id
         """
+        if id not in self.meta:
+            self.load_tmp_meta(id)
+
         if id in self.meta:
             ctx = self.meta[id]
             self.current = id
@@ -369,6 +372,7 @@ class Ctx:
         :param id: ctx id
         :return: ctx meta object
         """
+        self.load_tmp_meta(id)
         if id in self.meta:
             return self.meta[id]
 
@@ -420,7 +424,7 @@ class Ctx:
     def prepare(self):
         """Prepare context for prompt"""
         # if no contexts, create new one
-        if len(self.meta) == 0:
+        if self.count_meta() == 0:
             self.new()
 
     def count(self) -> int:
@@ -437,7 +441,10 @@ class Ctx:
 
         :return: ctx meta count
         """
-        return len(self.meta)
+        extra = 0
+        if self.tmp_meta is not None:
+            extra = 1  # prevent create new if tmp meta exists
+        return len(self.meta) + extra
 
     def all(self) -> list:
         """
@@ -802,14 +809,6 @@ class Ctx:
                 search_content=self.is_search_content(),
             )
 
-        # append tmp meta if exists
-        if self.tmp_meta is not None:
-            if self.tmp_meta.id not in self.meta:
-                # append at first position
-                self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
-            else:
-                self.tmp_meta.id = None
-
     def load_tmp_meta(self, meta_id: int):
         """
         Load tmp meta
@@ -829,7 +828,7 @@ class Ctx:
         )
         if len(meta) > 0:
             self.tmp_meta = list(meta.values())[0]
-            if self.tmp_meta not in self.meta:
+            if self.tmp_meta.id not in self.meta:
                 # append at first position
                 self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
 
@@ -924,8 +923,11 @@ class Ctx:
 
     def store(self):
         """Store current ctx"""
-        if self.current is not None and self.current in self.meta:
-            self.save(self.current)
+        if self.current is not None:
+            if self.current not in self.meta:
+                self.load_tmp_meta(self.current)
+            if self.current in self.meta:
+                self.save(self.current)
 
     def dump(self, ctx: CtxItem) -> str:
         """
