@@ -256,6 +256,7 @@ class Settings(BaseConfigDialog):
         # set max width to list
         self.window.ui.nodes[data_id].setMinimumWidth(200)
 
+        # splitter
         self.window.ui.splitters['dialog.settings'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['dialog.settings'].addWidget(self.window.ui.nodes[data_id])  # list
         self.window.ui.splitters['dialog.settings'].addWidget(self.window.ui.tabs['settings.section'])  # tabs

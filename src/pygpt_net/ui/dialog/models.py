@@ -153,6 +153,7 @@ class Models:
         # set max width to list
         self.window.ui.nodes[id].setMinimumWidth(250)
 
+        # splitter
         self.window.ui.splitters['dialog.models'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['dialog.models'].addWidget(self.window.ui.nodes[id])  # list
         self.window.ui.splitters['dialog.models'].addWidget(area_widget)  # tabs

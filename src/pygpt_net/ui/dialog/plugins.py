@@ -240,6 +240,7 @@ class Plugins:
         # set max width to list
         self.window.ui.nodes[id].setMinimumWidth(self.max_list_width)
 
+        # splitter
         self.window.ui.splitters['dialog.plugins'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.nodes[id])  # list
         self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.tabs['plugin.settings'])  # tabs
