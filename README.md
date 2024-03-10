@@ -2656,6 +2656,8 @@ Config -> Settings...
 
 - `Search also in conversation content, not only in titles`: When enabled, context search will also consider the content of conversations, not just the titles of conversations.
 
+- `Show Llama-index sources`: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
+
 - `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
 - `Prompt (sys): auto summary`: System prompt for context auto-summary.

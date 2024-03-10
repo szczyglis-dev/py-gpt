@@ -172,7 +172,7 @@ class Audio:
 
         :param text: text to play
         """
-        self.window.ui.status("Generating audio, please wait...")
+        self.window.ui.status(trans("status.audio.start"))
 
     def on_play(self):
         """On audio playback start"""
@@ -180,7 +180,7 @@ class Audio:
 
     def on_stop(self):
         """On audio playback stopped (force)"""
-        self.window.ui.status("Stopped audio playback.")
+        self.window.ui.status(trans("status.audio.stopped"))
 
     def is_playing(self) -> bool:
         """

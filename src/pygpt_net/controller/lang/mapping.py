@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -211,6 +211,8 @@ class Mapping:
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
         menu_title['menu.config'] = 'menu.config'
+        menu_title['config.edit.css'] = 'menu.config.edit.css'
+        menu_title['config.edit.json'] = 'menu.config.edit.json'
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
@@ -262,6 +264,10 @@ class Mapping:
             menu_text['debug.attachments'] = 'menu.debug.attachments'
             menu_text['debug.assistants'] = 'menu.debug.assistants'
             menu_text['debug.ui'] = 'menu.debug.ui'
+            menu_text['debug.agent'] = 'menu.debug.agent'
+            menu_text['debug.db'] = 'menu.debug.db'
+            menu_text['debug.logger'] = 'menu.debug.logger'
+            menu_text['debug.app.log'] = 'debug.app.log'
 
         # dialog titles
         dialog_title = {}
