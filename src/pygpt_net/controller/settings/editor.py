@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -158,7 +158,7 @@ class Editor:
         self.window.controller.idx.indexer.update_explorer()
 
         # update chat output
-        if self.config_changed('ctx.allow_item_delete'):
+        if self.config_changed('ctx.sources'):
             self.window.controller.ctx.refresh()
 
         self.before_config = copy.deepcopy(self.window.core.config.all())

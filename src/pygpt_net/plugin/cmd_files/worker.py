@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -274,6 +274,7 @@ class Worker(BaseWorker):
                         model = self.plugin.window.core.models.get(tmp_model)
 
                     answer = self.plugin.window.core.idx.chat.query_file(
+                        ctx=self.ctx,
                         path=path,
                         query=query,
                         model=model,

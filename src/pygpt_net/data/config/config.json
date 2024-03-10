@@ -41,6 +41,7 @@
   ],
   "ctx.search_content": false,
   "ctx.search.string": "",
+  "ctx.sources": true,
   "current_model": {
     "assistant": "gpt-3.5-turbo",
     "chat": "gpt-3.5-turbo",

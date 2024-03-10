@@ -349,6 +349,19 @@
         "step": null,
         "advanced": false
     },
+    "ctx.sources": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.sources",
+        "description": "settings.ctx.sources.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.auto_summary.model": {
         "section": "ctx",
         "type": "combo",

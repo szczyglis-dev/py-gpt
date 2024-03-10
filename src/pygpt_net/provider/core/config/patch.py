@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 import os
@@ -1081,6 +1081,12 @@ class Patch:
                     data["llama.idx.auto.modes"] = "chat,completion,vision,assistant,langchain,llama_index,agent"
                 if 'ctx.allow_item_delete' in data:
                     del data["ctx.allow_item_delete"]
+                updated = True
+
+            if old < parse_version("2.1.16"):
+                print("Migrating config from < 2.1.16...")
+                if 'ctx.sources' not in data:
+                    data["ctx.sources"] = True
                 updated = True
 
         # update file

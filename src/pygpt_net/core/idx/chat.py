@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 import json
@@ -196,10 +196,11 @@ class Chat:
             return True
         return False
 
-    def query_file(self, path: str, query: str, model: ModelItem = None) -> str:
+    def query_file(self, ctx: CtxItem, path: str, query: str, model: ModelItem = None) -> str:
         """
         Query file using temp index (created on the fly)
 
+        :param ctx: context
         :param path: path to file to index (in memory)
         :param query: query
         :param model: model
@@ -229,6 +230,7 @@ class Chat:
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
+                ctx.add_doc_meta(response.metadata)  # store metadata
                 output = response.response
 
         # clean tmp index
@@ -237,10 +239,11 @@ class Chat:
         self.log("Returning response: {}".format(output))
         return output
 
-    def query_web(self, type: str, url: str, args: dict, query: str, model: ModelItem = None) -> str:
+    def query_web(self, ctx: CtxItem, type: str, url: str, args: dict, query: str, model: ModelItem = None) -> str:
         """
         Query web using temp index (created on the fly)
 
+        :param ctx: context
         :param type: type of content
         :param url: url to index (in memory)
         :param args: extra args
@@ -280,6 +283,7 @@ class Chat:
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
+                ctx.add_doc_meta(response.metadata)  # store metadata
                 output = response.response
 
         # clean tmp index# clean tmp index
