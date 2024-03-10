@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.10 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -477,6 +477,7 @@ class Ctx:
 
         :param text: search string
         """
+        self.window.core.ctx.clear_tmp_meta()
         self.window.core.ctx.search_string = text
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
@@ -501,6 +502,7 @@ class Ctx:
 
         :param labels: list of labels
         """
+        self.window.core.ctx.clear_tmp_meta()
         self.window.core.ctx.filters_labels = labels
         self.window.core.config.set('ctx.records.filter.labels', labels)
         self.update(reload=True, all=False)

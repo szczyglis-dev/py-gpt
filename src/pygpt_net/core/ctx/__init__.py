@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.10 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -45,6 +45,7 @@ class Ctx:
         self.thread = None
         self.last_mode = None
         self.last_model = None
+        self.tmp_meta = None
         self.search_string = None  # search string
         self.filters = {}  # search filters
         self.filters_labels = []  # search labels
@@ -124,6 +125,7 @@ class Ctx:
             return
 
         self.meta[meta.id] = meta
+        self.tmp_meta = meta
         self.current = meta.id
         self.thread = None
         self.assistant = None
@@ -775,6 +777,20 @@ class Ctx:
                 filters=filters,
                 search_content=self.is_search_content(),
             )
+
+        # append tmp meta if exists
+        if self.tmp_meta is not None:
+            if self.tmp_meta.id not in self.meta:
+                # append at first position
+                self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
+            else:
+                self.tmp_meta.id = None
+
+    def clear_tmp_meta(self):
+        """Clear tmp meta"""
+        if self.tmp_meta is not None and self.current != self.tmp_meta.id:
+            self.tmp_meta = None
+
 
     def get_parsed_filters(self) -> dict:
         """

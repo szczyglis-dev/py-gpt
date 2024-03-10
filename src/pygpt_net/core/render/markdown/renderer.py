@@ -219,7 +219,7 @@ class Renderer(BaseRenderer):
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
-            if len(item.doc_ids) > 0:
+            if item.doc_ids is not None and len(item.doc_ids) > 0:
                 try:
                     docs = self.get_docs_html(item.doc_ids)
                     self.get_output_node().append(docs)

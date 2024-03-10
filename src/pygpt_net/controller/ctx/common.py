@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.10 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -151,6 +151,7 @@ class Common:
             }
 
         self.window.core.config.set("ctx.records.filter", filter)
+        self.window.core.ctx.clear_tmp_meta()
         self.window.core.ctx.set_display_filters(filters)
         self.window.controller.ctx.update()
 

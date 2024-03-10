@@ -2902,6 +2902,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added "merge" icon in context responses (allows merging selected response with the previous response).
 - Added display of Llama-index used sources in the context response.
 - Fixed word-wrap in code blocks - issue #27.
+- Fixed context visibility when filters are applied and new ctx is created in the background.
 - Improved audio playback status indication for responses.
 
 # 2.1.15 (2024-03-09)
