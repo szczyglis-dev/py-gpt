@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -181,6 +181,7 @@ class Plugin(BasePlugin):
 
                 # start
                 self.window.threadpool.start(worker)
+                self.window.controller.audio.on_begin(worker.text)
 
         except Exception as e:
             self.error(e)
@@ -220,6 +221,7 @@ class Plugin(BasePlugin):
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
+            self.window.controller.audio.on_stop()
 
     @Slot(object)
     def handle_playback(self, playback):
@@ -229,6 +231,7 @@ class Plugin(BasePlugin):
         :param playback: playback object
         """
         self.playback = playback
+        self.window.controller.audio.on_play()
 
     @Slot()
     def handle_stop(self):

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.09 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
 
 
 class Audio:
@@ -164,3 +165,33 @@ class Audio:
             self.window.ui.nodes['icon.audio.input'].set_icon(":/icons/mic.svg")
         else:
             self.window.ui.nodes['icon.audio.input'].set_icon(":/icons/mic_off.svg")
+
+    def on_begin(self, text: str):
+        """
+        On audio playback init
+
+        :param text: text to play
+        """
+        self.window.ui.status("Generating audio, please wait...")
+
+    def on_play(self):
+        """On audio playback start"""
+        self.window.ui.status("")
+
+    def on_stop(self):
+        """On audio playback stopped (force)"""
+        self.window.ui.status("Stopped audio playback.")
+
+    def is_playing(self) -> bool:
+        """
+        Check if any audio is playing
+
+        :return: True if playing
+        """
+        from pygame import mixer
+        try:
+            mixer.init()
+            return mixer.get_busy()
+        except Exception as e:
+            pass
+        return False
