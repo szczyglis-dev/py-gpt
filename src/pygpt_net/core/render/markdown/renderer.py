@@ -212,10 +212,9 @@ class Renderer(BaseRenderer):
                     pass
 
         # extra action icons
-        if self.window.core.config.get('ctx.edit_icons'):
-            icons_html = " ".join(self.get_action_icons(item))
-            self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
-            self.to_end()
+        icons_html = " ".join(self.get_action_icons(item, all=self.window.core.config.get('ctx.edit_icons')))
+        self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+        self.to_end()
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
@@ -231,11 +230,12 @@ class Renderer(BaseRenderer):
         if len(appended) > 0:
             self.to_end()
 
-    def get_action_icons(self, item: CtxItem) -> list:
+    def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
         """
         Get action icons for context item
 
         :param item: context item
+        :param all: True to show all icons
         :return: list of icons
         """
         icons = []
@@ -247,43 +247,44 @@ class Renderer(BaseRenderer):
                 self.get_icon("audio", trans("ctx.extra.audio"))
             )
         )
-        # copy item
-        icons.append(
-            '<a href="extra-copy:{}"><span class="cmd">{}</span></a>'.format(
-                item.id,
-                self.get_icon("copy", trans("ctx.extra.copy"))
-            )
-        )
-        # regen link
-        icons.append(
-            '<a href="extra-replay:{}"><span class="cmd">{}</span></a>'.format(
-                item.id,
-                self.get_icon("reload", trans("ctx.extra.reply"))
-            )
-        )
-        # edit link
-        icons.append(
-            '<a href="extra-edit:{}"><span class="cmd">{}</span></a>'.format(
-                item.id,
-                self.get_icon("edit", trans("ctx.extra.edit"))
-            )
-        )
-        # delete link
-        icons.append(
-            '<a href="extra-delete:{}"><span class="cmd">{}</span></a>'.format(
-                item.id,
-                self.get_icon("delete", trans("ctx.extra.delete"))
-            )
-        )
-
-        # join link
-        if not self.window.core.ctx.is_first_item(item.id):
+        if all:
+            # copy item
             icons.append(
-                '<a href="extra-join:{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-copy:{}"><span class="cmd">{}</span></a>'.format(
                     item.id,
-                    self.get_icon("join", trans("ctx.extra.join"))
+                    self.get_icon("copy", trans("ctx.extra.copy"))
                 )
             )
+            # regen link
+            icons.append(
+                '<a href="extra-replay:{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    self.get_icon("reload", trans("ctx.extra.reply"))
+                )
+            )
+            # edit link
+            icons.append(
+                '<a href="extra-edit:{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    self.get_icon("edit", trans("ctx.extra.edit"))
+                )
+            )
+            # delete link
+            icons.append(
+                '<a href="extra-delete:{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    self.get_icon("delete", trans("ctx.extra.delete"))
+                )
+            )
+
+            # join link
+            if not self.window.core.ctx.is_first_item(item.id):
+                icons.append(
+                    '<a href="extra-join:{}"><span class="cmd">{}</span></a>'.format(
+                        item.id,
+                        self.get_icon("join", trans("ctx.extra.join"))
+                    )
+                )
         return icons
 
     def get_icon(self, icon: str, title: str = None) -> str:
