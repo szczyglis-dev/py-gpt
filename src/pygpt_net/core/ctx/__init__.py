@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.10 07:00:00                  #
+# Updated Date: 2024.03.09 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -173,11 +173,14 @@ class Ctx:
         self.items.append(item)  # add CtxItem to context items
 
         # append in provider
-        if self.current is not None and self.current in self.meta:
-            meta = self.meta[self.current]
-            result = self.provider.append_item(meta, item)
-            if not result:
-                self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
+        if self.current is not None:
+            if self.current not in self.meta:
+                self.load_tmp_meta(self.current)
+            if self.current in self.meta:
+                meta = self.meta[self.current]
+                result = self.provider.append_item(meta, item)
+                if not result:
+                    self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
 
     def update_item(self, item: CtxItem):
         """
@@ -216,8 +219,15 @@ class Ctx:
         """
         self.mode = self.window.core.config.get('mode')
 
-        if self.current is None or self.current not in self.meta:
+        if self.current is None:
             return
+
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
+
+        if self.current not in self.meta:
+            return
+
         self.meta[self.current].mode = self.mode
         self.save(self.current)
 
@@ -227,7 +237,13 @@ class Ctx:
 
         :param mode: mode name
         """
-        if self.current is None or self.current not in self.meta:
+        if self.current is None:
+            return
+
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
+
+        if self.current not in self.meta:
             return
 
         # update current
@@ -255,6 +271,8 @@ class Ctx:
         """
         if self.current is None:
             return False
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
         if self.current in self.meta:
             return self.meta[self.current].initialized
 
@@ -262,6 +280,8 @@ class Ctx:
         """Set ctx as initialized (name assigned)"""
         if self.current is None:
             return
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
         if self.current in self.meta:
             self.meta[self.current].initialized = True
             self.save(self.current)
@@ -479,6 +499,8 @@ class Ctx:
         self.thread = thread
         if self.current is None:
             return
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
         if self.current in self.meta:
             self.meta[self.current].thread = self.thread
             self.save(self.current)
@@ -492,6 +514,8 @@ class Ctx:
         self.run = run
         if self.current is None:
             return
+        if self.current not in self.meta:
+            self.load_tmp_meta(self.current)
         if self.current in self.meta:
             self.meta[self.current].run = self.run
             self.save(self.current)
@@ -785,6 +809,29 @@ class Ctx:
                 self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
             else:
                 self.tmp_meta.id = None
+
+    def load_tmp_meta(self, meta_id: int):
+        """
+        Load tmp meta
+
+        :param meta_id: meta id
+        """
+        meta = self.provider.get_meta(
+            order_by='updated_ts',
+            order_direction='DESC',
+            limit=1,
+            filters={
+                "id": {
+                    "mode": "=",
+                    "value": meta_id,
+                },
+            }
+        )
+        if len(meta) > 0:
+            self.tmp_meta = list(meta.values())[0]
+            if self.tmp_meta not in self.meta:
+                # append at first position
+                self.meta = {self.tmp_meta.id: self.tmp_meta, **self.meta}
 
     def clear_tmp_meta(self):
         """Clear tmp meta"""
