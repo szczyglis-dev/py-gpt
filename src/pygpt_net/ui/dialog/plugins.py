@@ -11,7 +11,8 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
+    QSplitter, QSizePolicy
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.ui.widget.dialog.settings_plugin import PluginSettingsDialog
@@ -237,16 +238,21 @@ class Plugins:
         self.update_list(id, data)
 
         # set max width to list
-        self.window.ui.nodes[id].setMaximumWidth(self.max_list_width)
+        self.window.ui.nodes[id].setMinimumWidth(self.max_list_width)
+
+        self.window.ui.splitters['dialog.plugins'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.nodes[id])  # list
+        self.window.ui.splitters['dialog.plugins'].addWidget(self.window.ui.tabs['plugin.settings'])  # tabs
+        self.window.ui.splitters['dialog.plugins'].setStretchFactor(0, 2)
+        self.window.ui.splitters['dialog.plugins'].setStretchFactor(1, 5)
+        self.window.ui.splitters['dialog.plugins'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main_layout = QHBoxLayout()
-        main_layout.addWidget(self.window.ui.nodes[id])
-        main_layout.addWidget(self.window.ui.tabs['plugin.settings'])
+        main_layout.addWidget(self.window.ui.splitters['dialog.plugins'])
 
         self.window.ui.nodes['plugin.settings.cmd.footer'] = HelpLabel(trans('cmd.tip'))
         self.window.ui.nodes['plugin.settings.cmd.footer'].setAlignment(Qt.AlignCenter)
         self.window.ui.nodes['plugin.settings.cmd.footer'].setWordWrap(False)
-
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(footer)  # bottom buttons (save, defaults)

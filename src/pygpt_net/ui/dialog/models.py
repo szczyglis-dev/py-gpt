@@ -13,7 +13,8 @@ import copy
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
+    QSplitter, QSizePolicy
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.ui.widget.dialog.model import ModelDialog
@@ -150,11 +151,17 @@ class Models:
         self.update_list(id, data)
 
         # set max width to list
-        self.window.ui.nodes[id].setMaximumWidth(250)
+        self.window.ui.nodes[id].setMinimumWidth(250)
+
+        self.window.ui.splitters['dialog.models'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['dialog.models'].addWidget(self.window.ui.nodes[id])  # list
+        self.window.ui.splitters['dialog.models'].addWidget(area_widget)  # tabs
+        self.window.ui.splitters['dialog.models'].setStretchFactor(0, 2)
+        self.window.ui.splitters['dialog.models'].setStretchFactor(1, 5)
+        self.window.ui.splitters['dialog.models'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main_layout = QHBoxLayout()
-        main_layout.addWidget(self.window.ui.nodes[id])
-        main_layout.addWidget(area_widget)
+        main_layout.addWidget(self.window.ui.splitters['dialog.models'])
 
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + model tabs

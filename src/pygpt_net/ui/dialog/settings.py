@@ -8,10 +8,10 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QSizePolicy, \
-    QTabWidget
+    QTabWidget, QSplitter
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.settings import SettingsDialog
@@ -254,11 +254,17 @@ class Settings(BaseConfigDialog):
         self.update_list(data_id, data)
 
         # set max width to list
-        self.window.ui.nodes[data_id].setMaximumWidth(250)
+        self.window.ui.nodes[data_id].setMinimumWidth(200)
+
+        self.window.ui.splitters['dialog.settings'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['dialog.settings'].addWidget(self.window.ui.nodes[data_id])  # list
+        self.window.ui.splitters['dialog.settings'].addWidget(self.window.ui.tabs['settings.section'])  # tabs
+        self.window.ui.splitters['dialog.settings'].setStretchFactor(0, 2)
+        self.window.ui.splitters['dialog.settings'].setStretchFactor(1, 5)
+        self.window.ui.splitters['dialog.settings'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main_layout = QHBoxLayout()
-        main_layout.addWidget(self.window.ui.nodes[data_id])
-        main_layout.addWidget(self.window.ui.tabs['settings.section'])
+        main_layout.addWidget(self.window.ui.splitters['dialog.settings'])
 
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + plugins tabs
