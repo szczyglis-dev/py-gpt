@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -40,6 +40,41 @@ class BasePlugin:
         :return: config options
         """
         return self.options
+
+    def add_cmd(self, cmd: str, **kwargs):
+        """
+        Add plugin command
+
+        :param cmd: command name
+        :param kwargs: additional keyword arguments for command properties
+        """
+        # TODO: implement cmd type option
+
+        cmd_syntax = {
+            "cmd": cmd, # command name
+            "instruction": "",  # instruction for model
+            "params": {},  # parameters
+            "enabled": True,  # enabled
+        }
+        if "instruction" in kwargs and isinstance(kwargs.get("instruction"), str):
+            cmd_syntax["instruction"] = kwargs.get("instruction")
+        if "params" in kwargs and isinstance(kwargs.get("params"), list):
+            cmd_syntax["params"] = kwargs.get("params")
+        if "enabled" in kwargs and isinstance(kwargs.get("enabled"), bool):
+            cmd_syntax["enabled"] = kwargs.get("enabled")
+
+        name = "cmd_" + cmd
+        kwargs["value"] = cmd_syntax
+
+        # static keys
+        kwargs["params_keys"] = {
+            "name": "text",
+            "type": "text",
+            "description": "text",
+            "required": "bool",
+        }
+
+        self.add_option(name, "cmd", **kwargs)
 
     def add_option(self, name: str, type: str, **kwargs):
         """

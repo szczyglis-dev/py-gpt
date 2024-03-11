@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -55,6 +55,10 @@ class Dictionary:
         :param values: dictionary data values
         :param idx: row index
         """
+        # if cmd type, remove .params suffix
+        if key.endswith(".params"):
+            key = key.replace(".params", "")
+
         self.window.ui.config[parent_id][key].update_item(idx, values)
 
     def get_value(
@@ -123,21 +127,40 @@ class Dictionary:
         :param option: dictionary items option
         :return: options dict
         """
-        if "keys" not in option:
-            return {}
-        options = {}
-        for key in option["keys"]:
-            item = option["keys"][key]
-            if isinstance(item, str):
-                item = {
-                    "label": parent_id + '.' + key,
-                    "type": item,  # field type is provided as value in this case
-                }
-            options[key] = item
-            if "label" not in options[key]:
-                options[key]["label"] = key
-                options[key]["label"] = parent_id + "." + options[key]["label"]
-        return options
+        # option type: dict
+        if option["type"] == "dict":
+            if "keys" not in option:
+                return {}
+            options = {}
+            for key in option["keys"]:
+                item = option["keys"][key]
+                if isinstance(item, str):
+                    item = {
+                        "label": parent_id + '.' + key,
+                        "type": item,  # field type is provided as value in this case
+                    }
+                options[key] = item
+                if "label" not in options[key]:
+                    options[key]["label"] = key
+                    options[key]["label"] = parent_id + "." + options[key]["label"]
+            return options
+
+        # option type: cmd
+        elif option["type"] == "cmd":
+            if "params_keys" not in option:  # keys are stored in "params_keys" in cmd type
+                return {}
+            options = {}
+            for key in option["params_keys"]:
+                item = option["params_keys"][key]
+                if isinstance(item, str):
+                    item = {
+                        "label": 'dictionary.cmd.' + key,
+                        "type": item,  # field type is provided as value in this case
+                    }
+                options[key] = item
+                if "label" not in options[key]:
+                    options[key]["label"] = 'dictionary.cmd.' + key,
+            return options
 
     def append_editor(
             self,

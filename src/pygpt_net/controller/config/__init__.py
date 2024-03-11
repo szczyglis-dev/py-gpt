@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from .field.checkbox import Checkbox
 from .field.combo import Combo
+from .field.cmd import Cmd
 from .field.dictionary import Dictionary
 from .field.input import Input
 from .field.slider import Slider
@@ -28,6 +29,7 @@ class Config:
         self.window = window
         self.checkbox = Checkbox(window)
         self.combo = Combo(window)
+        self.cmd = Cmd(window)
         self.dictionary = Dictionary(window)
         self.input = Input(window)
         self.placeholder = Placeholder(window)
@@ -68,6 +70,8 @@ class Config:
             self.dictionary.apply(parent_id, key, option)
         elif option['type'] == 'combo':
             self.combo.apply(parent_id, key, option)
+        elif option['type'] == 'cmd':
+            self.cmd.apply(parent_id, key, option)
 
     def apply_value(self, parent_id: str, key: str, option: dict, value):
         """
@@ -105,3 +109,5 @@ class Config:
             return self.dictionary.get_value(parent_id, key, option)
         elif option['type'] == 'combo':
             return self.combo.get_value(parent_id, key, option)
+        elif option['type'] == 'cmd':
+            return self.cmd.get_value(parent_id, key, option)

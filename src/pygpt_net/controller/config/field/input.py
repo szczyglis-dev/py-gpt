@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 class Input:
@@ -53,7 +53,8 @@ class Input:
                 elif "max" in option and option["max"] is not None and value > option["max"]:
                     value = option["max"]
 
-        self.window.ui.config[parent_id][key].setText("{}".format(value))
+        if key in self.window.ui.config[parent_id]:
+            self.window.ui.config[parent_id][key].setText("{}".format(value))
 
     def on_update(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 00:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
@@ -80,9 +80,7 @@ class OptionDict(QWidget):
         self.update()
 
     def add(self):
-        """
-        Add new empty item to settings dict
-        """
+        """Add new empty item to settings dict"""
         # create empty dict
         empty = {header: '' for header in self.model.headers}
         count = self.model.rowCount()

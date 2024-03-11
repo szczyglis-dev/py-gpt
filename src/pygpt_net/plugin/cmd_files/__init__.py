@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -400,6 +400,24 @@ class Plugin(BasePlugin):
             description="Syntax for file_index command",
             advanced=True,
         )
+        # TODO: implement cmd type option
+        """
+        self.add_cmd(
+            "test",
+            instruction="Test instruction",
+            params=[
+                {
+                    "name": "test_param",
+                    "type": "str",
+                    "description": "Test param desc",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            title="Test cmd title",
+            description="Test cmd description",
+        )
+        """
 
     def setup(self) -> dict:
         """

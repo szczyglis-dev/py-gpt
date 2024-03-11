@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 class Textarea:
@@ -31,7 +31,8 @@ class Textarea:
         :param key: Option key
         :param option: Option data
         """
-        self.window.ui.config[parent_id][key].setText("{}".format(option["value"]))
+        if key in self.window.ui.config[parent_id]:
+            self.window.ui.config[parent_id][key].setText("{}".format(option["value"]))
 
     def on_update(
             self,
