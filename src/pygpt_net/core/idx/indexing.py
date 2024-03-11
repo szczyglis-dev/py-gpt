@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
-
+import datetime
 import os.path
 
 from pathlib import Path
@@ -207,7 +207,63 @@ class Indexing:
                 reader = SimpleDirectoryReader(input_files=[path])
                 documents = reader.load_data()
 
+        # append custom metadata
+        self.append_custom_meta(documents, path)
         return documents
+
+    def append_custom_meta(self, docs: list[Document], path: str):
+        """
+        Append custom meta to documents
+
+        :param docs: list of documents
+        :param path: path to file
+        """
+        metas = self.window.core.config.get("llama.idx.custom_meta")
+        ext = str(os.path.splitext(path)[1][1:]).lower()
+        if (len(docs) > 0
+                and metas is not None
+                and isinstance(metas, list)
+                and len(metas) > 0):
+
+            for doc in docs:
+                meta = doc.metadata
+                for item in metas:
+                    extensions = item["extensions"].replace(" ", "").lower().split(",")
+                    if ext in extensions:
+                        key = item["key"]
+                        value = item["value"]
+                        try:
+                            meta[key] = value.format(
+                                path=path,
+                                filename=os.path.basename(path),
+                                dirname=os.path.dirname(path),
+                                ext=ext,
+                                size=os.path.getsize(path),
+                                mtime=os.path.getmtime(path),
+                                timestamp=int(datetime.datetime.now().timestamp()),
+                                date=datetime.datetime.now().strftime("%Y-%m-%d"),
+                                time=datetime.datetime.now().strftime("%H:%M:%S"),
+                                date_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            )
+                        except Exception as e:
+                            print("Error while appending custom meta: " + str(e))
+                            self.window.core.debug.log(e)
+                doc.metadata = meta
+
+    def get_custom_meta_by_ext(self, ext: str) -> dict:
+        """
+        Get custom meta for file extension
+
+        :param ext: file extension
+        :return: dict of custom meta
+        """
+        metas = self.window.core.config.get("settings.llama.idx.custom_meta")
+        if metas is None:
+            return {}
+        for item in metas:
+            extensions = item["ext"].replace(" ", "").split(",")
+            if ext in extensions:
+                return item
 
     def read_text_content(self, path: str) -> str:
         """

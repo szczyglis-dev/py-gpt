@@ -752,6 +752,25 @@
         "advanced": false,
         "tab": "indexing"
     },
+    "llama.idx.custom_meta": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "extensions": "text",
+            "key": "text",
+            "value": "textarea"
+        },
+        "slider": false,
+        "label": "settings.llama.idx.custom_meta",
+        "description": "settings.llama.idx.custom_meta.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
     "llama.hub.loaders.args": {
         "section": "llama-index",
         "type": "dict",
