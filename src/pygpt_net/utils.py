@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import json
@@ -103,18 +103,30 @@ def parse_args(data: list) -> dict:
         value = item['value']
         type = item['type']
         if type == 'int':
-            args[key] = int(value)
+            try:
+                args[key] = int(value)
+            except ValueError:
+                args[key] = 0
         elif type == 'float':
-            args[key] = float(value)
+            try:
+                args[key] = float(value)
+            except ValueError:
+                args[key] = 0.0
         elif type == 'bool':
             if str(value).lower() == 'true':
                 args[key] = True
             elif str(value).lower() == 'false':
                 args[key] = False
             else:
-                args[key] = bool(int(value))
+                try:
+                    args[key] = bool(int(value))
+                except ValueError:
+                    args[key] = False
         elif type == 'dict':
-            args[key] = json.loads(value)
+            try:
+                args[key] = json.loads(value)
+            except json.JSONDecodeError:
+                args[key] = {}
         elif type == 'list':
             args[key] = [x.strip() for x in value.split(',')]
         elif type == 'None':
