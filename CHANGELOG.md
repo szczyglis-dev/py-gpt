@@ -3,6 +3,7 @@
 # 2.1.19 (2024-03-11)
 
 - Added "Force exclude files" config option to force exclude extensions in: Settings -> Llama-index -> Indexing (enables file extension exclusion even if a data loader for the extension is available).
+- Added custom metadata appending to indexing documents via list in: Settings -> Llama-index -> Indexing.
 - Added base API endpoint config arguments in models params.
 
 # 2.1.18 (2024-03-10)
