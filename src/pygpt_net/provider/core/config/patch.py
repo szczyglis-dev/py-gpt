@@ -1103,8 +1103,8 @@ class Patch:
                     del data["llama.idx.excluded_ext"]
                 if 'llama.idx.excluded.force' not in data:
                     data["llama.idx.excluded.force"] = False
-                if 'settings.llama.idx.custom_meta' not in data:
-                    data["settings.llama.idx.custom_meta"] = []
+                if 'llama.idx.custom_meta' not in data:
+                    data["llama.idx.custom_meta"] = []
                 updated = True
 
         # update file

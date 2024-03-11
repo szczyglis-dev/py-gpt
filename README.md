@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.18** | build: **2024.03.10** | Python: **>=3.10, <3.12**
+Release: **2.1.19** | build: **2024.03.11** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2722,6 +2722,8 @@ Config -> Settings...
 
 - `Force exclude files`: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
 
+- `Custom metadata to append/replace to indexed documents`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {filename}, {dirname}, {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
+
 - `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
 - `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
@@ -2900,6 +2902,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.19 (2024-03-11)
+
+- Added "Force exclude files" config option to force exclude extensions in: Settings -> Llama-index -> Indexing (enables file extension exclusion even if a data loader for the extension is available).
+- Added base API endpoint config arguments in models params.
 
 # 2.1.18 (2024-03-10)
 

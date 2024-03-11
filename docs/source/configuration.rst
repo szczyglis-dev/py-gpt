@@ -143,6 +143,8 @@ The following basic options can be modified directly within the application:
 
 * ``Force exclude files``: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
 
+* ``Custom metadata to append/replace to indexed documents``: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {filename}, {dirname}, {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}.
+
 * ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
 * ``Use local models in Video/Audio and Image (vision) loaders``: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
