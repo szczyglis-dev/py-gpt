@@ -724,13 +724,27 @@
         "advanced": false,
         "tab": "indexing"
     },
-    "llama.idx.excluded_ext": {
+    "llama.idx.excluded.ext": {
         "section": "llama-index",
         "type": "textarea",
         "slider": false,
-        "label": "settings.llama.idx.excluded_ext",
-        "description": "settings.llama.idx.excluded_ext.desc",
+        "label": "settings.llama.idx.excluded.ext",
+        "description": "settings.llama.idx.excluded.ext.desc",
         "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
+    "llama.idx.excluded.force": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.excluded.force",
+        "description": "settings.llama.idx.excluded.force.desc",
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,

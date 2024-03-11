@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -64,7 +64,7 @@ class IndexesDebug:
         self.window.core.debug.add(self.id, 'External instructions [web]:',
                                    str(self.window.core.idx.indexing.external_instructions))
 
-        excluded = self.window.core.config.get("llama.idx.excluded_ext").replace(" ", "").split(',')
+        excluded = self.window.core.config.get("llama.idx.excluded.ext").replace(" ", "").split(',')
         self.window.core.debug.add(self.id, 'Excluded (ext):', str(excluded))
 
         # ctx

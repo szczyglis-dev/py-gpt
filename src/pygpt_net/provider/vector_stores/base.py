@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 01:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
+
 import os
 import shutil
 
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.service_context import ServiceContext
+from llama_index.core import StorageContext
+from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
 
 class BaseStore:
@@ -27,6 +30,27 @@ class BaseStore:
         self.id = None
         self.prefix = ""  # prefix for index directory
         self.indexes = {}
+
+    def index_from_store(self, vector_store, storage_context: StorageContext):
+        """
+        Get index instance
+
+        :param vector_store: vector store instance
+        :param storage_context: StorageContext instance
+        :return: index instance
+        """
+        return VectorStoreIndex.from_vector_store(
+            vector_store,
+            storage_context=storage_context,
+        )
+
+    def index_from_empty(self):
+        """
+        Get empty index instance
+
+        :return: index instance
+        """
+        return VectorStoreIndex([])
 
     def attach(self, window=None):
         """

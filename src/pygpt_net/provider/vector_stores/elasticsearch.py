@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 01:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,7 +15,6 @@ import os.path
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.service_context import ServiceContext
 from llama_index.core import StorageContext
-from llama_index.core.indices.vector_store.base import VectorStoreIndex
 from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 
 from pygpt_net.utils import parse_args
@@ -82,10 +81,7 @@ class ElasticsearchProvider(BaseStore):
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store,
         )
-        self.indexes[id] = VectorStoreIndex.from_vector_store(
-            vector_store,
-            storage_context=storage_context,
-        )
+        self.indexes[id] = self.index_from_store(vector_store, storage_context)
         return self.indexes[id]
 
     def store(self, id: str, index: BaseIndex = None):

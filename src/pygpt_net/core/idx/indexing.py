@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -146,7 +146,11 @@ class Indexing:
         :param ext: file extension
         :return: True if excluded
         """
-        excluded = self.window.core.config.get("llama.idx.excluded_ext")
+        if ext in self.loaders["file"]:
+            if not self.window.core.config.get("llama.idx.excluded.force"):
+                return False
+
+        excluded = self.window.core.config.get("llama.idx.excluded.ext")
         if excluded is not None and excluded != "":
             excluded = excluded.replace(" ", "").split(",")
             if ext.lower() in excluded:
@@ -164,7 +168,7 @@ class Indexing:
             return True
         ext = os.path.splitext(path)[1][1:]  # get extension
         ext = ext.lower()
-        if ext in self.loaders["file"]:
+        if ext in self.loaders["file"] and not self.window.core.config.get("llama.idx.excluded.force"):
             return True
         if self.is_excluded(ext):
             return False
@@ -186,15 +190,19 @@ class Indexing:
             )
             documents = reader.load_data()
         else:
-            ext = os.path.splitext(path)[1][1:]  # get extension
+            # get extension
+            ext = os.path.splitext(path)[1][1:]
+
+            # check if not excluded
+            if self.is_excluded(ext):
+                self.log("Ignoring excluded extension: {}".format(ext))
+                return []
+
             if ext in self.loaders["file"]:
                 self.log("Using loader for: {}".format(ext))
                 reader = self.loaders["file"][ext]
                 documents = reader.load_data(file=Path(path))
             else:
-                if self.is_excluded(ext):
-                    self.log("Ignoring excluded extension: {}".format(ext))
-                    return []
                 self.log("Using default SimpleDirectoryReader for: {}".format(ext))
                 reader = SimpleDirectoryReader(input_files=[path])
                 documents = reader.load_data()

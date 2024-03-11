@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -14,7 +14,6 @@ import os.path
 from llama_index.core import StorageContext, load_index_from_storage
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.service_context import ServiceContext
-from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
 from .base import BaseStore
 
@@ -41,7 +40,7 @@ class SimpleProvider(BaseStore):
         """
         path = self.get_path(id)
         if not os.path.exists(path):
-            index = VectorStoreIndex([])  # create empty index
+            index = self.index_from_empty()  # create empty index
             self.store(
                 id=id,
                 index=index,
