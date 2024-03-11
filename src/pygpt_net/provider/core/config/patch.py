@@ -1104,7 +1104,13 @@ class Patch:
                 if 'llama.idx.excluded.force' not in data:
                     data["llama.idx.excluded.force"] = False
                 if 'llama.idx.custom_meta' not in data:
-                    data["llama.idx.custom_meta"] = []
+                    data["llama.idx.custom_meta"] = [
+                          {
+                              "extensions": "*",
+                              "key": "file_name",
+                              "value": "{relative_path}"
+                          }
+                    ]
                 updated = True
 
         # update file

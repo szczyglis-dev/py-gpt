@@ -220,6 +220,7 @@ class Indexing:
         """
         metas = self.window.core.config.get("llama.idx.custom_meta")
         ext = str(os.path.splitext(path)[1][1:]).lower()
+        data_dir = self.window.core.config.get_user_dir("data")
         if (len(docs) > 0
                 and metas is not None
                 and isinstance(metas, list)
@@ -229,12 +230,23 @@ class Indexing:
                 meta = doc.metadata
                 for item in metas:
                     extensions = item["extensions"].replace(" ", "").lower().split(",")
-                    if ext in extensions:
+
+                    # * means all extensions
+                    if ext in extensions or "*" in extensions:
                         key = item["key"]
                         value = item["value"]
+
+                        # remove key if value is empty
+                        if str(value).strip() == "" and key in meta:
+                            del meta[key]
+                            continue
+
+                        # append or replace custom meta
                         try:
                             meta[key] = value.format(
                                 path=path,
+                                relative_path=os.path.relpath(path, data_dir),
+                                relative_dir=os.path.relpath(os.path.dirname(path), data_dir),
                                 filename=os.path.basename(path),
                                 dirname=os.path.dirname(path),
                                 ext=ext,
