@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 01:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -134,12 +134,16 @@ class Plugins:
         :param id: plugin id
         :param options: options dict
         """
+        dict_types = ["dict", "cmd"]
         for key in options:
             option = options[key]
-            if 'type' in option and option['type'] == 'dict':
+            if 'type' in option and option['type'] in dict_types:
+                key_name = key
+                if option['type'] == "cmd":
+                    key_name = key + ".params"
                 parent = "plugin." + id
-                option['label'] = key
-                self.window.ui.dialogs.register_dictionary(key, parent, option)
+                option['label'] = key_name
+                self.window.ui.dialogs.register_dictionary(key_name, parent, option)
 
     def unregister(self, id: str):
         """

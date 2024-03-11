@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 01:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -20,6 +20,7 @@ from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.labels import UrlLabel, HelpLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.ui.widget.option.cmd import OptionCmd
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
@@ -121,6 +122,7 @@ class Plugins:
                     tab = options[key]['tab']
                     if tab is not None and tab != "":
                         tab_id = tab
+
                 content_tabs[tab_id].addLayout(
                     self.add_option(
                         plugin,
@@ -168,6 +170,7 @@ class Plugins:
                 domain = 'plugin.' + plugin.id
                 name_txt = trans('plugin.name', False, domain)
                 desc_txt = trans('plugin.description', False, domain)
+
             self.window.ui.nodes[desc_key] = QLabel(desc_txt)
             self.window.ui.nodes[desc_key].setWordWrap(True)
             self.window.ui.nodes[desc_key].setAlignment(Qt.AlignCenter)
@@ -254,6 +257,7 @@ class Plugins:
         self.window.ui.nodes['plugin.settings.cmd.footer'] = HelpLabel(trans('cmd.tip'))
         self.window.ui.nodes['plugin.settings.cmd.footer'].setAlignment(Qt.AlignCenter)
         self.window.ui.nodes['plugin.settings.cmd.footer'].setWordWrap(False)
+
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(footer)  # bottom buttons (save, defaults)
@@ -332,6 +336,8 @@ class Plugins:
             elif option['type'] == 'combo':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
+            elif option['type'] == 'cmd':
+                widgets[key] = OptionCmd(self.window, parent, key, option)  # command config
 
         return widgets
 
@@ -380,7 +386,8 @@ class Plugins:
         :param option: option dict
         :return: QVBoxLayout
         """
-        one_column_types = ['textarea', 'dict', 'bool']
+        one_column_types = ['textarea', 'dict', 'bool', 'cmd']
+        no_label_types = ['bool', 'cmd']
         allow_locale = True
 
         key = option['id']
@@ -408,14 +415,17 @@ class Plugins:
 
         widget.setToolTip(txt_tooltip)
 
-        if option['type'] != 'bool':
+        if option['type'] not in no_label_types:
             self.window.ui.nodes[label_key] = QLabel(txt_title)
             self.window.ui.nodes[label_key].setStyleSheet("font-weight: bold;")
 
         # 2-columns layout
         if option['type'] not in one_column_types:
             cols = QHBoxLayout()
-            cols.addWidget(self.window.ui.nodes[label_key])  # disable label in bool type
+
+            if option['type'] not in no_label_types:
+                cols.addWidget(self.window.ui.nodes[label_key])  # disable label in bool type
+
             cols.addWidget(widget)
 
             cols_widget = QWidget()
@@ -432,12 +442,14 @@ class Plugins:
             layout.addWidget(cols_widget)
             layout.addWidget(self.window.ui.nodes[desc_key])
         else:
-            # 1-column layout: textarea and dict fields
+            # 1-column layout: textarea, dict, cmd fields
             layout = QVBoxLayout()
-            if option['type'] != 'bool':
+
+            if option['type'] not in no_label_types:
                 layout.addWidget(self.window.ui.nodes[label_key])
-            else:
+            elif option['type'] == 'bool':
                 widget.box.setText(txt_title)  # set checkbox label
+
             layout.addWidget(widget)
 
             self.window.ui.nodes[desc_key] = QLabel(txt_desc)
