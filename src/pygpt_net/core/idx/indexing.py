@@ -250,21 +250,6 @@ class Indexing:
                             self.window.core.debug.log(e)
                 doc.metadata = meta
 
-    def get_custom_meta_by_ext(self, ext: str) -> dict:
-        """
-        Get custom meta for file extension
-
-        :param ext: file extension
-        :return: dict of custom meta
-        """
-        metas = self.window.core.config.get("settings.llama.idx.custom_meta")
-        if metas is None:
-            return {}
-        for item in metas:
-            extensions = item["ext"].replace(" ", "").split(",")
-            if ext in extensions:
-                return item
-
     def read_text_content(self, path: str) -> str:
         """
         Get content from file using loaders
