@@ -66,6 +66,8 @@ class IndexesDebug:
 
         excluded = self.window.core.config.get("llama.idx.excluded.ext").replace(" ", "").split(',')
         self.window.core.debug.add(self.id, 'Excluded (ext):', str(excluded))
+        self.window.core.debug.add(self.id, 'Force exclude:',
+                                   str(self.window.core.config.get("llama.idx.excluded.force")))
 
         # ctx
         self.window.core.debug.add(self.id, 'CTX [auto]:',

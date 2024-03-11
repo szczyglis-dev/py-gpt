@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
+import copy
 import os
 
 from packaging.version import parse as parse_version, Version
@@ -1093,6 +1094,15 @@ class Patch:
                 print("Migrating config from < 2.1.18...")
                 if 'ctx.audio' not in data:
                     data["ctx.audio"] = True
+                updated = True
+
+            if old < parse_version("2.1.19"):
+                print("Migrating config from < 2.1.19...")
+                if 'llama.idx.excluded_ext' in data:
+                    data["llama.idx.excluded.ext"] = copy.deepcopy(data["llama.idx.excluded_ext"])
+                    del data["llama.idx.excluded_ext"]
+                if 'llama.idx.excluded.force' not in data:
+                    data["llama.idx.excluded.force"] = False
                 updated = True
 
         # update file
