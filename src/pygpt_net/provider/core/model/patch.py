@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.11 01:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -164,6 +164,42 @@ class Patch:
                             "type": "str",
                         }
                     ]
+                updated = True
+
+            # add API endpoint
+            if old < parse_version("2.1.19"):
+                print("Migrating models from < 2.1.19...")
+                for id in data:
+                    model = data[id]
+                    if model.id.startswith("gpt-"):
+                        if "env" not in model.llama_index:
+                            model.llama_index["env"] = []
+                        is_endpoint = False
+                        for arg in model.llama_index["env"]:
+                            if "OPENAI_API_BASE" in arg["name"]:
+                                is_endpoint = True
+                                break
+                        if not is_endpoint:
+                            model.llama_index["env"].append(
+                                {
+                                    "name": "OPENAI_API_BASE",
+                                    "value": "{api_endpoint}",
+                                }
+                            )
+                        if "env" not in model.langchain:
+                            model.langchain["env"] = []
+                        is_endpoint = False
+                        for arg in model.langchain["env"]:
+                            if "OPENAI_API_BASE" in arg["name"]:
+                                is_endpoint = True
+                                break
+                        if not is_endpoint:
+                            model.langchain["env"].append(
+                                {
+                                    "name": "OPENAI_API_BASE",
+                                    "value": "{api_endpoint}",
+                                }
+                            )
                 updated = True
 
         # update file
