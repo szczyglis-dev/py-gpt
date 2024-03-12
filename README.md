@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.23** | build: **2024.03.12** | Python: **>=3.10, <3.12**
+Release: **2.1.24** | build: **2024.03.13** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2850,6 +2850,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.24 (2024-03-13)
+
+- Added AzureOpenAI embeddings provider.
+- Added metadata append to indexed context from DB.
 
 # 2.1.23 (2024-03-12)
 
