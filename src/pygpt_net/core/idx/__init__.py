@@ -21,6 +21,7 @@ from pygpt_net.provider.vector_stores import Storage
 from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
+from .metadata import Metadata
 
 from .types.ctx import Ctx
 from .types.external import External
@@ -39,6 +40,8 @@ class Idx:
         self.llm = Llm(window)
         self.storage = Storage(window)
         self.chat = Chat(window, self.storage)
+        self.metadata = Metadata(window)
+
         self.providers = {
             "json_file": JsonFileProvider(window),  # only for patching
             "db_sqlite": DbSqliteProvider(window),
@@ -482,3 +485,17 @@ class Idx:
         :return: provider config version
         """
         return self.get_provider().get_version()
+
+    def log(self, msg: str):
+        """
+        Log info message
+
+        :param msg: message
+        """
+        is_log = False
+        if self.window.core.config.has("log.llama") \
+                and self.window.core.config.get("log.llama"):
+            is_log = True
+        self.window.core.debug.info(msg, not is_log)
+        if is_log:
+            print("[LLAMA-INDEX] {}".format(msg))

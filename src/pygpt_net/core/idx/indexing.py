@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.03.13 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -34,7 +34,7 @@ class Indexing:
         self.loaders = {
             "file": {},  # file loaders
             "web": {},   # web loaders
-        }  # offline loaders
+        }
         self.data_providers = {}  # data providers (loaders)
         self.external_instructions = {}
 
@@ -47,7 +47,7 @@ class Indexing:
         # check if compiled version is allowed
         is_compiled = self.window.core.config.is_compiled() or self.window.core.platforms.is_snap()
         if not loader.allow_compiled and is_compiled:
-            self.log("Loader not allowed in compiled version: " + loader.id)
+            self.window.core.idx.log("Loader not allowed in compiled version: " + loader.id)
             return
 
         loader.attach_window(self.window)
@@ -80,10 +80,10 @@ class Indexing:
 
     def reload_loaders(self):
         """Reload loaders (update arguments)"""
-        self.log("Reloading data loaders...")
+        self.window.core.idx.log("Reloading data loaders...")
         for loader in self.data_providers.values():
             self.register_loader(loader)
-        self.log("Data loaders reloaded.")
+        self.window.core.idx.log("Data loaders reloaded.")
 
     def get_external_instructions(self) -> dict:
         """
@@ -182,7 +182,7 @@ class Indexing:
         :param path: path to data
         :return: list of documents
         """
-        self.log("Reading documents from path: {}".format(path))
+        self.window.core.idx.log("Reading documents from path: {}".format(path))
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
@@ -196,115 +196,21 @@ class Indexing:
 
             # check if not excluded
             if self.is_excluded(ext):
-                self.log("Ignoring excluded extension: {}".format(ext))
+                self.window.core.idx.log("Ignoring excluded extension: {}".format(ext))
                 return []
 
             if ext in self.loaders["file"]:
-                self.log("Using loader for: {}".format(ext))
+                self.window.core.idx.log("Using loader for: {}".format(ext))
                 reader = self.loaders["file"][ext]
                 documents = reader.load_data(file=Path(path))
             else:
-                self.log("Using default SimpleDirectoryReader for: {}".format(ext))
+                self.window.core.idx.log("Using default SimpleDirectoryReader for: {}".format(ext))
                 reader = SimpleDirectoryReader(input_files=[path])
                 documents = reader.load_data()
 
         # append custom metadata
-        self.append_custom_meta(documents, path)
+        self.window.core.idx.metadata.append_file_metadata(documents, path)
         return documents
-
-    def append_custom_meta(self, docs: list[Document], path: str):
-        """
-        Append custom meta to documents (file)
-
-        :param docs: list of documents
-        :param path: path to file
-        """
-        metas = self.window.core.config.get("llama.idx.custom_meta")
-        ext = str(os.path.splitext(path)[1][1:]).lower()
-        data_dir = self.window.core.config.get_user_dir("data")
-        if (len(docs) > 0
-                and metas is not None
-                and isinstance(metas, list)
-                and len(metas) > 0):
-
-            for doc in docs:
-                meta = doc.metadata
-                for item in metas:
-                    extensions = item["extensions"].replace(" ", "").lower().split(",")
-
-                    # * means all extensions
-                    if ext in extensions or "*" in extensions:
-                        key = item["key"]
-                        value = item["value"]
-
-                        # remove key if value is empty
-                        if str(value).strip() == "" and key in meta:
-                            del meta[key]
-                            continue
-
-                        # append or replace custom meta
-                        try:
-                            meta[key] = value.format(
-                                path=path,
-                                relative_path=os.path.relpath(path, data_dir),
-                                relative_dir=os.path.relpath(os.path.dirname(path), data_dir),
-                                filename=os.path.basename(path),
-                                dirname=os.path.dirname(path),
-                                ext=ext,
-                                size=os.path.getsize(path),
-                                mtime=os.path.getmtime(path),
-                                timestamp=int(datetime.datetime.now().timestamp()),
-                                date=datetime.datetime.now().strftime("%Y-%m-%d"),
-                                time=datetime.datetime.now().strftime("%H:%M:%S"),
-                                date_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            )
-                        except Exception as e:
-                            print("Error while appending custom meta: " + str(e))
-                            self.window.core.debug.log(e)
-                doc.metadata = meta
-
-    def append_custom_meta_web(self, docs: list[Document], type: str, args: dict):
-        """
-        Append custom meta to documents (web)
-
-        :param docs: list of documents
-        :param type: type of URL (webpage, feed, etc.)
-        :param args: loader arguments
-        """
-        metas = self.window.core.config.get("llama.idx.custom_meta.web")
-        if (len(docs) > 0
-                and metas is not None
-                and isinstance(metas, list)
-                and len(metas) > 0):
-
-            for doc in docs:
-                meta = doc.metadata
-                for item in metas:
-                    item_type = item["loader"].replace("web_", "")
-                    if item_type != type:
-                        continue
-
-                    key = item["key"]
-                    value = item["value"]
-
-                    # remove key if value is empty
-                    if str(value).strip() == "" and key in meta:
-                        del meta[key]
-                        continue
-
-                    # append or replace custom meta
-                    try:
-                        meta[key] = value.format(
-                            timestamp=int(datetime.datetime.now().timestamp()),
-                            date=datetime.datetime.now().strftime("%Y-%m-%d"),
-                            time=datetime.datetime.now().strftime("%H:%M:%S"),
-                            date_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            **args
-                        )
-                    except Exception as e:
-                        print("Error while appending custom meta (web): " + str(e))
-                        self.window.core.debug.log(e)
-                doc.metadata = meta
 
     def read_text_content(self, path: str) -> str:
         """
@@ -366,7 +272,7 @@ class Indexing:
                     self.prepare_document(d)
                     index.insert(document=d)
                     indexed[file] = d.id_  # add to index
-                    self.log("Inserted document: {}".format(d.id_))
+                    self.window.core.idx.log("Inserted document: {}".format(d.id_))
             except Exception as e:
                 errors.append(str(e))
                 print("Error while indexing file: " + file)
@@ -406,7 +312,7 @@ class Indexing:
                             self.prepare_document(d)
                             index.insert(document=d)
                             indexed[file_path] = d.id_  # add to index
-                            self.log("Inserted document: {}".format(d.id_))
+                            self.window.core.idx.log("Inserted document: {}".format(d.id_))
                     except Exception as e:
                         errors.append(str(e))
                         print("Error while indexing file: " + file_path)
@@ -428,7 +334,7 @@ class Indexing:
                     self.prepare_document(d)
                     index.insert(document=d)
                     indexed[path] = d.id_  # add to index
-                    self.log("Inserted document: {}".format(d.id_))
+                    self.window.core.idx.log("Inserted document: {}".format(d.id_))
             except Exception as e:
                 errors.append(str(e))
                 print("Error while indexing file: " + path)
@@ -447,7 +353,10 @@ class Indexing:
         documents = []
         query = f"""
         SELECT
-            'User: ' || ctx_item.input || '; Assistant: ' || ctx_item.output AS text
+            'Human: ' || ctx_item.input || '\nAssistant: ' || ctx_item.output AS text,
+            ctx_item.input_ts AS input_ts,
+            ctx_item.meta_id AS meta_id,
+            ctx_item.id AS item_id
         FROM 
             ctx_item
         LEFT JOIN
@@ -460,8 +369,18 @@ class Indexing:
         with db.connect() as connection:
             result = connection.execute(text(query))
             for item in result.fetchall():
-                doc_str = ", ".join([str(entry) for entry in item])
-                documents.append(Document(text=doc_str))
+                data = item._asdict()
+                doc = Document(
+                    text=data["text"],
+                    metadata={
+                        "ctx_date": str(datetime.datetime.fromtimestamp(int(data["input_ts"]))),
+                        "ctx_id": data["meta_id"],
+                        "item_id": data["item_id"],
+                        "indexed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                )
+                self.window.core.idx.log("Appending DB ctx metadata: {}".format(doc.metadata))
+                documents.append(doc)
         return documents
 
     def get_db_meta_ids_from_ts(self, updated_ts: int = 0) -> list:
@@ -500,19 +419,31 @@ class Indexing:
         documents = []
         query = f"""
         SELECT
-            'User: ' || input || '; Assistant: ' || output AS text
+            'Human: ' || input || '\nAssistant: ' || output AS text,
+            input_ts AS input_ts,
+            meta_id AS meta_id,
+            id AS item_id
         FROM ctx_item
         WHERE meta_id = {id}
         """
         # restrict to updated data if from timestamp is given
         if updated_ts > 0:
             query += f" AND (input_ts > {updated_ts} OR output_ts > {updated_ts})"
-
         with db.connect() as connection:
             result = connection.execute(text(query))
             for item in result.fetchall():
-                doc_str = ", ".join([str(entry) for entry in item])
-                documents.append(Document(text=doc_str))
+                data = item._asdict()
+                doc = Document(
+                    text=data["text"],
+                    metadata={
+                        "ctx_date": str(datetime.datetime.fromtimestamp(int(data["input_ts"]))),
+                        "ctx_id": data["meta_id"],
+                        "item_id": data["item_id"],
+                        "indexed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                )
+                self.window.core.idx.log("Appending DB ctx metadata: {}".format(doc.metadata))
+                documents.append(doc)
         return documents
 
     def index_db_by_meta_id(self, idx: str, index: BaseIndex, id: int = 0, from_ts: int = 0) -> (int, list):
@@ -530,17 +461,17 @@ class Indexing:
         try:
             # remove old document from index if indexing by ID only and not from timestamp
             if from_ts == 0:
-                self.log("Indexing documents from database by meta id: {}".format(id))
+                self.window.core.idx.log("Indexing documents from database by meta id: {}".format(id))
                 self.remove_old_meta_id(idx, id)
             elif from_ts > 0:
-                self.log("Indexing documents from database by meta id: {} from timestamp: {}".format(id, from_ts))
+                self.window.core.idx.log("Indexing documents from database by meta id: {} from timestamp: {}".format(id, from_ts))
 
             # get items from database
             documents = self.get_db_data_by_id(id, from_ts)
             for d in documents:
                 index.insert(document=d)
                 doc_id = d.id_
-                self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
+                self.window.core.idx.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
                 self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
@@ -557,7 +488,7 @@ class Indexing:
         :param from_ts: timestamp
         :return: number of indexed documents, errors
         """
-        self.log("Indexing documents from database from timestamp: {}".format(from_ts))
+        self.window.core.idx.log("Indexing documents from database from timestamp: {}".format(from_ts))
         errors = []
         n = 0
         ids = self.get_db_meta_ids_from_ts(from_ts)
@@ -613,8 +544,8 @@ class Indexing:
             if not is_tmp:
                 self.remove_old_external(idx, unique_id, type)
 
-            self.log("Loading web documents from: {}".format(unique_id))
-            self.log("Using web loader for type: {}".format(type))
+            self.window.core.idx.log("Loading web documents from: {}".format(unique_id))
+            self.window.core.idx.log("Using web loader for type: {}".format(type))
 
             args = self.data_providers[type].prepare_args(**extra_args)
 
@@ -624,7 +555,7 @@ class Indexing:
             )
 
             # append custom metadata
-            self.append_custom_meta_web(documents, type, args)
+            self.window.core.idx.metadata.append_web_metadata(documents, type, args)
 
             for d in documents:
                 index.insert(document=d)
@@ -636,7 +567,7 @@ class Indexing:
                         idx=idx,
                         doc_id=doc_id,
                     )  # update external index
-                self.log("Inserted (web) document: {} / {}".format(n+1, len(documents)))
+                self.window.core.idx.log("Inserted (web) document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -702,7 +633,7 @@ class Indexing:
         if self.window.core.idx.ctx.exists(store, idx, id):
             doc_id = self.window.core.idx.ctx.get_doc_id(store, idx, id)
             if doc_id:
-                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -729,7 +660,7 @@ class Indexing:
         if self.window.core.idx.files.exists(store, idx, file_id):
             doc_id = self.window.core.idx.files.get_doc_id(store, idx, file_id)
             if doc_id:
-                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -757,7 +688,7 @@ class Indexing:
         if self.window.core.idx.external.exists(store, idx, content, type):
             doc_id = self.window.core.idx.external.get_doc_id(store, idx, content, type)
             if doc_id:
-                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.log("Removing old document id: {}".format(doc_id))
                 try:
                     self.window.core.idx.storage.remove_document(
                         id=idx,
@@ -800,17 +731,3 @@ class Indexing:
         excluded = sorted(excluded)
 
         return excluded
-
-    def log(self, msg: str):
-        """
-        Log info message
-
-        :param msg: message
-        """
-        is_log = False
-        if self.window.core.config.has("log.llama") \
-                and self.window.core.config.get("log.llama"):
-            is_log = True
-        self.window.core.debug.info(msg, not is_log)
-        if is_log:
-            print("[LLAMA-INDEX] {}".format(msg))
