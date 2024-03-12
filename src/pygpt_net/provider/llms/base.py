@@ -11,6 +11,9 @@
 
 import os
 
+from llama_index.core.base.embeddings.base import BaseEmbedding
+from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
 
@@ -19,7 +22,7 @@ class BaseLLM:
     def __init__(self, *args, **kwargs):
         self.id = ""
         self.name = ""
-        self.type = []  # langchain, llama_index
+        self.type = []  # langchain, llama_index, embeddings
         self.description = ""
 
     def init(self, window, model: ModelItem, mode: str, sub_mode: str = None):
@@ -46,7 +49,7 @@ class BaseLLM:
 
         :param window: window instance
         """
-        options = window.core.config.get("llama.idx.embeddings.env", {})
+        options = window.core.config.get("llama.idx.embeddings.env", [])
         if options is not None and len(options) > 0:
             for item in options:
                 os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
@@ -56,7 +59,7 @@ class BaseLLM:
         Parse extra args
 
         :param options: LLM options dict (langchain, llama_index)
-        :return: dict
+        :return: parsed arguments dict
         """
         args = {}
         if 'args' in options:
@@ -85,7 +88,7 @@ class BaseLLM:
         """
         pass
 
-    def llama(self, window, model: ModelItem, stream: bool = False):
+    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama index query and chat
 
@@ -96,7 +99,7 @@ class BaseLLM:
         """
         pass
 
-    def get_embeddings_model(self, window):
+    def get_embeddings_model(self, window) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 
