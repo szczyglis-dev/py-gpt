@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import json
@@ -91,12 +91,13 @@ class Worker(BaseWorker):
                     if url:
                         self.ctx.urls.append(url)
 
-                    self.response(
-                        {
-                            "request": request,
-                            "result": data,
-                        }
-                    )
+                    response = {
+                        "request": request,
+                        "result": data,
+                        "context": "From: " + url + ":\n--------------------------------\n" + result,
+                        # add additional context
+                    }
+                    self.response(response)
 
                 # cmd: web_url_raw
                 elif item["cmd"] == "web_url_raw":
@@ -114,12 +115,13 @@ class Worker(BaseWorker):
                     if url:
                         self.ctx.urls.append(url)
 
-                    self.response(
-                        {
-                            "request": request,
-                            "result": data,
-                        }
-                    )
+                    response = {
+                        "request": request,
+                        "result": data,
+                        "context": "From: " + url + ":\n--------------------------------\n" + result,
+                        # add additional context
+                    }
+                    self.response(response)
 
                 # cmd: web_urls
                 elif item["cmd"] == "web_urls":

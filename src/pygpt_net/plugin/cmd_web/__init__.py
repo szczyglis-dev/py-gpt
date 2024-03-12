@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import ssl
@@ -214,13 +214,13 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "web_url_open",
-            instruction="get summarized content from a specific webpage. Use a custom summary prompt if necessary, "
+            instruction="read and get summarized content from ANY website URL. Use a custom summary prompt if necessary, "
                         "otherwise default summary will be used",
             params=[
                 {
                     "name": "url",
                     "type": "str",
-                    "description": "URL",
+                    "description": "URL to website",
                     "required": True,
                 },
                 {
@@ -235,12 +235,12 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "web_url_raw",
-            instruction="get raw content (not summarized) from webpage",
+            instruction="read and get raw HTML/txt content (not summarized) from ANY website URL",
             params=[
                 {
                     "name": "url",
                     "type": "str",
-                    "description": "URL",
+                    "description": "URL to website",
                     "required": True,
                 },
             ],
