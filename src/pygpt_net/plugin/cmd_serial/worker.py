@@ -35,7 +35,7 @@ class Worker(BaseWorker):
         msg = None
         for item in self.cmds:
             try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.is_cmd_allowed(item["cmd"]):
+                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
                     request = {"cmd": item["cmd"]}  # prepare request item for result
 
                     # serial: send text command

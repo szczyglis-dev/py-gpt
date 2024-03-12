@@ -1,3 +1,10 @@
+2.1.20 (2024-03-12)
+
+- Refactored commands core and command handling to a JSON schema-based config.
+- Fixed calls in the API plugin.
+- Fixed web_urls in the Web search plugin.
+- Fixed adding new notes in the Calendar plugin..
+
 2.1.19 (2024-03-11)
 
 - Added "Force exclude files" config option to force exclude extensions in: Settings -> Llama-index -> Indexing (enables file extension exclusion even if a data loader for the extension is available).
