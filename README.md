@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.20** | build: **2024.03.12** | Python: **>=3.10, <3.12**
+Release: **2.1.21** | build: **2024.03.12** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2843,7 +2843,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-# 2.1.20 (2024-03-12)
+# 2.1.21 (2024-03-12)
 
 - Refactored commands core and command handling to a JSON schema-based config.
 - Fixed calls in the API plugin.

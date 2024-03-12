@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# 2.1.20 (2024-03-12)
+# 2.1.21 (2024-03-12)
 
 - Refactored commands core and command handling to a JSON schema-based config.
 - Fixed calls in the API plugin.
