@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import base64
@@ -178,12 +178,17 @@ class Vision:
 
     def extract_urls(self, text: str) -> list:
         """
-        Extract urls from text
+        Extract img urls from text
 
         :param text: text
-        :return: list of urls
+        :return: list of img urls
         """
-        return re.findall(r'(https?://\S+)', text)
+        urls = re.findall(r'(https?://\S+)', text)
+        img_urls = []
+        for url in urls:
+            if self.is_image(url):
+                img_urls.append(url)
+        return img_urls
 
     def is_image(self, path: str) -> bool:
         """
