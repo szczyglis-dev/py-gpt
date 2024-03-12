@@ -287,6 +287,10 @@ class Plugin(BasePlugin):
             instruction="read, index and query external content for additional context.",
             params=[
                 {
+                    "name": "query",
+                    "description": "[use config from web_index command]",
+                },
+                {
                     "name": "type",
                     "description": "[use config from web_index command]",
                 },
@@ -457,13 +461,19 @@ class Plugin(BasePlugin):
                         "additional args, then pass them into \"args\"",
             "params": [
                 {
+                    "name": "query",
+                    "type": "str",
+                    "description": "query",
+                    "required": True,
+                },
+                {
                     "name": "type",
                     "type": "enum",
                     "description": "data type",
                     "required": True,
                     "default": "webpage",
-                    "extra": {
-                        "enum_types": types,
+                    "enum": {
+                        "types": types,
                     }
                 },
                 {
@@ -471,8 +481,8 @@ class Plugin(BasePlugin):
                     "type": "dict",
                     "description": "extra args for type",
                     "required": True,
-                    "extra": {
-                        "allowed_args": args,
+                    "enum": {
+                        "args": args,
                     }
                 }
             ],
