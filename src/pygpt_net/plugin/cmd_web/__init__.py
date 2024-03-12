@@ -288,7 +288,7 @@ class Plugin(BasePlugin):
             params=[
                 {
                     "name": "query",
-                    "description": "[use config from web_index command]",
+                    "description": "query",
                 },
                 {
                     "name": "type",
@@ -461,19 +461,13 @@ class Plugin(BasePlugin):
                         "additional args, then pass them into \"args\"",
             "params": [
                 {
-                    "name": "query",
-                    "type": "str",
-                    "description": "query",
-                    "required": True,
-                },
-                {
                     "name": "type",
                     "type": "enum",
                     "description": "data type",
                     "required": True,
                     "default": "webpage",
                     "enum": {
-                        "types": types,
+                        "type": types,
                     }
                 },
                 {
@@ -504,7 +498,15 @@ class Plugin(BasePlugin):
             if option == "web_index":
                 data['cmd'].append(self.prepare_idx_syntax())
                 continue
-
+            elif option == "web_search":
+                max_pages = self.get_option_value("num_pages")
+                cmd = self.get_cmd(option)
+                try:
+                    cmd["instruction"] = cmd["instruction"].format(max_pages=max_pages)
+                    data['cmd'].append(cmd)
+                    continue
+                except Exception as e:
+                    pass
             data['cmd'].append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):

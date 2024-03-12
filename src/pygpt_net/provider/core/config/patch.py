@@ -1119,6 +1119,13 @@ class Patch:
                 data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # moved to json schema
                 updated = True
 
+            # < 2.1.22
+            if old < parse_version("2.1.22"):
+                print("Migrating config from < 2.1.22...")
+                if 'llama.idx.custom_meta.web' not in data:
+                    data["llama.idx.custom_meta.web"] = []
+                updated = True
+
         # update file
         migrated = False
         if updated:

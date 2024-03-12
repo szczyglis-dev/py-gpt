@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.22 (2024-03-12)
+
+- Added custom metadata appending to indexing documents for web/external loaders.
+
 # 2.1.21 (2024-03-12)
 
 - Refactored commands core and command handling to a JSON schema-based config.

@@ -60,6 +60,10 @@ class Placeholder:
             return self.get_llama_index_providers()
         elif id == "llama_index_loaders":
             return self.get_llama_index_loaders()
+        elif id == "llama_index_loaders_file":
+            return self.get_llama_index_loaders(type="file")
+        elif id == "llama_index_loaders_web":
+            return self.get_llama_index_loaders(type="web")
         elif id == "vector_storage":
             return self.get_vector_storage()
         elif id == "var_types":
@@ -97,13 +101,27 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_llama_index_loaders(self) -> list:
+    def get_llama_index_loaders(self, type: str = "all") -> list:
         """
         Get data loaders placeholders list
 
+        :param type: data type
         :return: placeholders list
         """
-        return self.window.controller.idx.common.get_loaders_choices()
+        data = []
+        choices = self.window.controller.idx.common.get_loaders_choices() # list
+        for choice in choices:
+            if type == "all":
+                data.append(choice)
+            elif type == "file":
+                key = list(choice.keys())[0]
+                if key.startswith("file_"):
+                    data.append(choice)
+            elif type == "web":
+                key = list(choice.keys())[0]
+                if key.startswith("web_"):
+                    data.append(choice)
+        return data
 
     def get_vector_storage(self) -> list:
         """
