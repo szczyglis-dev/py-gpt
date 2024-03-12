@@ -34,7 +34,7 @@ class Summarizer:
         text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
                "Summary must be in the same language as the conversation and it will be used for conversation title " \
                "so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\n"
-        text += "User: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
+        text += "Human: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
 
         # custom values
         if self.window.core.config.get('ctx.auto_summary.system') is not None \

@@ -874,7 +874,7 @@ class Ctx:
         data = []
         for item in items:
             # data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
-            data.append("User: " + str(item.input) + "\n" + "Assistant: " + str(item.output) + "\n")
+            data.append("Human: " + str(item.input) + "\n" + "Assistant: " + str(item.output) + "\n")
         return data
 
     def get_list_in_date_range(self, search_string, limit: int = 0) -> list:
