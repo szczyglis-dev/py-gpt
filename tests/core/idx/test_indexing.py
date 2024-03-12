@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 02:00:00                  #
+# Updated Date: 2024.03.13 01:00:00                  #
 # ================================================== #
 
 import os
@@ -109,10 +109,15 @@ def test_get_db_data_from_ts(mock_window):
     """Test get db data from ts"""
     idx = Indexing(mock_window)
     updated_ts = 1234567890
-    rows = [
-        ('User: user_input1; Assistant: assistant_output1',),
-        ('User: user_input2; Assistant: assistant_output2',),
-    ]
+    row1 = MagicMock()
+    row1._asdict = MagicMock(
+        return_value={"id": 123, "text": "User: user_input1; Assistant: assistant_output1", "input_ts": 0,
+                      "meta_id": 123, "item_id": "test_id1"})
+    row2 = MagicMock()
+    row2._asdict = MagicMock(
+        return_value={"id": 123, "text": "User: user_input2; Assistant: assistant_output2", "input_ts": 0,
+                      "meta_id": 123, "item_id": "test_id1"})
+    rows = [row1, row2]
     result = MagicMock()
     result.fetchall.return_value = rows
     conn = Mock()
@@ -129,10 +134,11 @@ def test_get_db_data_by_id(mock_window):
     """Test get db data by id"""
     idx = Indexing(mock_window)
     id = 123
-    rows = [
-        ('User: user_input1; Assistant: assistant_output1',),
-        ('User: user_input2; Assistant: assistant_output2',),
-    ]
+    row1 = MagicMock()
+    row1._asdict = MagicMock(return_value={"id": 123, "text": "User: user_input1; Assistant: assistant_output1", "input_ts": 0, "meta_id": 123, "item_id": "test_id1"})
+    row2 = MagicMock()
+    row2._asdict = MagicMock(return_value={"id": 123, "text": "User: user_input2; Assistant: assistant_output2", "input_ts": 0, "meta_id": 123, "item_id": "test_id1"})
+    rows = [row1, row2]
     result = MagicMock()
     result.fetchall.return_value = rows
     conn = Mock()
