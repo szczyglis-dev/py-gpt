@@ -188,6 +188,11 @@ class Vision:
         for url in urls:
             if self.is_image(url):
                 img_urls.append(url)
+
+        # if single url, return it
+        if "".join(urls).strip() == text.strip():
+            return urls
+
         return img_urls
 
     def is_image(self, path: str) -> bool:

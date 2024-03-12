@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.22** | build: **2024.03.12** | Python: **>=3.10, <3.12**
+Release: **2.1.23** | build: **2024.03.12** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2850,6 +2850,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.23 (2024-03-12)
+
+- Added configuration options for embeddings model and provider in Settings -> Llama-Index.
+- Added plain-text responses in web_open commands.
+- Improved web_open commands in Web Search plugin.
+- Added a check to determine if the provided URL is an image when sending URLs within text.
 
 # 2.1.22 (2024-03-12)
 

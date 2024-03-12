@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.23 (2024-03-12)
+
+- Added configuration options for embeddings model and provider in Settings -> Llama-Index.
+- Added plain-text responses in web_open commands.
+- Improved web_open commands in Web Search plugin.
+- Added a check to determine if the provided URL is an image when sending URLs within text.
+
 # 2.1.22 (2024-03-12)
 
 - Added custom metadata appending to indexing documents for web/external loaders.
