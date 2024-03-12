@@ -2077,6 +2077,22 @@ postgres = ["asyncpg (>=0.28.0,<0.29.0)", "pgvector (>=0.1.0,<0.2.0)", "psycopg2
 query-tools = ["guidance (>=0.0.64,<0.0.65)", "jsonpath-ng (>=1.6.0,<2.0.0)", "lm-format-enforcer (>=0.4.3,<0.5.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "scikit-learn", "spacy (>=3.7.1,<4.0.0)"]
 
 [[package]]
+name = "llama-index-embeddings-azure-openai"
+version = "0.1.6"
+description = "llama-index embeddings azure openai integration"
+optional = false
+python-versions = ">=3.8.1,<4.0"
+files = [
+    {file = "llama_index_embeddings_azure_openai-0.1.6-py3-none-any.whl", hash = "sha256:a84a6d7d67296690e5d20070ce5d9920ec56b0d339338d276eae2a7b2f822b9e"},
+    {file = "llama_index_embeddings_azure_openai-0.1.6.tar.gz", hash = "sha256:05092b1b31bd0f45257d161f1e5a17261c60e688f4c6a4fe316557349ac2aebc"},
+]
+
+[package.dependencies]
+llama-index-core = ">=0.10.11.post1,<0.11.0"
+llama-index-embeddings-openai = ">=0.1.3,<0.2.0"
+llama-index-llms-azure-openai = ">=0.1.3,<0.2.0"
+
+[[package]]
 name = "llama-index-embeddings-openai"
 version = "0.1.6"
 description = "llama-index embeddings openai integration"
@@ -6319,4 +6335,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "cda2a76e6366466071e0fb2c56ebf302eb8b530e7471718d9c2e8e2d53b8005b"
+content-hash = "3dd3d98cd0199d7f551ca329565cf3a95d96a7227030d29e64035fe7f69d8e1d"
