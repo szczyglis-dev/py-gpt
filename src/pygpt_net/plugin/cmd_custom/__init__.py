@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -104,17 +104,17 @@ class Plugin(BasePlugin):
         for item in self.get_option_value("cmds"):
             if not item["enabled"]:
                 continue
-            cmd = {
+
+            cmd_syntax = {
                 "cmd": item["name"],
-                "instruction": item["instruction"],
-                "params": [],
+                "instruction": item["instruction"],  # instruction for model
+                "params": [],  # parameters
+                "enabled": True,  # enabled
             }
             if item["params"].strip() != "":
-                params = self.extract_params(item["params"])
-                if len(params) > 0:
-                    cmd["params"] = params
+                cmd_syntax["params"] = self.extract_params(item["params"])
 
-            data['syntax'].append(cmd)
+            data['cmd'].append(cmd_syntax)  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -176,7 +176,11 @@ class Plugin(BasePlugin):
             param = param.strip()
             if param == "":
                 continue
-            params.append(param)
+            params.append({
+                "name": param,
+                "type": "str",
+                "description": param,
+            })
         return params
 
     def log(self, msg: str):

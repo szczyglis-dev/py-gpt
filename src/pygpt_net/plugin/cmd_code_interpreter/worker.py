@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -36,8 +36,7 @@ class Worker(BaseWorker):
                 request = {"cmd": item["cmd"]}  # prepare request item for result
 
                 # code_execute (from existing file)
-                if item["cmd"] == "code_execute_file" \
-                        and self.plugin.is_cmd_allowed("code_execute_file"):
+                if item["cmd"] == "code_execute_file" and self.plugin.has_cmd("code_execute_file"):
                     try:
                         if not self.plugin.runner.is_sandbox():
                             response = self.plugin.runner.code_execute_file_host(
@@ -61,7 +60,7 @@ class Worker(BaseWorker):
                     self.response(response)
 
                 # code_execute (generate and execute)
-                elif item["cmd"] == "code_execute" and self.plugin.is_cmd_allowed("code_execute"):
+                elif item["cmd"] == "code_execute" and self.plugin.has_cmd("code_execute"):
                     try:
                         if not self.plugin.runner.is_sandbox():
                             response = self.plugin.runner.code_execute_host(
@@ -85,7 +84,7 @@ class Worker(BaseWorker):
                     self.response(response)
 
                 # sys_exec
-                elif item["cmd"] == "sys_exec" and self.plugin.is_cmd_allowed("sys_exec"):
+                elif item["cmd"] == "sys_exec" and self.plugin.has_cmd("sys_exec"):
                     try:
                         if not self.plugin.runner.is_sandbox():
                             response = self.plugin.runner.sys_exec_host(

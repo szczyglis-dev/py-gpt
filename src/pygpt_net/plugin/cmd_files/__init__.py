@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -50,29 +50,6 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""
-        # cmd enable/disable
-        self.add_option(
-            "cmd_send_file",
-            type="bool",
-            value=True,
-            label="Enable: Upload file as attachment",
-            description="Allows `send_file` command execution",
-        )
-        self.add_option(
-            "cmd_read_file",
-            type="bool",
-            value=True,
-            label="Enable: Read file",
-            description="Allows `read_file` command execution",
-        )
-        self.add_option(
-            "cmd_query_file",
-            type="bool",
-            value=True,
-            label="Enable: Query file with Llama-index",
-            description="Allows `query_file` command execution",
-            tab="indexing",
-        )
         self.add_option(
             "model_tmp_query",
             type="combo",
@@ -82,127 +59,6 @@ class Plugin(BasePlugin):
                         "default: gpt-3.5-turbo",
             tooltip="Query model",
             use="models",
-            tab="indexing",
-        )
-        self.add_option(
-            "cmd_save_file",
-            type="bool",
-            value=True,
-            label="Enable: Save file",
-            description="Allows `save_file` command execution",
-        )
-        self.add_option(
-            "cmd_append_file",
-            type="bool",
-            value=True,
-            label="Enable: Append to file",
-            description="Allows `append_file` command execution",
-        )
-        self.add_option(
-            "cmd_delete_file",
-            type="bool",
-            value=True,
-            label="Enable: Delete file",
-            description="Allows `delete_file` command execution",
-        )
-        self.add_option(
-            "cmd_list_dir",
-            type="bool",
-            value=True,
-            label="Enable: List files in directory (ls)",
-            description="Allows `list_dir` command execution",
-        )
-        self.add_option(
-            "cmd_mkdir",
-            type="bool",
-            value=True,
-            label="Enable: Directory creation (mkdir)",
-            description="Allows `mkdir` command execution",
-        )
-        self.add_option(
-            "cmd_download_file",
-            type="bool",
-            value=True,
-            label="Enable: Downloading files",
-            description="Allows `download_file` command execution",
-        )
-        self.add_option(
-            "cmd_rmdir",
-            type="bool",
-            value=True,
-            label="Enable: Removing directories",
-            description="Allows `rmdir` command execution",
-        )
-        self.add_option(
-            "cmd_copy_file",
-            type="bool",
-            value=True,
-            label="Enable: Copying files",
-            description="Allows `copy` command execution",
-        )
-        self.add_option(
-            "cmd_copy_dir",
-            type="bool",
-            value=True,
-            label="Enable: Copying directories (recursive)",
-            description="Allows `copy_dir` command execution",
-        )
-        self.add_option(
-            "cmd_move",
-            type="bool",
-            value=True,
-            label="Enable: Move files and directories (rename)",
-            description="Allows `move` command execution",
-        )
-        self.add_option(
-            "cmd_is_dir",
-            type="bool",
-            value=True,
-            label="Enable: Check if path is directory",
-            description="Allows `is_dir` command execution",
-        )
-        self.add_option(
-            "cmd_is_file",
-            type="bool",
-            value=True,
-            label="Enable: Check if path is file",
-            description="Allows `is_file` command execution",
-        )
-        self.add_option(
-            "cmd_file_exists",
-            type="bool",
-            value=True,
-            label="Enable: Check if file or directory exists",
-            description="Allows `file_exists` command execution",
-        )
-        self.add_option(
-            "cmd_file_size",
-            type="bool",
-            value=True,
-            label="Enable: Get file size",
-            description="Allows `file_size` command execution",
-        )
-        self.add_option(
-            "cmd_file_info",
-            type="bool",
-            value=True,
-            label="Enable: Get file info",
-            description="Allows `file_info` command execution",
-        )
-        self.add_option(
-            "cmd_cwd",
-            type="bool",
-            value=True,
-            label="Enable: Get current working directory (cwd)",
-            description="Allows `cwd` command execution",
-        )
-        self.add_option(
-            "cmd_file_index",
-            type="bool",
-            value=True,
-            label="Enable: \"file_index\" command",
-            description="If enabled, model will be able to index file or directory using Llama-index",
-            tooltip="If enabled, model will be able to index file or directory using Llama-index",
             tab="indexing",
         )
         self.add_option(
@@ -238,186 +94,323 @@ class Plugin(BasePlugin):
             tab="indexing",
         )
 
-        # cmd syntax (prompt/instruction)
-        self.add_option(
-            "syntax_send_file",
-            type="textarea",
-            value='"send_file": sends file as attachment from my computer to you for analyze, params: "path"',
-            label="Syntax: send_file",
-            description="Syntax for send files as attachment",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_read_file",
-            type="textarea",
-            value='"read_file": read data from file, if multiple files then pass list of files, params: "filename"',
-            label="Syntax: read_file",
-            description="Syntax for reading files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_query_file",
-            type="textarea",
-            value='"query_file": read, index and query file for additional context data, params: "path", "query"',
-            label="Syntax: query_file",
-            description="Syntax for querying files for additional context data",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_save_file",
-            type="textarea",
-            value='"save_file": save data to file, params: "filename", "data"',
-            label="Syntax: save_file",
-            description="Syntax for saving files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_append_file",
-            type="textarea",
-            value='"append_file": append data to file, params: "filename", "data"',
-            label="Syntax: append_file",
-            description="Syntax for appending to files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_delete_file",
-            type="textarea",
-            value='"delete_file": delete file, params: "filename"',
-            label="Syntax: delete_file",
-            description="Syntax for deleting files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_list_dir",
-            type="textarea",
-            value='"list_dir": list files and dirs in directory, params: "path"',
-            label="Syntax: list_dir",
-            description="Syntax for listing files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_mkdir",
-            type="textarea",
-            value='"mkdir": create directory, params: "path"',
-            label="Syntax: mkdir",
-            description="Syntax for directory creation",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_download_file",
-            type="textarea",
-            value='"download_file": download file, params: "src", "dst"',
-            label="Syntax: download_file",
-            description="Syntax for downloading files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_rmdir",
-            type="textarea",
-            value='"rmdir": remove directory, params: "path"',
-            label="Syntax: rmdir",
-            description="Syntax for removing directories",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_copy_file",
-            type="textarea",
-            value='"copy_file": copy file, params: "src", "dst"',
-            label="Syntax: copy_file",
-            description="Syntax for copying files",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_copy_dir",
-            type="textarea",
-            value='"copy_dir": recursive copy directory, params: "src", "dst"',
-            label="Syntax: copy_dir",
-            description="Syntax for recursive copying directories",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_move",
-            type="textarea",
-            value='"move": move file or directory, params: "src", "dst"',
-            label="Syntax: move",
-            description="Syntax for moving files and directories",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_is_dir",
-            type="textarea",
-            value='"is_dir": check if path is directory, params: "path"',
-            label="Syntax: is_dir",
-            description="Syntax for checking if path is directory",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_is_file",
-            type="textarea",
-            value='"is_file": check if path is file, params: "path"',
-            label="Syntax: is_file",
-            description="Syntax for checking if path is file",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_file_exists",
-            type="textarea",
-            value='"file_exists": check if file or directory exists, params: "path"',
-            label="Syntax: file_exists",
-            description="Syntax for checking if file or directory exists",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_file_size",
-            type="textarea",
-            value='"file_size": get file size, params: "path"',
-            label="Syntax: file_size",
-            description="Syntax for getting file size",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_file_info",
-            type="textarea",
-            value='"file_info": get file info, params: "path"',
-            label="Syntax: file_info",
-            description="Syntax for getting file info",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_cwd",
-            type="textarea",
-            value='"cwd": get current working directory (full system path)',
-            label="Syntax: cwd",
-            description="Syntax for getting current working directory",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_file_index",
-            type="textarea",
-            value='"file_index": use it to index (embed in Vector Store) a file or directory, '
-                  'params: "path"',
-            label="Syntax: file_index",
-            description="Syntax for file_index command",
-            advanced=True,
-        )
-        # TODO: implement cmd type option
-        """
+        # commands
         self.add_cmd(
-            "test",
-            instruction="Test instruction",
+            "send_file",
+            instruction="send file as attachment from my computer to you for analyze",
             params=[
                 {
-                    "name": "test_param",
+                    "name": "path",
                     "type": "str",
-                    "description": "Test param desc",
+                    "description": "path",
                     "required": True,
                 },
             ],
             enabled=True,
-            title="Test cmd title",
-            description="Test cmd description",
+            description="Enable: Upload file as attachment",
         )
-        """
+        self.add_cmd(
+            "read_file",
+            instruction="read data from files",
+            params=[
+                {
+                    "name": "path",
+                    "type": "list",
+                    "description": "path(s) to files",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Read file",
+        )
+        self.add_cmd(
+            "query_file",
+            instruction="read, index and quick query file for additional context",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "query",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Query file with Llama-index",
+            tab="indexing",
+        )
+        self.add_cmd(
+            "save_file",
+            instruction="save data to file",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path to file",
+                    "required": True,
+                },
+                {
+                    "name": "data",
+                    "type": "str",
+                    "description": "text data",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Save file",
+        )
+        self.add_cmd(
+            "append_file",
+            instruction="append data to file",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+                {
+                    "name": "data",
+                    "type": "str",
+                    "description": "data",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Append to file",
+        )
+        self.add_cmd(
+            "delete_file",
+            instruction="delete file",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Delete file",
+        )
+        self.add_cmd(
+            "list_dir",
+            instruction="list files and dirs",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: List files in directory (ls)",
+        )
+        self.add_cmd(
+            "mkdir",
+            instruction="create directory",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Directory creation (mkdir)",
+        )
+        self.add_cmd(
+            "download_file",
+            instruction="download file",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "source URL",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Downloading files",
+        )
+        self.add_cmd(
+            "rmdir",
+            instruction="remove directory",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Removing directories",
+        )
+        self.add_cmd(
+            "copy_file",
+            instruction="copy file",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Copying files",
+        )
+        self.add_cmd(
+            "copy_dir",
+            instruction="recursive copy directory",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Copying directories (recursive)",
+        )
+        self.add_cmd(
+            "move",
+            instruction="move file or directory",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Move files and directories (rename)",
+        )
+        self.add_cmd(
+            "is_dir",
+            instruction="check if path is directory",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Check if path is directory",
+        )
+        self.add_cmd(
+            "is_file",
+            instruction="check if path is file",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Check if path is file",
+        )
+        self.add_cmd(
+            "file_exists",
+            instruction="check if file or directory exists",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Check if file or directory exists",
+        )
+        self.add_cmd(
+            "file_size",
+            instruction="get file size",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Get file size",
+        )
+        self.add_cmd(
+            "file_info",
+            instruction="get file info",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Get file info",
+        )
+        self.add_cmd(
+            "cwd",
+            instruction="get current working directory (abs path)",
+            params=[],
+            enabled=True,
+            description="Enable: Get current working directory (cwd)",
+        )
+        self.add_cmd(
+            "file_index",
+            instruction="index (embed as vectors in vector DB) file or directory",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to index file or directory using Llama-index",
+        )
 
     def setup(self) -> dict:
         """
@@ -463,12 +456,8 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for option in self.allowed_cmds:
-            if self.is_cmd_allowed(option):
-                key = "syntax_" + option
-                if self.has_option(key):
-                    data['syntax'].append(
-                        str(self.get_option_value(key)),
-                    )
+            if self.has_cmd(option):
+                data['cmd'].append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

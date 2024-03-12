@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -33,7 +33,6 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""
-        # cmd enable/disable
         self.add_option(
             "serial_port",
             type="text",
@@ -70,52 +69,49 @@ class Plugin(BasePlugin):
             min=0,
             max=None,
         )
-        self.add_option(
-            "cmd_serial_send",
-            type="bool",
-            value=True,
-            label="Enable: Send text commands to USB port",
-            description="Allows `serial_send` command execution",
-        )
-        self.add_option(
-            "cmd_serial_send_bytes",
-            type="bool",
-            value=True,
-            label="Enable: Send raw bytes to USB port",
-            description="Allows `serial_send_bytes` command execution",
-        )
-        self.add_option(
-            "cmd_serial_read",
-            type="bool",
-            value=True,
-            label="Enable: Read data from USB port",
-            description="Allows `serial_read` command execution",
-        )
 
-        # cmd syntax (prompt/instruction)
-        self.add_option(
-            "syntax_serial_send",
-            type="textarea",
-            value='"serial_send": send text command to USB port, params: "command"',
-            label="Syntax: serial_send",
-            description="Syntax for sending text command to USB port",
-            advanced=True,
+        # commands
+        self.add_cmd(
+            "serial_send",
+            instruction="send text command to USB port",
+            params=[
+                {
+                    "name": "command",
+                    "type": "str",
+                    "description": "command",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Send text commands to USB port",
         )
-        self.add_option(
-            "syntax_serial_send_bytes",
-            type="textarea",
-            value='"serial_send_bytes": send raw bytes to USB port, params: "bytes"',
-            label="Syntax: serial_send_bytes",
-            description="Syntax for sending raw bytes to USB port",
-            advanced=True,
+        self.add_cmd(
+            "serial_send_bytes",
+            instruction="send raw bytes to USB port",
+            params=[
+                {
+                    "name": "bytes",
+                    "type": "int",
+                    "description": "bytes",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Send raw bytes to USB port",
         )
-        self.add_option(
-            "syntax_serial_read",
-            type="textarea",
-            value='"serial_read": read data from serial port in seconds duration, params: "duration"',
-            label="Syntax: serial_read",
-            description="Syntax for reading data from USB port",
-            advanced=True,
+        self.add_cmd(
+            "serial_read",
+            instruction="read data from serial port in seconds duration",
+            params=[
+                {
+                    "name": "duration",
+                    "type": "int",
+                    "description": "duration",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Read data from USB port",
         )
 
     def setup(self) -> dict:
@@ -162,10 +158,8 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for option in self.allowed_cmds:
-            if self.is_cmd_allowed(option):
-                key = "syntax_" + option
-                if self.has_option(key):
-                    data['syntax'].append(str(self.get_option_value(key)))
+            if self.has_cmd(option):
+                data['cmd'].append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -216,8 +210,7 @@ class Plugin(BasePlugin):
         :param cmd: command name
         :return: True if allowed
         """
-        key = "cmd_" + cmd
-        if self.has_option(key) and self.get_option_value(key) is True:
+        if self.has_cmd(cmd):
             return True
         return False
 

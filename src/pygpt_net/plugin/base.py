@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
+import copy
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
@@ -27,6 +28,7 @@ class BasePlugin:
         self.urls = {}
         self.options = {}
         self.initial_options = {}
+        self.allowed_cmds = []
         self.tabs = {}
         self.parent = None
         self.enabled = False
@@ -41,48 +43,14 @@ class BasePlugin:
         """
         return self.options
 
-    def add_cmd(self, cmd: str, **kwargs):
-        """
-        Add plugin command
-
-        :param cmd: command name
-        :param kwargs: additional keyword arguments for command properties
-        """
-        # TODO: implement cmd type option
-
-        cmd_syntax = {
-            "cmd": cmd, # command name
-            "instruction": "",  # instruction for model
-            "params": {},  # parameters
-            "enabled": True,  # enabled
-        }
-        if "instruction" in kwargs and isinstance(kwargs.get("instruction"), str):
-            cmd_syntax["instruction"] = kwargs.get("instruction")
-        if "params" in kwargs and isinstance(kwargs.get("params"), list):
-            cmd_syntax["params"] = kwargs.get("params")
-        if "enabled" in kwargs and isinstance(kwargs.get("enabled"), bool):
-            cmd_syntax["enabled"] = kwargs.get("enabled")
-
-        name = "cmd_" + cmd
-        kwargs["value"] = cmd_syntax
-
-        # static keys
-        kwargs["params_keys"] = {
-            "name": "text",
-            "type": "text",
-            "description": "text",
-            "required": "bool",
-        }
-
-        self.add_option(name, "cmd", **kwargs)
-
-    def add_option(self, name: str, type: str, **kwargs):
+    def add_option(self, name: str, type: str, **kwargs) -> dict:
         """
         Add plugin configuration option
 
         :param name: option name (ID, key)
         :param type: option type (text, textarea, bool, int, float, dict, combo)
         :param kwargs: additional keyword arguments for option properties
+        :return: added option config dict
         """
         defaults = {
             "value": None,
@@ -106,6 +74,85 @@ class BasePlugin:
         option["id"] = name
         option["type"] = type
         self.options[name] = option
+        return option
+
+    def add_cmd(self, cmd: str, **kwargs) -> dict:
+        """
+        Add plugin command
+
+        :param cmd: command name
+        :param kwargs: additional keyword arguments for command properties
+        :return: added option config dict
+        """
+        cmd_syntax = {
+            "instruction": "",  # instruction for model
+            "params": {},  # parameters
+            "enabled": True,  # enabled
+        }
+        if "instruction" in kwargs and isinstance(kwargs.get("instruction"), str):
+            cmd_syntax["instruction"] = kwargs.get("instruction")
+            kwargs.pop("instruction")
+        if "params" in kwargs and isinstance(kwargs.get("params"), list):
+            cmd_syntax["params"] = kwargs.get("params")
+            kwargs.pop("params")
+        if "enabled" in kwargs and isinstance(kwargs.get("enabled"), bool):
+            cmd_syntax["enabled"] = kwargs.get("enabled")
+            kwargs.pop("enabled")
+
+        name = "cmd." + cmd
+        kwargs["cmd"] = cmd
+        kwargs["value"] = cmd_syntax
+
+        # static keys
+        kwargs["params_keys"] = {
+            "name": "text",
+            "type": {
+                "type": "combo",
+                "use": "var_types",
+                "keys": {},
+            },
+            "description": "text",
+            "required": "bool",
+        }
+
+        return self.add_option(name, "cmd", **kwargs)
+
+    def has_cmd(self, cmd: str) -> bool:
+        """
+        Check if command exists
+
+        :param cmd: command name
+        :return: True if exists
+        """
+        key = "cmd." + cmd
+        if key in self.options:
+            if "value" in self.options[key] and "enabled" in self.options[key]["value"]:
+                return self.options[key]["value"]["enabled"]
+        return False
+
+    def cmd_allowed(self, cmd: str) -> bool:
+        """
+        Check if command allowed
+
+        :param cmd: command name
+        :return: True if allowed
+        """
+        if cmd in self.allowed_cmds:
+            return True
+        return False
+
+    def get_cmd(self, cmd: str) -> dict:
+        """
+        Return command
+
+        :param cmd: command name
+        :return: command dict
+        """
+        key = "cmd." + cmd
+        if key in self.options:
+            data = copy.deepcopy(self.options[key]["value"]) # make copy to prevent changes in original data
+            data = {"cmd": cmd, **data}
+            return data
 
     def has_option(self, name: str) -> bool:
         """

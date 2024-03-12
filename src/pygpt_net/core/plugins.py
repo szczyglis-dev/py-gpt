@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -103,11 +103,19 @@ class Plugins:
             self.plugins[id].initial_options = copy.deepcopy(plugin.options)
 
         try:
+            removed = False
             plugins = self.window.core.config.get('plugins')
-            if id in plugins:
-                for key in plugins[id]:
+            if id in list(plugins.keys()):
+                for key in list(plugins[id].keys()):
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
+                    else:
+                        removed = True
+                        del plugins[id][key]
+
+            # remove invalid options
+            if removed:
+                self.window.core.config.save()
 
             # register options (configure dict editors, etc.)
             self.register_options(id, self.plugins[id].options)
@@ -118,6 +126,7 @@ class Plugins:
 
     def apply_all_options(self):
         """Apply all options to plugins"""
+        removed = False
         user_config = self.window.core.config.get('plugins')
         for id in self.plugins:
             if hasattr(self.plugins[id], 'initial_options'):
@@ -126,6 +135,12 @@ class Plugins:
                 for key in user_config[id]:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = user_config[id][key]
+                    else:
+                        print("removed")
+                        removed = True
+                        del user_config[id][key]
+        if removed:
+            self.window.core.config.save()
 
     def register_options(self, id: str, options: dict):
         """
@@ -142,7 +157,7 @@ class Plugins:
                 if option['type'] == "cmd":
                     key_name = key + ".params"
                 parent = "plugin." + id
-                option['label'] = key_name
+                option['label'] = key_name  # option name
                 self.window.ui.dialogs.register_dictionary(key_name, parent, option)
 
     def unregister(self, id: str):
@@ -336,6 +351,24 @@ class Plugins:
         :return: dict with presets
         """
         return self.presets
+
+    def clean_presets(self):
+        """Remove invalid options from presets"""
+        if self.presets is None:
+            self.load_presets()
+
+        removed = False
+        for id in self.presets:
+            preset = self.presets[id]
+            for config_preset in preset["config"]:
+                for key in list(preset["config"][config_preset]):
+                    if config_preset in self.plugins:
+                        if key not in self.plugins[config_preset].options:
+                            removed = True
+                            preset["config"][config_preset].pop(key)
+        if removed:
+            self.save_presets()
+            print("[FIX] Removed invalid keys from plugin presets.")
 
     def update_preset_values(self, plugin_id:str, key: str, value: any):
         """

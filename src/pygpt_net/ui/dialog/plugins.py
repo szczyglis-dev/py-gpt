@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -337,7 +337,8 @@ class Plugins:
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
             elif option['type'] == 'cmd':
-                widgets[key] = OptionCmd(self.window, parent, key, option)  # command config
+                self.window.controller.config.placeholder.apply(option)
+                widgets[key] = OptionCmd(self.window, plugin, parent, key, option)  # command
 
         return widgets
 
@@ -388,6 +389,7 @@ class Plugins:
         """
         one_column_types = ['textarea', 'dict', 'bool', 'cmd']
         no_label_types = ['bool', 'cmd']
+        no_desc_types = ['cmd']
         allow_locale = True
 
         key = option['id']
@@ -413,7 +415,9 @@ class Plugins:
             if txt_tooltip == key + '.tooltip':
                 txt_tooltip = txt_desc
 
-        widget.setToolTip(txt_tooltip)
+
+        if option['type'] not in no_desc_types:
+            widget.setToolTip(txt_tooltip)
 
         if option['type'] not in no_label_types:
             self.window.ui.nodes[label_key] = QLabel(txt_title)
@@ -452,15 +456,15 @@ class Plugins:
 
             layout.addWidget(widget)
 
-            self.window.ui.nodes[desc_key] = QLabel(txt_desc)
-            self.window.ui.nodes[desc_key].setWordWrap(True)
-            self.window.ui.nodes[desc_key].setMaximumHeight(40)
-            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
-            self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
+            if option['type'] not in no_desc_types:
+                self.window.ui.nodes[desc_key] = QLabel(txt_desc)
+                self.window.ui.nodes[desc_key].setWordWrap(True)
+                self.window.ui.nodes[desc_key].setMaximumHeight(40)
+                self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
+                self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
+                layout.addWidget(self.window.ui.nodes[desc_key])
 
-            layout.addWidget(self.window.ui.nodes[desc_key])
-
-        # append URLs at the beginning
+        # append URLs
         if option['urls'] is not None and len(option['urls']) > 0:
             urls_widget = self.add_urls(option['urls'])
             layout.addWidget(urls_widget)

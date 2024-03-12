@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -38,7 +38,7 @@ class Worker(BaseWorker):
     def run(self):
         for item in self.cmds:
             try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.is_cmd_allowed(item["cmd"]):
+                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
                     # save file
                     if item["cmd"] == "save_file":
@@ -162,9 +162,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Saving file: {}".format(item["params"]['filename'])
+            self.msg = "Saving file: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = self.prepare_path(item["params"]['filename'])
+            path = self.prepare_path(item["params"]['path'])
             data = item["params"]['data']
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
@@ -190,9 +190,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Appending file: {}".format(item["params"]['filename'])
+            self.msg = "Appending file: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = self.prepare_path(item["params"]['filename'])
+            path = self.prepare_path(item["params"]['path'])
             data = item["params"]['data']
             with open(path, 'a', encoding="utf-8") as file:
                 file.write(data)
@@ -218,9 +218,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Reading file: {}".format(item["params"]['filename'])
+            self.msg = "Reading file: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = item["params"]['filename']
+            path = item["params"]['path']
             paths = []
             if isinstance(path, list):
                 paths = path
@@ -318,9 +318,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Deleting file: {}".format(item["params"]['filename'])
+            self.msg = "Deleting file: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = self.prepare_path(item["params"]['filename'])
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 os.remove(path)
                 response = {"request": request, "result": "OK"}

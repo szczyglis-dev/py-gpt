@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 10:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 class ContextDebug:
@@ -25,7 +25,8 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.current))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
         self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.items))
-        self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.tmp_meta))
+        if self.window.core.ctx.tmp_meta is not None:
+            self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.tmp_meta.to_dict()))
         self.window.core.debug.add(self.id, 'assistant', str(self.window.core.ctx.assistant))
         self.window.core.debug.add(self.id, 'mode', str(self.window.core.ctx.mode))
         self.window.core.debug.add(self.id, 'model', str(self.window.core.ctx.model))
@@ -40,6 +41,8 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'filters_labels', str(self.window.core.ctx.filters_labels))
         self.window.core.debug.add(self.id, 'sys_prompt (current)', str(self.window.core.ctx.current_sys_prompt))
         self.window.core.debug.add(self.id, 'allowed_modes', str(self.window.core.ctx.allowed_modes))
+        self.window.core.debug.add(self.id, 'CMD (current)', str(self.window.core.ctx.current_cmd))
+        self.window.core.debug.add(self.id, 'CMD schema (current)', str(self.window.core.ctx.current_cmd_schema))
 
         current = None
         if self.window.core.ctx.current is not None:

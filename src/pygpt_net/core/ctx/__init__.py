@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 10:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -49,6 +49,8 @@ class Ctx:
         self.search_string = None  # search string
         self.filters = {}  # search filters
         self.filters_labels = []  # search labels
+        self.current_cmd = []  # current commands
+        self.current_cmd_schema = "" # current commands schema
         self.allowed_modes = {
             'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
             'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],

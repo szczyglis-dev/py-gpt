@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget, QSizePolicy
@@ -51,14 +51,25 @@ class Dictionary(BaseConfigDialog):
             parent_id = self.id + "." + dict_id
             option_key = self.keys[dict_id]
             parent = self.parents[dict_id]
-            fields = self.dicts[dict_id]
+            data = self.dicts[dict_id]
             self.window.ui.config[parent_id] = {}
 
             # widgets
-            fields = self.window.controller.config.dictionary.to_options(
-                parent_id,
-                fields,
-            )  # item to options
+            fields = {}
+
+            # option type: dict
+            if data["type"] == 'dict':
+                fields = self.window.controller.config.dictionary.to_options(
+                    parent_id,
+                    data,
+                )  # item to options
+
+            # option type: cmd
+            elif data["type"] == 'cmd':
+                fields = self.window.controller.config.cmd.to_options(
+                    parent_id,
+                    data,
+                )  # item to options
 
             widgets = self.build_widgets(
                 parent_id,

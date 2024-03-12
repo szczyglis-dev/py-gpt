@@ -399,15 +399,15 @@ Another feature is the ability to execute system commands and return their resul
 
 Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
 
-- ``Enable: Python code generate and execute`` *cmd_code_execute*
+- ``Enable: Python code generate and execute`` *cmd.code_execute*
 
 Allows `code_execute` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* `True`
 
-- ``Enable: Python code execute (from file)`` *cmd_code_execute_file*
+- ``Enable: Python code execute (from file)`` *cmd.code_execute_file*
 
 Allows `code_execute_file` command execution. If enabled, provides Python code execution from existing file. *Default:* `True`
  
-- ``Enable: system command execute`` *cmd_sys_exec*
+- ``Enable: system command execute`` *cmd.sys_exec*
 
 Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
 
@@ -519,75 +519,75 @@ If a file being created (with the same name) already exists, a prefix including 
 
 **General**
 
-- ``Enable: send (upload) file as attachment`` *cmd_send_file*
+- ``Enable: send (upload) file as attachment`` *cmd.send_file*
 
-Allows `cmd_send_file` command execution. *Default:* `True`
+Allows `send_file` command execution. *Default:* `True`
 
-- ``Enable: read file`` *cmd_read_file*
+- ``Enable: read file`` *cmd.read_file*
 
 Allows `read_file` command execution. *Default:* `True`
 
-- ``Enable: append to file`` *cmd_append_file*
+- ``Enable: append to file`` *cmd.append_file*
 
 Allows `append_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- ``Enable: save file`` *cmd_save_file*
+- ``Enable: save file`` *cmd.save_file*
 
 Allows `save_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- ``Enable: delete file`` *cmd_delete_file*
+- ``Enable: delete file`` *cmd.delete_file*
 
 Allows `delete_file` command execution. *Default:* `True`
 
-- ``Enable: list files (ls)`` *cmd_list_files*
+- ``Enable: list files (ls)`` *cmd.list_files*
 
 Allows `list_dir` command execution. *Default:* `True`
 
-- ``Enable: list files in dirs in directory (ls)`` *cmd_list_dir*
+- ``Enable: list files in dirs in directory (ls)`` *cmd.list_dir*
 
 Allows `mkdir` command execution. *Default:* `True`
 
-- ``Enable: downloading files`` *cmd_download_file*
+- ``Enable: downloading files`` *cmd.download_file*
 
 Allows `download_file` command execution. *Default:* `True`
 
-- ``Enable: removing directories`` *cmd_rmdir*
+- ``Enable: removing directories`` *cmd.rmdir*
 
 Allows `rmdir` command execution. *Default:* `True`
 
-- ``Enable: copying files`` *cmd_copy_file*
+- ``Enable: copying files`` *cmd.copy_file*
 
 Allows `copy_file` command execution. *Default:* `True`
 
-- ``Enable: copying directories (recursive)`` *cmd_copy_dir*
+- ``Enable: copying directories (recursive)`` *cmd.copy_dir*
 
 Allows `copy_dir` command execution. *Default:* `True`
 
-- ``Enable: move files and directories (rename)`` *cmd_move*
+- ``Enable: move files and directories (rename)`` *cmd.move*
 
 Allows `move` command execution. *Default:* `True`
 
-- ``Enable: check if path is directory`` *cmd_is_dir*
+- ``Enable: check if path is directory`` *cmd.is_dir*
 
 Allows `is_dir` command execution. *Default:* `True`
 
-- ``Enable: check if path is file`` *cmd_is_file*
+- ``Enable: check if path is file`` *cmd.is_file*
 
 Allows `is_file` command execution. *Default:* `True`
 
-- ``Enable: check if file or directory exists`` *cmd_file_exists*
+- ``Enable: check if file or directory exists`` *cmd.file_exists*
 
 Allows `file_exists` command execution. *Default:* `True`
 
-- ``Enable: get file size`` *cmd_file_size*
+- ``Enable: get file size`` *cmd.file_size*
 
 Allows `file_size` command execution. *Default:* `True`
 
-- ``Enable: get file info`` *cmd_file_info*
+- ``Enable: get file info`` *cmd.file_info*
 
 Allows `file_info` command execution. *Default:* `True`
 
-- ``Enable: get current working directory`` *cmd_cwd*
+- ``Enable: get current working directory`` *cmd.cwd*
 
 Allows `cwd` command execution. *Default:* `True`
 
@@ -597,7 +597,7 @@ Use data loaders from Llama-index for file reading (`read_file` command). *Defau
 
 **Indexing**
 
-- ``Enable: quick query the file with Llama-index`` *cmd_query_file*
+- ``Enable: quick query the file with Llama-index`` *cmd.query_file*
 
 Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
 
@@ -605,7 +605,7 @@ Allows `query_file` command execution (in-memory index). If enabled, model will 
 
 Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-3.5-turbo`
 
-- ``Enable: indexing files to persistent index`` *cmd_file_index*
+- ``Enable: indexing files to persistent index`` *cmd.file_index*
 
 Allows `file_index` command execution. If enabled, model will be able to index file or directory using Llama-index (persistent index). *Default:* `True`
 
@@ -717,27 +717,27 @@ Max length of summarized result (characters). *Default:* `1500`
 
 Max tokens in output when generating summary. *Default:* `1500`
 
-- ``Enable: search the Web`` *cmd_web_search*
+- ``Enable: search the Web`` *cmd.web_search*
 
 Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
 
-- ``Enable: opening URLs`` *cmd_web_url_open*
+- ``Enable: opening URLs`` *cmd.web_url_open*
 
 Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
 
-- ``Enable: reading the raw content from URLs`` *cmd_web_url_raw*
+- ``Enable: reading the raw content from URLs`` *cmd.web_url_raw*
 
 Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
 
-- ``Enable: getting a list of URLs from search results`` *cmd_web_urls*
+- ``Enable: getting a list of URLs from search results`` *cmd.web_urls*
 
 Allows `web_urls` command execution. If enabled, model will be able to search the Web and get founded URLs list. *Default:* `True`
 
-- ``Enable: indexing web and external content`` *cmd_web_index*
+- ``Enable: indexing web and external content`` *cmd.web_index*
 
 Allows `web_index` command execution. If enabled, model will be able to index pages and external content using Llama-index (persistent index). *Default:* `True`
 
-- ``Enable: quick query the web and external content`` *cmd_web_index_query*
+- ``Enable: quick query the web and external content`` *cmd.web_index_query*
 
 Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using Llama-index (in-memory index). *Default:* `True`
 
@@ -760,27 +760,6 @@ Prompt used for web search results summarize, use {query} as a placeholder for s
 - ``Summarize prompt (URL open)`` *prompt_summarize_url*
 
 Prompt used for specified URL page summarize
-
-- ``Syntax: web_search`` *syntax_web_search*
-
-Syntax for web_search command
-
-- ``Syntax: web_url_open`` *syntax_web_url_open*
-
-Syntax for web_url_open command
-
-- ``Syntax: web_url_raw`` *syntax_web_url_raw*
-
-Syntax for web_url_raw command
-
-- ``Syntax: web_urls`` *syntax_web_urls*
-
-Syntax for web_urls command
-
-- ``Syntax: web_index`` *syntax_web_index*
-
-Syntax for web_index command
-
 
 Command: Serial port / USB
 ---------------------------
@@ -831,29 +810,17 @@ Timeout in seconds. *Default:* ``1``
 
 Sleep in seconds after connection. *Default:* ``2``
 
-- ``Enable: Send text commands to USB port`` *cmd_serial_send*
+- ``Enable: Send text commands to USB port`` *cmd.serial_send*
 
 Allows ``serial_send`` command execution". *Default:* ``True``
 
-- ``Enable: Send raw bytes to USB port`` *cmd_serial_send_bytes*
+- ``Enable: Send raw bytes to USB port`` *cmd.serial_send_bytes*
 
 Allows ``serial_send_bytes`` command execution. *Default:* ``True``
 
-- ``Enable: Read data from USB port`` *cmd_serial_read*
+- ``Enable: Read data from USB port`` *cmd.serial_read*
 
 Allows ``serial_read`` command execution. *Default:* ``True``
-
-- ``Syntax: serial_send`` *syntax_serial_send*
-
-Syntax for sending text command to USB port. *Default:* '"serial_send": send text command to USB port, params: "command"'
-
-- ``Syntax: serial_send_bytes`` *syntax_serial_send_bytes*
-
-Syntax for sending raw bytes to USB port. *Default:* '"serial_send_bytes": send raw bytes to USB port, params: "bytes"''
-
-- ``Syntax: serial_read`` *syntax_serial_read*
-
-Syntax for reading data from USB port. *Default:* '"serial_read": read data from serial port in seconds duration, params: "duration"`
 
 
 Context history (calendar, inline)
@@ -891,31 +858,31 @@ Where ``123`` is the ID of previous context (conversation) in database, example 
 
 When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* `False`
 
-- ``Enable: get date range context list`` *cmd_get_ctx_list_in_date_range*
+- ``Enable: get date range context list`` *cmd.get_ctx_list_in_date_range*
 
 Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
 
-- ``Enable: get context content by ID`` *cmd_get_ctx_content_by_id*
+- ``Enable: get context content by ID`` *cmd.get_ctx_content_by_id*
 
 Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
 
-- ``Enable: count contexts in date range`` *cmd_count_ctx_in_date*
+- ``Enable: count contexts in date range`` *cmd.count_ctx_in_date*
 
 Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
 
-- ``Enable: get day note`` *cmd_get_day_note*
+- ``Enable: get day note`` *cmd.get_day_note*
 
 Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
 
-- ``Enable: add day note`` *cmd_add_day_note*
+- ``Enable: add day note`` *cmd.add_day_note*
 
 Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
 
-- ``Enable: update day note`` *cmd_update_day_note*
+- ``Enable: update day note`` *cmd.update_day_note*
 
 Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
 
-- ``Enable: remove day note`` *cmd_remove_day_note*
+- ``Enable: remove day note`` *cmd.remove_day_note*
 
 Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
 
@@ -936,34 +903,6 @@ Max items in context history list to retrieve in one query. 0 = no limit. *Defau
 Per-context content chunk size (max characters per chunk). *Default:* `100000 chars`
 
 **Options (advanced)**
-
-- ``Syntax: get_ctx_list_in_date_range`` *syntax_get_ctx_list_in_date_range*
-
-Syntax for get_ctx_list_in_date_range command.
-
-- ``Syntax: get_ctx_content_by_id`` *syntax_get_ctx_content_by_id*
-
-Syntax for get_ctx_content_by_id command.
-
-- ``Syntax: count_ctx_in_date`` *syntax_count_ctx_in_date*
-
-Syntax for count_ctx_in_date command
-
-- ``Syntax: get_day_note`` *syntax_get_day_note*
-
-Syntax for get_day_note command
-
-- ``Syntax: add_day_note`` *syntax_add_day_note*
-
-Syntax for add_day_note command.
-
-- ``Syntax: update_day_note`` *syntax_update_day_note*
-
-Syntax for update_day_note command.
-
-- ``Syntax: remove_day_note`` *syntax_remove_day_note*
-
-Syntax for remove_day_note command.
 
 - ``Prompt: @ tags (system)`` *prompt_tag_system*
 
@@ -1037,11 +976,11 @@ The prompt used for vision mode. It will append or replace current system prompt
 
 Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
 
-- ``Enable: capturing images from camera`` *cmd_capture*
+- ``Enable: capturing images from camera`` *cmd.camera_capture*
 
 Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `Execute commands` option must be enabled. *Default:* `False`
 
-- ``Enable: making screenshots`` *cmd_screenshot*
+- ``Enable: making screenshots`` *cmd.make_screenshot*
 
 Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `Execute commands` option must be enabled. *Default:* `False`
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -56,22 +56,6 @@ class Plugin(BasePlugin):
             tooltip="Model",
         )
         self.add_option(
-            "cmd_capture",
-            type="bool",
-            value=False,
-            label="Enable: camera capture command",
-            description="Allow using command: camera capture",
-            tooltip="If enabled, model will be able to capture images from camera",
-        )
-        self.add_option(
-            "cmd_screenshot",
-            type="bool",
-            value=False,
-            label="Enable: make screenshot command",
-            description="Allow using command: make screenshot",
-            tooltip="If enabled, model will be able to making screenshots",
-        )
-        self.add_option(
             "prompt",
             type="textarea",
             value=prompt,
@@ -91,6 +75,18 @@ class Plugin(BasePlugin):
             tooltip="Replace whole system prompt with vision prompt against appending it to the "
                     "current prompt",
             advanced=True,
+        )
+        self.add_cmd(
+            "camera_capture",
+            instruction="capture image from webcam",
+            params=[],
+            enabled=True,
+        )
+        self.add_cmd(
+            "make_screenshot",
+            instruction="make desktop screenshot",
+            params=[],
+            enabled=True,
         )
 
     def setup(self) -> dict:
@@ -183,19 +179,12 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
-        if not self.get_option_value("cmd_capture") \
-                and not self.get_option_value("cmd_screenshot"):
+        if not self.has_cmd("camera_capture") and not self.has_cmd("make_screenshot"):
             return
-
-        # append syntax
-        if self.get_option_value("cmd_capture"):
-            data['syntax'].append(
-                '"camera_capture": use it to capture image from user camera'
-            )
-        if self.get_option_value("cmd_screenshot"):
-            data['syntax'].append(
-                '"make_screenshot": use it to make screenshot from user screen'
-            )
+        if self.has_cmd("camera_capture"):
+            data['cmd'].append(self.get_cmd("camera_capture"))  # append command
+        if self.has_cmd("make_screenshot"):
+            data['cmd'].append(self.get_cmd("make_screenshot"))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -215,7 +204,7 @@ class Plugin(BasePlugin):
             return
 
         for item in my_commands:
-            if item["cmd"] == "camera_capture" and self.get_option_value("cmd_capture"):
+            if item["cmd"] == "camera_capture" and self.has_cmd(item["cmd"]):
                 request = {
                     "cmd": item["cmd"],
                 }
@@ -226,7 +215,7 @@ class Plugin(BasePlugin):
                 }
                 ctx.results.append(response)
                 ctx.reply = True
-            elif item["cmd"] == "make_screenshot" and self.get_option_value("cmd_screenshot"):
+            elif item["cmd"] == "make_screenshot" and self.has_cmd(item["cmd"]):
                 request = {
                     "cmd": item["cmd"],
                 }

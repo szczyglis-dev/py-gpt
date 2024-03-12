@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import os
@@ -24,14 +24,11 @@ def test_options(mock_window):
     plugin.init_options()
     options = plugin.setup()
     assert "python_cmd_tpl" in options
-    assert "cmd_code_execute" in options
-    assert "cmd_code_execute_file" in options
-    assert "cmd_sys_exec" in options
+    assert "cmd.code_execute" in options
+    assert "cmd.code_execute_file" in options
+    assert "cmd.sys_exec" in options
     assert "sandbox_docker" in options
     assert "sandbox_docker_image" in options
-    assert "syntax_code_execute" in options
-    assert "syntax_code_execute_file" in options
-    assert "syntax_sys_exec" in options
 
 
 def test_handle_cmd_syntax(mock_window):
@@ -43,11 +40,11 @@ def test_handle_cmd_syntax(mock_window):
     event = Event()
     event.name = "cmd.syntax"
     event.data = {
-        "syntax": []
+        "cmd": []
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["syntax"]) == 3  # code_execute, code_execute_file, sys_exec
+    assert len(event.data["cmd"]) == 0  # code_execute, code_execute_file, sys_exec
 
 
 def test_handle_cmd_execute_code_execute(mock_window):

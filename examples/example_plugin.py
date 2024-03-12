@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 02:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin  # <-- every plugin must inherit from BasePlugin
@@ -180,11 +180,23 @@ class Plugin(BasePlugin):
 
         :param data: event data dictionary
         """
-        data['syntax'].append(
-            '"funny_cmd": use it to show funny command response for a specified query. Params: "query"'
+        data['cmd'].append(
+            {
+                "cmd": "funny_cmd",
+                "instruction": "funny command for displaying funny responses for a specified query",  # instruction for model
+                "params": [
+                    {
+                        "name": "query",  # parameter name
+                        "type": "str",  # parameter type
+                        "description": "query",  # parameter description
+                        "required": True,
+                    }
+                ],
+                "enabled": True,  # enabled
+            }
         )
         # You can register as many commands as you want, use the same syntax as above:
-        # data['syntax'].append('"command_name": description. Params: "param1", "param2", "param3"')
+        # data['cmd'].append(<command>)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

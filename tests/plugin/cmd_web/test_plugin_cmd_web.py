@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import os
@@ -34,8 +34,6 @@ def test_options(mock_window):
     assert "summary_model" in options
     assert "prompt_summarize" in options
     assert "prompt_summarize_url" in options
-    assert "syntax_web_search" in options
-    assert "syntax_web_url_open" in options
 
 
 def test_handle_input_before(mock_window):
@@ -63,11 +61,11 @@ def test_handle_cmd_syntax(mock_window):
     event = Event()
     event.name = "cmd.syntax"
     event.data = {
-        "syntax": []
+        "cmd": []
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["syntax"]) == 5  # web_search, web_url_open
+    assert len(event.data["cmd"]) == 6  # web_search, web_url_open
 
 
 def test_handle_cmd_execute_web_search(mock_window):

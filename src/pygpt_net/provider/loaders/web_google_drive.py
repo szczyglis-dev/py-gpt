@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -25,9 +25,20 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "google_drive": "use it to read and index files from Google Drive, "
-                                "use `root` as default folder, allowed additional args: "
-                                "`folder_id`: str, `file_ids`: list, `mime_types`: list",
+                "google_docs": {
+                    "description": "read and index files from Google Drive",
+                    "args": {
+                        "folder_id": {
+                            "type": "str",
+                        },
+                        "file_ids": {
+                            "type": "list",
+                        },
+                        "mime_types": {
+                            "type": "list",
+                        },
+                    },
+                }
             }
         ]
         self.init_args = {

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -23,7 +23,14 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "rss": "use it to read RSS feed URL, allowed args: `url`: str",
+                "rss": {
+                    "description": "read RSS feed from URL",
+                    "args": {
+                        "url": {
+                            "type": "str",
+                        },
+                    },
+                }
             }
         ]
 

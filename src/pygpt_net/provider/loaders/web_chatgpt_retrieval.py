@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -25,8 +25,14 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "chatgpt_retrieval": "use it to read and index data from ChatGPT Retrieval Plugin, "
-                                     "allowed additional args: `query`: str",
+                "chatgpt_retrieval": {
+                    "description": "read and index data from ChatGPT Retrieval Plugin",
+                    "args": {
+                        "query": {
+                            "type": "str",
+                        },
+                    },
+                }
             }
         ]
         self.init_args = {

@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
+from unittest.mock import MagicMock
 
-
-from tests.mocks import mock_window_conf
+from tests.mocks import mock_window_conf, mock_window
 from pygpt_net.core.command import Command
 
 
@@ -28,9 +28,10 @@ def test_append_syntax():
     """
     Test append syntax
     """
-    cmd = Command()
-    event_data = {'prompt': 'test', 'syntax': ['syntax1', 'syntax2']}
-    assert cmd.append_syntax(event_data) == 'test\nsyntax1\nsyntax2'
+    window = MagicMock()
+    cmd = Command(window=window)
+    event_data = {'prompt': 'test', 'cmd': ['cmd1', 'cmd2']}
+    assert cmd.append_syntax(event_data).startswith("test\n") is True
 
 
 def test_extract_cmds_only():

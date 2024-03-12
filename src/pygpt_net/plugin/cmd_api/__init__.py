@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -164,7 +164,7 @@ class Plugin(BasePlugin):
                     for param in params:
                         cmd["params"].append(param)
 
-            data['syntax'].append(cmd)
+            data['cmd'].append(cmd)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -238,7 +238,11 @@ class Plugin(BasePlugin):
             param = param.strip()
             if param == "":
                 continue
-            params.append(param)
+            params.append({
+                "name": param,
+                "type": "str",
+                "description": param,
+            })
         return params
 
     def call_get(self, url: str, extra_headers: dict = None) -> bytes:

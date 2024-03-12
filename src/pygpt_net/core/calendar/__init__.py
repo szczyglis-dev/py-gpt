@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 18:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -136,13 +136,13 @@ class Calendar:
         current = self.provider.load(year, month, day)
         if current is None:
             current = self.build()
-            current.year = year
-            current.month = month
-            current.day = day
         if current.content is not None and current.content != "":
             current.content = current.content + "\n"
         if current.content is None:
             current.content = ""
+        current.year = year
+        current.month = month
+        current.day = day
         current.content += text
         self.provider.save(current)
         self.load(year, month, day)

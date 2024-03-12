@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -48,9 +48,11 @@ class Worker(BaseWorker):
                     }
                     try:
                         post_params = {}
-                        post_json = str(my_cmd["post_json"])  # POST JSON, as string
+                        post_json = ""
                         headers = {}  # HTTP headers, if any, Auth, API key, etc.
                         result = None
+                        if 'post_json' in my_cmd and my_cmd["post_json"].strip() != "":
+                            post_json = str(my_cmd["post_json"])  # POST JSON, as string
 
                         # prepare call
                         endpoint = my_cmd["endpoint"]  # API endpoint URL
@@ -70,7 +72,8 @@ class Worker(BaseWorker):
                             params_list = self.plugin.extract_params(
                                 my_cmd["get_params"],
                             )
-                            for param in params_list:
+                            for p in params_list:
+                                param = p["name"]
                                 if param in item["params"]:
                                     endpoint = endpoint.replace(
                                         "{" + param + "}",  # replace { placeholder }
@@ -83,7 +86,8 @@ class Worker(BaseWorker):
                             params_list = self.plugin.extract_params(
                                 my_cmd["post_params"],
                             )
-                            for param in params_list:
+                            for p in params_list:
+                                param = p["name"]
                                 if param in item["params"]:
                                     post_params[param] = item["params"][param]
 

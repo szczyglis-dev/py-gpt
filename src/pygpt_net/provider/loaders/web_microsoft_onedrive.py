@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -25,10 +25,26 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "microsoft_onedrive": "use it to read and index files from OneDrive, "
-                                "allowed additional args: "
-                                "`folder_id`: str, `file_ids`: list, `mime_types`: list, "
-                                      "`folder_path`: str, file_paths`: list",
+                "microsoft_onedrive": {
+                    "description": "read and index files from OneDrive",
+                    "args": {
+                        "folder_id": {
+                            "type": "str",
+                        },
+                        "file_ids": {
+                            "type": "list",
+                        },
+                        "mime_types": {
+                            "type": "list",
+                        },
+                        "folder_path": {
+                            "type": "str",
+                        },
+                        "file_paths": {
+                            "type": "list",
+                        },
+                    },
+                }
             }
         ]
         self.init_args = {

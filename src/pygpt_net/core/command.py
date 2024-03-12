@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
+import copy
 import json
 
 from pygpt_net.item.ctx import CtxItem
@@ -31,28 +32,28 @@ class Command:
         :return: prompt instruction
         """
         cmd = '''RUNNING COMMANDS:
-        You can execute commands and also use them to run commands on the user's environment. 
-
+        You can execute commands and also use them to run commands in the user's environment.
+        
         Important rules:
-        1) List of available commands is defined below.
-        2) To execute defined command return JSON object with "cmd" key and command name as value.
-        3) Always use syntax defined in command definition and correct command name.
-        4) Put command parameters in "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}. Use ONLY syntax like this. DO NOT use any other syntax.
-        5) Append JSON object to response at the end of response and split it with ~###~ character. Example: text response ~###~ {"cmd": "web", "params": {"query": "some query"}}.
-        6) If you want to execute command without any response, return only JSON object.
-        7) Responses from commands will be returned in "result" key.
-        8) Commands are listed one command per line and every command is described with syntax: "<name>": <action>, params: <params>
-        9) Always use correct command name, e.g. if command name is "sys_exec" then use "sys_exec" and don't imagine other names, like "run" or something.
-        10) With those commands you are allowed to run external commands and apps in user's system (environment)
-        11) Always use defined syntax to prevent errors
-        12) Always choose the most appropriate command from list to perform the task, based on the description of the action performed by a given comment
-        13) Reply to the user in the language in which he started the conversation with you
-        14) Use ONLY params described in command definition, do NOT use any additional params not described on list
-        15) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
-        16) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
-        17) Every command param must be placed in one line, so when you generate code you must put all of code in one line
-
-        Commands list:'''
+        
+        1) To execute a defined command, return a JSON object with the "cmd" key and the command name as its value.
+        2) Always use the syntax defined in the command definition and the correct command name.
+        3) Put command parameters in the "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}. Use ONLY this syntax. DO NOT use any other syntax.
+        4) Append the JSON object to the response at the end and around it with the `~###~` characters. Example: text response ~###~ {"cmd": "web", "params": {"query": "some query"}} ~###~.
+        5) If you want to execute a command without any response, return only the JSON object.
+        6) Responses from commands will be returned in the "result" key.
+        7) Always use the correct command name, e.g., if the command name is "sys_exec", then use "sys_exec" and don't use other names, like "run" or something.
+        8) With these commands, you are allowed to run external commands and apps in the user's system (environment).
+        9) Always use the defined syntax to prevent errors.
+        10) Always choose the most appropriate command from the list to perform the task, based on the description of the action performed by a given command.
+        11) Reply to the user in the language in which they started the conversation with you.
+        12) Use ONLY params described in the command definition, do NOT use any additional params not described on the list.
+        13) ALWAYS remember that any text content must appear at the beginning of your response and commands must be included at the end of the response.
+        14) Every command parameter must be placed in one line, so when you generate code you must put all of the code in one line.
+        15) Run the commands immediately by providing all required data.
+        16) The list of available commands is defined below, described in JSON schema.
+        
+        JSON schema with commands list:'''
 
         # get custom prompt from config if exists
         if allow_custom:
@@ -60,32 +61,71 @@ class Command:
                 prompt = self.window.core.config.get('cmd.prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
-
-        # Syntax for commands (example):
-        # cmd += '\n"save_file": save data to file, params: "filename", "data"'
-        # cmd += '\n"read_file": read data from file, params: "filename"'
         return cmd
 
     def append_syntax(self, data: dict) -> str:
         """
-        Append command syntax to prompt
+        Append command syntax to the system prompt
 
         :param data: event data
         :return: prompt with appended syntax
         """
         prompt = data['prompt']
-        for item in data['syntax']:
-            if isinstance(item, str):
-                prompt += '\n' + item
-            elif isinstance(item, dict):
-                prompt += '\n"' + item['cmd'] + '": ' + item['instruction']
-                if 'params' in item:
-                    if len(item['params']) > 0:
-                        prompt += ', params: "{}"'.format('", "'.join(item['params']))
-                if 'example' in item:
-                    if item['example'] is not None:
-                        prompt += ', example: "{}"'.format(item['example'])
+        schema = self.extract_syntax(data['cmd'])
+        if schema:
+            prompt += "\n----------------\n" + schema + "\n----------------\n"
+            prompt += "When executing command, always use following JSON syntax: "
+            prompt += "{\"cmd\": \"<command_name>\", \"params\": {\"<param_name>\": \"<param_value>\"}}"
         return prompt
+
+    def extract_syntax(self, cmds: list) -> str:
+        """
+        Extract syntax from commands
+
+        :param cmds: commands list
+        :return: JSON string with commands usage syntax
+        """
+        data = {}
+        cmds = copy.deepcopy(cmds)  # make copy to prevent changes in original data
+        self.window.core.ctx.current_cmd = copy.deepcopy(cmds)  # for debug
+
+        for cmd in cmds:
+            if "cmd" in cmd and "instruction" in cmd:
+                cmd_name = cmd["cmd"]
+                data[cmd_name] = {
+                    "help": cmd["instruction"],
+                }
+                if "params" in cmd and len(cmd["params"]) > 0:
+                    data[cmd_name]["params"] = {}
+                    for param in cmd["params"]:
+                        try:
+                            if isinstance(param, dict):
+                                if "name" in param:
+                                    # assign param
+                                    key = param["name"]
+                                    del param["name"]
+                                    data[cmd_name]["params"][key] = param
+
+                                    # remove required, leave only optional
+                                    if "required" in data[cmd_name]["params"][key]:
+                                        if data[cmd_name]["params"][key]["required"] is False:
+                                            data[cmd_name]["params"][key]["optional"] = True
+                                        del data[cmd_name]["params"][key]["required"]
+
+                                    # remove type if str (default)
+                                    if "type" in data[cmd_name]["params"][key] and data[cmd_name]["params"][key]["type"] == "str":
+                                        del data[cmd_name]["params"][key]["type"]
+
+                                    # remove description and move to help
+                                    if "description" in data[cmd_name]["params"][key]:
+                                        data[cmd_name]["params"][key]["help"] = data[cmd_name]["params"][key]["description"]
+                                        del data[cmd_name]["params"][key]["description"]
+
+                        except Exception as e:
+                            pass
+
+        self.window.core.ctx.current_cmd_schema = data  # for debug
+        return json.dumps(data)  # pack, return JSON string without indent and formatting
 
     def extract_cmds(self, text: str) -> list:
         """
@@ -117,7 +157,24 @@ class Command:
         chunk = chunk.strip()
         if chunk and chunk.startswith('{') and chunk.endswith('}'):
             try:
+                # syntax1: {"read_file": {"path": ["my_cars.txt"]}}
+                # syntax2: {"cmd": "read_file", "params": {"path": ["my_cars.txt"]}}
                 cmd = json.loads(chunk)
+
+                # if the first key is not "cmd", then try to convert from incorrect syntax into "cmd" syntax:
+                if "cmd" not in cmd:
+                    if len(cmd) == 1:
+                        for key in cmd:
+                            if "params" in cmd[key]:
+                                cmd = {
+                                    "cmd": key,
+                                    "params": cmd[key]["params"]
+                                }
+                            else:
+                                cmd = {
+                                    "cmd": key,
+                                    "params": cmd[key]
+                                }
             except json.JSONDecodeError as e:
                 # do nothing
                 pass

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -1111,6 +1111,12 @@ class Patch:
                               "value": "{relative_path}"
                           }
                     ]
+                updated = True
+
+            # < 2.1.20
+            if old < parse_version("2.1.20"):
+                print("Migrating config from < 2.1.20...")
+                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # moved to json schema
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -50,55 +50,6 @@ class Plugin(BasePlugin):
                         "e.g. use @123 in question to retrieve summary of context with ID 123",
         )
         self.add_option(
-            "cmd_get_ctx_list_in_date_range",
-            type="bool",
-            value=True,
-            label="Enable: get date range context list",
-            description="When enabled, it allows getting the list of context history (previous conversations)",
-        )
-        self.add_option(
-            "cmd_get_ctx_content_by_id",
-            type="bool",
-            value=True,
-            label="Enable: get context content by ID",
-            description="When enabled, it allows getting summarized content of context with defined ID",
-        )
-        self.add_option(
-            "cmd_count_ctx_in_date",
-            type="bool",
-            value=True,
-            label="Enable: count contexts in date range",
-            description="When enabled, it allows counting contexts in date range",
-        )
-        self.add_option(
-            "cmd_get_day_note",
-            type="bool",
-            value=True,
-            label="Enable: get day note",
-            description="When enabled, it allows retrieving day note for specific date",
-        )
-        self.add_option(
-            "cmd_add_day_note",
-            type="bool",
-            value=True,
-            label="Enable: add day note",
-            description="When enabled, it allows adding day note for specific date",
-        )
-        self.add_option(
-            "cmd_update_day_note",
-            type="bool",
-            value=True,
-            label="Enable: update day note",
-            description="When enabled, it allows updating day note for specific date",
-        )
-        self.add_option(
-            "cmd_remove_day_note",
-            type="bool",
-            value=True,
-            label="Enable: remove day note",
-            description="When enabled, it allows removing day note for specific date",
-        )
-        self.add_option(
             "model_summarize",
             type="combo",
             value="gpt-3.5-turbo",
@@ -135,75 +86,6 @@ class Plugin(BasePlugin):
             max=None,
         )
         self.add_option(
-            "syntax_get_ctx_list_in_date_range",
-            type="textarea",
-            value='"get_ctx_list_in_date_range": use to get the list of context history '
-                  '(previous conversations between you and me), with corresponding IDs, '
-                  'using the special date-range query syntax: "@date(YYYY-MM-DD)" for single day, '
-                  '"@date(YYYY-MM-DD,)" for date from, "@date(,YYYY-MM-DD)" for date to, '
-                  'and "@date(YYYY-MM-DD,YYYY-MM-DD)" for date range from-to, params: "range_query"',
-            label="Syntax: get_ctx_list_in_date_range",
-            description="Syntax for get_ctx_list_in_date_range command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_get_ctx_content_by_id",
-            type="textarea",
-            value='"get_ctx_content_by_id": use to get summarized content of context with defined ID, prepare summary '
-                  'query to ask another model to summarize the content, '
-                  'starting from e.g. "You are an expert in content summarization. Summarize our previous discussion '
-                  'answering the query: (query)", params: "id", "summary_query"',
-            label="Syntax: get_ctx_content_by_id",
-            description="Syntax for get_ctx_content_by_id command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_count_ctx_in_date",
-            type="textarea",
-            value='"count_ctx_in_date": use to count items of context history '
-                  '(previous conversations between you and me) in specified date, by providing year, month, day or a '
-                  'combination of them, params: "year", "month", "day"',
-            label="Syntax: count_ctx_in_date",
-            description="Syntax for count_ctx_in_date command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_get_day_note",
-            type="textarea",
-            value='"get_day_note": use to get my day notes and plans for a specific date, '
-                  'params: "year", "month", "day"',
-            label="Syntax: get_day_note",
-            description="Syntax for get_day_note command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_add_day_note",
-            type="textarea",
-            value='"add_day_note": use to add day note for specific date, '
-                  'params: "year", "month", "day", "note"',
-            label="Syntax: add_day_note",
-            description="Syntax for add_day_note command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_update_day_note",
-            type="textarea",
-            value='"update_day_note": update content of day note for specific date, '
-                  'params: "year", "month", "day", "content"',
-            label="Syntax: update_day_note",
-            description="Syntax for update_day_note command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_remove_day_note",
-            type="textarea",
-            value='"remove_day_note": remove day note for specific date, '
-                  'params: "year", "month", "day"',
-            label="Syntax: remove_day_note",
-            description="Syntax for remove_day_note command",
-            advanced=True,
-        )
-        self.add_option(
             "prompt_tag_system",
             type="textarea",
             value="ADDITIONAL CONTEXT: Use the following JSON summary of previous discussions as additional context, "
@@ -221,6 +103,188 @@ class Plugin(BasePlugin):
             label="Prompt: tag_summary",
             description="Prompt for use @ tag (summary)",
             advanced=True,
+        )
+
+        # commands
+        self.add_cmd(
+            "get_ctx_list_in_date_range",
+            instruction="get list of context history (previous conversations between you and me), using date-range "
+                        "syntax: \"@date(YYYY-MM-DD)\" for single day, \"@date(YYYY-MM-DD,)\" for date FROM, "
+                        "\"@date(,YYYY-MM-DD)\" for date TO, and \"@date(YYYY-MM-DD,YYYY-MM-DD)\" for date FROM-TO",
+            params=[
+                {
+                    "name": "range_query",
+                    "type": "str",
+                    "description": "range query",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows getting the list of context history (previous conversations)",
+        )
+        self.add_cmd(
+            "get_ctx_content_by_id",
+            instruction="get summarized content of context by its ID, use summary query to ask another "
+                        "model to summarize content, e.g. \"Summarize following discussion answering the query: (query)\"",
+            params=[
+                {
+                    "name": "id",
+                    "type": "int",
+                    "description": "context ID",
+                    "required": True,
+                },
+                {
+                    "name": "summary_query",
+                    "type": "str",
+                    "description": "query",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows getting summarized content of context with defined ID",
+        )
+        self.add_cmd(
+            "count_ctx_in_date",
+            instruction="count items of context history (previous conversations between us), by providing year, "
+                        "month, day or combination of them",
+            params=[
+                {
+                    "name": "year",
+                    "type": "int",
+                    "description": "year",
+                    "required": True,
+                },
+                {
+                    "name": "month",
+                    "type": "int",
+                    "description": "month",
+                    "required": True,
+                },
+                {
+                    "name": "day",
+                    "type": "int",
+                    "description": "day",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows counting contexts in date range",
+        )
+        self.add_cmd(
+            "get_day_note",
+            instruction="get day notes for date",
+            params=[
+                {
+                    "name": "year",
+                    "type": "int",
+                    "description": "year",
+                    "required": True,
+                },
+                {
+                    "name": "month",
+                    "type": "int",
+                    "description": "month",
+                    "required": True,
+                },
+                {
+                    "name": "day",
+                    "type": "int",
+                    "description": "day",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows retrieving day note for specific date",
+        )
+        self.add_cmd(
+            "add_day_note",
+            instruction="add day note",
+            params=[
+                {
+                    "name": "note",
+                    "type": "str",
+                    "description": "content",
+                    "required": True,
+                },
+                {
+                    "name": "year",
+                    "type": "int",
+                    "description": "year",
+                    "required": True,
+                },
+                {
+                    "name": "month",
+                    "type": "int",
+                    "description": "month",
+                    "required": True,
+                },
+                {
+                    "name": "day",
+                    "type": "int",
+                    "description": "day",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows adding day note for specific date",
+        )
+        self.add_cmd(
+            "update_day_note",
+            instruction="update day note",
+            params=[
+                {
+                    "name": "note",
+                    "type": "str",
+                    "description": "content",
+                    "required": True,
+                },
+                {
+                    "name": "year",
+                    "type": "int",
+                    "description": "year",
+                    "required": True,
+                },
+                {
+                    "name": "month",
+                    "type": "int",
+                    "description": "month",
+                    "required": True,
+                },
+                {
+                    "name": "day",
+                    "type": "int",
+                    "description": "day",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows updating day note for specific date",
+        )
+        self.add_cmd(
+            "remove_day_note",
+            instruction="remove day note",
+            params=[
+                {
+                    "name": "year",
+                    "type": "int",
+                    "description": "year",
+                    "required": True,
+                },
+                {
+                    "name": "month",
+                    "type": "int",
+                    "description": "month",
+                    "required": True,
+                },
+                {
+                    "name": "day",
+                    "type": "int",
+                    "description": "day",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="When enabled, it allows removing day note for specific date",
         )
 
     def setup(self) -> dict:
@@ -369,10 +433,8 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for option in self.allowed_cmds:
-            if self.is_cmd_allowed(option):
-                key = "syntax_" + option
-                if self.has_option(key):
-                    data['syntax'].append(str(self.get_option_value(key)))
+            if self.has_cmd(option):
+                data['cmd'].append(self.get_cmd(option))  # append command
 
     def is_cmd_allowed(self, cmd: str) -> bool:
         """
@@ -381,10 +443,7 @@ class Plugin(BasePlugin):
         :param cmd: command name
         :return: True if allowed
         """
-        key = "cmd_" + cmd
-        if self.has_option(key) and self.get_option_value(key) is True:
-            return True
-        return False
+        return self.has_cmd(cmd)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -396,7 +455,7 @@ class Plugin(BasePlugin):
         is_cmd = False
         my_commands = []
         for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
+            if item["cmd"] in self.allowed_cmds and self.has_cmd(item["cmd"]):
                 my_commands.append(item)
                 is_cmd = True
 
@@ -455,6 +514,7 @@ class Plugin(BasePlugin):
                     request = {
                         "cmd": item["cmd"],
                     }
+                    print("Adding note: " + note, year, month, day)
                     data = self.add_day_note(year, month, day, note)
                     response = {
                         "request": request,

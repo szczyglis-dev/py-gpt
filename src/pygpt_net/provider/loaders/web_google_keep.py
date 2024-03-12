@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -25,8 +25,14 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "google_keep": "use it to read and index files from Google Keep, allowed additional args: "
-                                "`document_ids`: list",
+                "google_keep": {
+                    "description": "read and index files from Google Keep",
+                    "args": {
+                        "document_ids": {
+                            "type": "list",
+                        },
+                    },
+                }
             }
         ]
         self.init_args = {

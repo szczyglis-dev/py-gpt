@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import json
@@ -25,8 +25,23 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "bitbucket_repo": "use it to read and index BitBucket repository, allowed additional args: "
-                                "`base_url`: str, `project_key`: str, `branch`: str, `repository`: str",
+                "bitbucket_repo": {
+                    "description": "read and index BitBucket repository",
+                    "args": {
+                        "base_url": {
+                            "type": "str",
+                        },
+                        "project_key": {
+                            "type": "str",
+                        },
+                        "branch": {
+                            "type": "str",
+                        },
+                        "repository": {
+                            "type": "str",
+                        },
+                    },
+                }
             }
         ]
         self.init_args = {

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 01:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import ssl
@@ -122,49 +122,6 @@ class Plugin(BasePlugin):
             max=None,
         )
         self.add_option(
-            "cmd_web_search",
-            type="bool",
-            value=True,
-            label="Enable: \"web_search\" command",
-            description="Allow using command: web_search",
-            tooltip="If enabled, model will be able to search the Web",
-        )
-        self.add_option(
-            "cmd_web_url_open",
-            type="bool",
-            value=True,
-            label="Enable: \"web_url_open\" command",
-            description="Allow using command: web_url_open",
-            tooltip="If enabled, model will be able to open specified URL and summarize content",
-        )
-        self.add_option(
-            "cmd_web_url_raw",
-            type="bool",
-            value=True,
-            label="Enable: \"web_url_raw\" command",
-            description="Allow using command: web_url_raw",
-            tooltip="If enabled, model will be able to open specified URL and get raw content",
-        )
-        self.add_option(
-            "cmd_web_urls",
-            type="bool",
-            value=True,
-            label="Enable: \"web_urls\" command",
-            description="Allow using command: web_urls",
-            tooltip="If enabled, model will be able to search the Web and get founded URLs list",
-        )
-        self.add_option(
-            "cmd_web_index_query",
-            type="bool",
-            value=True,
-            label="Enable: \"web_index_query\" command - quick query the web content with Llama-index",
-            description="If enabled, model will be able to index and query web content using Llama-index "
-                        "(temporary index, on the fly)",
-            tooltip="If enabled, model will be able to index and query web content using Llama-index "
-                    "(temporary index, on the fly)",
-            tab="indexing",
-        )
-        self.add_option(
             "model_tmp_query",
             type="combo",
             value="gpt-3.5-turbo",
@@ -173,15 +130,6 @@ class Plugin(BasePlugin):
                         "default: gpt-3.5-turbo",
             tooltip="Query model",
             use="models",
-            tab="indexing",
-        )
-        self.add_option(
-            "cmd_web_index",
-            type="bool",
-            value=True,
-            label="Enable: \"web_index\" command",
-            description="If enabled, model will be able to index web content using Llama-index (persistent index)",
-            tooltip="If enabled, model will be able to index web pages using Llama-index (persistent index)",
             tab="indexing",
         )
         self.add_option(
@@ -233,72 +181,126 @@ class Plugin(BasePlugin):
             tooltip="Prompt",
             advanced=True,
         )
-        self.add_option(
-            "syntax_web_search",
-            type="textarea",
-            value='"web_search": use it to search the Web for more info, prepare a query for the search '
-                  'engine itself, start from page 1. If you don\'t find anything or don\'t find enough '
-                  'information, try the next page. Use a custom summary prompt if necessary, otherwise, '
-                  'a default summary will be used. Max pages limit: {max_pages}, params: "query", "page", '
-                  '"summarize_prompt"',
-            label="Syntax: web_search",
-            description="Syntax for web_search command, use {max_pages} as a placeholder for "
-                        "`num_pages` value",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_web_url_open",
-            type="textarea",
-            value='"web_url_open": use it to get contents from a specific Web page. Use a custom summary '
-                  'prompt if necessary, otherwise a default summary will be used, params: "url", '
-                  '"summarize_prompt"',
-            label="Syntax: web_url_open",
-            description="Syntax for web_url_open command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_web_url_raw",
-            type="textarea",
-            value='"web_url_raw": use it to get RAW text/html content (not summarized) from a specific Web page, '
-                  'params: "url"',
-            label="Syntax: web_url_raw",
-            description="Syntax for web_url_raw command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_web_urls",
-            type="textarea",
-            value='"web_urls": use it to search the Web for URLs to use, prepare a search query itself, '
-                  'a list of found links to websites will be returned, 10 links per page max. You can change the page '
-                  'or the number of links per page using the provided parameters, params: "query", "page", '
-                  '"num_links"',
-            label="Syntax: web_urls",
-            description="Syntax for web_urls command",
-            advanced=True,
-        )
-        self.add_option(
-            "syntax_web_index_query",
-            type="textarea",
-            value='"web_index_query": read, index and query web content for additional context data, '
-                  'params: (same as for web_index)',
-            label="Syntax: web_index_query",
-            description="Syntax for querying web for additional context data",
-            advanced=True,
-            tab="indexing",
-        )
-        """
-        # handled by code
-        self.add_option(
-            "syntax_web_index",
-            type="textarea",
-            value='"web_index": use it to index (embed in Vector Store) provided webpage URL for future use, '
-                  'params: "url"',
-            label="Syntax: web_index",
-            description="Syntax for web_index command",
-            advanced=True,
-        )
-        """
 
+        # commands
+        self.add_cmd(
+            "web_search",
+            instruction="search the Web for more info, prepare a query for the search engine itself, start from page 1. "
+                        "If no results, then try the next page. "
+                        "Use a custom summary prompt if necessary, otherwise, a default summary will be used. "
+                        "Max pages: {max_pages}",
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "search query",
+                    "required": True,
+                },
+                {
+                    "name": "page",
+                    "type": "int",
+                    "description": "page number",
+                    "required": False,
+                },
+                {
+                    "name": "summarize_prompt",
+                    "type": "str",
+                    "description": "summary prompt",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to search the Web",
+        )
+        self.add_cmd(
+            "web_url_open",
+            instruction="get summarized content from a specific webpage. Use a custom summary prompt if necessary, "
+                        "otherwise default summary will be used",
+            params=[
+                {
+                    "name": "url",
+                    "type": "str",
+                    "description": "URL",
+                    "required": True,
+                },
+                {
+                    "name": "summarize_prompt",
+                    "type": "str",
+                    "description": "summary prompt",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to open URL and summarize content",
+        )
+        self.add_cmd(
+            "web_url_raw",
+            instruction="get raw content (not summarized) from webpage",
+            params=[
+                {
+                    "name": "url",
+                    "type": "str",
+                    "description": "URL",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to open specified URL and get raw content",
+        )
+        self.add_cmd(
+            "web_urls",
+            instruction="search the Web for list of URLs, prepare search query itself, list of "
+                        "URLs will be returned, 10 links per page max.",
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "search query",
+                    "required": True,
+                },
+                {
+                    "name": "page",
+                    "type": "int",
+                    "description": "page number",
+                    "required": False,
+                },
+                {
+                    "name": "num_links",
+                    "type": "int",
+                    "description": "links per page",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to search the Web and get founded URLs list",
+        )
+        self.add_cmd(
+            "web_index",
+            instruction="",
+            params=[],
+            enabled=True,
+            tab="indexing",
+            description="If enabled, model will be able to index web content using Llama-index (persistent index)",
+        )
+        self.add_cmd(
+            "web_index_query",
+            instruction="read, index and query external content for additional context.",
+            params=[
+                {
+                    "name": "type",
+                    "description": "[use config from web_index command]",
+                },
+                {
+                    "name": "args",
+                    "description": "[use config from web_index command]",
+                },
+            ],
+            enabled=True,
+            tab="indexing",
+            description="If enabled, model will be able to index and query web content using Llama-index "
+                    "(temporary index, on the fly)",
+        )
+        
         # register provider options
         self.init_provider()
         self.init_idx_options()
@@ -313,7 +315,8 @@ class Plugin(BasePlugin):
         """Initialize indexing options"""
         instructions = self.window.core.idx.indexing.get_external_instructions()
         providers = self.window.core.idx.indexing.get_data_providers()
-        for id in instructions:
+        # enable/disable indexing for each loader
+        for id in list(instructions.keys()):
             name = id
             if id in providers:
                 name = providers[id].name
@@ -430,28 +433,52 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def prepare_idx_syntax(self) -> str:
+    def prepare_idx_syntax(self) -> dict:
         """
         Prepare web_index command syntax with instructions parsed from web loaders
 
         :return: syntax string
         """
         instructions = self.window.core.idx.indexing.get_external_instructions()
-        allowed_types = ""
+        types = {}
+        args = {}
         for type in instructions:
             if not self.is_indexing_allowed(type):  # check if data loader is allowed
                 continue
-            allowed_types += "\n--- {}: {}".format(type, instructions[type])
+            types[type] = instructions[type]["description"]
+            args[type] = list(instructions[type]["args"].keys())
 
-        if not allowed_types:
-            return ""
-
-        return '"web_index": command for READING AND INDEXING CONTENT FROM EXTERNAL SOURCES. ' \
-               'Use it to read and index (embed in Vector Store) the provided URL for webpage or any other ' \
-               'remote resource, like YT video, RSS, etc. Provide type of resource in the "type" ' \
-               'param. If there is no allowed type for a specified resource then use the default "webpage" type. ' \
-               'If selected type requires additional args then pass them into "args" param, params: "type", "args".\n' \
-               'Allowed types (NOT commands) for "web_index" command:{allowed_types}'.format(allowed_types=allowed_types)
+        cmd = {
+            "cmd": "web_index",
+            "instruction": "read and index content from external source. Use it to read and index as vectors "
+                        "(embed in vector DB) the provided URL for webpage or any other remote resource, like "
+                        "YT video, RSS, etc. Provide type of the resource in the \"type\" param. If there is no allowed "
+                        "type for a specified resource then use the default \"webpage\" type. If selected type requires "
+                        "additional args, then pass them into \"args\"",
+            "params": [
+                {
+                    "name": "type",
+                    "type": "enum",
+                    "description": "data type",
+                    "required": True,
+                    "default": "webpage",
+                    "extra": {
+                        "enum_types": types,
+                    }
+                },
+                {
+                    "name": "args",
+                    "type": "dict",
+                    "description": "extra args for type",
+                    "required": True,
+                    "extra": {
+                        "allowed_args": args,
+                    }
+                }
+            ],
+            "enabled": True,
+        }
+        return cmd
 
     def cmd_syntax(self, data: dict):
         """
@@ -460,21 +487,15 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for option in self.allowed_cmds:
-            if not self.get_option_value("cmd_" + option):
+            if not self.has_cmd(option):
                 continue
 
             # special case for web_index
             if option == "web_index":
-                syntax = self.prepare_idx_syntax()
-                if syntax:
-                    data['syntax'].append(syntax)
+                data['cmd'].append(self.prepare_idx_syntax())
                 continue
 
-            key = "syntax_" + option
-            if self.has_option(key):
-                data['syntax'].append(
-                    self.get_option_value(key),
-                )
+            data['cmd'].append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -485,7 +506,7 @@ class Plugin(BasePlugin):
         """
         my_commands = []
         for item in cmds:
-            if item["cmd"] in self.allowed_cmds and self.get_option_value("cmd_" + item["cmd"]):
+            if item["cmd"] in self.allowed_cmds and self.has_cmd(item["cmd"]):
                 my_commands.append(item)
 
         if len(my_commands) == 0:
