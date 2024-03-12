@@ -38,7 +38,7 @@ class Plugins:
         try:
             self.window.core.plugins.clean_presets()  # clean presets (remove invalid keys)
         except Exception as e:
-            pass
+            self.window.core.debug.error(e)
 
         self.presets.preset_to_current()  # load from presets
         self.reconfigure(silent=True)  # load plugins settings

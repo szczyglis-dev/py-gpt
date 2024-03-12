@@ -213,7 +213,7 @@ class Indexing:
 
     def append_custom_meta(self, docs: list[Document], path: str):
         """
-        Append custom meta to documents
+        Append custom meta to documents (file)
 
         :param docs: list of documents
         :param path: path to file
@@ -260,6 +260,49 @@ class Indexing:
                         except Exception as e:
                             print("Error while appending custom meta: " + str(e))
                             self.window.core.debug.log(e)
+                doc.metadata = meta
+
+    def append_custom_meta_web(self, docs: list[Document], type: str, args: dict):
+        """
+        Append custom meta to documents (web)
+
+        :param docs: list of documents
+        :param type: type of URL (webpage, feed, etc.)
+        :param args: loader arguments
+        """
+        metas = self.window.core.config.get("llama.idx.custom_meta.web")
+        if (len(docs) > 0
+                and metas is not None
+                and isinstance(metas, list)
+                and len(metas) > 0):
+
+            for doc in docs:
+                meta = doc.metadata
+                for item in metas:
+                    item_type = item["loader"].replace("web_", "")
+                    if item_type != type:
+                        continue
+
+                    key = item["key"]
+                    value = item["value"]
+
+                    # remove key if value is empty
+                    if str(value).strip() == "" and key in meta:
+                        del meta[key]
+                        continue
+
+                    # append or replace custom meta
+                    try:
+                        meta[key] = value.format(
+                            timestamp=int(datetime.datetime.now().timestamp()),
+                            date=datetime.datetime.now().strftime("%Y-%m-%d"),
+                            time=datetime.datetime.now().strftime("%H:%M:%S"),
+                            date_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            **args
+                        )
+                    except Exception as e:
+                        print("Error while appending custom meta (web): " + str(e))
+                        self.window.core.debug.log(e)
                 doc.metadata = meta
 
     def read_text_content(self, path: str) -> str:
@@ -578,6 +621,10 @@ class Indexing:
             documents = loader.load_data(
                 **args
             )
+
+            # append custom metadata
+            self.append_custom_meta_web(documents, type, args)
+
             for d in documents:
                 index.insert(document=d)
                 doc_id = d.id_  # URL is used as document ID

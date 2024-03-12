@@ -771,6 +771,28 @@
         "advanced": false,
         "tab": "indexing"
     },
+    "llama.idx.custom_meta.web": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "loader": {
+                "type": "combo",
+                "use": "llama_index_loaders_web"
+            },
+            "key": "text",
+            "value": "textarea"
+        },
+        "slider": false,
+        "label": "settings.llama.idx.custom_meta.web",
+        "description": "settings.llama.idx.custom_meta.web.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
     "llama.hub.loaders.args": {
         "section": "llama-index",
         "type": "dict",
