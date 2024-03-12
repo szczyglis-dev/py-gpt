@@ -35,7 +35,11 @@ class Plugins:
         self.setup_menu()
         self.setup_ui()
 
-        self.window.core.plugins.clean_presets()  # clean presets (remove invalid keys)
+        try:
+            self.window.core.plugins.clean_presets()  # clean presets (remove invalid keys)
+        except Exception as e:
+            pass
+
         self.presets.preset_to_current()  # load from presets
         self.reconfigure(silent=True)  # load plugins settings
 

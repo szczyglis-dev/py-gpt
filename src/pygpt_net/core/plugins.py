@@ -358,14 +358,15 @@ class Plugins:
             self.load_presets()
 
         removed = False
-        for id in self.presets:
-            preset = self.presets[id]
-            for config_preset in preset["config"]:
-                for key in list(preset["config"][config_preset]):
-                    if config_preset in self.plugins:
-                        if key not in self.plugins[config_preset].options:
-                            removed = True
-                            preset["config"][config_preset].pop(key)
+        if self.presets is not None:
+            for id in self.presets:
+                preset = self.presets[id]
+                for config_preset in preset["config"]:
+                    for key in list(preset["config"][config_preset]):
+                        if config_preset in self.plugins:
+                            if key not in self.plugins[config_preset].options:
+                                removed = True
+                                preset["config"][config_preset].pop(key)
         if removed:
             self.save_presets()
             print("[FIX] Removed invalid keys from plugin presets.")
