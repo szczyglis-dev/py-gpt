@@ -494,7 +494,7 @@ You can also develop and provide your own custom loader and register it within t
 **From version `2.0.100` Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
 
-**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
+**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
 **Tip:** when using `Chat with files` you are using additional context from db data and files indexed from `data` directory, not the files sending via `Attachments` tab. 
 Attachments tab in `Chat with files` mode can be used to provide images to `Vision (inline)` plugin only.
@@ -2653,6 +2653,12 @@ Config -> Settings...
 - `Vector Store`: Vector store to use (vector database provided by Llama-index).
 
 - `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
+
+- `Embeddings provider`: Embeddings provider.
+
+- `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
+
+- `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
 
 - `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 

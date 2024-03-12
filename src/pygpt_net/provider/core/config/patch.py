@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -1124,6 +1124,35 @@ class Patch:
                 print("Migrating config from < 2.1.22...")
                 if 'llama.idx.custom_meta.web' not in data:
                     data["llama.idx.custom_meta.web"] = []
+                updated = True
+
+            # < 2.1.23
+            if old < parse_version("2.1.23"):
+                if 'llama.idx.embeddings.provider' not in data:
+                    data["llama.idx.embeddings.provider"] = "openai"
+                if 'llama.idx.embeddings.args' not in data:
+                    data["llama.idx.embeddings.args"] = [
+                        {
+                            "name": "model",
+                            "value": "text-embedding-3-small",
+                            "type": "str"
+                        }
+                    ]
+                if 'llama.idx.embeddings.env' not in data:
+                    data["llama.idx.embeddings.env"] = [
+                        {
+                            "name": "OPENAI_API_KEY",
+                            "value": "{api_key}",
+                        },
+                        {
+                            "name": "OPENAI_API_BASE",
+                            "value": "{api_endpoint}",
+                        }
+                    ]
+                self.window.core.plugins.reset_options("cmd_web", [
+                    "cmd.web_url_open",
+                    "cmd.web_url_raw",
+                ])
                 updated = True
 
         # update file

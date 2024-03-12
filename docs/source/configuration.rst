@@ -25,7 +25,7 @@ The following basic options can be modified directly within the application:
 
 * ``Show tray icon``: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
-- ``Minimize to tray on exit``: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
+* ``Minimize to tray on exit``: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 **Layout**
 
@@ -134,6 +134,12 @@ The following basic options can be modified directly within the application:
 * ``Vector Store``: Vector store to use (vector database provided by Llama-index).
 
 * ``Vector Store (**kwargs)``: Keyword arguments for vector store provider (api_key, index_name, etc.).
+
+* ``Embeddings provider``: Embeddings provider.
+
+* ``Embeddings provider (ENV)``: ENV vars to embeddings provider (API keys, etc.).
+
+* ``Embeddings provider (**kwargs)``: Keyword arguments for embeddings provider (model name, etc.).
 
 * ``Recursive directory indexing``: Enables recursive directory indexing, default is False.
 

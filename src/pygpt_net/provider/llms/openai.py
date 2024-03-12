@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 from langchain_openai import OpenAI
 from langchain_openai import ChatOpenAI
 from llama_index.llms.openai import OpenAI as LlamaOpenAI
+from llama_index.embeddings.openai import OpenAIEmbedding
 
 
 from pygpt_net.provider.llms.base import BaseLLM
@@ -22,7 +23,7 @@ class OpenAILLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
-        self.type = ["langchain", "llama_index"]
+        self.type = ["langchain", "llama_index", "embeddings"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
         """
@@ -59,3 +60,16 @@ class OpenAILLM(BaseLLM):
         """
         args = self.parse_args(model.llama_index)
         return LlamaOpenAI(**args)
+
+    def get_embeddings_model(self, window):
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :return: Embedding provider instance
+        """
+        config = window.core.config.get("llama.idx.embeddings.args", {})
+        args = self.parse_args({
+            "args": config,
+        })
+        return OpenAIEmbedding(**args)

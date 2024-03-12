@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -352,6 +352,27 @@ class Plugins:
         """
         return self.presets
 
+    def reset_options(self, plugin_id: str, keys: list):
+        """
+        Reset plugin options
+
+        :param plugin_id: plugin id
+        :param keys: list of keys
+        """
+        updated = False
+        user_config = self.window.core.config.get('plugins')
+        if plugin_id in user_config:
+            for key in keys:
+                if key in user_config[plugin_id]:
+                    del user_config[plugin_id][key]
+                self.remove_preset_values(plugin_id, key)
+                updated = True
+
+        if updated:
+            print("[FIX] Updated options for plugin: {}".format(plugin_id))
+            self.window.core.config.save()
+
+
     def clean_presets(self):
         """Remove invalid options from presets"""
         if self.presets is None:
@@ -371,6 +392,29 @@ class Plugins:
             self.save_presets()
             print("[FIX] Removed invalid keys from plugin presets.")
 
+    def remove_preset_values(self, plugin_id:str, key: str):
+        """
+        Update preset value
+
+        :param plugin_id: plugin id
+        :param key: key
+        """
+        updated = False
+        if self.presets is None:
+            self.load_presets()
+
+        if self.presets is None:
+            return
+        for id in self.presets:
+            preset = self.presets[id]
+            for config_preset in preset["config"]:
+                if config_preset == plugin_id:
+                    if key in preset["config"][config_preset]:
+                        preset["config"][config_preset].pop(key)
+                        updated = True
+        if updated:
+            self.save_presets()
+
     def update_preset_values(self, plugin_id:str, key: str, value: any):
         """
         Update preset value
@@ -382,6 +426,9 @@ class Plugins:
         updated = False
         if self.presets is None:
             self.load_presets()
+
+        if self.presets is None:
+            return
         for id in self.presets:
             preset = self.presets[id]
             for config_preset in preset["config"]:

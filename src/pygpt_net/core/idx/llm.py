@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import os.path
@@ -68,6 +68,15 @@ class Llm:
             )
         return llm
 
+    def get_embeddings_provider(self):
+        provider = "openai"
+        self.window.core.llm.llms[provider].init_embeddings(
+            window=self.window,
+        )
+        return self.window.core.llm.llms[provider].get_embeddings_model(
+            window=self.window,
+        )
+
     def get_service_context(self, model: ModelItem = None) -> ServiceContext:
         """
         Get service context
@@ -76,6 +85,7 @@ class Llm:
         :return: Service context
         """
         llm = self.get(model=model)
+        embed_model = self.get_embeddings_provider()
         if llm is None:
-            return ServiceContext.from_defaults()
-        return ServiceContext.from_defaults(llm=llm)
+            return ServiceContext.from_defaults(embed_model=embed_model)
+        return ServiceContext.from_defaults(llm=llm, embed_model=embed_model)

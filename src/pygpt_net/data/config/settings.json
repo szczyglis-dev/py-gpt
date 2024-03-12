@@ -697,6 +697,45 @@
         "advanced": false,
         "tab": "store"
     },
+    "llama.idx.embeddings.provider": {
+        "section": "llama-index",
+        "type": "combo",
+        "use": "embeddings_providers",
+        "label": "settings.llama.idx.embeddings.provider",
+        "value": "openai",
+        "advanced": false,
+        "tab": "embeddings"
+    },
+    "llama.idx.embeddings.env": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "name": "text",
+            "value": "text"
+        },
+        "label": "settings.llama.idx.embeddings.env",
+        "description": "settings.llama.idx.embeddings.env.desc",
+        "value": [],
+        "advanced": false,
+        "tab": "embeddings"
+    },
+    "llama.idx.embeddings.args": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "name": "text",
+            "value": "text",
+            "type": {
+                "type": "combo",
+                "use": "var_types"
+            }
+        },
+        "label": "settings.llama.idx.embeddings.args",
+        "description": "settings.llama.idx.embeddings.args.desc",
+        "value": [],
+        "advanced": false,
+        "tab": "embeddings"
+    },
     "llama.idx.recursive": {
         "section": "llama-index",
         "type": "bool",

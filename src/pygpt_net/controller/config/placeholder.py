@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 class Placeholder:
@@ -58,6 +58,8 @@ class Placeholder:
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
             return self.get_llama_index_providers()
+        elif id == "embeddings_providers":
+            return self.get_embeddings_providers()
         elif id == "llama_index_loaders":
             return self.get_llama_index_loaders()
         elif id == "llama_index_loaders_file":
@@ -95,6 +97,19 @@ class Placeholder:
         :return: placeholders list
         """
         ids = self.window.core.llm.get_ids("llama_index")
+        data = []
+        data.append({'_': '---'})
+        for id in ids:
+            data.append({id: id})
+        return data
+
+    def get_embeddings_providers(self) -> list:
+        """
+        Get embeddings placeholders list
+
+        :return: placeholders list
+        """
+        ids = self.window.core.llm.get_ids("embeddings")
         data = []
         data.append({'_': '---'})
         for id in ids:

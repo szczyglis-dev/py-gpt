@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 04:00:00                  #
+# Updated Date: 2024.03.12 21:00:00                  #
 # ================================================== #
 
 import os
@@ -38,6 +38,17 @@ class BaseLLM:
             options = model.llama_index
         if 'env' in options:
             for item in options['env']:
+                os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+
+    def init_embeddings(self, window):
+        """
+        Initialize embeddings provider ENV
+
+        :param window: window instance
+        """
+        options = window.core.config.get("llama.idx.embeddings.env", {})
+        if options is not None and len(options) > 0:
+            for item in options:
                 os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
 
     def parse_args(self, options: dict) -> dict:
@@ -81,6 +92,15 @@ class BaseLLM:
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
+        :return: provider instance
+        """
+        pass
+
+    def get_embeddings_model(self, window):
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
         :return: provider instance
         """
         pass
