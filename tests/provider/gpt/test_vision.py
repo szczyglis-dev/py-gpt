@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.12 22:00:00                  #
 # ================================================== #
 
 import base64
@@ -98,9 +98,9 @@ def test_extract_urls():
     """
     vision = Vision()
     urls = vision.extract_urls('test https://test.com test https://test2.com')
-    assert urls == ['https://test.com', 'https://test2.com']
+    assert urls == []
     urls = vision.extract_urls('test https://test.com/img.png test https://test2.com ')
-    assert urls == ['https://test.com/img.png', 'https://test2.com']
+    assert urls == ['https://test.com/img.png']
 
 
 def test_is_image():
