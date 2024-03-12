@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.12 06:00:00                  #
 # ================================================== #
 
 import os.path
@@ -125,10 +125,10 @@ class Runner:
         :param request_item: request item
         :return: response dict
         """
-        msg = "Executing Python file: {}".format(item["params"]['filename'])
+        msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=item["params"]['filename'],
+            filename=item["params"]['path'],
         )
         self.log("Running command: {}".format(cmd), sandbox=True)
         response = self.run_docker(cmd)
@@ -147,9 +147,9 @@ class Runner:
         :param request_item: request item
         :return: response dict
         """
-        msg = "Saving Python file: {}".format(item["params"]['filename'])
+        msg = "Saving Python file: {}".format(item["params"]['path'])
         self.log(msg, sandbox=True)
-        path = self.prepare_path(item["params"]['filename'])
+        path = self.prepare_path(item["params"]['path'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -158,7 +158,7 @@ class Runner:
         msg = "Executing Python code: {}".format(item["params"]['code'])
         self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=item["params"]['filename'],
+            filename=item["params"]['path'],
         )
         self.log("Running command: {}".format(cmd), sandbox=True)
         response = self.run_docker(cmd)
@@ -199,9 +199,9 @@ class Runner:
         :param request_item: request item
         :return: response dict
         """
-        msg = "Executing Python file: {}".format(item["params"]['filename'])
+        msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg)
-        path = self.prepare_path(item["params"]['filename'])
+        path = self.prepare_path(item["params"]['path'])
 
         # check if file exists
         if not os.path.isfile(path):
@@ -236,9 +236,9 @@ class Runner:
         :return: response dict
         """
         # write code to file
-        msg = "Saving Python file: {}".format(item["params"]['filename'])
+        msg = "Saving Python file: {}".format(item["params"]['path'])
         self.log(msg)
-        path = self.prepare_path(item["params"]['filename'])
+        path = self.prepare_path(item["params"]['path'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)

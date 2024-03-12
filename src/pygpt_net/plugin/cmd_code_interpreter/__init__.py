@@ -69,12 +69,12 @@ class Plugin(BasePlugin):
         # commands
         self.add_cmd(
             "code_execute",
-            instruction="create, save and execute Python code",
+            instruction="save generated Python code and execute it",
             params=[
                 {
                     "name": "path",
                     "type": "str",
-                    "description": "path to file",
+                    "description": "path to save",
                     "required": True,
                 },
                 {
@@ -89,12 +89,12 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "code_execute_file",
-            instruction="execute Python code from file",
+            instruction="execute Python code from existing file",
             params=[
                 {
                     "name": "path",
                     "type": "str",
-                    "description": "path",
+                    "description": "file path",
                     "required": True,
                 },
             ],
@@ -165,21 +165,12 @@ class Plugin(BasePlugin):
             cwd = "/data (in docker sandbox)"
 
         for item in self.allowed_cmds:
-            if self.is_cmd_allowed(item):
-                if self.has_cmd(item):
-                    cmd = self.get_cmd(item)
-                    if self.get_option_value("auto_cwd") and item == "sys_exec":
-                        cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                 "ANY command to \"command\" param, current working directory: {}".format(cwd)
-                    data['cmd'].append(cmd)  # append command
-
-                key = "syntax_" + item
-                if self.has_option(key):
-                    value = self.get_option_value(key)
-                    if self.get_option_value("auto_cwd") and item == "sys_exec":
-                        value += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                 "ANY command to \"command\" param, current working directory: {}".format(cwd)
-                    data['syntax'].append(value)
+            if self.has_cmd(item):
+                cmd = self.get_cmd(item)
+                if self.get_option_value("auto_cwd") and item == "sys_exec":
+                    cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
+                                          "ANY command to \"command\" param, current working directory: {}".format(cwd)
+                data['cmd'].append(cmd)  # append command
 
 
 
@@ -235,10 +226,7 @@ class Plugin(BasePlugin):
         :param cmd: command name
         :return: True if allowed
         """
-        key = "cmd_" + cmd
-        if self.has_option(key) and self.get_option_value(key) is True:
-            return True
-        return False
+        return self.has_cmd(cmd)
 
     def log(self, msg):
         """
