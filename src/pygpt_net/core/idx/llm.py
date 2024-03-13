@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 import os.path
@@ -22,15 +22,18 @@ from pygpt_net.item.model import ModelItem
 class Llm:
     def __init__(self, window=None):
         """
-        LLMs core
+        LLM provider core
 
         :param window: Window instance
         """
         self.window = window
+        self.default_model = "gpt-3.5-turbo"
+        self.default_embed = "openai"
 
     def init(self):
-        """Init env vars"""
+        """Init base ENV vars"""
         os.environ['OPENAI_API_KEY'] = str(self.window.core.config.get('api_key'))
+        os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
         os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
 
     def get(self, model: ModelItem = None) -> BaseLLM:
@@ -59,36 +62,45 @@ class Llm:
                             model=model,
                         )
                     except Exception as e:
+                        self.window.core.debug.error(e)
                         print(e)
 
-        # default
+        # default model
         if llm is None:
             self.init()  # init env vars
             llm = OpenAI(
                 temperature=0.0,
-                model="gpt-3.5-turbo",
+                model=self.default_model,
             )
         return llm
 
     def get_embeddings_provider(self) -> BaseEmbedding:
         """
-        Get embeddings provider
+        Get current embeddings provider
 
         :return: Llama embeddings provider instance
         """
-        provider = self.window.core.config.get("llama.idx.embeddings.provider", "openai")
+        provider = self.window.core.config.get("llama.idx.embeddings.provider", self.default_embed)
+        env = self.window.core.config.get("llama.idx.embeddings.env", [])
+        args = self.window.core.config.get("llama.idx.embeddings.args", [])
+
+        if provider is None or provider not in self.window.core.llm.llms:
+            provider = self.default_embed
+
         self.window.core.llm.llms[provider].init_embeddings(
             window=self.window,
+            env=env,
         )
         return self.window.core.llm.llms[provider].get_embeddings_model(
             window=self.window,
+            config=args,
         )
 
     def get_service_context(self, model: ModelItem = None) -> ServiceContext:
         """
         Get service context + embeddings provider
 
-        :param model: Model item
+        :param model: Model item (for query)
         :return: Service context instance
         """
         llm = self.get(model=model)

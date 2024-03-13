@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from langchain_openai import OpenAI
@@ -63,15 +63,17 @@ class OpenAILLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         return LlamaOpenAI(**args)
 
-    def get_embeddings_model(self, window) -> BaseEmbedding:
+    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 
         :param window: window instance
+        :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        config = window.core.config.get("llama.idx.embeddings.args", [])
-        args = self.parse_args({
-            "args": config,
-        })
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            })
         return OpenAIEmbedding(**args)

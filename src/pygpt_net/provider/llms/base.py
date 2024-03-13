@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 import os
@@ -43,15 +43,15 @@ class BaseLLM:
             for item in options['env']:
                 os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
 
-    def init_embeddings(self, window):
+    def init_embeddings(self, window, env: list):
         """
-        Initialize embeddings provider ENV
+        Initialize embeddings provider
 
         :param window: window instance
+        :param env: ENV configuration list
         """
-        options = window.core.config.get("llama.idx.embeddings.env", [])
-        if options is not None and len(options) > 0:
-            for item in options:
+        if env is not None and len(env) > 0:
+            for item in env:
                 os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
 
     def parse_args(self, options: dict) -> dict:
@@ -63,7 +63,8 @@ class BaseLLM:
         """
         args = {}
         if 'args' in options:
-            args = parse_args(options['args'])
+            if options['args'] is not None:
+                args = parse_args(options['args'])
         return args
 
     def completion(self, window, model: ModelItem, stream: bool = False) -> any:
@@ -99,11 +100,12 @@ class BaseLLM:
         """
         pass
 
-    def get_embeddings_model(self, window) -> BaseEmbedding:
+    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 
         :param window: window instance
+        :param config: config keyword arguments list
         :return: provider instance
         """
         pass
