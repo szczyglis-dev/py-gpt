@@ -391,7 +391,7 @@ class Idx:
         """
         self.llm.get_service_context()  # init environment only (ENV API keys, etc.)
         if self.storage.remove_document(idx, doc_id):
-            self.indexing.log("Removed document from index: " + idx + " - " + doc_id)
+            self.log("Removed document from index: " + idx + " - " + doc_id)
 
     def remove_file(self, idx: str, file: str):
         """
