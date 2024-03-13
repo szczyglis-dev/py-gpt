@@ -272,7 +272,7 @@ class Indexing:
                     self.prepare_document(d)
                     index.insert(document=d)
                     indexed[file] = d.id_  # add to index
-                    self.window.core.idx.log("Inserted document: {}".format(d.id_))
+                    self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
             except Exception as e:
                 errors.append(str(e))
                 print("Error while indexing file: " + file)
@@ -312,7 +312,7 @@ class Indexing:
                             self.prepare_document(d)
                             index.insert(document=d)
                             indexed[file_path] = d.id_  # add to index
-                            self.window.core.idx.log("Inserted document: {}".format(d.id_))
+                            self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
                     except Exception as e:
                         errors.append(str(e))
                         print("Error while indexing file: " + file_path)
@@ -334,7 +334,7 @@ class Indexing:
                     self.prepare_document(d)
                     index.insert(document=d)
                     indexed[path] = d.id_  # add to index
-                    self.window.core.idx.log("Inserted document: {}".format(d.id_))
+                    self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
             except Exception as e:
                 errors.append(str(e))
                 print("Error while indexing file: " + path)
@@ -379,7 +379,6 @@ class Indexing:
                         "indexed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
                 )
-                self.window.core.idx.log("Appending DB ctx metadata: {}".format(doc.metadata))
                 documents.append(doc)
         return documents
 
@@ -442,7 +441,6 @@ class Indexing:
                         "indexed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
                 )
-                self.window.core.idx.log("Appending DB ctx metadata: {}".format(doc.metadata))
                 documents.append(doc)
         return documents
 
@@ -471,7 +469,7 @@ class Indexing:
             for d in documents:
                 index.insert(document=d)
                 doc_id = d.id_
-                self.window.core.idx.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
+                self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
                 self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
@@ -567,7 +565,7 @@ class Indexing:
                         idx=idx,
                         doc_id=doc_id,
                     )  # update external index
-                self.window.core.idx.log("Inserted (web) document: {} / {}".format(n+1, len(documents)))
+                self.window.core.idx.log("Inserted web document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
                 n += 1
         except Exception as e:
             errors.append(str(e))
