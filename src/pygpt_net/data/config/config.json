@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.1.25",
-    "app.version": "2.1.25",
+    "version": "2.1.26",
+    "app.version": "2.1.26",
     "updated_at": "2024-03-13T00:00:00"
   },
   "agent.auto_stop" : true,
@@ -9,7 +9,7 @@
   "agent.idx": "base",
   "agent.iterations": 3,
   "agent.mode": "chat",
-  "agent.prompt.continue": "continue...",
+  "agent.prompt.continue": "continue if needed...",
   "ai_name": "",
   "api_endpoint": "https://api.openai.com/v1",
   "api_key": "",

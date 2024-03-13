@@ -1,3 +1,10 @@
+2.1.26 (2024-03-13)
+
+- Added async command execution in History and Chat with files plugins.
+- Improved plugin prompts.
+- Improved command execution in autonomous mode.
+- Improved logging and debugging.
+
 2.1.25 (2024-03-13)
 
 - Llama index logging improvement.

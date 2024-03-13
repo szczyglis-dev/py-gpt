@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.25** | build: **2024.03.13** | Python: **>=3.10, <3.12**
+Release: **2.1.26** | build: **2024.03.13** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2850,6 +2850,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.26 (2024-03-13)
+
+- Added async command execution in History and Chat with files plugins.
+- Improved plugin prompts.
+- Improved command execution in autonomous mode.
+- Improved logging and debugging.
 
 # 2.1.25 (2024-03-13)
 

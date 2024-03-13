@@ -79,7 +79,6 @@ class Worker(BaseWorker):
                     request = {
                         "cmd": item["cmd"],
                     }
-                    print("Adding note: " + note, year, month, day)
                     data = self.plugin.add_day_note(year, month, day, note)
                     response = {
                         "request": request,
