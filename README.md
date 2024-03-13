@@ -1710,6 +1710,7 @@ Plugin capabilities include:
 - Reading file info
 - Indexing files and directories using Llama-index
 - Querying files using Llama-index
+- Searching for files and directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -1784,6 +1785,10 @@ Allows `file_size` command execution. *Default:* `True`
 - `Enable: get file info` *cmd.file_info*
 
 Allows `file_info` command execution. *Default:* `True`
+
+- `Enable: find file or directory` *cmd.find*
+
+Allows `find` command execution. *Default:* `True`
 
 - `Enable: get current working directory` *cmd.cwd*
 

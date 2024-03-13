@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.13 17:00:00                  #
 # ================================================== #
 
+import fnmatch
 import mimetypes
 import os.path
 import shutil
@@ -119,6 +120,10 @@ class Worker(BaseWorker):
                     # index file or directory
                     elif item["cmd"] == "file_index":
                         self.cmd_file_index(item)
+
+                    # find file or directory
+                    elif item["cmd"] == "find":
+                        self.cmd_find(item)
 
             except Exception as e:
                 self.response(
@@ -861,6 +866,65 @@ class Worker(BaseWorker):
             self.error(e)
             self.log("Error: {}".format(e))
         self.response(response, self.get_extra_data())
+
+    def cmd_find(self, item: dict):
+        """
+        Search for files in directory
+
+        :param item: item with parameters
+        """
+        request = self.prepare_request(item)
+        try:
+            recursive = True
+            path = self.plugin.window.core.config.get_user_dir('data')
+            self.msg = "Searching in directory: {}".format(item["params"]['path'])
+            self.log(self.msg)
+            pattern = item["params"]['pattern']
+            if "path" in item["params"]:
+                path = self.prepare_path(item["params"]['path'])
+            if "recursive" in item["params"]:
+                recursive = item["params"]['recursive']
+            if os.path.exists(path):
+                files = self.find_files(path, pattern, recursive)
+                response = {
+                    "request": request,
+                    "result": files,
+                }
+                self.log("Result: {}".format(files))
+            else:
+                response = {
+                    "request": request,
+                    "result": "Directory not found",
+                }
+                self.log("Directory not found: {}".format(path))
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        self.response(response, self.get_extra_data())
+
+    def find_files(self, directory: str, pattern: str, recursive: bool = True) -> list:
+        """
+        Find files in directory
+
+        :param directory: search directory
+        :param pattern: search pattern
+        :param recursive: search recursively
+        :return: list of files
+        """
+        matches = []
+        if recursive:
+            for root, dirs, files in os.walk(directory):
+                for filename in fnmatch.filter(files, pattern):
+                    matches.append(os.path.join(root, filename))
+        else:
+            for filename in os.listdir(directory):
+                if fnmatch.fnmatch(filename, pattern):
+                    matches.append(os.path.join(directory, filename))
+        return matches
 
     def get_human_readable_size(self, size, decimal_places=2):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.13 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -36,6 +36,7 @@ class Plugin(BasePlugin):
             "copy_file",
             "copy_dir",
             "move",
+            "find",
             "is_dir",
             "is_file",
             "file_exists",
@@ -410,6 +411,32 @@ class Plugin(BasePlugin):
             ],
             enabled=True,
             description="If enabled, model will be able to index file or directory using Llama-index",
+        )
+        self.add_cmd(
+            "find",
+            instruction="find file or directory, use empty path to search in current dir",
+            params=[
+                {
+                    "name": "pattern",
+                    "type": "str",
+                    "description": "name pattern",
+                    "required": True,
+                },
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "search directory",
+                    "required": True,
+                },
+                {
+                    "name": "recursive",
+                    "type": "bool",
+                    "description": "recursive search",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Find file or directory",
         )
 
     def setup(self) -> dict:
