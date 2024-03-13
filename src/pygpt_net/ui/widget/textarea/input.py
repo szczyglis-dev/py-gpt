@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.13 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -49,6 +49,12 @@ class ChatInput(QTextEdit):
             # copy to
             copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
 
+            # calendar
+            action = QAction(QIcon(":/icons/schedule.svg"), trans('text.context_menu.copy_to.calendar'), self)
+            action.triggered.connect(
+                lambda: self.window.controller.calendar.note.append_text(selected_text))
+            copy_to_menu.addAction(action)
+
             # notepad
             num_notepads = self.window.controller.notepad.get_num_notepads()
             if num_notepads > 0:
@@ -58,12 +64,6 @@ class ChatInput(QTextEdit):
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
                     copy_to_menu.addAction(action)
-
-            # calendar
-            action = QAction(QIcon(":/icons/schedule.svg"), trans('text.context_menu.copy_to.calendar'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.calendar.note.append_text(selected_text))
-            copy_to_menu.addAction(action)
 
             menu.addMenu(copy_to_menu)
 
