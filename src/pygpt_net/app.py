@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 02:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -29,7 +29,7 @@ from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.agent import Plugin as AgentPlugin
 
-# LLMs wrappers providers (langchain, llama-index)
+# LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
@@ -37,45 +37,45 @@ from pygpt_net.provider.llms.llama import Llama2LLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
 
-# vector stores providers (llama-index)
+# vector store providers (llama-index)
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
 from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
 from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
 from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
-# data loaders providers (llama-index)
-from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader  # file: CSV
-from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader  # file: DOCX
-from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader  # file: EPUB
-from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader  # file: Excel
-from pygpt_net.provider.loaders.file_html import Loader as HtmlLoader  # file: HTML
-from pygpt_net.provider.loaders.file_image_vision import Loader as ImageVisionLoader  # file: Image (vision)
-from pygpt_net.provider.loaders.file_ipynb import Loader as IPYNBLoader  # file: IPYNB
-from pygpt_net.provider.loaders.file_json import Loader as JsonLoader  # file: JSON
-from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader  # file: Markdown
-from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader  # file: PDF
-from pygpt_net.provider.loaders.file_video_audio import Loader as VideoAudioLoader  # file: mp4
-from pygpt_net.provider.loaders.file_xml import Loader as XmlLoader  # file: XML
-from pygpt_net.provider.loaders.web_bitbucket import Loader as BitbucketRepoLoader  # web: Bitbucket Repository
-from pygpt_net.provider.loaders.web_chatgpt_retrieval import Loader as ChatGptRetrievalLoader  # web: ChatGPT Retrieval Plugin
-from pygpt_net.provider.loaders.web_database import Loader as DatabaseLoader  # web: Database
-from pygpt_net.provider.loaders.web_github_issues import Loader as GithubIssuesLoader  # web: GitHub Issues
-from pygpt_net.provider.loaders.web_github_repo import Loader as GithubRepoLoader  # web: GitHub Repository
-from pygpt_net.provider.loaders.web_google_calendar import Loader as GoogleCalendarLoader  # web: Google Calendar
-from pygpt_net.provider.loaders.web_google_docs import Loader as GoogleDocsLoader  # web: Google Docs
-from pygpt_net.provider.loaders.web_google_drive import Loader as GoogleDriveLoader  # web: Google Drive
-from pygpt_net.provider.loaders.web_google_gmail import Loader as GoogleGmailLoader  # web: Google Gmail
-from pygpt_net.provider.loaders.web_google_keep import Loader as GoogleKeepLoader  # web: Google Keep
-from pygpt_net.provider.loaders.web_google_sheets import Loader as GoogleSheetsLoader  # web: Google Sheets
-from pygpt_net.provider.loaders.web_microsoft_onedrive import Loader as MicrosoftOneDriveLoader  # web: Microsoft OneDrive
-from pygpt_net.provider.loaders.web_rss import Loader as RssLoader  # web: RSS feed
-from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader  # web: Sitemap XML
-from pygpt_net.provider.loaders.web_twitter import Loader as TwitterLoader  # web: Twitter
-from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader  # web: Webpages
-from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader  # web: YouTube
+# data loader providers (llama-index)
+from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader
+from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader
+from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader
+from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader
+from pygpt_net.provider.loaders.file_html import Loader as HtmlLoader
+from pygpt_net.provider.loaders.file_image_vision import Loader as ImageVisionLoader
+from pygpt_net.provider.loaders.file_ipynb import Loader as IPYNBLoader
+from pygpt_net.provider.loaders.file_json import Loader as JsonLoader
+from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader
+from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader
+from pygpt_net.provider.loaders.file_video_audio import Loader as VideoAudioLoader
+from pygpt_net.provider.loaders.file_xml import Loader as XmlLoader
+from pygpt_net.provider.loaders.web_bitbucket import Loader as BitbucketRepoLoader
+from pygpt_net.provider.loaders.web_chatgpt_retrieval import Loader as ChatGptRetrievalLoader
+from pygpt_net.provider.loaders.web_database import Loader as DatabaseLoader
+from pygpt_net.provider.loaders.web_github_issues import Loader as GithubIssuesLoader
+from pygpt_net.provider.loaders.web_github_repo import Loader as GithubRepoLoader
+from pygpt_net.provider.loaders.web_google_calendar import Loader as GoogleCalendarLoader
+from pygpt_net.provider.loaders.web_google_docs import Loader as GoogleDocsLoader
+from pygpt_net.provider.loaders.web_google_drive import Loader as GoogleDriveLoader
+from pygpt_net.provider.loaders.web_google_gmail import Loader as GoogleGmailLoader
+from pygpt_net.provider.loaders.web_google_keep import Loader as GoogleKeepLoader
+from pygpt_net.provider.loaders.web_google_sheets import Loader as GoogleSheetsLoader
+from pygpt_net.provider.loaders.web_microsoft_onedrive import Loader as MicrosoftOneDriveLoader
+from pygpt_net.provider.loaders.web_rss import Loader as RssLoader
+from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader
+from pygpt_net.provider.loaders.web_twitter import Loader as TwitterLoader
+from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader
+from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader
 
-# audio providers
+# audio providers (input, output)
 from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
 from pygpt_net.provider.audio_input.openai_whisper_local import OpenAIWhisperLocal
 from pygpt_net.provider.audio_input.google_speech_recognition import GoogleSpeechRecognition
@@ -86,7 +86,7 @@ from pygpt_net.provider.audio_output.ms_azure_tts import MSAzureTextToSpeech
 from pygpt_net.provider.audio_output.google_tts import GoogleTextToSpeech
 from pygpt_net.provider.audio_output.eleven_labs import ElevenLabsTextToSpeech
 
-# web search providers
+# web search engine providers
 from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
 from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
 
@@ -100,45 +100,45 @@ def run(**kwargs):
     PyGPT can be extended with:
 
     - Custom plugins
-    - Custom LLMs wrappers
+    - Custom LLM wrappers
     - Custom vector store providers
     - Custom data loaders
     - Custom audio input providers
     - Custom audio output providers
     - Custom web search engine providers
 
-    - You can pass custom plugin instances, LLMs wrappers, vector store providers and more to the launcher.
-    - This is useful if you want to extend PyGPT with your own plugins, vectors storage, LLMs or other data providers.
+    - You can pass custom plugin instances, LLM wrappers, vector store providers and more to the launcher.
+    - This is useful if you want to extend PyGPT with your own plugins, vector storage, LLMs, or other data providers.
 
     First, create a custom launcher file, for example, "custom_launcher.py," and register your extensions in it.
 
-    To register custom plugins create custom launcher, e.g. "custom_launcher.py" and:
+    To register a custom plugin - create the custom launcher, e.g. "custom_launcher.py" and:
 
-    - Pass a list with the plugin instances as 'plugins' keyword argument.
+    - Pass a list with the plugin instances as the 'plugins' keyword argument.
 
-    To register custom LLMs wrappers:
+    To register a custom LLM wrapper:
 
-    - Pass a list with the LLMs wrappers instances as 'llms' keyword argument.
+    - Pass a list with the LLM wrapper instances as the 'llms' keyword argument.
 
-    To register custom vector store providers:
+    To register a custom vector store provider:
 
-    - Pass a list with the vector store provider instances as 'vector_stores' keyword argument.
+    - Pass a list with the vector store provider instances as the 'vector_stores' keyword argument.
 
-    To register custom data loaders:
+    To register a custom data loader:
 
-    - Pass a list with the data loader instances as 'loaders' keyword argument.
+    - Pass a list with the data loader instances as the 'loaders' keyword argument.
 
-    To register custom audio input providers:
+    To register a custom audio input provider:
 
-    - Pass a list with the audio input provider instances as 'audio_input' keyword argument.
+    - Pass a list with the audio input provider instances as the 'audio_input' keyword argument.
 
-    To register custom audio output providers:
+    To register a custom audio output provider:
 
-    - Pass a list with the audio output provider instances as 'audio_output' keyword argument.
+    - Pass a list with the audio output provider instances as the 'audio_output' keyword argument.
 
-    To register custom web providers:
+    To register a custom web provider:
 
-    - Pass a list with the web provider instances as 'web' keyword argument.
+    - Pass a list with the web provider instances as the 'web' keyword argument.
 
     Example:
     --------
@@ -313,7 +313,7 @@ def run(**kwargs):
         for store in vector_stores:
             launcher.add_vector_store(store)
 
-    # run app
+    # run the app
     launcher.run()
     
 
