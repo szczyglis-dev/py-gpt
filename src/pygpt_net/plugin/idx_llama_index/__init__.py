@@ -9,6 +9,8 @@
 # Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
+import json
+
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -34,7 +36,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """Initialize options"""   # TODO: make better prompt, redefine context
+        """Initialize options"""
         prompt = 'ADDITIONAL CONTEXT: I will provide you with additional context about my question. ' \
                  'When it is provided, then use this data as additional context and use it in your response. ' \
                  'Additional context will be prefixed with an "ADDITIONAL CONTEXT:" prefix. You can also provide a ' \
@@ -114,6 +116,13 @@ class Plugin(BasePlugin):
             description="Max characters in question when querying Llama-index, 0 = no limit",
             min=0,
             max=None,
+        )
+        self.add_option(
+            "append_meta",
+            type="bool",
+            value=False,
+            label="Append metadata to context",
+            description="If enabled, then metadata from Llama-index will be appended to additional context",
         )
         self.add_option(
             "syntax_prepare_question",
@@ -314,7 +323,7 @@ class Plugin(BasePlugin):
         if len(indexes) > 1:
             responses = []
             for index in indexes:
-                ctx = CtxItem()
+                ctx = CtxItem()  # tmp ctx
                 ctx.input = question
                 self.window.core.idx.chat.query(
                     ctx=ctx,
@@ -322,16 +331,16 @@ class Plugin(BasePlugin):
                     model=model,
                     stream=False,
                 )
-                # self.append_meta_to_ctx(ctx)
                 if ctx.index_meta:
                     doc_ids.append(ctx.index_meta)
                     metas.append(ctx.index_meta)
+                    self.append_meta_to_response(ctx)
                 self.log("Using additional context: " + str(ctx.output))
-                responses.append(ctx.output)  # tmp ctx
+                responses.append(ctx.output)
 
-            return "\n".join(responses), doc_ids, metas
+            return "\n---\n".join(responses), doc_ids, metas
         else:
-            ctx = CtxItem()
+            ctx = CtxItem()  # tmp ctx
             ctx.input = question
             self.window.core.idx.chat.query(
                 ctx=ctx,
@@ -339,29 +348,25 @@ class Plugin(BasePlugin):
                 model=model,
                 stream=False,
             )
-            # self.append_meta_to_ctx(ctx)
             if ctx.index_meta:
                 doc_ids.append(ctx.index_meta)
                 metas.append(ctx.index_meta)
+                self.append_meta_to_response(ctx)
             self.log("Using additional context: " + str(ctx.output))
 
-            return ctx.output, doc_ids, metas  # tmp ctx, llama doc_ids
+            return ctx.output, doc_ids, metas  # tmp ctx, llama doc_ids, meta
 
-    def append_meta_to_ctx(self, ctx: CtxItem):
+    def append_meta_to_response(self, ctx: CtxItem):
         """
-        Append metadata from Llama-index to context item
+        Append metadata from Llama-index to context response
 
         :param ctx: CtxItem
         """
-        meta = ""
+        meta = None
         if ctx.index_meta is not None and isinstance(ctx.index_meta, dict):
-            for id in ctx.index_meta:
-                meta += "\n" + id + ": "
-                if "file_path" in ctx.index_meta[id]:
-                    path = ctx.index_meta[id]["file_path"]
-                    path = self.window.core.idx.files.get_id(path)
-                    meta += path
-        return meta
+            meta = json.dumps(ctx.index_meta)
+        if self.get_option_value("append_meta") and meta:
+            ctx.output += "\n--------------------------------\nMetadata: " + meta
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

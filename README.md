@@ -1519,6 +1519,10 @@ System prompt for question preparation.
 
 Max characters in question when querying Llama-index, 0 = no limit. *Default:* `1000`
 
+- `Append metadata to context` *append_meta*
+
+If enabled, then metadata from Llama-index will be appended to additional context. *Default:* `False`
+
 - `Model` *model_query*
 
 Model used for querying `Llama-index`. *Default:* `gpt-3.5-turbo`
@@ -2858,7 +2862,8 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.1.27 (2024-03-13)
 
-- Added the find command to the Files I/O plugin for searching for files and directories.
+- Added the "find" command to the Files I/O plugin for searching for files and directories.
+- Added "Append metadata" config option in Chat with files plugin.
 - Added missing locales to translations.
 
 # 2.1.26 (2024-03-13)

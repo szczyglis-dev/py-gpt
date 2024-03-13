@@ -2,7 +2,8 @@
 
 # 2.1.27 (2024-03-13)
 
-- Added the find command to the Files I/O plugin for searching for files and directories.
+- Added the "find" command to the Files I/O plugin for searching for files and directories.
+- Added "Append metadata" config option in Chat with files plugin.
 - Added missing locales to translations.
 
 # 2.1.26 (2024-03-13)

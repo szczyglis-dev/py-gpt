@@ -311,7 +311,11 @@ System prompt for question preparation.
 
 - ``Max characters in question`` *max_question_chars*
 
-Max characters in question when querying Llama-index, 0 = no limit, default: 1000
+Max characters in question when querying Llama-index, 0 = no limit, default: `1000`
+
+- ``Append metadata to context`` *append_meta*
+
+If enabled, then metadata from Llama-index will be appended to additional context. *Default:* `False`
 
 - ``Model`` *model_query*
 
