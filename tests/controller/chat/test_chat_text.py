@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 18:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -34,6 +34,7 @@ def test_send(mock_window):
     mock_window.core.gpt.call = MagicMock(return_value=result)
     mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
+    mock_window.controller.agent.enabled = MagicMock(return_value=False)
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 
@@ -79,6 +80,7 @@ def test_send_stream(mock_window):
     mock_window.core.gpt.call = MagicMock(return_value=result)
     mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
+    mock_window.controller.agent.enabled = MagicMock(return_value=False)
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -42,7 +42,7 @@ class Text:
         self.window.ui.status(trans('status.sending'))
 
         # prepare name
-        self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
+        self.log("User name: {}".format(self.window.core.config.get('user_name')))
 
         # event: username prepare
         event = Event(Event.USER_NAME, {
@@ -79,6 +79,7 @@ class Text:
         attachments = self.window.controller.chat.files.upload(mode)
         if len(attachments) > 0:
             ctx.attachments = attachments
+            self.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
 
         # store history (input)
         if self.window.core.config.get('store_history'):
@@ -114,7 +115,7 @@ class Text:
         if mode == 'agent':
             sys_prompt = self.window.controller.agent.flow.on_system_prompt(
                 sys_prompt,
-                append_prompt=None,  # preset is used
+                append_prompt=None,  # sys prompt from preset is used here
                 auto_stop=self.window.core.config.get('agent.auto_stop'),
             )
 
@@ -191,6 +192,7 @@ class Text:
             if self.window.controller.assistant.threads.is_running():
                 tools_outputs = self.window.controller.assistant.threads.apply_outputs(ctx)
                 self.window.controller.assistant.threads.reset()  # reset outputs
+                self.log("Appended Assistant tool outputs: {}".format(len(tools_outputs)))
 
                 # clear tool calls to prevent appending cmds to output (otherwise it will call commands again)
                 ctx.tool_calls = []
@@ -199,6 +201,10 @@ class Text:
             # make API call
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
+                files = self.window.core.attachments.get_all(mode)  # get attachments
+                num_files = len(files)
+                if num_files > 0:
+                    self.log("Attachments ({}): {}".format(mode, num_files))
 
                 # make call
                 result = self.window.core.bridge.call(
@@ -209,7 +215,7 @@ class Text:
                     system_prompt=sys_prompt,
                     system_prompt_raw=sys_prompt_raw,
                     stream=stream_mode,
-                    attachments=self.window.core.attachments.get_all(mode),
+                    attachments=files,
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,
                     idx_raw=self.window.core.config.get('llama.idx.raw'),  # query mode
@@ -246,7 +252,7 @@ class Text:
                 )
 
         except Exception as e:
-            self.log("Output error: {}".format(e))  # log
+            self.log("Output ERROR: {}".format(e))  # log
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.ui.status(trans('status.error'))
@@ -263,14 +269,13 @@ class Text:
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
-        if mode != "assistant" \
-                and mode != "agent" \
-                and not self.window.controller.plugins.is_type_enabled("agent"):
-            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant mode
+        if mode != "assistant" and not self.window.controller.agent.enabled():
+            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant and agent mode
 
         # handle ctx name (generate title from summary if not initialized)
         if not reply and not internal:  # don't call if reply or internal mode
             if self.window.core.config.get('ctx.auto_summary'):
+                self.log("Calling for prepare context name...")
                 self.window.controller.ctx.prepare_name(ctx)  # async
 
         return ctx

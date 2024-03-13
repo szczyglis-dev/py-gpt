@@ -147,6 +147,7 @@ class Input:
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
                     self.window.controller.camera.capture_frame(False)
+                    self.log("Captured frame from camera.")  # log
 
         # check if attachment exists, make this here to prevent clearing list on async reply!
         has_attachments = self.window.controller.attachment.has(mode)
@@ -220,6 +221,7 @@ class Input:
             if self.window.core.config.get('attachments_send_clear'):
                 self.window.controller.attachment.clear(True)
                 self.window.controller.attachment.update()
+                self.log("Attachments list cleared.")  # log
 
         self.log("Context: END: {}".format(ctx))
 

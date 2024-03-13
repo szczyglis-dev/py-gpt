@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 import os
@@ -184,10 +184,12 @@ class Debug:
 
             # exception
             elif isinstance(message, Exception):
-                data = self.parse_exception()
+                is_sys, data = self.parse_exception(message)
                 msg = "Exception: {}".format(str(message))
-                logger.log(level, msg, exc_info=True)
-                if self.has_level(level) and console:
+                if not is_sys:
+                    msg += "\n{}".format(data)
+                logger.log(level, msg, exc_info=is_sys)
+                if self.has_level(level) and console and data:
                     print(data)
 
             # other messages
@@ -205,24 +207,46 @@ class Debug:
         except Exception as e:
             pass
 
-    def parse_exception(self, limit: int = 4) -> str:
+    def parse_exception(self, e = None, limit: int = 4) -> (bool, str):
         """
         Parse exception traceback
 
+        :param e: exception
         :param limit: limit of traceback
-        :return: parsed exception as string
+        :return: sys error, parsed exception as string
         """
-        etype, value, tb = sys.exc_info()
+        is_sys = False
+        type_name = ""
+        etype, value, tb = sys.exc_info()  # from sys by default
+        if etype is None and e is not None:
+            tb = e.__traceback__  # from exception
+            type_name = type(e).__name__
+            value = str(e)
+        else:
+            if etype is not None:
+                is_sys = True
+                type_name = etype.__name__
+
+        # traceback
         traceback_details = traceback.extract_tb(tb)
         if len(traceback_details) >= limit:
             last_calls = traceback_details[-limit:]
         else:
             last_calls = traceback_details
-        formatted_traceback = ''.join(traceback.format_list(last_calls))
-        data = f"Type: {etype.__name__}, Message: " \
-               f"{value}\n" \
-               f"Traceback:\n{formatted_traceback}"
-        return data
+        formatted_traceback = ""
+        if last_calls:
+            formatted_traceback = "".join(traceback.format_list(last_calls))
+
+        # parse data
+        data = ""
+        if type_name:
+            data += "Type: {}".format(type_name)
+        if value:
+            data += "Message: {}".format(value)
+        if formatted_traceback:
+            data += "\nTraceback: {}".format(formatted_traceback)
+
+        return is_sys, data
 
     def has_level(self, level: int) -> bool:
         """
