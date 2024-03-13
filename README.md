@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.26** | build: **2024.03.13** | Python: **>=3.10, <3.12**
+Release: **2.1.27** | build: **2024.03.13** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2855,6 +2855,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.27 (2024-03-13)
+
+- Added the find command to the Files I/O plugin for searching for files and directories.
+- Added missing locales to translations.
 
 # 2.1.26 (2024-03-13)
 
