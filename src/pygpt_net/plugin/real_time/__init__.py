@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.04 18:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -103,9 +103,6 @@ class Plugin(BasePlugin):
         :param silent: silent mode (no logs)
         :return: updated prompt
         """
-        if not silent:
-            self.debug("Plugin: real_time:on_system_prompt [before]: " + str(prompt))  # log
-
         if self.get_option_value("hour") or self.get_option_value("date"):
             if self.get_option_value("hour") and self.get_option_value("date"):
                 prompt += self.get_option_value("tpl").\
@@ -116,7 +113,4 @@ class Plugin(BasePlugin):
             elif self.get_option_value("date"):
                 prompt += self.get_option_value("tpl").\
                     format(time=datetime.now().strftime('%A, %Y-%m-%d'))
-
-        if not silent:
-            self.debug("Plugin: real_time:on_system_prompt [after]: " + str(prompt))  # log
         return prompt
