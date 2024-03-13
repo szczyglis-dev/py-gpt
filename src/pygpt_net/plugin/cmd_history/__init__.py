@@ -6,16 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 import json
 import re
 from datetime import datetime
 
+from PySide6.QtCore import Slot
+
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -445,6 +449,11 @@ class Plugin(BasePlugin):
         """
         return self.has_cmd(cmd)
 
+    @Slot()
+    def handle_updated(self):
+        """Handle updated signal"""
+        self.window.controller.calendar.setup()
+
     def cmd(self, ctx: CtxItem, cmds: list):
         """
         Events: CMD_EXECUTE
@@ -462,125 +471,27 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        for item in my_commands:
-            try:
-                if item["cmd"] == "get_ctx_list_in_date_range":
-                    range = item["params"]["range_query"]
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data = self.get_list(range)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
+        # worker
+        worker = Worker()
+        worker.plugin = self
+        worker.cmds = my_commands
+        worker.ctx = ctx
 
-                elif item["cmd"] == "get_ctx_content_by_id":
-                    id = int(item["params"]["id"])
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    prompt = item["params"]["summary_query"]
-                    data = self.get_summary(id, prompt)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
+        # signals (base handlers)
+        worker.signals.updated.connect(self.handle_updated)
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.log.connect(self.handle_log)
+        worker.signals.debug.connect(self.handle_debug)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
 
-                elif item["cmd"] == "get_day_note":
-                    year = int(item["params"]["year"])
-                    month = int(item["params"]["month"])
-                    day = int(item["params"]["day"])
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data = self.get_day_note(year, month, day)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
+        # check if async allowed
+        if not self.window.core.dispatcher.async_allowed(ctx):
+            worker.run()
+            return
 
-                elif item["cmd"] == "add_day_note":
-                    year = int(item["params"]["year"])
-                    month = int(item["params"]["month"])
-                    day = int(item["params"]["day"])
-                    note = item["params"]["note"]
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    print("Adding note: " + note, year, month, day)
-                    data = self.add_day_note(year, month, day, note)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
-                    self.window.controller.calendar.setup()  # update calendar
-
-                elif item["cmd"] == "update_day_note":
-                    year = int(item["params"]["year"])
-                    month = int(item["params"]["month"])
-                    day = int(item["params"]["day"])
-                    note = item["params"]["content"]
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data = self.update_day_note(year, month, day, note)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
-                    self.window.controller.calendar.setup()  # update calendar
-
-                elif item["cmd"] == "remove_day_note":
-                    year = int(item["params"]["year"])
-                    month = int(item["params"]["month"])
-                    day = int(item["params"]["day"])
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data = self.remove_day_note(year, month, day)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
-                    self.window.controller.calendar.setup()
-
-                elif item["cmd"] == "count_ctx_in_date":
-                    year = None
-                    month = None
-                    day = None
-                    if "year" in item["params"] and item["params"]["year"] != "":
-                        year = int(item["params"]["year"])
-                    if "month" in item["params"] and item["params"]["month"] != "":
-                        month = int(item["params"]["month"])
-                    if "day" in item["params"] and item["params"]["day"] != "":
-                        day = int(item["params"]["day"])
-
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data = self.count_ctx_in_date(year, month, day)
-                    response = {
-                        "request": request,
-                        "result": data,
-                    }
-                    ctx.results.append(response)
-                    ctx.reply = True
-            except Exception as e:
-                self.log("Error: " + str(e))
-                return
+        # start
+        self.window.threadpool.start(worker)
 
     def get_day_note(self, year: int, month: int, day: int) -> str:
         """

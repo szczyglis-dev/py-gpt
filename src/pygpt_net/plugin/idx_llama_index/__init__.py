@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -21,7 +23,7 @@ class Plugin(BasePlugin):
         self.name = "Llama-index (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.allowed_cmds = [
-            "get_knowledge",
+            "get_context",
         ]
         self.ignored_modes = [
             "llama_index",
@@ -38,7 +40,7 @@ class Plugin(BasePlugin):
                  'Additional context will be prefixed with an "ADDITIONAL CONTEXT:" prefix. You can also provide a ' \
                  'command to query my context database anytime you need any additional context - to do this, return ' \
                  'to me the prepared prompt in JSON format, all in one line, using the following syntax: ' \
-                 '~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
+                 '~###~{"cmd": "get_context", "params": {"query": "<simple question here>"}}~###~. ' \
                  'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other ' \
                  'syntax. When making query use language that I spoke to you.'
 
@@ -121,6 +123,20 @@ class Plugin(BasePlugin):
             description="System prompt for question preparation",
             advanced=True,
         )
+        self.add_cmd(
+            "get_context",
+            instruction="get additional context for a given question",
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "question to retrieve additional context for",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to get additional context for a given question",
+        )
 
     def setup(self) -> dict:
         """
@@ -173,6 +189,9 @@ class Plugin(BasePlugin):
                 ctx,
             )
 
+        elif name == Event.CMD_SYNTAX:
+            self.cmd_syntax(data)
+
         elif name in [
             Event.CMD_INLINE,
             Event.CMD_EXECUTE,
@@ -197,6 +216,17 @@ class Plugin(BasePlugin):
         """
         prompt += "\n" + self.get_option_value("prompt")
         return prompt
+
+    def cmd_syntax(self, data: dict):
+        """
+        Event: CMD_SYNTAX
+
+        :param data: event data dict
+        """
+        for option in self.allowed_cmds:
+            if not self.has_cmd(option):
+                continue
+            data['cmd'].append(self.get_cmd(option))  # append command
 
     def prepare_question(self, ctx: CtxItem) -> str:
         """
@@ -245,7 +275,7 @@ class Plugin(BasePlugin):
 
         self.log("Querying Llama-index for: " + question)
 
-        response, doc_ids = self.query(question)
+        response, doc_ids, metas = self.query(question)
         if response is None or len(response) == 0:
             self.log("No additional context. Aborting.")
             return prompt
@@ -255,20 +285,23 @@ class Plugin(BasePlugin):
         prompt += "\nADDITIONAL CONTEXT: " + response
         return prompt
 
-    def query(self, question: str) -> (str, list):
+    def query(self, question: str) -> (str, list, list):
         """
         Query Llama-index
 
         :param question: question
-        :return: response, list of document ids
+        :return: response, list of document ids, list of metadata
         """
         doc_ids = []
+        metas = []
         idx = self.get_option_value("idx")
         model = self.window.core.models.from_defaults()
         if self.get_option_value("model_query") is not None:
             model_query = self.get_option_value("model_query")
             if self.window.core.models.has(model_query):
                 model = self.window.core.models.get(model_query)
+
+        # get indexes
         indexes = idx.split(",")
 
         # max length of question for Llama-index
@@ -289,13 +322,14 @@ class Plugin(BasePlugin):
                     model=model,
                     stream=False,
                 )
-                self.append_meta_to_ctx(ctx)
+                # self.append_meta_to_ctx(ctx)
                 if ctx.index_meta:
                     doc_ids.append(ctx.index_meta)
+                    metas.append(ctx.index_meta)
                 self.log("Using additional context: " + str(ctx.output))
                 responses.append(ctx.output)  # tmp ctx
 
-            return "\n".join(responses), doc_ids
+            return "\n".join(responses), doc_ids, metas
         else:
             ctx = CtxItem()
             ctx.input = question
@@ -305,12 +339,13 @@ class Plugin(BasePlugin):
                 model=model,
                 stream=False,
             )
-            self.append_meta_to_ctx(ctx)
+            # self.append_meta_to_ctx(ctx)
             if ctx.index_meta:
                 doc_ids.append(ctx.index_meta)
+                metas.append(ctx.index_meta)
             self.log("Using additional context: " + str(ctx.output))
 
-            return ctx.output, doc_ids  # tmp ctx, llama doc_ids
+            return ctx.output, doc_ids, metas  # tmp ctx, llama doc_ids
 
     def append_meta_to_ctx(self, ctx: CtxItem):
         """
@@ -326,8 +361,7 @@ class Plugin(BasePlugin):
                     path = ctx.index_meta[id]["file_path"]
                     path = self.window.core.idx.files.get_id(path)
                     meta += path
-            if meta:
-                ctx.output += "\nReceived from: " + meta.strip()
+        return meta
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -346,27 +380,30 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        for item in my_commands:
-            try:
-                if item["cmd"] == "get_knowledge":
-                    question = item["params"]["question"]
-                    request = {
-                        "cmd": item["cmd"],
-                    }
-                    data, doc_ids = self.query(question)  # send question to Llama-index
-                    response = {
-                        "request": request,
-                        "result": data,
-                        "doc_ids": doc_ids,
-                    }
-                    # store doc_ids in context
-                    if doc_ids:
-                        ctx.doc_ids = doc_ids
-                    ctx.results.append(response)
-                    ctx.reply = True
-            except Exception as e:
-                self.log("Error: " + str(e))
+        try:
+            # worker
+            worker = Worker()
+            worker.plugin = self
+            worker.cmds = my_commands
+            worker.ctx = ctx
+
+            # signals (base handlers)
+            worker.signals.finished.connect(self.handle_finished)
+            worker.signals.log.connect(self.handle_log)
+            worker.signals.debug.connect(self.handle_debug)
+            worker.signals.status.connect(self.handle_status)
+            worker.signals.error.connect(self.handle_error)
+
+            # check if async allowed
+            if not self.window.core.dispatcher.async_allowed(ctx):
+                worker.run()
                 return
+
+            # start
+            self.window.threadpool.start(worker)
+
+        except Exception as e:
+            self.error(e)
 
     def log(self, msg: str):
         """
