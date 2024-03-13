@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.03.13 15:00:00                  #
 # ================================================== #
 
 import json
@@ -118,8 +118,11 @@ class Command:
 
             self.window.ui.status("")  # Clear status
             if ctx.reply:
+                data = json.dumps(ctx.results)
+                if ctx.extra_ctx:
+                    data = ctx.extra_ctx  # if extra content is set, use it as data to send
                 self.window.controller.chat.input.send(
-                    json.dumps(ctx.results),
+                    data,
                     force=True,
                     internal=ctx.internal,
                 )
