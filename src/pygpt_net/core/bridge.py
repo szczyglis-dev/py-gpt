@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.15 12:00:00                  #
 # ================================================== #
 
 import time
@@ -75,8 +75,7 @@ class Bridge:
                 debug = {k: str(v) for k, v in kwargs.items()}
                 self.window.core.debug.debug(str(debug))
 
-        # apply RPM limit
-        self.apply_rate_limit()
+        self.apply_rate_limit()  # apply RPM limit
 
         # Langchain
         if mode == "langchain":
