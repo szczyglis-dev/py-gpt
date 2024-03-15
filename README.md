@@ -2867,8 +2867,9 @@ may consume additional tokens that are not displayed in the main window.
 # 2.1.28 (2024-03-15)
 
 - Fixed local commands handling in Assistant API.
+- Fixed system prompt replace after mode changed on app start.
 - Improved related links rendering in chat output.
-- Added RPM limit config option for Embeddings API.
+- Added RPM limit config option for embeddings API.
 - UI improvements.
 
 # 2.1.27 (2024-03-13)
