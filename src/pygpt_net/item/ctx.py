@@ -20,7 +20,7 @@ class CtxItem:
         """
         Context item
 
-        :param mode: Mode (completion, chat, img, vision, langchain, assistant)
+        :param mode: Mode (completion, chat, img, vision, langchain, assistant, llama_index, agent)
         """
         self.id = None
         self.meta_id = None
@@ -57,23 +57,18 @@ class CtxItem:
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
-        self.prev_ctx = None  # previous context
+        self.prev_ctx = None  # previous context (reply output)
 
     def clear_reply(self):
-        """Clear reply output"""
-        self.urls = []
-        self.images = []
-        self.files = []
-        self.attachments = []
-        self.results = []
+        """Clear current reply output"""
+        if self.reply:
+            self.urls = []
+            self.results = []
 
     def from_previous(self):
-        """Copy data from previous context"""
+        """Copy data from previous context reply to current context"""
         if self.prev_ctx is not None:
             self.urls = copy.deepcopy(self.prev_ctx.urls)
-            self.images = copy.deepcopy(self.prev_ctx.images)
-            self.files = copy.deepcopy(self.prev_ctx.files)
-            self.attachments = copy.deepcopy(self.prev_ctx.attachments)
             self.results = copy.deepcopy(self.prev_ctx.results)
 
     def add_doc_meta(self, meta: dict):
