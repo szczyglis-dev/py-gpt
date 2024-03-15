@@ -13,7 +13,7 @@ from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
-from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.ui.widget.option.prompt import PromptTextarea
 from pygpt_net.utils import trans
 
 
@@ -63,11 +63,8 @@ class Prompt:
 
         # prompt
         option = self.window.controller.presets.editor.get_option('prompt')
-        self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset', 'prompt', option)
+        self.window.ui.nodes['preset.prompt'] = PromptTextarea(self.window, 'preset', 'prompt', option)
         self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.window.ui.nodes['preset.prompt'].textChanged.connect(
-            lambda: self.on_prompt_changed())
-
         self.window.ui.nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), self.window)
 
         # rows
@@ -82,17 +79,3 @@ class Prompt:
         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return widget
-
-    def on_prompt_changed(self):
-        """On prompt changed"""
-        # hook update
-        if self.window.controller.mode.locked:
-            return
-
-        self.window.controller.config.input.on_update(
-            self.window.ui.nodes['preset.prompt'].parent_id,
-            self.window.ui.nodes['preset.prompt'].id,
-            self.window.ui.nodes['preset.prompt'].option,
-            self.window.ui.nodes['preset.prompt'].toPlainText(),
-        )
-        self.window.controller.ui.update_tokens()

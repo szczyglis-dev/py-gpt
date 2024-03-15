@@ -148,11 +148,12 @@ class Editor:
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
+            self.window.core.config.set('prompt', value)
             if mode == 'assistant':
                 self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
-                self.window.core.config.set('prompt', value)
+
 
     def edit(self, idx: int = None):
         """
