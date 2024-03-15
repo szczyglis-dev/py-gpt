@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import json
@@ -50,12 +50,15 @@ class Threads:
         :param ctx: CtxItem
         """
         # update ctx
+        ctx.from_previous()  # append previous result if exists
         self.window.core.ctx.update_item(ctx)
-
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
+
+        ctx.clear_reply()  # reset results
         self.window.controller.chat.output.handle_cmd(ctx)
 
         # update ctx
+        ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)
 
         # index ctx (llama-index)
@@ -181,10 +184,11 @@ class Threads:
                 "response": "",
             }
             self.window.controller.chat.input.send(
-                json.dumps(results),
+                text=json.dumps(results),
                 force=True,
                 reply=True,
                 internal=True,
+                prev_ctx=ctx,
             )
 
     def apply_outputs(self, ctx: CtxItem) -> list:

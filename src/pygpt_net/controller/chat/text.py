@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -30,6 +30,7 @@ class Text:
             text: str,
             reply: bool = False,
             internal: bool = False,
+            prev_ctx: CtxItem = None
     ) -> CtxItem:
         """
         Send text message
@@ -37,6 +38,7 @@ class Text:
         :param text: text to send
         :param reply: reply from plugins
         :param internal: internal call
+        :param prev_ctx: previous context item (if reply)
         :return: context item
         """
         self.window.ui.status(trans('status.sending'))
@@ -72,6 +74,7 @@ class Text:
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
+        ctx.prev_ctx = prev_ctx  # store previous context item
 
         self.window.core.ctx.last_item = ctx  # store last item
 
@@ -245,6 +248,7 @@ class Text:
             # handle response (if no assistant mode)
             # assistant response is handled in assistant thread
             if mode != "assistant":
+                ctx.from_previous()  # append previous result if exists
                 self.window.controller.chat.output.handle(
                     ctx,
                     mode,
@@ -261,7 +265,9 @@ class Text:
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
+            ctx.clear_reply()  # reset results
             self.window.controller.chat.output.handle_cmd(ctx)
+            ctx.from_previous()  # append previous result again before save
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
         # render: end

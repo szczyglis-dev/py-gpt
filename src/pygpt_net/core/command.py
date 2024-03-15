@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -61,6 +61,10 @@ class Command:
                 prompt = self.window.core.config.get('cmd.prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
+
+        # Assistants API fix:
+        if self.window.core.config.get('mode') == "assistant":
+            cmd += "\nIMPORTANT: ABOVE COMMANDS ARE FOR EXECUTION ONLY IN MY LOCAL ENVIRONMENT! DON'T USE THEM TO EXECUTE COMMANDS IN YOUR ENVIRONMENT!"
         return cmd
 
     def append_syntax(self, data: dict) -> str:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -110,9 +110,10 @@ class Flow:
             self.window.controller.agent.update()  # update status
             if self.prev_output is not None and self.prev_output != "":
                 self.window.controller.chat.input.send(
-                    self.prev_output,
+                    text=self.prev_output,
                     force=True,
                     internal=True,
+                    prev_ctx=ctx,
                 )
         # internal call will not trigger async mode and will hide the message from previous iteration
         elif self.iteration >= int(iterations):

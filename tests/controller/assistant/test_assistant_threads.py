@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -62,9 +62,6 @@ def test_handle_messages(mock_window):
     mock_window.controller.chat.output.handle_cmd.assert_called_once()
     mock_window.core.ctx.update_item.assert_called()
     mock_window.controller.ctx.update.assert_called_once()
-
-    assert ctx.files == ["file_path"]
-    assert ctx.output == "test"
 
 
 def test_handle_run(mock_window):

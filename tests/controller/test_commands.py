@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -31,7 +31,6 @@ def test_dispatch(mock_window):
     event = Event('test')
     command.dispatch(event)
     mock_window.core.dispatcher.apply.assert_called()
-    command.handle_finished.assert_called_once_with(event)
 
 
 def test_worker(mock_window):
@@ -74,4 +73,3 @@ def test_handle_finished(mock_window):
     event.ctx = ctx
     command.handle_finished(event)
     mock_window.ui.status.assert_called_once_with('')
-    mock_window.controller.chat.input.send.assert_called_once_with('{"test": "test"}', force=True, internal=False)

@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
+import copy
 import datetime
 import json
 import time
@@ -56,6 +57,24 @@ class CtxItem:
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
+        self.prev_ctx = None  # previous context
+
+    def clear_reply(self):
+        """Clear reply output"""
+        self.urls = []
+        self.images = []
+        self.files = []
+        self.attachments = []
+        self.results = []
+
+    def from_previous(self):
+        """Copy data from previous context"""
+        if self.prev_ctx is not None:
+            self.urls = copy.deepcopy(self.prev_ctx.urls)
+            self.images = copy.deepcopy(self.prev_ctx.images)
+            self.files = copy.deepcopy(self.prev_ctx.files)
+            self.attachments = copy.deepcopy(self.prev_ctx.attachments)
+            self.results = copy.deepcopy(self.prev_ctx.results)
 
     def add_doc_meta(self, meta: dict):
         """

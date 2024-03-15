@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -92,6 +93,7 @@ class Input:
             force: bool = False,
             reply: bool = False,
             internal: bool = False,
+            prev_ctx: CtxItem = None
     ):
         """
         Send input wrapper
@@ -100,12 +102,14 @@ class Input:
         :param force: force send (ignore input lock)
         :param reply: reply mode (from plugins)
         :param internal: internal call
+        :param prev_ctx: previous context (if reply)
         """
         self.execute(
-            text,
+            text=text,
             force=force,
             reply=reply,
             internal=internal,
+            prev_ctx=prev_ctx,
         )
 
     def execute(
@@ -114,6 +118,7 @@ class Input:
             force: bool = False,
             reply: bool = False,
             internal: bool = False,
+            prev_ctx: CtxItem = None
     ):
         """
         Execute send input text to API
@@ -122,6 +127,7 @@ class Input:
         :param force: force send (ignore input lock)
         :param reply: reply mode (from plugins)
         :param internal: internal call
+        :param prev_ctx: previous context (if reply)
         """
         self.window.stateChanged.emit(self.window.STATE_IDLE)
 
@@ -208,20 +214,24 @@ class Input:
 
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
-            ctx = self.window.controller.chat.image.send(text)  # image mode
+            ctx = self.window.controller.chat.image.send(
+                text=text,
+                prev_ctx=prev_ctx,
+            )  # image mode
         else:
             ctx = self.window.controller.chat.text.send(
-                text,
+                text=text,
                 reply=reply,
                 internal=internal,
-            )  # text mode: OpenAI, Langchain, Llama
+                prev_ctx=prev_ctx,
+            )  # text mode: OpenAI, Langchain, Llama, etc.
 
         # clear attachments after send, only if attachments has been provided before send
         if has_attachments:
             if self.window.core.config.get('attachments_send_clear'):
                 self.window.controller.attachment.clear(True)
                 self.window.controller.attachment.update()
-                self.log("Attachments list cleared.")  # log
+                self.log("Attachments cleared.")  # log
 
         self.log("Context: END: {}".format(ctx))
 

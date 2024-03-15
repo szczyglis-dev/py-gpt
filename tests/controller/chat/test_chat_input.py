@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -53,7 +53,7 @@ def test_send(mock_window):
     message = 'test'
 
     input.send(message)
-    input.execute.assert_called_once_with(message, force=False, reply=False, internal=False)
+    input.execute.assert_called_once_with(text=message, force=False, reply=False, internal=False, prev_ctx=None)
 
 
 def test_execute_text(mock_window):
@@ -75,7 +75,7 @@ def test_execute_text(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test', reply=False, internal=False)
+        mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -109,7 +109,7 @@ def test_execute_image(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.image.send.assert_called_once_with('test')
+        mock_window.controller.chat.image.send.assert_called_once_with(text='test', prev_ctx=None)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -143,7 +143,7 @@ def test_execute_no_ctx(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test', reply=False, internal=False)
+        mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -203,7 +203,7 @@ def test_execute_vision_mode(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test', reply=False, internal=False)
+        mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -245,7 +245,7 @@ def test_execute_vision_plugin(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test', reply=False, internal=False)
+        mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 

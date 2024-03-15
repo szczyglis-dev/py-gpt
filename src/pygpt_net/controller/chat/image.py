@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -29,11 +29,16 @@ class Image:
         """
         self.window = window
 
-    def send(self, text: str) -> CtxItem:
+    def send(
+            self,
+            text: str,
+            prev_ctx: CtxItem = None
+    ) -> CtxItem:
         """
         Send prompt for image generate
 
         :param text: prompt for image generation
+        :param prev_ctx: previous ctx item
         :return: ctx item
         """
         num = int(self.window.ui.config['global']['img_variants'].input.text() or 1)
@@ -53,6 +58,7 @@ class Image:
         # create ctx item
         ctx = CtxItem()
         ctx.set_input(text, self.window.core.config.get('user_name'))
+        ctx.prev_ctx = prev_ctx  # store previous context item
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
@@ -156,7 +162,15 @@ class Image:
         # it will only inform system that image was generated, user will see it in chat with image after render
         # of ctx item (link to images are appended to ctx item)
         if ctx.internal:
-            ctx.results.append({"request": {"cmd": "image"}, "result": "OK. Generated"})
+            ctx.results.append(
+                {
+                    "request": {
+                        "cmd": "image",
+                    },
+                    "result": "OK. Generated {} image(s).".format(len(paths)),
+                    "paths": paths,
+                }
+            )
             ctx.reply = True
             self.window.controller.chat.render.append_extra(ctx)  # show image first
             self.window.controller.chat.render.end_extra()

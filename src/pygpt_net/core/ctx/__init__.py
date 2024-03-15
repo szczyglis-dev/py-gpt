@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -930,6 +930,26 @@ class Ctx:
                 self.load_tmp_meta(self.current)
             if self.current in self.meta:
                 self.save(self.current)
+
+    def as_previous(self, ctx: CtxItem) -> CtxItem:
+        """
+        Prepare previous context item and clear current reply results
+
+        :param ctx: CtxItem instance (current)
+        :return: CtxItem instance (previous)
+        """
+        prev_ctx = CtxItem()
+        prev_ctx.urls = copy.deepcopy(ctx.urls)
+        prev_ctx.images = copy.deepcopy(ctx.images)
+        prev_ctx.files = copy.deepcopy(ctx.files)
+        prev_ctx.attachments = copy.deepcopy(ctx.attachments)
+        prev_ctx.results = copy.deepcopy(ctx.results)
+        prev_ctx.index_meta = copy.deepcopy(ctx.index_meta)
+        prev_ctx.doc_ids = copy.deepcopy(ctx.doc_ids)
+
+        ctx.clear_reply()  # clear current reply result
+        ctx.from_previous()  # get result from previous if exists
+        return prev_ctx
 
     def dump(self, ctx: CtxItem) -> str:
         """

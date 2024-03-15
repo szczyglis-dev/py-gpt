@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import json
@@ -49,13 +49,6 @@ class Command:
 
                 self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
-
-        # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)
-        # it is handled already in internal event, in synchronous way
-        if event.ctx is not None and event.ctx.internal:
-            return
-
-        self.handle_finished(event)  # emit finished signal only for non-internal (user-called) events
 
     def dispatch_async(self, event: Event):
         """
@@ -121,8 +114,10 @@ class Command:
                 data = json.dumps(ctx.results)
                 if ctx.extra_ctx:
                     data = ctx.extra_ctx  # if extra content is set, use it as data to send
+                prev_ctx = self.window.core.ctx.as_previous(ctx)  # copy result to previous ctx and clear current ctx
                 self.window.controller.chat.input.send(
-                    data,
+                    text=data,
                     force=True,
                     internal=ctx.internal,
+                    prev_ctx=prev_ctx,
                 )
