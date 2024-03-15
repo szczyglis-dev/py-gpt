@@ -61,9 +61,9 @@ class CtxItem:
 
     def clear_reply(self):
         """Clear current reply output"""
+        self.results = []
         if self.reply:
             self.urls = []
-            self.results = []
 
     def from_previous(self):
         """Copy data from previous context reply to current context"""
