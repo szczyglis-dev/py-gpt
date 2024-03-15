@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 15:00:00                  #
+# Updated Date: 2024.03.15 11:00:00                  #
 # ================================================== #
 
 import datetime
@@ -46,9 +46,19 @@ class PainterWidget(QWidget):
         actions['undo'] = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
         actions['undo'].triggered.connect(
             lambda: self.undo())
+        if self.has_undo():
+            actions['undo'].setEnabled(True)
+        else:
+            actions['undo'].setEnabled(False)
+
         actions['redo'] = QAction(QIcon(":/icons/redo.svg"), trans('action.redo'), self)
         actions['redo'].triggered.connect(
             lambda: self.redo())
+        if self.has_redo():
+            actions['redo'].setEnabled(True)
+        else:
+            actions['redo'].setEnabled(False)
+
         actions['open'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open())
@@ -190,6 +200,14 @@ class PainterWidget(QWidget):
             self.undoStack.append(self.image.copy())
             self.image = self.redoStack.pop()
             self.update()
+
+    def has_undo(self) -> bool:
+        """Check if undo is available"""
+        return bool(self.undoStack)
+
+    def has_redo(self) -> bool:
+        """Check if redo is available"""
+        return bool(self.redoStack)
 
     def set_brush_color(self, color):
         """
