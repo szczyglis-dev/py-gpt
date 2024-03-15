@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.03.15 12:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
+import time
 
 from pathlib import Path
 from sqlalchemy import text
@@ -37,6 +38,7 @@ class Indexing:
         }
         self.data_providers = {}  # data providers (loaders)
         self.external_instructions = {}
+        self.last_call = None
 
     def register_loader(self, loader: BaseLoader):
         """
@@ -270,7 +272,7 @@ class Indexing:
                 documents = self.get_documents(file)
                 for d in documents:
                     self.prepare_document(d)
-                    index.insert(document=d)
+                    self.index_document(index, d)
                     indexed[file] = d.id_  # add to index
                     self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
             except Exception as e:
@@ -310,7 +312,7 @@ class Indexing:
                         documents = self.get_documents(file_path)
                         for d in documents:
                             self.prepare_document(d)
-                            index.insert(document=d)
+                            self.index_document(index, d)
                             indexed[file_path] = d.id_  # add to index
                             self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
                     except Exception as e:
@@ -332,7 +334,7 @@ class Indexing:
                 documents = self.get_documents(path)
                 for d in documents:
                     self.prepare_document(d)
-                    index.insert(document=d)
+                    self.index_document(index, d)
                     indexed[path] = d.id_  # add to index
                     self.window.core.idx.log("Inserted document: {}, metadata: {}".format(d.id_, d.metadata))
             except Exception as e:
@@ -467,7 +469,7 @@ class Indexing:
             # get items from database
             documents = self.get_db_data_by_id(id, from_ts)
             for d in documents:
-                index.insert(document=d)
+                self.index_document(index, d)
                 doc_id = d.id_
                 self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
                 self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
@@ -556,7 +558,7 @@ class Indexing:
             self.window.core.idx.metadata.append_web_metadata(documents, type, args)
 
             for d in documents:
-                index.insert(document=d)
+                self.index_document(index, d)
                 doc_id = d.id_  # URL is used as document ID
                 if not is_tmp:
                     self.window.core.idx.external.set_indexed(
@@ -696,6 +698,33 @@ class Indexing:
                     pass
                 return True
         return False
+
+    def index_document(self, index: BaseIndex, doc: Document):
+        """
+        Index document
+
+        :param index: index instance
+        :param doc: document
+        """
+        self.apply_rate_limit()  # apply RPM limit
+        index.insert(document=doc)
+
+    def apply_rate_limit(self):
+        """Apply API calls RPM limit"""
+        max_per_minute = 60
+        if self.window.core.config.has("llama.idx.embeddings.limit.rpm"):
+            max_per_minute = int(self.window.core.config.get("llama.idx.embeddings.limit.rpm")) # per minute
+        if max_per_minute <= 0:
+            return
+        interval = datetime.timedelta(minutes=1) / max_per_minute
+        now = datetime.datetime.now()
+        if self.last_call is not None:
+            time_since_last_call = now - self.last_call
+            if time_since_last_call < interval:
+                sleep_time = (interval - time_since_last_call).total_seconds()
+                self.window.core.idx.log("RPM limit: sleep for {} seconds".format(sleep_time))
+                time.sleep(sleep_time)
+        self.last_call = now
 
     def get_excluded_extensions(self) -> list[str]:
         """

@@ -2669,6 +2669,8 @@ Config -> Settings...
 
 - `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
 
+- `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
+
 - `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
 - `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
@@ -2712,6 +2714,8 @@ Config -> Settings...
 **Developer**
 
 - `Show debug menu`: Enables debug (developer) menu.
+
+- `Log and debug context`: Enables logging of context input/output.
 
 - `Log and debug events`: Enables logging of event dispatch.
 

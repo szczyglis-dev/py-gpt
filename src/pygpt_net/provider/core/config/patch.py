@@ -1168,6 +1168,8 @@ class Patch:
             if old < parse_version("2.1.28"):
                 if 'log.ctx' not in data:
                     data["log.ctx"] = True
+                if 'llama.idx.embeddings.limit.rpm' not in data:
+                    data["llama.idx.embeddings.limit.rpm"] = 100
                 updated = True
 
         # update file
