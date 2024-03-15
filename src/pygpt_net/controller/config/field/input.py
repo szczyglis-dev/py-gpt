@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.03.15 12:00:00                  #
 # ================================================== #
 
 class Input:
@@ -37,12 +37,12 @@ class Input:
         if "type" in option and option["type"] == "int":
             try:
                 value = round(int(value), 0)
-            except ValueError:
+            except Exception:
                 value = 0
         elif "type" in option and option["type"] == "float":
             try:
                 value = float(value)
-            except ValueError:
+            except Exception:
                 value = 0.0
 
         # min/max
@@ -104,12 +104,12 @@ class Input:
         if option["type"] == "int":
             try:
                 value = int(self.window.ui.config[parent_id][key].text())
-            except ValueError:
+            except Exception:
                 value = 0
         elif option["type"] == "float":
             try:
                 value = float(self.window.ui.config[parent_id][key].text())
-            except ValueError:
+            except Exception:
                 value = 0.0
         elif option["type"] == "text":
             value = self.window.ui.config[parent_id][key].text()

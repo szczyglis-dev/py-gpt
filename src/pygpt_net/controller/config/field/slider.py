@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.15 12:00:00                  #
 # ================================================== #
 
 class Slider:
@@ -46,12 +46,12 @@ class Slider:
             if is_integer:
                 try:
                     value = round(int(value), 0)
-                except ValueError as e:
+                except Exception as e:
                     value = 0
             else:
                 try:
                     value = float(value)
-                except ValueError as e:
+                except Exceptionr as e:
                     value = 0.0
 
             if "min" in option and value < option["min"]:
