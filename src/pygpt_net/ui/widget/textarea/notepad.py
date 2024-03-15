@@ -37,10 +37,20 @@ class NotepadWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-    def setText(self, text):
+    def setText(self, text: str):
+        """
+        Set text
+
+        :param text: Text
+        """
         self.textarea.setText(text)
 
-    def toPlainText(self):
+    def toPlainText(self) -> str:
+        """
+        Get plain text
+
+        :return: Plain text
+        """
         return self.textarea.toPlainText()
 
 

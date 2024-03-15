@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 18:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -28,7 +28,7 @@ class CalendarNote(QTextEdit):
         self.window = window
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
-        self.value = int(self.window.core.config.get('font_size.calendar.note') or 12)
+        self.value = self.window.core.config.data['font_size']
         self.textChanged.connect(self.window.controller.calendar.note.update)
         self.max_font_size = 42
         self.min_font_size = 8
@@ -100,8 +100,15 @@ class CalendarNote(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.core.config.data['font_size.calendar.note'] = self.value
+            self.window.core.config.data['font_size'] = self.value
             self.window.core.config.save()
+            option = self.window.controller.settings.editor.get_option('font_size')
+            option['value'] = self.value
+            self.window.controller.config.apply(
+                parent_id='config',
+                key='font_size',
+                option=option,
+            )
             self.window.controller.ui.update_font_size()
             event.accept()
         else:

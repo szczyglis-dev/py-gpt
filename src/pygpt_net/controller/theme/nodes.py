@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 
@@ -93,3 +93,15 @@ class Nodes:
             for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+
+        # apply to calendar
+        self.window.ui.calendar['note'].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+
+        # update value
+        size = self.window.core.config.get('font_size')
+        self.window.ui.calendar['note'].value = size
+        if num_notepads > 0:
+            for id in range(1, num_notepads + 1):
+                if id in self.window.ui.notepad:
+                    self.window.ui.notepad[id].textarea.value = size
+        self.window.ui.nodes['output'].value = size
