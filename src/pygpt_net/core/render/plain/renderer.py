@@ -161,34 +161,37 @@ class Renderer(BaseRenderer):
         appended = []
 
         # images
-        if len(item.images) > 0:
+        c = len(item.images)
+        if c > 0:
             n = 1
             for image in item.images:
                 if image in appended or image in self.images_appended:
                     continue
                 try:
                     appended.append(image)
-                    self.append_raw(self.get_image_html(image, n))
+                    self.append_raw(self.get_image_html(image, n, c))
                     self.images_appended.append(image)
                     n += 1
                 except Exception as e:
                     pass
 
         # files and attachments, TODO check attachments
-        if len(item.files) > 0:
+        c = len(item.files)
+        if c > 0:
             n = 1
             for file in item.files:
                 if file in appended:
                     continue
                 try:
                     appended.append(file)
-                    self.append_raw(self.get_file_html(file, n))
+                    self.append_raw(self.get_file_html(file, n, c))
                     n += 1
                 except Exception as e:
                     pass
 
         # urls
-        if len(item.urls) > 0:
+        c = len(item.urls)
+        if c > 0:
             urls_str = []
             n = 1
             for url in item.urls:
@@ -196,7 +199,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(url)
-                    urls_str.append(self.get_url_html(url, n))
+                    urls_str.append(self.get_url_html(url, n, c))
                     self.urls_appended.append(url)
                     n += 1
                 except Exception as e:
@@ -300,16 +303,17 @@ class Renderer(BaseRenderer):
         self.append_output(item)
         self.append_extra(item)
 
-    def get_image_html(self, url: str, num: int = None) -> str:
+    def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
         Get image HTML
 
         :param url: URL to image
         :param num: number of image
+        :param num_all: number of all images
         :return: HTML code
         """
         num_str = ""
-        if num is not None:
+        if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
         return """\n{prefix}{num}: {path}\n""".\
@@ -317,16 +321,17 @@ class Renderer(BaseRenderer):
                    path=path,
                    num=num_str)
 
-    def get_url_html(self, url: str, num: int = None) -> str:
+    def get_url_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
         Get URL HTML
 
         :param url: external URL
         :param num: number of URL
+        :param num_all: number of all URLs
         :return: HTML
         """
         num_str = ""
-        if num is not None:
+        if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
         return """{prefix}{num}: {url}""".\
             format(prefix=trans('chat.prefix.url'),
@@ -368,16 +373,17 @@ class Renderer(BaseRenderer):
 
         return html
 
-    def get_file_html(self, url: str, num: int = None) -> str:
+    def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
         Get file HTML
 
         :param url: URL to file
         :param num: number of file
+        :param num_all: number of all files
         :return: HTML
         """
         num_str = ""
-        if num is not None:
+        if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
         return """\n{prefix}{num}: {path}\n""".\
