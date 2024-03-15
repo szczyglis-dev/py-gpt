@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.03.15 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -148,11 +148,11 @@ class Editor:
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
-            self.window.core.config.set('prompt', value)
             if mode == 'assistant':
-                self.window.controller.assistant.from_global()  # update current assistant
+                self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
+                self.window.core.config.set('prompt', value)
 
     def edit(self, idx: int = None):
         """

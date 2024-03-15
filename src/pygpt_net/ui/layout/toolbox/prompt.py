@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.15 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -86,6 +86,9 @@ class Prompt:
     def on_prompt_changed(self):
         """On prompt changed"""
         # hook update
+        if self.window.controller.mode.locked:
+            return
+
         self.window.controller.config.input.on_update(
             self.window.ui.nodes['preset.prompt'].parent_id,
             self.window.ui.nodes['preset.prompt'].id,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.03.15 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -22,6 +22,7 @@ class Mode:
         :param window: Window instance
         """
         self.window = window
+        self.locked = False
 
     def select(self, idx: int):
         """
@@ -46,6 +47,7 @@ class Mode:
 
         :param mode: mode name
         """
+        self.locked = True
         # if ctx loaded with assistant ID assigned then switch to assistant from ctx
         if mode == "assistant":
             self.window.controller.presets.select_default()
@@ -76,6 +78,7 @@ class Mode:
         # if assistant mode then update ctx label
         if mode == "assistant":
             self.window.controller.ctx.common.update_label_by_current()
+        self.locked = False
 
     def select_current(self):
         """Select current mode on the list"""
