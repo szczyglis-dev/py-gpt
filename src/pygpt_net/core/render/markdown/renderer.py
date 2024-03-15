@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import json
@@ -175,6 +175,7 @@ class Renderer(BaseRenderer):
 
         # images
         if len(item.images) > 0:
+            n = 1
             for image in item.images:
                 # don't append if it is an external url
                 if image.startswith("http"):
@@ -183,41 +184,50 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(image)
-                    self.get_output_node().append(self.get_image_html(image))
+                    self.get_output_node().append(self.get_image_html(image, n))
                     self.images_appended.append(image)
+                    n+=1
                 except Exception as e:
                     pass
 
         # files and attachments, TODO check attachments
         if len(item.files) > 0:
+            n = 1
             for file in item.files:
                 if file in appended:
                     continue
                 try:
                     appended.append(file)
-                    self.get_output_node().append(self.get_file_html(file))
+                    self.get_output_node().append(self.get_file_html(file, n))
+                    n+=1
                 except Exception as e:
                     pass
 
         # urls
         if len(item.urls) > 0:
+            urls_html = []
+            n = 1
             for url in item.urls:
                 if url in appended or url in self.urls_appended:
                     continue
                 try:
                     appended.append(url)
-                    self.get_output_node().append(self.get_url_html(url))
+                    urls_html.append(self.get_url_html(url, n))
                     self.urls_appended.append(url)
+                    n+=1
                 except Exception as e:
                     pass
+            if urls_html:
+                self.get_output_node().append("<br/>" + "<br/>".join(urls_html))
 
         # extra action icons
         show_edit = self.window.core.config.get('ctx.edit_icons')
         show_audio = self.window.core.config.get('ctx.audio')
         if show_edit or show_audio:
             icons_html = " ".join(self.get_action_icons(item, all=show_edit))
-            self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
-            self.to_end()
+            if icons_html != "":
+                self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+                self.to_end()
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
@@ -244,12 +254,13 @@ class Renderer(BaseRenderer):
         icons = []
 
         # audio read
-        icons.append(
-            '<a href="extra-audio-read:{}"><span class="cmd">{}</span></a>'.format(
-                item.id,
-                self.get_icon("audio", trans("ctx.extra.audio"))
+        if item.output is not None and item.output != "":
+            icons.append(
+                '<a href="extra-audio-read:{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    self.get_icon("audio", trans("ctx.extra.audio"))
+                )
             )
-        )
         if all:
             # copy item
             icons.append(
@@ -392,31 +403,41 @@ class Renderer(BaseRenderer):
         self.append_output(item)
         self.append_extra(item)
 
-    def get_image_html(self, url: str) -> str:
+    def get_image_html(self, url: str, num: int = None) -> str:
         """
         Get image HTML
 
         :param url: URL to image
+        :param num: number of image
         :return: HTML code
         """
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
         return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
-        <p><b>{prefix}:</b> <a href="{url}">{path}</a></p>""".\
+        <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""".\
             format(prefix=trans('chat.prefix.img'),
                    url=url,
                    path=path,
-                   img_width=self.img_width)
+                   img_width=self.img_width,
+                   num=num_str)
 
-    def get_url_html(self, url: str) -> str:
+    def get_url_html(self, url: str, num: int = None) -> str:
         """
         Get URL HTML
 
         :param url: external URL
+        :param num: number of URL
         :return: HTML code
         """
-        return """<br/><b>{prefix}:</b> <a href="{url}">{url}</a><br/>""".\
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
+        return """<b>{prefix}{num}:</b> <a href="{url}">{url}</a>""".\
             format(prefix=trans('chat.prefix.url'),
-                   url=url)
+                   url=url,
+                   num=num_str)
 
     def get_docs_html(self, docs: list) -> str:
         """
@@ -454,18 +475,23 @@ class Renderer(BaseRenderer):
 
         return html
 
-    def get_file_html(self, url: str) -> str:
+    def get_file_html(self, url: str, num: int = None) -> str:
         """
         Get file HTML
 
         :param url: URL to file
+        :param num: number of file
         :return: HTML code
         """
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """<div><b>{prefix}:</b> <a href="{url}">{path}</a></div>""".\
+        return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""".\
             format(prefix=trans('chat.prefix.file'),
                    url=url,
-                   path=path)
+                   path=path,
+                   num=num_str)
 
     def append(self, text: str, end: str = "\n"):
         """

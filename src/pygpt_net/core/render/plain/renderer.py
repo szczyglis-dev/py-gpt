@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -162,38 +162,47 @@ class Renderer(BaseRenderer):
 
         # images
         if len(item.images) > 0:
+            n = 1
             for image in item.images:
                 if image in appended or image in self.images_appended:
                     continue
                 try:
                     appended.append(image)
-                    self.append_raw(self.get_image_html(image))
+                    self.append_raw(self.get_image_html(image, n))
                     self.images_appended.append(image)
+                    n += 1
                 except Exception as e:
                     pass
 
         # files and attachments, TODO check attachments
         if len(item.files) > 0:
+            n = 1
             for file in item.files:
                 if file in appended:
                     continue
                 try:
                     appended.append(file)
-                    self.append_raw(self.get_file_html(file))
+                    self.append_raw(self.get_file_html(file, n))
+                    n += 1
                 except Exception as e:
                     pass
 
         # urls
         if len(item.urls) > 0:
+            urls_str = []
+            n = 1
             for url in item.urls:
                 if url in appended or url in self.urls_appended:
                     continue
                 try:
                     appended.append(url)
-                    self.append_raw(self.get_url_html(url))
+                    urls_str.append(self.get_url_html(url, n))
                     self.urls_appended.append(url)
+                    n += 1
                 except Exception as e:
                     pass
+            if urls_str:
+                self.append_raw("\n" + "\n".join(urls_str))
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
@@ -291,28 +300,38 @@ class Renderer(BaseRenderer):
         self.append_output(item)
         self.append_extra(item)
 
-    def get_image_html(self, url: str) -> str:
+    def get_image_html(self, url: str, num: int = None) -> str:
         """
         Get image HTML
 
         :param url: URL to image
+        :param num: number of image
         :return: HTML code
         """
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """\n{prefix}: {path}\n""".\
+        return """\n{prefix}{num}: {path}\n""".\
             format(prefix=trans('chat.prefix.img'),
-                   path=path)
+                   path=path,
+                   num=num_str)
 
-    def get_url_html(self, url: str) -> str:
+    def get_url_html(self, url: str, num: int = None) -> str:
         """
         Get URL HTML
 
         :param url: external URL
+        :param num: number of URL
         :return: HTML
         """
-        return """\n{prefix}: {url}\n""".\
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
+        return """{prefix}{num}: {url}""".\
             format(prefix=trans('chat.prefix.url'),
-                   url=url)
+                   url=url,
+                   num=num_str)
 
     def get_docs_html(self, docs: list) -> str:
         """
@@ -349,17 +368,22 @@ class Renderer(BaseRenderer):
 
         return html
 
-    def get_file_html(self, url: str) -> str:
+    def get_file_html(self, url: str, num: int = None) -> str:
         """
         Get file HTML
 
         :param url: URL to file
+        :param num: number of file
         :return: HTML
         """
+        num_str = ""
+        if num is not None:
+            num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """\n{prefix}: {path}\n""".\
+        return """\n{prefix}{num}: {path}\n""".\
             format(prefix=trans('chat.prefix.file'),
-                   path=path)
+                   path=path,
+                   num=num_str)
 
     def append(self, text: str, end: str = "\n"):
         """

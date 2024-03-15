@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -41,7 +41,12 @@ class BaseLLM:
             options = model.llama_index
         if 'env' in options:
             for item in options['env']:
-                os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                if item['name'] is None or item['name'] == "":
+                    continue
+                try:
+                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                except Exception as e:
+                    pass
 
     def init_embeddings(self, window, env: list):
         """
@@ -52,7 +57,12 @@ class BaseLLM:
         """
         if env is not None and len(env) > 0:
             for item in env:
-                os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                if item['name'] is None or item['name'] == "":
+                    continue
+                try:
+                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                except Exception as e:
+                    pass
 
     def parse_args(self, options: dict) -> dict:
         """
