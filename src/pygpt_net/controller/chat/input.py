@@ -166,6 +166,7 @@ class Input:
 
         # agent mode
         if mode == 'agent':
+            self.log("Agent: input before: {}".format(text))
             text = self.window.controller.agent.flow.on_input_before(text)
 
         # event: before input
@@ -233,13 +234,18 @@ class Input:
                 self.window.controller.attachment.update()
                 self.log("Attachments cleared.")  # log
 
-        self.log("Context: END: {}".format(ctx))
+        if self.window.core.config.get("log.ctx"):
+            self.log("Context: END: {}".format(ctx))
+        else:
+            self.log("Context: END.")
 
         # agent mode
         if mode == 'agent':
+            agent_iterations = int(self.window.core.config.get("agent.iterations"))
+            self.log("Agent: ctx end, iterations: {}".format(agent_iterations))
             self.window.controller.agent.flow.on_ctx_end(
                 ctx,
-                iterations=int(self.window.core.config.get("agent.iterations")),
+                iterations=agent_iterations,
             )
 
         # event: context end

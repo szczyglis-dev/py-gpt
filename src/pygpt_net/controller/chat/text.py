@@ -42,9 +42,7 @@ class Text:
         :return: context item
         """
         self.window.ui.status(trans('status.sending'))
-
-        # prepare name
-        self.log("User name: {}".format(self.window.core.config.get('user_name')))
+        is_ctx_debug = self.window.core.config.get("log.ctx")
 
         # event: username prepare
         event = Event(Event.USER_NAME, {
@@ -74,7 +72,7 @@ class Text:
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
-        ctx.prev_ctx = prev_ctx  # store previous context item
+        ctx.prev_ctx = prev_ctx  # store previous context item if exists
 
         self.window.core.ctx.last_item = ctx  # store last item
 
@@ -93,7 +91,10 @@ class Text:
             self.window.controller.assistant.prepare()  # create new thread if not exists
             ctx.thread = self.window.core.config.get('assistant_thread')
 
-        self.log("Context: INPUT: {}".format(ctx))
+        if is_ctx_debug:
+            self.log("Context: INPUT: {}".format(ctx))
+        else:
+            self.log("Context: INPUT.")
 
         # agent mode
         if mode == 'agent':
@@ -231,7 +232,10 @@ class Text:
                 self.window.core.ctx.update_item(ctx)
 
                 if result:
-                    self.log("Context: OUTPUT: {}".format(ctx.dump()))  # log
+                    if is_ctx_debug:
+                        self.log("Context: OUTPUT: {}".format(ctx.dump()))  # log
+                    else:
+                        self.log("Context: OUTPUT.")
                 else:
                     self.log("Context: OUTPUT: ERROR")
                     self.window.ui.dialogs.alert(trans('status.error'))
