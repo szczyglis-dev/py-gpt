@@ -286,9 +286,7 @@ class Renderer(BaseRenderer):
         cur.movePosition(QTextCursor.End)
 
     def append_chunk_start(self):
-        """
-        Append start of chunk to output
-        """
+        """Append start of chunk to output"""
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
         self.get_output_node().setTextCursor(cursor)

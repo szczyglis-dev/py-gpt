@@ -9,7 +9,6 @@
 # Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
-import json
 import os
 import re
 import html
@@ -389,9 +388,7 @@ class Renderer(BaseRenderer):
         self.to_end()
 
     def append_chunk_start(self):
-        """
-        Append start of chunk to output
-        """
+        """Append start of chunk to output"""
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
         self.get_output_node().setTextCursor(cursor)
@@ -474,10 +471,10 @@ class Renderer(BaseRenderer):
                 pass
 
         if html_sources != "":
-            html += "<p><b>{prefix}:</b></p><div class=\"cmd\">".format(prefix=trans('chat.prefix.doc'))
+            html += "<p><b>{prefix}:</b></p>".format(prefix=trans('chat.prefix.doc'))
+            html += "<div class=\"cmd\">"
             html += "<p>" + html_sources + "</p>"
             html += "</div> "
-
         return html
 
     def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:
