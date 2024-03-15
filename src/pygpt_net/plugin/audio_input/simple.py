@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -74,7 +74,7 @@ class Simple:
         except Exception as e:
             self.is_recording = False
             self.plugin.window.core.debug.log(e)
-            self.plugin.window.ui.dialogs.alert(str(e))
+            self.plugin.window.ui.dialogs.alert(e)
             if self.plugin.window.core.platforms.is_snap():
                 self.plugin.window.ui.dialogs.open(
                     'snap_audio_input',

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -247,6 +247,18 @@ class Debug:
             data += "\nTraceback: {}".format(formatted_traceback)
 
         return is_sys, data
+
+    def parse_alert(self, msg: any) -> str:
+        """
+        Parse alert message
+
+        :param msg: message to parse
+        :return: parsed message
+        """
+        if isinstance(msg, Exception):
+            is_sys, data = self.parse_exception(msg)
+            return "Exception: {}\n{}".format(str(msg), data)
+        return str(msg)
 
     def has_level(self, level: int) -> bool:
         """

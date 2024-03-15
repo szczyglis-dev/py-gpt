@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -54,6 +54,6 @@ class Files:
 
             except Exception as e:
                 self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
 
         return attachments_list

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -408,7 +408,7 @@ class Attachment:
             return path  # return path to downloaded file
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
 
     def toggle_send_clear(self, value: bool):
         """

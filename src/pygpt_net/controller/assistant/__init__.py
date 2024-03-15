@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -72,7 +72,7 @@ class Assistant:
                 self.window.core.config.set('assistant_thread', self.threads.create_thread())
             except Exception as e:
                 self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
 
     def refresh(self):
         """Update assistants"""
@@ -168,7 +168,7 @@ class Assistant:
             return self.window.core.gpt.assistants.create(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
 
     def update_data(self, assistant: AssistantItem):
         """Update assistant"""
@@ -177,7 +177,7 @@ class Assistant:
             return self.window.core.gpt.assistants.update(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
 
     def import_api(self, force: bool = False):
         """
@@ -214,7 +214,7 @@ class Assistant:
         """
         self.window.core.debug.log(error)
         print("Error importing assistants")
-        self.window.ui.dialogs.alert(str(error))
+        self.window.ui.dialogs.alert(error)
         self.update()
 
     def clear(self, force: bool = False):
@@ -270,7 +270,7 @@ class Assistant:
                     try:
                         self.window.core.gpt.assistants.delete(id)
                     except Exception as e:
-                        self.window.ui.dialogs.alert(str(e))
+                        self.window.ui.dialogs.alert(e)
 
                     self.window.core.assistants.delete(id)
                     self.update()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -469,7 +469,7 @@ class Indexer:
 
         :param err: error message
         """
-        self.window.ui.dialogs.alert(str(err))
+        self.window.ui.dialogs.alert(err)
         self.window.update_status(str(err))
         self.window.core.debug.log(err)
         print(err)

@@ -240,7 +240,7 @@ class Text:
             except Exception as e:
                 self.log("GPT output error: {}".format(e))  # log
                 self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
                 self.window.ui.status(trans('status.error'))
                 print("Error when calling API: " + str(e))
                 self.window.stateChanged.emit(self.window.STATE_ERROR)
@@ -258,7 +258,7 @@ class Text:
         except Exception as e:
             self.log("Output ERROR: {}".format(e))  # log
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
             self.window.ui.status(trans('status.error'))
             print("Error in sending text: " + str(e))
             self.window.stateChanged.emit(self.window.STATE_ERROR)

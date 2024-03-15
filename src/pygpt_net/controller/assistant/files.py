@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -86,7 +86,7 @@ class Files:
         """
         self.window.core.debug.log(error)
         print("Error importing files")
-        self.window.ui.dialogs.alert(str(error))
+        self.window.ui.dialogs.alert(error)
         self.update()
 
     def download(self, idx: int):
@@ -132,7 +132,7 @@ class Files:
             self.import_files(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
 
     def rename(self, idx: int):
         """
@@ -216,7 +216,7 @@ class Files:
                     self.window.core.gpt.assistants.file_delete(id, file_id)
                     assistant.delete_file(file_id)
                 except Exception as e:
-                    self.window.ui.dialogs.alert(str(e))
+                    self.window.ui.dialogs.alert(e)
 
                 # delete file
                 if assistant.has_file(file_id):
@@ -259,7 +259,7 @@ class Files:
             self.window.core.gpt.assistants.file_delete(id, file_id)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
             return  # do not delete locally if not deleted in API
 
         # delete locally

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -68,25 +68,25 @@ class Confirm:
                 self.window.core.db.viewer.delete_row(data=id)  # dict: {table, row_id}
             except Exception as e:
                 self.window.core.debug.error(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
         elif type == 'db.update_row':
             try:
                 self.window.core.db.viewer.update_row(data=id)  # dict: {table, id, field, value}
             except Exception as e:
                 self.window.core.debug.error(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
         elif type == 'db.delete_all':
             try:
                 self.window.core.db.viewer.truncate_table(data=id)  # dict: {table}
             except Exception as e:
                 self.window.core.debug.error(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
         elif type == 'db.truncate_table':
             try:
                 self.window.core.db.viewer.truncate_table(data=id, reset=True)  # dict: {table}
             except Exception as e:
                 self.window.core.debug.error(e)
-                self.window.ui.dialogs.alert(str(e))
+                self.window.ui.dialogs.alert(e)
 
         # attachments
         elif type == 'attachments.delete':

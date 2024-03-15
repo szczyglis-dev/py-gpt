@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.03.15 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -114,12 +114,13 @@ class Dialogs:
         self.window.ui.dialog['confirm'].parent_object = parent_object
         self.window.ui.dialog['confirm'].show()
 
-    def alert(self, msg):
+    def alert(self, msg: any):
         """
         Show alert dialog
 
         :param msg: message to show
         """
+        msg = self.window.core.debug.parse_alert(msg)
         self.window.ui.dialog['alert'].message.setPlainText(msg)
         self.window.ui.dialog['alert'].show()
 

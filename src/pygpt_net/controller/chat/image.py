@@ -87,7 +87,7 @@ class Image:
             )
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+            self.window.ui.dialogs.alert(e)
             self.window.ui.status(trans('status.error'))
 
         return ctx

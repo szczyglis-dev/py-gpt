@@ -227,7 +227,7 @@ class Threads:
         ctx.current = False  # reset current state
         self.window.core.ctx.update_item(ctx)
         self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert(str(err))
+        self.window.ui.dialogs.alert(err)
 
     def handle_run(self, ctx: CtxItem):
         """
