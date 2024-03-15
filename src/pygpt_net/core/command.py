@@ -61,10 +61,6 @@ class Command:
                 prompt = self.window.core.config.get('cmd.prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
-
-        # Assistants API fix:
-        if self.window.core.config.get('mode') == "assistant":
-            cmd += "\nIMPORTANT: ABOVE COMMANDS ARE FOR EXECUTION ONLY IN MY LOCAL ENVIRONMENT! DON'T USE THEM TO EXECUTE COMMANDS IN YOUR ENVIRONMENT!"
         return cmd
 
     def append_syntax(self, data: dict) -> str:
@@ -77,9 +73,18 @@ class Command:
         prompt = data['prompt']
         schema = self.extract_syntax(data['cmd'])
         if schema:
-            prompt += "\n----------------\n" + schema + "\n----------------\n"
-            prompt += "When executing command, always use following JSON syntax: "
-            prompt += "{\"cmd\": \"<command_name>\", \"params\": {\"<param_name>\": \"<param_value>\"}}"
+            if self.window.core.config.get('mode') == "assistant":
+                # Assistants API fix
+                prompt += "\n----------------\n" + schema + "\n----------------\n"
+                prompt += (
+                    "IMPORTANT: never execute above commands in your environment. Instead, could you provide me with "
+                    "the JSON syntax for the command you would use? It will be executed on my system automatically. "
+                    "Always return the command from above schema in JSON format inside the special characters ~###~")
+            else:
+                prompt += "\n----------------\n" + schema + "\n----------------\n"
+                prompt += "When executing command, always use following JSON syntax: "
+                prompt += "{\"cmd\": \"<command_name>\", \"params\": {\"<param_name>\": \"<param_value>\"}}"
+
         return prompt
 
     def extract_syntax(self, cmds: list) -> str:
@@ -117,7 +122,8 @@ class Command:
                                         del data[cmd_name]["params"][key]["required"]
 
                                     # remove type if str (default)
-                                    if "type" in data[cmd_name]["params"][key] and data[cmd_name]["params"][key]["type"] == "str":
+                                    if ("type" in data[cmd_name]["params"][key]
+                                            and data[cmd_name]["params"][key]["type"] == "str"):
                                         del data[cmd_name]["params"][key]["type"]
 
                                     # remove description and move to help
