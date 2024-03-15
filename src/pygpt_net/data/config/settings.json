@@ -1002,6 +1002,18 @@
         "step": 1,
         "advanced": false
     },
+    "log.ctx": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log and debug context",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "log.events": {
         "section": "developer",
         "type": "bool",

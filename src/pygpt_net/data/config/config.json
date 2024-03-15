@@ -141,6 +141,7 @@
   "llama.idx.storage.args": [],
   "lock_modes": true,
   "log.assistants": false,
+  "log.ctx": true,
   "log.dalle": false,
   "log.events": false,
   "log.level": "error",

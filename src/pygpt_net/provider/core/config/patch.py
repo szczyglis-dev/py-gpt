@@ -1164,6 +1164,12 @@ class Patch:
                 ])
                 updated = True
 
+            # < 2.1.28
+            if old < parse_version("2.1.28"):
+                if 'log.ctx' not in data:
+                    data["log.ctx"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

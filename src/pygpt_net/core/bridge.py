@@ -36,8 +36,9 @@ class Bridge:
         # debug
         self.window.core.debug.info("Bridge call...")
         if self.window.core.debug.enabled():
-            debug = {k: str(v) for k, v in kwargs.items()}
-            self.window.core.debug.debug(str(debug))
+            if self.window.core.config.get("log.ctx"):
+                debug = {k: str(v) for k, v in kwargs.items()}
+                self.window.core.debug.debug(str(debug))
 
         # get kwargs
         ctx = kwargs.get("ctx", None)
@@ -70,8 +71,9 @@ class Bridge:
         # debug
         self.window.core.debug.info("Bridge call (after inline)...")
         if self.window.core.debug.enabled():
-            debug = {k: str(v) for k, v in kwargs.items()}
-            self.window.core.debug.debug(str(debug))
+            if self.window.core.config.get("log.ctx"):
+                debug = {k: str(v) for k, v in kwargs.items()}
+                self.window.core.debug.debug(str(debug))
 
         # apply RPM limit
         self.apply_rate_limit()
@@ -97,8 +99,9 @@ class Bridge:
         """
         self.window.core.debug.info("Bridge quick call...")
         if self.window.core.debug.enabled():
-            debug = {k: str(v) for k, v in kwargs.items()}
-            self.window.core.debug.debug(str(debug))
+            if self.window.core.config.get("log.ctx"):
+                debug = {k: str(v) for k, v in kwargs.items()}
+                self.window.core.debug.debug(str(debug))
         return self.window.core.gpt.quick_call(**kwargs)
 
     def apply_rate_limit(self):
