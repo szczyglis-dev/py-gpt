@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.28 (2024-03-15)
+
+- Fixed local commands handling in Assistant API.
+- Improved related links rendering in chat output.
+- Added RPM limit config option for Embeddings API.
+- UI improvements.
+
 # 2.1.27 (2024-03-13)
 
 - Added the "find" command to the Files I/O plugin for searching for files and directories.

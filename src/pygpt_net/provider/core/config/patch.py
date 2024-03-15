@@ -1128,6 +1128,7 @@ class Patch:
 
             # < 2.1.23
             if old < parse_version("2.1.23"):
+                print("Migrating config from < 2.1.23...")
                 if 'llama.idx.embeddings.provider' not in data:
                     data["llama.idx.embeddings.provider"] = "openai"
                 if 'llama.idx.embeddings.args' not in data:
@@ -1157,6 +1158,7 @@ class Patch:
 
             # < 2.1.26
             if old < parse_version("2.1.26"):
+                print("Migrating config from < 2.1.26...")
                 if 'agent.prompt.continue' in data and data['agent.prompt.continue'] == 'continue...':
                     data["agent.prompt.continue"] = "continue if needed..."
                 self.window.core.plugins.reset_options("idx_llama_index", [
@@ -1166,6 +1168,7 @@ class Patch:
 
             # < 2.1.28
             if old < parse_version("2.1.28"):
+                print("Migrating config from < 2.1.28...")
                 if 'log.ctx' not in data:
                     data["log.ctx"] = True
                 if 'llama.idx.embeddings.limit.rpm' not in data:

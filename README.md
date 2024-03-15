@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.27** | build: **2024.03.13** | Python: **>=3.10, <3.12**
+Release: **2.1.28** | build: **2024.03.15** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2863,6 +2863,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.28 (2024-03-15)
+
+- Fixed local commands handling in Assistant API.
+- Improved related links rendering in chat output.
+- Added RPM limit config option for Embeddings API.
+- UI improvements.
 
 # 2.1.27 (2024-03-13)
 
