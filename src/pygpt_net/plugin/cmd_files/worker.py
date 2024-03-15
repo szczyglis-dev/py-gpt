@@ -353,7 +353,10 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Listing directory: {}".format(item["params"]['path'])
+            path = ""
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            self.msg = "Listing directory: {}".format(path)
             self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
