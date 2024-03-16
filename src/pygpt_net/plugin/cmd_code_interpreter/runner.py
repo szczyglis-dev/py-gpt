@@ -147,9 +147,9 @@ class Runner:
         :param request: request item
         :return: response dict
         """
-        msg = "Executing Python file: {}".format(item["params"]['path'])
-        self.log(msg, sandbox=True)
         path = item["params"]['path']
+        msg = "Executing Python file: {}".format(path)
+        self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
             filename=path,
         )
@@ -175,9 +175,11 @@ class Runner:
         :param request: request item
         :return: response dict
         """
-        msg = "Saving Python file: {}".format(item["params"]['path'])
+        path = "_interpreter.current.py"
+        if "path" in item["params"]:
+            path = item["params"]['path']
+        msg = "Saving Python file: {}".format(path)
         self.log(msg, sandbox=True)
-        path = item["params"]['path']
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -271,9 +273,12 @@ class Runner:
         :return: response dict
         """
         # write code to file
-        msg = "Saving Python file: {}".format(item["params"]['path'])
+        path = "_interpreter.current.py"
+        if "path" in item["params"]:
+            path = item["params"]['path']
+        msg = "Saving Python file: {}".format(path)
         self.log(msg)
-        path = self.prepare_path(item["params"]['path'])
+        path = self.prepare_path(path)
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)

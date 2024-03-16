@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.28** | build: **2024.03.15** | Python: **>=3.10, <3.12**
+Release: **2.1.29** | build: **2024.03.16** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2871,6 +2871,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.29 (2024-03-16)
+
+- Added real-time Python code interpreter (<> icon), connected with the Code Interpreter plugin's input and output.
+- Improved plugin command execution.
 
 # 2.1.28 (2024-03-15)
 

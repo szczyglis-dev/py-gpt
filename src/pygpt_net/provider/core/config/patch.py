@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.16 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -1173,6 +1173,14 @@ class Patch:
                     data["log.ctx"] = True
                 if 'llama.idx.embeddings.limit.rpm' not in data:
                     data["llama.idx.embeddings.limit.rpm"] = 100
+                updated = True
+
+            # < 2.1.29
+            if old < parse_version("2.1.29"):
+                print("Migrating config from < 2.1.29...")
+                self.window.core.plugins.reset_options("cmd_code_interpreter", [
+                    "cmd.code_execute",
+                ])
                 updated = True
 
         # update file
