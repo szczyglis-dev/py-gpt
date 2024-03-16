@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -32,8 +32,10 @@ class Plugin(BasePlugin):
         self.allowed_cmds = [
             "code_execute",
             "code_execute_file",
+            "code_execute_all",
             "sys_exec",
             "get_python_output",
+            "clear_python_output",
         ]
         self.use_locale = True
         self.init_options()
@@ -108,6 +110,21 @@ class Plugin(BasePlugin):
             enabled=True,
             description="Allows Python code execution from existing file",
         )
+        # commands
+        self.add_cmd(
+            "code_execute_all",
+            instruction="run all Python code from my interpreter",
+            params=[
+                {
+                    "name": "code",
+                    "type": "str",
+                    "description": "code to append and execute",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Allows Python code execution (generate and execute from file)",
+        )
         self.add_cmd(
             "sys_exec",
             instruction="execute ANY system command, script or app in user's environment",
@@ -128,6 +145,13 @@ class Plugin(BasePlugin):
             params=[],
             enabled=True,
             description="Allows to get output from last executed code",
+        )
+        self.add_cmd(
+            "clear_python_output",
+            instruction="clear output from my Python interpreter",
+            params=[],
+            enabled=True,
+            description="Allows to clear output from last executed code",
         )
 
     def setup(self) -> dict:
@@ -196,6 +220,11 @@ class Plugin(BasePlugin):
         """
         self.window.controller.interpreter.append_output(data, type)
 
+    @Slot()
+    def handle_interpreter_clear(self):
+        """Handle interpreter clear"""
+        self.window.controller.interpreter.clear_all()
+
     def cmd(self, ctx: CtxItem, cmds: list):
         """
         Event: CMD_EXECUTE
@@ -227,6 +256,7 @@ class Plugin(BasePlugin):
             worker.signals.status.connect(self.handle_status)
             worker.signals.error.connect(self.handle_error)
             worker.signals.output.connect(self.handle_interpreter_output)
+            worker.signals.clear.connect(self.handle_interpreter_clear)
 
             # connect signals
             self.runner.signals = worker.signals

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -79,11 +79,8 @@ class Worker(BaseWorker):
             "metas": metas,
             "context": "ADDITIONAL CONTEXT:\n--------------------------------\n" + answer,
         }
-        self.ctx.results.append(response)
-        self.ctx.reply = True
-        # store doc_ids in context
         if doc_ids:
-            self.ctx.doc_ids = doc_ids
+            self.ctx.doc_ids = doc_ids  # store doc_ids in context
         return response
 
     def prepare_request(self, item) -> dict:

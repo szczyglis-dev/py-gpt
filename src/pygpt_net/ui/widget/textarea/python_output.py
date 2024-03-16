@@ -6,18 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 17:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QTextBrowser, QMenu
-from PySide6.QtGui import QDesktopServices, QAction, QIcon, QTextOption
+from PySide6.QtWidgets import QPlainTextEdit
 
-from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
 
-class PythonOutput(QTextBrowser):
+class PythonOutput(QPlainTextEdit):
     def __init__(self, window=None):
         """
         Python output
@@ -30,6 +28,7 @@ class PythonOutput(QTextBrowser):
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
+        self.textChanged.connect(self.window.controller.interpreter.save_edit)
 
     def wheelEvent(self, event):
         """

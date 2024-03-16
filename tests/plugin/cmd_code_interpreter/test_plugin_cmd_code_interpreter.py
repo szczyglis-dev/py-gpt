@@ -44,7 +44,7 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["cmd"]) == 4  # code_execute, code_execute_file, sys_exec
+    assert len(event.data["cmd"]) == 6  # code_execute, code_execute_file, sys_exec
 
 
 def test_handle_cmd_execute_code_execute(mock_window):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 import os.path
@@ -25,6 +25,8 @@ class Runner:
         """
         self.plugin = plugin
         self.signals = None
+        self.file_current = "_interpreter.current.py"
+        self.file_input = "_interpreter.input.py"
 
     def send_interpreter_input(self, data: str):
         """
@@ -156,6 +158,7 @@ class Runner:
         # read file
         with open(path, 'r', encoding="utf-8") as file:
             code = file.read()
+            self.append_input(code)
             self.send_interpreter_input(code)  # send input to interpreter
 
         self.log("Running command: {}".format(cmd), sandbox=True)
@@ -164,33 +167,39 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
 
-    def code_execute_sandbox(self, ctx, item: dict, request: dict) -> dict:
+    def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """
         Execute code in sandbox (docker)
 
         :param ctx: CtxItem
         :param item: command item
         :param request: request item
+        :param all: execute all
         :return: response dict
         """
-        path = "_interpreter.current.py"
-        if "path" in item["params"]:
-            path = item["params"]['path']
-        msg = "Saving Python file: {}".format(path)
-        self.log(msg, sandbox=True)
         data = item["params"]['code']
-        with open(path, 'w', encoding="utf-8") as file:
-            file.write(data)
+        if not all:
+            path = self.file_current
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            msg = "Saving Python file: {}".format(path)
+            self.log(msg, sandbox=True)
+            with open(path, 'w', encoding="utf-8") as file:
+                file.write(data)
+        else:
+            path = self.prepare_path(self.file_input)
 
+        self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
         msg = "Executing Python code: {}".format(item["params"]['code'])
         self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=item["params"]['path'],
+            filename=path,
         )
         self.log("Running command: {}".format(cmd), sandbox=True)
         response = self.run_docker(cmd)
@@ -198,6 +207,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -220,6 +230,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
 
     def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
@@ -245,6 +256,7 @@ class Runner:
         # read file
         with open(path, 'r', encoding="utf-8") as file:
             code = file.read()
+            self.append_input(code)
             self.send_interpreter_input(code)  # send input to interpreter
 
         # run code
@@ -261,28 +273,34 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
 
-    def code_execute_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
+    def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
         """
         Execute code on host machine
 
         :param ctx: CtxItem
         :param item: command item
         :param request: request item
+        :param all: execute all
         :return: response dict
         """
         # write code to file
-        path = "_interpreter.current.py"
-        if "path" in item["params"]:
-            path = item["params"]['path']
-        msg = "Saving Python file: {}".format(path)
-        self.log(msg)
-        path = self.prepare_path(path)
         data = item["params"]['code']
-        with open(path, 'w', encoding="utf-8") as file:
-            file.write(data)
+        if not all:
+            path = self.file_current
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            msg = "Saving Python file: {}".format(path)
+            self.log(msg)
+            path = self.prepare_path(path)
+            with open(path, 'w', encoding="utf-8") as file:
+                file.write(data)
+        else:
+            path = self.prepare_path(self.file_input)
 
+        self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
@@ -299,7 +317,28 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
+
+    def append_input(self, data: str):
+        """
+        Append input to file
+
+        :param data: input data
+        """
+        content = ""
+        path = self.prepare_path(self.file_input)
+        if os.path.isfile(path):
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+        with open(path, "a", encoding="utf-8") as f:
+            nl = ""
+            if content != "":
+                nl = "\n"
+            if data != "":
+                f.write(nl + data)
+            else:
+                f.write("")
 
     def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
@@ -324,6 +363,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
+            "context": result,
         }
 
     def is_absolute_path(self, path: str) -> bool:
@@ -345,10 +385,13 @@ class Runner:
         if self.is_absolute_path(path):
             return path
         else:
-            return os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                path,
-            )
+            if not self.is_sandbox():
+                return os.path.join(
+                    self.plugin.window.core.config.get_user_dir('data'),
+                    path,
+                )
+            else:
+                return path
 
     def error(self, err: any):
         """

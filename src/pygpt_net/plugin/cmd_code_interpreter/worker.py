@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -16,6 +16,7 @@ from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 class WorkerSignals(BaseSignals):
     output = Signal(object, str)
+    clear = Signal()
 
 
 class Worker(BaseWorker):
@@ -44,12 +45,19 @@ class Worker(BaseWorker):
                         if "silent" in item:
                             response = None
 
+                    elif item["cmd"] == "code_execute_all":
+                        response = self.cmd_code_execute_all(item)
+                        if "silent" in item:
+                            response = None
 
                     elif item["cmd"] == "sys_exec":
                         response = self.cmd_sys_exec(item)
 
                     elif item["cmd"] == "get_python_output":
                         response = self.cmd_get_python_output(item)
+
+                    elif item["cmd"] == "clear_python_output":
+                        response = self.cmd_clear_python_output(item)
 
                     if response:
                         responses.append(response)
@@ -129,6 +137,38 @@ class Worker(BaseWorker):
             self.log("Error: {}".format(e))
         return response
 
+    def cmd_code_execute_all(self, item: dict) -> dict:
+        """
+        Execute all code command
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            if not self.plugin.runner.is_sandbox():
+                response = self.plugin.runner.code_execute_host(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                    all=True,
+                )
+            else:
+                response = self.plugin.runner.code_execute_sandbox(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                    all=True,
+                )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
     def cmd_sys_exec(self, item: dict) -> dict:
         """
         Execute system command
@@ -173,6 +213,29 @@ class Worker(BaseWorker):
                 "request": request,
                 "result": output,
                 "context": output,
+            }
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_clear_python_output(self, item: dict) -> dict:
+        """
+        Clear python output
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            self.signals.clear.emit()
+            response = {
+                "request": request,
+                "result": "OK",
             }
         except Exception as e:
             response = {

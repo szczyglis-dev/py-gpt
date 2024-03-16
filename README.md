@@ -1612,21 +1612,29 @@ Another feature is the ability to execute system commands and return their resul
 
 Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
 
-- `Enable: Python code generate and execute` *cmd.code_execute*
+- `Enable: code_execute` *cmd.code_execute*
 
 Allows `code_execute` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* `True`
 
-- `Enable: Python code execute (from file)` *cmd.code_execute_file*
+- `Enable: code_execute_all` *cmd.code_execute_all*
 
-Allows `code_execute_file` command execution. If enabled, provides Python code execution from existing file. *Default:* `True`
+Allows `code_execute_all` command execution. If enabled, provides execution of all the Python code in interpreter window. *Default:* `True`
+
+- `Enable: code_execute_file` *cmd.code_execute_file*
+
+Allows `code_execute_file` command execution. If enabled, provides Python code execution from existing .py file. *Default:* `True`
  
-- `Enable: system command execute` *cmd.sys_exec*
+- `Enable: sys_exec` *cmd.sys_exec*
 
 Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
 
-- `Enable: get interpeter output` *cmd.get_python_output*
+- `Enable: get_python_output` *cmd.get_python_output*
 
 Allows `get_python_output` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* `True`
+
+- `Enable: clear_python_output` *cmd.clear_python_output*
+
+Allows `clear_python_output` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* `True`
 
 - `Sandbox (docker container)` *sandbox_docker*
 

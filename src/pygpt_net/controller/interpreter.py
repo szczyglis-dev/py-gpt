@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.16 15:00:00                  #
 # ================================================== #
 
 import os
@@ -20,15 +20,50 @@ from pygpt_net.item.ctx import CtxItem
 class Interpreter:
     def __init__(self, window=None):
         """
-        Interpreter controller
+        Python real-time interpreter controller
 
         :param window: Window instance
         """
         self.window = window
         self.opened = False
+        self.is_edit = False
         self.filename = "_interpreter.py"
+        self.file_current = "_interpreter.current.py"
+        self.file_input = "_interpreter.input.py"
 
-    def append_output(self, output, type="stdout", **kwargs):
+    def toggle_edit(self):
+        """Toggle edit mode"""
+        self.is_edit = self.window.ui.nodes['interpreter.edit'].isChecked()
+        self.window.interpreter.setReadOnly(not self.is_edit)
+
+        if self.is_edit:
+            self.window.ui.nodes['interpreter.edit_label'].setText("Edit Python code:")
+            self.load_input()
+        else:
+            self.window.ui.nodes['interpreter.edit_label'].setText("Output:")
+            self.load()
+
+        self.cursor_to_end()
+
+    def cursor_to_end(self):
+        """Cursor to end"""
+        cur = self.window.interpreter.textCursor()
+        cur.movePosition(QTextCursor.End)
+        self.window.interpreter.setTextCursor(cur)
+
+    def disable_edit(self):
+        """Disable edit mode"""
+        self.window.ui.nodes['interpreter.edit'].setChecked(False)
+        self.toggle_edit()
+
+    def save_edit(self):
+        """Save edit"""
+        if not self.is_edit:
+            return
+        data = self.window.interpreter.toPlainText()
+        self.save_input(data)
+
+    def append_output(self, output: str, type="stdout", **kwargs):
         """
         Append output to the interpreter window
 
@@ -36,13 +71,15 @@ class Interpreter:
         :param type: Output type
         :param kwargs: Additional parameters
         """
+        if self.is_edit:
+            self.disable_edit()
         if type == "stdin":
             data = ">> "  + str(output)
         else:
             data = str(output)
         cur = self.window.interpreter.textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
-        s = str(data) + "\n"
+        s = data + "\n"
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
             cur.insertText(head)  # Insert text at cursor
@@ -52,17 +89,53 @@ class Interpreter:
         self.save()
 
     def load(self):
-        """Load"""
+        """Load output"""
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
+        content = ""
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
-                self.window.interpreter.setPlainText(f.read())
+                content = f.read()
+        self.window.interpreter.setPlainText(content)
+        self.window.ui.nodes['interpreter.input'].setFocus()
+
+    def load_input(self):
+        """Load input"""
+        data = self.load_prev_input()
+        self.window.interpreter.setPlainText(data)
+        self.window.interpreter.setFocus()
 
     def save(self):
         """Save"""
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
         with open(path, "w", encoding="utf-8") as f:
             f.write(self.window.interpreter.toPlainText())
+
+    def is_all(self) -> bool:
+        """Is all"""
+        return self.window.ui.nodes['interpreter.all'].isChecked()
+
+    def load_prev_input(self) -> str:
+        """
+        Load previous input
+
+        :return: Input data
+        """
+        input = ""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                input = f.read()
+        return input
+
+    def save_input(self, input: str):
+        """
+        Save input
+
+        :param input: Input data
+        """
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        with open(path , "w", encoding="utf-8") as f:
+            f.write(input)
 
     def get_output(self) -> str:
         """Get output"""
@@ -73,19 +146,38 @@ class Interpreter:
         self.load()
         self.update()
 
-    def clear(self):
-        """Clear"""
-        self.window.interpreter.clear()
+    def clear_output(self):
+        """Clear output"""
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
         if os.path.exists(path):
             os.remove(path)
-        pass
+        self.window.interpreter.clear()
+
+    def clear_input(self):
+        """Clear input"""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        if os.path.exists(path):
+            os.remove(path)
+        self.window.interpreter.clear()
+
+    def clear(self):
+        """Clear"""
+        if self.is_edit:
+            self.clear_input()
+        else:
+            self.clear_output()
+
+    def clear_all(self):
+        """Clear all"""
+        self.clear_output()
+        self.clear_input()
 
     def open(self):
         """Open"""
         self.opened = True
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.window.ui.nodes['interpreter.input'].setFocus()
+        self.cursor_to_end()
 
     def close(self):
         """Close"""
@@ -95,15 +187,24 @@ class Interpreter:
 
     def send_input(self):
         """Send input"""
+        if self.is_edit:
+            self.save_edit()
+            self.disable_edit()
+
         input = str(self.window.ui.nodes['interpreter.input'].toPlainText())
-        if not input:
-            return
+        if self.is_all():
+            cmd = "code_execute_all"
+        else:
+            if input == "":
+                return
+            cmd = "code_execute"
+
         commands = [
             {
-                "cmd": "code_execute",
+                "cmd": cmd,
                 "params": {
                     "code": input,
-                    "path": "_interpreter.current.py"
+                    "path": "_interpreter.tmp.py"
                 },
                 "silent": True,
             }
