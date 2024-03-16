@@ -239,4 +239,4 @@ class Plugin(BasePlugin):
                     }
 
                     # handle reply response (send result to the model)
-                    self.handle_finished(response, ctx):  # from 2.1.28 use only handle_finished method to sending responses
+                    self.reply(response, ctx)  # from 2.1.28 use only reply() method for sending responses
