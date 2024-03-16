@@ -192,7 +192,6 @@ class Plugin(BasePlugin):
                         "required": True,
                     }
                 ],
-                "enabled": True,  # enabled
             }
         )
         # You can register as many commands as you want, use the same syntax as above:
@@ -239,10 +238,5 @@ class Plugin(BasePlugin):
                         "result": data,  # response, must be provided in the "result" key
                     }
 
-                    # append response object to result list in the context item
-                    ctx.results.append(response)
-
-                    # Set the reply flag to True to force sending a response to the model.
-                    # If the ctx.reply flag is set to True,
-                    # then the response will be resent to the model as new input.
-                    ctx.reply = True
+                    # handle reply response (send result to the model)
+                    self.handle_finished(response, ctx):  # from 2.1.28 use only handle_finished method to sending responses
