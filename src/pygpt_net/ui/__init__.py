@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import os
@@ -120,6 +120,7 @@ class UI:
         :param text: status text
         """
         msg = str(text)
+        msg = msg.replace("\n", " ")
         status = msg[:self.STATUS_MAX_CHARS] + '...' if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
         self.nodes['status'].setText(status)
 
