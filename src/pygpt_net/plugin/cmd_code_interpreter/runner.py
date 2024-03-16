@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import os.path
@@ -26,6 +26,25 @@ class Runner:
         self.plugin = plugin
         self.signals = None
 
+    def send_interpreter_input(self, data: str):
+        """
+        Send input to subprocess
+
+        :param data: input text
+        """
+        if self.signals is not None:
+            self.signals.output.emit(data, "stdin")
+
+    def send_interpreter_output(self, data: str, type: str):
+        """
+        Send output to interpreter
+
+        :param data: output text
+        :param type: output type
+        """
+        if self.signals is not None:
+            self.signals.output.emit(data, type)
+
     def handle_result(self, stdout, stderr):
         """
         Handle result from subprocess
@@ -37,9 +56,11 @@ class Runner:
         result = None
         if stdout:
             result = stdout.decode("utf-8")
+            self.send_interpreter_output(result, "stdout")
             self.log("STDOUT: {}".format(result))
         if stderr:
             result = stderr.decode("utf-8")
+            self.send_interpreter_output(result, "stderr")
             self.log("STDERR: {}".format(result))
         if result is None:
             result = "No result (STDOUT/STDERR empty)"
@@ -54,6 +75,7 @@ class Runner:
         :return: result
         """
         result = response.decode('utf-8')
+        self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),
             sandbox=True,
@@ -116,43 +138,51 @@ class Runner:
             stderr=True,
         )
 
-    def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request_item: dict) -> dict:
+    def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute code from file in sandbox (docker)
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg, sandbox=True)
+        path = item["params"]['path']
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=item["params"]['path'],
+            filename=path,
         )
+        # read file
+        with open(path, 'r', encoding="utf-8") as file:
+            code = file.read()
+            self.send_interpreter_input(code)  # send input to interpreter
+
         self.log("Running command: {}".format(cmd), sandbox=True)
         response = self.run_docker(cmd)
         result = self.handle_result_docker(response)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 
-    def code_execute_sandbox(self, ctx, item: dict, request_item: dict) -> dict:
+    def code_execute_sandbox(self, ctx, item: dict, request: dict) -> dict:
         """
         Execute code in sandbox (docker)
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         msg = "Saving Python file: {}".format(item["params"]['path'])
         self.log(msg, sandbox=True)
-        path = self.prepare_path(item["params"]['path'])
+        path = item["params"]['path']
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
+
+        self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
         msg = "Executing Python code: {}".format(item["params"]['code'])
@@ -164,17 +194,17 @@ class Runner:
         response = self.run_docker(cmd)
         result = self.handle_result_docker(response)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 
-    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request_item: dict) -> dict:
+    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute system command in sandbox (docker)
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         msg = "Executing system command: {}".format(item["params"]['command'])
@@ -186,17 +216,17 @@ class Runner:
         response = self.run_docker(item["params"]['command'])
         result = self.handle_result_docker(response)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 
-    def code_execute_file_host(self, ctx, item: dict, request_item: dict) -> dict or None:
+    def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
         """
         Execute code from file on host machine
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         msg = "Executing Python file: {}".format(item["params"]['path'])
@@ -205,10 +235,15 @@ class Runner:
 
         # check if file exists
         if not os.path.isfile(path):
-            ctx.results.append(
-                {"request": request_item, "result": "File not found"}
-            )
-            return
+            return {
+                "request": request,
+                "result": "File not found",
+            }
+
+        # read file
+        with open(path, 'r', encoding="utf-8") as file:
+            code = file.read()
+            self.send_interpreter_input(code)  # send input to interpreter
 
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
@@ -222,17 +257,17 @@ class Runner:
         stdout, stderr = process.communicate()
         result = self.handle_result(stdout, stderr)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 
-    def code_execute_host(self, ctx: CtxItem, item: dict, request_item: dict) -> dict:
+    def code_execute_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute code on host machine
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         # write code to file
@@ -243,6 +278,8 @@ class Runner:
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
 
+        self.send_interpreter_input(data)  # send input to interpreter
+
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
         self.log("Running command: {}".format(cmd))
@@ -255,17 +292,17 @@ class Runner:
         stdout, stderr = process.communicate()
         result = self.handle_result(stdout, stderr)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 
-    def sys_exec_host(self, ctx: CtxItem, item: dict, request_item: dict) -> dict:
+    def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute system command on host
 
         :param ctx: CtxItem
         :param item: command item
-        :param request_item: request item
+        :param request: request item
         :return: response dict
         """
         msg = "Executing system command: {}".format(item["params"]['command'])
@@ -280,7 +317,7 @@ class Runner:
         stdout, stderr = process.communicate()
         result = self.handle_result(stdout, stderr)
         return {
-            "request": request_item,
+            "request": request,
             "result": result,
         }
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -129,6 +129,13 @@ class Output:
             lambda: self.window.controller.plugins.toggle('audio_input')
         )
 
+        # interpreter icon
+        self.window.ui.nodes['icon.interpreter'] = IconLabel(":/icons/code.svg")
+        self.window.ui.nodes['icon.interpreter'].setToolTip("Python code interpreter")
+        self.window.ui.nodes['icon.interpreter'].clicked.connect(
+            lambda: self.window.controller.interpreter.toggle()
+        )
+
         # mode
         self.window.ui.nodes['chat.label'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -201,6 +208,7 @@ class Output:
         layout.addWidget(self.window.ui.nodes['icon.video.capture'])
         layout.addWidget(self.window.ui.nodes['icon.audio.input'])
         layout.addWidget(self.window.ui.nodes['icon.audio.output'])
+        layout.addWidget(self.window.ui.nodes['icon.interpreter'])
         layout.addWidget(self.window.ui.plugin_addon['schedule'])
         layout.addWidget(QLabel(" "))
         layout.addWidget(self.window.ui.nodes['chat.plugins'])

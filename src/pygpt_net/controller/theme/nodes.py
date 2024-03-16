@@ -43,6 +43,7 @@ class Nodes:
         nodes = {
             'font.chat.input': [
                 'input',
+                'interpreter.input',
             ],
             'font.chat.output': [
                 'output',
@@ -87,6 +88,8 @@ class Nodes:
             for key in nodes[type]:
                 self.apply(key, type)
 
+        self.window.interpreter.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+
         # apply to notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
@@ -105,3 +108,4 @@ class Nodes:
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.value = size
         self.window.ui.nodes['output'].value = size
+        self.window.interpreter.value = size
