@@ -62,6 +62,10 @@ class Confirm:
         elif type == 'agent.infinity.run':
             self.window.controller.chat.input.send_input(force=True)
 
+        # interpreter
+        elif type == 'interpreter.clear':
+            self.window.controller.interpreter.clear(force=True)
+
         # db viewer
         elif type == 'db.delete_row':
             try:

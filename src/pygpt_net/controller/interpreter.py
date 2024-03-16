@@ -160,8 +160,19 @@ class Interpreter:
             os.remove(path)
         self.window.interpreter.clear()
 
-    def clear(self):
-        """Clear"""
+    def clear(self, force: bool = False):
+        """
+        Clear
+
+        :param force: Force clear
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='interpreter.clear',
+                id=0,
+                msg="Clear current window?",
+            )
+            return
         if self.is_edit:
             self.clear_input()
         else:
