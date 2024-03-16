@@ -1,3 +1,7 @@
+2.1.30 (2024-03-16)
+
+- Improved real-time Python code interpreter: added edit mode and whole code execution (history).
+
 2.1.29 (2024-03-16)
 
 - Added real-time Python code interpreter (<> icon), connected with the Code Interpreter plugin's input and output.

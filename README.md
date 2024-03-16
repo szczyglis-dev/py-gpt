@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.29** | build: **2024.03.16** | Python: **>=3.10, <3.12**
+Release: **2.1.30** | build: **2024.03.16** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2879,6 +2879,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.30 (2024-03-16)
+
+- Improved real-time Python code interpreter: added edit mode and whole code execution (history).
 
 # 2.1.29 (2024-03-16)
 
