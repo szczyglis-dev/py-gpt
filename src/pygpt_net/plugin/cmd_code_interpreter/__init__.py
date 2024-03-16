@@ -81,6 +81,7 @@ class Plugin(BasePlugin):
                     "name": "path",
                     "type": "str",
                     "description": "path to save",
+                    "default": "_interpreter.current.py",
                     "required": True,
                 },
                 {

@@ -406,6 +406,7 @@ class Plugins:
         event = Event(Event.CMD_EXECUTE, {
             'commands': commands,
         })
+        ctx.results = []
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
 
@@ -425,5 +426,6 @@ class Plugins:
         event = Event(Event.CMD_INLINE, {
             'commands': commands,
         })
+        ctx.results = []
         event.ctx = ctx
         self.window.controller.command.dispatch(event)

@@ -61,7 +61,6 @@ class CtxItem:
 
     def clear_reply(self):
         """Clear current reply output"""
-        self.results = []
         if self.reply:
             self.urls = []
 
@@ -69,7 +68,6 @@ class CtxItem:
         """Copy data from previous context reply to current context"""
         if self.prev_ctx is not None:
             self.urls = copy.deepcopy(self.prev_ctx.urls)
-            self.results = copy.deepcopy(self.prev_ctx.results)
 
     def add_doc_meta(self, meta: dict):
         """
