@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -202,17 +202,6 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
-
-    def is_cmd_allowed(self, cmd: str) -> bool:
-        """
-        Check if cmd is allowed
-
-        :param cmd: command name
-        :return: True if allowed
-        """
-        if self.has_cmd(cmd):
-            return True
-        return False
 
     def log(self, msg: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import json
@@ -439,15 +439,6 @@ class Plugin(BasePlugin):
         for option in self.allowed_cmds:
             if self.has_cmd(option):
                 data['cmd'].append(self.get_cmd(option))  # append command
-
-    def is_cmd_allowed(self, cmd: str) -> bool:
-        """
-        Check if cmd is allowed
-
-        :param cmd: command name
-        :return: True if allowed
-        """
-        return self.has_cmd(cmd)
 
     @Slot()
     def handle_updated(self):

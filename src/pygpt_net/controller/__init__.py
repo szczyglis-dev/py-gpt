@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -23,6 +23,7 @@ from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.dialogs import Dialogs
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.idx import Idx
+from pygpt_net.controller.interpreter import Interpreter
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
@@ -59,6 +60,7 @@ class Controller:
         self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.idx = Idx(window)
+        self.interpreter = Interpreter(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
@@ -94,6 +96,7 @@ class Controller:
         self.attachment.setup()
         self.notepad.setup()
         self.camera.setup_ui()
+        self.interpreter.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""

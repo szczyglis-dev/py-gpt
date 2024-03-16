@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
+
 import copy
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from typing_extensions import deprecated
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -233,12 +235,13 @@ class BasePlugin:
 
     def error(self, err: any):
         """
-        Send error message to logger
+        Send error message to logger and alert dialog
 
         :param err: error message
         """
         self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
+        msg = self.window.core.debug.parse_alert(err)
+        self.window.ui.dialogs.alert("{}: {}".format(self.name, msg))
 
     def debug(self, data: any):
         """
@@ -247,6 +250,16 @@ class BasePlugin:
         :param data: data to send
         """
         self.window.core.debug.info(data)
+
+    def reply(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
+        """
+        Send reply from plugin (command response)
+
+        :param response: response
+        :param ctx: context (CtxItem)
+        :param extra_data: extra data
+        """
+        self.handle_finished(response, ctx, extra_data)
 
     def is_log(self) -> bool:
         """
@@ -286,7 +299,7 @@ class BasePlugin:
                     # update file explorer view
                     self.window.controller.files.update_explorer()
 
-        # dispatch late response (reply)
+        # dispatch response (reply)
         if ctx is not None:
             ctx.results.append(response)
             ctx.reply = True
@@ -385,11 +398,23 @@ class BaseWorker(QRunnable):
         if self.signals is not None and hasattr(self.signals, "log"):
             self.signals.log.emit(msg)
 
+    @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
     def response(self, response: dict, extra_data: dict = None):
         """
-        Emit finished signal
+        Emit finished signal (deprecated)
 
-        :param response: response
+        :param response: response (dict)
+        :param extra_data: extra data
+        """
+        # show warning
+        self.debug("BaseWorker.response is deprecated from 2.1.29, use BaseWorker.reply instead")
+        self.reply(response, extra_data)
+
+    def reply(self, response: dict, extra_data: dict = None):
+        """
+        Emit finished signal (on reply from command output)
+
+        :param response: response (dict)
         :param extra_data: extra data
         """
         if self.signals is not None and hasattr(self.signals, "finished"):

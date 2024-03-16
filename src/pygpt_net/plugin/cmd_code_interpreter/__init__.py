@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
+
+from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -23,11 +25,15 @@ class Plugin(BasePlugin):
         self.id = "cmd_code_interpreter"
         self.name = "Command: Code Interpreter"
         self.description = "Provides Python code execution"
+        self.type = [
+            'interpreter',
+        ]
         self.order = 100
         self.allowed_cmds = [
             "code_execute",
             "code_execute_file",
             "sys_exec",
+            "get_python_output",
         ]
         self.use_locale = True
         self.init_options()
@@ -115,6 +121,13 @@ class Plugin(BasePlugin):
             enabled=True,
             description="Allows system commands execution",
         )
+        self.add_cmd(
+            "get_python_output",
+            instruction="get output from my Python interpreter",
+            params=[],
+            enabled=True,
+            description="Allows to get output from last executed code",
+        )
 
     def setup(self) -> dict:
         """
@@ -172,7 +185,15 @@ class Plugin(BasePlugin):
                                           "ANY command to \"command\" param, current working directory: {}".format(cwd)
                 data['cmd'].append(cmd)  # append command
 
+    @Slot(object, str)
+    def handle_interpreter_output(self, data, type):
+        """
+        Handle interpreter output
 
+        :param data: output data
+        :param type: output type
+        """
+        self.window.controller.interpreter.append_output(data, type)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -204,6 +225,7 @@ class Plugin(BasePlugin):
             worker.signals.debug.connect(self.handle_debug)
             worker.signals.status.connect(self.handle_status)
             worker.signals.error.connect(self.handle_error)
+            worker.signals.output.connect(self.handle_interpreter_output)
 
             # connect signals
             self.runner.signals = worker.signals
@@ -218,15 +240,6 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
-
-    def is_cmd_allowed(self, cmd: str) -> bool:
-        """
-        Check if cmd is allowed
-
-        :param cmd: command name
-        :return: True if allowed
-        """
-        return self.has_cmd(cmd)
 
     def log(self, msg):
         """

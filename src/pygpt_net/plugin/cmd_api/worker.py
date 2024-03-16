@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import json
@@ -33,130 +33,147 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        responses = []
         msg = None
         for item in self.cmds:
             for my_cmd in self.plugin.get_option_value("cmds"):
-                request = {
-                    "cmd": item["cmd"],
-                }  # prepare request item for result
-
                 if my_cmd["name"] == item["cmd"]:
-                    request = {
-                        "cmd": my_cmd["name"],
-                        "type": my_cmd["type"],
-                        "url": my_cmd["endpoint"],
-                    }
                     try:
-                        post_params = {}
-                        post_json = ""
-                        headers = {}  # HTTP headers, if any, Auth, API key, etc.
-                        result = None
-                        if 'post_json' in my_cmd and my_cmd["post_json"].strip() != "":
-                            post_json = str(my_cmd["post_json"])  # POST JSON, as string
-
-                        # prepare call
-                        endpoint = my_cmd["endpoint"]  # API endpoint URL
-
-                        # extract extra headers from JSON if any
-                        if 'headers' in my_cmd and my_cmd["headers"].strip() != "":
-                            try:
-                                headers = json.loads(my_cmd["headers"])  # key-value pairs
-                            except json.JSONDecodeError as e:
-                                msg = "Error decoding headers JSON: {}".format(e)
-                                self.log(msg)
-                                continue
-
-                        # append GET params to endpoint URL placeholders
-                        if 'get_params' in my_cmd and my_cmd["get_params"].strip() != "":
-                            # append params to cmd placeholders
-                            params_list = self.plugin.extract_params(
-                                my_cmd["get_params"],
-                            )
-                            for p in params_list:
-                                param = p["name"]
-                                if param in item["params"]:
-                                    endpoint = endpoint.replace(
-                                        "{" + param + "}",  # replace { placeholder }
-                                        quote(str(item["params"][param])),
-                                    )
-
-                        # append POST params to POST data placeholders and POST JSON
-                        if 'post_params' in my_cmd and my_cmd["post_params"].strip() != "":
-                            # append params to post params
-                            params_list = self.plugin.extract_params(
-                                my_cmd["post_params"],
-                            )
-                            for p in params_list:
-                                param = p["name"]
-                                if param in item["params"]:
-                                    post_params[param] = item["params"][param]
-
-                                    # append to POST JSON
-                                    post_json = post_json.replace(
-                                        "%" + param + "%",  # replace % placeholder
-                                        str(item["params"][param]),
-                                    )
-
-                        # check if endpoint is not empty
-                        if endpoint is None or endpoint == "":
-                            msg = "Endpoint URL is empty!"
-                            self.log(msg)
+                        response = self.handle_cmd(my_cmd, item)
+                        if response is False:
                             continue
-
-                        # check if type is not empty
-                        if my_cmd["type"] not in ["POST", "POST_JSON", "GET"]:
-                            my_cmd["type"] = "GET"
-
-                        # POST
-                        if my_cmd["type"] == "POST":
-                            msg = "[POST] Calling API endpoint: {}".format(endpoint)
-                            self.log(msg)
-                            result = self.plugin.call_post(endpoint, post_params, headers)
-
-                        # POST JSON
-                        elif my_cmd["type"] == "POST_JSON":
-                            msg = "[POST JSON] Calling API endpoint: {}".format(endpoint)
-                            self.log(msg)
-                            try:
-                                json_object = {}
-                                if post_json is not None and post_json.strip() != "":
-                                    json_object = json.loads(post_json)
-                                result = self.plugin.call_post_json(endpoint, json_object, headers)
-                            except Exception as e:
-                                msg = "Error: {}".format(e)
-                                self.error(e)
-                                self.log(msg)
-
-                        # GET
-                        elif my_cmd["type"] == "GET":
-                            msg = "[GET] Calling API endpoint: {}".format(endpoint)
-                            self.log(msg)
-                            result = self.plugin.call_get(endpoint, headers)
-
-                        if result is None:
-                            result = "No response from API."
-                            self.log(result)
-                        else:
-                            # encode bytes result to utf-8
-                            result = result.decode("utf-8")
-
-                        request["url"] = endpoint
-
-                        response = {
-                            "request": request,
-                            "result": result,
-                        }
+                        responses.append(response)
 
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        response = {
-                            "request": request,
+                        responses.append({
+                            "request": {
+                                "cmd": item["cmd"],
+                            },
                             "result": "Error {}".format(e),
-                        }
+                        })
                         self.error(e)
                         self.log(msg)
-                    self.response(response)
+
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response)
 
         # update status
         if msg is not None:
             self.status(msg)
+
+    def handle_cmd(self, command: dict, item: dict) -> dict or bool:
+        """
+        Handle API command
+
+        :param command: command configuration
+        :param item: requested item
+        :return: response or False
+        """
+        request = {
+            "cmd": command["name"],
+            "type": command["type"],
+            "url": command["endpoint"],
+        }
+        post_params = {}
+        post_json_tpl = ""
+        headers = {}  # HTTP headers, if any, Auth, API key, etc.
+        result = None
+        if 'post_json' in command and command["post_json"].strip() != "":
+            post_json_tpl = str(command["post_json"])  # POST JSON, as string
+
+        # prepare call
+        endpoint = command["endpoint"]  # API endpoint URL
+
+        # extract extra headers from JSON if any
+        if 'headers' in command and command["headers"].strip() != "":
+            try:
+                headers = json.loads(command["headers"])  # key-value pairs
+            except json.JSONDecodeError as e:
+                msg = "Error decoding headers JSON: {}".format(e)
+                self.log(msg)
+                return False # abort
+
+        # append GET params to endpoint URL placeholders
+        if 'get_params' in command and command["get_params"].strip() != "":
+            # append params to cmd placeholders
+            params_list = self.plugin.extract_params(
+                command["get_params"],
+            )
+            for p in params_list:
+                param = p["name"]
+                if param in item["params"]:
+                    endpoint = endpoint.replace(
+                        "{" + param + "}",  # replace { placeholder }
+                        quote(str(item["params"][param])),
+                    )
+
+        # append POST params to POST data placeholders and POST JSON
+        if 'post_params' in command and command["post_params"].strip() != "":
+            # append params to post params
+            params_list = self.plugin.extract_params(
+                command["post_params"],
+            )
+            for p in params_list:
+                param = p["name"]
+                if param in item["params"]:
+                    post_params[param] = item["params"][param]
+
+                    # append to POST JSON
+                    post_json_tpl = post_json_tpl.replace(
+                        "%" + param + "%",  # replace % placeholder
+                        str(item["params"][param]),
+                    )
+
+        # check if endpoint is not empty
+        if endpoint is None or endpoint == "":
+            msg = "Endpoint URL is empty!"
+            self.log(msg)
+            return False # abort
+
+        # check if type is not empty
+        if command["type"] not in ["POST", "POST_JSON", "GET"]:
+            command["type"] = "GET"
+
+        # POST
+        if command["type"] == "POST":
+            msg = "[POST] Calling API endpoint: {}".format(endpoint)
+            self.log(msg)
+            result = self.plugin.call_post(endpoint, post_params, headers)
+
+        # POST JSON
+        elif command["type"] == "POST_JSON":
+            msg = "[POST JSON] Calling API endpoint: {}".format(endpoint)
+            self.log(msg)
+            try:
+                json_object = {}
+                if post_json_tpl is not None and post_json_tpl.strip() != "":
+                    json_object = json.loads(post_json_tpl)
+                result = self.plugin.call_post_json(endpoint, json_object, headers)
+            except Exception as e:
+                msg = "Error: {}".format(e)
+                self.error(e)
+                self.log(msg)
+
+        # GET
+        elif command["type"] == "GET":
+            msg = "[GET] Calling API endpoint: {}".format(endpoint)
+            self.log(msg)
+            result = self.plugin.call_get(endpoint, headers)
+
+        if result is None:
+            result = "No response from API."
+            self.log(result)
+        else:
+            # encode bytes result to utf-8
+            result = result.decode("utf-8")
+
+        # prepare response
+        request["url"] = endpoint
+        response = {
+            "request": request,
+            "result": result,
+        }
+        return response

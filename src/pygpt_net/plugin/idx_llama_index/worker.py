@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -30,38 +30,67 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        responses = []
         msg = None
         for item in self.cmds:
-            response = {}
-            request = {"cmd": item["cmd"]}  # prepare request item for result
+            response = None
             try:
                 if item["cmd"] == "get_context":
-                    question = item["params"]["query"]
-                    self.status("Please wait... querying: {}...".format(question))
-                    answer, doc_ids, metas = self.plugin.query(question)  # send question to Llama-index
-                    response = {
-                        "request": request,
-                        "result": answer,
-                        "doc_ids": doc_ids,
-                        "metas": metas,
-                        "context": "ADDITIONAL CONTEXT:\n--------------------------------\n" + answer,
-                    }
-                    self.ctx.results.append(response)
-                    self.ctx.reply = True
-                    # store doc_ids in context
-                    if doc_ids:
-                        self.ctx.doc_ids = doc_ids
+                    response = self.cmd_get_context(item)
+
+                if response:
+                    responses.append(response)
+
             except Exception as e:
                 msg = "Error: {}".format(e)
-                response = {
-                    "request": request,
+                responses.append({
+                    "request": {
+                        "cmd": item["cmd"],
+                    },
                     "result": "Error {}".format(e),
-                }
+                })
                 self.error(e)
                 self.log(msg)
 
-            self.response(response)
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response)
 
         # update status
         if msg is not None:
             self.status(msg)
+
+    def cmd_get_context(self, item: dict) -> dict:
+        """
+        Get context for given query
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        question = item["params"]["query"]
+        self.status("Please wait... querying: {}...".format(question))
+        answer, doc_ids, metas = self.plugin.query(question)  # send question to Llama-index
+        response = {
+            "request": request,
+            "result": answer,
+            "doc_ids": doc_ids,
+            "metas": metas,
+            "context": "ADDITIONAL CONTEXT:\n--------------------------------\n" + answer,
+        }
+        self.ctx.results.append(response)
+        self.ctx.reply = True
+        # store doc_ids in context
+        if doc_ids:
+            self.ctx.doc_ids = doc_ids
+        return response
+
+    def prepare_request(self, item) -> dict:
+        """
+        Prepare request item for result
+
+        :param item: item with parameters
+        :return: request item
+        """
+        return {"cmd": item["cmd"]}

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 17:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -37,104 +37,114 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        responses = []
         for item in self.cmds:
             try:
+                response = None
                 if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
                     # save file
                     if item["cmd"] == "save_file":
-                        self.cmd_save_file(item)
+                        response = self.cmd_save_file(item)
 
                     # append to file
                     elif item["cmd"] == "append_file":
-                        self.cmd_append_file(item)
+                        response = self.cmd_append_file(item)
 
                     # read file
                     elif item["cmd"] == "read_file":
-                        self.cmd_read_file(item)
+                        response = self.cmd_read_file(item)
 
                     # query file
                     elif item["cmd"] == "query_file":
-                        self.cmd_query_file(item)
+                        response = self.cmd_query_file(item)
 
                     # delete file
                     elif item["cmd"] == "delete_file":
-                        self.cmd_delete_file(item)
+                        response = self.cmd_delete_file(item)
 
                     # list files
                     elif item["cmd"] == "list_dir":
-                        self.cmd_list_dir(item)
+                        response = self.cmd_list_dir(item)
 
                     # mkdir
                     elif item["cmd"] == "mkdir":
-                        self.cmd_mkdir(item)
+                        response = self.cmd_mkdir(item)
 
                     # rmdir
                     elif item["cmd"] == "rmdir":
-                        self.cmd_rmdir(item)
+                        response = self.cmd_rmdir(item)
 
                     # download
                     elif item["cmd"] == "download_file":
-                        self.cmd_download_file(item)
+                        response = self.cmd_download_file(item)
 
                     # copy file
                     elif item["cmd"] == "copy_file":
-                        self.cmd_copy_file(item)
+                        response = self.cmd_copy_file(item)
 
                     # copy dir
                     elif item["cmd"] == "copy_dir":
-                        self.cmd_copy_dir(item)
+                        response = self.cmd_copy_dir(item)
 
                     # move
                     elif item["cmd"] == "move":
-                        self.cmd_move(item)
+                        response = self.cmd_move(item)
 
                     # is dir
                     elif item["cmd"] == "is_dir":
-                        self.cmd_is_dir(item)
+                        response = self.cmd_is_dir(item)
 
                     # is file
                     elif item["cmd"] == "is_file":
-                        self.cmd_is_file(item)
+                        response = self.cmd_is_file(item)
 
                     # file exists
                     elif item["cmd"] == "file_exists":
-                        self.cmd_file_exists(item)
+                        response = self.cmd_file_exists(item)
 
                     # file size
                     elif item["cmd"] == "file_size":
-                        self.cmd_file_size(item)
+                        response = self.cmd_file_size(item)
 
                     # file info
                     elif item["cmd"] == "file_info":
-                        self.cmd_file_info(item)
+                        response = self.cmd_file_info(item)
 
                     # cwd
                     elif item["cmd"] == "cwd":
-                        self.cmd_cwd(item)
+                        response = self.cmd_cwd(item)
 
                     # get file as attachment
                     elif item["cmd"] == "send_file":
-                        self.cmd_send_file(item)
+                        response = self.cmd_send_file(item)
 
                     # index file or directory
                     elif item["cmd"] == "file_index":
-                        self.cmd_file_index(item)
+                        response = self.cmd_file_index(item)
 
                     # find file or directory
                     elif item["cmd"] == "find":
-                        self.cmd_find(item)
+                        response = self.cmd_find(item)
+
+                    # send response
+                    if response:
+                        responses.append(response)
 
             except Exception as e:
-                self.response(
-                    {
-                        "request": item,
-                        "result": "Error: {}".format(e),
+                responses.append({
+                    "request": {
+                        "cmd": item["cmd"],
                     },
-                    self.get_extra_data(),
-                )
+                    "result": "Error {}".format(e),
+                })
                 self.error(e)
                 self.log("Error: {}".format(e))
+
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response, self.get_extra_data())
 
         if self.msg is not None:
             self.status(self.msg)
@@ -159,11 +169,12 @@ class Worker(BaseWorker):
             "post_update": ["file_explorer"],  # update file explorer after processing
         }
 
-    def cmd_save_file(self, item: dict):
+    def cmd_save_file(self, item: dict) -> dict:
         """
         Save file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -185,13 +196,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_append_file(self, item: dict):
+    def cmd_append_file(self, item: dict) -> dict:
         """
         Append to file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -213,13 +225,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_read_file(self, item: dict):
+    def cmd_read_file(self, item: dict) -> dict:
         """
         Read file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -248,13 +261,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_query_file(self, item: dict):
+    def cmd_query_file(self, item: dict) -> dict:
         """
         Query file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         response = {}
@@ -313,13 +327,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_delete_file(self,item: dict):
+    def cmd_delete_file(self,item: dict) -> dict:
         """
         Delete file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -343,13 +358,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_list_dir(self, item: dict):
+    def cmd_list_dir(self, item: dict) -> dict:
         """
         List directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -380,13 +396,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_mkdir(self, item: dict):
+    def cmd_mkdir(self, item: dict) -> dict:
         """
         Make directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -413,13 +430,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_rmdir(self, item: dict):
+    def cmd_rmdir(self, item: dict) -> dict:
         """
         Remove directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -446,13 +464,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_download_file(self, item: dict):
+    def cmd_download_file(self, item: dict) -> dict:
         """
         Download file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -507,13 +526,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_copy_file(self, item: dict):
+    def cmd_copy_file(self, item: dict) -> dict:
         """
         Copy file
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -534,13 +554,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_copy_dir(self, item: dict):
+    def cmd_copy_dir(self, item: dict) -> dict:
         """
         Copy directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -562,13 +583,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_move(self, item: dict):
+    def cmd_move(self, item: dict) -> dict:
         """
         Move file or directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -589,13 +611,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_is_dir(self, item: dict):
+    def cmd_is_dir(self, item: dict) -> dict:
         """
         Check if directory exists
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -618,13 +641,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_is_file(self, item: dict):
+    def cmd_is_file(self, item: dict) -> dict:
         """
         Check if file exists
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -650,13 +674,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_file_exists(self, item: dict):
+    def cmd_file_exists(self, item: dict) -> dict:
         """
         Check if file exists
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -682,13 +707,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_file_size(self, item: dict):
+    def cmd_file_size(self, item: dict) -> dict:
         """
         Check file size
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -718,13 +744,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_file_info(self, item: dict):
+    def cmd_file_info(self, item: dict) -> dict:
         """
         Check file info
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -764,13 +791,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_cwd(self, item: dict):
+    def cmd_cwd(self, item: dict) -> dict:
         """
         Get current working directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -787,13 +815,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_send_file(self, item: dict):
+    def cmd_send_file(self, item: dict) -> dict:
         """
-        Get file as attachment
+        Get/send file as attachment
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -825,13 +854,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_file_index(self, item: dict):
+    def cmd_file_index(self, item: dict) -> dict:
         """
         Index file or directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -868,13 +898,14 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
-    def cmd_find(self, item: dict):
+    def cmd_find(self, item: dict) -> dict:
         """
         Search for files in directory
 
         :param item: item with parameters
+        :return: response item
         """
         request = self.prepare_request(item)
         try:
@@ -907,7 +938,7 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
-        self.response(response, self.get_extra_data())
+        return response
 
     def find_files(self, directory: str, pattern: str, recursive: bool = True) -> list:
         """

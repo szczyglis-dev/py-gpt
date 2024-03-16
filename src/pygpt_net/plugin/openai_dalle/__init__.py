@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.model import ModelItem
@@ -139,9 +139,8 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] == "image":
                     query = item["params"]["query"]
-                    # WHAT'S HAPPENING HERE:
-                    # if internal call (ctx.internal = True) then it will re-send OK response
-                    # if not internal call then it will append image to chat only
+                    # if internal call (ctx.internal = True), then re-send OK response
+                    # if not internal call, then append image to chat only
                     model = ModelItem()
                     model.id = "dall-e-3"
                     self.window.core.bridge.call(

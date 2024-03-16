@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -129,6 +129,9 @@ class Plugins:
             if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
                 self.window.controller.audio.update()
 
+            if self.has_type(id, 'interpreter'):
+                self.window.controller.interpreter.update()
+
         self.update_info()
         self.update()
 
@@ -153,6 +156,9 @@ class Plugins:
                 # update audio menu
                 if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
                     self.window.controller.audio.update()
+
+                if self.has_type(id, 'interpreter'):
+                    self.window.controller.interpreter.update()
 
         self.update_info()
         self.update()
@@ -326,6 +332,12 @@ class Plugins:
                 else:
                     self.window.ui.plugin_addon['schedule'].setVisible(False)
                     self.window.ui.tray.hide_schedule_menu()
+
+            elif type == 'interpreter':
+                if self.is_type_enabled(type):
+                    self.window.controller.interpreter.toggle_icon(True)
+                else:
+                    self.window.controller.interpreter.toggle_icon(False)
 
     def on_update(self):
         """Called on update"""

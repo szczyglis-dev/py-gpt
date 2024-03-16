@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 import os.path
@@ -33,76 +33,112 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        responses = []
         msg = None
         for item in self.cmds:
             for my_cmd in self.plugin.get_option_value("cmds"):
-                request = {"cmd": item["cmd"]}  # prepare request item for result
                 if my_cmd["name"] == item["cmd"]:
                     try:
-                        # prepare cmd
-                        cmd = my_cmd["cmd"]
-
-                        # append system placeholders
-                        cmd = cmd.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
-                        cmd = cmd.replace("{_home}", self.plugin.window.core.config.path)
-                        cmd = cmd.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
-                        cmd = cmd.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
-                        cmd = cmd.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-                        # append custom params to cmd placeholders
-                        if 'params' in my_cmd and my_cmd["params"].strip() != "":
-                            # append params to cmd placeholders
-                            params_list = self.plugin.extract_params(
-                                my_cmd["params"],
-                            )
-                            for param in params_list:
-                                if param in item["params"]:
-                                    cmd = cmd.replace(
-                                        "{" + param + "}",
-                                        str(item["params"][param]),
-                                    )
-
-                        # check if cmd is not empty
-                        if cmd is None or cmd == "":
+                        response = self.handle_cmd(my_cmd, item)
+                        if response is False:
                             msg = "Command is empty"
                             continue
-
-                        # execute custom cmd
-                        msg = "Running custom cmd: {}".format(cmd)
-                        self.log(msg)
-                        process = subprocess.Popen(
-                            cmd,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                        )
-                        stdout, stderr = process.communicate()
-                        result = None
-                        if stdout:
-                            result = stdout.decode("utf-8")
-                            self.log("STDOUT: {}".format(result))
-                        if stderr:
-                            result = stderr.decode("utf-8")
-                            self.log("STDERR: {}".format(result))
-                        if result is None:
-                            result = "No result (STDOUT/STDERR empty)"
-                            self.log(result)
-
-                        response = {
-                            "request": request,
-                            "result": result,
-                        }
+                        responses.append(response)
 
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        response = {
-                            "request": request,
+                        responses.append({
+                            "request": {
+                                "cmd": item["cmd"],
+                            },
                             "result": "Error {}".format(e),
-                        }
+                        })
                         self.error(e)
                         self.log(msg)
-                    self.response(response)
+
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response)
 
         # update status
         if msg is not None:
             self.status(msg)
+
+    def handle_cmd(self, command: dict, item: dict) -> dict or bool:
+        """
+        Handle custom command
+
+        :param command: command configuration
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+
+        # prepare cmd
+        cmd = command["cmd"]
+
+        # check if cmd is not empty
+        if cmd is None or cmd == "":
+            return False
+        
+        try:
+            cmd = cmd.format(
+                _file=os.path.dirname(os.path.realpath(__file__)),
+                _home=self.plugin.window.core.config.path,
+                _date=datetime.now().strftime("%Y-%m-%d"),
+                _time=datetime.now().strftime("%H:%M:%S"),
+                _datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            )
+        except Exception as e:
+            pass
+
+        # append params to placeholders
+        if 'params' in command and command["params"].strip() != "":
+            # append params to cmd placeholders
+            params_list = self.plugin.extract_params(
+                command["params"],
+            )
+            for param in params_list:
+                if param in item["params"]:
+                    cmd = cmd.replace(
+                        "{" + param + "}",
+                        str(item["params"][param]),
+                    )
+
+        # execute
+        msg = "Running custom cmd: {}".format(cmd)
+        self.log(msg)
+        process = subprocess.Popen(
+            cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = process.communicate()
+        result = None
+        if stdout:
+            result = stdout.decode("utf-8")
+            self.log("STDOUT: {}".format(result))
+        if stderr:
+            result = stderr.decode("utf-8")
+            self.log("STDERR: {}".format(result))
+        if result is None:
+            result = "No result (STDOUT/STDERR empty)"
+            self.log(result)
+
+        # prepare response
+        response = {
+            "request": request,
+            "result": result,
+        }
+        return response
+
+    def prepare_request(self, item) -> dict:
+        """
+        Prepare request item for result
+
+        :param item: item with parameters
+        :return: request item
+        """
+        return {"cmd": item["cmd"]}

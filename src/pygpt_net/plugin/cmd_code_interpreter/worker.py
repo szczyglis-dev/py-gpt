@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Signal
 
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
 class WorkerSignals(BaseSignals):
-    pass  # add custom signals here
+    output = Signal(object, str)
 
 
 class Worker(BaseWorker):
@@ -30,92 +30,164 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        msg = None
+        responses = []
         for item in self.cmds:
             try:
-                request = {"cmd": item["cmd"]}  # prepare request item for result
+                response = None
+                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
-                # code_execute (from existing file)
-                if item["cmd"] == "code_execute_file" and self.plugin.has_cmd("code_execute_file"):
-                    try:
-                        if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.code_execute_file_host(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                        else:
-                            response = self.plugin.runner.code_execute_file_sandbox(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                    except Exception as e:
-                        response = {
-                            "request": request,
-                            "result": "Error: {}".format(e),
-                        }
-                        self.error(e)
-                        self.log("Error: {}".format(e))
-                    self.response(response)
+                    if item["cmd"] == "code_execute_file":
+                        response = self.cmd_code_execute_file(item)
 
-                # code_execute (generate and execute)
-                elif item["cmd"] == "code_execute" and self.plugin.has_cmd("code_execute"):
-                    try:
-                        if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.code_execute_host(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                        else:
-                            response = self.plugin.runner.code_execute_sandbox(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                    except Exception as e:
-                        response = {
-                            "request": request,
-                            "result": "Error: {}".format(e),
-                        }
-                        self.error(e)
-                        self.log("Error: {}".format(e))
-                    self.response(response)
+                    elif item["cmd"] == "code_execute":
+                        response = self.cmd_code_execute(item)
+                        if "silent" in item:
+                            response = None
 
-                # sys_exec
-                elif item["cmd"] == "sys_exec" and self.plugin.has_cmd("sys_exec"):
-                    try:
-                        if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.sys_exec_host(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                        else:
-                            response = self.plugin.runner.sys_exec_sandbox(
-                                self.ctx,
-                                item,
-                                request,
-                            )
-                    except Exception as e:
-                        response = {
-                            "request": request,
-                            "result": "Error: {}".format(e),
-                        }
-                        self.error(e)
-                        self.log("Error: {}".format(e))
-                    self.response(response)
+
+                    elif item["cmd"] == "sys_exec":
+                        response = self.cmd_sys_exec(item)
+
+                    elif item["cmd"] == "get_python_output":
+                        response = self.cmd_get_python_output(item)
+
+                    if response:
+                        responses.append(response)
 
             except Exception as e:
-                response = {
-                    "request": item,
-                    "result": "Error: {}".format(e),
-                }
-                self.response(response)
+                responses.append({
+                    "request": {
+                        "cmd": item["cmd"],
+                    },
+                    "result": "Error {}".format(e),
+                })
                 self.error(e)
                 self.log("Error: {}".format(e))
 
-        if msg is not None:
-            self.log(str(msg))
-            self.status(str(msg))
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response)
+
+    def cmd_code_execute_file(self, item: dict) -> dict:
+        """
+        Execute code command from existing file
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            if not self.plugin.runner.is_sandbox():
+                response = self.plugin.runner.code_execute_file_host(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+            else:
+                response = self.plugin.runner.code_execute_file_sandbox(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_code_execute(self, item: dict) -> dict:
+        """
+        Execute code command
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            if not self.plugin.runner.is_sandbox():
+                response = self.plugin.runner.code_execute_host(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+            else:
+                response = self.plugin.runner.code_execute_sandbox(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_sys_exec(self, item: dict) -> dict:
+        """
+        Execute system command
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            if not self.plugin.runner.is_sandbox():
+                response = self.plugin.runner.sys_exec_host(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+            else:
+                response = self.plugin.runner.sys_exec_sandbox(
+                    ctx=self.ctx,
+                    item=item,
+                    request=request,
+                )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_get_python_output(self, item: dict) -> dict:
+        """
+        Get python output
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            output = self.plugin.window.controller.interpreter.get_output()
+            response = {
+                "request": request,
+                "result": output,
+                "context": output,
+            }
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def prepare_request(self, item) -> dict:
+        """
+        Prepare request item for result
+
+        :param item: item with parameters
+        :return: request item
+        """
+        return {"cmd": item["cmd"]}

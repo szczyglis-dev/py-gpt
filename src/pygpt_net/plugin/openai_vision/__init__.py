@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.16 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -203,29 +203,62 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
+        responses = []
         for item in my_commands:
+            response = None
+
             if item["cmd"] == "camera_capture" and self.has_cmd(item["cmd"]):
-                request = {
-                    "cmd": item["cmd"],
-                }
-                self.window.controller.camera.manual_capture(force=True)
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
-                ctx.results.append(response)
-                ctx.reply = True
+                response = self.cmd_camera_capture(item)
+
             elif item["cmd"] == "make_screenshot" and self.has_cmd(item["cmd"]):
-                request = {
-                    "cmd": item["cmd"],
-                }
-                self.window.controller.painter.capture.screenshot()
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
-                ctx.results.append(response)
-                ctx.reply = True
+                response = self.cmd_make_screenshot(item)
+
+            if response:
+                responses.append(response)
+
+        # send response
+        if len(responses) > 0:
+            for response in responses:
+                self.reply(response, ctx)
+
+    def cmd_camera_capture(self, item: dict) -> dict:
+        """
+        Capture image from camera
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        self.window.controller.camera.manual_capture(force=True)
+        response = {
+            "request": request,
+            "result": "OK",
+        }
+        return response
+
+    def cmd_make_screenshot(self, item: dict) -> dict:
+        """
+        Make desktop screenshot
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        self.window.controller.painter.capture.screenshot()
+        response = {
+            "request": request,
+            "result": "OK",
+        }
+        return response
+
+    def prepare_request(self, item) -> dict:
+        """
+        Prepare request item for result
+
+        :param item: item with parameters
+        :return: request item
+        """
+        return {"cmd": item["cmd"]}
 
     def on_toggle(self, value: bool):
         """
