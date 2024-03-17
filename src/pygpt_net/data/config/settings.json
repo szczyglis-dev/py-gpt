@@ -398,7 +398,7 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": true
+        "advanced": false
     },
     "max_output_tokens": {
         "section": "model",

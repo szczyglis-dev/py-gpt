@@ -60,7 +60,7 @@ class Plugin(BasePlugin):
             label="Prompt",
             description="Prompt used for generating a query for DALL-E in background.",
             tooltip="Prompt",
-            advanced=True,
+            advanced=False,
         )
 
     def setup(self) -> dict:
