@@ -41,7 +41,7 @@ class Command:
             else:
                 extra = self.window.core.prompt.get('cmd.extra')
         if prompt.strip() != "":
-            prompt += "\n"
+            prompt += "\n\n"
         prompt += cmd_prompt.strip().replace("{extra}", extra).replace("{schema}", schema)
         return prompt
 

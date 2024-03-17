@@ -178,9 +178,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Saving file: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Saving file: {}".format(path)
+            self.log(self.msg)
             data = item["params"]['data']
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
@@ -207,9 +207,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Appending file: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Appending file: {}".format(path)
+            self.log(self.msg)
             data = item["params"]['data']
             with open(path, 'a', encoding="utf-8") as file:
                 file.write(data)
@@ -274,9 +274,9 @@ class Worker(BaseWorker):
         response = {}
         query = None
         try:
-            self.msg = "Reading path: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Reading path: {}".format(path)
+            self.log(self.msg)
             if "query" in item["params"] and item["params"]["query"]:
                 query = item["params"]["query"]
 
@@ -338,9 +338,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Deleting file: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Deleting file: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 os.remove(path)
                 response = {"request": request, "result": "OK"}
@@ -369,12 +369,11 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            path = ""
+            path = self.plugin.window.core.config.get_user_dir('data')
             if "path" in item["params"]:
-                path = item["params"]['path']
+                path = self.prepare_path(item["params"]['path'])
             self.msg = "Listing directory: {}".format(path)
             self.log(self.msg)
-            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 files = os.listdir(path)
                 response = {
@@ -407,9 +406,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Creating directory: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Creating directory: {}".format(path)
+            self.log(self.msg)
             if not os.path.exists(path):
                 os.makedirs(path)
                 response = {
@@ -441,9 +440,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Deleting directory: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Deleting directory: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 shutil.rmtree(path)
                 response = {
@@ -537,10 +536,10 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-            self.log(self.msg)
-            dst = self.prepare_path(item["params"]['dst'])
             src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Copying file: {} into {}".format(src, dst)
+            self.log(self.msg)
             shutil.copyfile(src, dst)
             response = {
                 "request": request,
@@ -565,11 +564,10 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Copying directory: {} into {}".format(item["params"]['src'],
-                                                              item["params"]['dst'])
-            self.log(self.msg)
-            dst = self.prepare_path(item["params"]['dst'])
             src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Copying directory: {} into {}".format(src, dst)
+            self.log(self.msg)
             shutil.copytree(src, dst)
             response = {
                 "request": request,
@@ -594,10 +592,10 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-            self.log(self.msg)
-            dst = self.prepare_path(item["params"]['dst'])
             src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Moving: {} into {}".format(src, dst)
+            self.log(self.msg)
             shutil.move(src, dst)
             response = {
                 "request": request,
@@ -622,9 +620,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Checking if directory exists: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if directory exists: {}".format(path)
+            self.log(self.msg)
             if os.path.isdir(path):
                 response = {
                     "request": request,
@@ -652,9 +650,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Checking if file exists: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if file exists: {}".format(path)
+            self.log(self.msg)
             if os.path.isfile(path):
                 response = {
                     "request": request,
@@ -685,9 +683,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Checking if path exists: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if path exists: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 response = {
                     "request": request,
@@ -718,9 +716,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Checking file size: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking file size: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 size = os.path.getsize(path)
                 response = {
@@ -755,9 +753,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Checking file info: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking file info: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 size = os.path.getsize(path)
                 data = {
@@ -826,9 +824,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Adding attachment: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Adding attachment: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 # make attachment
                 mode = self.plugin.window.core.config.get('mode')
@@ -865,9 +863,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            self.msg = "Indexing path: {}".format(item["params"]['path'])
-            self.log(self.msg)
             path = self.prepare_path(item["params"]['path'])
+            self.msg = "Indexing path: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 idx_name = self.plugin.get_option_value("idx")
                 # index path using Llama-index
@@ -911,13 +909,13 @@ class Worker(BaseWorker):
         try:
             recursive = True
             path = self.plugin.window.core.config.get_user_dir('data')
-            self.msg = "Searching in directory: {}".format(item["params"]['path'])
-            self.log(self.msg)
             pattern = item["params"]['pattern']
             if "path" in item["params"]:
                 path = self.prepare_path(item["params"]['path'])
             if "recursive" in item["params"]:
                 recursive = item["params"]['recursive']
+            self.msg = "Searching in directory: {}".format(path)
+            self.log(self.msg)
             if os.path.exists(path):
                 files = self.find_files(path, pattern, recursive)
                 response = {

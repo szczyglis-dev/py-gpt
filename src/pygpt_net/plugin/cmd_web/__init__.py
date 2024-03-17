@@ -526,8 +526,8 @@ class Plugin(BasePlugin):
 
         # check required API keys and other settings
         if not self.get_provider().is_configured(my_commands):
-            self.gen_api_key_response(ctx, cmds)
             self.window.ui.dialogs.alert(self.get_provider().get_config_message())
+            self.gen_api_key_response(ctx, cmds)
             return
 
         try:
@@ -579,8 +579,7 @@ class Plugin(BasePlugin):
                 "request": request,
                 "result": data,
             }
-            ctx.results.append(response)
-            ctx.reply = True
+            self.reply(response, ctx)
             return
 
     def get_url(self, url: str, extra_headers: dict = None) -> bytes:
