@@ -2880,6 +2880,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.31 (2024-03-17)
+
+- Improved code interpreter integration with sandbox/docker.
+- Added display of hidden files in Files explorer.
+- Added "Use as image" context menu action in Files explorer.
+
 # 2.1.30 (2024-03-16)
 
 - Improved real-time Python code interpreter: added edit mode and whole code execution (history).
