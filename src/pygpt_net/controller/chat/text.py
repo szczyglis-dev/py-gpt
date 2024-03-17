@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -144,7 +144,6 @@ class Text:
 
         # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            sys_prompt += " " + self.window.core.command.get_prompt()
             data = {
                 'mode': mode,
                 'prompt': sys_prompt,

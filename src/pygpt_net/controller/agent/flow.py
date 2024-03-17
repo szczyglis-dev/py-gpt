@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -46,17 +46,7 @@ class Flow:
         """
         stop_cmd = ""
         if auto_stop:
-            stop_cmd = '\n\nSTATUS UPDATE: You can use "goal_update" command to update status of the task. ' \
-                       'Remember to put it in the form as given, at the end of response and including ' \
-                       'the surrounding ~###~ marks, ' \
-                       'e.g.: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
-            stop_cmd+= '\nON GOAL FINISH: When you believe that the task has been completed 100% and all goals have ' \
-                       'been achieved, run "goal_update" command with status = "finished".'
-            stop_cmd += '\nON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task ' \
-                        'run must be paused or ' \
-                        'task was failed or when the conversation falls into a loop, ' \
-                        'THEN STOP REASONING and include "goal_update" command with one of these statuses: ' \
-                        '"pause", "failed" or "wait"'
+            stop_cmd = "\n\n" + self.window.core.prompt.get("agent.goal")
         if append_prompt is not None and append_prompt.strip() != "":
             append_prompt = "\n" + append_prompt
         prompt += str(append_prompt) + stop_cmd
@@ -155,7 +145,7 @@ class Flow:
 
         :param ctx: CtxItem
         """
-        self.prev_output = str(self.window.core.config.get("agent.prompt.continue"))  # continue...
+        self.prev_output = self.window.core.prompt.get("agent.continue")  # continue...
         if ctx.extra_ctx is not None and ctx.extra_ctx != "":
             self.prev_output = ctx.extra_ctx
 

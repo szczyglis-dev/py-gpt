@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import re
@@ -157,7 +157,7 @@ class Presets:
 
         # set default prompt if mode is chat
         if mode == 'chat':
-            self.window.core.config.set('prompt', self.window.core.config.get('default_prompt'))
+            self.window.core.config.set('prompt', self.window.core.prompt.get('default'))
         else:
             self.window.core.config.set('prompt', None)
 

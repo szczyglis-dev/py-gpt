@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -67,7 +67,7 @@ class Presets:
         id_agent = 'current.agent'
 
         # set default initial prompt for chat mode
-        curr_chat.prompt = self.window.core.config.get('default_prompt')
+        curr_chat.prompt = self.window.core.prompt.get('default')
 
         # get data from presets if exists
         if id_chat in self.items:

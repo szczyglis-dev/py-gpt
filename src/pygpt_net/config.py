@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -403,6 +403,20 @@ class Config:
             return self.data_base
         elif option in self.data_base:
             return self.data_base[option]
+
+    def replace_key(self, data: dict, key_from: str, key_to: str) -> dict:
+        """
+        Replace key in dict
+
+        :param data: dict
+        :param key_from: key to replace
+        :param key_to: new key
+        :return: dict with replaced keys
+        """
+        if key_from in data:
+            data[key_to] = copy.deepcopy(data[key_from])
+            del data[key_from]
+        return data
 
     def save(self, filename: str = "config.json"):
         """

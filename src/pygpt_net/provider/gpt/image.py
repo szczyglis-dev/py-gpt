@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import datetime
@@ -53,7 +53,7 @@ class Image:
         worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
         worker.model_prompt = prompt_model  # model for generate prompt, not image!
         worker.input_prompt = prompt
-        worker.system_prompt = self.window.core.image.get_prompt()
+        worker.system_prompt = self.window.core.prompt.get('img')
         worker.num = num
         worker.inline = inline
 

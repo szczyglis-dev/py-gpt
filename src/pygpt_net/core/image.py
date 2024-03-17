@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import os
+
 from PySide6.QtCore import Slot
 
 from pygpt_net.item.ctx import CtxItem
@@ -30,30 +31,6 @@ class Image:
         img_dir = os.path.join(self.window.core.config.get_user_dir("img"))
         if not os.path.exists(img_dir):
             os.makedirs(img_dir, exist_ok=True)
-
-    def get_prompt(self, allow_custom: bool = True) -> str:
-        """
-        Return image generate prompt command
-
-        :param allow_custom: allow custom prompt
-        :return: system command for generate image prompt
-        """
-        default = '''
-        Whenever I provide a basic idea or concept for an image, such as 'a picture of mountains', 
-        I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your knowledge and 
-        creativity to add details that would make the image more vivid and interesting. This could include specifying 
-        the time of day, weather conditions, surrounding environment, and any additional elements that could enhance 
-        the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E with enough 
-        information to generate a rich and visually appealing image. Remember to maintain the original intent of my 
-        request while enriching the description with your imaginative details. '''
-
-        # get custom prompt from config if exists
-        if allow_custom:
-            if self.window.core.config.has('img_prompt'):
-                prompt = self.window.core.config.get('img_prompt')
-                if prompt is not None and prompt != '':
-                    default = prompt
-        return default
 
     @Slot(str, object)
     def handle_finished(self, ctx: CtxItem, paths: list, prompt: str):

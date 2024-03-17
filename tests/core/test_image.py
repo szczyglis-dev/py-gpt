@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import os
@@ -24,13 +24,6 @@ def test_install(mock_window):
     os.makedirs = MagicMock()
     image.install()
     os.makedirs.assert_called()
-
-
-def test_get_prompt(mock_window):
-    """Test get prompt"""
-    image = Image(mock_window)
-    mock_window.core.config.data['img_prompt'] = 'test'
-    assert image.get_prompt() == 'test'
 
 
 def test_handle_finished(mock_window):

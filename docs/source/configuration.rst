@@ -81,11 +81,9 @@ The following basic options can be modified directly within the application:
 
 * ``Always show audio icon``: If enabled, then read with audio icon will be always displayed.
 
+* ``Use extra context output``: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output, Default: True.
+
 * ``Model used for auto-summary``: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
-
-* ``Prompt (sys): auto summary``: System prompt for context auto-summary.
-
-* ``Prompt (user): auto summary``: User prompt for context auto-summary.
 
 **Models**
 
@@ -103,7 +101,23 @@ The following basic options can be modified directly within the application:
 
 * ``Presence Penalty``: Discourages the model from mentioning topics that have already been brought up in the conversation.
 
-* ``Prompt (append): command execute instruction``: Prompt for appending command execution instructions.
+**Prompts**
+
+* ``Command execute: instruction``: Prompt for appending command execution instructions. Placeholders: {schema}, {extra}
+
+* ``Command execute: extra footer (non-Assistant modes)``: Extra footer to append after commands JSON schema.
+
+* ``Command execute: extra footer (Assistant mode only)``: PAdditional instructions to separate local commands from the remote environment that is already configured in the Assistants.
+
+* ``Context: auto-summary (system prompt)``: System prompt for context auto-summary.
+
+* ``Context: auto-summary (user message)``: User message for context auto-summary. Placeholders: {input}, {output}
+
+* ``Agent: continue``: Prompt sent to automatically continue the conversation. Default: `continue...`
+
+* ``Agent: goal update``: Prompt to instruct how to update current goal status.
+
+* ``DALL-E: image generate``: Prompt for generating prompts for DALL-E (if raw-mode is disabled).
 
 **Images**
 
@@ -113,9 +127,7 @@ The following basic options can be modified directly within the application:
 
 * ``Open image dialog after generate``: Enable the image dialog to open after an image is generated in Image mode.
 
-* ``DALL-E: Prompt (sys): prompt generation``: Prompt for generating prompts for DALL-E (if RAW mode is disabled).
-
-* ``DALL-E: prompt generation model``: Model used for generating prompts for DALL-E (if RAW mode is disabled).
+* ``DALL-E: prompt generation model``: Model used for generating prompts for DALL-E (if raw-mode is disabled).
 
 **Vision**
 
@@ -172,8 +184,6 @@ The following basic options can be modified directly within the application:
 * ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
-
-* ``Continue prompt``: Prompt sent to automatically continue the conversation. Default: `continue...`
 
 * ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
 

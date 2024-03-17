@@ -374,6 +374,19 @@
         "step": null,
         "advanced": false
     },
+    "ctx.use_extra": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.use_extra",
+        "description": "settings.ctx.use_extra.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.auto_summary.model": {
         "section": "ctx",
         "type": "combo",
@@ -381,30 +394,6 @@
         "slider": false,
         "label": "settings.ctx.auto_summary.model",
         "value": "gpt-3.5-turbo-1106",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": true
-    },
-    "ctx.auto_summary.system": {
-        "section": "ctx",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.ctx.auto_summary.system",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": true
-    },
-    "ctx.auto_summary.prompt": {
-        "section": "ctx",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.ctx.auto_summary.prompt",
-        "value": "",
         "min": null,
         "max": null,
         "multiplier": null,
@@ -509,17 +498,107 @@
         "step": 1,
         "advanced": false
     },
-    "cmd.prompt": {
-        "section": "model",
+    "prompt.cmd": {
+        "section": "prompts",
         "type": "textarea",
         "slider": false,
-        "label": "settings.cmd.prompt",
+        "label": "settings.prompt.cmd",
+        "description": "settings.prompt.cmd.desc",
         "value": "",
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": true
+        "advanced": false
+    },
+    "prompt.cmd.extra": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.cmd.extra",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "prompt.cmd.extra.assistants": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.cmd.extra.assistants",
+        "description": "settings.prompt.cmd.extra.assistants.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "prompt.ctx.auto_summary.system": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.ctx.auto_summary.system",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "prompt.ctx.auto_summary.user": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.ctx.auto_summary.user",
+        "description": "settings.prompt.ctx.auto_summary.user.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "prompt.agent.continue": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.agent.continue",
+        "description": "settings.prompt.agent.continue.desc",
+        "value": "continue if needed...",
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "prompt.agent.goal": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.agent.goal",
+        "description": "settings.prompt.agent.goal.desc",
+        "value": "",
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "prompt.img": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.img",
+        "description": "settings.prompt.img.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     },
     "img_resolution": {
         "section": "images",
@@ -569,18 +648,6 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },
-    "img_prompt": {
-        "section": "images",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.img_prompt",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": true
     },
     "img_prompt_model": {
         "section": "images",
@@ -953,19 +1020,6 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
-    },
-    "agent.prompt.continue": {
-        "section": "agent",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.agent.prompt.continue",
-        "description": "settings.agent.prompt.continue.desc",
-        "value": "continue...",
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
         "advanced": false
     },
     "agent.goal.notify": {

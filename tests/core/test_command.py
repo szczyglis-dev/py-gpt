@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import json
@@ -16,19 +16,13 @@ from tests.mocks import mock_window_conf, mock_window
 from pygpt_net.core.command import Command
 
 
-def test_get_prompt(mock_window_conf):
-    """
-    Test get prompt
-    """
-    cmd = Command(window=mock_window_conf)
-    assert cmd.get_prompt().startswith('RUNNING COMMANDS:')
-
 
 def test_append_syntax():
     """
     Test append syntax
     """
     window = MagicMock()
+    window.core.prompt.get = MagicMock(return_value='test')
     cmd = Command(window=window)
     event_data = {'prompt': 'test', 'cmd': ['cmd1', 'cmd2']}
     assert cmd.append_syntax(event_data).startswith("test\n") is True

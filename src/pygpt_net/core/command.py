@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -24,45 +24,6 @@ class Command:
         """
         self.window = window
 
-    def get_prompt(self, allow_custom: bool = True) -> str:
-        """
-        Return cmd prompt instruction
-
-        :param allow_custom: allow custom prompt
-        :return: prompt instruction
-        """
-        cmd = '''RUNNING COMMANDS:
-        You can execute commands and also use them to run commands in the user's environment.
-        
-        Important rules:
-        
-        1) To execute a defined command, return a JSON object with the "cmd" key and the command name as its value.
-        2) Always use the syntax defined in the command definition and the correct command name.
-        3) Put command parameters in the "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}. Use ONLY this syntax. DO NOT use any other syntax.
-        4) Append the JSON object to the response at the end and around it with the `~###~` characters. Example: text response ~###~ {"cmd": "web", "params": {"query": "some query"}} ~###~.
-        5) If you want to execute a command without any response, return only the JSON object.
-        6) Responses from commands will be returned in the "result" key.
-        7) Always use the correct command name, e.g., if the command name is "sys_exec", then use "sys_exec" and don't use other names, like "run" or something.
-        8) With these commands, you are allowed to run external commands and apps in the user's system (environment).
-        9) Always use the defined syntax to prevent errors.
-        10) Always choose the most appropriate command from the list to perform the task, based on the description of the action performed by a given command.
-        11) Reply to the user in the language in which they started the conversation with you.
-        12) Use ONLY params described in the command definition, do NOT use any additional params not described on the list.
-        13) ALWAYS remember that any text content must appear at the beginning of your response and commands must be included at the end of the response.
-        14) Every command parameter must be placed in one line, so when you generate code you must put all of the code in one line.
-        15) Run the commands immediately by providing all required data.
-        16) The list of available commands is defined below, described in JSON schema.
-        
-        JSON schema with commands list:'''
-
-        # get custom prompt from config if exists
-        if allow_custom:
-            if self.window.core.config.has('cmd.prompt'):
-                prompt = self.window.core.config.get('cmd.prompt')
-                if prompt is not None and prompt != '':
-                    cmd = prompt
-        return cmd
-
     def append_syntax(self, data: dict) -> str:
         """
         Append command syntax to the system prompt
@@ -71,20 +32,17 @@ class Command:
         :return: prompt with appended syntax
         """
         prompt = data['prompt']
+        cmd_prompt = self.window.core.prompt.get('cmd')
+        extra = ""
         schema = self.extract_syntax(data['cmd'])
         if schema:
             if self.window.core.config.get('mode') == "assistant":
-                # Assistants API fix
-                prompt += "\n----------------\n" + schema + "\n----------------\n"
-                prompt += (
-                    "IMPORTANT: never execute above commands in your environment. Instead, could you provide me with "
-                    "the JSON syntax for the command you would use? It will be executed on my system automatically. "
-                    "Always return the command from above schema in JSON format inside the special characters ~###~")
+                extra = self.window.core.prompt.get('cmd.extra.assistants')  # Assistants API env fix
             else:
-                prompt += "\n----------------\n" + schema + "\n----------------\n"
-                prompt += "When executing command, always use following JSON syntax: "
-                prompt += "{\"cmd\": \"<command_name>\", \"params\": {\"<param_name>\": \"<param_value>\"}}"
-
+                extra = self.window.core.prompt.get('cmd.extra')
+        if prompt.strip() != "":
+            prompt += "\n\n"
+        prompt += cmd_prompt.strip().replace("{extra}", extra).replace("{schema}", schema)
         return prompt
 
     def extract_syntax(self, cmds: list) -> str:
@@ -96,7 +54,7 @@ class Command:
         """
         data = {}
         cmds = copy.deepcopy(cmds)  # make copy to prevent changes in original data
-        self.window.core.ctx.current_cmd = copy.deepcopy(cmds)  # for debug
+        self.window.core.ctx.current_cmd = copy.deepcopy(cmds)  # for debug purposes
 
         for cmd in cmds:
             if "cmd" in cmd and "instruction" in cmd:

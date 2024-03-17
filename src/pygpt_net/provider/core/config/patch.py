@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import copy
@@ -1212,6 +1212,31 @@ class Patch:
                 except Exception as e:
                     print("Error while migrating interpreter files:", e)
 
+                updated = True
+
+            # < 2.1.32
+            if old < parse_version("2.1.32"):
+                print("Migrating config from < 2.1.32...")
+                if 'ctx.use_extra' not in data:
+                    data["ctx.use_extra"] = True
+
+                # old keys first
+                data['cmd.prompt'] = self.window.core.config.get_base('prompt.cmd')  # new format
+                data['cmd.prompt.extra'] = self.window.core.config.get_base('prompt.cmd.extra')  # new format
+                data['cmd.prompt.extra.assistants'] = self.window.core.config.get_base('prompt.cmd.extra.assistants')  # new format
+
+                # new keys
+                data['prompt.agent.goal'] = self.window.core.config.get_base('prompt.agent.goal')  # new format
+
+                # replace to new keys
+                self.window.core.config.replace_key(data, "img_prompt", "prompt.img")
+                self.window.core.config.replace_key(data, "ctx.auto_summary.prompt", "prompt.ctx.auto_summary.user")
+                self.window.core.config.replace_key(data, "ctx.auto_summary.system", "prompt.ctx.auto_summary.system")
+                self.window.core.config.replace_key(data, "cmd.prompt", "prompt.cmd")
+                self.window.core.config.replace_key(data, "cmd.prompt.extra", "prompt.cmd.extra")
+                self.window.core.config.replace_key(data, "cmd.prompt.extra.assistants", "prompt.cmd.extra.assistants")
+                self.window.core.config.replace_key(data, "agent.prompt.continue", "prompt.agent.continue")
+                self.window.core.config.replace_key(data, "default_prompt", "prompt.default")
                 updated = True
 
         # update file

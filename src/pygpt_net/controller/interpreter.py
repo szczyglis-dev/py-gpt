@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
 
 
 class Interpreter:
@@ -27,6 +28,7 @@ class Interpreter:
         self.window = window
         self.opened = False
         self.is_edit = False
+        self.auto_clear = True
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -52,6 +54,10 @@ class Interpreter:
         """
         if self.is_edit:
             self.disable_edit()
+
+        if self.auto_clear:
+            self.clear_output()
+
         if type == "stdin":
             data = ">> "  + str(output)
         else:
@@ -136,7 +142,7 @@ class Interpreter:
             self.window.ui.dialogs.confirm(
                 type='interpreter.clear',
                 id=0,
-                msg="Clear current window?",
+                msg=trans("interpreter.clear.confirm"),
             )
             return
         if self.is_edit:
@@ -189,10 +195,10 @@ class Interpreter:
         self.window.interpreter.setReadOnly(not self.is_edit)
 
         if self.is_edit:
-            self.window.ui.nodes['interpreter.edit_label'].setText("Edit Python code:")
+            self.window.ui.nodes['interpreter.edit_label'].setText(trans("interpreter.edit_label.edit"))
             self.load_input()
         else:
-            self.window.ui.nodes['interpreter.edit_label'].setText("Output:")
+            self.window.ui.nodes['interpreter.edit_label'].setText(trans("interpreter.edit_label.output"))
             self.load_output()
 
         self.cursor_to_end()
@@ -230,6 +236,10 @@ class Interpreter:
         :param state: State
         """
         self.window.ui.nodes['icon.interpreter'].setVisible(state)
+
+    def toggle_auto_clear(self):
+        """Toggle auto clear"""
+        self.auto_clear = self.window.ui.nodes['interpreter.auto_clear'].isChecked()
 
     def get_data(self) -> str:
         """

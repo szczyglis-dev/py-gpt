@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -31,28 +31,33 @@ class Interpreter:
         self.window.interpreter = PythonOutput(self.window)
         self.window.interpreter.setReadOnly(True)
 
-        self.window.ui.nodes['interpreter.edit_label'] = QLabel("Output:")
+        self.window.ui.nodes['interpreter.edit_label'] = QLabel(trans("interpreter.edit_label.output"))
 
-        self.window.ui.nodes['interpreter.all'] = QCheckBox("Execute all")
+        self.window.ui.nodes['interpreter.all'] = QCheckBox(trans("interpreter.all"))
         self.window.ui.nodes['interpreter.all'].setChecked(True)
-        self.window.ui.nodes['interpreter.edit'] = QCheckBox("Edit mode")
+        self.window.ui.nodes['interpreter.auto_clear'] = QCheckBox(trans("interpreter.auto_clear"))
+        self.window.ui.nodes['interpreter.auto_clear'].setChecked(True)
+        self.window.ui.nodes['interpreter.auto_clear'].clicked.connect(
+            lambda: self.window.controller.interpreter.toggle_auto_clear())
+        self.window.ui.nodes['interpreter.edit'] = QCheckBox(trans("interpreter.edit"))
         self.window.ui.nodes['interpreter.edit'].clicked.connect(
             lambda: self.window.controller.interpreter.toggle_edit())
 
         self.window.ui.nodes['interpreter.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['interpreter.btn.clear'].clicked.connect(
             lambda: self.window.controller.interpreter.clear())
-        self.window.ui.nodes['interpreter.btn.send'] = QPushButton("Send / execute")
+        self.window.ui.nodes['interpreter.btn.send'] = QPushButton(trans("interpreter.btn.send"))
         self.window.ui.nodes['interpreter.btn.send'].clicked.connect(
             lambda: self.window.controller.interpreter.send_input())
 
         self.window.ui.nodes['interpreter.input'] = PythonInput(self.window)
-        self.window.ui.nodes['interpreter.input'].setPlaceholderText("Python code to execute...")
+        self.window.ui.nodes['interpreter.input'].setPlaceholderText(trans("interpreter.input.placeholder"))
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.btn.clear'])
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.edit'])
         bottom_layout.addStretch()
+        bottom_layout.addWidget(self.window.ui.nodes['interpreter.auto_clear'])
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.all'])
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.btn.send'])
 
@@ -76,5 +81,5 @@ class Interpreter:
 
         self.window.ui.dialog['interpreter'] = InterpreterDialog(self.window)
         self.window.ui.dialog['interpreter'].setLayout(layout)
-        self.window.ui.dialog['interpreter'].setWindowTitle("Python code interpreter")
+        self.window.ui.dialog['interpreter'].setWindowTitle(trans("dialog.interpreter.title"))
         self.window.ui.dialog['interpreter'].resize(800, 500)

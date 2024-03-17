@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -28,22 +28,12 @@ class Summarizer:
         :param ctx: context item (CtxItem)
         :return: response text (generated summary)
         """
-        # default values
         model = self.window.core.models.from_defaults()
-        system_prompt = "You are an expert in conversation summarization"
-        text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
-               "Summary must be in the same language as the conversation and it will be used for conversation title " \
-               "so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\n"
-        text += "Human: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
+        system_prompt = self.window.core.prompt.get('ctx.auto_summary.system')
+        text = (self.window.core.prompt.get('ctx.auto_summary.user').
+                replace("{input}", str(ctx.input)).
+                replace("{output}", str(ctx.output)))
 
-        # custom values
-        if self.window.core.config.get('ctx.auto_summary.system') is not None \
-                and self.window.core.config.get('ctx.auto_summary.system') != "":
-            sys_prompt = self.window.core.config.get('ctx.auto_summary.system')
-        if self.window.core.config.get('ctx.auto_summary.prompt') is not None \
-                and self.window.core.config.get('ctx.auto_summary.prompt') != "":
-            text = self.window.core.config.get('ctx.auto_summary.prompt'). \
-                replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
         if self.window.core.config.get('ctx.auto_summary.model') is not None \
                 and self.window.core.config.get('ctx.auto_summary.model') != "":
             tmp_model = self.window.core.config.get('ctx.auto_summary.model')
