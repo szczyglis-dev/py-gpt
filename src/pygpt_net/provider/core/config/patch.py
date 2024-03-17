@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 13:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 import copy
@@ -1181,6 +1181,37 @@ class Patch:
                 self.window.core.plugins.reset_options("cmd_code_interpreter", [
                     "cmd.code_execute",
                 ])
+                updated = True
+
+            # < 2.1.31
+            if old < parse_version("2.1.31"):
+                print("Migrating config from < 2.1.31...")
+                self.window.core.plugins.reset_options("cmd_code_interpreter", [
+                    "cmd.code_execute",
+                ])
+                files_to_move = [
+                    {"_interpreter.current.py": ".interpreter.current.py"},
+                    {"_interpreter.py": ".interpreter.output.py"},
+                    {"_interpreter.input.py": ".interpreter.input.py"},
+                ]
+                files_to_remove = [
+                    "_interpreter.tmp.py",
+                ]
+                dir = self.window.core.config.get_user_dir("data")
+                try:
+                    for file in files_to_move:
+                        for src, dst in file.items():
+                            src = os.path.join(dir, src)
+                            dst = os.path.join(dir, dst)
+                            if os.path.exists(src):
+                                os.rename(src, dst)
+                    for file in files_to_remove:
+                        file = os.path.join(dir, file)
+                        if os.path.exists(file):
+                            os.remove(file)
+                except Exception as e:
+                    print("Error while migrating interpreter files:", e)
+
                 updated = True
 
         # update file

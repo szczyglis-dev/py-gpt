@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 15:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -83,7 +83,7 @@ class Plugin(BasePlugin):
                     "name": "path",
                     "type": "str",
                     "description": "path to save",
-                    "default": "_interpreter.current.py",
+                    "default": ".interpreter.current.py",
                     "required": True,
                 },
                 {

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 15:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 import os
@@ -27,41 +27,20 @@ class Interpreter:
         self.window = window
         self.opened = False
         self.is_edit = False
-        self.filename = "_interpreter.py"
-        self.file_current = "_interpreter.current.py"
-        self.file_input = "_interpreter.input.py"
 
-    def toggle_edit(self):
-        """Toggle edit mode"""
-        self.is_edit = self.window.ui.nodes['interpreter.edit'].isChecked()
-        self.window.interpreter.setReadOnly(not self.is_edit)
+        # interpreter data files in /data directory
+        self.file_current = ".interpreter.current.py"
+        self.file_input = ".interpreter.input.py"
+        self.file_output = ".interpreter.output.py"
 
-        if self.is_edit:
-            self.window.ui.nodes['interpreter.edit_label'].setText("Edit Python code:")
-            self.load_input()
-        else:
-            self.window.ui.nodes['interpreter.edit_label'].setText("Output:")
-            self.load()
+    def setup(self):
+        """Setup"""
+        self.load_output()
+        self.update()
 
-        self.cursor_to_end()
-
-    def cursor_to_end(self):
-        """Cursor to end"""
-        cur = self.window.interpreter.textCursor()
-        cur.movePosition(QTextCursor.End)
-        self.window.interpreter.setTextCursor(cur)
-
-    def disable_edit(self):
-        """Disable edit mode"""
-        self.window.ui.nodes['interpreter.edit'].setChecked(False)
-        self.toggle_edit()
-
-    def save_edit(self):
-        """Save edit"""
-        if not self.is_edit:
-            return
-        data = self.window.interpreter.toPlainText()
-        self.save_input(data)
+    def update(self):
+        """Update icon"""
+        self.toggle_icon(self.window.controller.plugins.is_type_enabled('interpreter'))
 
     def append_output(self, output: str, type="stdout", **kwargs):
         """
@@ -77,20 +56,26 @@ class Interpreter:
             data = ">> "  + str(output)
         else:
             data = str(output)
-        cur = self.window.interpreter.textCursor()  # Move cursor to end of text
+        cur = self.window.interpreter.textCursor()
         cur.movePosition(QTextCursor.End)
         s = data + "\n"
         while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
+            head, sep, s = s.partition("\n")
+            cur.insertText(head)
             if sep:  # New line if LF
                 cur.insertText("\n")
-        self.window.interpreter.setTextCursor(cur)  # Update visible cursor
-        self.save()
+        self.window.interpreter.setTextCursor(cur)
+        self.save_output()
 
-    def load(self):
-        """Load output"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
+    def load_input(self):
+        """Load input data from file"""
+        data = self.load_prev_input()
+        self.window.interpreter.setPlainText(data)
+        self.window.interpreter.setFocus()
+
+    def load_output(self):
+        """Load output data from file"""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
         content = ""
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
@@ -98,25 +83,15 @@ class Interpreter:
         self.window.interpreter.setPlainText(content)
         self.window.ui.nodes['interpreter.input'].setFocus()
 
-    def load_input(self):
-        """Load input"""
-        data = self.load_prev_input()
-        self.window.interpreter.setPlainText(data)
-        self.window.interpreter.setFocus()
-
-    def save(self):
-        """Save"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
+    def save_output(self):
+        """Save output data to file"""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
         with open(path, "w", encoding="utf-8") as f:
             f.write(self.window.interpreter.toPlainText())
 
-    def is_all(self) -> bool:
-        """Is all"""
-        return self.window.ui.nodes['interpreter.all'].isChecked()
-
     def load_prev_input(self) -> str:
         """
-        Load previous input
+        Load previous input data from file
 
         :return: Input data
         """
@@ -129,29 +104,13 @@ class Interpreter:
 
     def save_input(self, input: str):
         """
-        Save input
+        Save input data
 
         :param input: Input data
         """
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
         with open(path , "w", encoding="utf-8") as f:
             f.write(input)
-
-    def get_output(self) -> str:
-        """Get output"""
-        return self.window.interpreter.toPlainText()
-
-    def setup(self):
-        """Setup"""
-        self.load()
-        self.update()
-
-    def clear_output(self):
-        """Clear output"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.filename)
-        if os.path.exists(path):
-            os.remove(path)
-        self.window.interpreter.clear()
 
     def clear_input(self):
         """Clear input"""
@@ -160,9 +119,16 @@ class Interpreter:
             os.remove(path)
         self.window.interpreter.clear()
 
+    def clear_output(self):
+        """Clear output"""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        if os.path.exists(path):
+            os.remove(path)
+        self.window.interpreter.clear()
+
     def clear(self, force: bool = False):
         """
-        Clear
+        Clear current window
 
         :param force: Force clear
         """
@@ -179,25 +145,14 @@ class Interpreter:
             self.clear_output()
 
     def clear_all(self):
-        """Clear all"""
+        """Clear input and output"""
         self.clear_output()
         self.clear_input()
 
-    def open(self):
-        """Open"""
-        self.opened = True
-        self.window.ui.dialogs.open('interpreter', width=800, height=600)
-        self.window.ui.nodes['interpreter.input'].setFocus()
-        self.cursor_to_end()
-
-    def close(self):
-        """Close"""
-        self.opened = False
-        self.window.ui.dialogs.close('interpreter')
-
-
     def send_input(self):
-        """Send input"""
+        """Send input to interpreter"""
+
+        # switch to output mode if edit mode is enabled
         if self.is_edit:
             self.save_edit()
             self.disable_edit()
@@ -215,7 +170,7 @@ class Interpreter:
                 "cmd": cmd,
                 "params": {
                     "code": input,
-                    "path": "_interpreter.tmp.py"
+                    "path": self.file_current,
                 },
                 "silent": True,
             }
@@ -228,8 +183,41 @@ class Interpreter:
         self.window.ui.nodes['interpreter.input'].clear()
         self.window.ui.nodes['interpreter.input'].setFocus()
 
+    def toggle_edit(self):
+        """Toggle edit mode"""
+        self.is_edit = self.window.ui.nodes['interpreter.edit'].isChecked()
+        self.window.interpreter.setReadOnly(not self.is_edit)
+
+        if self.is_edit:
+            self.window.ui.nodes['interpreter.edit_label'].setText("Edit Python code:")
+            self.load_input()
+        else:
+            self.window.ui.nodes['interpreter.edit_label'].setText("Output:")
+            self.load_output()
+
+        self.cursor_to_end()
+
+    def save_edit(self):
+        """Save edit data to file"""
+        if not self.is_edit:
+            return
+        data = self.window.interpreter.toPlainText()
+        self.save_input(data)
+
+    def open(self):
+        """Open interpreter dialog"""
+        self.opened = True
+        self.window.ui.dialogs.open('interpreter', width=800, height=600)
+        self.window.ui.nodes['interpreter.input'].setFocus()
+        self.cursor_to_end()
+
+    def close(self):
+        """Close interpreter dialog"""
+        self.opened = False
+        self.window.ui.dialogs.close('interpreter')
+
     def toggle(self):
-        """Toggle"""
+        """Toggle interpreter dialog open/close"""
         if self.opened:
             self.close()
         else:
@@ -237,12 +225,35 @@ class Interpreter:
 
     def toggle_icon(self, state: bool):
         """
-        Toggle icon
+        Toggle interpreter icon
 
         :param state: State
         """
         self.window.ui.nodes['icon.interpreter'].setVisible(state)
 
-    def update(self):
-        """Update"""
-        self.toggle_icon(self.window.controller.plugins.is_type_enabled('interpreter'))
+    def get_data(self) -> str:
+        """
+        Get current data from interpreter
+
+        :return: Output data
+        """
+        return self.window.interpreter.toPlainText()
+
+    def is_all(self) -> bool:
+        """
+        Check if execute all is enabled
+
+        :return: True if execute all is enabled
+        """
+        return self.window.ui.nodes['interpreter.all'].isChecked()
+
+    def cursor_to_end(self):
+        """Move cursor to end"""
+        cur = self.window.interpreter.textCursor()
+        cur.movePosition(QTextCursor.End)
+        self.window.interpreter.setTextCursor(cur)
+
+    def disable_edit(self):
+        """Disable edit mode"""
+        self.window.ui.nodes['interpreter.edit'].setChecked(False)
+        self.toggle_edit()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 15:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 import os.path
@@ -25,8 +25,6 @@ class Runner:
         """
         self.plugin = plugin
         self.signals = None
-        self.file_current = "_interpreter.current.py"
-        self.file_input = "_interpreter.input.py"
 
     def send_interpreter_input(self, data: str):
         """
@@ -155,8 +153,9 @@ class Runner:
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
             filename=path,
         )
+
         # read file
-        with open(path, 'r', encoding="utf-8") as file:
+        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
             code = file.read()
             self.append_input(code)
             self.send_interpreter_input(code)  # send input to interpreter
@@ -167,7 +166,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
         }
 
     def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -182,20 +181,21 @@ class Runner:
         """
         data = item["params"]['code']
         if not all:
-            path = self.file_current
+            path = self.plugin.window.controller.interpreter.file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=True)
-            with open(path, 'w', encoding="utf-8") as file:
+            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
-            path = self.prepare_path(self.file_input)
+            path = self.plugin.window.controller.interpreter.file_input
 
         self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
+        path = self.prepare_path(path, on_host=False)
         msg = "Executing Python code: {}".format(item["params"]['code'])
         self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
@@ -207,7 +207,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -230,7 +230,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
         }
 
     def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
@@ -244,7 +244,7 @@ class Runner:
         """
         msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg)
-        path = self.prepare_path(item["params"]['path'])
+        path = self.prepare_path(item["params"]['path'], on_host=True)
 
         # check if file exists
         if not os.path.isfile(path):
@@ -273,7 +273,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
         }
 
     def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
@@ -289,16 +289,16 @@ class Runner:
         # write code to file
         data = item["params"]['code']
         if not all:
-            path = self.file_current
+            path = self.plugin.window.controller.interpreter.file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
+            path = self.prepare_path(path, on_host=True)
             msg = "Saving Python file: {}".format(path)
             self.log(msg)
-            path = self.prepare_path(path)
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
-            path = self.prepare_path(self.file_input)
+            path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
 
         self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
@@ -317,7 +317,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
         }
 
     def append_input(self, data: str):
@@ -327,7 +327,7 @@ class Runner:
         :param data: input data
         """
         content = ""
-        path = self.prepare_path(self.file_input)
+        path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
         if os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -363,7 +363,7 @@ class Runner:
         return {
             "request": request,
             "result": result,
-            "context": result,
+            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
         }
 
     def is_absolute_path(self, path: str) -> bool:
@@ -375,17 +375,18 @@ class Runner:
         """
         return os.path.isabs(path)
 
-    def prepare_path(self, path: str) -> str:
+    def prepare_path(self, path: str, on_host: bool = True) -> str:
         """
         Prepare path
 
         :param path: path to prepare
+        :param on_host: is on host
         :return: prepared path
         """
         if self.is_absolute_path(path):
             return path
         else:
-            if not self.is_sandbox():
+            if not self.is_sandbox() or on_host:
                 return os.path.join(
                     self.plugin.window.core.config.get_user_dir('data'),
                     path,

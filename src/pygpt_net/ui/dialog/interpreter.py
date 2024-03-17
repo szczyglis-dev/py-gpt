@@ -6,22 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 15:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QSplitter, QCheckBox, QLabel, QWidget
 
 from pygpt_net.ui.widget.dialog.interpreter import InterpreterDialog
-from pygpt_net.ui.widget.textarea.python_input import PythonInput
-from pygpt_net.ui.widget.textarea.python_output import PythonOutput
+from pygpt_net.ui.widget.textarea.interpreter import PythonInput, PythonOutput
 from pygpt_net.utils import trans
 
 
 class Interpreter:
     def __init__(self, window=None):
         """
-        Interpreter dialog
+        Python interpreter dialog
 
         :param window: Window instance
         """
