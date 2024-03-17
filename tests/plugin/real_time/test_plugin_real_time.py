@@ -44,5 +44,5 @@ def test_handle_system_prompt(mock_window):
     plugin.options["date"]["value"] = True
     plugin.options["tpl"]["value"] = "Current time is PLACEHOLDER_HERE"
     plugin.handle(event)
-    assert event.data["value"] == "prev promptCurrent time is PLACEHOLDER_HERE"
+    assert event.data["value"] == "prev prompt\n\nCurrent time is PLACEHOLDER_HERE"
 
