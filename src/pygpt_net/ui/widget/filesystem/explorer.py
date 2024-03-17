@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QModelIndex
+from PySide6.QtCore import Qt, QModelIndex, QDir
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
     QPushButton, QSizePolicy
@@ -40,6 +40,7 @@ class FileExplorer(QWidget):
         self.directory = directory
         self.model = IndexedFileSystemModel(self.window, self.index_data)
         self.model.setRootPath(directory)
+        self.model.setFilter(self.model.filter() | QDir.Hidden)  # show hidden files
 
         self.treeView = QTreeView()
         self.treeView.setModel(self.model)
@@ -261,6 +262,17 @@ class FileExplorer(QWidget):
                     lambda: self.window.controller.files.use_attachment(path),
                 )
 
+                # by type
+                if self.window.core.filesystem.is_image(path):
+                    actions['use_as_image'] = QAction(
+                        QIcon(":/icons/brush.svg"),
+                        trans('action.use.image'),
+                        self,
+                    )
+                    actions['use_as_image'].triggered.connect(
+                        lambda: self.window.controller.painter.open_external(path),
+                    )
+
             # copy work path
             actions['use_copy_work_path'] = QAction(
                 QIcon(":/icons/copy.svg"),
@@ -290,6 +302,8 @@ class FileExplorer(QWidget):
             # add actions to menu
             if not os.path.isdir(path):
                 use_menu.addAction(actions['use_attachment'])
+            if "use_as_image" in actions:
+                use_menu.addAction(actions['use_as_image'])
             use_menu.addAction(actions['use_copy_work_path'])
             use_menu.addAction(actions['use_copy_sys_path'])
             use_menu.addAction(actions['use_read_cmd'])

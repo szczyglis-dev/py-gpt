@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 import os
@@ -42,6 +42,17 @@ class Painter:
         :param path: path to image
         """
         self.window.ui.painter.open_image(path)
+        self.window.ui.status("Image loaded: " + os.path.basename(path))
+
+    def open_external(self, path: str):
+        """
+        Open image from file (from external)
+
+        :param path: path to image
+        """
+        self.open(path)
+        if not self.is_active():
+            self.window.controller.ui.switch_tab('draw')
 
     def save(self):
         """Store current image"""
