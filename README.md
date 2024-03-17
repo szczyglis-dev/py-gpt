@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.31** | build: **2024.03.17** | Python: **>=3.10, <3.12**
+Release: **2.1.32** | build: **2024.03.17** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2891,6 +2891,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.32 (2024-03-17)
+
+- Global prompts config moved to a separated settings section "Prompts".
+- Added auto-clear option in code interpreter.
+- Added "Use extra context output" config option in "Settings -> Context".
 
 # 2.1.31 (2024-03-17)
 

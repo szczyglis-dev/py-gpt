@@ -55,9 +55,6 @@ class Interpreter:
         if self.is_edit:
             self.disable_edit()
 
-        if self.auto_clear:
-            self.clear_output()
-
         if type == "stdin":
             data = ">> "  + str(output)
         else:
@@ -162,6 +159,9 @@ class Interpreter:
         if self.is_edit:
             self.save_edit()
             self.disable_edit()
+
+        if self.auto_clear:
+            self.clear_output()
 
         input = str(self.window.ui.nodes['interpreter.input'].toPlainText())
         if self.is_all():

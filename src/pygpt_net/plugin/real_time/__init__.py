@@ -53,7 +53,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "tpl",
             type="textarea",
-            value=" Current time is {time}.",
+            value="Current time is {time}.",
             label="Template",
             description=desc,
             tooltip=tooltip,
@@ -104,6 +104,8 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         if self.get_option_value("hour") or self.get_option_value("date"):
+            if prompt.strip() != "":
+                prompt += "\n\n"
             if self.get_option_value("hour") and self.get_option_value("date"):
                 prompt += self.get_option_value("tpl").\
                     format(time=datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S'))

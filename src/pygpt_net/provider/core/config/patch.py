@@ -1220,6 +1220,10 @@ class Patch:
                 if 'ctx.use_extra' not in data:
                     data["ctx.use_extra"] = True
 
+                self.window.core.plugins.reset_options("real_time", [
+                    "tpl",
+                ])
+
                 # old keys first
                 data['cmd.prompt'] = self.window.core.config.get_base('prompt.cmd')  # new format
                 data['cmd.prompt.extra'] = self.window.core.config.get_base('prompt.cmd.extra')  # new format

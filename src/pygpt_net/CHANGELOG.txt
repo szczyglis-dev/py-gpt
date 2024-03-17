@@ -1,3 +1,9 @@
+2.1.32 (2024-03-17)
+
+- Global prompts config moved to a separated settings section "Prompts".
+- Added auto-clear option in code interpreter.
+- Added "Use extra context output" config option in "Settings -> Context".
+
 2.1.31 (2024-03-17)
 
 - Improved code interpreter integration with sandbox/docker.
