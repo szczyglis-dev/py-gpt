@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import os.path
@@ -40,7 +40,7 @@ class Runner:
         Send output to interpreter
 
         :param data: output text
-        :param type: output type
+        :param type: output type (stdout/stderr)
         """
         if self.signals is not None:
             self.signals.output.emit(data, type)
@@ -138,101 +138,6 @@ class Runner:
             stderr=True,
         )
 
-    def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute code from file in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        path = item["params"]['path']
-        msg = "Executing Python file: {}".format(path)
-        self.log(msg, sandbox=True)
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=path,
-        )
-
-        # read file
-        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
-            code = file.read()
-            self.append_input(code)
-            self.send_interpreter_input(code)  # send input to interpreter
-
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        response = self.run_docker(cmd)
-        result = self.handle_result_docker(response)
-        return {
-            "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
-        }
-
-    def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
-        """
-        Execute code in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :param all: execute all
-        :return: response dict
-        """
-        data = item["params"]['code']
-        if not all:
-            path = self.plugin.window.controller.interpreter.file_current
-            if "path" in item["params"]:
-                path = item["params"]['path']
-            msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=True)
-            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
-                file.write(data)
-        else:
-            path = self.plugin.window.controller.interpreter.file_input
-
-        self.append_input(data)
-        self.send_interpreter_input(data)  # send input to interpreter
-
-        # run code
-        path = self.prepare_path(path, on_host=False)
-        msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=True)
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=path,
-        )
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        response = self.run_docker(cmd)
-        result = self.handle_result_docker(response)
-        return {
-            "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
-        }
-
-    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute system command in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg, sandbox=True)
-        self.log(
-            "Running command: {}".format(item["params"]['command']),
-            sandbox=True,
-        )
-        response = self.run_docker(item["params"]['command'])
-        result = self.handle_result_docker(response)
-        return {
-            "request": request,
-            "result": result,
-            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
-        }
-
     def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
         """
         Execute code from file on host machine
@@ -253,11 +158,13 @@ class Runner:
                 "result": "File not found",
             }
 
-        # read file
+        """
+        # send input to interpreter
         with open(path, 'r', encoding="utf-8") as file:
             code = file.read()
             self.append_input(code)
             self.send_interpreter_input(code)  # send input to interpreter
+        """
 
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
@@ -270,6 +177,39 @@ class Runner:
         )
         stdout, stderr = process.communicate()
         result = self.handle_result(stdout, stderr)
+        return {
+            "request": request,
+            "result": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+        }
+
+    def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
+        """
+        Execute code from file in sandbox (docker)
+
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :return: response dict
+        """
+        path = item["params"]['path']
+        msg = "Executing Python file: {}".format(path)
+        self.log(msg, sandbox=True)
+        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
+            filename=path,
+        )
+
+        """
+        # send input to interpreter
+        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+            code = file.read()
+            self.append_input(code)
+            self.send_interpreter_input(code)  # send input to interpreter
+        """
+
+        self.log("Running command: {}".format(cmd), sandbox=True)
+        response = self.run_docker(cmd)
+        result = self.handle_result_docker(response)
         return {
             "request": request,
             "result": result,
@@ -320,25 +260,46 @@ class Runner:
             "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
         }
 
-    def append_input(self, data: str):
+    def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """
-        Append input to file
+        Execute code in sandbox (docker)
 
-        :param data: input data
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :param all: execute all
+        :return: response dict
         """
-        content = ""
-        path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
-        if os.path.isfile(path):
-            with open(path, "r", encoding="utf-8") as f:
-                content = f.read()
-        with open(path, "a", encoding="utf-8") as f:
-            nl = ""
-            if content != "":
-                nl = "\n"
-            if data != "":
-                f.write(nl + data)
-            else:
-                f.write("")
+        data = item["params"]['code']
+        if not all:
+            path = self.plugin.window.controller.interpreter.file_current
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            msg = "Saving Python file: {}".format(path)
+            self.log(msg, sandbox=True)
+            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+                file.write(data)
+        else:
+            path = self.plugin.window.controller.interpreter.file_input
+
+        self.append_input(data)
+        self.send_interpreter_input(data)  # send input to interpreter
+
+        # run code
+        path = self.prepare_path(path, on_host=False)
+        msg = "Executing Python code: {}".format(item["params"]['code'])
+        self.log(msg, sandbox=True)
+        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
+            filename=path,
+        )
+        self.log("Running command: {}".format(cmd), sandbox=True)
+        response = self.run_docker(cmd)
+        result = self.handle_result_docker(response)
+        return {
+            "request": request,
+            "result": result,
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+        }
 
     def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
@@ -365,6 +326,49 @@ class Runner:
             "result": result,
             "context": "SYS OUTPUT:\n--------------------------------\n" + result,
         }
+
+    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
+        """
+        Execute system command in sandbox (docker)
+
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :return: response dict
+        """
+        msg = "Executing system command: {}".format(item["params"]['command'])
+        self.log(msg, sandbox=True)
+        self.log(
+            "Running command: {}".format(item["params"]['command']),
+            sandbox=True,
+        )
+        response = self.run_docker(item["params"]['command'])
+        result = self.handle_result_docker(response)
+        return {
+            "request": request,
+            "result": result,
+            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
+        }
+
+    def append_input(self, data: str):
+        """
+        Append input to file
+
+        :param data: input data
+        """
+        content = ""
+        path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
+        if os.path.isfile(path):
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+        with open(path, "a", encoding="utf-8") as f:
+            nl = ""
+            if content != "":
+                nl = "\n"
+            if data != "":
+                f.write(nl + data)
+            else:
+                f.write("")
 
     def is_absolute_path(self, path: str) -> bool:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 import json
@@ -229,11 +229,11 @@ class Dispatcher:
 
                 # prepare data to send as reply
                 data = json.dumps(ctx.results)
-                if ctx.extra_ctx:
+                if ctx.extra_ctx and self.window.core.config.get("ctx.use_extra"):
                     data = ctx.extra_ctx  # if extra content is set, use it as data to send
 
                 prev_ctx = self.window.core.ctx.as_previous(ctx)  # copy result to previous ctx and clear current ctx
-                self.window.core.ctx.update_item(ctx)  # update context in db (cleared, no results)
+                self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
                 self.window.controller.chat.input.send(
                     text=data,

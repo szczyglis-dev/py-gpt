@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.03.17 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -110,6 +110,13 @@ class Mapping:
         nodes['input.cancel_btn'] = 'input.btn.cancel'
         nodes['input.stop_btn'] = 'input.btn.stop'
         nodes['input.stream'] = 'input.stream'
+
+        # interpreter
+        nodes['interpreter.all'] = 'interpreter.all'
+        nodes['interpreter.auto_clear'] = 'interpreter.auto_clear'
+        nodes['interpreter.edit'] = 'interpreter.edit'
+        nodes['interpreter.btn.clear'] = 'dialog.logger.btn.clear'
+        nodes['interpreter.btn.send'] = 'interpreter.btn.send'
 
         # assistants
         nodes['assistants.label'] = 'toolbox.assistants.label'
@@ -279,6 +286,7 @@ class Mapping:
         dialog_title['editor.assistants'] = 'dialog.assistant'
         dialog_title['editor.preset.presets'] = 'dialog.preset'
         dialog_title['image'] = 'dialog.image.title'
+        dialog_title['interpreter'] = 'dialog.interpreter.title'
         dialog_title['rename'] = 'dialog.rename.title'
         dialog_title['update'] = 'update.title'
 
@@ -302,6 +310,7 @@ class Mapping:
         # placeholders
         placeholders = {}
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
+        placeholders['interpreter.input'] = 'interpreter.input.placeholder'
 
         # mapping
         mapping = {}
