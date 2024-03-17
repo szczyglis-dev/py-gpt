@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.17 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -170,3 +170,22 @@ class UI:
         elif idx == self.tab_idx['draw']:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
+
+    def switch_tab(self, tab: str):
+        """
+        Switch tab
+
+        :param tab: tab name
+        """
+        if tab in self.tab_idx:
+            idx = self.tab_idx[tab]
+            self.switch_tab_by_idx(idx)
+
+    def switch_tab_by_idx(self, idx: int):
+        """
+        Switch tab by index
+
+        :param idx: tab index
+        """
+        self.window.ui.tabs['output'].setCurrentIndex(idx)
+        self.output_tab_changed(idx)

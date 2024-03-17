@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.1.30",
-    "app.version": "2.1.30",
-    "updated_at": "2024-03-165T00:00:00"
+    "version": "2.1.31",
+    "app.version": "2.1.31",
+    "updated_at": "2024-03-17T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
