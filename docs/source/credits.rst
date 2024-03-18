@@ -29,6 +29,7 @@ GitHub community:
 
 * **gfsysa**
 * **kaneda2004**
+* **linnflux**
 * **moritz-t-w**
 * **oleksii-honchar**
 * **yf007**

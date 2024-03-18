@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.18 05:00:00                  #
 # ================================================== #
 
 import os
@@ -36,6 +36,7 @@ class About:
         return [
             "gfsysa",
             "kaneda2004",
+            "linnflux",
             "moritz-t-w",
             "oleksii-honchar",
             "yf007",
