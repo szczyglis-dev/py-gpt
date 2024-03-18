@@ -40,3 +40,13 @@ QListView::item {{
   font-weight: bold;
   text-decoration: none;
 }}
+.interpreter-input {{
+  font-family: 'Monospace';
+}}
+.interpreter-output,
+.code-editor {{
+  font-family: 'Monospace';
+  color: #000;
+  background: #232629; 
+  color: #fff;
+}}

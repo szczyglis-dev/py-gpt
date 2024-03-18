@@ -1,8 +1,11 @@
+* {{
+    font-family: 'Lato, Monospace';
+}}
 body {{ 
-  word-wrap: break-word;
+    word-wrap: break-word;
 }}
 p {{ 
-  color: #000;
+    color: #000;
 }}
 a {{
     color: #000;
@@ -31,7 +34,7 @@ a {{
 pre {{
     color: #000;
     background-color: #e9e9e9;
-    font-family: 'Lato';
+    font-family: 'Monospace';
     display: block;
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -39,4 +42,5 @@ pre {{
 code {{
     color: #000;
     word-wrap: break-word;
+    font-family: 'Monospace';
 }}

@@ -1,6 +1,9 @@
+* {{
+    font-family: 'Lato, Monospace'; 
+}}
 body {{ 
-  color: #fff;
-  word-wrap: break-word;
+    color: #fff;
+    word-wrap: break-word;
 }}
 a {{
     color: #fff;
@@ -19,6 +22,7 @@ a {{
 }}
 .cmd {{
     color: #4d4d4d;
+    font-family: 'Lato';
 }}
 .ts {{
     color: #4d4d4d;
@@ -28,7 +32,7 @@ a {{
 pre {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     background-color: #202225;
-    font-family: 'Lato';
+    font-family: 'Monospace';
     display: block;
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -36,4 +40,5 @@ pre {{
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     word-wrap: break-word;
+    font-family: 'Monospace'; 
 }}

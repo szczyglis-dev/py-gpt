@@ -2,7 +2,7 @@
   font-family: 'Lato' !important; 
 }}
 QWidget {{
-    background-color: #e7e7e7;
+  background-color: #e7e7e7;
 }}
 
 QListView, 
@@ -66,4 +66,13 @@ QListView::item {{
 }}
 .label-chat-status {{
   color: #414141;
+}}
+.interpreter-input {{
+  font-family: 'Monospace';
+}}
+.interpreter-output,
+.code-editor {{
+  font-family: 'Monospace';
+  background: #fff; 
+  color: #000;
 }}
