@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.33 (2024-03-18)
+
+- Code interpreter enabled even if interpreter plugin is disabled.
+- Added "Connect to the Python code interpreter window" config option in Code interpreter plugin.
+- Added Monospace font support - issue #37.
+- Improved raw JSON command outputs.
+
 # 2.1.32 (2024-03-17)
 
 - Global prompts config moved to a separated settings section "Prompts".
