@@ -1650,6 +1650,10 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 Automatically append current working directory to `sys_exec` command. *Default:* `True`
 
+- `Connect to the Python code interpreter window` *attach_output*
+
+Automatically attach code input/output to the Python code interpreter window. *Default:* `True`
+
 
 ## Command: Custom Commands
 

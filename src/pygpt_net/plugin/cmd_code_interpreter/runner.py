@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 import os.path
@@ -352,10 +352,13 @@ class Runner:
 
     def append_input(self, data: str):
         """
-        Append input to file
+        Append input to interpreter input file
 
         :param data: input data
         """
+        if not self.plugin.get_option_value("attach_output"):
+            return
+
         content = ""
         path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
         if os.path.isfile(path):
