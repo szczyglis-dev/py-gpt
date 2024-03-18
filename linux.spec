@@ -23,6 +23,7 @@ a = Analysis(
         ('src/pygpt_net/data/locale/*', 'data/locale'),
         ('src/pygpt_net/data/css/*', 'data/css'),
         ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),
+        ('src/pygpt_net/data/fonts/SpaceMono/*', 'data/fonts/SpaceMono'),
         ('src/pygpt_net/data/logo.png', 'data'),
         ('src/pygpt_net/data/icon.ico', 'data'),
         ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),

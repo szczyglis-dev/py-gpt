@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 17:00:00                  #
+# Updated Date: 2024.03.18 04:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QTextBrowser
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.logger import LoggerDialog
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
 from pygpt_net.utils import trans
 
 
@@ -26,7 +27,7 @@ class Logger:
 
     def setup(self):
         """Setup logger dialog"""
-        self.window.logger = QTextBrowser()
+        self.window.logger = CodeEditor(self.window)
         self.window.logger.setReadOnly(True)
 
         self.window.ui.nodes['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))

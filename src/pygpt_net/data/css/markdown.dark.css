@@ -1,5 +1,5 @@
 * {{
-    font-family: 'Lato, Monospace'; 
+    font-family: 'Lato'; 
 }}
 body {{ 
     color: #fff;
@@ -32,7 +32,7 @@ a {{
 pre {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     background-color: #202225;
-    font-family: 'Monospace';
+    font-family: 'Space Mono';
     display: block;
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -40,5 +40,5 @@ pre {{
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     word-wrap: break-word;
-    font-family: 'Monospace'; 
+    font-family: 'Space Mono';
 }}

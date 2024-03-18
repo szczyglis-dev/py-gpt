@@ -68,11 +68,11 @@ QListView::item {{
   color: #414141;
 }}
 .interpreter-input {{
-  font-family: 'Monospace';
+  font-family: 'Space Mono';
 }}
 .interpreter-output,
 .code-editor {{
-  font-family: 'Monospace';
+  font-family: 'Space Mono';
   background: #fff; 
   color: #000;
 }}
