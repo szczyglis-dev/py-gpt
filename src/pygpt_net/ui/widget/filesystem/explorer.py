@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.18 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -179,7 +179,6 @@ class FileExplorer(QWidget):
             path = self.model.filePath(index)
             actions = {}
 
-            """
             # play
             if self.window.core.filesystem.is_video(path):
                 actions['play_video'] = QAction(
@@ -190,7 +189,6 @@ class FileExplorer(QWidget):
                 actions['play_video'].triggered.connect(
                     lambda: self.window.controller.video.play(path),
                 )
-            """
 
             # open file
             actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
@@ -258,10 +256,8 @@ class FileExplorer(QWidget):
             )
 
             menu = QMenu(self)
-            """
             if "play_video" in actions:
                 menu.addAction(actions['play_video'])
-            """
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
 

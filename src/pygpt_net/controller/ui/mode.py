@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 01:00:00                  #
+# Updated Date: 2024.03.18 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -78,7 +78,8 @@ class Mode:
 
         # vision
         show = self.is_vision(mode)
-        self.window.ui.menu['menu.video'].menuAction().setVisible(show)
+        self.window.ui.menu['video.capture'].setVisible(show)
+        self.window.ui.menu['video.capture.auto'].setVisible(show)
         self.window.ui.nodes['icon.video.capture'].setVisible(show)
         # self.window.ui.nodes['vision.capture.options'].setVisible(show)
         self.window.ui.nodes['attachments.capture_clear'].setVisible(show)
@@ -100,7 +101,11 @@ class Mode:
             self.show_chat_footer()
 
     def is_vision(self, mode: str) -> bool:
-        """Check if vision is allowed"""
+        """
+        Check if vision is allowed
+
+        :param mode: current mode
+        """
         if mode == "vision":
             return True
 

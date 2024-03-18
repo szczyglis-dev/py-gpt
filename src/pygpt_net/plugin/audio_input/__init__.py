@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 19:00:00                  #
+# Updated Date: 2024.03.18 10:00:00                  #
 # ================================================== #
 
 import os
@@ -653,7 +653,10 @@ class Plugin(BasePlugin):
             else:
                 self.set_status('...')
                 self.window.ui.status(trans('audio.speak.sending'))
-                self.window.controller.chat.input.send(text)  # send text, input clear in send method
+                prefix = ""
+                if self.window.controller.agent.enabled():
+                    prefix = "user: "
+                self.window.controller.chat.input.send(prefix + text)  # send text, input clear in send method
                 self.set_status('')
 
     @Slot(object)

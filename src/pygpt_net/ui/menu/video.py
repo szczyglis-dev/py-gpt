@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.18 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -45,7 +45,6 @@ class Video:
             lambda: self.window.controller.camera.toggle_auto(self.window.ui.menu['video.capture.auto'].isChecked())
         )
 
-        """
         self.window.ui.menu['video.player'] = QAction(
             trans("menu.video.player"),
             self.window,
@@ -55,11 +54,10 @@ class Video:
         self.window.ui.menu['video.player'].triggered.connect(
             lambda: self.window.controller.video.show_hide_player(self.window.ui.menu['video.player'].isChecked())
         )
-        """
 
         self.window.ui.menu['menu.video'] = self.window.menuBar().addMenu(trans("menu.video"))
         self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.capture'])
         self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.capture.auto'])
         self.window.ui.menu['menu.video'].addSeparator()
-        # self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.player'])
+        self.window.ui.menu['menu.video'].addAction(self.window.ui.menu['video.player'])
         self.window.ui.menu['menu.video'].setToolTipsVisible(True)

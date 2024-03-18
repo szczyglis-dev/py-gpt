@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.18 10:00:00                  #
 # ================================================== #
 
 class Video:
@@ -37,6 +37,7 @@ class Video:
         :param path: video file path
         """
         self.window.ui.dialogs.open('video_player', width=800, height=600)
+        self.window.video_player.force_resize()
         self.is_player = True
         self.update()
         self.window.video_player.open(path)
@@ -44,24 +45,36 @@ class Video:
     def open_player(self):
         """Open player"""
         self.window.ui.dialogs.open('video_player', width=800, height=600)
+        self.window.video_player.force_resize()
         self.is_player = True
         self.update()
 
     def close_player(self):
         """Close logger player"""
+        self.on_close()
         self.window.ui.dialogs.close('video_player')
         self.is_player = False
         self.update()
 
+    def on_close(self):
+        """On player window close"""
+        self.is_player = False
+        self.update()
+        self.window.video_player.on_close()
+
     def toggle_player(self):
-        """Toggle player"""
+        """Toggle player window"""
         if self.is_player:
             self.close_player()
         else:
             self.open_player()
 
     def show_hide_player(self, show: bool = True):
-        """Show/hide player"""
+        """
+        Show/hide player window
+
+        :param show: show/hide
+        """
         if show:
             self.open_player()
         else:
