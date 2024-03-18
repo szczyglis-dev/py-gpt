@@ -12,10 +12,11 @@
 import os
 
 from PySide6.QtGui import QTextCursor, Qt
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.applog import AppLogDialog
 from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
 
 
 class AppLog:
@@ -31,7 +32,7 @@ class AppLog:
         """Setup app log dialog"""
         id = 'app.log'
 
-        self.window.ui.editor[id] = QPlainTextEdit()
+        self.window.ui.editor[id] = CodeEditor(self.window)
         self.window.ui.editor[id].setReadOnly(True)
 
         self.window.ui.nodes['editor.app.log.btn.open'] = QPushButton("OPEN (EXTERNAL)")

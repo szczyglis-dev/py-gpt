@@ -6,18 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.18 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QGridLayout, QScrollArea, QSplitter, QPlainTextEdit, QComboBox, QLineEdit, QPushButton, \
+from PySide6.QtWidgets import QGridLayout, QScrollArea, QSplitter, QComboBox, QLineEdit, QPushButton, \
     QHBoxLayout, QVBoxLayout, QLabel, QWidget, QSizePolicy, QCheckBox, QMenuBar
 
 from pygpt_net.ui.widget.dialog.db import DatabaseDialog
 from pygpt_net.ui.widget.lists.db import DatabaseList, DatabaseTableModel
 
 import pygpt_net.icons_rc
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
+
 
 class Database:
     def __init__(self, window=None):
@@ -42,7 +44,7 @@ class Database:
         scroll.setWidgetResizable(True)
 
         # data viewer
-        text_viewer = QPlainTextEdit()
+        text_viewer = CodeEditor(self.window)
         text_viewer.setReadOnly(False)
 
         self.window.ui.debug[id].browser = self.viewer
