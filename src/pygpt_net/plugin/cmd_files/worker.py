@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -1032,10 +1032,17 @@ class Worker(BaseWorker):
                     path,
                     use_loaders=self.plugin.get_option_value("use_loaders"),
                 )
+                data.append({
+                    "path": os.path.basename(path),
+                    "content": content,
+                })
                 context.append(os.path.basename(path) + ":\n--------------------------------\n" + content)
                 self.log("File read: {}".format(path))
             else:
                 self.log("File not found: {}".format(path))
-                data.append("File not found: {}".format(path))
+                data.append({
+                    "path": os.path.basename(path),
+                    "content": "File not found",
+                })
 
         return data, context
