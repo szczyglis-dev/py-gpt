@@ -258,6 +258,7 @@ class VideoPlayerWidget(QWidget):
         if self.mediaPlayer.mediaStatus() == QMediaPlayer.LoadedMedia:
             if self.mediaPlayer.playbackState() != QMediaPlayer.PlayingState:
                 self.toggle_play_pause()
+                self.force_resize()
 
     def force_resize(self):
         """Force resize fix"""

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.34 (2024-03-18)
+
+- Added video player.
+- Fixed audio input message append in agent mode.
+
 # 2.1.33 (2024-03-18)
 
 - Code interpreter enabled even if interpreter plugin is disabled.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.33** | build: **2024.03.18** | Python: **>=3.10, <3.12**
+Release: **2.1.34** | build: **2024.03.18** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2895,6 +2895,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.34 (2024-03-18)
+
+- Added video player.
+- Fixed audio input message append in agent mode.
 
 # 2.1.33 (2024-03-18)
 
