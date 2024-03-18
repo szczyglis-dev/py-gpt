@@ -21,11 +21,14 @@ parts:
     stage-packages:
       - portaudio19-dev
       - ffmpeg
+      - gstreamer1.0-libav
       - docker
       - libxcb-cursor0
+      - ubuntu-restricted-extras
     build-packages:
       - execstack
       - portaudio19-dev
+      - gstreamer1.0-libav
       - libxcb-cursor0
     override-build: |
       snapcraftctl build
