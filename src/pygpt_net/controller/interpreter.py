@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 import os
@@ -42,7 +42,10 @@ class Interpreter:
 
     def update(self):
         """Update icon"""
+        pass
+        """
         self.toggle_icon(self.window.controller.plugins.is_type_enabled('interpreter'))
+        """
 
     def append_output(self, output: str, type="stdout", **kwargs):
         """
@@ -154,7 +157,6 @@ class Interpreter:
 
     def send_input(self):
         """Send input to interpreter"""
-
         # switch to output mode if edit mode is enabled
         if self.is_edit:
             self.save_edit()
@@ -185,7 +187,7 @@ class Interpreter:
             'commands': commands,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch(event)
+        self.window.controller.command.dispatch_only(event)
         self.window.ui.nodes['interpreter.input'].clear()
         self.window.ui.nodes['interpreter.input'].setFocus()
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -36,7 +36,7 @@ from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
 from pygpt_net.controller.theme import Theme
 from pygpt_net.controller.ui import UI
-
+from pygpt_net.controller.video import Video
 
 class Controller:
     def __init__(self, window=None):
@@ -72,6 +72,7 @@ class Controller:
         self.presets = Presets(window)
         self.settings = Settings(window)
         self.theme = Theme(window)
+        self.video = Video(window)
         self.ui = UI(window)
 
     def setup(self):

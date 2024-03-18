@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -25,10 +25,21 @@ class PythonInput(QTextEdit):
         super(PythonInput, self).__init__(window)
         self.window = window
         self.setAcceptRichText(False)
-        self.value = self.window.core.config.data['font_size.input']
+        self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
+        self.setProperty('class', 'interpreter-input')
+        self.default_stylesheet = ""
+        self.setStyleSheet(self.default_stylesheet)
         self.setFocus()
+
+    def update_stylesheet(self, data: str):
+        """
+        Update stylesheet
+
+        :param data: stylesheet CSS
+        """
+        self.setStyleSheet(self.default_stylesheet + data)
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
@@ -68,9 +79,8 @@ class PythonInput(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.core.config.data['font_size.input'] = self.value
-            self.window.core.config.save()
-            self.window.controller.ui.update_font_size()
+            size_str = f"{self.value}px"
+            self.update_stylesheet(f"font-size: {size_str};")
             event.accept()
         else:
             super(PythonInput, self).wheelEvent(event)
@@ -86,10 +96,21 @@ class PythonOutput(QPlainTextEdit):
         super(PythonOutput, self).__init__(window)
         self.window = window
         self.setReadOnly(True)
-        self.value = self.window.core.config.data['font_size']
+        self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
         self.textChanged.connect(self.window.controller.interpreter.save_edit)
+        self.setProperty('class', 'interpreter-output')
+        self.default_stylesheet = ""
+        self.setStyleSheet(self.default_stylesheet)
+
+    def update_stylesheet(self, data: str):
+        """
+        Update stylesheet
+
+        :param data: stylesheet CSS
+        """
+        self.setStyleSheet(self.default_stylesheet + data)
 
     def wheelEvent(self, event):
         """
@@ -105,16 +126,8 @@ class PythonOutput(QPlainTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            size_str = f"{self.value}px"
+            self.update_stylesheet(f"font-size: {size_str};")
             event.accept()
         else:
             super(PythonOutput, self).wheelEvent(event)

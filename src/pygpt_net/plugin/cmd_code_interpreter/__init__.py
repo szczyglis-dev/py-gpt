@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -72,6 +72,13 @@ class Plugin(BasePlugin):
             value=True,
             label="Auto-append CWD to sys_exec",
             description="Automatically append current working directory to sys_exec command",
+        )
+        self.add_option(
+            "attach_output",
+            type="bool",
+            value=True,
+            label="Connect to the Python code interpreter window",
+            description="Attach code input/output to the Python code interpreter window.",
         )
 
         # commands
@@ -218,6 +225,8 @@ class Plugin(BasePlugin):
         :param data: output data
         :param type: output type
         """
+        if not self.get_option_value("attach_output"):
+            return
         self.window.controller.interpreter.append_output(data, type)
 
     @Slot()

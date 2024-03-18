@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QGridLayout, QScrollArea, QSplitter, QPlainTextEdi
 
 from pygpt_net.ui.widget.dialog.debug import DebugDialog
 from pygpt_net.ui.widget.lists.debug import DebugList
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
 
 
 class Debug:
@@ -38,7 +39,7 @@ class Debug:
         scroll.setWidgetResizable(True)
 
         # data viewer
-        viewer = QPlainTextEdit()
+        viewer = CodeEditor(self.window)
         viewer.setReadOnly(True)
         self.window.ui.debug[id].viewer = viewer
 

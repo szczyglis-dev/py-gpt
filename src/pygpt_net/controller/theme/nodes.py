@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 
@@ -43,7 +43,6 @@ class Nodes:
         nodes = {
             'font.chat.input': [
                 'input',
-                'interpreter.input',
             ],
             'font.chat.output': [
                 'output',
@@ -88,7 +87,8 @@ class Nodes:
             for key in nodes[type]:
                 self.apply(key, type)
 
-        self.window.interpreter.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        # self.window.interpreter.update_stylesheet(self.window.controller.theme.style('font.chat.output'))
+        # self.window.ui.nodes['interpreter.input'].update_stylesheet(self.window.controller.theme.style('font.chat.input'))
 
         # apply to notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()

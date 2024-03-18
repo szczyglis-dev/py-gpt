@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.editor_file import EditorFileDialog
 from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
 from pygpt_net.utils import trans
 
 
@@ -29,8 +30,9 @@ class Editor:
         """Setup config editor dialog"""
         id = 'config'
 
-        self.window.ui.editor[id] = QPlainTextEdit()
+        self.window.ui.editor[id] = CodeEditor(self.window)
         self.window.ui.editor[id].setReadOnly(False)
+        self.window.ui.editor[id].setProperty('class', 'code-editor')
 
         self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
         self.window.ui.nodes['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))

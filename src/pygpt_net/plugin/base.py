@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -304,8 +304,11 @@ class BasePlugin:
             ctx.results.append(response)
             ctx.reply = True
             if "context" in response:
-                ctx.extra_ctx = response["context"]
-                response["result"] = "OK"
+                if self.window.core.config.get("ctx.use_extra"):
+                    ctx.extra_ctx = response["context"]
+                    response["result"] = "OK"
+                else:
+                    del response["context"]
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object)

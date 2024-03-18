@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.18 03:00:00                  #
 # ================================================== #
 
 import json
@@ -28,18 +28,19 @@ class Command:
         self.window = window
         self.stop = False
 
-    def dispatch(self, event: Event):
+    def dispatch(self, event: Event, all: bool = False):
         """
         Dispatch cmd execute event (command execution)
 
         :param event: event object
+        :param all: True to dispatch to all plugins
         """
         self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
         if self.window.core.debug.enabled():
             self.window.core.debug.debug("EVENT BEFORE: " + str(event))
 
         for id in self.window.core.plugins.get_ids():
-            if self.window.controller.plugins.is_enabled(id):
+            if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop or (event.name == Event.CMD_EXECUTE and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
@@ -49,6 +50,16 @@ class Command:
 
                 self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
+
+    def dispatch_only(self, event: Event):
+        """
+        Dispatch cmd execute event only (command execution)
+
+        :param event: event object
+        """
+        self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
+        for id in self.window.core.plugins.get_ids():
+            self.window.core.dispatcher.apply(id, event)
 
     def dispatch_async(self, event: Event):
         """
