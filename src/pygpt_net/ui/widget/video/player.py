@@ -24,12 +24,12 @@ class VideoPlayerWidget(QWidget):
         super().__init__(window)
         self.window = window
         self.mediaPlayer = QMediaPlayer(window)
-        self.mediaPlayer.setLoops(QMediaPlayer.Loops.Infinite)
         self.loaded = False
         self.path = None
         self.stopped = False
+        self.isSeeking = False
 
-        self.audioOutput = QAudioOutput(window)
+        self.audioOutput = QAudioOutput()
 
         self.update_timer = QTimer(self)
         self.update_timer.setInterval(200)
@@ -108,7 +108,6 @@ class VideoPlayerWidget(QWidget):
         self.openButton.clicked.connect(self.open_file)
         self.playPauseButton.clicked.connect(self.toggle_play_pause)
         self.stopButton.clicked.connect(self.stop_video)
-        self.slider.sliderMoved.connect(self.set_position)
         self.videoWidget.mousePressEvent = self.video_widget_clicked
 
         # connect signals
@@ -122,6 +121,11 @@ class VideoPlayerWidget(QWidget):
 
         self.volume_slider.valueChanged.connect(self.adjust_volume)
         self.mute_button.toggled.connect(self.audioOutput.setMuted)
+
+        self.slider.sliderPressed.connect(self.on_slider_pressed)
+        self.slider.sliderReleased.connect(self.on_slider_released)
+
+        self.isSeeking = False
 
     def open_file(self):
         """Open file"""
@@ -137,6 +141,7 @@ class VideoPlayerWidget(QWidget):
         """
         self.loaded = False
         self.stopped = False
+        self.isSeeking = False
         self.reset()
         self.path = path
         self.update_label_path()
@@ -156,8 +161,10 @@ class VideoPlayerWidget(QWidget):
         if self.mediaPlayer.source():
             self.mediaPlayer.stop()
             self.mediaPlayer.setSource(QUrl())
-        self.update_play_pause_icon()
+        self.playPauseButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.update_timer.stop()
         self.slider.setValue(0)
+        self.isSeeking = False
 
     def reset_player(self):
         if self.mediaPlayer is not None:
@@ -291,15 +298,6 @@ class VideoPlayerWidget(QWidget):
         elif event.button() == Qt.RightButton:
             pass
 
-    def position_changed(self, position):
-        """
-        Position changed
-
-        :param position: position
-        """
-        self.slider.setValue(position)
-        self.labelCurrentTime.setText(self.format_time(position))
-
     def duration_changed(self, duration):
         """
         Duration changed
@@ -315,7 +313,41 @@ class VideoPlayerWidget(QWidget):
 
         :param position: position
         """
+        if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
+            self.mediaPlayer.pause()
+        self.mediaPlayer.positionChanged.connect(self.on_position_set)
         self.mediaPlayer.setPosition(position)
+
+    def on_slider_pressed(self):
+        """Slider pressed"""
+        self.isSeeking = True
+        self.mediaPlayer.pause()
+
+    def on_slider_released(self):
+        """Slider released"""
+        if self.isSeeking:
+            self.mediaPlayer.setPosition(self.slider.value())
+            self.mediaPlayer.setAudioOutput(None)  # audio fix
+            self.mediaPlayer.setAudioOutput(self.audioOutput)
+            self.mediaPlayer.play()
+            self.isSeeking = False
+
+    def position_changed(self, position):
+        """
+        Position changed
+
+        :param position: position
+        """
+        if not self.isSeeking:
+            self.slider.setValue(position)
+            self.labelCurrentTime.setText(self.format_time(position))
+
+    def on_position_set(self, position):
+        if self.isSeeking:
+            self.mediaPlayer.positionChanged.disconnect(self.on_position_set)
+            if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
+                QTimer.singleShot(100, self.mediaPlayer.play)
+            self.isSeeking = False
 
     def update_ui(self):
         """Update UI"""
