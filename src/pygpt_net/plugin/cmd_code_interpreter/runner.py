@@ -74,7 +74,9 @@ class Runner:
         :param response: response
         :return: result
         """
-        result = response.decode('utf-8')
+        result = None
+        if response:
+            result = response.decode('utf-8')
         self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),
@@ -120,7 +122,7 @@ class Runner:
         }
         return mapping
 
-    def run_docker(self, cmd: str):
+    def run_docker(self, cmd: str) -> bytes or None:
         """
         Run docker container with command and return response
 
@@ -129,14 +131,21 @@ class Runner:
         """
         client = self.get_docker()
         mapping = self.get_volumes()
-        return client.containers.run(
-            self.get_docker_image(),
-            cmd,
-            volumes=mapping,
-            working_dir="/data",
-            stdout=True,
-            stderr=True,
-        )
+        response = None
+        try:
+            response = client.containers.run(
+                self.get_docker_image(),
+                cmd,
+                volumes=mapping,
+                working_dir="/data",
+                stdout=True,
+                stderr=True,
+            )
+        except Exception as e:
+            self.error(e)
+            response = str(e).encode("utf-8")
+        return response
+
 
     def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
         """
@@ -169,13 +178,18 @@ class Runner:
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
         self.log("Running command: {}".format(cmd))
-        process = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = process.communicate()
+        try:
+            process = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stdout, stderr = process.communicate()
+        except Exception as e:
+            self.error(e)
+            stdout = None
+            stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
@@ -246,13 +260,18 @@ class Runner:
         # run code
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
         self.log("Running command: {}".format(cmd))
-        process = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = process.communicate()
+        try:
+            process = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stdout, stderr = process.communicate()
+        except Exception as e:
+            self.error(e)
+            stdout = None
+            stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
@@ -313,13 +332,18 @@ class Runner:
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg)
         self.log("Running command: {}".format(item["params"]['command']))
-        process = subprocess.Popen(
-            item["params"]['command'],
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = process.communicate()
+        try:
+            process = subprocess.Popen(
+                item["params"]['command'],
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stdout, stderr = process.communicate()
+        except Exception as e:
+            self.error(e)
+            stdout = None
+            stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
