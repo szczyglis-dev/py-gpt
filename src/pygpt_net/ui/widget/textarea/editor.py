@@ -89,7 +89,7 @@ class BaseCodeEditor(QPlainTextEdit):
             menu.addMenu(copy_to_menu)
 
             # save as (selected)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(plain_text))
             menu.addAction(action)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 10:00:00                  #
+# Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
 
 import os
@@ -446,6 +446,9 @@ class Plugin(BasePlugin):
         elif name == Event.AUDIO_INPUT_STOP:
             self.on_stop()
 
+        elif name == Event.AUDIO_INPUT_TRANSCRIBE:
+            self.handle_transcribe(data["path"])
+
         elif name == Event.PLUGIN_OPTION_GET:
             if "name" in data and data["name"] == "audio.input.advanced":
                 data["value"] = self.is_advanced()
@@ -509,6 +512,44 @@ class Plugin(BasePlugin):
         self.thread_started = False
         self.set_status('')
 
+    @Slot(str, str)
+    def handle_transcribed(self, path: str, text: str):
+        """
+        Handle transcribed text
+
+        :param path: audio file path
+        :param text: transcribed text
+        """
+        self.window.controller.audio.on_transcribe(path, text)
+
+    def handle_transcribe(self, path: str):
+        """
+        Handle transcribe thread
+
+        :param path: audio file path
+        """
+        try:
+            # worker
+            worker = Worker()
+            worker.plugin = self
+            worker.path = path
+            worker.transcribe = True  # file transcribe mode
+
+            # signals
+            worker.signals.transcribed.connect(self.handle_transcribed)
+            worker.signals.finished.connect(self.handle_input)
+            worker.signals.destroyed.connect(self.handle_destroy)
+            worker.signals.started.connect(self.handle_started)
+            worker.signals.stopped.connect(self.handle_stop)
+            worker.signals.status.connect(self.handle_status)
+            worker.signals.error.connect(self.handle_error)
+
+            # start
+            self.window.threadpool.start(worker)
+
+        except Exception as e:
+            self.error(e)
+
     def handle_thread(self, force: bool = False):
         """
         Handle listener thread
@@ -529,6 +570,7 @@ class Plugin(BasePlugin):
             worker.advanced = self.is_advanced()  # advanced mode
 
             # signals
+            worker.signals.transcribed.connect(self.handle_transcribed)
             worker.signals.finished.connect(self.handle_input)
             worker.signals.destroyed.connect(self.handle_destroy)
             worker.signals.started.connect(self.handle_started)

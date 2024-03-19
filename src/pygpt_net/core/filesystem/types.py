@@ -36,6 +36,15 @@ class Types:
         """
         return str(path).lower().endswith(tuple(self.get_video_ext()))
 
+    def is_audio(self, path: str) -> bool:
+        """
+        Check if file is audio
+
+        :param path: path to file
+        :return: True if file is audio
+        """
+        return str(path).lower().endswith(tuple(self.get_audio_ext()))
+
     def get_img_ext(self) -> list:
         """
         Get image extensions
@@ -51,6 +60,14 @@ class Types:
         :return: list with video extensions
         """
         return ['.mp4', '.avi', '.mkv', '.webm', '.mov', '.flv', '.wmv', '.3gp', '.ogg', '.ogv', '.mpg', '.mpeg', '.m4v']
+
+    def get_audio_ext(self) -> list:
+        """
+        Get audio extensions
+
+        :return: list with audio extensions
+        """
+        return ['.mp3', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.aac', '.aiff', '.alac', '.dsd', '.pcm', '.mpc']
 
     def get_excluded_extensions(self) -> list[str]:
         """

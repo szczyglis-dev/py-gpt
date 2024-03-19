@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
 
 import os.path
@@ -76,7 +76,7 @@ class Video:
         self.update()
 
     def close_player(self):
-        """Close logger player"""
+        """Close player"""
         self.on_close()
         self.window.ui.dialogs.close('video_player')
         self.is_player = False

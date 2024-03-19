@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
 
 import os.path
@@ -14,14 +14,14 @@ import time
 import speech_recognition as sr
 import audioop
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Signal
 
 from pygpt_net.utils import trans
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
 class WorkerSignals(BaseSignals):
-    pass  # add custom signals here
+    transcribed = Signal(str, str)
 
 
 class Worker(BaseWorker):
@@ -33,17 +33,40 @@ class Worker(BaseWorker):
         self.plugin = None
         self.path = None
         self.advanced = False
+        self.transcribe = False
 
     @Slot()
     def run(self):
         """Run worker."""
-        if self.advanced:
-            self.handle_advanced()
+
+        # from file
+        if self.transcribe:
+            self.handle_file()
+
+        # from microphone
         else:
-            self.handle_simple()
+            if self.advanced:
+                self.handle_advanced()
+            else:
+                self.handle_simple()
+
+    def handle_file(self):
+        """Handle file"""
+        try:
+            # do transcribe
+            if os.path.exists(self.path):
+                transcript = self.plugin.get_provider().transcribe(self.path)
+                if transcript is not None and transcript.strip() != '':
+                    self.signals.transcribed.emit(self.path, transcript)
+                else:
+                    self.status('Error: No transcript.')
+        except Exception as e:
+            self.error(e)
+            self.stopped()
+            self.status('Error: {}'.format(e))
 
     def handle_simple(self):
-        """Handle simple mode."""
+        """Handle mic simple mode."""
         try:
             # do transcribe
             if os.path.exists(self.path):
@@ -62,7 +85,7 @@ class Worker(BaseWorker):
             self.status('Error: {}'.format(e))
 
     def handle_advanced(self):
-        """Handle advanced mode."""
+        """Handle mic advanced mode."""
         try:
             if not self.plugin.listening:
                 return

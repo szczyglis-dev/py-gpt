@@ -55,7 +55,7 @@ class Actions:
         :return: list of context menu actions
         """
         actions = []
-        if self.window.core.filesystem.types.is_video(path):
+        if self.window.core.filesystem.types.is_video(path) or self.window.core.filesystem.types.is_audio(path):
             action = QAction(
                 QIcon(":/icons/video.svg"),
                 trans('action.video.play'),
@@ -63,6 +63,15 @@ class Actions:
             )
             action.triggered.connect(
                 lambda: self.window.controller.video.play(path),
+            )
+            actions.append(action)
+            action = QAction(
+                QIcon(":/icons/hearing.svg"),
+                trans('action.video.transcribe'),
+                parent,
+            )
+            action.triggered.connect(
+                lambda: self.window.controller.audio.open_and_transcribe(path),
             )
             actions.append(action)
         elif self.window.core.filesystem.types.is_image(path):

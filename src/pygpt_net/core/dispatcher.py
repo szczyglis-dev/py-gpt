@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
 
 import json
@@ -23,6 +23,7 @@ class Event:
     AUDIO_INPUT_RECORD_START = "audio.input.record.start"  # start audio input recording
     AUDIO_INPUT_RECORD_STOP = "audio.input.record.stop"  # stop audio input recording
     AUDIO_INPUT_RECORD_TOGGLE = "audio.input.record.toggle"  # toggle audio input recording
+    AUDIO_INPUT_TRANSCRIBE = "audio.input.transcribe"  # transcribe audio file
     AUDIO_INPUT_STOP = "audio.input.stop"
     AUDIO_INPUT_TOGGLE = "audio.input.toggle"
     AUDIO_OUTPUT_STOP = "audio.output.stop"

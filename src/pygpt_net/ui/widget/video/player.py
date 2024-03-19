@@ -294,7 +294,7 @@ class VideoPlayerWidget(QWidget):
             self.force_resize()
         elif status == QMediaPlayer.InvalidMedia:
             self.loaded = False
-            print("Failed to load video.")
+            self.window.ui.dialogs.alert("Failed to load media file (missing codec?).")
 
     def after_loaded(self):
         """Start playback after loaded"""

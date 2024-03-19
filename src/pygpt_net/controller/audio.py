@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 10:00:00                  #
+# Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
+
+import os
+
+from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -22,10 +26,12 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
+        self.is_transcribe = False
 
     def setup(self):
         """Setup controller"""
         self.update()
+        self.restore_transcription()
 
     def toggle_input(self, state: bool, btn: bool = True):
         """
@@ -198,3 +204,165 @@ class Audio:
         except Exception as e:
             pass
         return False
+
+    def open_transcribe_file(self):
+        """Open transcribe file dialog"""
+        path, _ = QFileDialog.getOpenFileName(
+            self.window,
+            "Open audio file",
+            "",
+            "Audio Files (*.mp3 *.wav *.ogg *.flac *.m4a *.mp4 *.avi *.mov *.mkv *.webm)")
+        if path:
+            self.transcribe(path)
+
+    def transcribe(self, path: str, force: bool = False):
+        """
+        Transcribe audio file
+
+        :param path: audio file path
+        :param force: force transcribe
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='audio.transcribe',
+                id=path,
+                msg=trans("audio.transcribe.confirm"),
+            )
+            return
+        path = self.prepare_audio(path)
+        event = Event(Event.AUDIO_INPUT_TRANSCRIBE, {
+            'path': str(path),
+        })
+        event.ctx = CtxItem()  # tmp
+        self.window.controller.command.dispatch_only(event)
+        self.window.ui.nodes['audio.transcribe.status'].setText(
+            "Transcribing: {} ... Please wait...".format(os.path.basename(path)))
+
+    def prepare_audio(self, path: str) -> str:
+        """
+        Convert video to audio if needed
+
+        :param path: video file path
+        """
+        if self.is_video(path):
+            self.window.ui.nodes['audio.transcribe.status'].setText(
+                "Converting to audio: {} ... Please wait...".format(os.path.basename(path)))
+            video_type = path.split(".")[-1].lower()
+            try:
+                from pydub import AudioSegment
+            except ImportError:
+                self.window.ui.nodes['audio.transcribe.status'].setText("Please install pydub 'pip install pydub'")
+                raise ImportError("Please install pydub 'pip install pydub' ")
+            video = AudioSegment.from_file(path, format=video_type)
+            # extract audio from video
+            audio = video.split_to_mono()[0]
+            file_str = os.path.join(self.window.core.config.get_user_path(), "transcribe.mp3")
+            if os.path.exists(file_str):
+                os.remove(file_str)
+            audio.export(file_str, format="mp3")
+            self.window.ui.nodes['audio.transcribe.status'].setText("Converted: {}".format(os.path.basename(file_str)))
+            path = file_str
+        return path
+
+    def store_transcription(self, text: str):
+        """
+        Store transcription to file
+
+        :param text: transcribed text
+        """
+        path = os.path.join(self.window.core.config.get_user_path(), "transcribe.txt")
+        with open(path, "w") as f:
+            f.write(text)
+
+    def restore_transcription(self):
+        """Restore transcription from file"""
+        path = os.path.join(self.window.core.config.get_user_path(), "transcribe.txt")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                data = f.read()
+                self.window.ui.editor["audio.transcribe"].setPlainText(data)
+
+    def is_video(self, file: str) -> bool:
+        """
+        Check if file is a video.
+
+        :param file: file path
+        :return: True if file is a video
+        """
+        ext = file.split(".")[-1].lower()
+        return ext in ["mp4", "avi", "mov", "mkv", "webm"]
+
+    def on_transcribe(self, path: str, text: str):
+        """
+        On audio transcribed
+
+        :param path: audio file path
+        :param text: transcribed text
+        """
+        self.store_transcription(text)
+        self.window.ui.nodes['audio.transcribe.status'].setText("Finished: {}".format(os.path.basename(path)))
+        self.window.ui.editor["audio.transcribe"].setPlainText(text)
+
+    def open_and_transcribe(self, path: str):
+        """
+        Open and transcribe audio file
+
+        :param path: audio file path
+        """
+        self.open_transcribe()
+        self.window.ui.nodes['audio.transcribe.status'].setText(
+            "Selected file: {}".format(os.path.basename(path)))
+        self.transcribe(path)
+
+    def open_transcribe(self):
+        """Open transcriber"""
+        self.window.ui.nodes['audio.transcribe.status'].setText("")
+        self.window.ui.dialogs.open('audio.transcribe', width=800, height=600)
+        self.is_transcribe = True
+        self.update()
+
+    def close_transcribe(self):
+        """Close transcribe"""
+        self.window.ui.dialogs.close('audio.transcribe')
+        self.is_transcribe = False
+
+    def show_hide_transcribe(self, show: bool = True):
+        """
+        Show/hide transcribe window
+
+        :param show: show/hide
+        """
+        if show:
+            self.open_transcribe()
+        else:
+            self.close_transcribe()
+
+    def on_close_transcribe(self):
+        """On transcribe window close"""
+        self.is_transcribe = False
+        self.update_transcribe()
+
+    def transcribe_clear(self, force: bool = False):
+        """
+        Clear transcribe data
+
+        :param force: force clear
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='audio.transcribe.clear',
+                id=0,
+                msg="Clear current transcription?",
+            )
+            return
+        id = 'audio.transcribe'
+        self.window.ui.editor[id].clear()
+        self.window.ui.nodes['audio.transcribe.status'].setText("")
+        self.store_transcription("")
+
+    def update_transcribe(self):
+        """Update transcribe data"""
+        if self.is_transcribe:
+            self.window.ui.menu['audio.transcribe'].setChecked(True)
+        else:
+            self.window.ui.menu['audio.transcribe'].setChecked(False)
