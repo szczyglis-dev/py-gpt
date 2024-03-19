@@ -19,6 +19,7 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout,
                                QFileDialog, QSlider, QLabel, QStyle, QSizePolicy, QMenu, QMessageBox)
 
+from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
 class VideoPlayerWidget(QWidget):
@@ -55,7 +56,7 @@ class VideoPlayerWidget(QWidget):
         self.btn_mute.setIcon(QIcon(':/icons/mute.svg'))
         self.btn_mute.setCheckable(True)
 
-        self.btn_open = QPushButton("Open Video...")
+        self.btn_open = QPushButton(trans("action.video.open"))
 
         self.label_duration = QLabel()
         self.label_time = QLabel()
@@ -129,7 +130,7 @@ class VideoPlayerWidget(QWidget):
 
     def open_file(self):
         """Open file"""
-        path, _ = QFileDialog.getOpenFileName(self, "Open Video")
+        path, _ = QFileDialog.getOpenFileName(self, trans("action.video.open"))
         if path:
             self.open(path)
 
@@ -210,7 +211,7 @@ class VideoPlayerWidget(QWidget):
         if not self.path or not self.player.source():
             return
         context_menu = QMenu(self)
-        save_as_action = QAction(QIcon(":/icons/save.svg"), 'Save as...', self)
+        save_as_action = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"), self)
         save_as_action.triggered.connect(self.save_as_action_triggered)
         # full_screen_action = QAction('Fullscreen', self)
         # full_screen_action.triggered.connect(self.toggle_fullscreen)
@@ -253,13 +254,26 @@ class VideoPlayerWidget(QWidget):
         if not self.path:
             QMessageBox.warning(self, "Save Error", "No video loaded.")
             return
-        save_path, _ = QFileDialog.getSaveFileName(self, "Save video As", self.path, "Video Files (*.mp4 *.avi *.mkv)")
+        save_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save video As",
+            self.path,
+            "Video Files (*.mp4 *.avi *.mkv)",
+        )
         if save_path and save_path != self.path:
             try:
                 shutil.copy2(self.path, save_path)
-                QMessageBox.information(self, "Save Successful", f"Video successfully to: {save_path}")
+                QMessageBox.information(
+                    self,
+                    "OK",
+                    f"Video saved to: {save_path}"
+                )
             except Exception as e:
-                QMessageBox.critical(self, "Save Error", f"An error occurred while saving the video: {e}")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"An error occurred while saving the video: {e}"
+                )
 
     def toggle_fullscreen(self):
         """Toggle fullscreen"""
