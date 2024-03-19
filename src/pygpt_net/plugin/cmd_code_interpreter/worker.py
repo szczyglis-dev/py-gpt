@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -55,6 +55,9 @@ class Worker(BaseWorker):
 
                     elif item["cmd"] == "get_python_output":
                         response = self.cmd_get_python_output(item)
+
+                    elif item["cmd"] == "get_python_input":
+                        response = self.cmd_get_python_input(item)
 
                     elif item["cmd"] == "clear_python_output":
                         response = self.cmd_clear_python_output(item)
@@ -208,11 +211,35 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            output = self.plugin.window.controller.interpreter.get_data()
+            output = self.plugin.window.controller.interpreter.get_output()
             response = {
                 "request": request,
                 "result": output,
                 "context": output,
+            }
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_get_python_input(self, item: dict) -> dict:
+        """
+        Get python input (edit code)
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            input = self.plugin.window.controller.interpreter.get_input()
+            response = {
+                "request": request,
+                "result": input,
+                "context": input,
             }
         except Exception as e:
             response = {

@@ -424,6 +424,10 @@ Allows `code_execute_file` command execution. If enabled, provides Python code e
 
 Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
 
+- ``Enable: get_python_input`` *cmd.get_python_input*
+
+Allows `get_python_input` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* `True`
+
 - ``Enable: get_python_output`` *cmd.get_python_output*
 
 Allows `get_python_output` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* `True`

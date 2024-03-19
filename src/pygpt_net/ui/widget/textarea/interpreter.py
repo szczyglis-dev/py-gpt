@@ -99,7 +99,6 @@ class PythonOutput(BaseCodeEditor):
         self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
-        self.textChanged.connect(self.window.controller.interpreter.save_edit)
         self.setProperty('class', 'interpreter-output')
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)

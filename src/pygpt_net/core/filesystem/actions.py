@@ -33,8 +33,9 @@ class Actions:
         :param path: path to file
         :return: True if file has preview
         """
+        if os.path.isdir(path):
+            return False
         return True
-        return self.window.core.filesystem.types.is_image(path) or self.window.core.filesystem.types.is_video(path)
 
     def has_use(self, path: str) -> bool:
         """

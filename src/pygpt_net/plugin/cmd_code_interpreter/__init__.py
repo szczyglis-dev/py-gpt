@@ -35,6 +35,7 @@ class Plugin(BasePlugin):
             "code_execute_all",
             "sys_exec",
             "get_python_output",
+            "get_python_input",
             "clear_python_output",
         ]
         self.use_locale = True
@@ -152,6 +153,13 @@ class Plugin(BasePlugin):
             params=[],
             enabled=True,
             description="Allows to get output from last executed code",
+        )
+        self.add_cmd(
+            "get_python_input",
+            instruction="get all input code from my Python interpreter",
+            params=[],
+            enabled=True,
+            description="Allows to get input from Python interpreter",
         )
         self.add_cmd(
             "clear_python_output",

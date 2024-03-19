@@ -1634,6 +1634,10 @@ Allows `sys_exec` command execution. If enabled, provides system commands execut
 
 Allows `get_python_output` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* `True`
 
+- `Enable: get_python_input` *cmd.get_python_input*
+
+Allows `get_python_input` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* `True`
+
 - `Enable: clear_python_output` *cmd.clear_python_output*
 
 Allows `clear_python_output` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* `True`
