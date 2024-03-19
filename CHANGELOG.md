@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.37 (2024-03-19)
+
+- Added generation of audio transcriptions from audio/video files.
+
 # 2.1.36 (2024-03-19)
 
 - Added split screen view (output/edit) to code interpreter.
