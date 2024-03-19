@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.35 (2024-03-19)
+
+- Added text files editor and image viewer.
+- Improved video player and code interpreter.
+
 # 2.1.34 (2024-03-18)
 
 - Added video player.

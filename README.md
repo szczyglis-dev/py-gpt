@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.34** | build: **2024.03.18** | Python: **>=3.10, <3.12**
+Release: **2.1.35** | build: **2024.03.19** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2896,6 +2896,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.35 (2024-03-19)
+
+- Added text file editor and image viewer.
+- Improved video player and code interpreter.
+
 # 2.1.34 (2024-03-18)
 
 - Added video player.
@@ -2936,127 +2941,6 @@ may consume additional tokens that are not displayed in the main window.
 - Improved related links rendering in chat output.
 - Added RPM limit config option for embeddings API.
 - UI improvements.
-
-# 2.1.27 (2024-03-13)
-
-- Added the "find" command to the Files I/O plugin for searching for files and directories.
-- Added "Append metadata" config option in Chat with files plugin.
-- Added missing locales to translations.
-
-# 2.1.26 (2024-03-13)
-
-- Added async command execution in History and Chat with files plugins.
-- Improved plugin prompts.
-- Improved command execution in autonomous mode.
-- Improved logging and debugging.
-
-# 2.1.25 (2024-03-13)
-
-- Llama index logging improvement.
-
-# 2.1.24 (2024-03-13)
-
-- Added AzureOpenAI embeddings provider.
-- Added metadata append to indexed context from DB.
-
-# 2.1.23 (2024-03-12)
-
-- Added configuration options for embeddings model and provider in Settings -> Llama-Index.
-- Added plain-text responses in web_open commands.
-- Improved web_open commands in Web Search plugin.
-- Added a check to determine if the provided URL is an image when sending URLs within text.
-
-# 2.1.22 (2024-03-12)
-
-- Added custom metadata appending to indexing documents for web/external loaders.
-
-# 2.1.21 (2024-03-12)
-
-- Refactored commands core and command handling to a JSON schema-based config.
-- Fixed calls in the API plugin.
-- Fixed web_urls in the Web search plugin.
-- Fixed adding new notes in the Calendar plugin.
-
-# 2.1.19 (2024-03-11)
-
-- Added "Force exclude files" config option to force exclude extensions in: Settings -> Llama-index -> Indexing (enables file extension exclusion even if a data loader for the extension is available).
-- Added custom metadata appending to indexing documents via list in: Settings -> Llama-index -> Indexing.
-- Added base API endpoint config arguments in models params.
-
-# 2.1.18 (2024-03-10)
-
-- Added horizontal splitters and min width for lists in settings dialogs - issue #30.
-- Added audio icon display config option in Settings -> Context.
-
-# 2.1.17 (2024-03-10)
-
-- Improved audio handling.
-- Added options to context debug.
-- Added context meta load on demand if not on list.
-
-# 2.1.16 (2024-03-10)
-
-- Added "merge" icon in context responses (allows merging selected response with the previous response).
-- Added display of Llama-index used sources in the context response.
-- Fixed word-wrap in code blocks - issue #27.
-- Fixed context visibility when filters are applied and new ctx is created in the background.
-- Improved audio playback status indication for responses.
-
-# 2.1.15 (2024-03-09)
-
-- Added Edit mode in chat output with options: read response (audio), copy to clipboard, regenerate response, edit and regenerate, and delete context item.
-- Added dynamic max output tokens calculation in completion mode - issue #28.
-- Added config option "Modes to auto-index" in Llama-index settings.
-- Fixed typo in gpt-4-turbo-preview model config args for Llama-index provider - issue #29.
-
-# 2.1.14 (2024-03-09)
-
-- Added restoration of "All counters" checkbox status in calendar on tab init.
-- Added new line with Shift+Enter in input if sending mode is "Enter" - issue #26.
-
-# 2.1.13 (2024-03-08)
-
-- Fixed context auto-indexing in autonomous/agent mode - issue #23.
-- Added AzureOpenAI provider for Llama.
-- Added configuration option for the model in query file/web options in plugins.
-- Added removal of temporary index from memory after use.
-
-# 2.1.12 (2024-03-08)
-
-- Added config option for max requests per minute (RPM) in `Settings -> Model` - issue #23.
-- Added config for continue prompt in `Settings -> Agent`.
-- Added config option for custom API endpoint URL in `Settings -> General` - issue #21.
-- Added `Allow context item delete` option in `Settings -> Context`.
-- Added checkbox `All counters` in filters in Calendar view - when disabled, calendar displays filtered record counters instead of all records.
-- Improved the reset to default option in `Settings` to persist all non-settings config options.
-
-# 2.1.11 (2024-03-07)
-
-- Fixed search query if multiple labels selected
-- Added prevent from saving empty notes in calendar
-- Added display empty dates in DB Viewer if timestamp = 0
-
-# 2.1.10 (2024-03-06)
-
-- Added `DB Viewer` in Developer menu.
-- Added label color filter in context list - issue #23
-- Added context item delete option - issue #23
-- Added presets for plugins - issue #23
-- Fixed and improved autonomous agents run - issue #23
-- Chinese language added to locales - issue #24
-
-# 2.1.9 (2024-03-04)
-
-- A new option has been added to the `Web Search` plugin: `web_index_query`, which allows for indexing a web and external content in a temporary index (in memory) and quickly querying its content. Works similar to `query_file` command.
-- The `read_file` command has been expanded to handle multiple files at once.
-- Added `Log and debug events` option to Developer settings.
-
-# 2.1.8 (2024-03-03)
-
-- A new option has been added to the `Files I/O` plugin: `query_file`, which allows for indexing a file in a temporary index (in memory) and quickly querying its content. This enables the use of Llama-index for fast querying or adding context from individual files. From now on, you can ask questions about individual files without indexing them to the main vector store. See the "Querying single files" in "Modes -> Chat with files" section in a README for more info.
-- The `read_file` command has been expanded to return just the exact file content, without wrapping it in JSON.
-- Improved prompt for preparing queries in the Chat with files plugin.
-- Updated docs.
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
 
