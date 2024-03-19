@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import os
@@ -211,6 +211,22 @@ class Image:
         self.window.ui.dialog['image'].resize(520, 520)
         self.window.ui.dialog['image'].show()
 
+    def open_preview(self, path: str):
+        """
+        Open image preview in dialog
+
+        :param path: path to image
+        """
+        pixmap = QtGui.QPixmap(path)
+        self.window.ui.nodes['dialog.image.preview.pixmap.source'].setPixmap(pixmap)
+        self.window.ui.nodes['dialog.image.preview.pixmap'].path = path
+        self.window.ui.nodes['dialog.image.preview.pixmap'].resize(520, 520)
+
+        # resize dialog
+        self.window.ui.dialog['image_preview'].setWindowTitle(os.path.basename(path))
+        self.window.ui.dialog['image_preview'].resize(520, 520)
+        self.window.ui.dialog['image_preview'].show()
+
     def open(self, path: str):
         """
         Open image in default image viewer
@@ -246,6 +262,8 @@ class Image:
         )
         if save_path:
             try:
+                if save_path[0] == '':
+                    return
                 shutil.copyfile(path, save_path[0])
                 self.window.ui.status(trans('status.img.saved'))
             except Exception as e:

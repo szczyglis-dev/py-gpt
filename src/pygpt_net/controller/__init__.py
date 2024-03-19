@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -21,6 +21,7 @@ from pygpt_net.controller.config import Config
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.dialogs import Dialogs
+from pygpt_net.controller.editor import Editor
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.idx import Idx
 from pygpt_net.controller.interpreter import Interpreter
@@ -57,6 +58,7 @@ class Controller:
         self.config = Config(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
+        self.editor = Editor(window)
         self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.idx = Idx(window)
@@ -107,6 +109,8 @@ class Controller:
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
+        self.video.setup()  # setup video player
+        self.editor.setup()  # setup file editor
 
         # show license terms dialog
         if not self.window.core.config.get('license.accepted'):

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.dialog.image import ImageDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
@@ -70,3 +71,43 @@ class Image:
 
         # update checkbox in config dialog
         self.window.controller.config.checkbox.apply('config', 'img_dialog_open', {'value': value})
+
+
+class ImagePreview:
+    def __init__(self, window=None):
+        """
+        Image preview dialog
+
+        :param window: Window instance
+        """
+        self.window = window
+        self.path = None
+        self.id = 'image_preview'
+
+    def setup(self):
+        """Setup image dialog"""
+        self.window.ui.nodes['dialog.image.preview.pixmap.source'] = ImageLabel(self.window, self.path)
+        self.window.ui.nodes['dialog.image.preview.pixmap.source'].setVisible(False)
+        self.window.ui.nodes['dialog.image.preview.pixmap'] = ImageLabel(self.window, self.path)
+
+        row = QHBoxLayout()
+        row.addWidget(self.window.ui.nodes['dialog.image.preview.pixmap'])
+
+        sizePolicy = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.window.ui.nodes['dialog.image.preview.pixmap'].setSizePolicy(sizePolicy)
+        #self.window.ui.nodes['dialog.image.preview.pixmap'].setScaledContents(True)  # Enable scaling of content
+
+        layout = QVBoxLayout()
+        layout.addLayout(row)
+
+        self.window.ui.dialog[self.id] = ImageDialog(self.window, self.id)
+        self.window.ui.dialog[self.id].setLayout(layout)
+        self.window.ui.dialog[self.id].resizeEvent = self.onResizeEvent  # Add a resize event to adjust the pixmap
+
+    def onResizeEvent(self, event):
+        """Resize event to adjust the pixmap on window resizing"""
+        source = self.window.ui.nodes['dialog.image.preview.pixmap.source']
+        label = self.window.ui.nodes['dialog.image.preview.pixmap']
+        if source.pixmap() and not source.pixmap().isNull():
+            label.setPixmap(source.pixmap().scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        super(ImageDialog, self.window.ui.dialog[self.id]).resizeEvent(event)
