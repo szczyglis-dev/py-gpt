@@ -11,7 +11,10 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QTextEdit, QApplication, QPlainTextEdit
+from PySide6.QtWidgets import QTextEdit, QApplication
+
+from pygpt_net.ui.widget.textarea.editor import BaseCodeEditor
+
 import pygpt_net.icons_rc
 
 
@@ -41,10 +44,6 @@ class PythonInput(QTextEdit):
         :param data: stylesheet CSS
         """
         self.setStyleSheet(self.default_stylesheet + data)
-
-    def audio_read_selection(self):
-        """Read selected text (audio)"""
-        self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
         """
@@ -87,7 +86,7 @@ class PythonInput(QTextEdit):
             super(PythonInput, self).wheelEvent(event)
 
 
-class PythonOutput(QPlainTextEdit):
+class PythonOutput(BaseCodeEditor):
     def __init__(self, window=None):
         """
         Python interpreter output
@@ -104,31 +103,3 @@ class PythonOutput(QPlainTextEdit):
         self.setProperty('class', 'interpreter-output')
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
-
-    def update_stylesheet(self, data: str):
-        """
-        Update stylesheet
-
-        :param data: stylesheet CSS
-        """
-        self.setStyleSheet(self.default_stylesheet + data)
-
-    def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
-        if event.modifiers() & Qt.ControlModifier:
-            if event.angleDelta().y() > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            size_str = f"{self.value}px"
-            self.update_stylesheet(f"font-size: {size_str};")
-            event.accept()
-        else:
-            super(PythonOutput, self).wheelEvent(event)

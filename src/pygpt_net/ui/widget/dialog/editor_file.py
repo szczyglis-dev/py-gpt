@@ -9,6 +9,9 @@
 # Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
+import datetime
+import os
+
 from PySide6.QtCore import Qt
 from .base import BaseDialog
 
@@ -24,7 +27,28 @@ class EditorFileDialog(BaseDialog):
         super(EditorFileDialog, self).__init__(window, id)
         self.window = window
         self.file = None
+        self.base_content = None
         self.disable_geometry_store = False
+        self.id = id
+
+    def update_file_title(self, force: bool = False):
+        """
+        Update file title
+
+        :param force: force update
+        """
+        if self.file:
+            current = self.window.ui.editor[self.id].toPlainText()
+            base = self.base_content
+            title = os.path.basename(self.file)
+            if current != base:
+                title += "*"
+            if current != base or force:
+                time = datetime.datetime.now().strftime("%H:%M")
+                title += " (" + time + ")"
+            self.setWindowTitle(title)
+        else:
+            self.setWindowTitle("Untitled")
 
     def closeEvent(self, event):
         """
@@ -51,6 +75,7 @@ class EditorFileDialog(BaseDialog):
         """
         Cleanup on close
         """
-        self.window.core.settings.active['editor'] = False
-        self.window.controller.settings.close('editor')
-        self.window.controller.settings.update()
+        if self.id == "editor_file":
+            self.window.core.settings.active['editor'] = False
+            self.window.controller.settings.close('editor')
+            self.window.controller.settings.update()

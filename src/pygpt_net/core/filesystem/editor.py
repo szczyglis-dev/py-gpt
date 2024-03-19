@@ -46,6 +46,9 @@ class Editor:
             with open(file, 'r', encoding="utf-8") as f:
                 txt = f.read()
                 self.window.ui.editor[dialog_id].setPlainText(txt)
+                self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(txt)
+                self.window.ui.dialog[dialog_id].update_file_title()
+                #self.window.ui.editor[dialog_id].setWindowTitle(os.path.basename(file))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.status("Error loading file: {}".format(e))
@@ -64,10 +67,13 @@ class Editor:
                 self.window.ui.status("WARNING: This is not a valid JSON: {}".format(e))
                 self.window.ui.dialogs.alert("WARNING: This is not a valid JSON: {}".format(e))
 
-        # save changes to current file
+        # save changes
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
+            self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(data)
+            self.window.ui.dialog[dialog_id].update_file_title(force=True)
+            #self.window.ui.dialog[dialog_id].setWindowTitle(os.path.basename(file))
             self.window.ui.status("Saved file: {}".format(path))
             self.window.controller.files.update_explorer()
         except Exception as e:

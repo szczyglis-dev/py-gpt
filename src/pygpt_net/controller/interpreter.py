@@ -232,6 +232,10 @@ class Interpreter:
     def open(self):
         """Open interpreter dialog"""
         self.opened = True
+        if self.is_edit:
+            self.load_input()
+        else:
+            self.load_output()
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.window.ui.nodes['interpreter.input'].setFocus()
         self.cursor_to_end()

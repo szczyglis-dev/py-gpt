@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
+import os
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
@@ -79,6 +80,8 @@ class CustomEditor:
         self.window.ui.editor[id] = CodeEditor(self.window)
         self.window.ui.editor[id].setReadOnly(False)
         self.window.ui.editor[id].setProperty('class', 'code-editor')
+        self.window.ui.editor[id].textChanged.connect(
+            lambda: self.on_changed(id))
 
         self.window.ui.nodes['editor.custom.btn.default'] = QPushButton(trans("action.refresh"))
         self.window.ui.nodes['editor.custom.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
@@ -104,3 +107,14 @@ class CustomEditor:
         dialog.setWindowTitle('')
 
         return dialog
+
+    def on_changed(self, id: str):
+        """
+        On content changed event
+
+        :param id: dialog id
+        """
+        if id in self.window.ui.dialog:
+            self.window.ui.dialog[id].update_file_title()
+
+
