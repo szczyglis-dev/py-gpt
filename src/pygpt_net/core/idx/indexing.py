@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 12:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -725,36 +725,3 @@ class Indexing:
                 self.window.core.idx.log("RPM limit: sleep for {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
         self.last_call = now
-
-    def get_excluded_extensions(self) -> list[str]:
-        """
-        Get excluded extensions if no loader is available
-
-        :return: list of excluded extensions
-        """
-        # images
-        excluded = ["jpg", "jpeg", "png", "psd", "gif", "bmp", "tiff",
-                    "webp", "svg", "ico", "heic", "heif", "avif", "apng"]
-
-        # audio
-        excluded += ["mp3", "wav", "flac", "ogg", "m4a", "wma",
-                     "aac", "aiff", "alac", "dsd", "pcm", "mpc"]
-
-        # video
-        excluded += ["mp4", "mkv", "avi", "mov", "wmv", "flv",
-                     "webm", "vob", "ogv", "3gp", "3g2", "m4v", "m2v"]
-
-        # archives
-        excluded += ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lz", "lz4",
-                     "zst", "ar", "iso", "nrg", "dmg", "vhd", "vmdk", "vhdx", "vdi",
-                     "img", "wim", "swm", "esd", "cab", "rpm", "deb", "pkg", "apk"]
-
-        # binary
-        excluded += ["exe", "dll", "so", "dylib", "app", "msi", "dmg", "pkg", "deb", "rpm", "apk", "jar",
-                     "war", "ear", "class", "pyc", "whl", "egg", "so", "dylib", "a", "o", "lib", "bin",
-                     "elf", "ko", "sys", "drv"]
-
-        # sort and save
-        excluded = sorted(excluded)
-
-        return excluded

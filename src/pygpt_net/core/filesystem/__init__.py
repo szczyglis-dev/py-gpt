@@ -6,16 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import os
 import shutil
+
 from datetime import datetime
 from pathlib import PurePath
 
 from PySide6.QtCore import QUrl
 
+from .actions import Actions
+from .editor import Editor
+from .types import Types
+from .url import Url
 
 class Filesystem:
     def __init__(self, window=None):
@@ -25,6 +30,10 @@ class Filesystem:
         :param window: Window instance
         """
         self.window = window
+        self.actions = Actions(window)
+        self.editor = Editor(window)
+        self.types = Types(window)
+        self.url = Url(window)
         self.workdir_placeholder = "%workdir%"
         self.styles = [
             "style.css",
@@ -93,7 +102,7 @@ class Filesystem:
         :param paths: list with paths to prepare
         :return: local paths with working dir placeholder
         """
-        img_ext = self.get_img_ext()
+        img_ext = self.types.get_img_ext()
         result = []
         for path in paths:
             if path.endswith(tuple(img_ext)):
@@ -235,38 +244,3 @@ class Filesystem:
         :return: True if path has schema prefix
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
-
-    def is_image(self, path: str) -> bool:
-        """
-        Check if file is image
-
-        :param path: path to file
-        :return: True if file is image
-        """
-        return str(path).lower().endswith(tuple(self.get_img_ext()))
-
-    def is_video(self, path: str) -> bool:
-        """
-        Check if file is video
-
-        :param path: path to file
-        :return: True if file is video
-        """
-        return str(path).lower().endswith(tuple(self.get_video_ext()))
-
-    def get_img_ext(self) -> list:
-        """
-        Get image extensions
-
-        :return: list with image extensions
-        """
-        return ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp']
-
-    def get_video_ext(self) -> list:
-        """
-        Get video extensions
-
-        :return: list with video extensions
-        """
-        return ['.mp4', '.avi', '.mkv', '.webm', '.mov', '.flv', '.wmv', '.3gp', '.ogg', '.ogv', '.mpg', '.mpeg', '.m4v']
-
