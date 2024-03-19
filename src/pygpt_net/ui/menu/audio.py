@@ -50,7 +50,7 @@ class Audio:
         )
         self.window.ui.menu['audio.transcribe'].setToolTip(trans('audio.transcribe.tooltip'))
         self.window.ui.menu['audio.transcribe'].triggered.connect(
-            lambda: self.window.controller.audio.show_hide_transcribe(self.window.ui.menu['audio.transcribe'].isChecked())
+            lambda: self.window.controller.audio.transcript.show_hide(self.window.ui.menu['audio.transcribe'].isChecked())
         )
 
         self.window.ui.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))

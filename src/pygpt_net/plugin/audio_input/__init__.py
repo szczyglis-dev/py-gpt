@@ -520,7 +520,7 @@ class Plugin(BasePlugin):
         :param path: audio file path
         :param text: transcribed text
         """
-        self.window.controller.audio.on_transcribe(path, text)
+        self.window.controller.audio.transcript.on_transcribe(path, text)
 
     def handle_transcribe(self, path: str):
         """

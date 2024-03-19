@@ -68,9 +68,9 @@ class Confirm:
 
         # audio transcribe
         elif type == 'audio.transcribe':
-         self.window.controller.audio.transcribe(id, force=True)
+         self.window.controller.audio.transcript.transcribe(id, force=True)
         elif type == 'audio.transcribe.clear':
-            self.window.controller.audio.transcribe_clear(True)
+            self.window.controller.audio.transcript.clear(True)
 
         # db viewer
         elif type == 'db.delete_row':

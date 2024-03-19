@@ -50,4 +50,4 @@ class AudioTranscribeDialog(BaseDialog):
         """
         Cleanup on close
         """
-        self.window.controller.audio.on_close_transcribe()
+        self.window.controller.audio.transcript.on_close()

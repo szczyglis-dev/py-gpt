@@ -37,7 +37,7 @@ class AudioTranscribe:
         self.window.ui.nodes['audio.transcribe.convert_video'] = QCheckBox(trans("audio.transcribe.auto_convert"))
         self.window.ui.nodes['audio.transcribe.convert_video'].setChecked(True)
         self.window.ui.nodes['audio.transcribe.convert_video'].clicked.connect(
-            lambda: self.window.controller.audio.toggle_auto_convert_video()
+            lambda: self.window.controller.audio.transcript.toggle_auto_convert()
         )
 
         self.window.ui.nodes['audio.transcribe.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
@@ -47,7 +47,7 @@ class AudioTranscribe:
 
         self.window.ui.nodes['audio.transcribe.open'] = QPushButton(trans("audio.transcribe.open"))
         self.window.ui.nodes['audio.transcribe.open'].clicked.connect(
-            lambda: self.window.controller.audio.open_transcribe_file())
+            lambda: self.window.controller.audio.transcript.open_file())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['audio.transcribe.clear'])
@@ -72,4 +72,4 @@ class AudioTranscribe:
 
     def clear(self):
         """Clear transcribe dialog"""
-        self.window.controller.audio.transcribe_clear()
+        self.window.controller.audio.transcript.clear()

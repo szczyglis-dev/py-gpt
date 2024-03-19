@@ -71,7 +71,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.controller.audio.open_and_transcribe(path),
+                lambda: self.window.controller.audio.transcript.from_file(path),
             )
             actions.append(action)
         elif self.window.core.filesystem.types.is_image(path):
