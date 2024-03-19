@@ -19,7 +19,7 @@ class Layout:
         """
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
-        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "calendar", "interpreter"]
+        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "calendar", "interpreter", "interpreter.columns"]
         self.text_nodes = ["input"]
 
     def setup(self):
