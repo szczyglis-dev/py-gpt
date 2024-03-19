@@ -234,6 +234,7 @@ class Audio:
             'path': str(path),
         })
         event.ctx = CtxItem()  # tmp
+        self.transcribe_clear(force=True)
         self.window.controller.command.dispatch_only(event)
         self.window.ui.nodes['audio.transcribe.status'].setText(
             "Transcribing: {} ... Please wait...".format(os.path.basename(path)))
