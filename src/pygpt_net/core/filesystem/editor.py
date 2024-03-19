@@ -12,7 +12,6 @@
 import copy
 import json
 import os
-import shutil
 
 
 class Editor:
@@ -23,8 +22,13 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
+
     def restore(self, dialog_id: str):
-        """Load defaults from file"""
+        """
+        Load defaults from file
+
+        :param dialog_id: dialog id
+        """
         file = self.window.ui.dialog[dialog_id].file
         self.load(dialog_id, file)
         self.window.ui.status("Reloaded file: {}".format(file))
@@ -48,13 +52,16 @@ class Editor:
                 self.window.ui.editor[dialog_id].setPlainText(txt)
                 self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(txt)
                 self.window.ui.dialog[dialog_id].update_file_title()
-                #self.window.ui.editor[dialog_id].setWindowTitle(os.path.basename(file))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.status("Error loading file: {}".format(e))
 
     def save(self, dialog_id: str):
-        """Save file to disk"""
+        """
+        Save file to disk
+
+        :param dialog_id: dialog id
+        """
         file = self.window.ui.dialog[dialog_id].file
         path = file
         data = self.window.ui.editor[dialog_id].toPlainText()
@@ -73,7 +80,6 @@ class Editor:
                 f.write(data)
             self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(data)
             self.window.ui.dialog[dialog_id].update_file_title(force=True)
-            #self.window.ui.dialog[dialog_id].setWindowTitle(os.path.basename(file))
             self.window.ui.status("Saved file: {}".format(path))
             self.window.controller.files.update_explorer()
         except Exception as e:
