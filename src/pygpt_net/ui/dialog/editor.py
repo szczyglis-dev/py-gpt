@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
@@ -58,3 +58,49 @@ class Editor:
         self.window.ui.dialog['config.editor'] = EditorFileDialog(self.window)
         self.window.ui.dialog['config.editor'].setLayout(layout)
         self.window.ui.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
+
+
+class CustomEditor:
+    def __init__(self, window=None):
+        """
+        Custom Editor dialog
+
+        :param window: Window instance
+        """
+        self.window = window
+
+    def setup(self, id: str = None) -> EditorFileDialog:
+        """
+        Setup custom file editor dialog instance
+
+        :param id: editor id
+        :return: EditorFileDialog instance
+        """
+        self.window.ui.editor[id] = CodeEditor(self.window)
+        self.window.ui.editor[id].setReadOnly(False)
+        self.window.ui.editor[id].setProperty('class', 'code-editor')
+
+        self.window.ui.nodes['editor.custom.btn.default'] = QPushButton(trans("action.refresh"))
+        self.window.ui.nodes['editor.custom.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
+        self.window.ui.nodes['editor.custom.btn.default'].clicked.connect(
+            lambda: self.window.core.filesystem.editor.restore(id))
+        self.window.ui.nodes['editor.custom.btn.save'].clicked.connect(
+            lambda: self.window.core.filesystem.editor.save(id))
+
+        bottom_layout = QHBoxLayout()
+        bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.default'])
+        bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.save'])
+
+        self.window.ui.paths[id] = TitleLabel("")
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.paths[id])
+        layout.addWidget(self.window.ui.editor[id])
+        layout.addLayout(bottom_layout)
+
+        dialog = EditorFileDialog(self.window)
+        dialog.disable_geometry_store = True  # disable geometry store
+        dialog.id = id
+        dialog.setLayout(layout)
+        dialog.setWindowTitle('')
+
+        return dialog

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QEvent, QSize, QPoint
@@ -24,6 +24,7 @@ class BaseDialog(QDialog):
         super(BaseDialog, self).__init__(window)
         self.window = window
         self.id = id
+        self.disable_geometry_store = False
 
     def showEvent(self, event):
         """
@@ -50,6 +51,9 @@ class BaseDialog(QDialog):
 
         :return: True if enabled
         """
+        if self.disable_geometry_store:
+            return False
+
         if self.window is None or self.id is None:
             return False
 

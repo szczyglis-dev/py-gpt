@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -17,8 +17,8 @@ from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.db import Database
 from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
-from pygpt_net.ui.dialog.editor import Editor
-from pygpt_net.ui.dialog.image import Image
+from pygpt_net.ui.dialog.editor import Editor, CustomEditor
+from pygpt_net.ui.dialog.image import Image, ImagePreview
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
 from pygpt_net.ui.dialog.interpreter import Interpreter
@@ -53,7 +53,9 @@ class Dialogs:
         self.debug = Debug(self.window)
         self.dictionary = Dictionary(self.window)
         self.editor = Editor(self.window)
+        self.editor_custom = CustomEditor(self.window)
         self.image = Image(self.window)
+        self.image_preview = ImagePreview(self.window)
         self.interpreter = Interpreter(self.window)
         self.license = License(self.window)
         self.logger = Logger(self.window)
@@ -81,6 +83,7 @@ class Dialogs:
         self.start.setup()
         self.update.setup()
         self.image.setup()
+        self.image_preview.setup()
         self.license.setup()
         self.logger.setup()
         self.interpreter.setup()
@@ -205,6 +208,32 @@ class Dialogs:
         """
         if id not in self.window.ui.dialog:
             return
+        self.window.ui.dialog[id].resize(width, height)
+        qr = self.window.ui.dialog[id].frameGeometry()
+        cp = self.window.screen().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.window.ui.dialog[id].move(qr.topLeft())
+        self.window.ui.dialog[id].show()
+
+    def open_instance(self,
+            id: str,
+            width: int = 400,
+            height: int = 400,
+            type="custom_editor"):
+        """
+        Open edit dialog (multiple instances)
+
+        :param id: dialog id
+        :param width: dialog width
+        :param height: dialog height
+        :param type: dialog type
+        """
+        if id not in self.window.ui.dialog:
+            if type == "custom_editor":
+                self.window.ui.dialog[id] = self.editor_custom.setup(id)
+            else:
+                print("Dialog not found: " + id)
+                return
         self.window.ui.dialog[id].resize(width, height)
         qr = self.window.ui.dialog[id].frameGeometry()
         cp = self.window.screen().availableGeometry().center()

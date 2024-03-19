@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -24,6 +24,7 @@ class EditorFileDialog(BaseDialog):
         super(EditorFileDialog, self).__init__(window, id)
         self.window = window
         self.file = None
+        self.disable_geometry_store = False
 
     def closeEvent(self, event):
         """
