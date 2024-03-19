@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 17:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser, QMenu
-from PySide6.QtGui import QDesktopServices, QAction, QIcon, QTextOption
+from PySide6.QtGui import QAction, QIcon, QTextOption
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -38,39 +38,11 @@ class ChatOutput(QTextBrowser):
 
     def open_external_link(self, url):
         """
-        Open external link
+        Handle external link
 
         :param url: url
         """
-        extra_schemes = ['extra-delete', 'extra-edit', 'extra-copy', 'extra-replay', 'extra-audio-read', 'extra-join']
-
-        # local file
-        if not url.scheme().startswith('http') and url.scheme() not in extra_schemes:
-            self.window.controller.files.open(url.toLocalFile())
-
-        # extra actions
-        elif url.scheme() == 'extra-delete':  # ctx item delete
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.delete_item(int(id))
-        elif url.scheme() == 'extra-edit':  # ctx item edit
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.edit_item(int(id))
-        elif url.scheme() == 'extra-copy':  # ctx item copy
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.copy_item(int(id))
-        elif url.scheme() == 'extra-replay':  # ctx regen response
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.replay_item(int(id))
-        elif url.scheme() == 'extra-audio-read':  # ctx audio read
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.audio_read_item(int(id))
-        elif url.scheme() == 'extra-join':  # ctx join
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.join_item(int(id))
-
-        else:
-            # external link
-            QDesktopServices.openUrl(url)
+        self.window.core.filesystem.url.handle(url)
 
     def contextMenuEvent(self, event):
         """

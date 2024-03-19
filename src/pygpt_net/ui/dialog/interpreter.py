@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -35,10 +35,14 @@ class Interpreter:
 
         self.window.ui.nodes['interpreter.all'] = QCheckBox(trans("interpreter.all"))
         self.window.ui.nodes['interpreter.all'].setChecked(True)
+        self.window.ui.nodes['interpreter.all'].clicked.connect(
+            lambda: self.window.controller.interpreter.toggle_all())
+
         self.window.ui.nodes['interpreter.auto_clear'] = QCheckBox(trans("interpreter.auto_clear"))
         self.window.ui.nodes['interpreter.auto_clear'].setChecked(True)
         self.window.ui.nodes['interpreter.auto_clear'].clicked.connect(
             lambda: self.window.controller.interpreter.toggle_auto_clear())
+
         self.window.ui.nodes['interpreter.edit'] = QCheckBox(trans("interpreter.edit"))
         self.window.ui.nodes['interpreter.edit'].clicked.connect(
             lambda: self.window.controller.interpreter.toggle_edit())
@@ -46,6 +50,7 @@ class Interpreter:
         self.window.ui.nodes['interpreter.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['interpreter.btn.clear'].clicked.connect(
             lambda: self.window.controller.interpreter.clear())
+
         self.window.ui.nodes['interpreter.btn.send'] = QPushButton(trans("interpreter.btn.send"))
         self.window.ui.nodes['interpreter.btn.send'].clicked.connect(
             lambda: self.window.controller.interpreter.send_input())

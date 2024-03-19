@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import os
@@ -39,6 +39,17 @@ class Interpreter:
         """Setup"""
         self.load_output()
         self.update()
+
+        # restore
+        if self.window.core.config.has("interpreter.input"):
+            self.window.ui.nodes['interpreter.input'].setPlainText(self.window.core.config.get("interpreter.input"))
+        if self.window.core.config.has("interpreter.execute_all"):
+            self.window.ui.nodes['interpreter.all'].setChecked(self.window.core.config.get("interpreter.execute_all"))
+        if self.window.core.config.has("interpreter.auto_clear"):
+            self.window.ui.nodes['interpreter.auto_clear'].setChecked(self.window.core.config.get("interpreter.auto_clear"))
+        if self.window.core.config.has("interpreter.edit") and self.window.core.config.get("interpreter.edit"):
+            self.window.ui.nodes['interpreter.edit'].setChecked(True)
+            self.toggle_edit()
 
     def update(self):
         """Update icon"""
@@ -191,6 +202,11 @@ class Interpreter:
         self.window.ui.nodes['interpreter.input'].clear()
         self.window.ui.nodes['interpreter.input'].setFocus()
 
+    def update_input(self):
+        """Update input data"""
+        data = self.window.ui.nodes['interpreter.input'].toPlainText()
+        self.window.core.config.set("interpreter.input", data)
+
     def toggle_edit(self):
         """Toggle edit mode"""
         self.is_edit = self.window.ui.nodes['interpreter.edit'].isChecked()
@@ -204,6 +220,7 @@ class Interpreter:
             self.load_output()
 
         self.cursor_to_end()
+        self.window.core.config.set("interpreter.edit", self.is_edit)
 
     def save_edit(self):
         """Save edit data to file"""
@@ -242,6 +259,11 @@ class Interpreter:
     def toggle_auto_clear(self):
         """Toggle auto clear"""
         self.auto_clear = self.window.ui.nodes['interpreter.auto_clear'].isChecked()
+        self.window.core.config.set("interpreter.auto_clear", self.auto_clear)
+
+    def toggle_all(self):
+        """Toggle execute all"""
+        self.window.core.config.set("interpreter.execute_all", self.window.ui.nodes['interpreter.all'].isChecked())
 
     def get_data(self) -> str:
         """
