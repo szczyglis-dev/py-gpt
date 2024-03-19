@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -1241,6 +1241,25 @@ class Patch:
                 self.window.core.config.replace_key(data, "cmd.prompt.extra.assistants", "prompt.cmd.extra.assistants")
                 self.window.core.config.replace_key(data, "agent.prompt.continue", "prompt.agent.continue")
                 self.window.core.config.replace_key(data, "default_prompt", "prompt.default")
+                updated = True
+
+            # < 2.1.35
+            if old < parse_version("2.1.35"):
+                print("Migrating config from < 2.1.35...")
+                if 'interpreter.auto_clear' not in data:
+                    data["interpreter.auto_clear"] = True
+                if 'interpreter.execute_all' not in data:
+                    data["interpreter.execute_all"] = True
+                if 'interpreter.edit' not in data:
+                    data["interpreter.edit"] = False
+                if 'interpreter.input' not in data:
+                    data["interpreter.input"] = ""
+                if 'video.player.path' not in data:
+                    data["video.player.path"] = ""
+                if 'video.player.volume' not in data:
+                    data["video.player.volume"] = 100
+                if 'video.player.volume.mute' not in data:
+                    data["video.player.volume.mute"] = False
                 updated = True
 
         # update file

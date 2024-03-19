@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 10:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
 
 import os
@@ -19,45 +19,47 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout,
                                QFileDialog, QSlider, QLabel, QStyle, QSizePolicy, QMenu, QMessageBox)
 
+import pygpt_net.icons_rc
+
 class VideoPlayerWidget(QWidget):
     def __init__(self, window=None):
         super().__init__(window)
         self.window = window
-        self.mediaPlayer = QMediaPlayer(window)
+        self.player = QMediaPlayer(window)
         self.loaded = False
         self.path = None
         self.stopped = False
-        self.isSeeking = False
-
-        self.audioOutput = QAudioOutput()
+        self.seeking = False
 
         self.update_timer = QTimer(self)
         self.update_timer.setInterval(200)
         self.update_timer.timeout.connect(self.update_ui)
-
         self.autoplay_timer = QTimer(self)
         self.autoplay_timer.setInterval(1000)
         self.autoplay_timer.setSingleShot(True)
         self.autoplay_timer.timeout.connect(self.after_loaded)
 
-        self.videoWidget = QVideoWidget(window)
-        self.videoWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.videoWidget.setMinimumSize(640, 480)
+        self.audio = QAudioOutput()
+        self.video = QVideoWidget(window)
+        self.video.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.video.setMinimumSize(640, 480)
 
-        self.playPauseButton = QPushButton()
-        self.playPauseButton.setEnabled(False)
-        self.update_play_pause_icon()
+        self.btn_play_pause = QPushButton()
+        self.btn_play_pause.setEnabled(False)
 
-        self.stopButton = QPushButton()
-        self.stopButton.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
-        self.stopButton.setEnabled(False)
+        self.btn_stop = QPushButton()
+        self.btn_stop.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
+        self.btn_stop.setEnabled(False)
 
-        self.openButton = QPushButton("Open Video...")
+        self.btn_mute = QPushButton()
+        self.btn_mute.setIcon(QIcon(':/icons/mute.svg'))
+        self.btn_mute.setCheckable(True)
 
-        self.labelDuration = QLabel()
-        self.labelCurrentTime = QLabel()
+        self.btn_open = QPushButton("Open Video...")
 
-        self.labelPath = QLabel()
+        self.label_duration = QLabel()
+        self.label_time = QLabel()
+        self.label_path = QLabel()
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, 0)
@@ -67,65 +69,63 @@ class VideoPlayerWidget(QWidget):
         self.volume_slider.setValue(100)
         self.volume_slider.setToolTip('Adjust volume')
 
-        self.mute_button = QPushButton()
-        self.mute_button.setIcon(QIcon(':/icons/mute.svg'))
-        self.mute_button.setCheckable(True)
+        layout_volume = QHBoxLayout()
+        layout_volume.addWidget(self.volume_slider)
+        layout_volume.addWidget(self.btn_mute)
 
-        volume_layout = QHBoxLayout()
-        volume_layout.addWidget(self.volume_slider)
-        volume_layout.addWidget(self.mute_button)
-
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.labelPath)
-        bottom_layout.addStretch()
-        bottom_layout.addLayout(volume_layout)
+        layout_bottom = QHBoxLayout()
+        layout_bottom.addWidget(self.label_path)
+        layout_bottom.addStretch()
+        layout_bottom.addLayout(layout_volume)
 
         # layout
-        controlLayout = QHBoxLayout()
-        controlLayout.addWidget(self.openButton)
-        controlLayout.addWidget(self.playPauseButton)
-        controlLayout.addWidget(self.stopButton)
+        layout_controls = QHBoxLayout()
+        layout_controls.addWidget(self.btn_open)
+        layout_controls.addWidget(self.btn_play_pause)
+        layout_controls.addWidget(self.btn_stop)
 
-        sliderLayout = QHBoxLayout()
-        sliderLayout.addWidget(self.labelCurrentTime)
-        sliderLayout.addWidget(self.slider)
-        sliderLayout.addWidget(self.labelDuration)
+        layout_slider = QHBoxLayout()
+        layout_slider.addWidget(self.label_time)
+        layout_slider.addWidget(self.slider)
+        layout_slider.addWidget(self.label_duration)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.videoWidget)
-        layout.addLayout(sliderLayout)
-        layout.addLayout(controlLayout)
-        layout.addLayout(bottom_layout)
-        self.setLayout(layout)
+        layout.addWidget(self.video)
+        layout.addLayout(layout_slider)
+        layout.addLayout(layout_controls)
+        layout.addLayout(layout_bottom)
 
+        self.setLayout(layout)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
+        self.update_play_pause_icon()
         self.bind_signals()
 
     def bind_signals(self):
         """Bind signals"""
-        self.openButton.clicked.connect(self.open_file)
-        self.playPauseButton.clicked.connect(self.toggle_play_pause)
-        self.stopButton.clicked.connect(self.stop_video)
-        self.videoWidget.mousePressEvent = self.video_widget_clicked
+        self.btn_open.clicked.connect(self.open_file)
+        self.btn_play_pause.clicked.connect(self.toggle_play_pause)
+        self.btn_stop.clicked.connect(self.stop_video)
+        self.btn_mute.toggled.connect(self.set_muted)
+        self.player.positionChanged.connect(self.position_changed)
+        self.player.durationChanged.connect(self.duration_changed)
+        self.player.playbackStateChanged.connect(self.on_playback_state_changed)
+        self.player.mediaStatusChanged.connect(self.media_status_changed)
+        self.video.mousePressEvent = self.video_widget_clicked
 
-        # connect signals
-        self.mediaPlayer.positionChanged.connect(self.position_changed)
-        self.mediaPlayer.durationChanged.connect(self.duration_changed)
-        self.mediaPlayer.playbackStateChanged.connect(self.on_playback_state_changed)
-        self.mediaPlayer.mediaStatusChanged.connect(self.media_status_changed)
-
-        self.mediaPlayer.setAudioOutput(self.audioOutput)
-        self.mediaPlayer.setVideoOutput(self.videoWidget)
-
+        self.player.setAudioOutput(self.audio)
+        self.player.setVideoOutput(self.video)
         self.volume_slider.valueChanged.connect(self.adjust_volume)
-        self.mute_button.toggled.connect(self.audioOutput.setMuted)
-
         self.slider.sliderPressed.connect(self.on_slider_pressed)
         self.slider.sliderReleased.connect(self.on_slider_released)
+        self.seeking = False
 
-        self.isSeeking = False
+    def update(self):
+        """Update player"""
+        self.update_mute_icon()
+        self.update_volume_slider()
+        self.update_label_path()
 
     def open_file(self):
         """Open file"""
@@ -141,40 +141,76 @@ class VideoPlayerWidget(QWidget):
         """
         self.loaded = False
         self.stopped = False
-        self.isSeeking = False
+        self.seeking = False
         self.reset()
-        self.path = path
-        self.update_label_path()
-        self.mediaPlayer.setSource(QUrl.fromLocalFile(path))
-        self.playPauseButton.setEnabled(True)
-        self.stopButton.setEnabled(True)
+        self.player.setSource(QUrl.fromLocalFile(path))
+        self.set_path(path)
+        self.enable()
         self.autoplay_timer.start()
         self.update()
+        self.window.controller.video.store_path(path)  # save
+
+    def enable(self):
+        """Enable player"""
+        self.btn_play_pause.setEnabled(True)
+        self.btn_stop.setEnabled(True)
 
     def play_video(self):
         """Play video"""
-        self.mediaPlayer.play()
+        self.stopped = False
+        if not self.loaded and self.path:
+            self.open(self.path)
+        else:
+            self.update_audio()
+            self.player.play()
+
+    def stop_video(self):
+        """Stop video"""
+        if self.player.source():
+            self.player.stop()
+        self.stopped = True
+        self.slider.setValue(0)
+        self.label_time.setText(self.format_time(0))
+        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.update_timer.stop()
+
+    def toggle_play_pause(self):
+        """Toggle play/pause"""
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.player.pause()
+        else:
+            self.play_video()
+
         self.on_playback_state_changed()
 
     def reset(self):
         """Reset player to default state"""
-        if self.mediaPlayer.source():
-            self.mediaPlayer.stop()
-            self.mediaPlayer.setSource(QUrl())
-        self.playPauseButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        if self.player.source():
+            self.player.stop()
+            self.player.setSource(QUrl())
+        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.update_timer.stop()
         self.slider.setValue(0)
-        self.isSeeking = False
+        self.seeking = False
+        self.loaded = False
 
     def reset_player(self):
-        if self.mediaPlayer is not None:
-            if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
-                self.mediaPlayer.stop()
-            self.mediaPlayer.setSource(QUrl())
+        """Reset player to default state"""
+        if self.player is not None:
+            if self.player.playbackState() == QMediaPlayer.PlayingState:
+                self.player.stop()
+            self.player.setSource(QUrl())
 
     def on_context_menu(self, point):
+        """
+        Context menu event
+
+        :param point: point
+        """
+        if not self.path or not self.player.source():
+            return
         context_menu = QMenu(self)
-        save_as_action = QAction('Save as...', self)
+        save_as_action = QAction(QIcon(":/icons/save.svg"), 'Save as...', self)
         save_as_action.triggered.connect(self.save_as_action_triggered)
         # full_screen_action = QAction('Fullscreen', self)
         # full_screen_action.triggered.connect(self.toggle_fullscreen)
@@ -183,8 +219,30 @@ class VideoPlayerWidget(QWidget):
         context_menu.exec(self.mapToGlobal(point))
 
     def adjust_volume(self, value):
+        """
+        Adjust volume
+
+        :param value: volume value
+        """
+        self.window.core.config.set("video.player.volume", value)  # save
         volume = value / 100.0
-        self.audioOutput.setVolume(volume)
+        self.audio.setVolume(volume)
+
+    def set_path(self, path: str):
+        """
+        Set path to video
+
+        :param path: path
+        """
+        self.path = path
+        self.update_label_path()
+        if not self.loaded and self.path:
+            if not self.player.source():
+                self.reset()
+                self.player.setSource(QUrl.fromLocalFile(self.path))
+            self.enable()
+            self.update()
+        self.window.ui.dialog["video_player"].setWindowTitle(os.path.basename(self.path))
 
     def on_close(self):
         """Stop video"""
@@ -202,6 +260,7 @@ class VideoPlayerWidget(QWidget):
                 QMessageBox.information(self, "Save Successful", f"Video successfully to: {save_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Save Error", f"An error occurred while saving the video: {e}")
+
     def toggle_fullscreen(self):
         """Toggle fullscreen"""
         # TODO: implement fullscreen
@@ -210,13 +269,6 @@ class VideoPlayerWidget(QWidget):
         else:
             self.window.ui.dialog['video_player'].showFullScreen()
 
-    def update_label_path(self):
-        """Update label path"""
-        if self.path:
-            self.labelPath.setText(os.path.basename(self.path))
-        else:
-            self.labelPath.setText("")
-
     def media_status_changed(self, status):
         """
         Media status changed
@@ -224,68 +276,37 @@ class VideoPlayerWidget(QWidget):
         :param status: status
         """
         if status == QMediaPlayer.LoadedMedia:
-            self.force_resize()
-        if status == QMediaPlayer.LoadedMedia:
             self.loaded = True
+            self.force_resize()
         elif status == QMediaPlayer.InvalidMedia:
+            self.loaded = False
             print("Failed to load video.")
-
-    def toggle_play_pause(self):
-        """Toggle play/pause"""
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.pause()
-        else:
-            if self.stopped and self.path:
-                self.stopped = False
-                self.open(self.path)
-            else:
-                self.mediaPlayer.play()
-        self.on_playback_state_changed()
-
-    def stop_video(self):
-        """Stop video"""
-        if self.mediaPlayer.source():
-            self.mediaPlayer.stop()
-
-        self.stopped = True
-        self.slider.setValue(0)
-        self.labelCurrentTime.setText(self.format_time(0))
-        self.playPauseButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-        self.update_timer.stop()
 
     def after_loaded(self):
         """Start playback after loaded"""
-        if self.mediaPlayer.mediaStatus() == QMediaPlayer.LoadedMedia:
-            if self.mediaPlayer.playbackState() != QMediaPlayer.PlayingState:
+        if self.player.mediaStatus() == QMediaPlayer.LoadedMedia:
+            self.loaded = True
+            if self.player.playbackState() != QMediaPlayer.PlayingState:
                 self.toggle_play_pause()
                 self.force_resize()
 
     def force_resize(self):
         """Force resize fix"""
         # fix for video not showing after re-opening the dialog
-        self.videoWidget.hide()
-        self.videoWidget.show()
-        self.videoWidget.update()
+        self.video.hide()
+        self.video.show()
+        self.video.update()
         current_size = self.window.ui.dialog['video_player'].size()
         self.window.ui.dialog['video_player'].resize(current_size.width() + 10, current_size.height() + 10)
         self.window.ui.dialog['video_player'].resize(current_size)
         self.window.ui.dialog['video_player'].repaint()
-        w = self.videoWidget.width() - 1
-        h = self.videoWidget.height() - 1
-        self.videoWidget.resize(w, h)
+        w = self.video.width() - 1
+        h = self.video.height() - 1
+        self.video.resize(w, h)
 
     def on_playback_state_changed(self):
         """Playback state changed"""
         self.update_play_pause_icon()
-
-    def update_play_pause_icon(self):
-        """Update play/pause icon"""
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
-            self.playPauseButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
-            self.update_timer.start()
-        else:
-            self.playPauseButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-            self.update_timer.stop()
 
     def video_widget_clicked(self, event):
         """
@@ -306,7 +327,16 @@ class VideoPlayerWidget(QWidget):
         :param duration: duration
         """
         self.slider.setRange(0, duration)
-        self.labelDuration.setText(self.format_time(duration))
+        self.label_duration.setText(self.format_time(duration))
+
+    def set_muted(self, state: bool):
+        """
+        Set volume muted
+
+        :param state: muted
+        """
+        self.audio.setMuted(state)
+        self.window.core.config.set("video.player.volume.mute", state)  # save
 
     def set_position(self, position):
         """
@@ -314,24 +344,24 @@ class VideoPlayerWidget(QWidget):
 
         :param position: position
         """
-        if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.pause()
-        self.mediaPlayer.positionChanged.connect(self.on_position_set)
-        self.mediaPlayer.setPosition(position)
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.player.pause()
+
+        self.player.positionChanged.connect(self.on_position_set)
+        self.player.setPosition(position)
 
     def on_slider_pressed(self):
         """Slider pressed"""
-        self.isSeeking = True
-        self.mediaPlayer.pause()
+        self.seeking = True
+        self.player.pause()
 
     def on_slider_released(self):
         """Slider released"""
-        if self.isSeeking:
-            self.mediaPlayer.setPosition(self.slider.value())
-            self.mediaPlayer.setAudioOutput(None)  # audio fix
-            self.mediaPlayer.setAudioOutput(self.audioOutput)
-            self.mediaPlayer.play()
-            self.isSeeking = False
+        if self.seeking:
+            self.player.setPosition(self.slider.value())
+            self.update_audio()
+            self.player.play()
+            self.seeking = False
 
     def position_changed(self, position):
         """
@@ -339,21 +369,55 @@ class VideoPlayerWidget(QWidget):
 
         :param position: position
         """
-        if not self.isSeeking:
+        if not self.seeking:
             self.slider.setValue(position)
-            self.labelCurrentTime.setText(self.format_time(position))
+            self.label_time.setText(self.format_time(position))
 
     def on_position_set(self, position):
-        if self.isSeeking:
-            self.mediaPlayer.positionChanged.disconnect(self.on_position_set)
-            if self.mediaPlayer.playbackState() == QMediaPlayer.PausedState:
-                QTimer.singleShot(100, self.mediaPlayer.play)
-            self.isSeeking = False
+        """
+        On position set
+
+        :param position: position
+        """
+        if self.seeking:
+            self.player.positionChanged.disconnect(self.on_position_set)
+            if self.player.playbackState() == QMediaPlayer.PausedState:
+                QTimer.singleShot(100, self.player.play)
+            self.seeking = False
+
+    def update_label_path(self):
+        """Update label path"""
+        if self.path:
+            self.label_path.setText(os.path.basename(self.path))
+        else:
+            self.label_path.setText("")
+
+    def update_play_pause_icon(self):
+        """Update play/pause icon"""
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+            self.update_timer.start()
+        else:
+            self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+            self.update_timer.stop()
+
+    def update_audio(self):
+        """Re-assign audio"""
+        self.player.setAudioOutput(None)  # audio respawn fix
+        self.player.setAudioOutput(self.audio)
+
+    def update_mute_icon(self):
+        """Update mute icon"""
+        self.btn_mute.setChecked(self.audio.isMuted())
+
+    def update_volume_slider(self):
+        """Update volume slider"""
+        self.volume_slider.setValue(self.audio.volume() * 100)
 
     def update_ui(self):
         """Update UI"""
         # sync slider with the video time
-        self.position_changed(self.mediaPlayer.position())
+        self.position_changed(self.player.position())
 
     def format_time(self, ms):
         """

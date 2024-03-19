@@ -6,18 +6,44 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 10:00:00                  #
+# Updated Date: 2024.03.19 01:00:00                  #
 # ================================================== #
+
+import os.path
+
 
 class Video:
     def __init__(self, window=None):
         """
-        Debug controller
+        Video player controller
 
         :param window: Window instance
         """
         self.window = window
         self.is_player = False  # logger window opened
+
+    def setup(self):
+        """Setup video player"""
+        if self.window.core.config.has("video.player.path"):
+            path = self.window.core.config.get("video.player.path")
+            if path:
+                path = self.window.core.filesystem.to_workdir(path)
+                if os.path.exists(path):
+                    self.window.video_player.set_path(path)
+        if self.window.core.config.has("video.player.volume"):
+            self.window.video_player.adjust_volume(self.window.core.config.get("video.player.volume"))
+        if self.window.core.config.has("video.player.volume.mute"):
+            self.window.video_player.set_muted(self.window.core.config.get("video.player.volume.mute"))
+        self.window.video_player.update()  # update player volume, slider, etc.
+
+    def store_path(self, path: str):
+        """
+        Update video player path
+
+        :param path: video file path
+        """
+        path = self.window.core.filesystem.make_local(path)
+        self.window.core.config.set("video.player.path", path)
 
     def update(self):
         """Update debug"""
