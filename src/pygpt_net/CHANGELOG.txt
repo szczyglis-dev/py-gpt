@@ -1,3 +1,7 @@
+2.1.36 (2024-03-19)
+
+- Added split screen view (output/edit) to code interpreter.
+
 2.1.35 (2024-03-19)
 
 - Added text files editor and image viewer.

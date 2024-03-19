@@ -114,7 +114,8 @@ class Mapping:
         # interpreter
         nodes['interpreter.all'] = 'interpreter.all'
         nodes['interpreter.auto_clear'] = 'interpreter.auto_clear'
-        nodes['interpreter.edit'] = 'interpreter.edit'
+        nodes['interpreter.output_label'] = 'interpreter.edit_label.output'
+        nodes['interpreter.edit_label'] = 'interpreter.edit_label.edit'
         nodes['interpreter.btn.clear'] = 'dialog.logger.btn.clear'
         nodes['interpreter.btn.send'] = 'interpreter.btn.send'
 
