@@ -16,6 +16,7 @@
   "assistant_thread": "",
   "attachments_send_clear": true,
   "attachments_capture_clear": true,
+  "audio.transcribe.convert_video": true,
   "context_threshold": 200,
   "cmd": false,
   "ctx": "",

@@ -9,7 +9,7 @@
 # Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QCheckBox
 
 from pygpt_net.ui.widget.dialog.audio import AudioTranscribeDialog
 from pygpt_net.ui.widget.textarea.editor import CodeEditor
@@ -33,6 +33,12 @@ class AudioTranscribe:
         self.window.ui.editor[id].setReadOnly(False)
         self.window.ui.editor[id].setProperty('class', 'code-editor')
 
+        self.window.ui.nodes['audio.transcribe.convert_video'] = QCheckBox(trans("audio.transcribe.auto_convert"))
+        self.window.ui.nodes['audio.transcribe.convert_video'].setChecked(True)
+        self.window.ui.nodes['audio.transcribe.convert_video'].clicked.connect(
+            lambda: self.window.controller.audio.toggle_auto_convert_video()
+        )
+
         self.window.ui.nodes['audio.transcribe.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['audio.transcribe.clear'].clicked.connect(
             lambda: self.clear()
@@ -54,6 +60,7 @@ class AudioTranscribe:
         layout.addWidget(self.window.ui.nodes['audio.transcribe.title'])
         layout.addWidget(self.window.ui.editor[id])
         layout.addLayout(bottom_layout)
+        layout.addWidget(self.window.ui.nodes['audio.transcribe.convert_video'])
         layout.addWidget(self.window.ui.nodes['audio.transcribe.status'])
 
         self.window.ui.dialog['audio.transcribe'] = AudioTranscribeDialog(self.window)

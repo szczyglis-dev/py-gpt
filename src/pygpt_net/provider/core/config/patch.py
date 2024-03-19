@@ -1262,6 +1262,13 @@ class Patch:
                     data["video.player.volume.mute"] = False
                 updated = True
 
+            # < 2.1.37
+            if old < parse_version("2.1.37"):
+                print("Migrating config from < 2.1.37...")
+                if 'audio.transcribe.convert_video' not in data:
+                    data["audio.transcribe.convert_video"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

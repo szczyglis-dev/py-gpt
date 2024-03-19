@@ -32,6 +32,7 @@ class Audio:
         """Setup controller"""
         self.update()
         self.restore_transcription()
+        self.restore_auto_convert_video()
 
     def toggle_input(self, state: bool, btn: bool = True):
         """
@@ -209,7 +210,7 @@ class Audio:
         """Open transcribe file dialog"""
         path, _ = QFileDialog.getOpenFileName(
             self.window,
-            "Open audio file",
+            trans("action.video.open"),
             "",
             "Audio Files (*.mp3 *.wav *.ogg *.flac *.m4a *.mp4 *.avi *.mov *.mkv *.webm)")
         if path:
@@ -246,7 +247,7 @@ class Audio:
         :param path: video file path
         """
         # ffmpeg required here
-        if self.is_video(path):
+        if self.is_video(path) and self.is_auto_convert_video():
             try:
                 self.window.ui.nodes['audio.transcribe.status'].setText(
                     "Converting to audio: {} ... Please wait...".format(os.path.basename(path)))
@@ -259,16 +260,41 @@ class Audio:
                 video = AudioSegment.from_file(path, format=video_type)
                 # extract audio from video
                 audio = video.split_to_mono()[0]
-                file_str = os.path.join(self.window.core.config.get_user_path(), "transcribe.mp3")
+                file_str = os.path.join(self.window.core.config.get_user_path(), "transcript.mp3")
                 if os.path.exists(file_str):
                     os.remove(file_str)
                 audio.export(file_str, format="mp3")
                 self.window.ui.nodes['audio.transcribe.status'].setText("Converted: {}".format(os.path.basename(file_str)))
                 path = file_str
             except Exception as e:
+                self.window.core.debug.log(e)
                 self.window.ui.nodes['audio.transcribe.status'].setText("Not converted to mp3! FFMPEG missing?")
                 self.window.ui.dialogs.alert(e)
         return path
+
+    def toggle_auto_convert_video(self):
+        """
+        Toggle video conversion
+
+        :param state: True to enable, False to disable
+        """
+        state = self.window.ui.nodes['audio.transcribe.convert_video'].isChecked()
+        self.window.core.config.set('audio.transcribe.convert_video', state)
+        self.window.core.config.save()
+
+    def restore_auto_convert_video(self):
+        """Restore auto video conversion"""
+        if self.window.core.config.has('audio.transcribe.convert_video'):
+            state = self.window.core.config.get('audio.transcribe.convert_video', True)
+            self.window.ui.nodes['audio.transcribe.convert_video'].setChecked(state)
+
+    def is_auto_convert_video(self) -> bool:
+        """
+        Check if auto video conversion is enabled
+
+        :return: True if enabled
+        """
+        return self.window.ui.nodes['audio.transcribe.convert_video'].isChecked()
 
     def store_transcription(self, text: str):
         """
@@ -276,13 +302,13 @@ class Audio:
 
         :param text: transcribed text
         """
-        path = os.path.join(self.window.core.config.get_user_path(), "transcribe.txt")
+        path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
         with open(path, "w") as f:
             f.write(text)
 
     def restore_transcription(self):
         """Restore transcription from file"""
-        path = os.path.join(self.window.core.config.get_user_path(), "transcribe.txt")
+        path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
         if os.path.exists(path):
             with open(path, "r") as f:
                 data = f.read()
@@ -306,7 +332,8 @@ class Audio:
         :param text: transcribed text
         """
         self.store_transcription(text)
-        self.window.ui.nodes['audio.transcribe.status'].setText("Finished: {}".format(os.path.basename(path)))
+        self.window.ui.nodes['audio.transcribe.status'].setText(
+            trans("audio.transcribe.result.finished").format(path=os.path.basename(path)))
         self.window.ui.editor["audio.transcribe"].setPlainText(text)
 
     def open_and_transcribe(self, path: str):
@@ -317,7 +344,7 @@ class Audio:
         """
         self.open_transcribe()
         self.window.ui.nodes['audio.transcribe.status'].setText(
-            "Selected file: {}".format(os.path.basename(path)))
+            trans("audio.transcribe.result.selected").format(path=os.path.basename(path)))
         self.transcribe(path)
 
     def open_transcribe(self):
@@ -358,7 +385,7 @@ class Audio:
             self.window.ui.dialogs.confirm(
                 type='audio.transcribe.clear',
                 id=0,
-                msg="Clear current transcription?",
+                msg=trans("audio.transcribe.clear.confirm"),
             )
             return
         id = 'audio.transcribe'
