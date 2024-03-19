@@ -207,6 +207,33 @@ class Interpreter:
         data = self.window.ui.nodes['interpreter.input'].toPlainText()
         self.window.core.config.set("interpreter.input", data)
 
+    def append_to_input(self, data: str):
+        """
+        Append data to input
+
+        :param data: Data
+        """
+        current = self.window.ui.nodes['interpreter.input'].toPlainText()
+        if current:
+            current += "\n"
+        current += data
+        self.window.ui.nodes['interpreter.input'].setPlainText(current)
+
+    def append_to_edit(self, data: str):
+        """
+        Append data to editor
+
+        :param data: Data
+        """
+        # load input from input file
+        input = self.load_prev_input()
+        if input:
+            input += "\n"
+        input += data
+        self.save_input(input)
+        if self.is_edit:
+            self.load_input()
+
     def toggle_edit(self):
         """Toggle edit mode"""
         self.is_edit = self.window.ui.nodes['interpreter.edit'].isChecked()

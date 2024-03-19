@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -63,6 +63,16 @@ class CalendarNote(QTextEdit):
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
                     copy_to_menu.addAction(action)
+
+            # python interpreter
+            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.code'), self)
+            action.triggered.connect(
+                lambda: self.window.controller.interpreter.append_to_edit(selected_text))
+            copy_to_menu.addAction(action)
+            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.input'), self)
+            action.triggered.connect(
+                lambda: self.window.controller.interpreter.append_to_input(selected_text))
+            copy_to_menu.addAction(action)
 
             menu.addMenu(copy_to_menu)
 

@@ -10,11 +10,11 @@
 # ================================================== #
 import os
 
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.editor_file import EditorFileDialog
 from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.textarea.editor import CodeEditor
+from pygpt_net.ui.widget.textarea.editor import CodeEditor, TextFileEditor
 from pygpt_net.utils import trans
 
 
@@ -77,7 +77,7 @@ class CustomEditor:
         :param id: editor id
         :return: EditorFileDialog instance
         """
-        self.window.ui.editor[id] = CodeEditor(self.window)
+        self.window.ui.editor[id] = TextFileEditor(self.window)
         self.window.ui.editor[id].setReadOnly(False)
         self.window.ui.editor[id].setProperty('class', 'code-editor')
         self.window.ui.editor[id].textChanged.connect(
