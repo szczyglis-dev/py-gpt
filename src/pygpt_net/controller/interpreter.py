@@ -85,7 +85,6 @@ class Interpreter:
         """Load input data from file"""
         data = self.load_prev_input()
         self.window.ui.nodes['interpreter.code'].setPlainText(data)
-        self.window.ui.nodes['interpreter.code'].setFocus()
 
     def load_output(self):
         """Load output data from file"""
