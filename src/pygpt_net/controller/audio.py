@@ -245,24 +245,29 @@ class Audio:
 
         :param path: video file path
         """
+        # ffmpeg required here
         if self.is_video(path):
-            self.window.ui.nodes['audio.transcribe.status'].setText(
-                "Converting to audio: {} ... Please wait...".format(os.path.basename(path)))
-            video_type = path.split(".")[-1].lower()
             try:
-                from pydub import AudioSegment
-            except ImportError:
-                self.window.ui.nodes['audio.transcribe.status'].setText("Please install pydub 'pip install pydub'")
-                raise ImportError("Please install pydub 'pip install pydub' ")
-            video = AudioSegment.from_file(path, format=video_type)
-            # extract audio from video
-            audio = video.split_to_mono()[0]
-            file_str = os.path.join(self.window.core.config.get_user_path(), "transcribe.mp3")
-            if os.path.exists(file_str):
-                os.remove(file_str)
-            audio.export(file_str, format="mp3")
-            self.window.ui.nodes['audio.transcribe.status'].setText("Converted: {}".format(os.path.basename(file_str)))
-            path = file_str
+                self.window.ui.nodes['audio.transcribe.status'].setText(
+                    "Converting to audio: {} ... Please wait...".format(os.path.basename(path)))
+                video_type = path.split(".")[-1].lower()
+                try:
+                    from pydub import AudioSegment
+                except ImportError:
+                    self.window.ui.nodes['audio.transcribe.status'].setText("Please install pydub 'pip install pydub'")
+                    raise ImportError("Please install pydub 'pip install pydub' ")
+                video = AudioSegment.from_file(path, format=video_type)
+                # extract audio from video
+                audio = video.split_to_mono()[0]
+                file_str = os.path.join(self.window.core.config.get_user_path(), "transcribe.mp3")
+                if os.path.exists(file_str):
+                    os.remove(file_str)
+                audio.export(file_str, format="mp3")
+                self.window.ui.nodes['audio.transcribe.status'].setText("Converted: {}".format(os.path.basename(file_str)))
+                path = file_str
+            except Exception as e:
+                self.window.ui.nodes['audio.transcribe.status'].setText("Not converted to mp3! FFMPEG missing?")
+                self.window.ui.dialogs.alert(e)
         return path
 
     def store_transcription(self, text: str):
