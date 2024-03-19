@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.03.19 06:00:00                  #
 # ================================================== #
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QCheckBox
 
@@ -55,6 +56,7 @@ class AudioTranscribe:
         self.window.ui.nodes['audio.transcribe.title'] = QLabel(trans("audio.transcribe.tip"))
         self.window.ui.nodes['audio.transcribe.status'] = QLabel("...")
         self.window.ui.nodes['audio.transcribe.status'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['audio.transcribe.status'].setWordWrap(True)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['audio.transcribe.title'])

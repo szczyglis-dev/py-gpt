@@ -61,6 +61,7 @@ class Worker(BaseWorker):
                 else:
                     self.status('Error: No transcript.')
         except Exception as e:
+            self.plugin.window.ui.nodes['audio.transcribe.status'].setText("Failed. Error: {}".format(e))
             self.error(e)
             self.stopped()
             self.status('Error: {}'.format(e))

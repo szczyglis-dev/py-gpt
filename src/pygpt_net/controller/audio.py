@@ -231,14 +231,15 @@ class Audio:
             )
             return
         path = self.prepare_audio(path)
-        event = Event(Event.AUDIO_INPUT_TRANSCRIBE, {
-            'path': str(path),
-        })
-        event.ctx = CtxItem()  # tmp
-        self.transcribe_clear(force=True)
-        self.window.controller.command.dispatch_only(event)
-        self.window.ui.nodes['audio.transcribe.status'].setText(
-            "Transcribing: {} ... Please wait...".format(os.path.basename(path)))
+        if path is not None:
+            event = Event(Event.AUDIO_INPUT_TRANSCRIBE, {
+                'path': str(path),
+            })
+            event.ctx = CtxItem()  # tmp
+            self.transcribe_clear(force=True)
+            self.window.controller.command.dispatch_only(event)
+            self.window.ui.nodes['audio.transcribe.status'].setText(
+                "Transcribing: {} ... Please wait...".format(os.path.basename(path)))
 
     def prepare_audio(self, path: str) -> str:
         """
@@ -268,8 +269,11 @@ class Audio:
                 path = file_str
             except Exception as e:
                 self.window.core.debug.log(e)
-                self.window.ui.nodes['audio.transcribe.status'].setText("Not converted to mp3! FFMPEG missing?")
+                self.window.ui.nodes['audio.transcribe.status'].setText(
+                    "Aborted. Can't convert video to mp3! FFMPEG not installed?\n"
+                    "Please install \"ffmpeg\" or disable the option \"Always convert video to mp3\" to transcribe from video file.")
                 self.window.ui.dialogs.alert(e)
+                path = None
         return path
 
     def toggle_auto_convert_video(self):
