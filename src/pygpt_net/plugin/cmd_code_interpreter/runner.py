@@ -142,7 +142,7 @@ class Runner:
                 stderr=True,
             )
         except Exception as e:
-            self.error(e)
+            # self.error(e)
             response = str(e).encode("utf-8")
         return response
 
@@ -193,8 +193,8 @@ class Runner:
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -226,8 +226,8 @@ class Runner:
         result = self.handle_result_docker(response)
         return {
             "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
@@ -275,8 +275,8 @@ class Runner:
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -316,8 +316,8 @@ class Runner:
         result = self.handle_result_docker(response)
         return {
             "request": request,
-            "result": result,
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -347,8 +347,8 @@ class Runner:
         result = self.handle_result(stdout, stderr)
         return {
             "request": request,
-            "result": result,
-            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -370,8 +370,8 @@ class Runner:
         result = self.handle_result_docker(response)
         return {
             "request": request,
-            "result": result,
-            "context": "SYS OUTPUT:\n--------------------------------\n" + result,
+            "result": str(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + str(result),
         }
 
     def append_input(self, data: str):

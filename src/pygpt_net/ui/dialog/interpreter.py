@@ -79,8 +79,8 @@ class Interpreter:
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.btn.clear'])
-        bottom_layout.addStretch()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.auto_clear'])
+        bottom_layout.addStretch()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.all'])
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.btn.send'])
 
