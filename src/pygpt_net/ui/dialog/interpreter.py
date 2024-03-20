@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -32,8 +32,9 @@ class Interpreter:
         self.window.interpreter.setReadOnly(True)
 
         self.window.ui.nodes['interpreter.code'] = PythonOutput(self.window)
-        self.window.ui.nodes['interpreter.code'].textChanged.connect(self.window.controller.interpreter.save_edit)
+        self.window.ui.nodes['interpreter.code'].textChanged.connect(self.window.tools.interpreter.save_edit)
         self.window.ui.nodes['interpreter.code'].setReadOnly(False)
+        self.window.ui.nodes['interpreter.code'].excluded_copy_to = ["interpreter_edit"]
 
         self.window.ui.nodes['interpreter.output_label'] = QLabel(trans("interpreter.edit_label.output"))
         self.window.ui.nodes['interpreter.edit_label'] = QLabel(trans("interpreter.edit_label.edit"))
@@ -41,23 +42,24 @@ class Interpreter:
         self.window.ui.nodes['interpreter.all'] = QCheckBox(trans("interpreter.all"))
         self.window.ui.nodes['interpreter.all'].setChecked(True)
         self.window.ui.nodes['interpreter.all'].clicked.connect(
-            lambda: self.window.controller.interpreter.toggle_all())
+            lambda: self.window.tools.interpreter.toggle_all())
 
         self.window.ui.nodes['interpreter.auto_clear'] = QCheckBox(trans("interpreter.auto_clear"))
         self.window.ui.nodes['interpreter.auto_clear'].setChecked(True)
         self.window.ui.nodes['interpreter.auto_clear'].clicked.connect(
-            lambda: self.window.controller.interpreter.toggle_auto_clear())
+            lambda: self.window.tools.interpreter.toggle_auto_clear())
 
-        self.window.ui.nodes['interpreter.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
+        self.window.ui.nodes['interpreter.btn.clear'] = QPushButton(trans("interpreter.btn.clear"))
         self.window.ui.nodes['interpreter.btn.clear'].clicked.connect(
-            lambda: self.window.controller.interpreter.clear())
+            lambda: self.window.tools.interpreter.clear())
 
         self.window.ui.nodes['interpreter.btn.send'] = QPushButton(trans("interpreter.btn.send"))
         self.window.ui.nodes['interpreter.btn.send'].clicked.connect(
-            lambda: self.window.controller.interpreter.send_input())
+            lambda: self.window.tools.interpreter.send_input())
 
         self.window.ui.nodes['interpreter.input'] = PythonInput(self.window)
         self.window.ui.nodes['interpreter.input'].setPlaceholderText(trans("interpreter.input.placeholder"))
+        self.window.ui.nodes['interpreter.input'].excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
         left_layout.addWidget(self.window.ui.nodes['interpreter.output_label'])

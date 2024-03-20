@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -51,6 +51,6 @@ class InterpreterDialog(BaseDialog):
         """
         if self.window is None:
             return
-        self.window.controller.interpreter.opened = False
-        self.window.controller.interpreter.close()
-        self.window.controller.interpreter.update()
+        self.window.tools.interpreter.opened = False
+        self.window.tools.interpreter.close()
+        self.window.tools.interpreter.update()

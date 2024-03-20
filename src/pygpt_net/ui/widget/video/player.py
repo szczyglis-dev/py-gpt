@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
-import shutil
 
 from PySide6.QtCore import Qt, QUrl, QTimer
 from PySide6.QtGui import QIcon, QAction
@@ -149,7 +148,7 @@ class VideoPlayerWidget(QWidget):
         self.enable()
         self.autoplay_timer.start()
         self.update()
-        self.window.controller.video.store_path(path)  # save
+        self.window.tools.player.store_path(path)  # save
 
     def enable(self):
         """Enable player"""
@@ -212,7 +211,7 @@ class VideoPlayerWidget(QWidget):
             return
         context_menu = QMenu(self)
         save_as_action = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"), self)
-        save_as_action.triggered.connect(self.save_as_action_triggered)
+        save_as_action.triggered.connect(self.window.tools.player.save_as_file)
         # full_screen_action = QAction('Fullscreen', self)
         # full_screen_action.triggered.connect(self.toggle_fullscreen)
         context_menu.addAction(save_as_action)
@@ -248,32 +247,6 @@ class VideoPlayerWidget(QWidget):
     def on_close(self):
         """Stop video"""
         self.reset()
-
-    def save_as_action_triggered(self):
-        """Save as action triggered"""
-        if not self.path:
-            QMessageBox.warning(self, "Save Error", "No video loaded.")
-            return
-        save_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save video As",
-            self.path,
-            "Video Files (*.mp4 *.avi *.mkv)",
-        )
-        if save_path and save_path != self.path:
-            try:
-                shutil.copy2(self.path, save_path)
-                QMessageBox.information(
-                    self,
-                    "OK",
-                    f"Video saved to: {save_path}"
-                )
-            except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Error",
-                    f"An error occurred while saving the video: {e}"
-                )
 
     def toggle_fullscreen(self):
         """Toggle fullscreen"""

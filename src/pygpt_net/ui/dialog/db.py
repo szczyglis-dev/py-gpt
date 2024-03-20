@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 04:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,9 +16,9 @@ from PySide6.QtWidgets import QGridLayout, QScrollArea, QSplitter, QComboBox, QL
 
 from pygpt_net.ui.widget.dialog.db import DatabaseDialog
 from pygpt_net.ui.widget.lists.db import DatabaseList, DatabaseTableModel
+from pygpt_net.ui.widget.textarea.editor import CodeEditor
 
 import pygpt_net.icons_rc
-from pygpt_net.ui.widget.textarea.editor import CodeEditor
 
 
 class Database:

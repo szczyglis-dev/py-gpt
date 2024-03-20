@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -18,10 +18,10 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class Transcript:
+class AudioTranscriber:
     def __init__(self, window=None):
         """
-        Transcript controller
+        Audio Transcriber
 
         :param window: Window instance
         """
@@ -36,9 +36,9 @@ class Transcript:
     def update(self):
         """Update transcribe menu"""
         if self.is_open:
-            self.window.ui.menu['audio.transcribe'].setChecked(True)
+            self.window.ui.menu['tools.audio.transcribe'].setChecked(True)
         else:
-            self.window.ui.menu['audio.transcribe'].setChecked(False)
+            self.window.ui.menu['tools.audio.transcribe'].setChecked(False)
 
     def open_file(self):
         """Open transcribe file dialog"""
@@ -49,6 +49,11 @@ class Transcript:
             "Audio Files (*.mp3 *.wav *.ogg *.flac *.m4a *.mp4 *.avi *.mov *.mkv *.webm)")
         if path:
             self.transcribe(path)
+
+    def save_as_file(self):
+        """Save transcription as file"""
+        text = self.window.ui.editor["audio.transcribe"].toPlainText()
+        self.window.controller.chat.common.save_text(text)
 
     def transcribe(self, path: str, force: bool = False):
         """
@@ -172,14 +177,19 @@ class Transcript:
         :param text: transcribed text
         """
         path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(text)
+
+    def store_current(self):
+        """Store current transcription to file"""
+        text = self.window.ui.editor["audio.transcribe"].toPlainText()
+        self.store(text)
 
     def restore(self):
         """Restore transcription from file"""
         path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = f.read()
                 self.window.ui.editor["audio.transcribe"].setPlainText(data)
 

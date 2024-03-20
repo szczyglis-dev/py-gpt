@@ -6,18 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
-
-import os
-
-from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
-
-from .transcript import Transcript
 
 
 class Audio:
@@ -28,12 +22,10 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
-        self.transcript = Transcript(window)
 
     def setup(self):
         """Setup controller"""
         self.update()
-        self.transcript.setup()
 
     def toggle_input(self, state: bool, btn: bool = True):
         """

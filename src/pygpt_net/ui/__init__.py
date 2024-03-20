@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 04:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QSplitter, QMessageBox
 
+from pygpt_net.ui.base.context_menu import ContextMenu
 from pygpt_net.ui.dialogs import Dialogs
 from pygpt_net.ui.layout.chat import ChatMain
 from pygpt_net.ui.layout.ctx import CtxMain
@@ -61,6 +62,7 @@ class UI:
         self.tray_menu = {}
 
         # builders
+        self.context_menu = ContextMenu(window)
         self.chat = ChatMain(window)
         self.contexts = CtxMain(window)
         self.dialogs = Dialogs(window)

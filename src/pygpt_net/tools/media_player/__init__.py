@@ -6,24 +6,27 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os.path
+import shutil
+
+from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 
-class Video:
+class MediaPlayer:
     def __init__(self, window=None):
         """
-        Video player controller
+        Media player
 
         :param window: Window instance
         """
         self.window = window
-        self.is_player = False  # logger window opened
+        self.is_open = False
 
     def setup(self):
-        """Setup video player"""
+        """Setup media player"""
         if self.window.core.config.has("video.player.path"):
             path = self.window.core.config.get("video.player.path")
             if path:
@@ -36,25 +39,25 @@ class Video:
             self.window.video_player.set_muted(self.window.core.config.get("video.player.volume.mute"))
         self.window.video_player.update()  # update player volume, slider, etc.
 
+    def update(self):
+        """Update menu"""
+        self.update_menu()
+
+    def update_menu(self):
+        """Update menu"""
+        if self.is_open:
+            self.window.ui.menu['tools.media.player'].setChecked(True)
+        else:
+            self.window.ui.menu['tools.media.player'].setChecked(False)
+
     def store_path(self, path: str):
         """
-        Update video player path
+        Store current video path
 
         :param path: video file path
         """
         path = self.window.core.filesystem.make_local(path)
         self.window.core.config.set("video.player.path", path)
-
-    def update(self):
-        """Update debug"""
-        self.update_menu()
-
-    def update_menu(self):
-        """Update debug menu"""
-        if self.is_player:
-            self.window.ui.menu['video.player'].setChecked(True)
-        else:
-            self.window.ui.menu['video.player'].setChecked(False)
 
     def play(self, path: str):
         """
@@ -64,44 +67,74 @@ class Video:
         """
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
-        self.is_player = True
+        self.is_open = True
         self.update()
         self.window.video_player.open(path)
 
-    def open_player(self):
-        """Open player"""
+    def open_file(self):
+        """Open video file"""
+        self.window.video_player.open_file()
+
+    def save_as_file(self):
+        """Save video as file"""
+        path = self.window.video_player.path
+        if not path:
+            QMessageBox.warning(self.window.video_player, "Save Error", "No video loaded.")
+            return
+        save_path, _ = QFileDialog.getSaveFileName(
+            self.window.video_player,
+            "Save video As",
+            path,
+            "Video Files (*.mp4 *.avi *.mkv)",
+        )
+        if save_path and save_path != path:
+            try:
+                shutil.copy2(path, save_path)
+                QMessageBox.information(
+                    self.window.video_player,
+                    "OK",
+                    f"Video saved to: {save_path}"
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    self.window.video_player,
+                    "Error",
+                    f"An error occurred while saving the video: {e}"
+                )
+    def open(self):
+        """Open player window"""
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
-        self.is_player = True
+        self.is_open = True
         self.update()
 
-    def close_player(self):
-        """Close player"""
+    def close(self):
+        """Close player window"""
         self.on_close()
         self.window.ui.dialogs.close('video_player')
-        self.is_player = False
+        self.is_open = False
         self.update()
 
     def on_close(self):
         """On player window close"""
-        self.is_player = False
+        self.is_open = False
         self.update()
         self.window.video_player.on_close()
 
-    def toggle_player(self):
+    def toggle(self):
         """Toggle player window"""
-        if self.is_player:
-            self.close_player()
+        if self.is_open:
+            self.close()
         else:
-            self.open_player()
+            self.open()
 
-    def show_hide_player(self, show: bool = True):
+    def show_hide(self, show: bool = True):
         """
         Show/hide player window
 
         :param show: show/hide
         """
         if show:
-            self.open_player()
+            self.open()
         else:
-            self.close_player()
+            self.close()

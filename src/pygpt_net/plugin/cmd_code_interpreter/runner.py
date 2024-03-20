@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os.path
@@ -243,7 +243,7 @@ class Runner:
         # write code to file
         data = item["params"]['code']
         if not all:
-            path = self.plugin.window.controller.interpreter.file_current
+            path = self.plugin.window.tools.interpreter.file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
             path = self.prepare_path(path, on_host=True)
@@ -252,7 +252,7 @@ class Runner:
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
-            path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
+            path = self.prepare_path(self.plugin.window.tools.interpreter.file_input, on_host=True)
 
         self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
@@ -291,7 +291,7 @@ class Runner:
         """
         data = item["params"]['code']
         if not all:
-            path = self.plugin.window.controller.interpreter.file_current
+            path = self.plugin.window.tools.interpreter.file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
@@ -299,7 +299,7 @@ class Runner:
             with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
-            path = self.plugin.window.controller.interpreter.file_input
+            path = self.plugin.window.tools.interpreter.file_input
 
         self.append_input(data)
         self.send_interpreter_input(data)  # send input to interpreter
@@ -384,7 +384,7 @@ class Runner:
             return
 
         content = ""
-        path = self.prepare_path(self.plugin.window.controller.interpreter.file_input, on_host=True)
+        path = self.prepare_path(self.plugin.window.tools.interpreter.file_input, on_host=True)
         if os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()

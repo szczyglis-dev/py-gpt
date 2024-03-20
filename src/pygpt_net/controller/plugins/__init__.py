@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -131,7 +131,7 @@ class Plugins:
 
             """
             if self.has_type(id, 'interpreter'):
-                self.window.controller.interpreter.update()
+                self.window.tools.interpreter.update()
             """
 
         self.update_info()
@@ -161,7 +161,7 @@ class Plugins:
 
                 """
                 if self.has_type(id, 'interpreter'):
-                    self.window.controller.interpreter.update()
+                    self.window.tools.interpreter.update()
                 """
 
         self.update_info()
@@ -340,9 +340,9 @@ class Plugins:
             """
             elif type == 'interpreter':
                 if self.is_type_enabled(type):
-                    self.window.controller.interpreter.toggle_icon(True)
+                    self.window.tools.interpreter.toggle_icon(True)
                 else:
-                    self.window.controller.interpreter.toggle_icon(False)
+                    self.window.tools.interpreter.toggle_icon(False)
             """
 
     def on_update(self):

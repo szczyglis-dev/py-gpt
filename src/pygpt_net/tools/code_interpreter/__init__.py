@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -18,10 +18,10 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class Interpreter:
+class CodeInterpreter:
     def __init__(self, window=None):
         """
-        Python real-time interpreter controller
+        Python code interpreter
 
         :param window: Window instance
         """
@@ -50,11 +50,15 @@ class Interpreter:
             self.window.ui.nodes['interpreter.auto_clear'].setChecked(self.window.core.config.get("interpreter.auto_clear"))
 
     def update(self):
-        """Update icon"""
-        pass
-        """
-        self.toggle_icon(self.window.controller.plugins.is_type_enabled('interpreter'))
-        """
+        """Update menu"""
+        self.update_menu()
+
+    def update_menu(self):
+        """Update menu"""
+        if self.opened:
+            self.window.ui.menu['tools.interpreter'].setChecked(True)
+        else:
+            self.window.ui.menu['tools.interpreter'].setChecked(False)
 
     def append_output(self, output: str, type="stdout", **kwargs):
         """
@@ -238,11 +242,13 @@ class Interpreter:
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.window.ui.nodes['interpreter.input'].setFocus()
         self.cursor_to_end()
+        self.update()
 
     def close(self):
         """Close interpreter dialog"""
         self.opened = False
         self.window.ui.dialogs.close('interpreter')
+        self.update()
 
     def toggle(self):
         """Toggle interpreter dialog open/close"""
@@ -250,6 +256,17 @@ class Interpreter:
             self.close()
         else:
             self.open()
+
+    def show_hide(self, show: bool = True):
+        """
+        Show/hide interpreter window
+
+        :param show: show/hide
+        """
+        if show:
+            self.open()
+        else:
+            self.close()
 
     def toggle_icon(self, state: bool):
         """

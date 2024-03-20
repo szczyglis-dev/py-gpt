@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from .about import About
@@ -17,6 +17,7 @@ from .file import File
 from .lang import Lang
 from .plugins import Plugins
 from .theme import Theme
+from .tools import Tools
 from .video import Video
 
 
@@ -36,6 +37,7 @@ class Menu:
         self.lang = Lang(window)
         self.plugins = Plugins(window)
         self.theme = Theme(window)
+        self.tools = Tools(window)
         self.video = Video(window)
 
     def setup(self):
@@ -47,6 +49,7 @@ class Menu:
         self.video.setup()
         self.config.setup()
         self.about.setup()
+        self.tools.setup()
 
         # debug menu
         show = self.window.core.config.get('debug')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -211,7 +211,7 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            output = self.plugin.window.controller.interpreter.get_output()
+            output = self.plugin.window.tools.interpreter.get_output()
             response = {
                 "request": request,
                 "result": output,
@@ -235,7 +235,7 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            input = self.plugin.window.controller.interpreter.get_input()
+            input = self.plugin.window.tools.interpreter.get_input()
             response = {
                 "request": request,
                 "result": input,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -43,18 +43,6 @@ class Audio:
             lambda: self.window.controller.plugins.toggle('audio_input')
         )
 
-        self.window.ui.menu['audio.transcribe'] = QAction(
-            trans("menu.audio.transcribe"),
-            self.window,
-            checkable=True,
-        )
-        self.window.ui.menu['audio.transcribe'].setToolTip(trans('audio.transcribe.tooltip'))
-        self.window.ui.menu['audio.transcribe'].triggered.connect(
-            lambda: self.window.controller.audio.transcript.show_hide(self.window.ui.menu['audio.transcribe'].isChecked())
-        )
-
         self.window.ui.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
         self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.input'])
         self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.output'])
-        self.window.ui.menu['menu.audio'].addSeparator()
-        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.transcribe'])

@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-from pathlib import Path
 
 from PySide6.QtCore import Qt, QModelIndex, QDir
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
@@ -180,6 +179,7 @@ class FileExplorer(QWidget):
             actions = {}
             preview_actions = []
             use_actions = []
+
             if self.window.core.filesystem.actions.has_preview(path):
                 preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
 

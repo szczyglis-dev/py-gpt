@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -15,6 +15,7 @@ from qt_material import QtStyleTools
 
 from pygpt_net.container import Container
 from pygpt_net.controller import Controller
+from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
 
@@ -63,11 +64,15 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup thread pool
         self.threadpool = QThreadPool()
 
-        # setup controllers
+        # setup controller
         self.controller = Controller(self)
+
+        # setup tools
+        self.tools = Tools(self)
 
         # init, load settings options, etc.
         self.controller.init()
+        self.tools.init()
 
         # setup UI
         self.ui = UI(self)
@@ -136,6 +141,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     def setup(self):
         """Setup app"""
         self.controller.setup()
+        self.tools.setup()
         self.controller.plugins.setup()
         self.controller.post_setup()
 
@@ -153,11 +159,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.update_timer.start(self.update_timer_interval)
         self.logger_message.connect(self.controller.debug.handle_log)
         self.ui.post_setup()
+        self.tools.post_setup()
 
     def update(self):
         """Called on every update"""
         self.controller.on_update()
         self.controller.plugins.on_update()
+        self.tools.on_update()
 
     def post_update(self):
         """Called on post-update (slow)"""
@@ -205,6 +213,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.calendar.save_all()
         print("Saving drawing...")
         self.controller.painter.save_all()
+        print("Saving tools...")
+        self.tools.on_exit()
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping timers...")

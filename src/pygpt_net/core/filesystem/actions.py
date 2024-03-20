@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
+
 import os
 
 from PySide6.QtGui import QAction, QIcon
@@ -62,7 +63,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.controller.video.play(path),
+                lambda: self.window.tools.player.play(path),
             )
             actions.append(action)
             action = QAction(
@@ -71,7 +72,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.controller.audio.transcript.from_file(path),
+                lambda: self.window.tools.transcriber.from_file(path),
             )
             actions.append(action)
         elif self.window.core.filesystem.types.is_image(path):
@@ -85,8 +86,9 @@ class Actions:
             )
             actions.append(action)
         else:
+            extra_excluded = ["pdf", "docx", "doc", "xlsx", "xls", "pptx", "ppt"]
             ext = os.path.splitext(path)[1][1:].lower()
-            if ext not in self.window.core.filesystem.types.get_excluded_extensions():
+            if ext not in self.window.core.filesystem.types.get_excluded_extensions() + extra_excluded:
                 action = QAction(
                     QIcon(":/icons/edit.svg"),
                     trans('action.edit'),

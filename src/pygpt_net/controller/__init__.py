@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -24,7 +24,6 @@ from pygpt_net.controller.dialogs import Dialogs
 from pygpt_net.controller.editor import Editor
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.idx import Idx
-from pygpt_net.controller.interpreter import Interpreter
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
@@ -37,7 +36,6 @@ from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
 from pygpt_net.controller.theme import Theme
 from pygpt_net.controller.ui import UI
-from pygpt_net.controller.video import Video
 
 class Controller:
     def __init__(self, window=None):
@@ -62,7 +60,6 @@ class Controller:
         self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.idx = Idx(window)
-        self.interpreter = Interpreter(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
@@ -74,7 +71,6 @@ class Controller:
         self.presets = Presets(window)
         self.settings = Settings(window)
         self.theme = Theme(window)
-        self.video = Video(window)
         self.ui = UI(window)
 
     def setup(self):
@@ -99,7 +95,6 @@ class Controller:
         self.attachment.setup()
         self.notepad.setup()
         self.camera.setup_ui()
-        self.interpreter.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
@@ -109,7 +104,6 @@ class Controller:
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
-        self.video.setup()  # setup video player
         self.editor.setup()  # setup file editor
 
         # show license terms dialog
