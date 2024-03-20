@@ -9,6 +9,7 @@
 # Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
+import hashlib
 import os
 import shutil
 
@@ -21,11 +22,14 @@ from pygpt_net.utils import trans
 class ImageViewer:
     def __init__(self, window=None):
         """
-        Image viewer controller
+        Image viewer
 
         :param window: Window instance
         """
         self.window = window
+        self.width = 520
+        self.height = 520
+        self.instance_id = 0
 
     def setup(self):
         """Setup"""
@@ -35,14 +39,99 @@ class ImageViewer:
         """On exit"""
         pass
 
-    def open_file(self):
-        """Open image file dialog"""
+    def prepare_id(self, file: str):
+        """
+        Prepare unique id for file
+
+        :param file: file name
+        :return: unique id
+        """
+        return 'image_viewer_' + hashlib.md5(file.encode('utf-8')).hexdigest()
+
+    def new(self):
+        """New image viewer dialog"""
+        self.open_preview()
+
+    def open_file(self, id: str, auto_close: bool = True,):
+        """
+        Open image file dialog
+
+        :param id: editor id
+        :param auto_close: auto close current editor
+        """
         path, _ = QFileDialog.getOpenFileName(
             self.window,
             trans("action.open"))
         if path:
-            self.close_preview()
-            self.open_preview(path)
+            self.open_preview(path, id, auto_close)
+
+    def open_preview(
+            self,
+            path: str = None,
+            current_id: str = None,
+            auto_close: bool = True,
+            force: bool = False):
+        """
+        Open image preview in dialog
+
+        :param path: path to image
+        :param current_id: current dialog id
+        :param auto_close: auto close current dialog
+        :param force: force open new instance
+        """
+        if path:
+            id = self.prepare_id(path)
+            if current_id and auto_close:
+                if id != current_id:
+                    self.close_preview(current_id)
+        else:
+            # new instance id
+            id = 'image_viewer_' + str(self.instance_id)
+            self.instance_id += 1
+
+        self.window.ui.dialogs.open_instance(
+            id,
+            width=self.width,
+            height=self.height,
+            type="image_viewer",
+        )
+
+        w = 500
+        h = 500
+
+        if path is None:
+            path = self.window.ui.dialog[id].source.path  # previous img
+
+        if path is None:
+            pixmap = QtGui.QPixmap(0, 0)  # blank image
+            self.window.ui.dialog[id].source.setPixmap(pixmap)
+            self.window.ui.dialog[id].pixmap.path = None
+            self.window.ui.dialog[id].pixmap.resize(w, h)
+        else:
+            pixmap = QtGui.QPixmap(path)
+            self.window.ui.dialog[id].source.setPixmap(pixmap)
+            self.window.ui.dialog[id].pixmap.path = path
+            self.window.ui.dialog[id].pixmap.resize(w, h)
+
+        if path is not None:
+            self.window.ui.dialog[id].path = path
+            self.window.ui.dialog[id].setWindowTitle(os.path.basename(path))
+        else:
+            self.window.ui.dialog[id].path = None
+            self.window.ui.dialog[id].setWindowTitle("Image Viewer")
+
+        self.window.ui.dialog[id].resize(w - 1, h - 1)  # redraw fix
+        self.window.ui.dialog[id].resize(w, h)
+        self.window.ui.dialog[id].show()
+
+    def close_preview(self, id: str):
+        """
+        Close image preview dialog
+
+        :param id: dialog id
+        """
+        self.window.ui.dialog[id].resize(519, 519)
+        self.window.ui.dialog[id].close()
 
     def open_images(self, paths: list):
         """
@@ -75,41 +164,6 @@ class ImageViewer:
     def close_images(self):
         """Close image dialog"""
         self.window.ui.dialog['image'].close()
-
-    def open_preview(self, path: str = None):
-        """
-        Open image preview in dialog
-
-        :param path: path to image
-        """
-        if path is None:
-            path = self.window.ui.nodes['dialog.image.preview.pixmap.source'].path  # previous img
-
-        if path is None:
-            pixmap = QtGui.QPixmap(0, 0)  # blank image
-            self.window.ui.nodes['dialog.image.preview.pixmap.source'].setPixmap(pixmap)
-            self.window.ui.nodes['dialog.image.preview.pixmap'].path = None
-            self.window.ui.nodes['dialog.image.preview.pixmap'].resize(520, 520)
-        else:
-            pixmap = QtGui.QPixmap(path)
-            self.window.ui.nodes['dialog.image.preview.pixmap.source'].setPixmap(pixmap)
-            self.window.ui.nodes['dialog.image.preview.pixmap'].path = path
-            self.window.ui.nodes['dialog.image.preview.pixmap'].resize(520, 520)
-
-        if path is not None:
-            self.window.ui.dialog['image_preview'].path = path
-            self.window.ui.dialog['image_preview'].setWindowTitle(os.path.basename(path))
-        else:
-            self.window.ui.dialog['image_preview'].path = None
-            self.window.ui.dialog['image_preview'].setWindowTitle("Image Viewer")
-
-        self.window.ui.dialog['image_preview'].resize(520, 520)
-        self.window.ui.dialog['image_preview'].show()
-
-    def close_preview(self):
-        """Close image preview dialog"""
-        self.window.ui.dialog['image_preview'].resize(500, 500)
-        self.window.ui.dialog['image_preview'].close()
 
     def open(self, path: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -19,7 +19,7 @@ from pygpt_net.ui.dialog.db import Database
 from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
 from pygpt_net.ui.dialog.editor import Editor, CustomEditor
-from pygpt_net.ui.dialog.image import Image, ImagePreview
+from pygpt_net.ui.dialog.image import Image, ImageViewer
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
 from pygpt_net.ui.dialog.interpreter import Interpreter
@@ -57,7 +57,7 @@ class Dialogs:
         self.editor = Editor(self.window)
         self.editor_custom = CustomEditor(self.window)
         self.image = Image(self.window)
-        self.image_preview = ImagePreview(self.window)
+        self.image_viewer = ImageViewer(self.window)
         self.interpreter = Interpreter(self.window)
         self.license = License(self.window)
         self.logger = Logger(self.window)
@@ -86,7 +86,6 @@ class Dialogs:
         self.start.setup()
         self.update.setup()
         self.image.setup()
-        self.image_preview.setup()
         self.license.setup()
         self.logger.setup()
         self.interpreter.setup()
@@ -222,7 +221,7 @@ class Dialogs:
             id: str,
             width: int = 400,
             height: int = 400,
-            type="custom_editor"):
+            type="text_editor"):
         """
         Open edit dialog (multiple instances)
 
@@ -232,8 +231,10 @@ class Dialogs:
         :param type: dialog type
         """
         if id not in self.window.ui.dialog:
-            if type == "custom_editor":
+            if type == "text_editor":
                 self.window.ui.dialog[id] = self.editor_custom.setup(id)
+            elif type == "image_viewer":
+                self.window.ui.dialog[id] = self.image_viewer.setup(id)
             else:
                 print("Dialog not found: " + id)
                 return

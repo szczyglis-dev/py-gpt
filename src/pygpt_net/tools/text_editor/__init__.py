@@ -27,7 +27,7 @@ class TextEditor:
         self.window = window
         self.width = 800
         self.height = 500
-        self.file_idx = 0
+        self.instance_id = 0
 
     def setup(self):
         """Set up editor"""
@@ -133,8 +133,8 @@ class TextEditor:
                     self.close(current_id)
         else:
             # new instance id
-            id = 'file_tmp_editor_' + str(self.file_idx)
-            self.file_idx += 1
+            id = 'file_tmp_editor_' + str(self.instance_id)
+            self.instance_id += 1
 
         self.window.ui.dialogs.open_instance(
             id,

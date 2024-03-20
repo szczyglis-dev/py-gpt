@@ -65,7 +65,11 @@ class EditorFileDialog(BaseDialog):
         return str(self.window.ui.editor[self.id].toPlainText()) != str(self.base_content)
 
     def setup_menu(self) -> QMenuBar:
-        """Setup menu"""
+        """
+        Setup menu
+
+        :return: menu bar
+        """
         self.menu_bar = QMenuBar()
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
         self.actions = {}
@@ -155,7 +159,7 @@ class EditorFileDialog(BaseDialog):
 
         :param event: key press event
         """
-        # ctrl + s
+        # CTRL+S
         if self.id != "editor_file":  # only for text editor
             if event.modifiers() & Qt.ControlModifier and event.key() == Qt.Key_S:
                 self.window.tools.editor.save(self.id)
