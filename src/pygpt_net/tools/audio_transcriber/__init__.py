@@ -197,10 +197,14 @@ class AudioTranscriber:
 
     def restore(self):
         """Restore transcription from file"""
+        data = ""
         path = os.path.join(self.window.core.config.get_user_path(), "transcript.txt")
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
-                data = f.read()
+                try:
+                    data = f.read()
+                except:
+                    pass
                 self.window.ui.editor["audio.transcribe"].setPlainText(data)
 
     def is_video(self, file: str) -> bool:

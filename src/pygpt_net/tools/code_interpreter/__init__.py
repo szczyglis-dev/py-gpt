@@ -103,7 +103,10 @@ class CodeInterpreter:
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
-                data = f.read()
+                try:
+                    data = f.read()
+                except:
+                    pass
         return data
 
     def load_output(self):
@@ -129,7 +132,10 @@ class CodeInterpreter:
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
-                data = f.read()
+                try:
+                    data = f.read()
+                except:
+                    pass
         return data
 
     def save_history(self, input: str):

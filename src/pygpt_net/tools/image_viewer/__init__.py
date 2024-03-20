@@ -56,12 +56,14 @@ class ImageViewer:
         """
         Open image file dialog
 
-        :param id: editor id
-        :param auto_close: auto close current editor
+        :param id: dialog id
+        :param auto_close: auto close current dialog
         """
         path, _ = QFileDialog.getOpenFileName(
             self.window,
-            trans("action.open"))
+            trans("action.open"),
+            "",
+            "Image files (*.png *.jpg *.jpeg *.bmp *.gif *.tiff *webp);; All files (*.*)")
         if path:
             self.open_preview(path, id, auto_close)
 
