@@ -27,8 +27,8 @@ class ImageViewer:
         :param window: Window instance
         """
         self.window = window
-        self.width = 520
-        self.height = 520
+        self.width = 640
+        self.height = 400
         self.instance_id = 0
 
     def setup(self):
@@ -69,15 +69,13 @@ class ImageViewer:
             self,
             path: str = None,
             current_id: str = None,
-            auto_close: bool = True,
-            force: bool = False):
+            auto_close: bool = True):
         """
         Open image preview in dialog
 
         :param path: path to image
         :param current_id: current dialog id
         :param auto_close: auto close current dialog
-        :param force: force open new instance
         """
         if path:
             id = self.prepare_id(path)
@@ -96,8 +94,8 @@ class ImageViewer:
             type="image_viewer",
         )
 
-        w = 520
-        h = 520
+        w = self.width
+        h = self.height
 
         if path is None:
             path = self.window.ui.dialog[id].source.path  # previous img
@@ -130,7 +128,7 @@ class ImageViewer:
 
         :param id: dialog id
         """
-        self.window.ui.dialog[id].resize(519, 519)
+        self.window.ui.dialog[id].resize(self.width - 1, self.height - 1)  # redraw fix
         self.window.ui.dialog[id].close()
 
     def open_images(self, paths: list):
@@ -143,6 +141,9 @@ class ImageViewer:
         resize_to = 512
         if num_images > 1:
             resize_to = 256
+
+        w = 520
+        h = 520
 
         i = 0
         for path in paths:
@@ -158,7 +159,7 @@ class ImageViewer:
             self.window.ui.nodes['dialog.image.pixmap'][j].setVisible(False)
 
         # resize dialog
-        self.window.ui.dialog['image'].resize(520, 520)
+        self.window.ui.dialog['image'].resize(w, h)
         self.window.ui.dialog['image'].show()
 
     def close_images(self):
