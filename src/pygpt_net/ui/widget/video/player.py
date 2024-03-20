@@ -131,7 +131,13 @@ class VideoPlayerWidget(QWidget):
 
     def open_file(self):
         """Open file"""
-        path, _ = QFileDialog.getOpenFileName(self, trans("action.video.open"))
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            trans("action.video.open"),
+            "",
+            "Video and Audio Files (*.mp4 *.avi *.mkv *.mp3 *.wav *.flac *.ogg *.m4a *.aac *.wma *.webm *.mkv "
+            "*.flv *.mov *.wmv *.3gp *.m4v *.mpg);;All Files (*)"
+        )
         if path:
             self.open(path)
 
@@ -269,7 +275,7 @@ class VideoPlayerWidget(QWidget):
             self.force_resize()
         elif status == QMediaPlayer.InvalidMedia:
             self.loaded = False
-            self.window.ui.dialogs.alert("Failed to load media file (missing codec?).")
+            self.window.ui.dialogs.alert("Failed to load media file, missing video codec?")
 
     def after_loaded(self):
         """Start playback after loaded"""
