@@ -105,7 +105,7 @@ class EditorFileDialog(BaseDialog):
         )
 
         # clear
-        self.actions["clear"] = QAction(QIcon(":/icons/clear.svg"), trans("action.clear"))
+        self.actions["clear"] = QAction(QIcon(":/icons/close.svg"), trans("action.clear"))
         self.actions["clear"].triggered.connect(
             lambda: self.window.tools.editor.clear(self.id)
         )
