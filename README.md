@@ -2902,7 +2902,8 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.1.38 (2024-03-20)
 
-- Added a new menu Tools with: Media player, Transcribe audio/video files, Image viewer, Text editor and Code interpreter.
+- Added new Tools menu, with: Media player, Transcribe audio/video files, Image viewer, Text editor and Code interpreter.
+- Improved tools.
 
 # 2.1.37 (2024-03-19)
 
