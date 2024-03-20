@@ -192,7 +192,11 @@ class ImageViewer:
         :param id: dialog id
         """
         if id in self.window.ui.dialog:
-            self.save(self.window.ui.dialog[id].path)
+            path = self.window.ui.dialog[id].path
+            if path:
+                self.save(path)
+            else:
+                self.window.ui.status("No image to save")
 
     def save(self, path: str):
         """
