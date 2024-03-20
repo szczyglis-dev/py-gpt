@@ -32,7 +32,7 @@ class Interpreter:
         self.window.interpreter.setReadOnly(True)
 
         self.window.ui.nodes['interpreter.code'] = PythonOutput(self.window)
-        self.window.ui.nodes['interpreter.code'].textChanged.connect(self.window.tools.interpreter.save_edit)
+        self.window.ui.nodes['interpreter.code'].textChanged.connect(self.window.tools.interpreter.store_history)
         self.window.ui.nodes['interpreter.code'].setReadOnly(False)
         self.window.ui.nodes['interpreter.code'].excluded_copy_to = ["interpreter_edit"]
 

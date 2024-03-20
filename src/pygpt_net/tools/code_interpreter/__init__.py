@@ -37,7 +37,7 @@ class CodeInterpreter:
 
     def setup(self):
         """Setup"""
-        self.load_input()
+        self.load_history()
         self.load_output()
         self.update()
 
@@ -55,10 +55,12 @@ class CodeInterpreter:
 
     def update_menu(self):
         """Update menu"""
+        """
         if self.opened:
             self.window.ui.menu['tools.interpreter'].setChecked(True)
         else:
             self.window.ui.menu['tools.interpreter'].setChecked(False)
+        """
 
     def append_output(self, output: str, type="stdout", **kwargs):
         """
@@ -83,21 +85,31 @@ class CodeInterpreter:
                 cur.insertText("\n")
         area.setTextCursor(cur)
         self.save_output()
-        self.load_input()
+        self.load_history()
 
-    def load_input(self):
-        """Load input data from file"""
-        data = self.load_prev_input()
+    def load_history(self):
+        """Load history data from file"""
+        data = self.get_history()
         self.window.ui.nodes['interpreter.code'].setPlainText(data)
+        self.cursor_to_end()
+
+    def get_output(self) -> str:
+        """
+        Load and get output from file
+
+        :return: Output data
+        """
+        data = ""
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data = f.read()
+        return data
 
     def load_output(self):
         """Load output data from file"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
-        content = ""
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                content = f.read()
-        self.window.interpreter.setPlainText(content)
+        data = self.get_output()
+        self.window.interpreter.setPlainText(data)
         self.window.ui.nodes['interpreter.input'].setFocus()
 
     def save_output(self):
@@ -107,20 +119,20 @@ class CodeInterpreter:
         with open(path, "w", encoding="utf-8") as f:
             f.write(data)
 
-    def load_prev_input(self) -> str:
+    def get_history(self) -> str:
         """
-        Load previous input data from file
+        Load and get history from file
 
-        :return: Input data
+        :return: History data
         """
-        input = ""
+        data = ""
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
-                input = f.read()
-        return input
+                data = f.read()
+        return data
 
-    def save_input(self, input: str):
+    def save_history(self, input: str):
         """
         Save input data
 
@@ -130,7 +142,7 @@ class CodeInterpreter:
         with open(path , "w", encoding="utf-8") as f:
             f.write(input)
 
-    def clear_input(self):
+    def clear_history(self):
         """Clear input"""
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
         if os.path.exists(path):
@@ -162,13 +174,11 @@ class CodeInterpreter:
     def clear_all(self):
         """Clear input and output"""
         self.clear_output()
-        self.clear_input()
+        self.clear_history()
 
     def send_input(self):
         """Send input to interpreter"""
-        # switch to output mode if edit mode is enabled
-        self.save_edit()
-
+        self.store_history()
         if self.auto_clear:
             self.clear_output()
 
@@ -221,23 +231,22 @@ class CodeInterpreter:
 
         :param data: Data
         """
-        # load input from input file
-        input = self.load_prev_input()
-        if input:
-            input += "\n"
-        input += data
-        self.save_input(input)
-        self.load_input()
+        prev = self.get_history()
+        if prev:
+            prev += "\n"
+        prev += data
+        self.save_history(prev)
+        self.load_history()
 
-    def save_edit(self):
-        """Save edit data to file"""
+    def store_history(self):
+        """Save history data to file"""
         data = self.window.ui.nodes['interpreter.code'].toPlainText()
-        self.save_input(data)
+        self.save_history(data)
 
     def open(self):
         """Open interpreter dialog"""
         self.opened = True
-        self.load_input()
+        self.load_history()
         self.load_output()
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.window.ui.nodes['interpreter.input'].setFocus()
@@ -285,7 +294,7 @@ class CodeInterpreter:
         """Toggle execute all"""
         self.window.core.config.set("interpreter.execute_all", self.window.ui.nodes['interpreter.all'].isChecked())
 
-    def get_output(self) -> str:
+    def get_current_output(self) -> str:
         """
         Get current output from interpreter
 
@@ -293,9 +302,9 @@ class CodeInterpreter:
         """
         return self.window.interpreter.toPlainText()
 
-    def get_input(self) -> str:
+    def get_current_history(self) -> str:
         """
-        Get current input edit code
+        Get code from history
 
         :return: Edit code
         """
@@ -311,9 +320,9 @@ class CodeInterpreter:
 
     def cursor_to_end(self):
         """Move cursor to end"""
-        cur = self.window.interpreter.textCursor()
+        cur = self.window.ui.nodes['interpreter.code'].textCursor()
         cur.movePosition(QTextCursor.End)
-        self.window.interpreter.setTextCursor(cur)
+        self.window.ui.nodes['interpreter.code'].setTextCursor(cur)
 
     def on_exit(self):
         """On exit"""

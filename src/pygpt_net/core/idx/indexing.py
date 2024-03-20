@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -160,6 +160,28 @@ class Indexing:
                 return True
         return False
 
+    def is_excluded_path(self, path: str) -> bool:
+        """
+        Check if path is excluded
+
+        :param path: file path
+        :return: True if excluded
+        """
+        # TODO: implement option for excluding in data dir
+        return False  # not implemented
+
+        data_dir = self.window.core.config.get_user_dir("data")
+
+        # interpreter files
+        excluded = [
+            os.path.join(data_dir, ".interpreter.output.py"),
+            os.path.join(data_dir, ".interpreter.input.py"),
+            os.path.join(data_dir, ".interpreter.current.py"),
+        ]
+        if path in excluded:
+            return True
+        return False
+
     def is_allowed(self, path: str) -> bool:
         """
         Check if path is allowed for indexing
@@ -171,17 +193,20 @@ class Indexing:
             return True
         ext = os.path.splitext(path)[1][1:]  # get extension
         ext = ext.lower()
+        if self.is_excluded_path(path):
+            return False
         if ext in self.loaders["file"] and not self.window.core.config.get("llama.idx.excluded.force"):
             return True
         if self.is_excluded(ext):
             return False
         return True
 
-    def get_documents(self, path: str) -> list[Document]:
+    def get_documents(self, path: str, force: bool = False) -> list[Document]:
         """
         Get documents from path
 
         :param path: path to data
+        :param force: force reading
         :return: list of documents
         """
         self.window.core.idx.log("Reading documents from path: {}".format(path))
@@ -196,9 +221,14 @@ class Indexing:
             # get extension
             ext = os.path.splitext(path)[1][1:].lower()
 
-            # check if not excluded
-            if self.is_excluded(ext):
+            # check if not excluded extension
+            if self.is_excluded(ext) and not force:
                 self.window.core.idx.log("Ignoring excluded extension: {}".format(ext))
+                return []
+
+            # check if not excluded path
+            if self.is_excluded_path(path) and not force:
+                self.window.core.idx.log("Ignoring excluded path: {}".format(path))
                 return []
 
             if ext in self.loaders["file"]:
@@ -221,7 +251,7 @@ class Indexing:
         :param path: path to file
         :return: file content
         """
-        docs = self.get_documents(path)
+        docs = self.get_documents(path, force=True)
         data = []
         for doc in docs:
             data.append(doc.text)

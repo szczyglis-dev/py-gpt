@@ -66,13 +66,15 @@ class TextEditor:
             self,
             file: str = None,
             current_id: str = None,
-            auto_close: bool = True):
+            auto_close: bool = True,
+            force: bool = False):
         """
         Open/toggle file editor
 
         :param file: File to load
         :param current_id: editor id
         :param auto_close: auto close current editor
+        :param force: force open new instance
         """
         # pre-check if file can be opened as text
         if file:
@@ -104,6 +106,8 @@ class TextEditor:
             self.window.ui.dialog[id].file = file
             self.window.core.filesystem.editor.load(id, file)  # load file to editor
             self.window.ui.dialog[id].setWindowTitle(os.path.basename(file))  # set window title
+            if not force:
+                self.window.ui.status("Loaded file: {}".format(file))  # set status
 
         # update menu
         self.update()
@@ -134,7 +138,11 @@ class TextEditor:
 
         :param id: editor id
         """
-        self.window.core.filesystem.editor.restore(id)
+        file = self.window.ui.dialog[id].file
+        if file:
+            self.window.core.filesystem.editor.restore(id)
+        else:
+            self.window.ui.dialogs.alert("No file to restore")
 
     def save_as_file(self, id: str):
         """
@@ -152,4 +160,4 @@ class TextEditor:
             new_id = self.prepare_id(path)
             if new_id != id:
                 self.window.ui.dialogs.close(id)
-                self.open(path)
+                self.open(path, force=True)

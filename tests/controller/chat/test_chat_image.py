@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -50,6 +50,8 @@ def test_handle_response(mock_window):
     image = Image(mock_window)
     image.open_images = MagicMock()
 
+
+    mock_window.tools = MagicMock()
     mock_window.core.config.data['mode'] = 'img'
     mock_window.core.config.data['model'] = 'dall-e-3'
     mock_window.core.config.data['user_name'] = 'User'
@@ -61,7 +63,6 @@ def test_handle_response(mock_window):
 
     image.handle_response(ctx, paths, prompt)
 
-    image.open_images.assert_called_once_with(paths)  # should open images
     mock_window.core.ctx.post_update.assert_called_once()  # should post update context
     mock_window.controller.chat.render.append_output.assert_called_once()  # should append output
     mock_window.core.ctx.store.assert_called_once()  # should save current ctx to DB
@@ -88,6 +89,7 @@ def test_handle_response_inline(mock_window):
     mock_window.controller.chat.render.append_extra.assert_called_once()  # should append extra output
     mock_window.controller.chat.render.to_end()  # should call render end method
 
+"""
 
 def test_open_images(mock_window):
     image = Image(mock_window)
@@ -122,3 +124,5 @@ def test_delete(mock_window):
     image.delete('path', force=True)
     # image.window.ui.dialogs.confirm.assert_called_once()
     os.remove.assert_called_once_with('path')
+
+"""

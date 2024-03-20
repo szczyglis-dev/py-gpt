@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QSizePolicy
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QSizePolicy, QMenuBar
 
 from pygpt_net.ui.widget.dialog.image import ImageDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
@@ -84,6 +85,32 @@ class ImagePreview:
         self.path = None
         self.id = 'image_preview'
 
+    def setup_menu(self) -> QMenuBar:
+        """Setup dialog menu"""
+        self.menu_bar = QMenuBar()
+        self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
+        self.actions = {}
+
+        # open
+        self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
+        self.actions["open"].triggered.connect(self.window.tools.viewer.open_file)
+
+        # save as
+        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
+        self.actions["save_as"].triggered.connect(
+            lambda: self.window.tools.viewer.save(self.window.ui.nodes['dialog.image.preview.pixmap'].path)
+        )
+
+        # exit
+        self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
+        self.actions["exit"].triggered.connect(self.window.tools.viewer.close_preview)
+
+        # add actions
+        self.file_menu.addAction(self.actions["open"])
+        self.file_menu.addAction(self.actions["save_as"])
+        self.file_menu.addAction(self.actions["exit"])
+        return self.menu_bar
+
     def setup(self):
         """Setup image dialog"""
         self.window.ui.nodes['dialog.image.preview.pixmap.source'] = ImageLabel(self.window, self.path)
@@ -95,17 +122,21 @@ class ImagePreview:
 
         sizePolicy = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.window.ui.nodes['dialog.image.preview.pixmap'].setSizePolicy(sizePolicy)
-        #self.window.ui.nodes['dialog.image.preview.pixmap'].setScaledContents(True)  # Enable scaling of content
 
         layout = QVBoxLayout()
+        layout.setMenuBar(self.setup_menu())
         layout.addLayout(row)
 
         self.window.ui.dialog[self.id] = ImageDialog(self.window, self.id)
         self.window.ui.dialog[self.id].setLayout(layout)
-        self.window.ui.dialog[self.id].resizeEvent = self.onResizeEvent  # Add a resize event to adjust the pixmap
+        self.window.ui.dialog[self.id].resizeEvent = self.onResizeEvent  # resize event to adjust the pixmap
 
     def onResizeEvent(self, event):
-        """Resize event to adjust the pixmap on window resizing"""
+        """
+        Resize event to adjust the pixmap on window resizing
+
+        :param event: resize event
+        """
         source = self.window.ui.nodes['dialog.image.preview.pixmap.source']
         label = self.window.ui.nodes['dialog.image.preview.pixmap']
         if source.pixmap() and not source.pixmap().isNull():

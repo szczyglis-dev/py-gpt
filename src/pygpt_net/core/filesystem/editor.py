@@ -69,7 +69,7 @@ class Editor:
         data = self.window.ui.editor[dialog_id].toPlainText()
 
         # check if this is a valid JSON
-        if file.endswith('.json'):
+        if path.endswith('.json'):
             try:
                 json.loads(data)
             except Exception as e:

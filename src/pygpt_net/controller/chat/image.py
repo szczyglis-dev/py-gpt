@@ -6,14 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
-import os
-import shutil
-
-from PySide6 import QtGui, QtCore
-from PySide6.QtWidgets import QFileDialog, QApplication
+from PySide6.QtWidgets import  QApplication
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
@@ -107,7 +103,7 @@ class Image:
             i += 1
 
         if self.window.core.config.get('img_dialog_open'):
-            self.open_images(paths)
+            self.window.tools.viewer.open_images(paths)
 
         if not self.window.core.config.get('img_raw'):
             string += "\nPrompt: "
@@ -182,111 +178,3 @@ class Image:
         self.window.controller.chat.render.end_extra()
 
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
-
-    def open_images(self, paths: list):
-        """
-        Open image in dialog
-
-        :param paths: paths to images
-        """
-        num_images = len(paths)
-        resize_to = 512
-        if num_images > 1:
-            resize_to = 256
-
-        i = 0
-        for path in paths:
-            pixmap = QtGui.QPixmap(path)
-            pixmap = pixmap.scaled(resize_to, resize_to, QtCore.Qt.KeepAspectRatio)
-            self.window.ui.nodes['dialog.image.pixmap'][i].path = path
-            self.window.ui.nodes['dialog.image.pixmap'][i].setPixmap(pixmap)
-            self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(True)
-            i += 1
-
-        # hide unused images
-        for j in range(i, 4):
-            self.window.ui.nodes['dialog.image.pixmap'][j].setVisible(False)
-
-        # resize dialog
-        self.window.ui.dialog['image'].resize(520, 520)
-        self.window.ui.dialog['image'].show()
-
-    def open_preview(self, path: str):
-        """
-        Open image preview in dialog
-
-        :param path: path to image
-        """
-        pixmap = QtGui.QPixmap(path)
-        self.window.ui.nodes['dialog.image.preview.pixmap.source'].setPixmap(pixmap)
-        self.window.ui.nodes['dialog.image.preview.pixmap'].path = path
-        self.window.ui.nodes['dialog.image.preview.pixmap'].resize(520, 520)
-
-        # resize dialog
-        self.window.ui.dialog['image_preview'].setWindowTitle(os.path.basename(path))
-        self.window.ui.dialog['image_preview'].resize(520, 520)
-        self.window.ui.dialog['image_preview'].show()
-
-    def open(self, path: str):
-        """
-        Open image in default image viewer
-
-        :param path: path to image
-        """
-        if os.path.exists(path):
-            self.window.controller.files.open(path)
-
-    def open_dir(self, path: str):
-        """
-        Open image in default image viewer
-
-        :param path: path to image
-        """
-        if os.path.exists(path):
-            self.window.controller.files.open_dir(
-                path,
-                True,
-            )
-
-    def save(self, path: str):
-        """
-        Save image
-
-        :param path: path to image
-        """
-        save_path = QFileDialog.getSaveFileName(
-            self.window,
-            trans('img.save.title'),
-            os.path.basename(path),
-            "PNG (*.png)",
-        )
-        if save_path:
-            try:
-                if save_path[0] == '':
-                    return
-                shutil.copyfile(path, save_path[0])
-                self.window.ui.status(trans('status.img.saved'))
-            except Exception as e:
-                self.window.core.debug.log(e)
-
-    def delete(self, path: str, force: bool = False):
-        """
-        Delete image
-
-        :param path: path to image
-        :param force: force delete without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='img_delete',
-                id=path,
-                msg=trans('confirm.img.delete'),
-            )
-            return
-        try:
-            os.remove(path)
-            for i in range(0, 4):
-                if self.window.ui.nodes['dialog.image.pixmap'][i].path == path:
-                    self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
-        except Exception as e:
-            self.window.core.debug.log(e)

@@ -36,10 +36,12 @@ class AudioTranscriber:
 
     def update(self):
         """Update transcribe menu"""
+        """
         if self.opened:
             self.window.ui.menu['tools.audio.transcribe'].setChecked(True)
         else:
             self.window.ui.menu['tools.audio.transcribe'].setChecked(False)
+        """
 
     def open_file(self):
         """Open transcribe file dialog"""
@@ -78,6 +80,13 @@ class AudioTranscriber:
         """Close transcribe"""
         self.window.ui.dialogs.close('audio.transcribe')
         self.opened = False
+
+    def toggle(self):
+        """Toggle transcribe window"""
+        if self.opened:
+            self.close()
+        else:
+            self.open()
 
     def transcribe(self, path: str, force: bool = False):
         """

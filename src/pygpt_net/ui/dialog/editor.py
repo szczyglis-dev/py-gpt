@@ -103,7 +103,7 @@ class CustomEditor:
         dialog.disable_geometry_store = True  # disable geometry store
         dialog.id = id
         dialog.append_layout(layout)
-        dialog.setWindowTitle('')
+        dialog.setWindowTitle("Text editor")
 
         return dialog
 

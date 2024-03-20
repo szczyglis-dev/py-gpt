@@ -82,7 +82,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.controller.chat.image.open_preview(path),
+                lambda: self.window.tools.viewer.open_preview(path),
             )
             actions.append(action)
         else:

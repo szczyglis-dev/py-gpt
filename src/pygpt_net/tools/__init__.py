@@ -11,6 +11,7 @@
 
 from pygpt_net.tools.audio_transcriber import AudioTranscriber
 from pygpt_net.tools.code_interpreter import CodeInterpreter
+from pygpt_net.tools.image_viewer import ImageViewer
 from pygpt_net.tools.media_player import MediaPlayer
 from pygpt_net.tools.text_editor import TextEditor
 
@@ -23,6 +24,7 @@ class Tools:
         """
         self.window = window
         self.transcriber = AudioTranscriber(window)
+        self.viewer = ImageViewer(window)
         self.interpreter = CodeInterpreter(window)
         self.player = MediaPlayer(window)
         self.editor = TextEditor(window)
@@ -30,6 +32,7 @@ class Tools:
     def setup(self):
         """Setup tools"""
         self.transcriber.setup()
+        self.viewer.setup()
         self.interpreter.setup()
         self.player.setup()
         self.editor.setup()
@@ -49,6 +52,7 @@ class Tools:
     def on_exit(self):
         """On app exit"""
         self.transcriber.on_exit()
+        self.viewer.on_exit()
         self.interpreter.on_exit()
         self.player.on_exit()
         self.editor.on_exit()

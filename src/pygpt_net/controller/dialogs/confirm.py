@@ -56,7 +56,7 @@ class Confirm:
 
         # images
         elif type == 'img_delete':
-            self.window.controller.chat.image.delete(id, True)
+            self.window.tools.viewer.delete(id, True)
 
         # agent infinity loop run
         elif type == 'agent.infinity.run':

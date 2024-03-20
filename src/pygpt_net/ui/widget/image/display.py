@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -34,6 +34,9 @@ class ImageLabel(QLabel):
 
         :param event: context menu event
         """
+        if not self.path:
+            return
+
         actions = {}
         actions['open'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('img.action.open'), self)
         actions['open'].triggered.connect(
@@ -65,7 +68,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.chat.image.open(self.path)
+        self.window.tools.viewer.open(self.path)
 
     def action_open_dir(self, event):
         """
@@ -73,7 +76,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.chat.image.open_dir(self.path)
+        self.window.tools.viewer.open_dir(self.path)
 
     def action_save(self, event):
         """
@@ -81,7 +84,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.chat.image.save(self.path)
+        self.window.tools.viewer.save(self.path)
 
     def action_delete(self, event):
         """
@@ -89,4 +92,4 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.chat.image.delete(self.path)
+        self.window.tools.viewer.delete(self.path)

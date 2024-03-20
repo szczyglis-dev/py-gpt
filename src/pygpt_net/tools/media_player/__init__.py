@@ -45,10 +45,12 @@ class MediaPlayer:
 
     def update_menu(self):
         """Update menu"""
+        """
         if self.opened:
             self.window.ui.menu['tools.media.player'].setChecked(True)
         else:
             self.window.ui.menu['tools.media.player'].setChecked(False)
+        """
 
     def store_path(self, path: str):
         """
