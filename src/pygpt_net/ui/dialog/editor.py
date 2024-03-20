@@ -83,15 +83,15 @@ class CustomEditor:
         self.window.ui.editor[id].textChanged.connect(
             lambda: self.on_changed(id))
 
-        self.window.ui.nodes['editor.custom.btn.default'] = QPushButton(trans("action.refresh"))
+        self.window.ui.nodes['editor.custom.btn.restore'] = QPushButton(trans("action.restore"))
         self.window.ui.nodes['editor.custom.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
-        self.window.ui.nodes['editor.custom.btn.default'].clicked.connect(
+        self.window.ui.nodes['editor.custom.btn.restore'].clicked.connect(
             lambda: self.window.tools.editor.restore(id))
         self.window.ui.nodes['editor.custom.btn.save'].clicked.connect(
             lambda: self.window.tools.editor.save(id))
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.default'])
+        bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.restore'])
         bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.save'])
 
         self.window.ui.paths[id] = HelpLabel("")

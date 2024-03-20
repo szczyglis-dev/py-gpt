@@ -32,9 +32,13 @@ class EditorFileDialog(BaseDialog):
         super(EditorFileDialog, self).__init__(window, id)
         self.window = window
         self.file = None
-        self.base_content = None
+        self.base_content = ""
         self.disable_geometry_store = False
         self.id = id
+
+    def reset_file_title(self):
+        """Reset file title"""
+        self.setWindowTitle(trans("untitled"))
 
     def update_file_title(self, force: bool = False):
         """
@@ -42,24 +46,35 @@ class EditorFileDialog(BaseDialog):
 
         :param force: force update
         """
+        title = trans("untitled")
         if self.file:
-            current = self.window.ui.editor[self.id].toPlainText()
-            base = self.base_content
             title = os.path.basename(self.file)
-            if current != base:
-                title += "*"
-            if current != base or force:
-                time = datetime.datetime.now().strftime("%H:%M")
-                title += " (" + time + ")"
-            self.setWindowTitle(title)
-        else:
-            self.setWindowTitle("Untitled")
+        if self.is_changed():
+            title += "*"
+        if self.is_changed() or force:
+            time = datetime.datetime.now().strftime("%H:%M")
+            title += " (" + time + ")"
+        self.setWindowTitle(title)
+
+    def is_changed(self) -> bool:
+        """
+        Check if file was changed
+
+        :return: True if file was changed
+        """
+        return str(self.window.ui.editor[self.id].toPlainText()) != str(self.base_content)
 
     def setup_menu(self) -> QMenuBar:
         """Setup menu"""
         self.menu_bar = QMenuBar()
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
         self.actions = {}
+
+        # new
+        self.actions["new"] = QAction(QIcon(":/icons/add.svg"), trans("action.new"))
+        self.actions["new"].triggered.connect(
+            lambda: self.window.tools.editor.new()
+        )
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
@@ -74,15 +89,21 @@ class EditorFileDialog(BaseDialog):
         )
 
         # save
-        self.actions["save"] = QAction(QIcon(":/icons/save"), trans("action.save"))
+        self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"))
         self.actions["save"].triggered.connect(
             lambda: self.window.tools.editor.save(self.id)
         )
 
         # save as
-        self.actions["save_as"] = QAction(QIcon(":/icons/save"), trans("action.save_as"))
+        self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
         self.actions["save_as"].triggered.connect(
             lambda: self.window.tools.editor.save_as_file(self.id)
+        )
+
+        # clear
+        self.actions["clear"] = QAction(QIcon(":/icons/clear.svg"), trans("action.clear"))
+        self.actions["clear"].triggered.connect(
+            lambda: self.window.tools.editor.clear(self.id)
         )
 
         # close
@@ -92,10 +113,12 @@ class EditorFileDialog(BaseDialog):
         )
 
         # add actions
+        self.file_menu.addAction(self.actions["new"])
         self.file_menu.addAction(self.actions["open"])
         self.file_menu.addAction(self.actions["open_new"])
         self.file_menu.addAction(self.actions["save"])
         self.file_menu.addAction(self.actions["save_as"])
+        self.file_menu.addAction(self.actions["clear"])
         self.file_menu.addAction(self.actions["exit"])
 
         return self.menu_bar
@@ -115,6 +138,14 @@ class EditorFileDialog(BaseDialog):
 
         :param event: close event
         """
+        if self.id != "editor_file":  # only for text editor
+            if self.is_changed():
+                self.window.ui.dialogs.confirm(
+                    type='editor.changed.close',
+                    id=self.id,
+                    msg=trans("changed.confirm"),
+                )
+                return
         self.cleanup()
         super(EditorFileDialog, self).closeEvent(event)
 
@@ -124,6 +155,11 @@ class EditorFileDialog(BaseDialog):
 
         :param event: key press event
         """
+        # ctrl + s
+        if self.id != "editor_file":  # only for text editor
+            if event.modifiers() & Qt.ControlModifier and event.key() == Qt.Key_S:
+                self.window.tools.editor.save(self.id)
+
         if event.key() == Qt.Key_Escape:
             self.cleanup()
             self.close()  # close dialog when the Esc key is pressed.

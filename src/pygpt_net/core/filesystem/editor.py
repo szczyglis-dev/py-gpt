@@ -33,6 +33,27 @@ class Editor:
         self.load(dialog_id, file)
         self.window.ui.status("Reloaded file: {}".format(file))
 
+    def clear(self, dialog_id: str):
+        """
+        Clear editor
+
+        :param dialog_id: dialog id
+        """
+        self.window.ui.editor[dialog_id].clear()
+        self.window.ui.dialog[dialog_id].file = None
+        self.window.ui.dialog[dialog_id].base_content = ""
+        self.window.ui.dialog[dialog_id].reset_file_title()
+        self.window.ui.status("")
+
+    def is_changed(self, dialog_id: str) -> bool:
+        """
+        Check if content was changed
+
+        :param dialog_id: dialog id
+        :return: True if changed
+        """
+        return self.window.ui.dialog[dialog_id].is_changed()
+
     def load(self, dialog_id: str, file: str = None):
         """
         Load file to editor
@@ -66,6 +87,9 @@ class Editor:
         file = self.window.ui.dialog[dialog_id].file
         if path is None:
             path = file
+        else:
+            self.window.ui.dialog[dialog_id].file = path  # update file path
+
         data = self.window.ui.editor[dialog_id].toPlainText()
 
         # check if this is a valid JSON

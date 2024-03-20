@@ -1269,6 +1269,13 @@ class Patch:
                     data["audio.transcribe.convert_video"] = True
                 updated = True
 
+            # < 2.1.38
+            if old < parse_version("2.1.38"):
+                print("Migrating config from < 2.1.38...")
+                if 'lang' in data and data['lang'] == 'ua':
+                    data["lang"] = "uk"
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -114,6 +114,16 @@ class Confirm:
         elif type == 'files.delete.recursive':
             self.window.controller.files.delete_recursive(id, True)
 
+        # editor
+        elif type == 'editor.changed.clear':
+            self.window.tools.editor.clear(id=id, force=True, save=True)
+        elif type == 'editor.changed.open':
+            self.window.tools.editor.open_file(id=id, force=True, save=True)
+        elif type == 'editor.changed.close':
+            self.window.tools.editor.close(id, save=True)
+        elif type == 'editor.changed.restore':
+            self.window.tools.editor.restore(id=id, force=True, save=True)
+
         # assistants
         elif type == 'assistant_delete':
             self.window.controller.assistant.delete(id, True)
@@ -175,6 +185,16 @@ class Confirm:
         :param type: dialog type
         :param id: dialog object id
         """
+        # editor
+        if type == 'editor.changed.clear':
+            self.window.tools.editor.clear(id=id, force=True)
+        elif type == 'editor.changed.open':
+            self.window.tools.editor.open_file(id=id, force=True)
+        elif type == 'editor.changed.close':
+            self.window.tools.editor.close(id)
+        elif type == 'editor.changed.restore':
+            self.window.tools.editor.restore(id=id, force=True)
+
         self.window.ui.dialog['confirm'].close()
 
     def accept_rename(self, type: str, id: any, name: str):
