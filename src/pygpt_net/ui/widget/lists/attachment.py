@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
@@ -72,6 +72,15 @@ class AttachmentList(BaseList):
 
         :param event: context menu event
         """
+        mode = self.window.core.config.get('mode')
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        path = self.window.controller.attachment.get_path_by_idx(mode, idx)
+        preview_actions = []
+
+        if self.window.core.filesystem.actions.has_preview(path):
+            preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
+
         actions = {}
         actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
         actions['open'].triggered.connect(
@@ -90,15 +99,15 @@ class AttachmentList(BaseList):
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
+        if preview_actions:
+            for action in preview_actions:
+                menu.addAction(action)
         menu.addAction(actions['open'])
         menu.addAction(actions['open_dir'])
         menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
 
-        item = self.indexAt(event.pos())
-        idx = item.row()
         if idx >= 0:
-            mode = self.window.core.config.get('mode')
             self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -284,18 +284,13 @@ class Attachment:
         :param mode: mode
         :param idx: index
         """
-        # TODO: check dict/obj
-        file_id = self.window.core.attachments.get_id_by_idx(
+        path = self.get_path_by_idx(
             mode=mode,
             idx=idx,
         )
-        data = self.window.core.attachments.get_by_id(
-            mode=mode,
-            id=file_id,
-        )
-        if data.path is not None and data.path != '' and os.path.exists(data.path):
+        if path is not None and path != '' and os.path.exists(path):
             self.window.controller.files.open_dir(
-                path=data.path,
+                path=path,
                 select=True,
             )
 
@@ -306,7 +301,23 @@ class Attachment:
         :param mode: mode
         :param idx: index
         """
-        # TODO: check dict/obj
+        path = self.get_path_by_idx(
+            mode=mode,
+            idx=idx,
+        )
+        if path is not None and path != '' and os.path.exists(path):
+            self.window.controller.files.open(
+                path=path,
+            )
+
+    def get_path_by_idx(self, mode: str, idx: int) -> str:
+        """
+        Get path by index
+
+        :param mode: mode
+        :param idx: index
+        :return: path
+        """
         file_id = self.window.core.attachments.get_id_by_idx(
             mode=mode,
             idx=idx,
@@ -315,10 +326,7 @@ class Attachment:
             mode=mode,
             id=file_id,
         )
-        if data.path is not None and data.path != '' and os.path.exists(data.path):
-            self.window.controller.files.open(
-                path=data.path,
-            )
+        return data.path
 
     def import_from_assistant(self, mode: str, assistant: AssistantItem):
         """
