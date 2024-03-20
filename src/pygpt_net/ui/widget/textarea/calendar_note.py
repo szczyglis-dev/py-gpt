@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 02:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QTextEdit, QMenu
+from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -46,34 +46,7 @@ class CalendarNote(QTextEdit):
             menu.addAction(action)
 
             # copy to
-            copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
-
-            # input
-            action = QAction(QIcon(":/icons/input.svg"), trans('text.context_menu.copy_to.input'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.append_to_input(selected_text))
-            copy_to_menu.addAction(action)
-
-            # notepad
-            num_notepads = self.window.controller.notepad.get_num_notepads()
-            if num_notepads > 0:
-                for i in range(1, num_notepads + 1):
-                    name = self.window.controller.notepad.get_notepad_name(i)
-                    action = QAction(QIcon(":/icons/paste.svg"), name, self)
-                    action.triggered.connect(lambda checked=False, i=i:
-                                             self.window.controller.notepad.append_text(selected_text, i))
-                    copy_to_menu.addAction(action)
-
-            # python interpreter
-            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.code'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.interpreter.append_to_edit(selected_text))
-            copy_to_menu.addAction(action)
-            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.input'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.interpreter.append_to_input(selected_text))
-            copy_to_menu.addAction(action)
-
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text, excluded=["calendar"])
             menu.addMenu(copy_to_menu)
 
             # save as (selected)

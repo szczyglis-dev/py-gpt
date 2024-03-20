@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 02:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QTextEdit, QMenu, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
@@ -84,43 +84,9 @@ class NotepadOutput(QTextEdit):
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to
-            copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
-
-            # input
-            action = QAction(QIcon(":/icons/input.svg"), trans('text.context_menu.copy_to.input'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.chat.common.append_to_input(selected_text))
-            copy_to_menu.addAction(action)
-
-            # calendar
-            action = QAction(QIcon(":/icons/schedule.svg"), trans('text.context_menu.copy_to.calendar'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.calendar.note.append_text(selected_text))
-            copy_to_menu.addAction(action)
-
-            # notepad
-            num_notepads = self.window.controller.notepad.get_num_notepads()
-            if num_notepads > 0:
-                for i in range(1, num_notepads + 1):
-                    if i == self.id:
-                        continue
-                    name = self.window.controller.notepad.get_notepad_name(i)
-                    action = QAction(QIcon(":/icons/paste.svg"), name, self)
-                    action.triggered.connect(lambda checked=False, i=i:
-                                             self.window.controller.notepad.append_text(selected_text, i))
-                    copy_to_menu.addAction(action)
-
-            # python interpreter
-            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.code'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.interpreter.append_to_edit(selected_text))
-            copy_to_menu.addAction(action)
-            action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.input'), self)
-            action.triggered.connect(
-                lambda: self.window.controller.interpreter.append_to_input(selected_text))
-            copy_to_menu.addAction(action)
-
+            # copy to (without current notepad)
+            excluded_id = "notepad_id_{}".format(self.id)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text, excluded=[excluded_id])
             menu.addMenu(copy_to_menu)
 
             # save as (selected)
