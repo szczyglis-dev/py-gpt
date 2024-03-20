@@ -185,6 +185,14 @@ class ImageViewer:
                 path,
                 True,
             )
+    def save_by_id(self, id: str):
+        """
+        Save image by dialog id
+
+        :param id: dialog id
+        """
+        if id in self.window.ui.dialog:
+            self.save(self.window.ui.dialog[id].path)
 
     def save(self, path: str):
         """
@@ -207,7 +215,7 @@ class ImageViewer:
                 if save_path[0] == '':
                     return
                 shutil.copyfile(path, save_path[0])
-                self.window.ui.status(trans('status.img.saved'))
+                self.window.ui.status(trans('status.img.saved') + ": {}".format(os.path.basename(save_path[0])))
             except Exception as e:
                 self.window.core.debug.log(e)
 

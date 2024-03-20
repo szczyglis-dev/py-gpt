@@ -102,12 +102,14 @@ class ImageViewerDialog(BaseDialog):
         # save as
         self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
         self.actions["save_as"].triggered.connect(
-            lambda: self.window.tools.viewer.save(self.window.ui.nodes['dialog.image.preview.pixmap'].path)
+            lambda: self.window.tools.viewer.save_by_id(self.id)
         )
 
         # exit
         self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
-        self.actions["exit"].triggered.connect(self.window.tools.viewer.close_preview)
+        self.actions["exit"].triggered.connect(
+            lambda: self.window.tools.viewer.close_preview(self.id)
+        )
 
         # add actions
         self.file_menu.addAction(self.actions["new"])
