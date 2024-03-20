@@ -76,8 +76,8 @@ class Tools:
 
         self.window.ui.menu['menu.tools'] = self.window.menuBar().addMenu(trans("menu.tools"))
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.media.player'])
-        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.audio.transcribe'])
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.image.viewer'])
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.text.editor'])
+        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.audio.transcribe'])
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.interpreter'])
 
