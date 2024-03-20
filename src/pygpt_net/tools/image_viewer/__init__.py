@@ -96,8 +96,8 @@ class ImageViewer:
             type="image_viewer",
         )
 
-        w = 500
-        h = 500
+        w = 520
+        h = 520
 
         if path is None:
             path = self.window.ui.dialog[id].source.path  # previous img
