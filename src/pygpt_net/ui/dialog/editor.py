@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
-import os
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
@@ -86,9 +85,9 @@ class CustomEditor:
         self.window.ui.nodes['editor.custom.btn.default'] = QPushButton(trans("action.refresh"))
         self.window.ui.nodes['editor.custom.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
         self.window.ui.nodes['editor.custom.btn.default'].clicked.connect(
-            lambda: self.window.core.filesystem.editor.restore(id))
+            lambda: self.window.tools.editor.restore(id))
         self.window.ui.nodes['editor.custom.btn.save'].clicked.connect(
-            lambda: self.window.core.filesystem.editor.save(id))
+            lambda: self.window.tools.editor.save(id))
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.default'])
@@ -103,7 +102,7 @@ class CustomEditor:
         dialog = EditorFileDialog(self.window)
         dialog.disable_geometry_store = True  # disable geometry store
         dialog.id = id
-        dialog.setLayout(layout)
+        dialog.append_layout(layout)
         dialog.setWindowTitle('')
 
         return dialog

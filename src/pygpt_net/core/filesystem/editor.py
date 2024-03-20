@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.03.20 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -56,14 +56,16 @@ class Editor:
             self.window.core.debug.log(e)
             self.window.ui.status("Error loading file: {}".format(e))
 
-    def save(self, dialog_id: str):
+    def save(self, dialog_id: str, path: str = None):
         """
         Save file to disk
 
         :param dialog_id: dialog id
+        :param path: file path
         """
         file = self.window.ui.dialog[dialog_id].file
-        path = file
+        if path is None:
+            path = file
         data = self.window.ui.editor[dialog_id].toPlainText()
 
         # check if this is a valid JSON

@@ -314,3 +314,7 @@ class CodeInterpreter:
         cur = self.window.interpreter.textCursor()
         cur.movePosition(QTextCursor.End)
         self.window.interpreter.setTextCursor(cur)
+
+    def on_exit(self):
+        """On exit"""
+        pass

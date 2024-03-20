@@ -31,7 +31,6 @@ class Tools:
             self.window,
             checkable=True,
         )
-        # self.window.ui.menu['tools.media.player'].setToolTip(trans('tools.media.player.tooltip'))
         self.window.ui.menu['tools.media.player'].triggered.connect(
             lambda: self.window.tools.player.show_hide(self.window.ui.menu['tools.media.player'].isChecked())
         )
@@ -42,7 +41,6 @@ class Tools:
             self.window,
             checkable=True,
         )
-        # self.window.ui.menu['tools.audio.transcribe'].setToolTip(trans('tools.audio.transcribe.tooltip'))
         self.window.ui.menu['tools.audio.transcribe'].triggered.connect(
             lambda: self.window.tools.transcriber.show_hide(
                 self.window.ui.menu['tools.audio.transcribe'].isChecked())
@@ -54,14 +52,24 @@ class Tools:
             self.window,
             checkable=True,
         )
-        # self.window.ui.menu['tools.interpreter'].setToolTip(trans('tools.tools.interpreter.tooltip'))
         self.window.ui.menu['tools.interpreter'].triggered.connect(
             lambda: self.window.tools.interpreter.show_hide(
                 self.window.ui.menu['tools.interpreter'].isChecked())
+        )
+
+        # text editor
+        self.window.ui.menu['tools.text.editor'] = QAction(
+            trans("menu.tools.text.editor"),
+            self.window,
+            checkable=False,
+        )
+        self.window.ui.menu['tools.text.editor'].triggered.connect(
+            lambda: self.window.tools.editor.open()
         )
 
         self.window.ui.menu['menu.tools'] = self.window.menuBar().addMenu(trans("menu.tools"))
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.media.player'])
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.audio.transcribe'])
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.interpreter'])
+        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['tools.text.editor'])
         # self.window.ui.menu['menu.tools'].setToolTipsVisible(True)

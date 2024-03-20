@@ -23,7 +23,7 @@ class MediaPlayer:
         :param window: Window instance
         """
         self.window = window
-        self.is_open = False
+        self.opened = False
 
     def setup(self):
         """Setup media player"""
@@ -45,7 +45,7 @@ class MediaPlayer:
 
     def update_menu(self):
         """Update menu"""
-        if self.is_open:
+        if self.opened:
             self.window.ui.menu['tools.media.player'].setChecked(True)
         else:
             self.window.ui.menu['tools.media.player'].setChecked(False)
@@ -67,7 +67,7 @@ class MediaPlayer:
         """
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
-        self.is_open = True
+        self.opened = True
         self.update()
         self.window.video_player.open(path)
 
@@ -105,25 +105,29 @@ class MediaPlayer:
         """Open player window"""
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
-        self.is_open = True
+        self.opened = True
         self.update()
 
     def close(self):
         """Close player window"""
         self.on_close()
         self.window.ui.dialogs.close('video_player')
-        self.is_open = False
+        self.opened = False
         self.update()
 
     def on_close(self):
         """On player window close"""
-        self.is_open = False
+        self.opened = False
         self.update()
         self.window.video_player.on_close()
 
+    def on_exit(self):
+        """On exit"""
+        pass
+
     def toggle(self):
         """Toggle player window"""
-        if self.is_open:
+        if self.opened:
             self.close()
         else:
             self.open()

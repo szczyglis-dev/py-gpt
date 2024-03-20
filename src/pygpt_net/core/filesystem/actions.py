@@ -95,7 +95,7 @@ class Actions:
                     parent,
                 )
                 action.triggered.connect(
-                    lambda: self.window.controller.editor.toggle(path),
+                    lambda: self.window.tools.editor.open(path),
                 )
                 actions.append(action)
         return actions

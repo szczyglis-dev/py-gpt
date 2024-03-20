@@ -26,7 +26,8 @@ class AudioTranscriber:
         :param window: Window instance
         """
         self.window = window
-        self.is_open = False
+        self.opened = False
+        self.video_extensions = ["mp4", "avi", "mov", "mkv", "webm"]
 
     def setup(self):
         """Setup controller"""
@@ -35,7 +36,7 @@ class AudioTranscriber:
 
     def update(self):
         """Update transcribe menu"""
-        if self.is_open:
+        if self.opened:
             self.window.ui.menu['tools.audio.transcribe'].setChecked(True)
         else:
             self.window.ui.menu['tools.audio.transcribe'].setChecked(False)
@@ -54,6 +55,29 @@ class AudioTranscriber:
         """Save transcription as file"""
         text = self.window.ui.editor["audio.transcribe"].toPlainText()
         self.window.controller.chat.common.save_text(text)
+
+    def from_file(self, path: str):
+        """
+        Open and transcribe audio file
+
+        :param path: audio file path
+        """
+        self.open()
+        self.window.ui.nodes['audio.transcribe.status'].setText(
+            trans("audio.transcribe.result.selected").format(path=os.path.basename(path)))
+        self.transcribe(path)
+
+    def open(self):
+        """Open transcriber"""
+        self.window.ui.nodes['audio.transcribe.status'].setText("")
+        self.window.ui.dialogs.open('audio.transcribe', width=800, height=600)
+        self.opened = True
+        self.update()
+
+    def close(self):
+        """Close transcribe"""
+        self.window.ui.dialogs.close('audio.transcribe')
+        self.opened = False
 
     def transcribe(self, path: str, force: bool = False):
         """
@@ -92,34 +116,11 @@ class AudioTranscriber:
             trans("audio.transcribe.result.finished").format(path=os.path.basename(path)))
         self.window.ui.editor["audio.transcribe"].setPlainText(text)
 
-    def from_file(self, path: str):
-        """
-        Open and transcribe audio file
-
-        :param path: audio file path
-        """
-        self.open()
-        self.window.ui.nodes['audio.transcribe.status'].setText(
-            trans("audio.transcribe.result.selected").format(path=os.path.basename(path)))
-        self.transcribe(path)
-
-    def open(self):
-        """Open transcriber"""
-        self.window.ui.nodes['audio.transcribe.status'].setText("")
-        self.window.ui.dialogs.open('audio.transcribe', width=800, height=600)
-        self.is_open = True
-        self.update()
-
-    def close(self):
-        """Close transcribe"""
-        self.window.ui.dialogs.close('audio.transcribe')
-        self.is_open = False
-
     def prepare_audio(self, path: str) -> str:
         """
         Convert video to audio if needed
 
-        :param path: video file path
+        :param path: path to video/audio file
         """
         # ffmpeg required here
         if self.is_video(path) and self.is_auto_convert():
@@ -201,7 +202,7 @@ class AudioTranscriber:
         :return: True if file is a video
         """
         ext = file.split(".")[-1].lower()
-        return ext in ["mp4", "avi", "mov", "mkv", "webm"]
+        return ext in self.video_extensions
 
     def show_hide(self, show: bool = True):
         """
@@ -216,8 +217,12 @@ class AudioTranscriber:
 
     def on_close(self):
         """On transcribe window close"""
-        self.is_open = False
+        self.opened = False
         self.update()
+
+    def on_exit(self):
+        """On exit"""
+        self.store_current()
 
     def clear(self, force: bool = False):
         """
