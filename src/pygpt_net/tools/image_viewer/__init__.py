@@ -208,7 +208,7 @@ class ImageViewer:
             self.window,
             trans('img.save.title'),
             os.path.basename(path),
-            "PNG (*.png)",
+            "Image files (*.png *.jpg *.jpeg *.bmp *.gif *.tiff *webp);; All files (*.*)"
         )
         if save_path:
             try:
