@@ -18,6 +18,7 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout,
                                QFileDialog, QSlider, QLabel, QStyle, QSizePolicy, QMenu, QMessageBox)
 
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -59,7 +60,8 @@ class VideoPlayerWidget(QWidget):
 
         self.label_duration = QLabel()
         self.label_time = QLabel()
-        self.label_path = QLabel()
+        self.label_path = HelpLabel("")
+        self.label_path.setWordWrap(False)
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, 0)

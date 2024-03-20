@@ -12,7 +12,7 @@
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.editor_file import EditorFileDialog
-from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.editor import CodeEditor, TextFileEditor
 from pygpt_net.utils import trans
 
@@ -45,14 +45,15 @@ class Editor:
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.default'])
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.save'])
 
-        self.window.ui.paths[id] = TitleLabel("")
+        self.window.ui.paths[id] = HelpLabel("")
+        self.window.ui.paths[id].setWordWrap(False)
 
         self.window.ui.nodes['dialog.editor.label'] = QLabel(trans('dialog.editor.label'))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['dialog.editor.label'])
-        layout.addWidget(self.window.ui.paths[id])
         layout.addWidget(self.window.ui.editor['config'])
+        layout.addWidget(self.window.ui.paths[id])
         layout.addLayout(bottom_layout)
 
         self.window.ui.dialog['config.editor'] = EditorFileDialog(self.window)
@@ -93,10 +94,12 @@ class CustomEditor:
         bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.default'])
         bottom_layout.addWidget(self.window.ui.nodes['editor.custom.btn.save'])
 
-        self.window.ui.paths[id] = TitleLabel("")
+        self.window.ui.paths[id] = HelpLabel("")
+        self.window.ui.paths[id].setWordWrap(False)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.paths[id])
         layout.addWidget(self.window.ui.editor[id])
+        layout.addWidget(self.window.ui.paths[id])
         layout.addLayout(bottom_layout)
 
         dialog = EditorFileDialog(self.window)
