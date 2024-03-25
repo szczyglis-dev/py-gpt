@@ -94,6 +94,7 @@ class Settings:
         with open(lock_file, 'w', encoding='utf-8') as f:
             f.write(lock_path)  # new path
         self.window.core.config.set_workdir(path, reload=True)
+
         # patch and reload
         self.window.core.db.close()  # close current database
         self.window.core.db.init(force=True)  # re-init database with new path
@@ -111,6 +112,7 @@ class Settings:
         self.window.controller.calendar.setup()
         self.window.controller.plugins.settings.setup()
         self.window.controller.painter.setup()
+
         # show result
         self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.success").format(path=path))
         self.window.ui.dialogs.alert(trans("dialog.workdir.result.success").format(path=path))
@@ -127,7 +129,6 @@ class Settings:
             return
 
         current = self.window.core.config.get_user_path()
-        # check path
         if current == path:
             self.window.ui.dialogs.alert(trans("dialog.workdir.result.same_directory"))
             self.migrating_workdir = False
