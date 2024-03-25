@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 04:00:00                  #
+# Updated Date: 2024.03.25 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
@@ -29,6 +29,7 @@ class Logger:
         """Setup logger dialog"""
         self.window.logger = CodeEditor(self.window)
         self.window.logger.setReadOnly(True)
+        self.window.logger.setProperty('class', 'text-editor')
 
         self.window.ui.nodes['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['logger.btn.clear'].clicked.connect(

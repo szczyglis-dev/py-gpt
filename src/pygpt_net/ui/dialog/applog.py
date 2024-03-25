@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.03.25 12:00:00                  #
 # ================================================== #
 
 import os
@@ -34,6 +34,7 @@ class AppLog:
 
         self.window.ui.editor[id] = CodeEditor(self.window)
         self.window.ui.editor[id].setReadOnly(True)
+        self.window.ui.editor[id].setProperty('class', 'text-editor')
 
         self.window.ui.nodes['editor.app.log.btn.open'] = QPushButton("OPEN (EXTERNAL)")
         self.window.ui.nodes['editor.app.log.btn.clear'] = QPushButton("CLEAR")
