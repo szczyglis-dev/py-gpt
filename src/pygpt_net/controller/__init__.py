@@ -130,6 +130,7 @@ class Controller:
         self.window.core.db.init(force=True)  # re-init database with new path
         self.window.core.patch()
         self.window.core.ctx.current = None
+        self.presets.locked = True
         self.settings.setup()
         self.window.core.presets.load()
         self.window.core.debug.update_logger_path()
@@ -137,9 +138,9 @@ class Controller:
         self.ctx.setup()
         self.ctx.update()
         self.ctx.refresh()
-        self.presets.refresh()
         self.assistant.setup()
         self.attachment.setup()
+        self.presets.refresh()
         self.idx.setup()
         self.notepad.setup()
         self.calendar.setup()
@@ -151,3 +152,4 @@ class Controller:
         self.theme.setup()
         self.debug.update()
         self.window.tools.interpreter.setup()
+        self.presets.locked = False

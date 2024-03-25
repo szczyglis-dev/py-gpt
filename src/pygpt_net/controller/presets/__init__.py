@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.03.25 13:00:00                  #
 # ================================================== #
 
 import re
@@ -24,6 +24,7 @@ class Presets:
         """
         self.window = window
         self.editor = Editor(window)
+        self.locked = False
 
     def setup(self):
         """Setup presets"""
@@ -177,6 +178,8 @@ class Presets:
 
     def from_global(self):
         """Update current preset from global prompt"""
+        if self.locked:
+            return
         preset_id = self.window.core.config.get('preset')
         if preset_id is not None and preset_id != "":
             if preset_id in self.window.core.presets.items:
