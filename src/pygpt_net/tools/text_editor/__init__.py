@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 12:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -148,7 +148,7 @@ class TextEditor:
             self.window.core.filesystem.editor.load(id, file)  # load file to editor
             self.window.ui.dialog[id].setWindowTitle(os.path.basename(file))  # set window title
             if not force:
-                self.window.ui.status("Loaded file: {}".format(file))  # set status
+                self.window.ui.status("Loaded file: {}".format(os.path.basename(file)))  # set status
         else:
             self.window.core.filesystem.editor.clear(id)  # clear editor if no file
 

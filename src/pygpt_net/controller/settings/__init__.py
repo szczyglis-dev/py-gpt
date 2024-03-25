@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.25 12:00:00                  #
 # ================================================== #
 
 import os
-from pathlib import Path
 
-from PySide6.QtWidgets import QApplication
+from .editor import Editor
+from .workdir import Workdir
 
-from pygpt_net.controller.settings.editor import Editor
 from pygpt_net.utils import trans
 
 
@@ -27,10 +26,9 @@ class Settings:
         """
         self.window = window
         self.editor = Editor(window)
+        self.workdir = Workdir(window)
         self.width = 800
         self.height = 500
-        self.is_workdir_dialog = False
-        self.migrating_workdir = False
 
     def setup(self):
         """Set up settings editor"""
@@ -64,176 +62,6 @@ class Settings:
                     self.window.ui.menu['config.' + id].setChecked(True)
                 else:
                     self.window.ui.menu['config.' + id].setChecked(False)
-
-    def change_workdir(self):
-        """Change working directory (open dialog)"""
-        if self.is_workdir_dialog:
-            self.window.ui.dialogs.close('workdir.change')
-            self.is_workdir_dialog = False
-        else:
-            size_needed = self.window.core.filesystem.get_directory_size(self.window.core.config.get_user_path())
-            self.window.ui.nodes['workdir.change.info'].setText(trans("dialog.workdir.tip").format(size=size_needed))
-            self.window.ui.nodes['workdir.change.path'].setText(self.window.core.config.get_user_path())
-            self.window.ui.nodes['workdir.change.status'].setVisible(False)
-            self.window.ui.dialogs.open(
-                'workdir.change',
-                width=600,
-                height=180,
-            )
-            self.is_workdir_dialog = True
-
-    def update_workdir(self, path: str, force: bool = False):
-        """
-        Switch working directory to the existing one
-
-        :param path: existing working directory
-        :param force: force migration
-        """
-        if force:
-            self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.wait"))
-            self.window.ui.nodes['workdir.change.status'].setVisible(True)
-            QApplication.processEvents()
-
-        lock_file = os.path.join(self.window.core.config.get_base_workdir(), 'path.lock')  # put "path.lock"
-        lock_path = path.replace(str(Path.home()), "%HOME%")
-        if path == self.window.core.config.get_base_workdir():
-            lock_path = ""  # set empty if default dir
-        with open(lock_file, 'w', encoding='utf-8') as f:
-            f.write(lock_path)  # new path
-        self.window.core.config.set_workdir(path, reload=True)
-
-        # patch and reload
-        self.window.core.db.close()  # close current database
-        self.window.core.db.init(force=True)  # re-init database with new path
-        self.window.core.patch()
-        self.window.core.ctx.current = None
-        self.window.core.presets.load()
-        self.window.controller.ctx.setup()
-        self.window.controller.ctx.update()
-        self.window.controller.ctx.refresh()
-        self.window.controller.presets.refresh()
-        self.window.controller.assistant.setup()
-        self.window.controller.attachment.setup()
-        self.window.controller.idx.setup()
-        self.window.controller.notepad.setup()
-        self.window.controller.calendar.setup()
-        self.window.controller.plugins.settings.setup()
-        self.window.controller.painter.setup()
-        self.window.controller.files.update_explorer(reload=True)
-        self.window.controller.lang.setup()
-        self.window.controller.theme.setup()
-
-        # show result
-        self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.success").format(path=path))
-        self.window.ui.dialogs.alert(trans("dialog.workdir.result.success").format(path=path))
-
-    def migrate_workdir(self, path: str, force: bool = False):
-        """
-        Migrate working directory
-
-        :param path: new working directory
-        :param force: force migration
-        """
-        if self.migrating_workdir:
-            self.window.ui.dialogs.alert("Workdir migration in progress...")
-            return
-
-        current = self.window.core.config.get_user_path()
-        if current == path:
-            self.window.ui.dialogs.alert(trans("dialog.workdir.result.same_directory"))
-            self.migrating_workdir = False
-            self.window.ui.nodes['workdir.change.status'].setVisible(False)
-            return
-
-        # check if path is not empty
-        if self.window.core.filesystem.is_workdir_in_path(path):
-            self.window.ui.dialogs.confirm(
-                type='workdir.update',
-                id=path,
-                msg=trans("dialog.workdir.update.confirm").format(path=path)
-            )
-            return
-
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='workdir.change',
-                id=path,
-                msg=trans("dialog.workdir.change.confirm").format(path=path)
-            )
-            return
-
-        self.window.ui.nodes['workdir.change.status'].setText("")
-        self.window.ui.nodes['workdir.change.status'].setVisible(False)
-        self.migrating_workdir = True
-        print("Migrating workdir from: ", current, " to: ", path)
-
-        # check if path exists
-        if not os.path.exists(path) or not os.path.isdir(path):
-            self.window.ui.dialogs.alert(trans("dialog.workdir.result.directory_not_exists"))
-            self.window.ui.nodes['workdir.change.status'].setVisible(False)
-            self.migrating_workdir = False
-            return
-
-        # check free space
-        space_required = self.window.core.filesystem.get_directory_size(current, human_readable=False)
-        space_free = self.window.core.filesystem.get_free_disk_space(path, human_readable=False)
-        space_required_human = self.window.core.filesystem.get_directory_size(current)
-        space_free_human = self.window.core.filesystem.get_free_disk_space(path)
-        if space_required > space_free:
-            self.window.ui.dialogs.alert(trans("dialog.workdir.result.no_free_space").format(
-                required=space_required_human,
-                free=space_free_human,
-            ))
-            self.migrating_workdir = False
-            self.window.ui.nodes['workdir.change.status'].setVisible(False)
-            return
-
-        self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.wait"))
-        self.window.ui.nodes['workdir.change.status'].setVisible(True)
-        self.window.core.debug.info("Migrating workdir from: {} to: {}".format(current, path))
-        QApplication.processEvents()
-
-        # copy files
-        try:
-            result = self.window.core.filesystem.migrate_workdir(current, path)
-        except Exception as e:
-            self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(e)
-            print("Error migrating workdir: ", e)
-            result = False
-
-        if result:
-            try:
-                # remove old workdir
-                self.window.core.debug.info("Clearing old workdir: {}".format(current))
-                self.window.core.filesystem.clear_workdir(current)
-                self.update_workdir(path)  # update workdir
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(e)
-                print("Error migrating workdir: ", e)
-
-                # restore current if failed
-                lock_file = os.path.join(self.window.core.config.get_base_workdir(), 'path.lock')  # put "path.lock"
-                lock_path = current.replace(str(Path.home()), "%HOME%")
-                if path == self.window.core.config.get_base_workdir():
-                    lock_path = ""  # set empty if default dir
-                with open(lock_file, 'w', encoding='utf-8') as f:
-                    f.write(lock_path)  # new path
-        else:
-            self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.failed"))
-            self.window.ui.dialogs.alert(trans("dialog.workdir.result.failed"))
-
-            # restore current if failed
-            lock_file = os.path.join(self.window.core.config.get_base_workdir(), 'path.lock')  # put "path.lock"
-            lock_path = current.replace(str(Path.home()), "%HOME%")
-            if path == self.window.core.config.get_base_workdir():
-                lock_path = ""  # set empty if default dir
-            with open(lock_file, 'w', encoding='utf-8') as f:
-                f.write(lock_path)  # new path
-
-        self.migrating_workdir = False
-        self.window.core.debug.info("Finished migrating workdir from: {} to: {}".format(current, path))
 
     def open_section(self, section: str):
         """

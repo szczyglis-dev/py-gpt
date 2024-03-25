@@ -93,7 +93,7 @@ class Config:
             lambda: self.window.controller.settings.open_config_dir())
 
         self.window.ui.menu['config.change_dir'].triggered.connect(
-            lambda: self.window.controller.settings.change_workdir())
+            lambda: self.window.controller.settings.workdir.change())
 
         self.window.ui.menu['config.save'].triggered.connect(
             lambda: self.window.controller.settings.save_all())

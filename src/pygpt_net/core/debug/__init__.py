@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.03.25 15:00:00                  #
 # ================================================== #
 
 import os
@@ -31,17 +31,17 @@ class Debug:
     @staticmethod
     def init(level: int = logging.ERROR):
         """
-        Initialize error handler
+        Initialize logger and error handler
 
         :param level: log level (default: ERROR)
         """
-        if not os.path.exists(os.path.join(Path.home(), '.config', Config.CONFIG_DIR)):
-            os.makedirs(os.path.join(Path.home(), '.config', Config.CONFIG_DIR))
+        if not Config.prepare_workdir():
+            os.makedirs(Config.prepare_workdir())
 
         logging.basicConfig(
             level=level,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            filename=str(Path(os.path.join(Path.home(), '.config', Config.CONFIG_DIR, 'app.log'))),
+            filename=str(Path(os.path.join(Config.prepare_workdir(), 'app.log'))),
             filemode='a',
             encoding='utf-8',
         )
@@ -64,6 +64,21 @@ class Debug:
                 traceback.print_exception(exc_type, value, tb)
 
         sys.excepthook = handle_exception
+
+    def update_logger_path(self):
+        """Update log file path"""
+        path = os.path.join(Config.prepare_workdir(), 'app.log')
+        level = self.get_log_level()
+        logger = logging.getLogger()
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+            handler.close()
+        file_handler = logging.FileHandler(filename=Path(path), mode='a', encoding='utf-8')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(level)
+        logger.setLevel(level)
+        logger.addHandler(file_handler)
 
     def switch_log_level(self, level: int):
         """

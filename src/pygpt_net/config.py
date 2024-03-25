@@ -80,24 +80,27 @@ class Config:
         # install provider configs
         self.provider.install()
 
-    def get_base_workdir(self) -> str:
+    @staticmethod
+    def get_base_workdir() -> str:
         """
         Return base workdir path
 
         :return: base workdir path
         """
-        return os.path.join(Path.home(), '.config', self.CONFIG_DIR)
+        return os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
 
-    def prepare_workdir(self) -> str:
+
+    @staticmethod
+    def prepare_workdir() -> str:
         """
         Prepare workdir
 
         :return: workdir path
         """
-        path = Path(self.get_base_workdir())
+        path = Path(Config.get_base_workdir())
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
-        path_file = "path.lock"
+        path_file = "path.cfg"
         p = os.path.join(str(path), path_file)
         if not os.path.exists(p):
             with open(p, 'w', encoding='utf-8') as f:

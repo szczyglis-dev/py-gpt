@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -123,3 +123,31 @@ class Controller:
     def init(self):
         """Init base settings"""
         self.settings.load()
+
+    def reload(self):
+        """Reload components"""
+        self.window.core.db.close()  # close current database
+        self.window.core.db.init(force=True)  # re-init database with new path
+        self.window.core.patch()
+        self.window.core.ctx.current = None
+        self.settings.setup()
+        self.window.core.presets.load()
+        self.window.core.debug.update_logger_path()
+        self.window.ui.dialogs.app_log.update()
+        self.ctx.setup()
+        self.ctx.update()
+        self.ctx.refresh()
+        self.presets.refresh()
+        self.assistant.setup()
+        self.attachment.setup()
+        self.idx.setup()
+        self.notepad.setup()
+        self.calendar.setup()
+        self.plugins.settings.setup()
+        self.plugins.update()
+        self.painter.setup()
+        self.files.update_explorer(reload=True)
+        self.lang.setup()
+        self.theme.setup()
+        self.debug.update()
+        self.window.tools.interpreter.setup()

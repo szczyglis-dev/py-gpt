@@ -292,9 +292,9 @@ class Filesystem:
             return self.sizeof_fmt(free)
         return free
 
-    def migrate_workdir(self, path: str, new_path: str) -> bool:
+    def copy_workdir(self, path: str, new_path: str) -> bool:
         """
-        Update working directory
+        Copy working directory
 
         :param path: current working directory
         :param new_path: new working directory
@@ -308,8 +308,8 @@ class Filesystem:
                 else:
                     shutil.copy2(s, d)
 
-        # put "path.lock"
-        lock_file = os.path.join(new_path, 'path.lock')
+        # put "path.cfg"
+        lock_file = os.path.join(new_path, 'path.cfg')
         with open(lock_file, 'w', encoding='utf-8') as f:
             f.write('')
         return True
@@ -335,7 +335,7 @@ class Filesystem:
         :param path: path to check
         :return: True if workdir is in path
         """
-        files = ["path.lock", "config.json", "db.sqlite"]
+        files = ["config.json", "db.sqlite"]
         for file in files:
             if not os.path.exists(os.path.join(path, file)):
                 return False

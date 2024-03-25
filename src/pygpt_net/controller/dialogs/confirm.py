@@ -116,9 +116,9 @@ class Confirm:
 
         # workdir change dialog
         elif type == 'workdir.change':
-            self.window.controller.settings.migrate_workdir(id, True)
+            self.window.controller.settings.workdir.migrate(id, True)
         elif type == 'workdir.update':
-            self.window.controller.settings.update_workdir(id, True)
+            self.window.controller.settings.workdir.update(id, True)
 
         # editor
         elif type == 'editor.changed.clear':

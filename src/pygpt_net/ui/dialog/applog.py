@@ -77,8 +77,18 @@ class AppLog:
         level = self.window.core.debug.get_log_level_name().upper()
         self.window.ui.nodes['dialog.app.log.level'].setText("Log level: " + level)
 
-    def reload(self):
-        """Reload app.log file"""
+    def update(self):
+        """Update app log dialog"""
+        self.window.ui.nodes['dialog.app.log.label'].setText(self.get_log_path())
+        self.update_log_level()
+        self.reload(show=False)
+
+    def reload(self, show: bool = True):
+        """
+        Reload app.log file
+
+        :param show: show dialog
+        """
         path = self.get_log_path()
 
         # load data from log file
@@ -90,7 +100,9 @@ class AppLog:
                     self.window.ui.editor['app.log'].setPlainText(content)
             except Exception as e:
                 print(e)
-        self.window.ui.dialog['app.log'].show()
+
+        if show:
+            self.window.ui.dialog['app.log'].show()
 
         # scroll to the end
         cursor = self.window.ui.editor['app.log'].textCursor()

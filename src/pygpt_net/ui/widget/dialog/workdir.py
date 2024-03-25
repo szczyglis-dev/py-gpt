@@ -49,6 +49,6 @@ class WorkdirDialog(BaseDialog):
         """
         Cleanup on close
         """
-        self.window.controller.settings.is_workdir_dialog = False
+        self.window.controller.settings.workdir.is_dialog = False
 
 
