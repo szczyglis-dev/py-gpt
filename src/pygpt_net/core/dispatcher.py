@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import json
@@ -112,6 +112,8 @@ class Dispatcher:
         """
         self.window = window
         self.nolog_events = ["system.prompt"]
+        self.reply_stack = []
+        self.reply_ctx = None
 
     def is_log(self, event: Event) -> bool:
         """
@@ -208,38 +210,69 @@ class Dispatcher:
             except AttributeError:
                 pass
 
-    def reply(self, ctx: CtxItem):
+    def reply(self, ctx: CtxItem, flush: bool = False):
         """
         Send reply from plugins to model
 
         :param ctx: context object
+        :param flush: True to flush reply stack
         """
         if ctx is not None:
             self.window.core.debug.info("Reply...")
             if self.window.core.debug.enabled() and self.is_log_display():
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
-
-            self.window.ui.status("")  # clear status
             if ctx.reply:
-                # if agent mode is enabled, add +1 run if sending reply
-                if ctx.internal:
-                    if self.window.controller.agent.enabled():
-                        self.window.controller.agent.add_run()
-                        self.window.controller.agent.update()
-                        QApplication.processEvents()
+                self.add_reply(ctx)
+            if flush or self.window.core.dispatcher.async_allowed(ctx):
+                self.flush_reply_stack()
 
-                # prepare data to send as reply
-                data = json.dumps(ctx.results)
-                if ctx.extra_ctx and self.window.core.config.get("ctx.use_extra"):
-                    data = ctx.extra_ctx  # if extra content is set, use it as data to send
+    def add_reply(self, ctx: CtxItem):
+        """
+        Add reply to stack
 
-                prev_ctx = self.window.core.ctx.as_previous(ctx)  # copy result to previous ctx and clear current ctx
-                self.window.core.ctx.update_item(ctx)  # update context in db
-                self.window.ui.status('...')
-                self.window.controller.chat.input.send(
-                    text=data,
-                    force=True,
-                    reply=True,
-                    internal=ctx.internal,
-                    prev_ctx=prev_ctx,
-                )
+        :param ctx: context object
+        """
+        self.window.core.debug.info("Reply stack (add)...")
+        self.reply_stack.append(ctx.results)
+        ctx.results = []  # clear results
+        self.reply_ctx = ctx
+
+    def flush_reply_stack(self):
+        """Flush reply stack"""
+        if self.reply_ctx is None or len(self.reply_stack) == 0:
+            return
+        self.window.core.debug.info("Reply stack (flush)...")
+        results = []
+        for responses in self.reply_stack:
+            for result in responses:
+                results.append(result)
+
+        self.window.ui.status("")  # clear status
+        if self.reply_ctx.internal:
+            if self.window.controller.agent.enabled():
+                self.window.controller.agent.add_run()
+                self.window.controller.agent.update()
+                QApplication.processEvents()
+
+        # prepare data to send as reply
+        data = json.dumps(results)
+        if len(self.reply_stack) < 2 and self.reply_ctx.extra_ctx and self.window.core.config.get("ctx.use_extra"):
+            data = self.reply_ctx.extra_ctx  # if extra content is set, use it as data to send
+
+        prev_ctx = self.window.core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
+        self.window.core.ctx.update_item(self.reply_ctx)  # update context in db
+        self.window.ui.status('...')
+        self.window.controller.chat.input.send(
+            text=data,
+            force=True,
+            reply=True,
+            internal=self.reply_ctx.internal,
+            prev_ctx=prev_ctx,
+        )
+        self.clear_reply_stack()
+
+    def clear_reply_stack(self):
+        """Clear reply stack"""
+        self.window.core.debug.info("Reply stack (clear)...")
+        self.reply_ctx = None
+        self.reply_stack = []

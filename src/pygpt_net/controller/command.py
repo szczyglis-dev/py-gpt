@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import json
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.core.worker import Worker, WorkerSignals
@@ -27,6 +26,7 @@ class Command:
         """
         self.window = window
         self.stop = False
+        self.flush_events = [Event.CMD_EXECUTE, Event.CMD_INLINE]
 
     def dispatch(self, event: Event, all: bool = False):
         """
@@ -38,6 +38,10 @@ class Command:
         self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
         if self.window.core.debug.enabled():
             self.window.core.debug.debug("EVENT BEFORE: " + str(event))
+
+        # begin reply stack
+        if event.name in self.flush_events:
+            self.window.core.dispatcher.clear_reply_stack()
 
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id) or all:
@@ -51,6 +55,10 @@ class Command:
                 self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
 
+        # flush reply stack
+        if event.name in self.flush_events:
+            self.window.core.dispatcher.flush_reply_stack()
+
     def dispatch_only(self, event: Event):
         """
         Dispatch cmd execute event only (command execution)
@@ -58,8 +66,12 @@ class Command:
         :param event: event object
         """
         self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
+        if event.name in self.flush_events:
+            self.window.core.dispatcher.clear_reply_stack()
         for id in self.window.core.plugins.get_ids():
             self.window.core.dispatcher.apply(id, event)
+        if event.name in self.flush_events:
+            self.window.core.dispatcher.flush_reply_stack()
 
     def dispatch_async(self, event: Event):
         """

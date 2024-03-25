@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import json
@@ -92,10 +92,12 @@ class Worker(BaseWorker):
         prompt = None
         if "summarize_prompt" in item["params"]:
             prompt = item["params"]["summarize_prompt"]
+        query = item["params"]["query"]
+        request["query"] = query
 
         # search for query
         result, total_found, current, url = self.websearch.make_query(
-            item["params"]["query"],
+            query,
             page,
             prompt,
         )
@@ -126,6 +128,8 @@ class Worker(BaseWorker):
         if "summarize_prompt" in item["params"]:
             prompt = item["params"]["summarize_prompt"]
         url = item["params"]["url"]
+        request["url"] = url
+
         self.msg = "Opening Web URL: '{}'".format(item["params"]["url"])
 
         # open url
@@ -156,6 +160,8 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         url = item["params"]["url"]
+        request["url"] = url
+
         self.msg = "Opening Web URL: '{}'".format(item["params"]["url"])
 
         # open url (raw)
@@ -197,10 +203,12 @@ class Worker(BaseWorker):
         offset = 1
         if page > 1:
             offset = (page - 1) * num + 1
+        query = item["params"]["query"]
+        request["query"] = query
 
         # search for URLs
         urls = self.websearch.search(
-            item["params"]["query"],
+            query,
             num,
             offset,
         )
