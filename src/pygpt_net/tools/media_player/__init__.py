@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
+import datetime
 import os.path
 import shutil
 
@@ -76,6 +77,19 @@ class MediaPlayer:
     def open_file(self):
         """Open video file"""
         self.window.video_player.open_file()
+
+    def grab_frame(self) -> str:
+        """
+        Grab frame
+
+        :return: frame path
+        """
+        now = datetime.datetime.now()
+        dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+        name = 'cap-' + dt
+        path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+        # TODO: implement grab screenshot
+        return path
 
     def save_as_file(self):
         """Save video as file"""

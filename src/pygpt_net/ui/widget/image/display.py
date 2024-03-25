@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -38,6 +38,7 @@ class ImageLabel(QLabel):
             return
 
         actions = {}
+        use_actions = []
         actions['open'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('img.action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open(event))
@@ -54,9 +55,34 @@ class ImageLabel(QLabel):
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 
+        actions['use_attachment'] = QAction(
+            QIcon(":/icons/attachment.svg"),
+            trans('action.use.attachment'),
+            self,
+        )
+        actions['use_attachment'].triggered.connect(
+            lambda: self.window.controller.files.use_attachment(self.path),
+        )
+        use_actions.append(actions['use_attachment'])
+
+        # use by filetype
+        if self.window.core.filesystem.actions.has_use(self.path):
+            extra_use_actions = self.window.core.filesystem.actions.get_use(self, self.path)
+            for action in extra_use_actions:
+                use_actions.append(action)
+
         menu = QMenu(self)
         menu.addAction(actions['open'])
         menu.addAction(actions['open_dir'])
+
+        # use by type
+        if use_actions:
+            # use menu
+            use_menu = QMenu(trans('action.use'), self)
+            for action in use_actions:
+                use_menu.addAction(action)
+            menu.addMenu(use_menu)
+
         menu.addAction(actions['save'])
         menu.addAction(actions['delete'])
 
