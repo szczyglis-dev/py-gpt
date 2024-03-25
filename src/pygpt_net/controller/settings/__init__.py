@@ -112,6 +112,7 @@ class Settings:
         self.window.controller.calendar.setup()
         self.window.controller.plugins.settings.setup()
         self.window.controller.painter.setup()
+        self.window.controller.files.update_explorer(reload=True)
 
         # show result
         self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.success").format(path=path))

@@ -38,12 +38,11 @@ class FileExplorer(QWidget):
         self.index_data = index_data
         self.directory = directory
         self.model = IndexedFileSystemModel(self.window, self.index_data)
-        self.model.setRootPath(directory)
-        self.model.setFilter(self.model.filter() | QDir.Hidden)  # show hidden files
-
+        self.model.setRootPath(self.directory)
+        self.model.setFilter(self.model.filter() | QDir.Hidden)
         self.treeView = QTreeView()
         self.treeView.setModel(self.model)
-        self.treeView.setRootIndex(self.model.index(directory))
+        self.treeView.setRootIndex(self.model.index(self.directory))
 
         header = QHBoxLayout()
 
@@ -81,15 +80,15 @@ class FileExplorer(QWidget):
 
         header.addWidget(self.btn_idx)
         header.addWidget(self.btn_clear)
-        layout = QVBoxLayout()
+        self.layout = QVBoxLayout()
 
         self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
 
-        layout.addWidget(self.treeView)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
-        layout.addLayout(header)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        self.layout.addWidget(self.treeView)
+        self.layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
+        self.layout.addLayout(header)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
 
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.openContextMenu)
@@ -108,6 +107,13 @@ class FileExplorer(QWidget):
                vertical-align: middle;
            }
        """)
+
+    def update_view(self):
+        """Update explorer view"""
+        self.model.beginResetModel()
+        self.model.setRootPath(self.directory)
+        self.model.endResetModel()
+        self.treeView.setRootIndex(self.model.index(self.directory))
 
     def idx_context_menu(self, parent, pos):
         """

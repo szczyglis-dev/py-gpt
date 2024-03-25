@@ -365,10 +365,19 @@ class Files:
         )
         self.update_explorer()
 
-    def update_explorer(self):
-        """Update file explorer view"""
+    def update_explorer(self, reload: bool = False):
+        """
+        Update file explorer view
+
+        :param: reload: reload explorer root dir
+        """
         data = self.window.core.idx.get_idx_data()  # get all files data, from all indexes
         self.window.ui.nodes['output_files'].index_data = data
+        if reload:
+            root = self.window.core.config.get_user_dir('data')
+            self.window.ui.nodes['output_files'].directory = root
+            self.window.ui.nodes['output_files'].update_view()
+            self.window.ui.nodes['output_files'].path_label.setText(root)
         self.window.ui.nodes['output_files'].model.update_idx_status(data)
 
     def use_attachment(self, path: str):
