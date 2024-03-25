@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -33,6 +33,7 @@ from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
 from pygpt_net.ui.dialog.update import Update
 from pygpt_net.ui.dialog.video_player import VideoPlayer
+from pygpt_net.ui.dialog.workdir import Workdir
 from pygpt_net.ui.widget.dialog.alert import AlertDialog
 from pygpt_net.ui.widget.dialog.confirm import ConfirmDialog
 
@@ -67,6 +68,7 @@ class Dialogs:
         self.start = Start(self.window)
         self.update = Update(self.window)
         self.video_player = VideoPlayer(self.window)
+        self.workdir = Workdir(self.window)
 
     def setup(self):
         """Setup dialogs"""
@@ -91,6 +93,7 @@ class Dialogs:
         self.interpreter.setup()
         self.database.setup()
         self.video_player.setup()
+        self.workdir.setup()
 
         self.window.settings = Settings(self.window)
         self.window.plugin_settings = Plugins(self.window)

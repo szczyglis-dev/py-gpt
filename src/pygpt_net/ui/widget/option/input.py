@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QLineEdit, QFileDialog
 import pygpt_net.icons_rc
 
 
@@ -183,3 +184,55 @@ class PasswordInput(QLineEdit):
             self.option,
             self.text()
         )
+
+
+class DirectoryInput(QLineEdit):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
+        """
+        Directory select input
+
+        :param window: main window
+        :param id: option id
+        :param parent_id: parent option id
+        :param option: option data
+        """
+        super(DirectoryInput, self).__init__(window)
+        self.window = window
+        self.id = id
+        self.parent_id = parent_id
+        self.option = option
+        self.value = ""
+        self.title = ""
+        self.setReadOnly(True)
+
+        # from option data
+        if self.option is not None:
+            if "label" in self.option:
+                self.title = self.option["label"]
+            if "value" in self.option:
+                self.value = self.option["value"]
+                self.setText(self.value)
+
+        self.select = QAction(self)
+        self.select.setIcon(QIcon(":/icons/more_horizontal.svg"))
+        self.select.triggered.connect(self.open_select_dir)
+        self.addAction(self.select, QLineEdit.TrailingPosition)
+
+    def open_select_dir(self):
+        """Open directory dialog"""
+        value = None
+        options = QFileDialog.Options()
+        directory = QFileDialog.getExistingDirectory(self.window, "Select directory...", options=options)
+        if directory:
+            value = directory
+        if value:
+            self.value = value
+            self.setText(value)
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key event
+        """
+        super(DirectoryInput, self).keyPressEvent(event)

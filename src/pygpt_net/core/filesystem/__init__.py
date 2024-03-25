@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import os
@@ -244,3 +244,100 @@ class Filesystem:
         :return: True if path has schema prefix
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
+
+    def sizeof_fmt(self, num: float, suffix='B') -> str:
+        """
+        Convert numbers to human-readable unit formats.
+
+        :param num: number to convert
+        :param suffix: suffix to add
+        :return: human-readable format
+        """
+        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if abs(num) < 1024.0:
+                return f"{num:3.1f}{unit}{suffix}"
+            num /= 1024.0
+        return f"{num:.1f}Yi{suffix}"
+
+    def get_directory_size(self, directory : str, human_readable: bool = True) -> str or int:
+        """
+        Calculate the total size of the given directory
+
+        :param directory: directory path
+        :param human_readable: return human-readable format
+        :return: total size of the directory
+        """
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                # skip if symbolic link
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+
+        if human_readable:
+            return self.sizeof_fmt(total_size)
+        return total_size
+
+    def get_free_disk_space(self, directory: str, human_readable: bool = True) -> str or int:
+        """
+        Check free disk space in the given directory
+
+        :param directory: directory path
+        :param human_readable: return human-readable format
+        :return: free disk space
+        """
+        total, used, free = shutil.disk_usage(os.path.dirname(directory))
+        if human_readable:
+            return self.sizeof_fmt(free)
+        return free
+
+    def migrate_workdir(self, path: str, new_path: str) -> bool:
+        """
+        Update working directory
+
+        :param path: current working directory
+        :param new_path: new working directory
+        """
+        if os.path.isdir(path):
+            for item in os.listdir(path):
+                s = os.path.join(path, item)
+                d = os.path.join(new_path, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, symlinks=False, ignore=None)
+                else:
+                    shutil.copy2(s, d)
+
+        # put "path.lock"
+        lock_file = os.path.join(new_path, 'path.lock')
+        with open(lock_file, 'w', encoding='utf-8') as f:
+            f.write('')
+        return True
+
+    def clear_workdir(self, path: str) -> bool:
+        """
+        Clear working directory
+
+        :param path: working directory
+        """
+        for item in os.listdir(path):
+            item_path = os.path.join(path, item)
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+            else:
+                shutil.rmtree(item_path)
+        return True
+
+    def is_workdir_in_path(self, path: str) -> bool:
+        """
+        Check if workdir is in path
+
+        :param path: path to check
+        :return: True if workdir is in path
+        """
+        files = ["path.lock", "config.json", "db.sqlite"]
+        for file in files:
+            if not os.path.exists(os.path.join(path, file)):
+                return False
+        return True
+

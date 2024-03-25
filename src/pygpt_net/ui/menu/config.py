@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -78,6 +78,8 @@ class Config:
 
         self.window.ui.menu['config.open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"),
                                                          trans("menu.config.open_dir"), self.window)
+        self.window.ui.menu['config.change_dir'] = QAction(QIcon(":/icons/settings_filled.svg"),
+                                                         trans("menu.config.change_dir"), self.window)
         self.window.ui.menu['config.save'] = QAction(QIcon(":/icons/save.svg"),
                                                      trans("menu.config.save"), self.window)
 
@@ -89,6 +91,9 @@ class Config:
 
         self.window.ui.menu['config.open_dir'].triggered.connect(
             lambda: self.window.controller.settings.open_config_dir())
+
+        self.window.ui.menu['config.change_dir'].triggered.connect(
+            lambda: self.window.controller.settings.change_workdir())
 
         self.window.ui.menu['config.save'].triggered.connect(
             lambda: self.window.controller.settings.save_all())
@@ -105,4 +110,5 @@ class Config:
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.css'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.json'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.open_dir'])
+        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.change_dir'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.save'])

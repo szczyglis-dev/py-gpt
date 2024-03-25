@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import copy
 import datetime
 import os
 import re
+
 from pathlib import Path
 from packaging.version import Version
 
@@ -34,9 +35,10 @@ class Config:
         :param window: Window instance
         """
         self.window = window
-        self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
+        self.path = None
         self.initialized = False
         self.initialized_base = False
+        self.initialized_workdir = False
         self.db_echo = False
         self.data = {}  # user config
         self.data_base = {}  # base config
@@ -54,9 +56,12 @@ class Config:
             "upload": "upload",
         }
         self.provider = JsonFileProvider(window)
-        self.provider.path = self.get_user_path()
         self.provider.path_app = self.get_app_path()
         self.provider.meta = self.append_meta()
+
+        if not self.initialized_workdir:
+            workdir = self.prepare_workdir()
+            self.set_workdir(workdir)
 
     def is_compiled(self) -> bool:
         """
@@ -74,6 +79,54 @@ class Config:
 
         # install provider configs
         self.provider.install()
+
+    def get_base_workdir(self) -> str:
+        """
+        Return base workdir path
+
+        :return: base workdir path
+        """
+        return os.path.join(Path.home(), '.config', self.CONFIG_DIR)
+
+    def prepare_workdir(self) -> str:
+        """
+        Prepare workdir
+
+        :return: workdir path
+        """
+        path = Path(self.get_base_workdir())
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+        path_file = "path.lock"
+        p = os.path.join(str(path), path_file)
+        if not os.path.exists(p):
+            with open(p, 'w', encoding='utf-8') as f:
+                f.write("")
+        else:
+            with open(p, 'r', encoding='utf-8') as f:
+                tmp_path = f.read().strip()
+            if tmp_path:
+                tmp_path = tmp_path.replace("%HOME%", str(Path.home()))
+                if os.path.exists(tmp_path):
+                    path = Path(tmp_path)
+                else:
+                    print("CRITICAL: Workdir path not exists: {}".format(tmp_path))
+        return str(path)
+
+    def set_workdir(self, path: str, reload: bool = False):
+        """
+        Update workdir path
+
+        :param path: new path
+        :param reload: reload config
+        """
+        self.path = path
+        self.provider.path = self.get_user_path()
+
+        if reload:
+            self.initialized = False
+            self.init(True)
+            self.load(True)
 
     def patch(self, app_version: Version) -> bool:
         """
@@ -147,7 +200,7 @@ class Config:
                 print("")
                 print("Initializing...")
 
-                # install all
+                # prepare and install
                 self.window.core.installer.install()
 
             self.load(all)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.02.25 12:00:00                  #
 # ================================================== #
 
 import os
@@ -233,9 +233,13 @@ class Database:
         self.migrations = Migrations()
         self.viewer = Viewer(self)
 
-    def init(self):
-        """Initialize database"""
-        if not self.initialized:
+    def init(self, force: bool = False):
+        """
+        Initialize database
+
+        :param force: force initialization
+        """
+        if not self.initialized or force:
             self.db_path = os.path.join(self.window.core.config.path, self.db_name)
             self.prepare()
 
@@ -257,6 +261,11 @@ class Database:
         if not self.is_installed():
             self.install()
         self.initialized = True
+
+    def close(self):
+        """Close database connection"""
+        self.engine.dispose()
+        self.initialized = False
 
     def install(self):
         """Install database schema"""
