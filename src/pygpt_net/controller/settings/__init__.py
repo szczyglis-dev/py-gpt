@@ -74,6 +74,7 @@ class Settings:
             size_needed = self.window.core.filesystem.get_directory_size(self.window.core.config.get_user_path())
             self.window.ui.nodes['workdir.change.info'].setText(trans("dialog.workdir.tip").format(size=size_needed))
             self.window.ui.nodes['workdir.change.path'].setText(self.window.core.config.get_user_path())
+            self.window.ui.nodes['workdir.change.status'].setVisible(False)
             self.window.ui.dialogs.open(
                 'workdir.change',
                 width=600,
@@ -81,12 +82,18 @@ class Settings:
             )
             self.is_workdir_dialog = True
 
-    def update_workdir(self, path: str):
+    def update_workdir(self, path: str, force: bool = False):
         """
         Switch working directory to the existing one
 
         :param path: existing working directory
+        :param force: force migration
         """
+        if force:
+            self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.wait"))
+            self.window.ui.nodes['workdir.change.status'].setVisible(True)
+            QApplication.processEvents()
+
         lock_file = os.path.join(self.window.core.config.get_base_workdir(), 'path.lock')  # put "path.lock"
         lock_path = path.replace(str(Path.home()), "%HOME%")
         if path == self.window.core.config.get_base_workdir():
@@ -113,6 +120,8 @@ class Settings:
         self.window.controller.plugins.settings.setup()
         self.window.controller.painter.setup()
         self.window.controller.files.update_explorer(reload=True)
+        self.window.controller.lang.setup()
+        self.window.controller.theme.setup()
 
         # show result
         self.window.ui.nodes['workdir.change.status'].setText(trans("dialog.workdir.result.success").format(path=path))
