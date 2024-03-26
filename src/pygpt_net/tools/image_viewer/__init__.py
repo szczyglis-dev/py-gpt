@@ -279,3 +279,15 @@ class ImageViewer(BaseTool):
         """
         if type_id == "image_viewer":
             return self.spawner.setup(dialog_id)
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {
+            'menu.text': {
+                'tools.image.viewer': 'menu.tools.image.viewer',
+            }
+        }

@@ -185,3 +185,15 @@ class MediaPlayer(BaseTool):
         """Setup dialogs (static)"""
         self.video_player = VideoPlayer(self.window)
         self.video_player.setup()
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {
+            'menu.text': {
+                'tools.media.player': 'menu.tools.media.player',
+            }
+        }

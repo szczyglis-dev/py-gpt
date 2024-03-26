@@ -109,4 +109,21 @@ class Tools:
             instance = self.tools[id].get_instance(type_id, dialog_id)
             if instance is not None:
                 return instance
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        mappings = {}
+        for id in self.tools:
+            tool_mappings = self.tools[id].get_lang_mappings()
+            if tool_mappings and isinstance(tool_mappings, dict):
+                for key in tool_mappings:
+                    if key not in mappings:
+                        mappings[key] = tool_mappings[key]
+                    else:
+                        mappings[key].update(tool_mappings[key])
+        return mappings
         

@@ -247,3 +247,15 @@ class TextEditor(BaseTool):
         """
         if type_id == "text_editor":
             return self.spawner.setup(dialog_id)
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {
+            'menu.text': {
+                'tools.text.editor': 'menu.tools.text.editor',
+            }
+        }

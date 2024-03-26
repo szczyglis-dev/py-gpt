@@ -263,12 +263,6 @@ class Mapping:
         menu_text['video.capture'] = 'menu.video.capture'
         menu_text['video.capture.auto'] = 'menu.video.capture.auto'
 
-        menu_text['tools.media.player'] = 'menu.tools.media.player'
-        menu_text['tools.audio.transcribe'] = 'menu.tools.audio.transcribe'
-        menu_text['tools.interpreter'] = 'menu.tools.interpreter'
-        menu_text['tools.image.viewer'] = 'menu.tools.image.viewer'
-        menu_text['tools.text.editor'] = 'menu.tools.text.editor'
-
         # debug menu
         if 'menu.debug' in self.window.ui.menu:
             menu_text['debug.config'] = 'menu.debug.config'
@@ -329,5 +323,8 @@ class Mapping:
         mapping['dialog.title'] = dialog_title
         mapping['tooltip'] = tooltips
         mapping['placeholder'] = placeholders
+
+        tool_mappings = self.window.tools.get_lang_mappings()
+        mapping.update(tool_mappings)  # append tool mappings
 
         return mapping

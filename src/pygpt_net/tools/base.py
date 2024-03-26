@@ -75,3 +75,11 @@ class BaseTool:
         :param dialog_id: dialog instance ID
         """
         return None
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {}

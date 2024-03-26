@@ -40,13 +40,8 @@ class AudioTranscriber(BaseTool):
         self.restore_auto_convert()
 
     def update(self):
-        """Update transcribe menu"""
-        """
-        if self.opened:
-            self.window.ui.menu['tools.audio.transcribe'].setChecked(True)
-        else:
-            self.window.ui.menu['tools.audio.transcribe'].setChecked(False)
-        """
+        """Update"""
+        pass
 
     def open_file(self):
         """Open transcribe file dialog"""
@@ -282,3 +277,15 @@ class AudioTranscriber(BaseTool):
         """Setup dialogs (static)"""
         self.audio = AudioTranscribe(self.window)
         self.audio.setup()
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {
+            'menu.text': {
+                'tools.audio.transcribe': 'menu.tools.audio.transcribe',
+            }
+        }

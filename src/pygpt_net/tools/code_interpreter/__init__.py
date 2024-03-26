@@ -361,3 +361,15 @@ class CodeInterpreter(BaseTool):
         """Setup theme"""
         size = self.window.core.config.get('font_size')
         self.window.interpreter.value = size
+
+    def get_lang_mappings(self) -> dict:
+        """
+        Get language mappings
+
+        :return: dict with language mappings
+        """
+        return {
+            'menu.text': {
+                'tools.interpreter': 'menu.tools.interpreter',
+            }
+        }
