@@ -6,26 +6,29 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import os
 
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
+from pygpt_net.tools.base import BaseTool
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class AudioTranscriber:
-    def __init__(self, window=None):
+class AudioTranscriber(BaseTool):
+    def __init__(self, *args, **kwargs):
         """
         Audio Transcriber
 
         :param window: Window instance
         """
-        self.window = window
+        super(AudioTranscriber, self).__init__(*args, **kwargs)
+        self.id = "transcriber"
         self.opened = False
         self.video_extensions = ["mp4", "avi", "mov", "mkv", "webm"]
 
@@ -254,3 +257,22 @@ class AudioTranscriber:
         self.window.ui.editor[id].clear()
         self.window.ui.nodes['audio.transcribe.status'].setText("")
         self.store("")
+
+    def setup_menu(self) -> list:
+        """
+        Setup main menu
+
+        :return list with menu actions
+        """
+        actions = []
+        action = QAction(
+            QIcon(":/icons/hearing.svg"),
+            trans("menu.tools.audio.transcribe"),
+            self.window,
+            checkable=False,
+        )
+        action.triggered.connect(
+            lambda: self.toggle()
+        )
+        actions.append(action)
+        return actions

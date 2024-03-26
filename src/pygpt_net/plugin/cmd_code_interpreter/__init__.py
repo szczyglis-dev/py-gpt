@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -235,12 +235,12 @@ class Plugin(BasePlugin):
         """
         if not self.get_option_value("attach_output"):
             return
-        self.window.tools.interpreter.append_output(data, type)
+        self.window.tools.get("interpreter").append_output(data, type)
 
     @Slot()
     def handle_interpreter_clear(self):
         """Handle interpreter clear"""
-        self.window.tools.interpreter.clear_all()
+        self.window.tools.get("interpreter").clear_all()
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import sys
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
+from pygpt_net.tools import BaseTool
 from pygpt_net.ui.main import MainWindow
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.provider.llms.base import BaseLLM
@@ -175,6 +176,21 @@ class Launcher:
         self.window.add_web(provider)
         if self.debug:
             print("Loaded web provider: {} ({})".format(provider.id, provider.__class__.__name__))
+
+    def add_tool(self, tool: BaseTool):
+        """
+        Register tool
+
+        :param tool: tool instance
+        """
+        if not isinstance(tool, BaseTool):
+            raise TypeError(
+                "Tool must be instance of: "
+                "pygpt_net.tools.base.BaseTool"
+            )
+        self.window.add_tool(tool)
+        if self.debug:
+            print("Loaded tool: {} ({})".format(tool.id, tool.__class__.__name__))
 
     def run(self):
         """Run app"""

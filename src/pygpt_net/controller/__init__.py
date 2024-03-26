@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -151,5 +151,5 @@ class Controller:
         self.lang.setup()
         self.theme.setup()
         self.debug.update()
-        self.window.tools.interpreter.setup()
+        self.window.tools.get("interpreter").setup()
         self.presets.locked = False

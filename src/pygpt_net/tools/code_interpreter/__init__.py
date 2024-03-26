@@ -6,26 +6,28 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import os
 
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QTextCursor, QAction, QIcon
 
+from pygpt_net.tools.base import BaseTool
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class CodeInterpreter:
-    def __init__(self, window=None):
+class CodeInterpreter(BaseTool):
+    def __init__(self, *args, **kwargs):
         """
         Python code interpreter
 
         :param window: Window instance
         """
-        self.window = window
+        super(CodeInterpreter, self).__init__(*args, **kwargs)
+        self.id = "interpreter"
         self.opened = False
         self.is_edit = False
         self.auto_clear = True
@@ -330,6 +332,21 @@ class CodeInterpreter:
         cur.movePosition(QTextCursor.End)
         self.window.ui.nodes['interpreter.code'].setTextCursor(cur)
 
-    def on_exit(self):
-        """On exit"""
-        pass
+    def setup_menu(self) -> list:
+        """
+        Setup main menu
+
+        :return list with menu actions
+        """
+        actions = []
+        action = QAction(
+            QIcon(":/icons/code.svg"),
+            trans("menu.tools.interpreter"),
+            self.window,
+            checkable=False,
+        )
+        action.triggered.connect(
+            lambda: self.toggle()
+        )
+        actions.append(action)
+        return actions

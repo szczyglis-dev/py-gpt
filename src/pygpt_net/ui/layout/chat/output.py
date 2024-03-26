@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -133,7 +133,7 @@ class Output:
         self.window.ui.nodes['icon.interpreter'] = IconLabel(":/icons/code.svg")
         self.window.ui.nodes['icon.interpreter'].setToolTip("Python code interpreter")
         self.window.ui.nodes['icon.interpreter'].clicked.connect(
-            lambda: self.window.tools.interpreter.toggle()
+            lambda: self.window.tools.get("interpreter").toggle()
         )
 
         # mode

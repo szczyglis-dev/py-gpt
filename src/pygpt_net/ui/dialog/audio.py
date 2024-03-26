@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -36,15 +36,21 @@ class AudioTranscribe:
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
-        self.actions["open"].triggered.connect(self.window.tools.transcriber.open_file)
+        self.actions["open"].triggered.connect(
+            lambda: self.window.tools.get("transcriber").open_file()
+        )
 
         # save as
         self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
-        self.actions["save_as"].triggered.connect(self.window.tools.transcriber.save_as_file)
+        self.actions["save_as"].triggered.connect(
+            lambda: self.window.tools.get("transcriber").save_as_file()
+        )
 
         # exit
         self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
-        self.actions["exit"].triggered.connect(self.window.tools.transcriber.close)
+        self.actions["exit"].triggered.connect(
+            lambda: self.window.tools.get("transcriber").close()
+        )
 
         # add actions
         self.file_menu.addAction(self.actions["open"])
@@ -63,7 +69,7 @@ class AudioTranscribe:
         self.window.ui.nodes['audio.transcribe.convert_video'] = QCheckBox(trans("audio.transcribe.auto_convert"))
         self.window.ui.nodes['audio.transcribe.convert_video'].setChecked(True)
         self.window.ui.nodes['audio.transcribe.convert_video'].clicked.connect(
-            lambda: self.window.tools.transcriber.toggle_auto_convert()
+            lambda: self.window.tools.get("transcriber").toggle_auto_convert()
         )
 
         self.window.ui.nodes['audio.transcribe.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
@@ -73,7 +79,7 @@ class AudioTranscribe:
 
         self.window.ui.nodes['audio.transcribe.open'] = QPushButton(trans("audio.transcribe.open"))
         self.window.ui.nodes['audio.transcribe.open'].clicked.connect(
-            lambda: self.window.tools.transcriber.open_file())
+            lambda: self.window.tools.get("transcriber").open_file())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['audio.transcribe.clear'])
@@ -99,4 +105,4 @@ class AudioTranscribe:
 
     def clear(self):
         """Clear transcribe dialog"""
-        self.window.tools.transcriber.clear()
+        self.window.tools.get("transcriber").clear()

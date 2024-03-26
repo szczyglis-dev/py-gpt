@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import  QApplication
@@ -103,7 +103,7 @@ class Image:
             i += 1
 
         if self.window.core.config.get('img_dialog_open'):
-            self.window.tools.viewer.open_images(paths)
+            self.window.tools.get("viewer").open_images(paths)
 
         if not self.window.core.config.get('img_raw'):
             string += "\nPrompt: "

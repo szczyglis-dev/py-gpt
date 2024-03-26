@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -56,7 +56,7 @@ class Confirm:
 
         # images
         elif type == 'img_delete':
-            self.window.tools.viewer.delete(id, True)
+            self.window.tools.get("viewer").delete(id, True)
 
         # agent infinity loop run
         elif type == 'agent.infinity.run':
@@ -64,13 +64,13 @@ class Confirm:
 
         # interpreter
         elif type == 'interpreter.clear':
-            self.window.tools.interpreter.clear(force=True)
+            self.window.tools.get("interpreter").clear(force=True)
 
         # audio transcribe
         elif type == 'audio.transcribe':
-            self.window.tools.transcriber.transcribe(id, force=True)
+            self.window.tools.get("transcriber").transcribe(id, force=True)
         elif type == 'audio.transcribe.clear':
-            self.window.tools.transcriber.clear(True)
+            self.window.tools.get("transcriber").clear(True)
 
         # db viewer
         elif type == 'db.delete_row':
@@ -122,13 +122,13 @@ class Confirm:
 
         # editor
         elif type == 'editor.changed.clear':
-            self.window.tools.editor.clear(id=id, force=True, save=True)
+            self.window.tools.get("editor").clear(id=id, force=True, save=True)
         elif type == 'editor.changed.open':
-            self.window.tools.editor.open_file(id=id, force=True, save=True)
+            self.window.tools.get("editor").open_file(id=id, force=True, save=True)
         elif type == 'editor.changed.close':
-            self.window.tools.editor.close(id, save=True)
+            self.window.tools.get("editor").close(id, save=True)
         elif type == 'editor.changed.restore':
-            self.window.tools.editor.restore(id=id, force=True, save=True)
+            self.window.tools.get("editor").restore(id=id, force=True, save=True)
 
         # assistants
         elif type == 'assistant_delete':
@@ -193,13 +193,13 @@ class Confirm:
         """
         # editor
         if type == 'editor.changed.clear':
-            self.window.tools.editor.clear(id=id, force=True)
+            self.window.tools.get("editor").clear(id=id, force=True)
         elif type == 'editor.changed.open':
-            self.window.tools.editor.open_file(id=id, force=True)
+            self.window.tools.get("editor").open_file(id=id, force=True)
         elif type == 'editor.changed.close':
-            self.window.tools.editor.close(id)
+            self.window.tools.get("editor").close(id)
         elif type == 'editor.changed.restore':
-            self.window.tools.editor.restore(id=id, force=True)
+            self.window.tools.get("editor").restore(id=id, force=True)
 
         self.window.ui.dialog['confirm'].close()
 

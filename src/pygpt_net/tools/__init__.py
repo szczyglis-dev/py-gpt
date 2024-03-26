@@ -6,14 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
-from pygpt_net.tools.audio_transcriber import AudioTranscriber
-from pygpt_net.tools.code_interpreter import CodeInterpreter
-from pygpt_net.tools.image_viewer import ImageViewer
-from pygpt_net.tools.media_player import MediaPlayer
-from pygpt_net.tools.text_editor import TextEditor
+from .base import BaseTool
 
 class Tools:
     def __init__(self, window=None):
@@ -23,40 +19,64 @@ class Tools:
         :param window: Window instance
         """
         self.window = window
-        self.transcriber = AudioTranscriber(window)
-        self.viewer = ImageViewer(window)
-        self.interpreter = CodeInterpreter(window)
-        self.player = MediaPlayer(window)
-        self.editor = TextEditor(window)
+        self.tools = {}
+
+    def register(self, tool: BaseTool):
+        """
+        Register tool
+
+        :param tool: Tool instance
+        """
+        self.tools[tool.id] = tool
+        self.tools[tool.id].attach(self.window)
+
+    def get(self, id: str) -> BaseTool:
+        """
+        Get tool instance by ID
+
+        :param id: tool ID
+        :return tool instance
+        """
+        if id in self.tools:
+            return self.tools[id]
 
     def setup(self):
         """Setup tools"""
-        self.transcriber.setup()
-        self.viewer.setup()
-        self.interpreter.setup()
-        self.player.setup()
-        self.editor.setup()
+        for id in self.tools:
+            self.tools[id].setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
-        pass
-
-    def after_setup(self):
-        """After-setup, after all loaded"""
-        pass
+        for id in self.tools:
+            self.tools[id].post_setup()
 
     def on_update(self):
         """On app main loop update"""
-        pass
+        for id in self.tools:
+            self.tools[id].on_update()
+
+    def on_post_update(self):
+        """On app main loop post update"""
+        for id in self.tools:
+            self.tools[id].on_post_update()
 
     def on_exit(self):
         """On app exit"""
-        self.transcriber.on_exit()
-        self.viewer.on_exit()
-        self.interpreter.on_exit()
-        self.player.on_exit()
-        self.editor.on_exit()
+        for id in self.tools:
+            self.tools[id].on_exit()
 
-    def init(self):
-        """Init base settings"""
-        pass
+    def setup_menu_actions(self) -> dict:
+        """
+        Setup Tools menu actions
+
+        :return: dict with menu actions
+        """
+        actions = {}
+        for id in self.tools:
+            tmp_actions = self.tools[id].setup_menu()
+            if tmp_actions and isinstance(tmp_actions, list):
+                if id not in actions:
+                    actions[id] = []
+                actions[id] += tmp_actions
+        return actions
+        

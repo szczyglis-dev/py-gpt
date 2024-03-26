@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -90,6 +90,13 @@ from pygpt_net.provider.audio_output.eleven_labs import ElevenLabsTextToSpeech
 from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
 from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
 
+# tools
+from pygpt_net.tools.audio_transcriber import AudioTranscriber as AudioTranscriberTool
+from pygpt_net.tools.code_interpreter import CodeInterpreter as CodeInterpreterTool
+from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
+from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
+from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
+
 
 def run(**kwargs):
     """
@@ -106,6 +113,7 @@ def run(**kwargs):
     - Custom audio input providers
     - Custom audio output providers
     - Custom web search engine providers
+    - Custom tools
 
     - You can pass custom plugin instances, LLM wrappers, vector store providers and more to the launcher.
     - This is useful if you want to extend PyGPT with your own plugins, vector storage, LLMs, or other data providers.
@@ -140,6 +148,10 @@ def run(**kwargs):
 
     - Pass a list with the web provider instances as the 'web' keyword argument.
 
+    To register a custom tool:
+
+    - Pass a list with the tool instances as the 'tools' keyword argument.
+
     Example:
     --------
     ::
@@ -154,6 +166,7 @@ def run(**kwargs):
         from audio_input import CustomAudioInput
         from audio_output import CustomAudioOutput
         from web import CustomWebSearch
+        from tools import CustomTool
 
         plugins = [
             CustomPlugin(),
@@ -177,6 +190,9 @@ def run(**kwargs):
         web = [
             CustomWebSearch(),
         ]
+        tools = [
+            CustomTool(),
+        ]
 
         run(
             plugins=plugins,
@@ -185,7 +201,8 @@ def run(**kwargs):
             loaders=loaders,
             audio_input=audio_input,
             audio_output=audio_output,
-            web=web
+            web=web,
+            tools=tools,
         )
 
     """
@@ -312,6 +329,19 @@ def run(**kwargs):
     if isinstance(vector_stores, list):
         for store in vector_stores:
             launcher.add_vector_store(store)
+
+    # register base tools
+    launcher.add_tool(MediaPlayerTool())
+    launcher.add_tool(ImageViewerTool())
+    launcher.add_tool(TextEditorTool())
+    launcher.add_tool(AudioTranscriberTool())
+    launcher.add_tool(CodeInterpreterTool())
+
+    # register custom tools
+    tools = kwargs.get('tools', None)
+    if isinstance(tools, list):
+        for tool in tools:
+            launcher.add_tool(tool)
 
     # run the app
     launcher.run()

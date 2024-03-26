@@ -6,40 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import hashlib
 import os
 
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
+from pygpt_net.tools.base import BaseTool
 from pygpt_net.utils import trans
 
 
-class TextEditor:
-    def __init__(self, window=None):
+class TextEditor(BaseTool):
+    def __init__(self, *args, **kwargs):
         """
-        Text editor controller
+        Text editor
 
         :param window: Window instance
         """
-        self.window = window
+        super(TextEditor, self).__init__(*args, **kwargs)
+        self.id = "editor"
         self.width = 800
         self.height = 500
         self.instance_id = 0
-
-    def setup(self):
-        """Set up editor"""
-        pass
-
-    def update(self):
-        """Update"""
-        pass
-
-    def on_exit(self):
-        """On exit"""
-        pass
 
     def prepare_id(self, file: str):
         """
@@ -152,9 +143,6 @@ class TextEditor:
         else:
             self.window.core.filesystem.editor.clear(id)  # clear editor if no file
 
-        # update menu
-        self.update()
-
     def close(self, id: str, save: bool = False):
         """
         Close file editor
@@ -224,3 +212,22 @@ class TextEditor:
         if path:
             self.window.core.filesystem.editor.save(id, path)
         return id
+
+    def setup_menu(self) -> list:
+        """
+        Setup main menu
+
+        :return list with menu actions
+        """
+        actions = []
+        action = QAction(
+            QIcon(":/icons/edit.svg"),
+            trans("menu.tools.text.editor"),
+            self.window,
+            checkable=False,
+        )
+        action.triggered.connect(
+            lambda: self.open()
+        )
+        actions.append(action)
+        return actions

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -77,43 +77,43 @@ class EditorFileDialog(BaseDialog):
         # new
         self.actions["new"] = QAction(QIcon(":/icons/add.svg"), trans("action.new"))
         self.actions["new"].triggered.connect(
-            lambda: self.window.tools.editor.new()
+            lambda: self.window.tools.get("editor").new()
         )
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
         self.actions["open"].triggered.connect(
-            lambda: self.window.tools.editor.open_file(self.id, auto_close=True)
+            lambda: self.window.tools.get("editor").open_file(self.id, auto_close=True)
         )
 
         # open (new window)
         self.actions["open_new"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open_new_window"))
         self.actions["open_new"].triggered.connect(
-            lambda: self.window.tools.editor.open_file(self.id, auto_close=False)
+            lambda: self.window.tools.get("editor").open_file(self.id, auto_close=False)
         )
 
         # save
         self.actions["save"] = QAction(QIcon(":/icons/save.svg"), trans("action.save"))
         self.actions["save"].triggered.connect(
-            lambda: self.window.tools.editor.save(self.id)
+            lambda: self.window.tools.get("editor").save(self.id)
         )
 
         # save as
         self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
         self.actions["save_as"].triggered.connect(
-            lambda: self.window.tools.editor.save_as_file(self.id)
+            lambda: self.window.tools.get("editor").save_as_file(self.id)
         )
 
         # clear
         self.actions["clear"] = QAction(QIcon(":/icons/close.svg"), trans("action.clear"))
         self.actions["clear"].triggered.connect(
-            lambda: self.window.tools.editor.clear(self.id)
+            lambda: self.window.tools.get("editor").clear(self.id)
         )
 
         # close
         self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
         self.actions["exit"].triggered.connect(
-            lambda: self.window.tools.editor.close(self.id)
+            lambda: self.window.tools.get("editor").close(self.id)
         )
 
         # add actions
@@ -162,7 +162,7 @@ class EditorFileDialog(BaseDialog):
         # CTRL+S
         if self.id != "editor_file":  # only for text editor
             if event.modifiers() & Qt.ControlModifier and event.key() == Qt.Key_S:
-                self.window.tools.editor.save(self.id)
+                self.window.tools.get("editor").save(self.id)
 
         if event.key() == Qt.Key_Escape:
             self.cleanup()

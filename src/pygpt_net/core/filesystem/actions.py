@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import os
@@ -63,7 +63,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.tools.player.play(path),
+                lambda: self.window.tools.get("player").play(path),
             )
             actions.append(action)
             action = QAction(
@@ -72,7 +72,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.tools.transcriber.from_file(path),
+                lambda: self.window.tools.get("transcriber").from_file(path),
             )
             actions.append(action)
         elif self.window.core.filesystem.types.is_image(path):
@@ -82,7 +82,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.tools.viewer.open_preview(path),
+                lambda: self.window.tools.get("viewer").open_preview(path),
             )
             actions.append(action)
         else:
@@ -95,7 +95,7 @@ class Actions:
                     parent,
                 )
                 action.triggered.connect(
-                    lambda: self.window.tools.editor.open(path),
+                    lambda: self.window.tools.get("editor").open(path),
                 )
                 actions.append(action)
         return actions

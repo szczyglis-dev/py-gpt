@@ -6,24 +6,30 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
 import shutil
 
+from PySide6.QtGui import QAction, QIcon
+
+from pygpt_net.tools.base import BaseTool
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
+from pygpt_net.utils import trans
 
-class MediaPlayer:
-    def __init__(self, window=None):
+
+class MediaPlayer(BaseTool):
+    def __init__(self, *args, **kwargs):
         """
         Media player
 
         :param window: Window instance
         """
-        self.window = window
+        super(MediaPlayer, self).__init__(*args, **kwargs)
+        self.id = "player"
         self.opened = False
 
     def setup(self):
@@ -137,10 +143,6 @@ class MediaPlayer:
         self.update()
         self.window.video_player.on_close()
 
-    def on_exit(self):
-        """On exit"""
-        pass
-
     def toggle(self):
         """Toggle player window"""
         if self.opened:
@@ -158,3 +160,22 @@ class MediaPlayer:
             self.open()
         else:
             self.close()
+
+    def setup_menu(self) -> list:
+        """
+        Setup main menu
+
+        :return list with menu actions
+        """
+        actions = []
+        action = QAction(
+            QIcon(":/icons/video.svg"),
+            trans("menu.tools.media.player"),
+            self.window,
+            checkable=False,
+        )
+        action.triggered.connect(
+            lambda: self.toggle()
+        )
+        actions.append(action)
+        return actions

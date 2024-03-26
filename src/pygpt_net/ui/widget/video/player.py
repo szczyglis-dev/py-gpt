@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import os
@@ -156,7 +156,7 @@ class VideoPlayerWidget(QWidget):
         self.enable()
         self.autoplay_timer.start()
         self.update()
-        self.window.tools.player.store_path(path)  # save
+        self.window.tools.get("player").store_path(path)  # save
 
     def enable(self):
         """Enable player"""
@@ -250,7 +250,9 @@ class VideoPlayerWidget(QWidget):
         """
         context_menu = QMenu(self)
         save_as_action = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"), self)
-        save_as_action.triggered.connect(self.window.tools.player.save_as_file)
+        save_as_action.triggered.connect(
+            lambda: self.window.tools.get("player").save_as_file()
+        )
         # full_screen_action = QAction('Fullscreen', self)
         # full_screen_action.triggered.connect(self.toggle_fullscreen)
         context_menu.addAction(save_as_action)
@@ -261,13 +263,13 @@ class VideoPlayerWidget(QWidget):
     def use_as_attachment(self):
         """Use as attachment"""
         # TODO: implement grab screenshot
-        path = self.window.tools.player.grab_frame()
+        path = self.window.tools.get("player").grab_frame()
         self.window.controller.files.use_attachment(path)
 
     def use_as_image(self):
         """Use as image"""
         # TODO: implement grab screenshot
-        path = self.window.tools.player.grab_frame()
+        path = self.window.tools.get("player").grab_frame()
         self.window.controller.painter.open_external(path)
 
     def adjust_volume(self, value):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -84,31 +84,31 @@ class ImageViewerDialog(BaseDialog):
         # new
         self.actions["new"] = QAction(QIcon(":/icons/add.svg"), trans("action.new"))
         self.actions["new"].triggered.connect(
-            lambda: self.window.tools.viewer.new()
+            lambda: self.window.tools.get("viewer").new()
         )
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
         self.actions["open"].triggered.connect(
-            lambda: self.window.tools.viewer.open_file(self.id, auto_close=True)
+            lambda: self.window.tools.get("viewer").open_file(self.id, auto_close=True)
         )
 
         # open (new window)
         self.actions["open_new"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open_new_window"))
         self.actions["open_new"].triggered.connect(
-            lambda: self.window.tools.viewer.open_file(self.id, auto_close=False)
+            lambda: self.window.tools.get("viewer").open_file(self.id, auto_close=False)
         )
 
         # save as
         self.actions["save_as"] = QAction(QIcon(":/icons/save.svg"), trans("action.save_as"))
         self.actions["save_as"].triggered.connect(
-            lambda: self.window.tools.viewer.save_by_id(self.id)
+            lambda: self.window.tools.get("viewer").save_by_id(self.id)
         )
 
         # exit
         self.actions["exit"] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"))
         self.actions["exit"].triggered.connect(
-            lambda: self.window.tools.viewer.close_preview(self.id)
+            lambda: self.window.tools.get("viewer").close_preview(self.id)
         )
 
         # add actions

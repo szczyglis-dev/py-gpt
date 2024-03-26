@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -72,7 +72,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # init, load settings options, etc.
         self.controller.init()
-        self.tools.init()
 
         # setup UI
         self.ui = UI(self)
@@ -138,6 +137,14 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.core.web.register(provider)
 
+    def add_tool(self, tool):
+        """
+        Add tool to app
+
+        :param tool: tool instance
+        """
+        self.tools.register(tool)
+
     def setup(self):
         """Setup app"""
         self.controller.setup()
@@ -171,6 +178,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """Called on post-update (slow)"""
         self.controller.debug.on_update()
         self.controller.plugins.on_post_update()
+        self.tools.on_post_update()
 
     @Slot(str)
     def update_status(self, text: str):

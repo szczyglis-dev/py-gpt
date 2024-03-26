@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -14,30 +14,25 @@ import os
 import shutil
 
 from PySide6 import QtGui, QtCore
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
+from pygpt_net.tools.base import BaseTool
 from pygpt_net.utils import trans
 
 
-class ImageViewer:
-    def __init__(self, window=None):
+class ImageViewer(BaseTool):
+    def __init__(self, *args, **kwargs):
         """
         Image viewer
 
         :param window: Window instance
         """
-        self.window = window
+        super(ImageViewer, self).__init__(*args, **kwargs)
+        self.id = "viewer"
         self.width = 640
         self.height = 400
         self.instance_id = 0
-
-    def setup(self):
-        """Setup"""
-        pass
-
-    def on_exit(self):
-        """On exit"""
-        pass
 
     def prepare_id(self, file: str):
         """
@@ -251,3 +246,22 @@ class ImageViewer:
                     self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
             self.window.core.debug.log(e)
+
+    def setup_menu(self) -> list:
+        """
+        Setup main menu
+
+        :return list with menu actions
+        """
+        actions = []
+        action = QAction(
+            QIcon(":/icons/image.svg"),
+            trans("menu.tools.image.viewer"),
+            self.window,
+            checkable=False,
+        )
+        action.triggered.connect(
+            lambda: self.open_preview()
+        )
+        actions.append(action)
+        return actions

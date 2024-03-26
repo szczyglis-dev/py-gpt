@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.25 10:00:00                  #
 # ================================================== #
 
 import os
@@ -520,7 +520,7 @@ class Plugin(BasePlugin):
         :param path: audio file path
         :param text: transcribed text
         """
-        self.window.tools.transcriber.on_transcribe(path, text)
+        self.window.tools.get("transcriber").on_transcribe(path, text)
 
     def handle_transcribe(self, path: str):
         """
