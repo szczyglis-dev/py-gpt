@@ -41,19 +41,23 @@ class ImageLabel(QLabel):
         use_actions = []
         actions['open'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('img.action.open'), self)
         actions['open'].triggered.connect(
-            lambda: self.action_open(event))
+            lambda: self.action_open(event)
+        )
 
         actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
         actions['open_dir'].triggered.connect(
-            lambda: self.action_open_dir(event))
+            lambda: self.action_open_dir(event)
+        )
 
         actions['save'] = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
         actions['save'].triggered.connect(
-            lambda: self.action_save(event))
+            lambda: self.action_save(event)
+        )
 
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
-            lambda: self.action_delete(event))
+            lambda: self.action_delete(event)
+        )
 
         actions['use_attachment'] = QAction(
             QIcon(":/icons/attachment.svg"),

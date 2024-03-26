@@ -6,16 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QSplitter, QCheckBox, QLabel, QWidget
 
-from pygpt_net.ui.widget.dialog.interpreter import InterpreterDialog
-from pygpt_net.ui.widget.textarea.interpreter import PythonInput, PythonOutput
+from pygpt_net.tools.code_interpreter.ui.widgets import PythonInput, PythonOutput
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
-
 
 class Interpreter:
     def __init__(self, window=None):
@@ -112,3 +111,46 @@ class Interpreter:
         self.window.ui.dialog['interpreter'].setLayout(layout)
         self.window.ui.dialog['interpreter'].setWindowTitle(trans("dialog.interpreter.title"))
         self.window.ui.dialog['interpreter'].resize(800, 500)
+
+
+class InterpreterDialog(BaseDialog):
+    def __init__(self, window=None, id="interpreter"):
+        """
+        Interpreter dialog
+
+        :param window: main window
+        :param id: logger id
+        """
+        super(InterpreterDialog, self).__init__(window, id)
+        self.window = window
+
+    def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: close event
+        """
+        self.cleanup()
+        super(InterpreterDialog, self).closeEvent(event)
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(InterpreterDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
+        if self.window is None:
+            return
+        self.window.tools.get("interpreter").opened = False
+        self.window.tools.get("interpreter").close()
+        self.window.tools.get("interpreter").update()

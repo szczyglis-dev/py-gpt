@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -16,6 +16,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.text_editor.ui.dialogs import DialogSpawner
 from pygpt_net.utils import trans
 
 
@@ -31,6 +32,11 @@ class TextEditor(BaseTool):
         self.width = 800
         self.height = 500
         self.instance_id = 0
+        self.spawner = None
+
+    def setup(self):
+        """Setup tool"""
+        self.spawner = DialogSpawner(self.window)
 
     def prepare_id(self, file: str):
         """
@@ -213,21 +219,31 @@ class TextEditor(BaseTool):
             self.window.core.filesystem.editor.save(id, path)
         return id
 
-    def setup_menu(self) -> list:
+    def setup_menu(self) -> dict:
         """
         Setup main menu
 
-        :return list with menu actions
+        :return dict with menu actions
         """
-        actions = []
-        action = QAction(
+        actions = {}
+        actions["text.editor"] = QAction(
             QIcon(":/icons/edit.svg"),
             trans("menu.tools.text.editor"),
             self.window,
             checkable=False,
         )
-        action.triggered.connect(
+        actions["text.editor"].triggered.connect(
             lambda: self.open()
         )
-        actions.append(action)
         return actions
+
+    def get_instance(self, type_id: str, dialog_id: str = None):
+        """
+        Spawn and return dialog instance
+
+        :param type_id: dialog instance type ID
+        :param dialog_id: dialog instance ID
+        :return dialog instance
+        """
+        if type_id == "text_editor":
+            return self.spawner.setup(dialog_id)

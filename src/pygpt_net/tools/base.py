@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
+
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 
 class BaseTool:
     def __init__(self, *args, **kwargs):
@@ -56,3 +58,20 @@ class BaseTool:
         :return list with menu actions
         """
         return []
+
+    def setup_dialogs(self):
+        """Setup dialogs (static)"""
+        pass
+
+    def setup_theme(self):
+        """Setup theme"""
+        pass
+
+    def get_instance(self, id: str, dialog_id: str = None) -> BaseDialog or None:
+        """
+        Spawn and return dialog instance
+
+        :param id: dialog instance ID
+        :param dialog_id: dialog instance ID
+        """
+        return None

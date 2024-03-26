@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -27,12 +27,14 @@ class AudioTranscribe:
         :param window: Window instance
         """
         self.window = window
+        self.menu_bar = None
+        self.file_menu = None
+        self.actions = {}
 
     def setup_menu(self) -> QMenuBar:
-        """Setup video dialog menu"""
+        """Setup audio transcriber dialog menu"""
         self.menu_bar = QMenuBar()
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
-        self.actions = {}
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
@@ -59,7 +61,7 @@ class AudioTranscribe:
         return self.menu_bar
 
     def setup(self):
-        """Setup transcribe dialog"""
+        """Setup transcriber dialog"""
         id = 'audio.transcribe'
 
         self.window.ui.editor[id] = CodeEditor(self.window)
@@ -79,7 +81,8 @@ class AudioTranscribe:
 
         self.window.ui.nodes['audio.transcribe.open'] = QPushButton(trans("audio.transcribe.open"))
         self.window.ui.nodes['audio.transcribe.open'].clicked.connect(
-            lambda: self.window.tools.get("transcriber").open_file())
+            lambda: self.window.tools.get("transcriber").open_file()
+        )
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['audio.transcribe.clear'])

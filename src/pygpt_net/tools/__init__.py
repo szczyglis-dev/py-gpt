@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from .base import BaseTool
 
 class Tools:
@@ -20,6 +21,7 @@ class Tools:
         """
         self.window = window
         self.tools = {}
+        self.initialized = False
 
     def register(self, tool: BaseTool):
         """
@@ -42,8 +44,11 @@ class Tools:
 
     def setup(self):
         """Setup tools"""
+        self.setup_dialogs()
         for id in self.tools:
             self.tools[id].setup()
+        self.setup_theme()
+        self.initialized = True
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
@@ -73,10 +78,35 @@ class Tools:
         """
         actions = {}
         for id in self.tools:
-            tmp_actions = self.tools[id].setup_menu()
-            if tmp_actions and isinstance(tmp_actions, list):
-                if id not in actions:
-                    actions[id] = []
-                actions[id] += tmp_actions
+            tool_actions = self.tools[id].setup_menu()
+            if tool_actions and isinstance(tool_actions, dict):
+                for id in tool_actions:
+                    key = "tools." + id
+                    actions[key] = tool_actions[id]
         return actions
+
+    def setup_dialogs(self):
+        """Setup dialogs"""
+        for id in self.tools:
+            self.tools[id].setup_dialogs()
+
+    def setup_theme(self):
+        """Setup theme"""
+        if not self.initialized:
+            return
+        for id in self.tools:
+            self.tools[id].setup_theme()
+
+    def get_instance(self, type_id: str, dialog_id: str = None) -> BaseDialog:
+        """
+        Spawn and return dialog instance
+
+        :param type_id: dialog instance type ID
+        :param dialog_id: dialog instance ID
+        :return: BaseDialog instance or None
+        """
+        for id in self.tools:
+            instance = self.tools[id].get_instance(type_id, dialog_id)
+            if instance is not None:
+                return instance
         

@@ -6,18 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QMenuBar
 
-from pygpt_net.ui.widget.dialog.video_player import VideoPlayerDialog
-from pygpt_net.ui.widget.video.player import VideoPlayerWidget
+from pygpt_net.tools.media_player.ui.widgets import VideoPlayerWidget
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
-
 
 class VideoPlayer:
     def __init__(self, window=None):
@@ -28,12 +27,14 @@ class VideoPlayer:
         """
         self.window = window
         self.path = None
+        self.menu_bar = None
+        self.file_menu = None
+        self.actions = {}
 
     def setup_menu(self) -> QMenuBar:
         """Setup video dialog menu"""
         self.menu_bar = QMenuBar()
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
-        self.actions = {}
 
         # open
         self.actions["open"] = QAction(QIcon(":/icons/folder.svg"), trans("action.open"))
@@ -71,3 +72,42 @@ class VideoPlayer:
         self.window.ui.dialog[id] = VideoPlayerDialog(self.window, id)
         self.window.ui.dialog[id].setLayout(layout)
         self.window.ui.dialog[id].setWindowTitle("Media Player")
+
+class VideoPlayerDialog(BaseDialog):
+    def __init__(self, window=None, id=None):
+        """
+        VideoPlayer dialog
+
+        :param window: main window
+        :param id: info window id
+        """
+        super(VideoPlayerDialog, self).__init__(window, id)
+        self.window = window
+        self.id = id
+
+    def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: close event
+        """
+        self.cleanup()
+        super(VideoPlayerDialog, self).closeEvent(event)
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(VideoPlayerDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
+        self.window.tools.get("player").on_close()

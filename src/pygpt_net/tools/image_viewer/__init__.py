@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -18,6 +18,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.image_viewer.ui.dialogs import DialogSpawner
 from pygpt_net.utils import trans
 
 
@@ -33,6 +34,11 @@ class ImageViewer(BaseTool):
         self.width = 640
         self.height = 400
         self.instance_id = 0
+        self.spawner = None
+
+    def setup(self):
+        """Setup tool"""
+        self.spawner = DialogSpawner(self.window)
 
     def prepare_id(self, file: str):
         """
@@ -138,10 +144,8 @@ class ImageViewer(BaseTool):
         resize_to = 512
         if num_images > 1:
             resize_to = 256
-
         w = 520
         h = 520
-
         i = 0
         for path in paths:
             pixmap = QtGui.QPixmap(path)
@@ -247,21 +251,31 @@ class ImageViewer(BaseTool):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def setup_menu(self) -> list:
+    def setup_menu(self) -> dict:
         """
         Setup main menu
 
-        :return list with menu actions
+        :return dict with menu actions
         """
-        actions = []
-        action = QAction(
+        actions = {}
+        actions["image.viewer"] = QAction(
             QIcon(":/icons/image.svg"),
             trans("menu.tools.image.viewer"),
             self.window,
             checkable=False,
         )
-        action.triggered.connect(
+        actions["image.viewer"].triggered.connect(
             lambda: self.open_preview()
         )
-        actions.append(action)
         return actions
+
+    def get_instance(self, type_id: str, dialog_id: str = None):
+        """
+        Spawn and return dialog instance
+
+        :param type_id: dialog instance type ID
+        :param dialog_id: dialog instance ID
+        :return dialog instance
+        """
+        if type_id == "image_viewer":
+            return self.spawner.setup(dialog_id)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ import os
 from PySide6.QtGui import QTextCursor, QAction, QIcon
 
 from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.code_interpreter.ui.dialogs import Interpreter
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -31,6 +32,7 @@ class CodeInterpreter(BaseTool):
         self.opened = False
         self.is_edit = False
         self.auto_clear = True
+        self.interpreter = None
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -332,21 +334,30 @@ class CodeInterpreter(BaseTool):
         cur.movePosition(QTextCursor.End)
         self.window.ui.nodes['interpreter.code'].setTextCursor(cur)
 
-    def setup_menu(self) -> list:
+    def setup_menu(self) -> dict:
         """
         Setup main menu
 
-        :return list with menu actions
+        :return dict with menu actions
         """
-        actions = []
-        action = QAction(
+        actions = {}
+        actions["interpreter"] = QAction(
             QIcon(":/icons/code.svg"),
             trans("menu.tools.interpreter"),
             self.window,
             checkable=False,
         )
-        action.triggered.connect(
+        actions["interpreter"].triggered.connect(
             lambda: self.toggle()
         )
-        actions.append(action)
         return actions
+
+    def setup_dialogs(self):
+        """Setup dialogs (static)"""
+        self.interpreter = Interpreter(self.window)
+        self.interpreter.setup()
+
+    def setup_theme(self):
+        """Setup theme"""
+        size = self.window.core.config.get('font_size')
+        self.window.interpreter.value = size

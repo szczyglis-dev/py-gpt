@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QSizePolicy, QMenuBar
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox
 
-from pygpt_net.ui.widget.dialog.image import ImageDialog, ImageViewerDialog
+from pygpt_net.ui.widget.dialog.image import ImageDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
 from pygpt_net.utils import trans
 
@@ -49,7 +49,8 @@ class Image:
         self.window.ui.nodes['dialog.image.open.toggle'] = QCheckBox(trans('settings.img_dialog_open'), self.window)
         self.window.ui.nodes['dialog.image.open.toggle'].setChecked(state)
         self.window.ui.nodes['dialog.image.open.toggle'].clicked.connect(
-            lambda: self.toggle_dialog_auto_open())
+            lambda: self.toggle_dialog_auto_open()
+        )
 
         layout = QVBoxLayout()
         layout.addLayout(row_one)
@@ -70,42 +71,3 @@ class Image:
 
         # update checkbox in config dialog
         self.window.controller.config.checkbox.apply('config', 'img_dialog_open', {'value': value})
-
-
-class ImageViewer:
-    def __init__(self, window=None):
-        """
-        Image preview dialog
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.path = None
-        self.id = 'image_preview'
-
-    def setup(self, id: str = None) -> ImageViewerDialog:
-        """
-        Setup image dialog
-
-        :param id: dialog id
-        """
-        source = ImageLabel(self.window, self.path)
-        source.setVisible(False)
-        pixmap = ImageLabel(self.window, self.path)
-        pixmap.setSizePolicy(QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored))
-
-        row = QHBoxLayout()
-        row.addWidget(pixmap)
-
-        layout = QVBoxLayout()
-        layout.addLayout(row)
-
-        dialog = ImageViewerDialog(self.window, self.id)
-        dialog.disable_geometry_store = True  # disable geometry store
-        dialog.id = id
-        dialog.append_layout(layout)
-        dialog.setLayout(layout)
-        dialog.source = source
-        dialog.pixmap = pixmap
-
-        return dialog

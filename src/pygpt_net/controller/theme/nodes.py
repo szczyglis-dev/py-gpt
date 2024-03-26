@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 
@@ -108,4 +108,6 @@ class Nodes:
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.value = size
         self.window.ui.nodes['output'].value = size
-        self.window.interpreter.value = size
+
+        # update tools
+        self.window.tools.setup_theme()

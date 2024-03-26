@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.audio_transcriber.ui.dialogs import AudioTranscribe
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -31,6 +32,7 @@ class AudioTranscriber(BaseTool):
         self.id = "transcriber"
         self.opened = False
         self.video_extensions = ["mp4", "avi", "mov", "mkv", "webm"]
+        self.audio = None  # dialog
 
     def setup(self):
         """Setup controller"""
@@ -258,21 +260,25 @@ class AudioTranscriber(BaseTool):
         self.window.ui.nodes['audio.transcribe.status'].setText("")
         self.store("")
 
-    def setup_menu(self) -> list:
+    def setup_menu(self) -> dict:
         """
         Setup main menu
 
-        :return list with menu actions
+        :return dict with menu actions
         """
-        actions = []
-        action = QAction(
+        actions = {}
+        actions["audio.transcribe"] = QAction(
             QIcon(":/icons/hearing.svg"),
             trans("menu.tools.audio.transcribe"),
             self.window,
             checkable=False,
         )
-        action.triggered.connect(
+        actions["audio.transcribe"].triggered.connect(
             lambda: self.toggle()
         )
-        actions.append(action)
         return actions
+
+    def setup_dialogs(self):
+        """Setup dialogs (static)"""
+        self.audio = AudioTranscribe(self.window)
+        self.audio.setup()

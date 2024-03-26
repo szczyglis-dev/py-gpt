@@ -6,23 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
 from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
-from pygpt_net.ui.dialog.audio import AudioTranscribe
 from pygpt_net.ui.dialog.changelog import Changelog
 from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.db import Database
 from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
-from pygpt_net.ui.dialog.editor import Editor, CustomEditor
-from pygpt_net.ui.dialog.image import Image, ImageViewer
+from pygpt_net.ui.dialog.editor import Editor
+from pygpt_net.ui.dialog.image import Image
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
-from pygpt_net.ui.dialog.interpreter import Interpreter
 from pygpt_net.ui.dialog.models import Models
 from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
@@ -32,11 +30,9 @@ from pygpt_net.ui.dialog.settings import Settings
 from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
 from pygpt_net.ui.dialog.update import Update
-from pygpt_net.ui.dialog.video_player import VideoPlayer
 from pygpt_net.ui.dialog.workdir import Workdir
 from pygpt_net.ui.widget.dialog.alert import AlertDialog
 from pygpt_net.ui.widget.dialog.confirm import ConfirmDialog
-
 
 class Dialogs:
     def __init__(self, window=None):
@@ -47,7 +43,6 @@ class Dialogs:
         """
         self.window = window
         self.about = About(self.window)
-        self.audio = AudioTranscribe(self.window)
         self.assistant = Assistant(self.window)
         self.app_log = AppLog(self.window)
         self.changelog = Changelog(self.window)
@@ -56,10 +51,7 @@ class Dialogs:
         self.debug = Debug(self.window)
         self.dictionary = Dictionary(self.window)
         self.editor = Editor(self.window)
-        self.editor_custom = CustomEditor(self.window)
         self.image = Image(self.window)
-        self.image_viewer = ImageViewer(self.window)
-        self.interpreter = Interpreter(self.window)
         self.license = License(self.window)
         self.logger = Logger(self.window)
         self.preset = Preset(self.window)
@@ -67,7 +59,6 @@ class Dialogs:
         self.snap = Snap(self.window)
         self.start = Start(self.window)
         self.update = Update(self.window)
-        self.video_player = VideoPlayer(self.window)
         self.workdir = Workdir(self.window)
 
     def setup(self):
@@ -77,7 +68,6 @@ class Dialogs:
 
         self.about.setup()
         self.app_log.setup()
-        self.audio.setup()
         self.changelog.setup()
         self.create.setup()
         self.preset.setup()
@@ -90,9 +80,7 @@ class Dialogs:
         self.image.setup()
         self.license.setup()
         self.logger.setup()
-        self.interpreter.setup()
         self.database.setup()
-        self.video_player.setup()
         self.workdir.setup()
 
         self.window.settings = Settings(self.window)
@@ -234,10 +222,9 @@ class Dialogs:
         :param type: dialog type
         """
         if id not in self.window.ui.dialog:
-            if type == "text_editor":
-                self.window.ui.dialog[id] = self.editor_custom.setup(id)
-            elif type == "image_viewer":
-                self.window.ui.dialog[id] = self.image_viewer.setup(id)
+            dialog_instance = self.window.tools.get_instance(type, id)
+            if dialog_instance:
+                self.window.ui.dialog[id] = dialog_instance
             else:
                 print("Dialog not found: " + id)
                 return
