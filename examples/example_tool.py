@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.03.26 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,68 +26,70 @@ class ExampleTool(BaseTool):
         :param window: Window instance
         """
         super(ExampleTool, self).__init__(*args, **kwargs)
-        self.id = "example_tool"
+        self.id = "example_tool"  # unique tool id
         self.dialog = None
         self.opened = False
 
     def setup(self):
-        """Setup"""
-        pass
+        """Setup tool"""
+        # setup actions here
+        print("Setting up example tool...")
 
     def update(self):
         """Update"""
-        pass
+        # update actions here (e.g. menu update, etc.)
+        print("On update example tool...")
 
     def open(self):
-        """Open dialog"""
-        print("Opening...")
-        self.window.ui.dialogs.open('example.tool', width=800, height=600)
+        """Open dialog window"""
+        print("Opening example dialog...")
+        self.window.ui.dialogs.open('example_dialog', width=800, height=600)
         self.opened = True
         self.update()
 
     def close(self):
-        """Close dialog"""
-        print("Closing...")
-        self.window.ui.dialogs.close('example.tool')
+        """Close dialog window"""
+        print("Closing example dialog...")
+        self.window.ui.dialogs.close('example_dialog')
         self.opened = False
 
     def toggle(self):
-        """Toggle dialog"""
-        print("On toggle...")
+        """Toggle dialog window"""
+        print("On example dialog toggle...")
         if self.opened:
             self.close()
         else:
             self.open()
 
-    def hello_world(self):
+    def example_action(self):
         """Example action"""
         print("Hello World!")
-        self.window.ui.dialogs.alert("Hello World!")
+        self.window.ui.dialogs.alert("Hello World!")  # show example alert
 
     def show_hide(self, show: bool = True):
         """
-        Show/hide window
+        Show/hide dialog window
 
         :param show: show/hide
         """
-        print("On show/hide...")
+        print("On example dialog show/hide...")
         if show:
             self.open()
         else:
             self.close()
 
     def on_close(self):
-        """On close"""
+        """On dialog close"""
+        print("On example dialog close...")
         self.opened = False
-        print("On close...")
 
     def on_exit(self):
-        """On exit"""
-        print("On app exit...")
+        """On app exit"""
+        print("On exiting example tool...")
 
     def setup_menu(self) -> dict:
         """
-        Setup main menu
+        Setup main menu (Tools)
 
         :return dict with menu actions
         """
@@ -105,7 +107,8 @@ class ExampleTool(BaseTool):
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.dialog = ExampleDialogWidget(self.window)
+        # build all static dialogs here
+        self.dialog = DialogBuilder(self.window)
         self.dialog.setup()
 
     def get_lang_mappings(self) -> dict:
@@ -116,59 +119,66 @@ class ExampleTool(BaseTool):
         """
         return {
             'menu.text': {
-                'tools.example.tool': 'menu.tools.example.tool',
+                'tools.example.tool': 'menu.tools.example.tool',  # menu key => translation key
             }
         }
 
-class ExampleDialogWidget:
+class DialogBuilder:
     def __init__(self, window=None):
         """
-        Example Dialog
+        Example dialog builder
 
         :param window: Window instance
         """
         self.window = window
         self.menu_bar = None
         self.file_menu = None
-        self.actions = {}
+        self.actions = {}  # menu actions
 
     def setup_menu(self) -> QMenuBar:
-        """Setup dialog menu"""
+        """
+        Setup dialog menu
+
+        :return: QMenuBar
+        """
+        # create menu bar
         self.menu_bar = QMenuBar()
         self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
 
         # example action
-        self.actions["example"] = QAction(QIcon(":/icons/folder.svg"), "Example")
-        self.actions["example"].triggered.connect(
-            lambda: self.window.tools.get("example_tool").hello_world()
+        self.actions["example_action"] = QAction(QIcon(":/icons/folder.svg"), "Example menu action")
+        self.actions["example_action"].triggered.connect(
+            lambda: self.window.tools.get("example_tool").example_action()
         )
 
         # add actions
-        self.file_menu.addAction(self.actions["example"])
+        self.file_menu.addAction(self.actions["example_action"])
         return self.menu_bar
 
     def setup(self):
-        """Setup dialog"""
+        """Setup dialog window"""
         label = QLabel("Hello World!")
         btn = QPushButton("Example action!")
         btn.clicked.connect(
-            lambda: self.window.tools.get("example_tool").hello_world()
+            lambda: self.window.tools.get("example_tool").example_action()
         )
 
+        # layout
         layout = QVBoxLayout()
-        layout.setMenuBar(self.setup_menu())
+        layout.setMenuBar(self.setup_menu())  # add menu bar
         layout.addWidget(label, alignment=Qt.AlignCenter)
         layout.addWidget(btn)
 
-        self.window.ui.dialog['example.tool'] = ExampleDialog(self.window)
-        self.window.ui.dialog['example.tool'].setLayout(layout)
-        self.window.ui.dialog['example.tool'].setWindowTitle("Example Dialog")
+        # add dialog to the window
+        self.window.ui.dialog['example_dialog'] = ExampleDialog(self.window)
+        self.window.ui.dialog['example_dialog'].setLayout(layout)
+        self.window.ui.dialog['example_dialog'].setWindowTitle("Example Tool Dialog")
 
 
 class ExampleDialog(BaseDialog):
     def __init__(self, window=None):
         """
-        Dialog
+        Example dialog
 
         :param window: main window
         """
@@ -197,7 +207,5 @@ class ExampleDialog(BaseDialog):
             super(ExampleDialog, self).keyPressEvent(event)
 
     def cleanup(self):
-        """
-        Cleanup on close
-        """
+        """Cleanup on dialog close"""
         self.window.tools.get("example_tool").on_close()
