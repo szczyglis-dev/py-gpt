@@ -40,7 +40,7 @@ class Workdir:
             self.window.ui.dialogs.open(
                 'workdir.change',
                 width=600,
-                height=140,
+                height=160,
             )
             self.is_dialog = True
 
@@ -100,13 +100,18 @@ class Workdir:
             self.window.ui.dialogs.workdir.hide_status()
             return
 
-        # check if path is not empty
+        # check if path is not already a workdir
         if self.window.core.filesystem.is_workdir_in_path(path):
             self.window.ui.dialogs.confirm(
                 type='workdir.update',
                 id=path,
                 msg=trans("dialog.workdir.update.confirm").format(path=path)
             )
+            return
+
+        # check if path is empty
+        if not self.window.core.filesystem.is_directory_empty(path):
+            self.window.ui.dialogs.alert(trans("dialog.workdir.change.empty.alert"))
             return
 
         # confirm move

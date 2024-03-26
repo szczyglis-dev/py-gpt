@@ -28,6 +28,8 @@ class ConfigDebug:
 
         path = os.path.join(self.window.core.config.path, '', 'config.json')
         self.window.core.debug.add(self.id, 'Config File', str(path))
+        self.window.core.debug.add(self.id, 'Current workdir', str(self.window.core.config.get_user_path()))
+        self.window.core.debug.add(self.id, 'Base workdir', str(self.window.core.config.get_base_workdir()))
         self.window.core.debug.add(
             self.id, 'Sections',
             str(self.window.controller.settings.editor.get_sections())

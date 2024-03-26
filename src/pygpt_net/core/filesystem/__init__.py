@@ -345,3 +345,12 @@ class Filesystem:
                 return False
         return True
 
+    def is_directory_empty(self, path: str) -> bool:
+        """
+        Check if directory is empty
+
+        :param path: directory path
+        :return: True if directory is empty
+        """
+        return len(os.listdir(path)) == 0
+
