@@ -211,7 +211,7 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            output = self.plugin.window.tools.interpreter.get_current_output()
+            output = self.plugin.window.tools.get("interpreter").get_current_output()
             response = {
                 "request": request,
                 "result": output,
@@ -235,7 +235,7 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            input = self.plugin.window.tools.interpreter.get_current_history()
+            input = self.plugin.window.tools.get("interpreter").get_current_history()
             response = {
                 "request": request,
                 "result": input,

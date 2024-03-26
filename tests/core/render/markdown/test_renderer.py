@@ -171,7 +171,7 @@ def test_append_context_item(mock_window):
     render.append_context_item(item)
     render.append_input.assert_called_once_with(item)
     render.append_output.assert_called_once_with(item)
-    render.append_extra.assert_called_once_with(item)
+    render.append_extra.assert_called_once_with(item, footer=True)
 
 
 def test_get_image_html(mock_window):

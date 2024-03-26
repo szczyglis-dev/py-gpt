@@ -80,6 +80,17 @@ class Config:
         # install provider configs
         self.provider.install()
 
+    def get_path(self) -> str:
+        """
+        Return workdir path
+
+        :return: workdir path
+        """
+        if not self.initialized_workdir:
+            workdir = self.prepare_workdir()
+            self.set_workdir(workdir)
+        return self.path
+
     @staticmethod
     def get_base_workdir() -> str:
         """
@@ -89,7 +100,6 @@ class Config:
         """
         return os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
 
-
     @staticmethod
     def prepare_workdir() -> str:
         """
@@ -97,12 +107,13 @@ class Config:
 
         :return: workdir path
         """
+        is_test = os.environ.get('ENV_TEST') == '1'
         path = Path(Config.get_base_workdir())
-        if not path.exists():
+        if not path.exists() and not is_test:  # DISABLE in tests!!!
             path.mkdir(parents=True, exist_ok=True)
         path_file = "path.cfg"
         p = os.path.join(str(path), path_file)
-        if not os.path.exists(p):
+        if not os.path.exists(p) and not is_test:  # DISABLE in tests!!!
             with open(p, 'w', encoding='utf-8') as f:
                 f.write("")
         else:
@@ -125,7 +136,6 @@ class Config:
         """
         self.path = path
         self.provider.path = self.get_user_path()
-
         if reload:
             self.initialized = False
             self.init(True)

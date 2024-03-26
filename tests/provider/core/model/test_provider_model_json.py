@@ -30,6 +30,7 @@ def test_install(mock_window):
 def test_get_version(mock_window):
     """Test get version"""
     provider = JsonFileProvider(mock_window)
+    provider.path = mock_window.core.config.get_path()
     assert provider.get_version() is not None
 
 

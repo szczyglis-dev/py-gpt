@@ -51,7 +51,7 @@ def test_on_update(mock_window):
     mock_window.controller.dialogs.debug.is_active = MagicMock(return_value=True)
     mock_window.controller.dialogs.debug.update_worker = MagicMock()
 
-    debug.on_update(all=True)
+    debug.on_post_update(all=True)
     mock_window.controller.dialogs.debug.update_worker.assert_called()
 
 
@@ -110,20 +110,20 @@ def test_toggle(mock_window):
     debug = Debug(mock_window)
     debug.window.controller.dialogs.debug.show = MagicMock()
     debug.window.controller.dialogs.debug.hide = MagicMock()
-    debug.on_update = MagicMock()
+    debug.on_post_update = MagicMock()
     debug.log = MagicMock()
     debug.update = MagicMock()
     debug.window.controller.dialogs.debug.is_active = MagicMock(return_value=False)
 
     debug.toggle('test')
     debug.window.controller.dialogs.debug.show.assert_called_once_with('test')
-    debug.on_update.assert_called_once_with(True)
+    debug.on_post_update.assert_called_once_with(True)
     debug.log.assert_called_once()
     debug.update.assert_called_once()
 
     debug.window.controller.dialogs.debug.is_active = MagicMock(return_value=True)
     debug.toggle('test')
     debug.window.controller.dialogs.debug.hide.assert_called_once_with('test')
-    debug.on_update.assert_called_with(True)
+    debug.on_post_update.assert_called_with(True)
     debug.log.assert_called_with('debug.test toggled')
     debug.update.assert_called_with()

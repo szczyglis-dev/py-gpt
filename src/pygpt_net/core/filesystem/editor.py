@@ -106,7 +106,7 @@ class Editor:
                 f.write(data)
             self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(data)
             self.window.ui.dialog[dialog_id].update_file_title(force=True)
-            self.window.ui.status("Saved file: {}".format(path))
+            self.window.ui.status("Saved file: {}".format(os.path.basename(path)))
             self.window.controller.files.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
