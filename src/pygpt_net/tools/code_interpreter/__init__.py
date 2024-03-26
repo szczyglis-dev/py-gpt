@@ -32,7 +32,7 @@ class CodeInterpreter(BaseTool):
         self.opened = False
         self.is_edit = False
         self.auto_clear = True
-        self.interpreter = None
+        self.dialog = None
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -354,8 +354,8 @@ class CodeInterpreter(BaseTool):
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.interpreter = Interpreter(self.window)
-        self.interpreter.setup()
+        self.dialog = Interpreter(self.window)
+        self.dialog.setup()
 
     def setup_theme(self):
         """Setup theme"""

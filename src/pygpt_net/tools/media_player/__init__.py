@@ -32,7 +32,7 @@ class MediaPlayer(BaseTool):
         super(MediaPlayer, self).__init__(*args, **kwargs)
         self.id = "player"
         self.opened = False
-        self.video_player = None
+        self.dialog = None
 
     def setup(self):
         """Setup media player"""
@@ -183,8 +183,8 @@ class MediaPlayer(BaseTool):
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.video_player = VideoPlayer(self.window)
-        self.video_player.setup()
+        self.dialog = VideoPlayer(self.window)
+        self.dialog.setup()
 
     def get_lang_mappings(self) -> dict:
         """

@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QCheckBox, QMenuBar
 
-from pygpt_net.ui.widget.dialog.audio import AudioTranscribeDialog
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.editor import CodeEditor
 from pygpt_net.utils import trans
@@ -109,3 +109,42 @@ class AudioTranscribe:
     def clear(self):
         """Clear transcribe dialog"""
         self.window.tools.get("transcriber").clear()
+
+class AudioTranscribeDialog(BaseDialog):
+    def __init__(self, window=None, id=None):
+        """
+        Audio Transcribe Dialog
+
+        :param window: main window
+        :param id: configurator id
+        """
+        super(AudioTranscribeDialog, self).__init__(window, id)
+        self.window = window
+        self.id = id  # id
+
+    def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: close event
+        """
+        self.cleanup()
+        super(AudioTranscribeDialog, self).closeEvent(event)
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(AudioTranscribeDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
+        self.window.tools.get("transcriber").on_close()

@@ -32,7 +32,7 @@ class AudioTranscriber(BaseTool):
         self.id = "transcriber"
         self.opened = False
         self.video_extensions = ["mp4", "avi", "mov", "mkv", "webm"]
-        self.audio = None  # dialog
+        self.dialog = None  # dialog
 
     def setup(self):
         """Setup controller"""
@@ -275,8 +275,8 @@ class AudioTranscriber(BaseTool):
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.audio = AudioTranscribe(self.window)
-        self.audio.setup()
+        self.dialog = AudioTranscribe(self.window)
+        self.dialog.setup()
 
     def get_lang_mappings(self) -> dict:
         """
