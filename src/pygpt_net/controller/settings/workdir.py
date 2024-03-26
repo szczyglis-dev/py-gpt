@@ -40,7 +40,7 @@ class Workdir:
             self.window.ui.dialogs.open(
                 'workdir.change',
                 width=600,
-                height=160,
+                height=180,
             )
             self.is_dialog = True
 

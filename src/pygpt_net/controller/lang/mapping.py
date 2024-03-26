@@ -169,6 +169,10 @@ class Mapping:
         nodes['settings.btn.defaults.app'] = 'dialog.settings.btn.defaults.app'
         nodes['settings.btn.save'] = 'dialog.settings.btn.save'
 
+        # dialog: workdir change
+        nodes['workdir.change.update.btn'] = 'dialog.workdir.update.btn'
+        nodes['workdir.change.reset.btn'] = 'dialog.workdir.reset.btn'
+
         # extra settings
         nodes["idx.api.warning"] = "settings.llama.extra.api.warning"
         nodes["idx.db.settings.legend"] = "settings.llama.extra.btn.idx_head"
@@ -242,6 +246,7 @@ class Mapping:
         menu_text['config.settings'] = 'menu.config.settings'
         menu_text['config.models'] = 'menu.config.models'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
+        menu_text['config.change_dir'] = 'menu.config.change_dir'
         menu_text['config.save'] = 'menu.config.save'
         menu_text['theme.tooltips'] = 'menu.theme.tooltips'
         menu_text['theme.settings'] = 'menu.theme.settings'
@@ -276,7 +281,7 @@ class Mapping:
             menu_text['debug.agent'] = 'menu.debug.agent'
             menu_text['debug.db'] = 'menu.debug.db'
             menu_text['debug.logger'] = 'menu.debug.logger'
-            menu_text['debug.app.log'] = 'debug.app.log'
+            menu_text['debug.app.log'] = 'menu.debug.app.log'
 
         # dialog titles
         dialog_title = {}
@@ -291,6 +296,7 @@ class Mapping:
         dialog_title['interpreter'] = 'dialog.interpreter.title'
         dialog_title['rename'] = 'dialog.rename.title'
         dialog_title['update'] = 'update.title'
+        dialog_title['workdir.change'] = 'dialog.workdir.title'
 
         # tooltips
         tooltips = {}
@@ -325,6 +331,8 @@ class Mapping:
         mapping['placeholder'] = placeholders
 
         tool_mappings = self.window.tools.get_lang_mappings()
-        mapping.update(tool_mappings)  # append tool mappings
+        for type in tool_mappings:
+            for k in tool_mappings[type]:
+                mapping[type][k] = tool_mappings[type][k]
 
         return mapping
