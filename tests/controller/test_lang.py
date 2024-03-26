@@ -45,6 +45,7 @@ def test_toggle(mock_window):
     mock_window.controller.ctx.update = MagicMock()
     mock_window.controller.ui.update = MagicMock()
     mock_window.settings = MagicMock()
+    mock_window.tools = MagicMock()
     lang.toggle('en')
     assert mock_window.core.config.data['lang'] == 'en'
     lang.update.assert_called_once()
