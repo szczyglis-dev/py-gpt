@@ -76,7 +76,7 @@ class Debug:
 
         self.window.ui.dialogs.app_log.update_log_level()
 
-    def on_update(self, all: bool = False):
+    def on_post_update(self, all: bool = False):
         """
         Update debug windows (only if active)
 
@@ -182,7 +182,7 @@ class Debug:
             if id == "db":
                 self.window.ui.dialogs.database.viewer.update_table_view()  # update view on load
             self.window.controller.dialogs.debug.show(id)
-            self.on_update(True)
+            self.on_post_update(True)
 
         self.log('debug.' + id + ' toggled')
 

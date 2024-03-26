@@ -176,7 +176,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def post_update(self):
         """Called on post-update (slow)"""
-        self.controller.debug.on_update()
+        self.controller.debug.on_post_update()
         self.controller.plugins.on_post_update()
         self.tools.on_post_update()
 
