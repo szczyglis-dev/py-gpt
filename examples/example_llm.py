@@ -11,7 +11,7 @@
 
 from langchain_community.llms import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
 from langchain_openai import ChatOpenAI  # <--- Import ChatOpenAI provider for Langchain (chat)
-from llama_index.llms import OpenAI as LlamaOpenAI  # <--- Import OpenAI provider for Llama-Index
+from llama_index.llms.openai import OpenAI as LlamaOpenAI  # <--- Import OpenAI provider for Llama-Index
 
 
 from pygpt_net.provider.llms.base import BaseLLM  # <--- provider must inherit from BaseLLM class

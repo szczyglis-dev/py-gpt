@@ -2904,7 +2904,8 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added "Change working directory..." option in "Config" menu.
 - Improved handling reply from multiple commands at once.
-- Tools moved to separated parts of app.
+- Tools have been moved to separate parts of the app.
+- Added the ability to create custom Tools, with an example tool in the "examples" directory.
 
 # 2.1.38 (2024-03-20)
 

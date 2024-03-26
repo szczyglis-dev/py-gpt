@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 01:00:00                  #
+# Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
 # PyGPT custom launcher example.
@@ -18,8 +18,14 @@
 # from pathlib import Path
 # sys.path.insert(0, str((Path(__file__).parent / '../src').resolve()))
 
-
-from pygpt_net.app import run  # <-- import the "run" function from the app
+try:
+    from pygpt_net.app import run  # <-- import the "run" function from the app
+except ImportError:
+    msg = ("Please install the PyGPT package to run this example or if you want run it directly uncomment these lines:\n\n"
+            "# import sys\n"
+            "# from pathlib import Path\n"
+            "# sys.path.insert(0, str((Path(__file__).parent / '../src').resolve()))")
+    raise ImportError(msg)
 
 from example_plugin import Plugin as ExamplePlugin
 from example_llm import ExampleLlm
@@ -28,6 +34,7 @@ from example_data_loader import ExampleDataLoader
 from example_audio_input import ExampleAudioInput
 from example_audio_output import ExampleAudioOutput
 from example_web_search import ExampleWebSearchEngine
+from example_tool import ExampleTool
 
 """
 PyGPT can be extended with:
@@ -39,6 +46,7 @@ PyGPT can be extended with:
     - Custom audio input providers
     - Custom audio output providers
     - Custom web search engine providers
+    - Custom tools
 
     - You can pass custom plugin instances, LLMs wrappers, vector store providers and more to the launcher.
     - This is useful if you want to extend PyGPT with your own plugins, vectors storage, LLMs or other data providers.
@@ -72,6 +80,10 @@ PyGPT can be extended with:
     To register custom web providers:
 
     - Pass a list with the web provider instances as 'web' keyword argument.
+    
+    To register custom tools:
+    
+    - Pass a list with the tool instances as 'tools' keyword argument.
 
     Example:
     --------
@@ -87,6 +99,7 @@ PyGPT can be extended with:
         from audio_input import CustomAudioInput
         from audio_output import CustomAudioOutput
         from web import CustomWebSearch
+        from tools import CustomTool
 
         plugins = [
             CustomPlugin(),
@@ -110,6 +123,9 @@ PyGPT can be extended with:
         web = [
             CustomWebSearch(),
         ]
+        tools = [
+            CustomTool(),
+        ]
 
         run(
             plugins=plugins,
@@ -118,7 +134,8 @@ PyGPT can be extended with:
             loaders=loaders,
             audio_input=audio_input,
             audio_output=audio_output,
-            web=web
+            web=web,
+            tools=tools,
         )
 
 """
@@ -148,6 +165,9 @@ audio_output = [
 web = [
     ExampleWebSearchEngine(),  # add your custom web search engine provider instances here
 ]
+tools = [
+    ExampleTool(),  # add your custom tool instances here
+]
 
 # 2. Register example plugins, LLM wrappers, vector stores, data loaders and rest of providers using the run function:
 
@@ -159,6 +179,7 @@ run(
     audio_input=audio_input,  # pass the list with the audio input instances
     audio_output=audio_output,  # pass the list with the audio output instances
     web=web,  # pass the list with the web search engine instances
+    tools=tools,  # pass the list with the tool instances
 )
 
 if __name__ == '__main__':

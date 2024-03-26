@@ -1,6 +1,6 @@
 # Code examples
 
-In this folder, you'll find files with sample code that you can use if you want to develop and add new plugins, LLM wrappers, vector stores, or data loaders to **PyGPT**.
+In this folder, you'll find files with sample code that you can use if you want to develop and add new plugins, tools, LLM wrappers, vector stores, or data loaders to **PyGPT**.
 
 There are example files here that can serve as tutorial and starting points for creating your own extensions:
 
@@ -20,6 +20,7 @@ There are example files here that can serve as tutorial and starting points for 
 
 - `example_web_search.py`  - example web search engine
 
+- `example_tool.py`  - example tool
 
 ## More examples
 
@@ -66,4 +67,10 @@ in: `./src/pygpt_net/provider/vector_stores/`
 `pygpt_net.provider.web.*`
 
 in: `./src/pygpt_net/provider/web/`
+
+**Tools:**
+
+`pygpt_net.tools.*`
+
+in: `./src/pygpt_net/tools/`
 
