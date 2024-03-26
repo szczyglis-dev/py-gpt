@@ -298,6 +298,7 @@ class Filesystem:
 
         :param path: current working directory
         :param new_path: new working directory
+        :return: True if working directory is copied
         """
         if os.path.isdir(path):
             for item in os.listdir(path):
@@ -319,11 +320,14 @@ class Filesystem:
         Clear working directory
 
         :param path: working directory
+        :return: True if working directory is cleared
         """
+        persist_files = ["app.log", "path.cfg"]
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):
-                os.remove(item_path)
+                if item not in persist_files:
+                    os.remove(item_path)
             else:
                 shutil.rmtree(item_path)
         return True

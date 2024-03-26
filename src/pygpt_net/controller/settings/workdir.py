@@ -157,7 +157,12 @@ class Workdir:
             try:
                 # remove old workdir
                 self.window.core.debug.info("Clearing old workdir: {}".format(current))
-                self.window.core.filesystem.clear_workdir(current)
+                try:
+                    # allow errors here
+                    self.window.core.filesystem.clear_workdir(current)
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    print("Error clearing old workdir: ", e)
                 self.update(path)  # update workdir to new path
                 self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.success").format(path=path))
                 self.window.ui.dialogs.alert(trans("dialog.workdir.result.success").format(path=path))
