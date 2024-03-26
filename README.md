@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.38** | build: **2024.03.20** | Python: **>=3.10, <3.12**
+Release: **2.1.39** | build: **2024.03.26** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2899,6 +2899,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.39 (2024-03-26)
+
+- Added "Change working directory..." option in "Config" menu.
+- Improved handling reply from multiple commands at once.
+- Tools moved to separated parts of app.
 
 # 2.1.38 (2024-03-20)
 

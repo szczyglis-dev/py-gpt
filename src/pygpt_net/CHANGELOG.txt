@@ -1,3 +1,9 @@
+2.1.39 (2024-03-26)
+
+- Added "Change working directory..." option in "Config" menu.
+- Improved handling reply from multiple commands at once.
+- Tools moved to separated parts of app.
+
 2.1.38 (2024-03-20)
 
 - Added new Tools menu, with: Media player, Transcribe audio/video files, Image viewer, Text editor and Code interpreter.
