@@ -30,6 +30,8 @@ class ConfigDebug:
         self.window.core.debug.add(self.id, 'Config File', str(path))
         self.window.core.debug.add(self.id, 'Current workdir', str(self.window.core.config.get_user_path()))
         self.window.core.debug.add(self.id, 'Base workdir', str(self.window.core.config.get_base_workdir()))
+        self.window.core.debug.add(self.id, 'Workdir config', str(os.path.join(self.window.core.config.get_base_workdir(), "path.cfg")))
+        self.window.core.debug.add(self.id, 'App dir', str(self.window.core.config.get_app_path()))
         self.window.core.debug.add(
             self.id, 'Sections',
             str(self.window.controller.settings.editor.get_sections())
