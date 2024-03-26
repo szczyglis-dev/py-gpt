@@ -164,11 +164,12 @@ class Renderer(BaseRenderer):
             text = "{}".format(item.output)
         self.append_raw(text.strip(), "msg-bot", item)
 
-    def append_extra(self, item: CtxItem):
+    def append_extra(self, item: CtxItem, footer: bool = False):
         """
         Append extra data (images, files, etc.) to output
 
         :param item: context item
+        :param footer: True if it is a footer
         """
         appended = []
 
@@ -223,13 +224,14 @@ class Renderer(BaseRenderer):
                 self.get_output_node().append("<br/>" + "<br/>".join(urls_html))
 
         # extra action icons
-        show_edit = self.window.core.config.get('ctx.edit_icons')
-        show_audio = self.window.core.config.get('ctx.audio')
-        if show_edit or show_audio:
-            icons_html = " ".join(self.get_action_icons(item, all=show_edit))
-            if icons_html != "":
-                self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
-                self.to_end()
+        if footer:
+            show_edit = self.window.core.config.get('ctx.edit_icons')
+            show_audio = self.window.core.config.get('ctx.audio')
+            if show_edit or show_audio:
+                icons_html = " ".join(self.get_action_icons(item, all=show_edit))
+                if icons_html != "":
+                    self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+                    self.to_end()
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
@@ -401,7 +403,7 @@ class Renderer(BaseRenderer):
         """
         self.append_input(item)
         self.append_output(item)
-        self.append_extra(item)
+        self.append_extra(item, footer=True)
 
     def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
