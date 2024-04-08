@@ -177,7 +177,6 @@ class UI:
             finder_id = "chat_output"
         elif self.window.controller.notepad.is_active():
             finder_id = "notepad_{}".format(self.window.controller.notepad.get_current_active())
-        print("Switch tab to: ", idx, finder_id)
         self.window.controller.finder.set_active(finder_id)
 
     def switch_tab(self, tab: str):

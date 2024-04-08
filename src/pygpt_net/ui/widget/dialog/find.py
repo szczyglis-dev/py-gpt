@@ -13,8 +13,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QPushButton
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.textarea.find import FindInput
 from pygpt_net.utils import trans
-from pygpt_net.ui.widget.textarea.rename import RenameInput
 
 
 class FindDialog(QDialog):
@@ -29,13 +29,12 @@ class FindDialog(QDialog):
         self.window = window
         self.id = id
         self.current = None
-        self.window.ui.nodes['dialog.find.input'] = RenameInput(window, id)
+        self.window.ui.nodes['dialog.find.input'] = FindInput(window, id)
         self.window.ui.nodes['dialog.find.input'].setMinimumWidth(400)
 
         self.window.ui.nodes['dialog.find.input'].textChanged.connect(
             lambda: self.window.controller.finder.find(
-                self.window.ui.nodes['dialog.find.input'].text(),
-                scroll=False,
+                self.window.ui.nodes['dialog.find.input'].text()
             ),
         )
 
