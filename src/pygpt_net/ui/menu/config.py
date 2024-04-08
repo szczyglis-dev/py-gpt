@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -67,6 +67,14 @@ class Config:
             self.window.ui.menu['config.edit.css.' + name].triggered.connect(
                 lambda checked=True, file=css_file: self.window.controller.settings.toggle_file_editor(file))
             self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.' + name])
+
+        # restore css files
+        self.window.ui.menu['config.edit.css'].addSeparator()
+        self.window.ui.menu['config.edit.css.restore'] = QAction(QIcon(":/icons/undo.svg"),
+                                                                 trans('menu.config.edit.css.restore'), self.window)
+        self.window.ui.menu['config.edit.css.restore'].triggered.connect(
+            lambda checked=True: self.window.controller.layout.restore_default_css(force=False))
+        self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.restore'])
 
         for json_file in json_files:
             name = json_file

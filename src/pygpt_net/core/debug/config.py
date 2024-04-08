@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 import os
+
+from PySide6.QtGui import QFontDatabase
 
 
 class ConfigDebug:
@@ -26,12 +28,14 @@ class ConfigDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
+        app_fonts = QFontDatabase.families()
         path = os.path.join(self.window.core.config.path, '', 'config.json')
         self.window.core.debug.add(self.id, 'Config File', str(path))
         self.window.core.debug.add(self.id, 'Current workdir', str(self.window.core.config.get_user_path()))
         self.window.core.debug.add(self.id, 'Base workdir', str(self.window.core.config.get_base_workdir()))
         self.window.core.debug.add(self.id, 'Workdir config', str(os.path.join(self.window.core.config.get_base_workdir(), "path.cfg")))
         self.window.core.debug.add(self.id, 'App dir', str(self.window.core.config.get_app_path()))
+        self.window.core.debug.add(self.id, 'Registered fonts', str(app_fonts))
         self.window.core.debug.add(
             self.id, 'Sections',
             str(self.window.controller.settings.editor.get_sections())

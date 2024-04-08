@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -155,6 +155,10 @@ class Settings:
             path = os.path.join(self.window.core.config.path, file)
         elif file.endswith('.css'):
             path = os.path.join(self.window.core.config.path, 'css', file)
+
+        if path is None:
+            self.window.ui.status("Error saving file: invalid file name")
+            return
 
         # make backup of current file
         backup_file = file + '.backup'

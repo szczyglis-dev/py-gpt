@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 import os
@@ -147,6 +147,13 @@ class Settings:
         """
         id = 'editor'
         current_file = self.window.ui.dialog['config.editor'].file
+
+        # show/hide restart required label
+        if file.endswith('.css'):
+            self.window.ui.nodes['dialog.editor.label'].setVisible(False)
+        else:
+            self.window.ui.nodes['dialog.editor.label'].setVisible(True)
+
         if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             if current_file == file:
                 self.window.ui.dialogs.close('config.' + id)

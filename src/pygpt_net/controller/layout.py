@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
+import os
+
+from pygpt_net.utils import trans
 
 
 class Layout:
@@ -220,3 +223,35 @@ class Layout:
                 except Exception as e:
                     print("Error while restoring group state: " + str(e))
                     self.window.core.debug.log(e)
+
+    def restore_default_css(self, force: bool = False):
+        """
+        Restore app CSS to default
+
+        :param force: Force restore
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='restore.css',
+                id=0,
+                msg=trans('dialog.css.restore.confirm'),
+            )
+            return
+
+        # restore css
+        self.window.core.debug.info("Restoring CSS...")
+        self.window.core.filesystem.backup_custom_css()
+        self.window.core.filesystem.install_css(force=True)
+        self.window.core.debug.info("CSS restored.")
+
+        # update editor if opened
+        current_file = self.window.ui.dialog['config.editor'].file
+        if current_file is not None:
+            if current_file.endswith('.css') and self.window.core.settings.active['editor']:
+                self.window.core.settings.load_editor(current_file)
+
+        # show success message
+        self.window.ui.dialogs.alert(trans('dialog.css.restore.confirm.success'))
+        self.window.core.debug.info("Reloading theme...")
+        self.window.controller.theme.reload(force=True)  # reload theme
+        self.window.core.debug.info("Theme reloaded.")

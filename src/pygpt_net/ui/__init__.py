@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 import os
@@ -44,7 +44,6 @@ class UI:
             "global": {},
             "preset": {},
         }
-        self.fonts = ["Lato", "SpaceMono"]  # fonts to load from data/fonts
         self.hooks = {}
         self.debug = {}
         self.dialog = {}
@@ -130,20 +129,25 @@ class UI:
 
     def setup_font(self):
         """Load and setup UI fonts"""
-        typefaces = ["Regular", "Bold", "Italic", "BoldItalic"]
-        for font in self.fonts:
-            for typeface in typefaces:
-                path = os.path.join(
-                    self.window.core.config.get_app_path(),
-                    'data',
-                    'fonts',
-                    font,
-                    '{}-{}.ttf'.format(font, typeface)
-                )
-                if os.path.exists(path):
-                    font_id = QFontDatabase.addApplicationFont(path)
-                    if font_id == -1:
-                        print("Error loading font file {}".format(path))
+        extensions = [
+            "ttf",
+            "otf",
+        ]
+        # fonts dirs
+        dirs = [
+            os.path.join(self.window.core.config.get_app_path(), 'data', 'fonts'),  # app fonts
+            os.path.join(self.window.core.config.get_user_path(), 'fonts'),  # user fonts
+        ]
+        # load fonts
+        for dir in dirs:
+            if os.path.exists(dir) and os.path.isdir(dir):
+                for root, _, files in os.walk(dir):
+                    for file in files:
+                        if file.split('.')[-1].lower() in extensions:
+                            path = os.path.join(root, file)
+                            font_id = QFontDatabase.addApplicationFont(path)
+                            if font_id == -1:
+                                print("Error loading font file {}".format(file))
 
     def msg(self, msg: str):
         """
