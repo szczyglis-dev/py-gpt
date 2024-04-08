@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -66,13 +66,30 @@ class NotepadOutput(QTextEdit):
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.textChanged.connect(
-            lambda: self.window.controller.notepad.save(self.id))
+            lambda: self.on_text_changed()
+        )
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
         self.id = 1
 
+    def on_text_changed(self):
+        """On text changed"""
+        self.window.controller.notepad.save(self.id)
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
+            self.find_open()
+        else:
+            self.window.controller.finder.clear("notepad_" + str(self.id), restore=True)
+            super(NotepadOutput, self).keyPressEvent(e)
+
     def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: Event
+        """
         menu = self.createStandardContextMenu()
         selected_text = self.textCursor().selectedText()
         if selected_text:
@@ -101,6 +118,11 @@ class NotepadOutput(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action.triggered.connect(self.find_open)
+        action.setShortcut(QKeySequence("Ctrl+F"))
+        menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
@@ -108,6 +130,10 @@ class NotepadOutput(QTextEdit):
         Read selected text (audio)
         """
         self.window.controller.audio.read_text(self.textCursor().selectedText())
+
+    def find_open(self):
+        """Open finder"""
+        self.window.controller.finder.open("notepad_" + str(self.id))
 
     def wheelEvent(self, event):
         """

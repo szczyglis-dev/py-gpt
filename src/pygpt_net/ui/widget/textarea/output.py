@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser
-from PySide6.QtGui import QAction, QIcon, QTextOption
+from PySide6.QtGui import QAction, QIcon, QTextOption, QKeySequence
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -78,11 +78,31 @@ class ChatOutput(QTextBrowser):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action.triggered.connect(self.find_open)
+        action.setShortcut(QKeySequence("Ctrl+F"))
+        menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
         self.window.controller.audio.read_text(self.textCursor().selectedText())
+
+    def find_open(self):
+        """Open finder"""
+        self.window.controller.finder.open("chat_output")
+
+    def keyPressEvent(self, e):
+        """
+        Key press event
+
+        :param e: Event
+        """
+        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
+            self.find_open()
+        else:
+            super(ChatOutput, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 17:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.render.base import BaseRenderer
@@ -44,6 +44,7 @@ class Render:
         :param stream: True if it is a stream
         """
         self.get_renderer().begin(stream)
+        self.update()
 
     def end(self, stream: bool = False):
         """
@@ -52,6 +53,7 @@ class Render:
         :param stream: True if it is a stream
         """
         self.get_renderer().end(stream)
+        self.update()
 
     def end_extra(self, stream: bool = False):
         """
@@ -60,18 +62,22 @@ class Render:
         :param stream: True if it is a stream
         """
         self.get_renderer().end_extra(stream)
+        self.update()
 
     def stream_begin(self):
         """Render stream begin"""
         self.get_renderer().stream_begin()
+        self.update()
 
     def stream_end(self):
         """Render stream end"""
         self.get_renderer().stream_end()
+        self.update()
 
     def clear_output(self):
         """Clear output"""
         self.get_renderer().clear_output()
+        self.update()
 
     def clear_input(self):
         """Clear input"""
@@ -80,10 +86,12 @@ class Render:
     def reset(self):
         """Reset"""
         self.get_renderer().reset()
+        self.update()
 
     def reload(self):
         """Reload output"""
         self.get_renderer().reload()
+        self.update()
 
     def append_context(self, items: list, clear: bool = True):
         """
@@ -93,6 +101,7 @@ class Render:
         :param clear: True if clear all output before append
         """
         self.get_renderer().append_context(items, clear)
+        self.update()
 
     def append_input(self, item: CtxItem):
         """
@@ -101,6 +110,7 @@ class Render:
         :param item: context item
         """
         self.get_renderer().append_input(item)
+        self.update()
 
     def append_output(self, item: CtxItem):
         """
@@ -109,6 +119,7 @@ class Render:
         :param item: context item
         """
         self.get_renderer().append_output(item)
+        self.update()
 
     def append_extra(self, item: CtxItem):
         """
@@ -117,6 +128,7 @@ class Render:
         :param item: context item
         """
         self.get_renderer().append_extra(item)
+        self.update()
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -127,3 +139,7 @@ class Render:
         :param begin: if it is the beginning of the stream
         """
         self.get_renderer().append_chunk(item, text_chunk, begin)
+        self.update()
+
+    def update(self):
+        self.window.controller.finder.clear("chat_output")

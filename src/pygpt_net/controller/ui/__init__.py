@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -170,6 +170,15 @@ class UI:
         elif idx == self.tab_idx['draw']:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
+
+        # set finder parent to active tab
+        finder_id = None
+        if idx == self.tab_idx['chat']:
+            finder_id = "chat_output"
+        elif self.window.controller.notepad.is_active():
+            finder_id = "notepad_{}".format(self.window.controller.notepad.get_current_active())
+        print("Switch tab to: ", idx, finder_id)
+        self.window.controller.finder.set_active(finder_id)
 
     def switch_tab(self, tab: str):
         """

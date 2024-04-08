@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.04.08 03:00:00                  #
 # ================================================== #
 
 import os
@@ -57,7 +57,14 @@ class Filesystem:
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir, exist_ok=True)
 
-        # install custom css styles for override default styles
+        self.install_css()  # install custom css styles
+
+    def install_css(self, force: bool = False):
+        """
+        Install custom css styles
+
+        :param force: force install
+        """
         css_dir = os.path.join(self.window.core.config.path, 'css')
         if not os.path.exists(css_dir):
             os.mkdir(css_dir)
@@ -69,10 +76,20 @@ class Filesystem:
             for style in self.styles:
                 src = os.path.join(src_dir, style)
                 dst = os.path.join(dst_dir, style)
-                if not os.path.exists(dst) and os.path.exists(src):
+                if (not os.path.exists(dst) or force) and os.path.exists(src):
                     shutil.copyfile(src, dst)
         except Exception as e:
             print("Error while installing css files: ", e)
+
+    def backup_custom_css(self):
+        """Backup user custom css styles"""
+        css_dir = os.path.join(self.window.core.config.path, 'css')
+        backup_file_extension = '.backup'
+        for style in self.styles:
+            src = os.path.join(css_dir, style)
+            dst = os.path.join(css_dir, style + backup_file_extension)
+            if os.path.exists(src):
+                shutil.copyfile(src, dst)
 
     def make_local(self, path: str) -> str:
         """
