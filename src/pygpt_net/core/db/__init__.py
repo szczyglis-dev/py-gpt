@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import os
@@ -28,6 +28,8 @@ class Database:
         self.engine = None
         self.initialized = False
         self.echo = True
+
+        # Tables configuration
         columns = {}
         columns["calendar_note"] = [
             'id',
@@ -101,6 +103,14 @@ class Database:
             'label',
             'indexes_json',
             'external_id',
+            'group_id',
+            'uuid',
+        ]
+        columns["ctx_group"] = [
+            'id',
+            'name',
+            'updated_ts',
+            'created_ts',
             'uuid',
         ]
         columns["idx_ctx"] = [
@@ -185,6 +195,16 @@ class Database:
                 'search_fields': ['id', 'name'],
                 'timestamp_columns': ['created_ts', 'updated_ts', 'indexed_ts'],
                 'json_columns': ['indexes_json'],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'ctx_group': {
+                'columns': columns["ctx_group"],
+                'sort_by': columns["ctx_group"],
+                'search_fields': ['id', 'name'],
+                'timestamp_columns': ['created_ts', 'updated_ts'],
+                'json_columns': [],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',

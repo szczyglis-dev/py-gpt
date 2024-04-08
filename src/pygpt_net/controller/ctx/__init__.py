@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.10 07:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
+
+from PySide6.QtCore import QModelIndex
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -69,6 +71,9 @@ class Ctx:
                         self.search_string_clear()
                         # ^ clear search and reload ctx list to prevent creating new ctx
 
+        self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
+        self.restore_expanded_groups()  # restore expanded groups
+
     def update(self, reload: bool = True, all: bool = True):
         """
         Update ctx list
@@ -79,7 +84,9 @@ class Ctx:
         # reload ctx list items
         if reload:
             self.reload(True)
-            self.select_by_current()  # select on list
+
+        # select current ctx on list
+        self.select_by_current()
 
         # update all
         if all:
@@ -114,13 +121,19 @@ class Ctx:
 
         :param idx: context index
         """
+        self.select_by_id(self.window.core.ctx.get_id_by_idx(idx))
+
+    def select_by_id(self, id: int):
+        """
+        Select ctx by index
+
+        :param id: context index
+        """
         # lock if generating response is in progress
         if self.context_change_locked():
             return
 
-        id = self.window.core.ctx.get_id_by_idx(idx)
         self.select(id)
-
         event = Event(Event.CTX_SELECT, {
             'value': id,
         })
@@ -131,23 +144,20 @@ class Ctx:
         id = self.window.core.ctx.current
         meta = self.window.core.ctx.get_meta()
         if id in meta:
-            idx = self.window.core.ctx.get_idx_by_id(id)
-            current = self.window.ui.models['ctx.list'].index(idx, 0)
-            self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
-            self.window.ui.nodes['ctx.list'].setCurrentIndex(current)
-            self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
+            self.select_index_by_id(id)
 
-    def new(self, force: bool = False):
+    def new(self, force: bool = False, group_id: int = None):
         """
         Create new ctx
 
         :param force: force context creation
+        :param group_id: group ID
         """
         # lock if generating response is in progress
         if not force and self.context_change_locked():
             return
 
-        self.window.core.ctx.new()
+        self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
 
@@ -246,8 +256,8 @@ class Ctx:
             if model is not None and self.window.core.models.has_model(mode, model):
                 self.window.controller.model.set(mode, model)
 
-        # reload ctx list and select current ctx on list
-        self.update()
+        # reload ctx list and select current ctx on list, without reloading all
+        self.update(reload=False, all=True)
 
         # update current ctx label in UI
         self.common.update_label(mode, assistant_id)
@@ -273,23 +283,20 @@ class Ctx:
         # update ctx label
         self.common.update_label(mode, id)
 
-    def delete(self, idx: int, force: int = False):
+    def delete(self, id: int, force: int = False):
         """
         Delete ctx by idx
 
-        :param idx: context idx
+        :param id: context id
         :param force: force delete
         """
         if not force:
             self.window.ui.dialogs.confirm(
                 type='ctx.delete',
-                id=idx,
+                id=id,
                 msg=trans('ctx.delete.confirm'),
             )
             return
-
-        id = self.window.core.ctx.get_id_by_idx(idx)
-
         # delete data from indexes if exists
         try:
             self.delete_meta_from_idx(id)
@@ -369,13 +376,12 @@ class Ctx:
         self.update()
         self.new()
 
-    def rename(self, idx: int):
+    def rename(self, id: int):
         """
-        Ctx name rename (show dialog)
+        Ctx name rename by id (show dialog)
 
-        :param idx: context idx
+        :param id: context id
         """
-        id = self.window.core.ctx.get_id_by_idx(idx)
         meta = self.window.core.ctx.get_meta_by_id(id)
         self.window.ui.dialog['rename'].id = 'ctx'
         self.window.ui.dialog['rename'].input.setText(meta.name)
@@ -383,14 +389,13 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def set_important(self, idx: int, value: bool = True):
+    def set_important(self, id: int, value: bool = True):
         """
         Set as important
 
-        :param idx: context idx
+        :param id: context idx
         :param value: important value
         """
-        id = self.window.core.ctx.get_id_by_idx(idx)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
             meta.important = value
@@ -410,14 +415,13 @@ class Ctx:
             return meta.important
         return False
 
-    def set_label(self, idx: int, label_id: int):
+    def set_label(self, id: int, label_id: int):
         """
         Set color label for ctx by idx
 
-        :param idx: context idx
+        :param id: context idx
         :param label_id: label id
         """
-        id = self.window.core.ctx.get_id_by_idx(idx)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
             meta.label = label_id
@@ -528,3 +532,236 @@ class Ctx:
         :return: True if locked
         """
         return self.window.controller.chat.input.generating
+
+    def select_index_by_id(self, id):
+        """
+        Select item by ID on context list
+
+        :param id: ctx meta ID
+        """
+        index = self.get_child_index_by_id(id)
+        self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
+        self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
+        self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
+
+    def find_index_by_id(self, item, id):
+        """
+        Return index of item with given ID, searching recursively through the model.
+
+        :param item: QStandardItem
+        :param id: int
+        :return: QModelIndex
+        """
+        if hasattr(item, 'id') and item.id == id:
+            return item.index()
+        for row in range(item.rowCount()):
+            found_index = self.find_index_by_id(item.child(row), id)
+            if found_index.isValid():
+                return found_index
+        return QModelIndex()
+
+    def get_parent_index_by_id(self, id):
+        """
+        Return QModelIndex of parent item based on its ID.
+
+        :param id: int
+        :return: QModelIndex
+        """
+        model = self.window.ui.models['ctx.list']
+        root = model.invisibleRootItem()
+        return self.find_index_by_id(root, id)
+
+    def get_children_index_by_id(self, parent_id, child_id):
+        """
+        Return QModelIndex of child item based on its ID and parent ID.
+
+        :param parent_id: int
+        :param child_id: int
+        :return: QModelIndex
+        """
+        model = self.window.ui.models['ctx.list']
+        parent_index = self.get_parent_index_by_id(parent_id)
+        if not parent_index.isValid():
+            # no parent found
+            return QModelIndex()
+
+        parent_item = model.itemFromIndex(parent_index)
+        return self.find_index_by_id(parent_item, child_id)
+
+    def find_child_index_by_id(self, root_item, child_id):
+        """
+        Find and return QModelIndex of child based on its ID, recursively searching through the model.
+
+        :param root_item: QStandardItem
+        :param child_id: int
+        :return: QModelIndex
+        """
+        for row in range(root_item.rowCount()):
+            item = root_item.child(row)
+            if hasattr(item, 'id') and item.id == child_id:
+                return item.index()
+            child_index = self.find_child_index_by_id(item, child_id)
+            if child_index.isValid():
+                return child_index
+        return QModelIndex()
+
+    def get_child_index_by_id(self, child_id):
+        """
+        Return QModelIndex of child item based on its ID.
+
+        :param child_id: int
+        :return: QModelIndex
+        """
+        model = self.window.ui.models['ctx.list']
+        root_item = model.invisibleRootItem()
+        return self.find_child_index_by_id(root_item, child_id)
+
+    def store_expanded_groups(self):
+        """
+        Store expanded groups in ctx list
+        """
+        expanded = []
+        for group_id in self.window.ui.nodes['ctx.list'].expanded_items:
+            expanded.append(group_id)
+        self.window.core.config.set('ctx.list.expanded', expanded)
+        self.window.core.config.save()
+
+    def restore_expanded_groups(self):
+        """
+        Restore expanded groups in ctx list
+        """
+        expanded = self.window.core.config.get('ctx.list.expanded')
+        if expanded is not None:
+            for group_id in expanded:
+                self.window.ui.nodes['ctx.list'].expand_group(group_id)
+
+    def save_all(self):
+        """Save visible ctx list items"""
+        self.store_expanded_groups()
+
+    def move_to_group(self, meta_id, group_id, update: bool = True):
+        """
+        Move ctx to group
+
+        :param meta_id: int
+        :param group_id: int
+        :param update: update ctx list
+        """
+        self.window.core.ctx.update_meta_group_id(meta_id, group_id)
+        if update:
+            self.update()
+
+    def remove_from_group(self, meta_id):
+        """
+        Remove ctx from group
+
+        :param meta_id: int
+        """
+        self.window.core.ctx.update_meta_group_id(meta_id, None)
+        self.update()
+
+    def new_group(self, meta_id = None):
+        """
+        Open new group dialog
+
+        :param meta_id: int
+        """
+        self.window.ui.dialog['create'].id = 'ctx.group'
+        self.window.ui.dialog['create'].input.setText("")
+        self.window.ui.dialog['create'].current = meta_id
+        self.window.ui.dialog['create'].show()
+        self.window.ui.dialog['create'].input.setFocus()
+
+    def create_group(self, name: str = None, meta_id = None):
+        """
+        Make directory
+
+        :param name: name of directory
+        :param meta_id: int
+        """
+        if name is None:
+            self.window.update_status(
+                "[ERROR] Name is empty."
+            )
+            return
+        group = self.window.core.ctx.make_group(name)
+        id = self.window.core.ctx.insert_group(group)
+        if id is not None:
+            if meta_id is not None:
+                self.move_to_group(meta_id, id, update=False)
+            self.update()
+            self.window.update_status(
+                "[INFO] Group '{}' created.".format(name)
+            )
+            self.window.ui.dialog['create'].close()
+
+    def rename_group(self, id: int, force: bool = False):
+        """
+        Rename group
+
+        :param id: group ID
+        :param force: force rename
+        """
+        if not force:
+            group = self.window.core.ctx.get_group_by_id(id)
+            if group is None:
+                return
+            self.window.ui.dialog['rename'].id = 'ctx.group'
+            self.window.ui.dialog['rename'].input.setText(group.name)
+            self.window.ui.dialog['rename'].current = id
+            self.window.ui.dialog['rename'].show()
+            self.update()
+
+    def update_group_name(self, id: int, name: str, close: bool = True):
+        """
+        Update group name
+
+        :param id: group ID
+        :param name: group name
+        :param close: close rename dialog
+        """
+        group = self.window.core.ctx.get_group_by_id(id)
+        if group is not None:
+            group.name = name
+            self.window.core.ctx.update_group(group)
+            if close:
+                self.window.ui.dialog['rename'].close()
+            self.update()
+
+    def delete_group(self, id: int, force: bool = False):
+        """
+        Delete group only
+
+        :param id: group ID
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.group.delete',
+                id=id,
+                msg=trans('confirm.ctx.delete')
+            )
+            return
+        group = self.window.core.ctx.get_group_by_id(id)
+        if group is not None:
+            self.window.core.ctx.remove_group(group, all=False)
+            self.update()
+
+    def delete_group_all(self, id: int, force: bool = False):
+        """
+        Delete group with all items
+
+        :param id: group ID
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.group.delete.all',
+                id=id,
+                msg=trans('confirm.ctx.delete.all')
+            )
+            return
+        group = self.window.core.ctx.get_group_by_id(id)
+        if group is not None:
+            self.window.core.ctx.remove_group(group, all=True)
+            self.update()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -15,14 +15,14 @@ import time
 
 from sqlalchemy import text
 
-from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from .utils import \
     search_by_date_string, \
     pack_item_value, \
     unpack_meta, \
     unpack_item, \
-    get_month_start_end_timestamps,\
-    get_year_start_end_timestamps
+    get_month_start_end_timestamps, \
+    get_year_start_end_timestamps, unpack_group
 
 
 class Storage:
@@ -545,7 +545,8 @@ class Storage:
                 is_deleted,
                 is_important,
                 is_archived,
-                label
+                label,
+                group_id
             )
             VALUES 
             (
@@ -568,7 +569,8 @@ class Storage:
                 :is_deleted,
                 :is_important,
                 :is_archived,
-                :label
+                :label,
+                :group_id
             )
         """).bindparams(
             uuid=meta.uuid,
@@ -591,6 +593,7 @@ class Storage:
             is_important=int(meta.important),
             is_archived=int(meta.archived),
             label=int(meta.label),
+            group_id=meta.group_id,
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -848,3 +851,143 @@ class Storage:
                 stmt = text(stmt_text).bindparams(**bind_params)
                 result = conn.execute(stmt)
                 return {row._mapping['month']: row._mapping['count'] for row in result}
+
+    def get_groups(self) -> dict:
+        """
+        Return dict with CtxGroup objects, indexed by ID
+
+        :return: dict of CtxGroup
+        """
+        stmt_text = f"""
+            SELECT * FROM ctx_group g ORDER BY g.name ASC
+        """
+        stmt = text(stmt_text)
+
+        items = {}
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            for row in result:
+                group = CtxGroup()
+                unpack_group(group, row._asdict())
+                items[group.id] = group
+
+        return items
+
+    def delete_group(self, id: int, all: bool = False) -> bool:
+        """
+        Delete ctx group by ID
+
+        :param id: ctx group ID
+        :param all: remove items
+        :return: True if deleted
+        """
+        stmt = text("""
+            DELETE FROM ctx_group WHERE id = :id
+        """).bindparams(
+            id=id,
+        )
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(stmt)
+
+        # remove items in group
+        if all:
+            stmt = text("""
+                DELETE FROM ctx_meta WHERE group_id = :id
+            """).bindparams(
+                id=id,
+            )
+            with db.begin() as conn:
+                conn.execute(stmt)
+        else:
+            # set group_id to NULL (remove group association)
+            stmt = text("""
+                UPDATE ctx_meta 
+                SET group_id = NULL
+                WHERE group_id = :group_id
+            """).bindparams(
+                group_id=id,
+            )
+            with db.begin() as conn:
+                conn.execute(stmt)
+        return True
+
+    def update_group(self, group: CtxGroup) -> bool:
+        """
+        Update group
+
+        :param group: CtxGroup
+        :return: True if updated
+        """
+        id = group.id
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_group
+            SET
+                name = :name,
+                updated_ts = :updated_ts
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+            name=group.name,
+            updated_ts=int(group.updated),
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def insert_group(self, group: CtxGroup) -> int:
+        """
+        Insert ctx group
+
+        :param group: CtxGroup
+        :return: inserted record ID
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            INSERT INTO ctx_group 
+            (
+                uuid,
+                created_ts,
+                updated_ts,
+                name
+            )
+            VALUES 
+            (
+                :uuid,
+                :created_ts,
+                :updated_ts,
+                :name
+            )
+        """).bindparams(
+            uuid=group.uuid,
+            created_ts=int(group.created or 0),
+            updated_ts=int(group.updated or 0),
+            name=group.name,
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            group.id = result.lastrowid
+            return group.id
+
+    def update_meta_group_id(self, meta_id: int, group_id: int = None):
+        """
+        Update meta group ID
+
+        :param meta_id: ctx meta ID
+        :param group_id: ctx group ID
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                group_id = :group_id
+            WHERE id = :id
+        """).bindparams(
+            id=meta_id,
+            group_id=group_id,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True

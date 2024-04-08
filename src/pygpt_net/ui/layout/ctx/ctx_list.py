@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget
 from datetime import datetime, timedelta
 
+from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.lists.context import ContextList
+from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class CtxList:
@@ -37,8 +39,8 @@ class CtxList:
         id = 'ctx.list'
         self.window.ui.nodes['ctx.new'] = QPushButton(trans('ctx.new'))
         self.window.ui.nodes['ctx.new'].clicked.connect(
-            lambda: self.window.controller.ctx.new())
-
+            lambda: self.window.controller.ctx.new()
+        )
         self.window.ui.nodes[id] = ContextList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
         self.window.ui.nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))
@@ -50,8 +52,10 @@ class CtxList:
 
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+
         self.window.ui.nodes[id].selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.ctx.selection_change())
+            lambda: self.window.controller.ctx.selection_change()
+        )
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -70,42 +74,95 @@ class CtxList:
 
     def update(self, id, data):
         """
-        Update list
+        Update ctx list
 
         :param id: ID of the list
         :param data: Data to update
         """
         self.window.ui.nodes[id].backup_selection()
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
-        i = 0
-        for n in data:
-            self.window.ui.models[id].insertRow(i)
-            dt = self.convert_date(data[n].updated)
-            date_time_str = datetime.fromtimestamp(data[n].updated).strftime("%Y-%m-%d %H:%M")
-            title = data[n].name
-            # truncate to max 40 chars
-            if len(title) > 80:
-                title = title[:80] + '...'
-            name = title.replace("\n", "") + ' (' + dt + ')'
-            index = self.window.ui.models[id].index(i, 0)
-            mode_str = ''
-            if data[n].last_mode is not None:
-                mode_str = " ({})".format(trans('mode.' + data[n].last_mode))
-            tooltip_text = "{}: {}{} #{}".format(
-                date_time_str,
-                data[n].name,
-                mode_str,
-                n,
-            )
-            self.window.ui.models[id].setData(index, tooltip_text, QtCore.Qt.ToolTipRole)
-            if data[n].important:
-                self.window.ui.models[id].setData(index, data[n].label + 10, QtCore.Qt.ItemDataRole.UserRole)
+
+        # get groups
+        groups = self.window.core.ctx.get_groups()
+
+        # 1) not grouped on top
+        for meta_id in data:
+            if data[meta_id].group_id is None or data[meta_id].group_id == 0:
+                item = self.build_item(meta_id, data[meta_id])
+                self.window.ui.models[id].appendRow(item)
+
+        # 2) grouped items
+        for group_id in groups:
+            group = groups[group_id]
+            c = self.count_in_group(group.id, data)
+            suffix = ""
+            if c > 0:
+                suffix = " (" + str(c) + ")"
+            group_name = group.name + suffix
+            group_item = GroupItem(QIcon(":/icons/folder_filled.svg"), group_name, group.id)
+            for meta_id in data:
+                if data[meta_id].group_id != group.id:
+                    continue  # skip not in group
+                item = self.build_item(meta_id, data[meta_id])
+                group_item.appendRow(item)
+
+            self.window.ui.models[id].appendRow(group_item)
+
+            # expand group
+            if group.id in self.window.ui.nodes[id].expanded_items:
+                self.window.ui.nodes[id].setExpanded(group_item.index(), True)
             else:
-                self.window.ui.models[id].setData(index, data[n].label, QtCore.Qt.ItemDataRole.UserRole)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
-            i += 1
+                self.window.ui.nodes[id].setExpanded(group_item.index(), False)
 
         self.window.ui.nodes[id].restore_selection()
+
+    def count_in_group(self, group_id: int, data: dict) -> int:
+        """
+        Count items in group
+
+        :param group_id: group id
+        :param data: context meta data
+        :return: int
+        """
+        count = 0
+        for meta_id in data:
+            if data[meta_id].group_id == group_id:
+                count += 1
+        return count
+
+    def build_item(self, id: int, data: CtxMeta) -> Item:
+        """
+        Build item for list (child)
+
+        :param id: context meta id
+        :param data: context meta item
+        :return: Item
+        """
+        dt = self.convert_date(data.updated)
+        date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
+        title = data.name
+        # truncate to max 40 chars
+        if len(title) > 80:
+            title = title[:80] + '...'
+        name = title.replace("\n", "") + ' (' + dt + ')'
+        mode_str = ''
+        if data.last_mode is not None:
+            mode_str = " ({})".format(trans('mode.' + data.last_mode))
+        tooltip_text = "{}: {}{} #{}".format(
+            date_time_str,
+            data.name,
+            mode_str,
+            id,
+        )
+        item = Item(name, id)
+        item.id = id
+        item.setData(tooltip_text, QtCore.Qt.ToolTipRole)
+        if data.important:
+            item.setData(data.label + 10, QtCore.Qt.ItemDataRole.UserRole)
+        else:
+            item.setData(data.label, QtCore.Qt.ItemDataRole.UserRole)
+        item.setData(name)
+        return item
 
     def convert_date(self, timestamp: int) -> str:
         """

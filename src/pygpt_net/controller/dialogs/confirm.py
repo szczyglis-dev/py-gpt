@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -53,6 +53,10 @@ class Confirm:
             self.window.controller.ctx.extra.replay_item(id, True)
         elif type == 'ctx.join_item':
             self.window.controller.ctx.extra.join_item(id, True)
+        elif type == 'ctx.group.delete':
+            self.window.controller.ctx.delete_group(id, True)  # group delete
+        elif type == 'ctx.group.delete.all':
+            self.window.controller.ctx.delete_group_all(id, True)  # group delete + items
 
         # images
         elif type == 'img_delete':
@@ -215,16 +219,25 @@ class Confirm:
         :param id: dialog object id
         :param name: new name
         """
+        # ctx
         if type == 'ctx':
             self.window.controller.ctx.update_name(id, name)
+        elif type == 'ctx.group':
+            self.window.controller.ctx.update_group_name(id, name, True)
+
+        # attachments and files
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':
             self.window.controller.assistant.files.update_name(id, name)
         elif type == 'output_file':
             self.window.controller.files.update_name(id, name)
+
+        # notepad
         elif type == 'notepad':
             self.window.controller.notepad.update_name(id, name, True)
+
+        # plugin presets
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.update_name(id, name)
 
@@ -236,14 +249,21 @@ class Confirm:
         :param id: dialog object id
         :param name: name
         """
+        # filesystem
         if type == 'mkdir':
             self.window.controller.files.make_dir(id, name)
         if type == 'touch':
             self.window.controller.files.touch_file(id, name, True)
         elif type == 'duplicate':
             self.window.controller.files.duplicate_local(id, name, True)
+
+        # plugin presets
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.create(id, name)
+
+        # ctx groups
+        elif type == 'ctx.group':
+            self.window.controller.ctx.create_group(name, id)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""

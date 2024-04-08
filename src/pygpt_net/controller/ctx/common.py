@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.10 07:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -69,16 +69,6 @@ class Common:
 
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
-
-    def duplicate_by_idx(self, idx: int):
-        """
-        Duplicate context by idx on list
-
-        :param idx: context list idx
-        """
-        id = self.window.core.ctx.get_id_by_idx(idx)
-        if id is not None:
-            self.duplicate(id)
 
     def duplicate(self, meta_id: int):
         """
@@ -155,14 +145,12 @@ class Common:
         self.window.core.ctx.set_display_filters(filters)
         self.window.controller.ctx.update()
 
-    def copy_id(self, idx: int):
+    def copy_id(self, id: int):
         """
         Copy id into clipboard and to iinput
 
-        :param idx: context list idx
+        :param id: context list idx
         """
-        id = self.window.core.ctx.get_id_by_idx(idx)
-        if id is not None:
-            value = "@" + str(id)
-            self.window.controller.chat.common.append_to_input(value, separator=" ")
-            QApplication.clipboard().setText(value)
+        value = "@" + str(id)
+        self.window.controller.chat.common.append_to_input(value, separator=" ")
+        QApplication.clipboard().setText(value)

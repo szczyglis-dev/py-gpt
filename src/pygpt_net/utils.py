@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import json
@@ -105,12 +105,12 @@ def parse_args(data: list) -> dict:
         if type == 'int':
             try:
                 args[key] = int(value)
-            except ValueError:
+            except Exception:
                 args[key] = 0
         elif type == 'float':
             try:
                 args[key] = float(value)
-            except ValueError:
+            except Exception:
                 args[key] = 0.0
         elif type == 'bool':
             if str(value).lower() == 'true':
@@ -120,7 +120,7 @@ def parse_args(data: list) -> dict:
             else:
                 try:
                     args[key] = bool(int(value))
-                except ValueError:
+                except Exception:
                     args[key] = False
         elif type == 'dict':
             try:
@@ -146,16 +146,16 @@ def unpack_var(var: any, type: str) -> any:
     if type == 'int':
         try:
             return int(var)
-        except ValueError:
+        except Exception:
             return 0
     elif type == 'float':
         try:
             return float(var)
-        except ValueError:
+        except Exception:
             return 0.0
     elif type == 'bool':
         try:
             return bool(var)
-        except ValueError:
+        except Exception:
             return False
     return var

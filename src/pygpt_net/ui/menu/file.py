@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -33,6 +33,8 @@ class File:
         self.window.ui.menu['app.clear_history'] = QAction(QIcon(":/icons/delete.svg"),
                                                            trans("menu.file_clear_history"), self.window)
         self.window.ui.menu['app.ctx.new'] = QAction(QIcon(":/icons/add.svg"), trans("menu.file.new"), self.window)
+        self.window.ui.menu['app.ctx.group.new'] = QAction(QIcon(":/icons/folder_filled.svg"),
+                                                           trans("menu.file.group.new"), self.window)
 
         self.window.ui.menu['app.clear_history'].triggered.connect(
             lambda: self.window.controller.ctx.delete_history())
@@ -40,7 +42,11 @@ class File:
         self.window.ui.menu['app.ctx.new'].triggered.connect(
             lambda: self.window.controller.ctx.new())
 
+        self.window.ui.menu['app.ctx.group.new'].triggered.connect(
+            lambda: self.window.controller.ctx.new_group())
+
         self.window.ui.menu['menu.app'] = self.window.menuBar().addMenu(trans("menu.file"))
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.new'])
+        self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.group.new'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.clear_history'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.exit'])

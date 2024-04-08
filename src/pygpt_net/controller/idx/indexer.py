@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -67,14 +67,14 @@ class Indexer:
 
     def index_ctx_meta(
             self,
-            ctx_idx: int,
+            meta_id: int,
             idx: str,
             force: bool = False
     ):
         """
         Index context meta (threaded)
 
-        :param ctx_idx: context idx on list
+        :param meta_id: context meta id
         :param idx: index name
         :param force: force index
         """
@@ -83,12 +83,11 @@ class Indexer:
             content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
                 type='idx.index.db',
-                id=ctx_idx,
+                id=meta_id,
                 msg=content,
             )
             return
 
-        meta_id = self.window.core.ctx.get_id_by_idx(ctx_idx)
         meta = self.window.core.ctx.get_meta_by_id(meta_id)
         from_ts = meta.indexed
         self.window.update_status(trans('idx.status.indexing'))

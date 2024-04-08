@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
 
-from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 
 
 class BaseProvider:
@@ -91,3 +91,20 @@ class BaseProvider:
 
     def clear_meta_indexed_all(self) -> bool:
         pass
+
+    def get_groups(self) -> dict:
+        pass
+
+    def insert_group(self, group: CtxGroup):
+        pass
+
+    def update_group(self, group: CtxGroup):
+        pass
+
+    def remove_group(self, id: int, all: bool = False):
+        pass
+
+    def update_meta_group_id(self, meta_id: int, group_id: int):
+        pass
+
+

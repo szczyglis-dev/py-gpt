@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -123,11 +123,9 @@ def test_select_by_current(mock_window):
     mock_window.core.ctx.get_idx_by_id = MagicMock(return_value=2)  # idx = 2
     mock_window.ui.models['ctx.list'].index = MagicMock(return_value=2)  # index = 2
 
-    ctx.select = MagicMock()
+    ctx.select_index_by_id = MagicMock()
     ctx.select_by_current()
     mock_window.core.ctx.get_meta.assert_called_once()
-    mock_window.core.ctx.get_idx_by_id.assert_called_once_with(3)
-    mock_window.ui.models['ctx.list'].index.assert_called_once_with(2, 0)
 
 
 def test_new(mock_window):
@@ -295,7 +293,7 @@ def test_rename(mock_window):
     ctx.rename(2)
     assert mock_window.ui.dialog['rename'].id == 'ctx'
     mock_window.ui.dialog['rename'].input.setText.assert_called_once_with('new_name')
-    assert mock_window.ui.dialog['rename'].current == 3
+    assert mock_window.ui.dialog['rename'].current == 2
     mock_window.ui.dialog['rename'].show.assert_called_once()
     ctx.update.assert_called_once()
 

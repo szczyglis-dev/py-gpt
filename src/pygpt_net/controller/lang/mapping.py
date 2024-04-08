@@ -247,6 +247,7 @@ class Mapping:
         # menu text
         menu_text = {}
         menu_text['app.ctx.new'] = 'menu.file.new'
+        menu_text['app.ctx.group.new'] = 'menu.file.group.new'
         menu_text['app.clear_history'] = 'menu.file_clear_history'
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'

@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import copy
 import datetime
+import uuid
 
 from packaging.version import Version
 
-from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.provider.core.ctx.base import BaseProvider
 from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
@@ -47,6 +48,7 @@ class Ctx:
         self.last_model = None
         self.tmp_meta = None
         self.search_string = None  # search string
+        self.groups = {}  # groups
         self.filters = {}  # search filters
         self.filters_labels = []  # search labels
         self.current_cmd = []  # current commands
@@ -62,6 +64,7 @@ class Ctx:
             'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
         }
         self.current_sys_prompt = ""
+        self.groups_loaded = False
 
     def install(self):
         """Install provider data"""
@@ -118,17 +121,17 @@ class Ctx:
 
             self.items = self.load(id)
 
-    def new(self) -> CtxMeta or None:
+    def new(self, group_id: int = None) -> CtxMeta or None:
         """
         Create new ctx and set as current
 
+        :param group_id: group id
         :return: CtxMeta instance (new ctx meta)
         """
-        meta = self.create()  # create new ctx meta
+        meta = self.create(group_id)  # create new ctx meta
         if meta is None:
             self.window.core.debug.log("Error creating new ctx")
             return
-
         self.meta[meta.id] = meta
         self.tmp_meta = meta
         self.current = meta.id
@@ -158,13 +161,16 @@ class Ctx:
         meta.initialized = False
         return meta
 
-    def create(self) -> CtxMeta:
+    def create(self, group_id: int = None) -> CtxMeta:
         """
         Send created meta to provider and return new ID
 
+        :param group_id: group id
         :return: CtxMeta instance
         """
         meta = self.build()
+        if group_id is not None:
+            meta.group_id = group_id
         id = self.provider.create(meta)
         meta.id = id
         return meta
@@ -862,6 +868,91 @@ class Ctx:
         :return: ctx items list
         """
         return self.provider.load(id)
+
+    def load_groups(self):
+        """Load groups"""
+        self.groups = self.provider.get_groups()
+
+    def get_groups(self) -> dict:
+        """
+        Get groups
+
+        :return: groups
+        """
+        if not self.groups_loaded:
+            self.load_groups()
+            self.groups_loaded = True
+        return self.groups
+
+    def get_group_by_id(self, id: int) -> CtxGroup or None:
+        """
+        Get group by ID
+
+        :param id: group id
+        :return: group instance
+        """
+        if not self.groups_loaded:
+            self.load_groups()
+            self.groups_loaded = True
+        if id not in self.groups:
+            return None
+        return self.groups[id]
+
+    def remove_group(self, group: CtxGroup, all: bool = False):
+        """
+        Remove group
+
+        :param group: group instance
+        :param all: remove all items
+        """
+        self.provider.remove_group(group.id, all=all)
+        self.load_groups()
+
+    def make_group(self, name: str) -> CtxGroup:
+        """
+        Make group
+
+        :param name: group name
+        :return: group instance
+        """
+        group = CtxGroup()
+        group.uuid = str(uuid.uuid4())
+        group.name = name
+        return group
+
+    def insert_group(self, group: CtxGroup) -> int:
+        """
+        Insert group
+
+        :param group: group instance
+        :return: group id
+        """
+        id = self.provider.insert_group(group)
+        self.load_groups()
+        return id
+
+    def update_group(self, group: CtxGroup):
+        """
+        Update group
+
+        :param group: group instance
+        """
+        self.provider.update_group(group)
+        self.load_groups()
+
+    def update_meta_group_id(self, id: int, group_id: int):
+        """
+        Update meta group ID
+
+        :param id: meta id
+        :param group_id: group id
+        """
+        meta = self.get_meta_by_id(id)
+        if meta is None:
+            return
+        meta.group_id = group_id
+        self.provider.update_meta_group_id(id, group_id)
+        self.load_groups()
 
     def get_items_by_id(self, id: int) -> list:
         """

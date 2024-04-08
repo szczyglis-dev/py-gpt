@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -245,6 +245,7 @@ class CtxMeta:
         self.archived = False
         self.label = 0  # label color
         self.indexes = {}  # indexes data
+        self.group_id = None
 
     def to_dict(self) -> dict:
         """
@@ -277,6 +278,7 @@ class CtxMeta:
             "archived": self.archived,
             "label": self.label,
             "indexes": self.indexes,
+            "group_id": self.group_id,
         }
 
     def from_dict(self, data: dict):
@@ -309,3 +311,50 @@ class CtxMeta:
         self.archived = data.get("archived", False)
         self.label = data.get("label", 0)
         self.indexes = data.get("indexes", {})
+        self.group_id = data.get("group_id", None)
+
+class CtxGroup:
+    def __init__(self, id=None, name=None):
+        """
+        Context group
+
+        :param id: Group ID
+        :param name: Group name
+        """
+        self.id = id
+        self.uuid = None
+        self.name = name
+        self.items = []
+        self.created = int(time.time())
+        self.updated = int(time.time())
+        self.count = 0
+
+    def to_dict(self) -> dict:
+        """
+        Dump context group to dict
+
+        :return: dict
+        """
+        return {
+            "id": self.id,
+            "uuid": self.uuid,
+            "name": self.name,
+            "items": self.items,
+            "created": self.created,
+            "updated": self.updated,
+            "count": self.count,
+        }
+
+    def from_dict(self, data: dict):
+        """
+        Load context group from dict
+
+        :param data: dict
+        """
+        self.id = data.get("id", None)
+        self.uuid = data.get("uuid", None)
+        self.name = data.get("name", None)
+        self.items = data.get("items", [])
+        self.created = data.get("created", None)
+        self.updated = data.get("updated", None)
+        self.count = data.get("count", 0)

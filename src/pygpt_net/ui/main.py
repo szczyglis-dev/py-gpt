@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -215,6 +215,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Sending terminate signal to all plugins...")
         self.controller.chat.common.stop(exit=True)
         self.controller.plugins.destroy()
+        print("Saving ctx groups...")
+        self.controller.ctx.save_all()
         print("Saving notepad...")
         self.controller.notepad.save_all()
         print("Saving calendar...")

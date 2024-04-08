@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import time
 from uuid import uuid4
 from packaging.version import Version
 
-from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from .patch import Patch
 from .storage import Storage
 from pygpt_net.provider.core.ctx.base import BaseProvider
@@ -282,3 +282,45 @@ class DbSqliteProvider(BaseProvider):
         :return: True if cleared
         """
         return self.storage.clear_meta_indexed_all()
+
+    def get_groups(self) -> dict:
+        """
+        Return dict of groups
+
+        :return: dict of ctx meta
+        """
+        return self.storage.get_groups()
+
+    def insert_group(self, group: CtxGroup):
+        """
+        Insert group
+
+        :param group: CtxGroup
+        """
+        return self.storage.insert_group(group)
+
+    def update_group(self, group: CtxGroup):
+        """
+        Update group
+
+        :param group: CtxGroup
+        """
+        return self.storage.update_group(group)
+
+    def remove_group(self, id: int, all: bool = False):
+        """
+        Remove group by ID
+
+        :param id: group ID
+        :param all: remove items
+        """
+        return self.storage.delete_group(id, all=all)
+
+    def update_meta_group_id(self, id: int, group_id: int):
+        """
+        Update meta group ID
+
+        :param id: ctx ID
+        :param group_id: group ID
+        """
+        return self.storage.update_meta_group_id(id, group_id)

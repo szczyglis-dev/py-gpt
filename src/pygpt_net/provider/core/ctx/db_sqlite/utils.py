@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import json
 import re
 from datetime import datetime, timedelta, timezone
 
-from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from pygpt_net.utils import unpack_var
 
 
@@ -191,4 +191,21 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.archived = unpack_var(row['is_archived'], 'bool')
     meta.label = unpack_var(row['label'], 'int')
     meta.indexes = unpack_item_value(row['indexes_json'])
+    meta.group_id = unpack_var(row['group_id'], 'int')
     return meta
+
+
+def unpack_group(group: CtxGroup, row: dict) -> CtxGroup:
+    """
+    Unpack context group data from DB row
+
+    :param group: Context group (CtxGroup)
+    :param row: DB row
+    :return: context meta
+    """
+    group.id = unpack_var(row['id'], 'int')
+    group.uuid = row['uuid']
+    group.created = unpack_var(row['created_ts'], 'int')
+    group.updated = unpack_var(row['updated_ts'], 'int')
+    group.name = row['name']
+    return group

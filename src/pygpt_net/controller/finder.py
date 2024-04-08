@@ -152,6 +152,7 @@ class Finder:
             self.window.ui.nodes['dialog.find.counter'].setText("{}/{}".format(current, all))
         else:
             self.window.ui.nodes['dialog.find.counter'].setText("0/0")
+
     def prepare(self, clear: bool = True, to_end: bool = True):
         """
         Prepare the finder for a new search

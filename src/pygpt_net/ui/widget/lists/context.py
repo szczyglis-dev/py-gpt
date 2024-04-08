@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.04.08 21:00:00                  #
 # ================================================== #
 
 import datetime
 
 from PySide6 import QtWidgets, QtCore, QtGui
-from PySide6.QtGui import QAction, QIcon, QColor, QPixmap
+from PySide6.QtGui import QAction, QIcon, QColor, QPixmap, QStandardItem
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
@@ -23,7 +23,7 @@ import pygpt_net.icons_rc
 class ContextList(BaseList):
     def __init__(self, window=None, id=None):
         """
-        Presets select menu
+        Context select menu
 
         :param window: main window
         :param id: input id
@@ -31,25 +31,40 @@ class ContextList(BaseList):
         super(ContextList, self).__init__(window)
         self.window = window
         self.id = id
-
-        self.doubleClicked.connect(self.dblclick)
+        self.clicked.connect(self.click)
+        self.expanded_items = set()
         self.setItemDelegate(ImportantItemDelegate())
 
-    def click(self, val):
-        """
-        Click event
+    def click(self, index):
+        item = self.window.ui.models['ctx.list'].itemFromIndex(index)
+        if item.isFolder:
+            if self.window.ui.nodes['ctx.list'].isExpanded(index):
+                self.expanded_items.discard(item.id)
+            else:
+                self.expanded_items.add(item.id)
+        else:
+            self.window.controller.ctx.select_by_id(item.id)
 
-        :param val: click event
+    def expand_group(self, id):
         """
-        self.window.controller.ctx.select_by_idx(val.row())
+        Expand group
 
-    def dblclick(self, val):
+        :param id: group id
+        """
+        for i in range(self.window.ui.models['ctx.list'].rowCount()):
+            item = self.window.ui.models['ctx.list'].item(i)
+            if item.id == id:
+                index = self.window.ui.models['ctx.list'].indexFromItem(item)
+                self.window.ui.nodes['ctx.list'].expand(index)
+                self.expanded_items.add(id)
+
+    def dblclick(self, index):
         """
         Double click event
 
-        :param val: double click event
+        :param index: index
         """
-        self.window.controller.ctx.select_by_idx(val.row())
+        pass
 
     def contextMenuEvent(self, event):
         """
@@ -57,131 +72,211 @@ class ContextList(BaseList):
 
         :param event: context menu event
         """
-        item = self.indexAt(event.pos())
+        index = self.indexAt(event.pos())
+        item = self.window.ui.models['ctx.list'].itemFromIndex(index)
         idx = item.row()
-        id = self.window.core.ctx.get_id_by_idx(idx)
-        ctx_id = id
-        ctx = self.window.core.ctx.get_meta_by_id(id)
-        if ctx is None:
-            return
+        id = item.id
 
-        is_important = ctx.important
-
-        actions = {}
-        actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
-        actions['rename'].triggered.connect(
-            lambda: self.action_rename(event)
-        )
-
-        if is_important:
-            actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.unpin'), self)
-            actions['important'].triggered.connect(
-                lambda: self.action_unpin(event)
+        # group context menu
+        if hasattr(item, 'isFolder') and item.isFolder:
+            actions = {}
+            actions['new'] = QAction(QIcon(":/icons/add.svg"), trans('action.ctx.new'), self)
+            actions['new'].triggered.connect(
+                lambda checked=False, id=id: self.window.controller.ctx.new(force=False, group_id=id)
             )
+            actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
+            actions['rename'].triggered.connect(
+                lambda checked=False, id=id: self.window.controller.ctx.rename_group(id)
+            )
+            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.group.delete.only'), self)
+            actions['delete'].triggered.connect(
+                lambda checked=False, id=id: self.window.controller.ctx.delete_group(id)
+            )
+            actions['delete_all'] = QAction(QIcon(":/icons/delete.svg"), trans('action.group.delete.all'), self)
+            actions['delete_all'].triggered.connect(
+                lambda checked=False, id=id: self.window.controller.ctx.delete_group_all(id)
+            )
+
+            menu = QMenu(self)
+            menu.addAction(actions['new'])
+            menu.addAction(actions['rename'])
+            menu.addAction(actions['delete'])  # delete group
+            menu.addAction(actions['delete_all'])  # delete group and all contexts
+
+            if idx >= 0:
+                menu.exec_(event.globalPos())
+
+        # children context menu
         else:
-            actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.pin'), self)
-            actions['important'].triggered.connect(
-                lambda: self.action_pin(event)
+            ctx_id = id
+            ctx = self.window.core.ctx.get_meta_by_id(id)
+            if ctx is None:
+                return
+
+            is_important = ctx.important
+
+            actions = {}
+            actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
+            actions['rename'].triggered.connect(
+                lambda checked=False, ctx_id=ctx_id: self.action_rename(ctx_id)
             )
 
-        actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
-        actions['duplicate'].triggered.connect(
-            lambda: self.action_duplicate(event)
-        )
-
-        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
-        actions['delete'].triggered.connect(
-            lambda: self.action_delete(event)
-        )
-
-        actions['copy_id'] = QAction(QIcon(":/icons/copy.svg"), trans('action.ctx_copy_id') + " @" + str(id), self)
-        actions['copy_id'].triggered.connect(
-            lambda: self.action_copy_id(event)
-        )
-
-        menu = QMenu(self)
-        menu.addAction(actions['rename'])
-        menu.addAction(actions['duplicate'])
-        menu.addAction(actions['important'])
-        menu.addAction(actions['delete'])
-
-        # set label menu
-        colors = self.window.controller.ui.get_colors()
-        set_label_menu = menu.addMenu(trans('calendar.day.label'))
-        for status_id, status_info in colors.items():
-            name = trans('calendar.day.' + status_info['label'])
-            if status_id == 0:
-                name = '-'
-            color = status_info['color']
-            pixmap = QPixmap(16, 16)
-            pixmap.fill(color)
-            icon = QIcon(pixmap)
-            status_action = QAction(icon, name, self)
-            status_action.triggered.connect(
-                lambda checked=False, s_id=status_id: self.window.controller.ctx.set_label(idx, s_id)
-            )
-            set_label_menu.addAction(status_action)
-
-        idx_menu = QMenu(trans('action.idx'), self)
-
-        # indexes list
-        idxs = self.window.core.config.get('llama.idx.list')
-        store = self.window.core.idx.get_current_store()  # get current idx store provider
-        if len(idxs) > 0:
-            for index in idxs:
-                id = index['id']
-                name = index['name'] + " (" + index['id'] + ")"
-
-                # add to index
-                action = idx_menu.addAction("IDX: " + name)
-                action.setIcon(QIcon(":/icons/search.svg"))
-                action.triggered.connect(
-                    lambda checked=False,
-                           idx=idx,
-                           index=id: self.action_idx(idx, index)
+            if is_important:
+                actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.unpin'), self)
+                actions['important'].triggered.connect(
+                    lambda checked=False, ctx_id=ctx_id: self.action_unpin(ctx_id)
+                )
+            else:
+                actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.pin'), self)
+                actions['important'].triggered.connect(
+                    lambda checked=False, ctx_id=ctx_id: self.action_pin(ctx_id)
                 )
 
-                # remove from index
-                if ctx.indexed is not None and ctx.indexed > 0:
+            actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
+            actions['duplicate'].triggered.connect(
+                lambda checked=False, ctx_id=ctx_id: self.action_duplicate(ctx_id)
+            )
 
-                    # get list of indexes in which context is indexed
-                    if store in ctx.indexes:
-                        store_indexes = ctx.indexes[store]
-                        for store_index in store_indexes:
-                            action = idx_menu.addAction(trans("action.idx.remove") + ": " + store_index)
-                            action.setIcon(QIcon(":/icons/delete.svg"))
-                            action.triggered.connect(
-                                lambda checked=False,
-                                       store_index=store_index,
-                                       ctx_id=ctx_id: self.action_idx_remove(store_index, ctx_id)  # by context meta id
-                            )
+            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
+            actions['delete'].triggered.connect(
+                lambda checked=False, ctx_id=ctx_id: self.action_delete(ctx_id)
+            )
 
-            menu.addMenu(idx_menu)
+            actions['copy_id'] = QAction(QIcon(":/icons/copy.svg"), trans('action.ctx_copy_id') + " @" + str(id), self)
+            actions['copy_id'].triggered.connect(
+                lambda checked=False, ctx_id=ctx_id: self.action_copy_id(ctx_id)
+            )
 
-        menu.addAction(actions['copy_id'])
+            menu = QMenu(self)
+            menu.addAction(actions['rename'])
+            menu.addAction(actions['duplicate'])
+            menu.addAction(actions['important'])
+            menu.addAction(actions['delete'])
 
-        # show last indexed date if available
-        if ctx.indexed is not None and ctx.indexed > 0:
-            suffix = ""
-            if ctx.updated > ctx.indexed:
-                suffix = " *"
-            dt = datetime.datetime.fromtimestamp(ctx.indexed).strftime("%Y-%m-%d %H:%M")
-            action = QAction(QIcon(":/icons/clock.svg"), trans('action.ctx.indexed') + ": " + dt + suffix, self)
-            action.setEnabled(False)  # disable action, only for info
-            menu.addAction(action)
+            # set label menu
+            colors = self.window.controller.ui.get_colors()
+            set_label_menu = menu.addMenu(trans('calendar.day.label'))
+            for status_id, status_info in colors.items():
+                name = trans('calendar.day.' + status_info['label'])
+                if status_id == 0:
+                    name = '-'
+                color = status_info['color']
+                pixmap = QPixmap(16, 16)
+                pixmap.fill(color)
+                icon = QIcon(pixmap)
+                status_action = QAction(icon, name, self)
+                status_action.triggered.connect(
+                    lambda checked=False,
+                           ctx_id=ctx_id,
+                           s_id=status_id: self.window.controller.ctx.set_label(ctx_id, s_id)
+                )
+                set_label_menu.addAction(status_action)
 
-        if idx >= 0:
-            self.window.controller.ctx.select_by_idx(item.row())
-            menu.exec_(event.globalPos())
+            idx_menu = QMenu(trans('action.idx'), self)
 
-    def action_idx(self, ctx_idx: int, idx: int):
+            # indexes list
+            idxs = self.window.core.config.get('llama.idx.list')
+            store = self.window.core.idx.get_current_store()  # get current idx store provider
+            if len(idxs) > 0:
+                for index in idxs:
+                    id = index['id']
+                    name = index['name'] + " (" + index['id'] + ")"
+
+                    # add to index
+                    action = idx_menu.addAction("IDX: " + name)
+                    action.setIcon(QIcon(":/icons/search.svg"))
+                    action.triggered.connect(
+                        lambda checked=False,
+                               ctx_id=ctx_id,
+                               index=id: self.action_idx(ctx_id, index)
+                    )
+
+                    # remove from index
+                    if ctx.indexed is not None and ctx.indexed > 0:
+                        # get list of indexes in which context is indexed
+                        if store in ctx.indexes:
+                            store_indexes = ctx.indexes[store]
+                            for store_index in store_indexes:
+                                action = idx_menu.addAction(trans("action.idx.remove") + ": " + store_index)
+                                action.setIcon(QIcon(":/icons/delete.svg"))
+                                action.triggered.connect(
+                                    lambda checked=False,
+                                           store_index=store_index,
+                                           ctx_id=ctx_id: self.action_idx_remove(store_index, ctx_id)  # by context meta id
+                                )
+                menu.addMenu(idx_menu)
+
+            # -----------------------------------------
+
+            # move to group menu
+            group_menu = QMenu(trans('action.move_to'), self)
+            groups = self.window.core.ctx.get_groups()
+
+            # add group
+            action = group_menu.addAction(trans("action.group.new"))
+            action.setIcon(QIcon(":/icons/add.svg"))
+            action.triggered.connect(
+                lambda checked=False, ctx_id=ctx_id: self.window.controller.ctx.new_group(ctx_id)
+            )
+
+            # add separator if groups exists
+            if len(groups) > 0:
+                group_menu.addSeparator()
+
+            # list of groups
+            for group_id in groups:
+                group = groups[group_id]
+                action = group_menu.addAction(group.name)
+                action.triggered.connect(
+                    lambda checked=False,
+                           group_id=group_id,
+                           ctx_id=ctx_id: self.window.controller.ctx.move_to_group(ctx_id, group_id)
+                )
+
+            # add separator if groups exists
+            if len(groups) > 0:
+                group_menu.addSeparator()
+
+            # if in group add remove from group
+            if ctx.group_id is not None:
+                group_name = str(ctx.group_id)
+                if ctx.group_id in groups:
+                    group_name = groups[ctx.group_id].name
+                action = group_menu.addAction(trans("action.group.remove") + ": " + group_name)
+                action.setIcon(QIcon(":/icons/delete.svg"))
+                action.triggered.connect(
+                    lambda checked=False,
+                           ctx_id=ctx_id: self.window.controller.ctx.remove_from_group(ctx_id)
+                )
+
+            menu.addMenu(group_menu)
+
+            menu.addAction(actions['copy_id'])
+
+            # -----------------------------------------
+
+            # show last indexed date if available
+            if ctx.indexed is not None and ctx.indexed > 0:
+                suffix = ""
+                if ctx.updated > ctx.indexed:
+                    suffix = " *"
+                dt = datetime.datetime.fromtimestamp(ctx.indexed).strftime("%Y-%m-%d %H:%M")
+                action = QAction(QIcon(":/icons/clock.svg"), trans('action.ctx.indexed') + ": " + dt + suffix, self)
+                action.setEnabled(False)  # disable action, only for info
+                menu.addAction(action)
+
+            if idx >= 0:
+                self.window.controller.ctx.select_by_id(ctx_id)
+                menu.exec_(event.globalPos())
+
+    def action_idx(self, id: int, idx: int):
         """
         Index with llama context action handler
 
-        :param ctx_idx: row idx in context list
+        :param id: context id
         :param idx: index name
         """
-        self.window.controller.idx.indexer.index_ctx_meta(ctx_idx, idx)
+        self.window.controller.idx.indexer.index_ctx_meta(id, idx)
 
     def action_idx_remove(self, idx: str, meta_id: int):
         """
@@ -192,82 +287,61 @@ class ContextList(BaseList):
         """
         self.window.controller.idx.indexer.index_ctx_meta_remove(idx, meta_id)
 
-    def action_rename(self, event):
+    def action_rename(self, id):
         """
         Rename action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.rename(idx)
+        self.window.controller.ctx.rename(id)
 
-    def action_pin(self, event):
+    def action_pin(self, id):
         """
         Pin action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.set_important(idx, True)
+        self.window.controller.ctx.set_important(id, True)
 
-    def action_unpin(self, event):
+    def action_unpin(self, id):
         """
         Unpin action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.set_important(idx, False)
+        self.window.controller.ctx.set_important(id, False)
 
-    def action_duplicate(self, event):
-        """
-        Rename duplicate handler
-
-        :param event: mouse event
-        """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.common.duplicate_by_idx(idx)
-
-    def action_important(self, event):
+    def action_important(self, id):
         """
         Set as important action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.set_important(idx)
+        self.window.controller.ctx.set_important(id)
 
-    def action_delete(self, event):
+    def action_duplicate(self, id):
+        """
+        Rename duplicate handler
+
+        :param id: context id
+        """
+        self.window.controller.ctx.common.duplicate(id)
+
+    def action_delete(self, id):
         """
         Delete action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.delete(idx)
+        self.window.controller.ctx.delete(id)
 
-    def action_copy_id(self, event):
+    def action_copy_id(self, id):
         """
         Copy ID tag action handler
 
-        :param event: mouse event
+        :param id: context id
         """
-        item = self.indexAt(event.pos())
-        idx = item.row()
-        if idx >= 0:
-            self.window.controller.ctx.common.copy_id(idx)
+        self.window.controller.ctx.common.copy_id(id)
 
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
@@ -277,10 +351,13 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     :param QtWidgets.QStyledItemDelegate: parent class
     """
     def paint(self, painter, option, index):
+        if index.parent().isValid():
+            option.rect.adjust(10, 0, 0, 0)
+
         super(ImportantItemDelegate, self).paint(painter, option, index)
 
         # pin (>= 10)
-        if index.data(QtCore.Qt.ItemDataRole.UserRole) > 0:
+        if index.data(QtCore.Qt.ItemDataRole.UserRole) and index.data(QtCore.Qt.ItemDataRole.UserRole) > 0:
             label = index.data(QtCore.Qt.ItemDataRole.UserRole)
             painter.save()
 
@@ -344,3 +421,17 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             return statuses[status]['color']
         else:
             return statuses[0]['color']
+
+class GroupItem(QStandardItem):
+    def __init__(self, icon, name, id):
+        super().__init__(icon, name)
+        self.id = id
+        self.name = name
+        self.isFolder = True
+
+class Item(QStandardItem):
+    def __init__(self, name, id):
+        super().__init__(name)
+        self.id = id
+        self.name = name
+        self.isFolder = False
