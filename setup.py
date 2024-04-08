@@ -30,7 +30,7 @@ setup(
         'data/fonts/Lato/*',
         'data/fonts/SpaceMono/*',
         'data/fonts/MonaspaceArgon/*',
-        'data/fonts/MonaspaceKrypto/*',
+        'data/fonts/MonaspaceKrypton/*',
         'data/fonts/MonaspaceNeon/*',
         'data/fonts/MonaspaceRadon/*',
         'data/fonts/MonaspaceXenon/*',
