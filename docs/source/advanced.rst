@@ -45,7 +45,7 @@ create and save the file with the appropriate name, for example:
 
 This will add Spanish as a selectable language in the application's language menu.
 
-**Overwriting CSS and locales with your own files:**
+**Overwriting CSS and locales with Your Own Files:**
 
 You can also overwrite files in the ``locale`` and ``css`` app directories with your own files in the user directory. 
 This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
@@ -58,3 +58,28 @@ This allows you to overwrite language files or CSS styles in a very simple way -
 
 * `locale` - a directory for locales in ``.ini`` format.
 * `css` - a directory for CSS styles
+
+**Adding Your Own Fonts**
+
+You can add your own fonts and use them in CSS files. To load your own fonts, you should place them in the ``%workdir%/fonts`` directory. Supported font types include: ``otf``, ``ttf``.
+You can see the list of loaded fonts in ``Debug / Config``.
+
+**Example:**
+
+.. code-block:: ini
+
+   %workdir%
+   |_css
+   |_data
+   |_fonts
+      |_MyFont
+        |_MyFont-Regular.ttf
+        |_MyFont-Bold.ttf
+        |...
+        
+
+.. code-block:: css
+
+   pre {{
+       font-family: 'MyFont';
+   }}

@@ -91,6 +91,7 @@ class ChatOutput(QTextBrowser):
 
     def find_open(self):
         """Open finder"""
+        id = "chat_output"
         self.window.controller.finder.open("chat_output")
 
     def keyPressEvent(self, e):

@@ -75,13 +75,15 @@ class NotepadOutput(QTextEdit):
 
     def on_text_changed(self):
         """On text changed"""
+        id = self.window.controller.notepad.get_current_active()
         self.window.controller.notepad.save(self.id)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
             self.find_open()
         else:
-            self.window.controller.finder.clear("notepad_" + str(self.id), restore=True)
+            id = "notepad_" + str(self.window.controller.notepad.get_current_active())
+            self.window.controller.finder.clear(id, restore=True, to_end=False)
             super(NotepadOutput, self).keyPressEvent(e)
 
     def contextMenuEvent(self, event):
@@ -133,7 +135,8 @@ class NotepadOutput(QTextEdit):
 
     def find_open(self):
         """Open finder"""
-        self.window.controller.finder.open("notepad_" + str(self.id))
+        id = "notepad_" + str(self.window.controller.notepad.get_current_active())
+        self.window.controller.finder.open(id)
 
     def wheelEvent(self, event):
         """

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.40 (2024-04-08)
+
+- Added "Find" option - text search and highlighting of the found phrase in the chat and notepad window, available via CTRL + F or right-click menu / Find... (beta)
+- Added GitHub's Monaspace font family: Argon, Krypto, Neon, Radon, Xenon (reset CSS to defaults or manual replacement in CSS files is required for older versions of application to take effect).
+- Added an "Restore Default CSS" option in the "Config / Edit CSS" menu.
+- Added the ability to use custom .ttf and .otf fonts (just place them in %workdir%/fonts directory).
+
 # 2.1.39 (2024-03-26)
 
 - Added "Change working directory..." option in "Config" menu.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.39** | build: **2024.03.26** | Python: **>=3.10, <3.12**
+Release: **2.1.40** | build: **2024.04.08** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2827,7 +2827,7 @@ locale.es.ini
 
 This will add Spanish as a selectable language in the application's language menu.
 
-**Overwriting CSS and locales with your own files:**
+**Overwriting CSS and locales with Your Own Files:**
 
 You can also overwrite files in the `locale` and `css` app directories with your own files in the user directory. 
 This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
@@ -2840,6 +2840,29 @@ This allows you to overwrite language files or CSS styles in a very simple way -
 - `locale` - a directory for locales in `.ini` format.
 - `css` - a directory for CSS styles in `.css` format.
 
+**Adding Your Own Fonts**
+
+You can add your own fonts and use them in CSS files. To load your own fonts, you should place them in the `%workdir%/fonts` directory. Supported font types include: `otf`, `ttf`.
+You can see the list of loaded fonts in `Debug / Config`.
+
+**Example:**
+
+```
+%workdir%
+|_css
+|_data
+|_fonts
+   |_MyFont
+     |_MyFont-Regular.ttf
+     |_MyFont-Bold.ttf
+     |...
+```
+
+```css
+pre {{
+    font-family: 'MyFont';
+}}
+```
 
 ## Debugging and Logging
 
@@ -2899,6 +2922,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.40 (2024-04-08)
+
+- Added "Find..." option - text search and highlighting of the found phrase in the chat and notepad window, available via CTRL + F or right-click menu / Find... (beta)
+- Added GitHub's Monaspace font family: Argon, Krypto, Neon, Radon, Xenon (reset CSS to defaults or manual replacement in CSS files is required for older versions of application to take effect).
+- Added an "Restore Default CSS" option in the "Config / Edit CSS" menu.
+- Added the ability to use custom .ttf and .otf fonts (just place them in %workdir%/fonts directory).
 
 # 2.1.39 (2024-03-26)
 

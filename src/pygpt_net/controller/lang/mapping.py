@@ -204,6 +204,12 @@ class Mapping:
         nodes['dialog.license.label'] = 'dialog.license.label'
         nodes['dialog.license.accept'] = 'dialog.license.accept'
 
+        # dialog: find
+        nodes['dialog.find.btn.clear'] = 'dialog.find.btn.clear'
+        nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'
+        nodes['dialog.find.btn.find_next'] = 'dialog.find.btn.find_next'
+        nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'
+
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
         nodes['tip.output.tab.draw'] = 'tip.output.tab.draw'
@@ -247,13 +253,12 @@ class Mapping:
         menu_text['config.models'] = 'menu.config.models'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
+        menu_text['config.edit.css.restore'] = 'menu.config.edit.css.restore'
         menu_text['config.save'] = 'menu.config.save'
         menu_text['theme.tooltips'] = 'menu.theme.tooltips'
         menu_text['theme.settings'] = 'menu.theme.settings'
         menu_text['plugins.presets.new'] = 'menu.plugins.presets.new'
         menu_text['plugins.presets.edit'] = 'menu.plugins.presets.edit'
-        menu_text['plugins.settings'] = 'menu.plugins.settings'
-        menu_text['plugins.settings'] = 'menu.plugins.settings'
         menu_text['plugins.settings'] = 'menu.plugins.settings'
         menu_text['info.about'] = 'menu.info.about'
         menu_text['info.changelog'] = 'menu.info.changelog'
@@ -297,6 +302,7 @@ class Mapping:
         dialog_title['rename'] = 'dialog.rename.title'
         dialog_title['update'] = 'update.title'
         dialog_title['workdir.change'] = 'dialog.workdir.title'
+        dialog_title['find'] = 'dialog.find.title'
 
         # tooltips
         tooltips = {}
