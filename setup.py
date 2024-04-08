@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.1.40'
+VERSION = '2.1.40-post1'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, ' \
               'Whisper and more with chatbot, assistant, text completion, vision and image generation, ' \
               'internet access, chat with files, commands and code execution, file upload and download and more'
@@ -54,8 +54,10 @@ setup(
         'langchain-community>=0.0.24, <0.1.0',
         'langchain-experimental>=0.0.52, <0.1.0',
         'langchain-openai>=0.0.2.post1, <0.1.0',
+        'llama-index-core==0.10.13',
         'llama-index>=0.10.13.post1, <0.11.0',
         'llama-index-embeddings-azure-openai>=0.1.6, <0.2.0',
+        'llama-index-llms-openai==0.1.6',
         'llama-index-llms-azure-openai>=0.1.5, <0.2.0',
         'llama-index-vector-stores-chroma>=0.1.4, <0.2.0',
         'llama-index-vector-stores-elasticsearch>=0.1.4, <0.2.0',

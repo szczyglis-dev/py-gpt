@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.40-post1 (2024-04-08)
+
+- Llama-index core downgraded to 0.10.13 due to issue #41
+
 # 2.1.40 (2024-04-08)
 
 - Added "Find" option - text search and highlighting of the found phrase in the chat and notepad window, available via CTRL + F or right-click menu / Find... (beta)

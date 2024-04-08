@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.1.40"
+version = "2.1.40-post1"
 description = "Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, Whisper with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more"
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
@@ -38,7 +38,9 @@ langchain-community = "^0.0.24"
 langchain-experimental = "^0.0.52"
 langchain-openai = "^0.0.2.post1"
 llama-index = "^0.10.13.post1"
+llama-index-core = "0.10.13"
 llama-index-embeddings-azure-openai = "^0.1.6"
+llama-index-llms-openai = "0.1.6"
 llama-index-llms-azure-openai = "^0.1.5"
 llama-index-vector-stores-chroma = "^0.1.4"
 llama-index-vector-stores-elasticsearch = "^0.1.4"

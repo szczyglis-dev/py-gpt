@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.40** | build: **2024.04.08** | Python: **>=3.10, <3.12**
+Release: **2.1.40-post1** | build: **2024.04.08** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2922,6 +2922,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.40-post1 (2024-04-08)
+
+- Llama-index core downgraded to 0.10.13 due to issue #41
 
 # 2.1.40 (2024-04-08)
 
