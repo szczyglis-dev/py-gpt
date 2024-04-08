@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.41 (2024-04-08)
+
+- Added context groups for context items organizing.
+
 # 2.1.40-post1 (2024-04-08)
 
 - Llama-index core downgraded to 0.10.13 due to issue #41

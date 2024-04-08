@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.40-post1** | build: **2024.04.08** | Python: **>=3.10, <3.12**
+Release: **2.1.41** | build: **2024.04.08** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2923,6 +2923,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.41 (2024-04-08)
+
+- Added context groups for context items organizing.
+
 # 2.1.40-post1 (2024-04-08)
 
 - Llama-index core downgraded to 0.10.13 due to issue #41
@@ -3000,7 +3004,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added RPM limit config option for embeddings API.
 - UI improvements.
 
-The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
+The full changelog is located in the **[CHANGELOG.md](https://github.com/szczyglis-dev/py-gpt/blob/master/CHANGELOG.md)** file in the main folder of this repository.
 
 
 # Credits and links
@@ -3039,12 +3043,14 @@ GitHub community:
 
 ## Third-party libraries
 
-Full list of external libraries used in this project is located in the **[requirements.txt](requirements.txt)** file in the main folder of this repository.
+Full list of external libraries used in this project is located in the **[requirements.txt](https://github.com/szczyglis-dev/py-gpt/blob/master/requirements.txt)** file in the main folder of this repository.
 
 All used SVG icons are from `Material Design Icons` provided by Google:
 
 https://github.com/google/material-design-icons
 
 https://fonts.google.com/icons
+
+Monaspace fonts provided by GitHub: https://github.com/githubnext/monaspace
 
 Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
