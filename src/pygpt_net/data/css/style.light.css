@@ -52,7 +52,9 @@ QTextEdit {{
 QMenu {{ 
   background-color: #fff; 
 }} 
+QComboBox,
 QComboBox::focus {{
+  background-color: #fff;
   color: #000000;
 }}
 
