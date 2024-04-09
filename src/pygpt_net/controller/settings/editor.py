@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -300,6 +300,36 @@ class Editor:
         # re-init settings
         self.init('settings')
         self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
+
+    def load_editor_defaults_user(self, force: bool = False):
+        """
+        Load default user config
+
+        :param force: force load
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='settings.editor.defaults.user',
+                id=-1,
+                msg=trans('settings.defaults.user.confirm'),
+            )
+            return
+        self.window.core.settings.load_default_editor()
+
+    def load_editor_defaults_app(self, force: bool = False):
+        """
+        Load default app config
+
+        :param force: force load
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='settings.editor.defaults.app',
+                id=-1,
+                msg=trans('settings.defaults.app.confirm'),
+            )
+            return
+        self.window.core.settings.load_default_editor_app()
 
     def get_sections(self) -> dict:
         """

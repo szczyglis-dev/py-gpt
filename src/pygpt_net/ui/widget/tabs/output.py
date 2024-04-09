@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -21,6 +21,7 @@ class OutputTabs(QTabWidget):
     def __init__(self, window=None):
         super(OutputTabs, self).__init__(window)
         self.window = window
+        self.setMinimumHeight(1)
 
     def mousePressEvent(self, event):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -61,6 +61,7 @@ class Output:
             for i in range(1, num_notepads + 1):
                 self.window.ui.notepad[i] = NotepadWidget(self.window)
                 self.window.ui.notepad[i].id = i
+                self.window.ui.notepad[i].textarea.id = i
 
         # tabs
         self.window.ui.tabs['output'] = OutputTabs(self.window)

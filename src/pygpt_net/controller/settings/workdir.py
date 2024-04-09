@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -51,6 +51,9 @@ class Workdir:
         :param path: existing working directory
         :param force: force update (confirm)
         """
+        print("\n====================")
+        print("Changing workdir to: ", path)
+        print("====================\n")
         current_path = self.window.core.config.get_user_path()
         default_path = self.window.core.config.get_base_workdir()
         if force:
@@ -63,6 +66,9 @@ class Workdir:
             lock_path = ""  # set empty if default dir
         with open(lock_file, 'w', encoding='utf-8') as f:
             f.write(lock_path)  # new path
+
+        # update path in current profile
+        self.window.core.config.profile.update_current_workdir(path)
 
         # reload config
         self.window.core.config.set_workdir(path, reload=True)
@@ -202,3 +208,4 @@ class Workdir:
         self.window.ui.dialogs.workdir.set_path(current)
         self.window.ui.dialogs.workdir.show_status("Failed. Reverted to current workdir: {}".format(current))
         self.window.controller.reload()
+        self.window.core.config.profile.update_current_workdir(current)  # update profile

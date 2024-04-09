@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -183,7 +183,7 @@ def test_refresh(mock_window):
     mock_window.core.ctx.current = 3
 
     ctx.refresh()
-    ctx.load.assert_called_once_with(3)
+    ctx.load.assert_called_once_with(3, True)
 
 
 def test_refresh_output(mock_window):
@@ -215,7 +215,7 @@ def test_load(mock_window):
 
     ctx.load(3)
 
-    mock_window.core.ctx.select.assert_called_once_with(3)
+    mock_window.core.ctx.select.assert_called_once_with(3, restore_model=True)
     mock_window.controller.chat.render.reset.assert_called_once()
     mock_window.controller.mode.set.assert_called_once_with('assistant')
     mock_window.controller.presets.set.assert_called_once_with('assistant', 'preset_123')

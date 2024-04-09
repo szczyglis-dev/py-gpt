@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -87,11 +87,12 @@ class Ctx:
         """
         return self.provider
 
-    def select(self, id: int):
+    def select(self, id: int, restore_model: bool = True):
         """
         Select ctx meta by ID and load ctx items
 
         :param id: context meta id
+        :param restore_model: restore model
         """
         if id not in self.meta:
             self.load_tmp_meta(id)
@@ -112,12 +113,13 @@ class Ctx:
             self.preset = ctx.preset
 
             # restore model if exists in current mode
-            if ctx.last_model is not None \
-                    and self.window.core.models.has_model(self.mode, ctx.last_model):
-                self.model = ctx.last_model
-            elif ctx.model is not None \
-                    and self.window.core.models.has_model(self.mode, ctx.model):
-                self.model = ctx.model
+            if restore_model:
+                if ctx.last_model is not None \
+                        and self.window.core.models.has_model(self.mode, ctx.last_model):
+                    self.model = ctx.last_model
+                elif ctx.model is not None \
+                        and self.window.core.models.has_model(self.mode, ctx.model):
+                    self.model = ctx.model
 
             self.items = self.load(id)
 
@@ -1049,3 +1051,28 @@ class Ctx:
         :param ctx: CtxItem instance
         """
         return self.provider.dump(ctx)
+
+    def reset(self):
+        """Reset all data"""
+        self.meta = {}
+        self.items = []
+        self.current = None
+        self.last_item = None
+        self.assistant = None
+        self.mode = None
+        self.model = None
+        self.preset = None
+        self.run = None
+        self.status = None
+        self.thread = None
+        self.last_mode = None
+        self.last_model = None
+        self.tmp_meta = None
+        self.search_string = None  # search string
+        self.groups = {}  # groups
+        self.filters = {}  # search filters
+        self.filters_labels = []  # search labels
+        self.current_cmd = []  # current commands
+        self.current_cmd_schema = ""  # current commands schema
+        self.current_sys_prompt = ""
+        self.groups_loaded = False

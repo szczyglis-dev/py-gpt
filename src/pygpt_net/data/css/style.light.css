@@ -31,10 +31,15 @@ QPushButton {{
   color: #3e3e3e;
   text-transform: none;
   background-color: {QTMATERIAL_SECONDARYCOLOR};
-  border: 1px solid #c0c0c0;
+  border: 1px solid #fff;
 }}
 
 QLineEdit {{
+  color: #000000; 
+  border: 1px solid #c0c0c0;
+  background-color: #fff;
+}}
+QLineEdit::focus {{
   color: #000000; 
   border: 1px solid #c0c0c0;
   background-color: #fff;
@@ -47,10 +52,15 @@ QTextEdit {{
 QMenu {{ 
   background-color: #fff; 
 }} 
+QComboBox::focus {{
+  color: #000000;
+}}
 
 QMainWindow::separator:horizontal,
 QSplitter::handle:vertical {{
-  width: 5px;
+  width: 100%;
+  height: 1px;
+  background-color: #d4d4d4;
 }}
 QTableView::item,
 QTreeView::item,
@@ -75,4 +85,10 @@ QListView::item {{
   font-family: 'Monaspace Neon';
   background: #fff; 
   color: #000;
+}}
+QCalendarWidget QWidget {{
+  background: #fff;
+}}
+QScrollBar::handle {{
+  background: {QTMATERIAL_PRIMARYCOLOR};
 }}

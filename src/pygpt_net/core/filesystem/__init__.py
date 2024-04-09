@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -336,10 +336,10 @@ class Filesystem:
         """
         Clear working directory
 
-        :param path: working directory
+        :param path: path to working directory
         :return: True if working directory is cleared
         """
-        persist_files = ["app.log", "path.cfg"]
+        persist_files = ["app.log", "path.cfg", "profile.json"]
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):

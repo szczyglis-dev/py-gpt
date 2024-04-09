@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,8 @@ class ConfigDebug:
         self.window.core.debug.add(self.id, 'Base workdir', str(self.window.core.config.get_base_workdir()))
         self.window.core.debug.add(self.id, 'Workdir config', str(os.path.join(self.window.core.config.get_base_workdir(), "path.cfg")))
         self.window.core.debug.add(self.id, 'App dir', str(self.window.core.config.get_app_path()))
+        self.window.core.debug.add(self.id, 'Profile [current]', str(self.window.core.config.profile.get_current()))
+        self.window.core.debug.add(self.id, 'Profile [all]', str(self.window.core.config.profile.get_all()))
         self.window.core.debug.add(self.id, 'Registered fonts', str(app_fonts))
         self.window.core.debug.add(
             self.id, 'Sections',

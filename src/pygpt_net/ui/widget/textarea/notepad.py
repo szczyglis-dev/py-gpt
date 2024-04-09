@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -27,7 +27,7 @@ class NotepadWidget(QWidget):
         """
         super(NotepadWidget, self).__init__(window)
         self.window = window
-        self.id = 1
+        self.id = 1  # assigned in setup
         self.textarea = NotepadOutput(self.window)
         self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
 
@@ -71,17 +71,17 @@ class NotepadOutput(QTextEdit):
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
-        self.id = 1
+        self.id = 1  # assigned in setup
 
     def on_text_changed(self):
         """On text changed"""
-        id = self.window.controller.notepad.get_current_active()
-        self.window.controller.notepad.save(self.id)
+        self.window.controller.notepad.save(self.id)  # use notepad id
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
             self.find_open()
         else:
+            # clear in current active, not in notepad id
             id = "notepad_" + str(self.window.controller.notepad.get_current_active())
             self.window.controller.finder.clear(id, restore=True, to_end=False)
             super(NotepadOutput, self).keyPressEvent(e)

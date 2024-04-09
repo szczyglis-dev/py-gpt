@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
@@ -34,15 +34,22 @@ class Editor:
         self.window.ui.editor[id].setReadOnly(False)
         self.window.ui.editor[id].setProperty('class', 'code-editor')
 
-        self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
+        self.window.ui.nodes['editor.btn.restore'] = QPushButton(trans("dialog.editor.btn.defaults"))
+        self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults.app"))
         self.window.ui.nodes['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
+
+        self.window.ui.nodes['editor.btn.restore'].clicked.connect(
+            lambda: self.window.controller.settings.editor.load_editor_defaults_user()
+        )
         self.window.ui.nodes['editor.btn.default'].clicked.connect(
-            lambda: self.window.core.settings.load_default_editor())
+            lambda: self.window.controller.settings.editor.load_editor_defaults_app()
+        )
         self.window.ui.nodes['editor.btn.save'].clicked.connect(
             lambda: self.window.core.settings.save_editor())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.default'])
+        bottom_layout.addWidget(self.window.ui.nodes['editor.btn.restore'])
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.save'])
 
         self.window.ui.paths[id] = HelpLabel("")

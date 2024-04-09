@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -54,11 +54,10 @@ class Config:
         json_files.append("models.json")
         json_files.append("plugin_presets.json")
 
+        # -------------------------------------------- #
+
         # create submenu for css files
         self.window.ui.menu['config.edit.css'] = QMenu(trans("menu.config.edit.css"), self.window)
-
-        # create submenu for JSON files
-        self.window.ui.menu['config.edit.json'] = QMenu(trans("menu.config.edit.json"), self.window)
 
         for css_file in css_files:
             name = css_file.split("/")[-1]
@@ -76,6 +75,11 @@ class Config:
             lambda checked=True: self.window.controller.layout.restore_default_css(force=False))
         self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.restore'])
 
+        # -------------------------------------------- #
+
+        # create submenu for JSON files
+        self.window.ui.menu['config.edit.json'] = QMenu(trans("menu.config.edit.json"), self.window)
+
         for json_file in json_files:
             name = json_file
             self.window.ui.menu['config.edit.json.' + name] = QAction(QIcon(":/icons/edit.svg"),
@@ -83,6 +87,31 @@ class Config:
             self.window.ui.menu['config.edit.json.' + name].triggered.connect(
                 lambda checked=True, file=json_file: self.window.controller.settings.toggle_file_editor(file))
             self.window.ui.menu['config.edit.json'].addAction(self.window.ui.menu['config.edit.json.' + name])
+
+        # -------------------------------------------- #
+
+        # create submenu for profiles
+        self.window.ui.menu['config.profiles'] = {}
+        self.window.ui.menu['config.profile'] = QMenu(trans("menu.config.profile"), self.window)
+
+        # add new
+        self.window.ui.menu['config.profile.new'] = QAction(
+            QIcon(":/icons/add.svg"), trans("menu.config.profile.new"), self.window, checkable=False)
+        self.window.ui.menu['config.profile.new'].triggered.connect(
+            lambda: self.window.controller.settings.profile.new())
+        self.window.ui.menu['config.profile.new'].setMenuRole(QAction.MenuRole.NoRole)
+        self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profile.new'])
+
+        # edit
+        self.window.ui.menu['config.profile.edit'] = QAction(
+            QIcon(":/icons/edit.svg"), trans("menu.config.profile.edit"), self.window, checkable=False)
+        self.window.ui.menu['config.profile.edit'].triggered.connect(
+            lambda: self.window.controller.settings.profile.toggle_editor())
+        self.window.ui.menu['config.profile.edit'].setMenuRole(QAction.MenuRole.NoRole)
+        self.window.ui.menu['config.profile'].addAction(self.window.ui.menu['config.profile.edit'])
+        self.window.ui.menu['config.profile'].addSeparator()
+
+        # -------------------------------------------- #
 
         self.window.ui.menu['config.open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"),
                                                          trans("menu.config.open_dir"), self.window)
@@ -117,6 +146,7 @@ class Config:
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.lang'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.css'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.json'])
+        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.profile'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.open_dir'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.change_dir'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.save'])

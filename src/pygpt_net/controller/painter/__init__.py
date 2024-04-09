@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 09:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -68,7 +68,10 @@ class Painter:
         path = os.path.join(self.common.get_capture_dir(), '_current.png')
         if os.path.exists(path):
             self.window.ui.painter.image.load(path)
-            self.window.ui.painter.update()
+        else:
+            # clear image
+            self.window.ui.painter.clear_image()
+        self.window.ui.painter.update()
 
     def is_active(self) -> bool:
         """

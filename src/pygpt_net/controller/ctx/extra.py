@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 10:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -88,9 +88,13 @@ class Extra:
         if item is not None:
             meta_id = item.meta_id
             self.window.core.ctx.remove_items_from(meta_id, item_id)
-            self.window.controller.ctx.refresh()
+            model = self.window.core.config.get('model')
+            self.window.core.ctx.model = model
+            self.window.controller.ctx.refresh(restore_model=False)  # allow model change
             self.window.controller.ctx.edit_item_id = None
             self.window.controller.ctx.edit_meta_id = None
+            mode = self.window.core.config.get('mode')
+            self.window.controller.model.set(mode, model)
             self.window.controller.chat.input.send_input(force=True)
         self.edit_hide()
 
@@ -128,8 +132,12 @@ class Extra:
         if item is not None:
             input_text = item.input
             meta_id = item.meta_id
+            model = self.window.core.config.get('model')
+            self.window.core.ctx.model = model
             self.window.core.ctx.remove_items_from(meta_id, item_id)
-            self.window.controller.ctx.refresh()
+            self.window.controller.ctx.refresh(restore_model=False)  # allow model change
+            mode = self.window.core.config.get('mode')
+            self.window.controller.model.set(mode, model)
             self.window.controller.chat.input.send(input_text)
 
     def audio_read_item(self, item_id: int):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -197,9 +197,16 @@ class Ctx:
             self.window.core.ctx.get_meta(reload),
         )
 
-    def refresh(self):
-        """Refresh context"""
-        self.load(self.window.core.ctx.current)
+    def refresh(self, restore_model: bool = True):
+        """
+        Refresh context
+
+        :param restore_model: restore model
+        """
+        self.load(
+            self.window.core.ctx.current,
+            restore_model,
+        )
 
     def refresh_output(self):
         """Refresh output"""
@@ -209,14 +216,15 @@ class Ctx:
             clear=True,
         )
 
-    def load(self, id: int):
+    def load(self, id: int, restore_model: bool = True):
         """
         Load ctx data
 
         :param id: context ID
+        :param restore_model: restore model if defined in ctx
         """
         # select ctx by id
-        self.window.core.ctx.select(id)
+        self.window.core.ctx.select(id, restore_model=restore_model)
 
         # reset appended data
         self.window.controller.chat.render.reset()

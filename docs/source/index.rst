@@ -32,6 +32,7 @@ Contents
    presets
    images
    notebook
+   profiles
    models
    plugins
    plugins_list

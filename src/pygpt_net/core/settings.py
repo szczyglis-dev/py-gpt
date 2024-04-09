@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -113,22 +113,36 @@ class Settings:
         """Load defaults from file"""
         file = self.window.ui.dialog['config.editor'].file
         self.load_editor(file)
-        self.window.ui.status("Loaded defaults from file: {}".format(file))
+        self.window.ui.status("Restored from user file: {}".format(file))
 
-    def load_editor(self, file: str = None):
+    def load_default_editor_app(self):
+        """Load defaults from file (app)"""
+        file = self.window.ui.dialog['config.editor'].file
+        basename = os.path.basename(file)
+        if basename.endswith(".css"):
+            path = str(os.path.join(self.window.core.config.get_app_path(), "data", "css", basename))
+            self.load_editor(file, path)
+            self.window.ui.status("Restored from app defaults: {}".format(basename))
+        elif basename.endswith(".json"):
+            path = str(os.path.join(self.window.core.config.get_app_path(), "data", "config", basename))
+            self.load_editor(file, path)
+            self.window.ui.status("Restored from app defaults: {}".format(basename))
+
+    def load_editor(self, file: str = None, path: str = None):
         """
         Load file to editor
 
-        :param file: file name
+        :param file: file name (JSON/CSS)
+        :param path: file path (force load) or None
         """
         # load file
-        path = None
-        if file.endswith('.json'):
-            path = os.path.join(self.window.core.config.path, file)
-        elif file.endswith('.css'):
-            path = os.path.join(self.window.core.config.path, 'css', file)
+        if path is None:
+            if file.endswith('.json'):
+                path = os.path.join(self.window.core.config.get_user_path(), file)
+            elif file.endswith('.css'):
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', file)
+            self.window.ui.paths['config'].setText(path)
 
-        self.window.ui.paths['config'].setText(path)
         self.window.ui.dialog['config.editor'].file = file
         try:
             with open(path, 'r', encoding="utf-8") as f:
@@ -152,9 +166,9 @@ class Settings:
                 self.window.ui.status("This is not a valid JSON: {}".format(e))
                 self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
                 return
-            path = os.path.join(self.window.core.config.path, file)
+            path = os.path.join(self.window.core.config.get_user_path(), file)
         elif file.endswith('.css'):
-            path = os.path.join(self.window.core.config.path, 'css', file)
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', file)
 
         if path is None:
             self.window.ui.status("Error saving file: invalid file name")
@@ -163,9 +177,9 @@ class Settings:
         # make backup of current file
         backup_file = file + '.backup'
         if file.endswith('.css'):
-            backup_path = os.path.join(self.window.core.config.path, "css", backup_file)
+            backup_path = os.path.join(self.window.core.config.get_user_path(), "css", backup_file)
         else:
-            backup_path = os.path.join(self.window.core.config.path, backup_file)
+            backup_path = os.path.join(self.window.core.config.get_user_path(), backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
             self.window.ui.status("Created backup file: {}".format(backup_file))

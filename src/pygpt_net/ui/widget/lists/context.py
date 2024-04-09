@@ -238,7 +238,7 @@ class ContextList(BaseList):
                 group_menu.addSeparator()
 
             # if in group add remove from group
-            if ctx.group_id is not None:
+            if ctx.group_id is not None and ctx.group_id > 0:
                 group_name = str(ctx.group_id)
                 if ctx.group_id in groups:
                     group_name = groups[ctx.group_id].name

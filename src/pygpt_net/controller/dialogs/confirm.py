@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -79,6 +79,14 @@ class Confirm:
         # restore default CSS
         elif type == 'restore.css':
             self.window.controller.layout.restore_default_css(force=True)
+
+        # profiles
+        elif type == 'profile.reset':
+            self.window.controller.settings.profile.reset_by_idx(id, True)
+        elif type == 'profile.delete':
+            self.window.controller.settings.profile.delete_by_idx(id, True)
+        elif type == 'profile.delete.all':
+            self.window.controller.settings.profile.delete_all_by_idx(id, True)
 
         # db viewer
         elif type == 'db.delete_row':
@@ -153,6 +161,12 @@ class Confirm:
             self.window.controller.settings.editor.load_defaults_app(True)
         elif type == 'settings.dict.delete':
             self.window.controller.config.dictionary.delete_item(parent_object, id, True)
+
+        # settings / file editor
+        elif type == 'settings.editor.defaults.user':
+            self.window.controller.settings.editor.load_editor_defaults_user(True)
+        elif type == 'settings.editor.defaults.app':
+            self.window.controller.settings.editor.load_editor_defaults_app(True)
 
         # plugins
         elif type == 'plugin.settings.defaults.user':

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -131,7 +131,7 @@ class Controller:
         self.window.core.db.close()  # close current database
         self.window.core.db.init(force=True)  # re-init database with new path
         self.window.core.patch()
-        self.window.core.ctx.current = None
+        self.window.core.ctx.reset()
         self.presets.locked = True
         self.settings.setup()
         self.window.core.presets.load()

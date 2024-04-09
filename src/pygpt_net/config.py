@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,6 +17,7 @@ import re
 from pathlib import Path
 from packaging.version import Version
 
+from pygpt_net.core.profile import Profile
 from pygpt_net.provider.core.config.json_file import JsonFileProvider
 
 
@@ -34,7 +35,11 @@ class Config:
 
         :param window: Window instance
         """
+        version = self.get_version()
         self.window = window
+        self.profile = Profile(window)
+        self.profile.version = version
+        self.profile.init(Config.get_base_workdir())
         self.path = None
         self.initialized = False
         self.initialized_base = False
@@ -43,7 +48,7 @@ class Config:
         self.data = {}  # user config
         self.data_base = {}  # base config
         self.data_session = {}  # temporary config (session only)
-        self.version = self.get_version()
+        self.version = version
         self.dirs = {
             "capture": "capture",
             "css": "css",
@@ -73,8 +78,7 @@ class Config:
 
     def install(self):
         """Install database and provider data"""
-        # install database
-        self.window.core.db.echo = self.db_echo
+        self.window.core.db.echo = self.db_echo  # verbose on/off
         self.window.core.db.init()
 
         # install provider configs
@@ -135,7 +139,7 @@ class Config:
         :param reload: reload config
         """
         self.path = path
-        self.provider.path = self.get_user_path()
+        self.provider.path = path
         if reload:
             self.initialized = False
             self.init(True)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -102,12 +102,18 @@ class UI:
         self.window.setCentralWidget(self.window.ui.splitters['main'])
 
         # set window title
+        self.update_title()
+
+    def update_title(self):
+        """Update window title"""
         suffix = self.window.core.platforms.get_env_suffix()
+        profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            'PyGPT - Desktop AI Assistant v{} | build {}{}'.format(
+            'PyGPT - Desktop AI Assistant v{} | build {}{} ({})'.format(
                 self.window.meta['version'],
                 self.window.meta['build'],
                 suffix,
+                profile_name,
             )
         )
 

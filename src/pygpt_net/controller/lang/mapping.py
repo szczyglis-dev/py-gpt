@@ -210,6 +210,13 @@ class Mapping:
         nodes['dialog.find.btn.find_next'] = 'dialog.find.btn.find_next'
         nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'
 
+        # dialog: profile
+        nodes['dialog.profile.item.btn.dismiss'] = 'dialog.profile.item.btn.dismiss'
+        nodes['dialog.profile.name.label'] = 'dialog.profile.name.label'
+        nodes['dialog.profile.workdir.label'] = 'dialog.profile.workdir.label'
+        nodes['profile.editor.btn.new'] = 'dialog.profile.new'
+        nodes['profile.editor.tip'] = 'dialog.profile.tip'
+
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
         nodes['tip.output.tab.draw'] = 'tip.output.tab.draw'
@@ -231,6 +238,7 @@ class Mapping:
         menu_title['menu.config'] = 'menu.config'
         menu_title['config.edit.css'] = 'menu.config.edit.css'
         menu_title['config.edit.json'] = 'menu.config.edit.json'
+        menu_title['config.profile'] = 'menu.config.profile'
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
@@ -255,6 +263,8 @@ class Mapping:
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
         menu_text['config.edit.css.restore'] = 'menu.config.edit.css.restore'
+        menu_text['config.profile.edit'] = 'menu.config.profile.edit'
+        menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'
         menu_text['theme.tooltips'] = 'menu.theme.tooltips'
         menu_text['theme.settings'] = 'menu.theme.settings'
@@ -304,6 +314,8 @@ class Mapping:
         dialog_title['update'] = 'update.title'
         dialog_title['workdir.change'] = 'dialog.workdir.title'
         dialog_title['find'] = 'dialog.find.title'
+        dialog_title['profile.editor'] = 'dialog.profile.editor'
+        dialog_title['profile.item'] = 'dialog.profile.item.editor'
 
         # tooltips
         tooltips = {}

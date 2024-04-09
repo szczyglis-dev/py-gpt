@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -26,6 +26,7 @@ from pygpt_net.ui.dialog.models import Models
 from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
 from pygpt_net.ui.dialog.preset_plugins import PresetPlugins
+from pygpt_net.ui.dialog.profile import Profile, ProfileEdit
 from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
 from pygpt_net.ui.dialog.snap import Snap
@@ -57,6 +58,7 @@ class Dialogs:
         self.license = License(self.window)
         self.logger = Logger(self.window)
         self.preset = Preset(self.window)
+        self.profile_item = ProfileEdit(self.window)
         self.rename = Rename(self.window)
         self.snap = Snap(self.window)
         self.start = Start(self.window)
@@ -85,8 +87,10 @@ class Dialogs:
         self.logger.setup()
         self.database.setup()
         self.workdir.setup()
+        self.profile_item.setup()
 
         self.window.settings = Settings(self.window)
+        self.window.profiles = Profile(self.window)
         self.window.plugin_settings = Plugins(self.window)
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import os
 
 from .editor import Editor
+from .profile import Profile
 from .workdir import Workdir
 
 from pygpt_net.utils import trans
@@ -26,27 +27,35 @@ class Settings:
         """
         self.window = window
         self.editor = Editor(window)
+        self.profile = Profile(window)
         self.workdir = Workdir(window)
         self.width = 800
         self.height = 500
 
     def setup(self):
         """Set up settings editor"""
+        self.profile.setup()
         self.editor.setup()
 
     def load(self):
         """Load settings"""
         self.editor.load()
 
-    def save_all(self):
-        """Save all settings and data"""
+    def save_all(self, force: bool = False):
+        """
+        Save all settings and data
+
+        :param force: force save
+        """
         info = trans('info.settings.all.saved')
         self.window.core.config.save()
         self.window.core.presets.save_all()
         self.window.controller.notepad.save_all()
         self.window.controller.calendar.save_all()
-        self.window.ui.dialogs.alert(info)
-        self.window.ui.status(info)
+        self.window.controller.painter.save()
+        if not force:
+            self.window.ui.dialogs.alert(info)
+            self.window.ui.status(info)
         self.window.controller.ui.update()
 
     def update(self):
@@ -161,8 +170,10 @@ class Settings:
             else:
                 self.window.core.settings.load_editor(file)  # load file to editor
                 self.window.ui.dialog['config.editor'].file = file
+                self.prepare_file_editor(file)
         else:
             self.window.core.settings.load_editor(file)  # load file to editor
+            self.prepare_file_editor(file)
             self.window.ui.dialogs.open(
                 'config.' + id,
                 width=self.width,
@@ -172,6 +183,18 @@ class Settings:
 
         # update menu
         self.update()
+
+    def prepare_file_editor(self, file: str):
+        """
+        Prepare file editor
+
+        :param file: JSON/CSS file to load
+        """
+        return  # allow defaults to all files
+        if file.endswith('.css'):
+            self.window.ui.nodes['editor.btn.default'].setVisible(True)
+        else:
+            self.window.ui.nodes['editor.btn.default'].setVisible(False)
 
     def close(self, id: str):
         """
