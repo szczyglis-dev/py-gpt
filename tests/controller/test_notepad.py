@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.04.10 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -32,6 +32,8 @@ def test_load(mock_window):
     mock_window.core.notepad.get_all = MagicMock(return_value=items)
     notepad.get_num_notepads = MagicMock(return_value=1)
     notepad.update_name = MagicMock()
+
+    notepad.setup_tabs = MagicMock()
 
     notepad.setup()
     notepad.update_name.assert_called_once_with(1, 'test', False)
@@ -89,6 +91,7 @@ def test_setup(mock_window):
     """Test setup"""
     notepad = Notepad(mock_window)
     notepad.load = MagicMock()
+    notepad.setup_tabs = MagicMock()
     notepad.setup()
     notepad.load.assert_called_once()
 
