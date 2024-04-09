@@ -1,6 +1,10 @@
-2.1.41 (2024-04-08)
+2.1.41 (2024-04-10)
 
-- Added context groups for context items organizing.
+- Added support for multiple profiles (separated config, settings and workdir), menu: Config -> Profile...
+- Added context groups for context items organizing, menu: File -> New context group...
+- Added ability to change the model on response edit and regenerate.
+- Added real-time updating number of notepads.
+- UI/theme fixes.
 
 2.1.40-post1 (2024-04-08)
 
