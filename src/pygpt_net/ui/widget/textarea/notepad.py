@@ -75,7 +75,8 @@ class NotepadOutput(QTextEdit):
 
     def on_text_changed(self):
         """On text changed"""
-        self.window.controller.notepad.save(self.id)  # use notepad id
+        if not self.window.core.notepad.locked:
+            self.window.controller.notepad.save(self.id)  # use notepad id
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:

@@ -173,7 +173,11 @@ class Profile:
                 self.switch(uuid)
 
         elif mode == 'duplicate':
-            # duplicate profile
+            # duplicate profile (duplicate requires empty directory)
+            if not self.window.core.filesystem.is_directory_empty(path):
+                self.window.ui.dialogs.alert(trans("dialog.workdir.change.empty.alert"))
+                return
+
             profiles = self.get_profiles()
             if uuid not in profiles:
                 self.window.ui.dialogs.alert(trans("dialog.profile.alert.src.empty"))

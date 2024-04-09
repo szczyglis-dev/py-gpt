@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon, QTextCursor
 
 from pygpt_net.item.notepad import NotepadItem
+from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -27,6 +28,50 @@ class Notepad:
         self.default_num_notepads = 1
         self.start_tab_idx = 4  # tab idx from notepad starts
         self.opened_once = False
+
+    def setup_tabs(self):
+        """Setup notepad tabs"""
+        # create notepads
+        num_notepads = self.get_num_notepads()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                self.window.ui.notepad[i] = NotepadWidget(self.window)
+                self.window.ui.notepad[i].id = i
+                self.window.ui.notepad[i].textarea.id = i
+
+        # append notepads
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                tab = i + (self.start_tab_idx - 1)
+                title = trans('output.tab.notepad')
+                if num_notepads > 1:
+                    title += " " + str(i)
+                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
+                self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
+
+    def update_tabs(self):
+        """Update notepad tabs"""
+        # backup selected tab
+        selected_tab = self.window.ui.tabs['output'].currentIndex()
+        # remove current tabs and recreate
+        for i in range(1, len(self.window.ui.notepad) + 1):
+            self.window.ui.notepad[i].close()
+            self.window.ui.notepad[i].deleteLater()
+        self.window.ui.notepad = {}
+
+        # remove only notepad tabs
+        for i in range(self.start_tab_idx, self.window.ui.tabs['output'].count()):
+            self.window.ui.tabs['output'].removeTab(self.start_tab_idx)
+
+        self.setup_tabs()
+        self.load()
+
+        # restore selected tab if notepad tab was selected
+        if selected_tab >= self.start_tab_idx:
+            # if selected tab is out of range, select last tab
+            if selected_tab >= self.window.ui.tabs['output'].count():
+                selected_tab = self.window.ui.tabs['output'].count() - 1
+            self.window.ui.tabs['output'].setCurrentIndex(selected_tab)
 
     def load(self):
         """Load all notepads contents"""
@@ -199,6 +244,7 @@ class Notepad:
 
     def setup(self):
         """Setup all notepads"""
+        self.setup_tabs()
         self.load()
 
     def append_text(self, text: str, idx: int):

@@ -70,10 +70,12 @@ class Common:
         state = self.window.core.config.get('layout.tooltips')
         if state:
             for node in nodes:
-                self.window.ui.nodes[node].setVisible(True)
+                if node in self.window.ui.nodes:
+                    self.window.ui.nodes[node].setVisible(True)
         else:
             for node in nodes:
-                self.window.ui.nodes[node].setVisible(False)
+                if node in self.window.ui.nodes:
+                    self.window.ui.nodes[node].setVisible(False)
 
         self.window.ui.menu['theme.tooltips'].setChecked(state)
 

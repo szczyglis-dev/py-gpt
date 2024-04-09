@@ -132,6 +132,8 @@ class Controller:
         self.window.core.db.init(force=True)  # re-init database with new path
         self.window.core.patch()
         self.window.core.ctx.reset()
+        self.window.core.notepad.locked = True
+        self.window.core.notepad.reset()
         self.presets.locked = True
         self.settings.setup()
         self.window.core.presets.load()
@@ -144,11 +146,12 @@ class Controller:
         self.attachment.setup()
         self.presets.refresh()
         self.idx.setup()
-        self.notepad.setup()
         self.calendar.setup()
         self.plugins.settings.setup()
         self.plugins.update()
         self.painter.setup()
+        self.notepad.update_tabs()
+        self.window.core.notepad.locked = False
         self.files.update_explorer(reload=True)
         self.lang.setup()
         self.theme.setup()

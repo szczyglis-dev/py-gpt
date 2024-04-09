@@ -55,14 +55,6 @@ class Output:
         path = self.window.core.config.get_user_dir('data')
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
-        # notepad
-        num_notepads = self.window.controller.notepad.get_num_notepads()
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                self.window.ui.notepad[i] = NotepadWidget(self.window)
-                self.window.ui.notepad[i].id = i
-                self.window.ui.notepad[i].textarea.id = i
-
         # tabs
         self.window.ui.tabs['output'] = OutputTabs(self.window)
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output'], trans('output.tab.chat'))
@@ -75,16 +67,6 @@ class Output:
         # painter
         painter = self.painter.setup()
         self.window.ui.tabs['output'].addTab(painter, trans('output.tab.painter'))
-
-        # append notepad
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                tab = i + (self.window.controller.notepad.start_tab_idx - 1)
-                title = trans('output.tab.notepad')
-                if num_notepads > 1:
-                    title += " " + str(i)
-                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
-                self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
 
         self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
 

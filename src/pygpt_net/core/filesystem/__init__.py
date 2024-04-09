@@ -326,10 +326,15 @@ class Filesystem:
                 else:
                     shutil.copy2(s, d)
 
-        # put "path.cfg"
+        # put empty "path.cfg"
         lock_file = os.path.join(new_path, 'path.cfg')
         with open(lock_file, 'w', encoding='utf-8') as f:
             f.write('')
+
+        # remove "profile.json" if exists
+        profile_file = os.path.join(new_path, 'profile.json')
+        if os.path.exists(profile_file):
+            os.remove(profile_file)
         return True
 
     def clear_workdir(self, path: str) -> bool:

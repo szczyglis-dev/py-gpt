@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.04.09 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -27,6 +27,7 @@ class Notepad:
         self.window = window
         self.provider = DbSqliteProvider(window)
         self.items = {}
+        self.locked = False
 
     def install(self):
         """Install provider data"""
@@ -40,6 +41,10 @@ class Notepad:
         :return: True if data was patched
         """
         return self.provider.patch(app_version)
+
+    def reset(self):
+        """Reset provider data"""
+        self.items = {}
 
     def get_by_id(self, idx: int) -> NotepadItem or None:
         """
