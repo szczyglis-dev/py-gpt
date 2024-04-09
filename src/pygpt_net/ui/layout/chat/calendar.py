@@ -111,6 +111,7 @@ class Calendar:
         self.window.ui.calendar['select'].setMinimumWidth(200)
         self.window.ui.calendar['select'].setGridVisible(True)
         select_layout.addWidget(self.window.ui.calendar['select'])
+        select_layout.setContentsMargins(5, 0, 5, 0)
 
         self.window.ui.calendar['note'] = CalendarNote(self.window)
 
@@ -145,6 +146,7 @@ class Calendar:
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['calendar'])
+        layout.setContentsMargins(0, 0, 0, 0)
         #layout.addWidget(filters)
 
         widget = QWidget()
