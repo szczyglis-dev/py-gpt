@@ -352,7 +352,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     def paint(self, painter, option, index):
         if index.parent().isValid():
-            option.rect.adjust(10, 0, 0, 0)
+            option.rect.adjust(15, 0, 0, 0)
 
         super(ImportantItemDelegate, self).paint(painter, option, index)
 
