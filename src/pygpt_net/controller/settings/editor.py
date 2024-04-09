@@ -55,6 +55,7 @@ class Editor:
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
         self.window.ui.add_hook("update.config.debug", self.hook_update)
+        self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -154,6 +155,10 @@ class Editor:
         if self.config_changed('llama.idx.list'):
             self.window.controller.idx.settings.update_idx_choices()
 
+        # update notepad tabs
+        if self.config_changed('notepad.num'):
+            self.window.controller.notepad.update_tabs()
+
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 
@@ -192,6 +197,11 @@ class Editor:
         if key.startswith('font_size') and caller == "slider":
             self.window.core.config.set(key, value)
             self.window.controller.ui.update_font_size()
+
+        # update notepad tabs
+        elif key == "notepad.num" and caller == "slider":
+            self.window.core.config.set(key, value)
+            self.window.controller.notepad.update_tabs()
 
         # update markdown
         elif key == "theme.markdown":
