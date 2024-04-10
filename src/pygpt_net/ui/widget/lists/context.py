@@ -37,6 +37,9 @@ class ContextList(BaseList):
 
     def click(self, index):
         item = self.window.ui.models['ctx.list'].itemFromIndex(index)
+        # check for attribute
+        if not hasattr(item, 'isFolder'):
+            return
         if item.isFolder:
             if self.window.ui.nodes['ctx.list'].isExpanded(index):
                 self.expanded_items.discard(item.id)

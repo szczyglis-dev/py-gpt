@@ -110,7 +110,6 @@ class Ctx:
         """
         prev_id = self.window.core.ctx.current
         self.window.core.ctx.current = id
-
         if prev_id != id:
             self.load(id)
         self.common.focus_chat()
@@ -606,7 +605,7 @@ class Ctx:
         """
         for row in range(root_item.rowCount()):
             item = root_item.child(row)
-            if hasattr(item, 'id') and item.id == child_id:
+            if hasattr(item, 'id') and hasattr(item, 'isFolder') and not item.isFolder and item.id == child_id:
                 return item.index()
             child_index = self.find_child_index_by_id(item, child_id)
             if child_index.isValid():
