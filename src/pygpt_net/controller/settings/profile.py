@@ -40,12 +40,17 @@ class Profile:
             self.window.profiles.setup()  # widget dialog
             self.dialog_initialized = True
 
-    def switch(self, uuid: str):
+    def switch(self, uuid: str, force: bool = False):
         """
         Switch profile
 
         :param uuid: Profile UUID
+        :param force: Force switch
         """
+        current = self.window.core.config.profile.get_current()
+        if uuid == current and not force:
+            self.update_menu()
+            return
         profile = self.window.core.config.profile.get(uuid)
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
@@ -64,6 +69,19 @@ class Profile:
         self.update_list()
         self.window.ui.update_title()
         self.window.ui.status(trans("dialog.profile.status.changed") + ": " + profile['name'])
+        self.select_current_on_list()
+
+    def select_current_on_list(self):
+        """Select current profile on list"""
+        current = self.window.core.config.profile.get_current()
+        profiles = self.get_profiles()
+        idx = 0
+        for uuid in profiles:
+            if uuid == current:
+                index = self.window.ui.models['profile.list'].index(idx, 0)
+                self.window.ui.nodes['profile.list'].setCurrentIndex(index)
+                break
+            idx += 1
 
     def get_profiles(self) -> dict:
         """
@@ -117,6 +135,7 @@ class Profile:
                 height=self.height,
             )
             self.dialog = True
+            self.select_current_on_list()
 
     def close(self):
         """Close profile dialog"""
@@ -170,7 +189,7 @@ class Profile:
 
             # if current profile and path was changed then reload:
             if uuid == current and old_path != path:
-                self.switch(uuid)
+                self.switch(uuid, force=True)
 
         elif mode == 'duplicate':
             # duplicate profile (duplicate requires empty directory)
