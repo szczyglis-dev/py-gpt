@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.10 05:00:00                  #
 # ================================================== #
 
 import datetime
@@ -167,11 +167,7 @@ class Indexing:
         :param path: file path
         :return: True if excluded
         """
-        # TODO: implement option for excluding in data dir
-        return False  # not implemented
-
         data_dir = self.window.core.config.get_user_dir("data")
-
         # interpreter files
         excluded = [
             os.path.join(data_dir, ".interpreter.output.py"),
