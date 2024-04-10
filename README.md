@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.41** | build: **2024.04.10** | Python: **>=3.10, <3.12**
+Release: **2.1.42** | build: **2024.04.10** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.42 (2024-04-10)
+
+- Improved profile switching.
+- Added interpreter internal files to excluded when indexing.
 
 # 2.1.41 (2024-04-10)
 

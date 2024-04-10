@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -207,9 +207,10 @@ class Config:
             # if app initialization
             if all:
                 v = self.get_version()
+                build = self.get_build()
                 os = self.window.core.platforms.get_os()
                 architecture = self.window.core.platforms.get_architecture()
-                print("PyGPT v{} ({}, {})".format(v, os, architecture))
+                print("PyGPT v{}, build {} ({}, {})".format(v, build, os, architecture))
                 print("Author: Marcin Szczyglinski")
                 print("GitHub: https://github.com/szczyglis-dev/py-gpt")
                 print("WWW: https://pygpt.net")
@@ -234,6 +235,24 @@ class Config:
             with open(path, 'r', encoding="utf-8") as f:
                 data = f.read()
                 result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"), data)
+                return result.group(1)
+        except Exception as e:
+            if self.window is not None:
+                self.window.core.debug.log(e)
+            else:
+                print("Error loading version file: {}".format(e))
+
+    def get_build(self) -> str:
+        """
+        Return build
+
+        :return: build string
+        """
+        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
+        try:
+            with open(path, 'r', encoding="utf-8") as f:
+                data = f.read()
+                result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__build__"), data)
                 return result.group(1)
         except Exception as e:
             if self.window is not None:

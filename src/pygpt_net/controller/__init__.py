@@ -157,5 +157,6 @@ class Controller:
         self.theme.setup()
         self.debug.toggle_menu()
         self.debug.update()
+        self.chat.common.setup()
         self.window.tools.get("interpreter").setup()
         self.presets.locked = False

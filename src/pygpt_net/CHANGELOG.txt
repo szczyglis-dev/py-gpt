@@ -1,3 +1,8 @@
+2.1.42 (2024-04-10)
+
+- Improved profile switching.
+- Added interpreter internal files to excluded when indexing.
+
 2.1.41 (2024-04-10)
 
 - Added support for multiple profiles (separated config, settings and workdir), menu: Config -> Profile...
