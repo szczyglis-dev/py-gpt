@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -254,7 +254,7 @@ class Editor:
         # debug: menu
         elif key == "debug":
             self.window.core.config.set(key, value)
-            self.window.ui.menu['menu.debug'].menuAction().setVisible(value)
+            self.window.controller.debug.toggle_menu()
 
     def toggle_collapsed(self, id: str, value: any, section: str):
         """

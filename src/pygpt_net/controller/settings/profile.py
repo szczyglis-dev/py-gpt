@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -409,6 +409,11 @@ class Profile:
         :param idx: profile index
         :param force: force reset
         """
+        uuid = self.get_id_by_idx(idx)
+        current = self.window.core.config.profile.get_current()
+        if uuid == current:
+            self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
+            return
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.reset',
