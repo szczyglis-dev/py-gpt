@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.11 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -29,7 +29,6 @@ class BaseCodeEditor(QTextEdit):
         super(BaseCodeEditor, self).__init__(window)
         self.window = window
         self.finder = Finder(window, self)
-        self.finder.set_type("text")
         self.setReadOnly(True)
         self.setAcceptRichText(False)
         self.value = 12
@@ -39,13 +38,11 @@ class BaseCodeEditor(QTextEdit):
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
         self.excluded_copy_to = []
-        self.textChanged.connect(
-            lambda: self.on_text_changed(),
-        )
+        self.textChanged.connect(self.text_changed)
 
-    def on_text_changed(self):
+    def text_changed(self):
         """On text changed"""
-        pass
+        self.finder.text_changed()
 
     def update_stylesheet(self, data: str):
         """

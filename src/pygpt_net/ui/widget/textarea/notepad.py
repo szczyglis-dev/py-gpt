@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.11 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -71,21 +71,19 @@ class NotepadOutput(QTextEdit):
         super(NotepadOutput, self).__init__(window)
         self.window = window
         self.finder = Finder(window, self)
-        self.finder.set_type("text")
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
         self.id = 1  # assigned in setup
-        self.textChanged.connect(
-            lambda: self.on_text_changed()
-        )
+        self.textChanged.connect(self.text_changed)
 
-    def on_text_changed(self):
+    def text_changed(self):
         """On text changed"""
         if not self.window.core.notepad.locked:
             self.window.controller.notepad.save(self.id)  # use notepad id
+        self.finder.text_changed()
 
     def contextMenuEvent(self, event):
         """
