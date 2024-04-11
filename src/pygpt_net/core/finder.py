@@ -9,7 +9,7 @@
 # Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QRegularExpression, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor, Qt, QTextCharFormat, QTextDocument
 
 
