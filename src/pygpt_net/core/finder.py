@@ -30,15 +30,15 @@ class Finder:
         self.matches = []
         self.current_match_index = -1
         self.type = "html"  # parent type: text | html
-        self.debounce_timer = QTimer()
-        self.debounce_timer.setSingleShot(True)
-        self.debounce_timer.timeout.connect(self.find_execute)
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.find_execute)
         self.delay = 100
         self.search_text = ""
 
     def set_type(self, type: str):
         """
-        Set parent type
+        Set parent type (text|html)
 
         :param type: parent type
         """
@@ -83,9 +83,9 @@ class Finder:
         self.current_match_index = -1
         self.reset_highlights()
 
-    def get_search_string(self):
+    def get_search_string(self) -> str:
         """
-        Get last search string
+        Get current search string
 
         :return: search string
         """
@@ -97,42 +97,40 @@ class Finder:
 
         :param doc: base document to restore
         """
-        stylesheet = self.get_current_parent().styleSheet()
-
-        self.get_current_parent().setDocument(doc)  # set document
-        cursor = QTextCursor(self.get_current_parent().document())
+        stylesheet = self.parent().styleSheet()
+        self.parent().setDocument(doc)  # set document
+        cursor = QTextCursor(self.parent().document())
         cursor.movePosition(QTextCursor.End)
-        self.get_current_parent().setTextCursor(cursor)
-        self.get_current_parent().setReadOnly(False)
-        self.get_current_parent().setStyleSheet(stylesheet)  # restore stylesheet
+        self.parent().setTextCursor(cursor)
+        self.parent().setStyleSheet(stylesheet)  # restore stylesheet
 
     def get_doc(self) -> QTextDocument:
         """
-        Get content for the current parent
+        Get document from the current parent
 
-        :return: content QTextDocument
+        :return: document QTextDocument
         """
-        return self.get_current_parent().document().clone()
+        return self.parent().document().clone()
 
     def clear(self, restore: bool = False, to_end: bool = True):
         """
         Clear current parent highlights
 
-        :param restore: Restore original HTML
+        :param restore: Restore original document
         :param to_end: Move cursor to the end
         """
         if self.get_base_doc() is not None:
             if restore:
-                curr_cursor = self.get_current_parent().textCursor()
+                curr_cursor = self.parent().textCursor()
                 self.set_doc(self.get_base_doc())
                 if not to_end:
-                    self.get_current_parent().setTextCursor(curr_cursor)
+                    self.parent().setTextCursor(curr_cursor)
             self.clear_search()
             self.set_base_doc(None)
             if to_end:
-                self.get_current_parent().moveCursor(QTextCursor.End)
+                self.parent().moveCursor(QTextCursor.End)
 
-    def get_current_parent(self):
+    def parent(self):
         """
         Get current parent QTextEdit / QTextBrowser
 
@@ -142,19 +140,19 @@ class Finder:
 
     def set_base_doc(self, doc: QTextDocument = None):
         """
-        Set original HTML for the current parent
+        Set original document for the current parent
 
         :param doc: original document
         """
         if self.type == "text":
             return
-        self.base_doc = doc  # store original HTML
+        self.base_doc = doc  # store original document
 
     def get_base_doc(self) -> QTextDocument:
         """
-        Get original HTML for the current parent
+        Get original document from current parent
 
-        :return: original HTML
+        :return: original document
         """
         return self.base_doc
 
@@ -175,6 +173,7 @@ class Finder:
         self.set_base_doc(self.get_doc())
 
     def find_execute(self):
+        """Execute search"""
         text = self.search_text
         self.reset_highlights()
         if self.last_search is None or text != self.last_search:
@@ -193,8 +192,7 @@ class Finder:
         self.last_search = text
         self.handle_matches(text)
         if self.matches:
-            idx = self.current_match_index
-            if idx < 0:
+            if self.current_match_index < 0:
                 self.find_next()
 
         self.window.controller.finder.update_counter()
@@ -206,16 +204,17 @@ class Finder:
         :param text: text to find
         """
         self.search_text = text
-        self.debounce_timer.start(self.delay)
+        self.timer.start(self.delay)
 
     def handle_matches(self, text: str):
         """
         Handle matches for the given text
+
         :param text: text to find
         """
         self.reset_highlights()
         self.matches = []
-        parent = self.get_current_parent()
+        parent = self.parent()
         plain_text = parent.toPlainText().lower()
         search_text = text.lower()
         pos = plain_text.find(search_text)
@@ -228,7 +227,7 @@ class Finder:
 
     def show_matches(self):
         """Show matches in the current parent"""
-        parent = self.get_current_parent()
+        parent = self.parent()
         cursor = QTextCursor(parent.document())
         for i, (pos, length) in enumerate(self.matches):
             cursor.setPosition(pos)
@@ -236,11 +235,11 @@ class Finder:
             self.highlight(cursor, i)
 
     def reset_highlights(self):
-        """Reset highlights (text editor only)"""
+        """Reset highlights (text mode only)"""
         if self.type != "text":
             return
 
-        parent = self.get_current_parent()
+        parent = self.parent()
         cursor_position = parent.textCursor().position()
 
         document = parent.document()
@@ -263,28 +262,30 @@ class Finder:
         parent.setTextCursor(cursor)
 
     def find_next(self):
-        """Find the next occurrence relative to the current match index for the active id"""
+        """Find the next occurrence relative to the current match index"""
         if not self.matches:
             return
+
         self.current_match_index = (self.current_match_index + 1) % len(self.matches)
         self.show_matches()
         self.scroll_to(self.current_match_index)
 
     def find_prev(self):
-        """Find the previous occurrence relative to the current match index for the active id"""
+        """Find the previous occurrence relative to the current match"""
         if not self.matches:
             return
+
         self.current_match_index = (self.current_match_index - 1) % len(self.matches)
         self.show_matches()
         self.scroll_to(self.current_match_index)
 
     def scroll_to(self, match_index: int):
         """
-        Scroll to the match given by match_index for the specified id
+        Scroll to the match given by match_index
 
         :param match_index: current match index
         """
-        parent = self.get_current_parent()
+        parent = self.parent()
         if match_index < 0 or match_index >= len(self.matches):
             return
 
@@ -293,11 +294,12 @@ class Finder:
         cursor.setPosition(pos)
         parent.setTextCursor(cursor)
 
-    def highlight(self, cursor, i):
+    def highlight(self, cursor: QTextCursor, i: int):
         """
         Highlight the selection of the given cursor
 
         :param cursor: QTextCursor
+        :param i: current match
         """
         fmt = cursor.charFormat()
         fmt.setForeground(Qt.black)
@@ -310,24 +312,24 @@ class Finder:
             fmt.setBackground(Qt.yellow)
         cursor.setCharFormat(fmt)
 
-    def get_scroll_position(self):
+    def get_scroll_position(self) -> int:
         """
         Get current scroll position
 
         :return: scroll position
         """
-        return self.get_current_parent().verticalScrollBar().value()
+        return self.parent().verticalScrollBar().value()
 
-    def set_scroll_position(self, value):
+    def set_scroll_position(self, value) -> int:
         """
         Set current scroll position
 
         :param value: scroll position
         """
-        self.get_current_parent().verticalScrollBar().setValue(value)
+        self.parent().verticalScrollBar().setValue(value)
 
     def restore(self):
-        """Restore original content"""
+        """Restore original document"""
         if self.get_base_doc() is not None:
             self.set_doc(self.get_base_doc())
 
@@ -353,5 +355,5 @@ class Finder:
 
         # move cursor to end
         if to_end:
-            cursor = QTextCursor(self.get_current_parent().document())
+            cursor = QTextCursor(self.parent().document())
             cursor.movePosition(QTextCursor.End)
