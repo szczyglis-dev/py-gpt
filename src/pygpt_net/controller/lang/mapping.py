@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.11 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -214,6 +214,8 @@ class Mapping:
         nodes['dialog.profile.item.btn.dismiss'] = 'dialog.profile.item.btn.dismiss'
         nodes['dialog.profile.name.label'] = 'dialog.profile.name.label'
         nodes['dialog.profile.workdir.label'] = 'dialog.profile.workdir.label'
+        nodes['dialog.profile.checkbox.db'] = 'dialog.profile.checkbox.include_db'
+        nodes['dialog.profile.checkbox.data'] = 'dialog.profile.checkbox.include_datadir'
         nodes['profile.editor.btn.new'] = 'dialog.profile.new'
         nodes['profile.editor.tip'] = 'dialog.profile.tip'
 

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.11 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QLineEdit
+from PySide6.QtWidgets import QDialog, QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QLineEdit, QCheckBox, QWidget
 
 from pygpt_net.utils import trans
 from .base import BaseDialog
@@ -108,11 +108,25 @@ class ProfileEditDialog(QDialog):
         }
         self.workdir = DirectoryInput(self.window, 'profile', 'item', option)
 
+        self.window.ui.nodes['dialog.profile.checkbox.db'] = QCheckBox(trans("dialog.profile.checkbox.include_db"))
+        self.window.ui.nodes['dialog.profile.checkbox.db'].setChecked(True)
+        self.window.ui.nodes['dialog.profile.checkbox.data'] = QCheckBox(trans("dialog.profile.checkbox.include_datadir"))
+        self.window.ui.nodes['dialog.profile.checkbox.data'].setChecked(True)
+
+        # checkboxes layout
+        checkboxes_layout = QHBoxLayout()
+        checkboxes_layout.setContentsMargins(0, 0, 0, 0)
+        checkboxes_layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.db'])
+        checkboxes_layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.data'])
+        self.checkboxes = QWidget()
+        self.checkboxes.setLayout(checkboxes_layout)
+
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['dialog.profile.name.label'])
         layout.addWidget(self.input)
         layout.addWidget(self.window.ui.nodes['dialog.profile.workdir.label'])
         layout.addWidget(self.workdir)
+        layout.addWidget(self.checkboxes)
         layout.addLayout(bottom)
 
         self.setLayout(layout)

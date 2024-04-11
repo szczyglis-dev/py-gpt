@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.04.11 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -80,3 +80,11 @@ class Custom:
         for theme in self.window.ui.menu['theme']:
             name = self.window.controller.theme.common.translate(theme)
             self.window.ui.menu['theme'][theme].setText(name)
+
+        # dialog: profile
+        if self.window.ui.dialog['profile.item'].mode == 'create':
+            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans('dialog.profile.item.btn.create'))
+        elif self.window.ui.dialog['profile.item'].mode == 'edit':
+            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.update"))
+        elif self.window.ui.dialog['profile.item'].mode == 'duplicate':
+            self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.duplicate"))

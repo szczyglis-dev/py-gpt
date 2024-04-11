@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.11 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -93,6 +93,7 @@ class Profile:
 
     def new(self):
         """New profile dialog"""
+        self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
         self.window.ui.dialog['profile.item'].id = 'profile'
         self.window.ui.dialog['profile.item'].uuid = None
         self.window.ui.dialog['profile.item'].mode = 'create'
@@ -108,6 +109,7 @@ class Profile:
         :param uuid: profile UUID
         """
         profile = self.window.core.config.profile.get(uuid)
+        self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
@@ -211,13 +213,19 @@ class Profile:
                 return
 
             # check free space
+            include_datadir = self.is_include_datadir()
+            include_db = self.is_include_db()
             src_path = profile['workdir'].replace("%HOME%", str(Path.home()))
             space_required = self.window.core.filesystem.get_directory_size(src_path, human_readable=False)
+            if not include_datadir:
+                space_required -= self.window.core.filesystem.get_datadir_size(src_path, human_readable=False)
+            if not include_db:
+                space_required -= self.window.core.filesystem.get_db_size(src_path, human_readable=False)
             space_free = self.window.core.filesystem.get_free_disk_space(path, human_readable=False)
             if space_required > space_free:
                 self.window.ui.dialogs.alert(trans("dialog.workdir.result.no_free_space").format(
-                    required=self.window.core.filesystem.get_directory_size(src_path),
-                    free=self.window.core.filesystem.get_free_disk_space(path),
+                    required=self.window.core.filesystem.sizeof_fmt(space_required),
+                    free=self.window.core.filesystem.sizeof_fmt(space_free),
                 ))
                 return
 
@@ -317,6 +325,8 @@ class Profile:
         :param uuid: profile ID
         """
         profiles = self.get_profiles()
+        remove_datadir = True
+        remove_db = True
         if uuid in profiles:
             profile = profiles[uuid]
             name = profile['name']
@@ -327,7 +337,11 @@ class Profile:
                     self.window.ui.dialogs.alert(trans("dialog.profile.alert.path.not_exists"))
                     return
                 print("Clearing workdir: ", path)
-                self.window.core.filesystem.clear_workdir(path)
+                self.window.core.filesystem.clear_workdir(
+                    path,
+                    remove_db=remove_db,
+                    remove_datadir=remove_datadir,
+                )
                 self.window.ui.status(trans("dialog.profile.status.deleted") + ": " + name)
                 self.update_list()
                 self.update_menu()
@@ -346,6 +360,9 @@ class Profile:
             return
         profile = profiles[uuid]
 
+        copy_datadir = self.is_include_datadir()
+        copy_db = self.is_include_db()
+
         # make copy
         duplicate = copy.deepcopy(profile)
         new_uuid = str(uuid4())
@@ -358,7 +375,12 @@ class Profile:
         path_to = new_path
         print("Copying all files from {} to: {}".format(path_from, path_to))
         self.window.ui.status("Copying files...")
-        result = self.window.core.filesystem.copy_workdir(path_from, path_to)
+        result = self.window.core.filesystem.copy_workdir(
+            path_from,
+            path_to,
+            copy_db=copy_db,
+            copy_datadir=copy_datadir,
+        )
         if not result:
             self.window.ui.dialogs.alert("Error copying files!")
             self.window.ui.status("Error copying files!")
@@ -376,6 +398,7 @@ class Profile:
         """
         uuid = self.get_id_by_idx(idx)
         profile = self.window.core.config.profile.get(uuid)
+        self.window.ui.dialog['profile.item'].checkboxes.setVisible(True)
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
@@ -394,6 +417,8 @@ class Profile:
         :param uuid: profile ID
         """
         profiles = self.get_profiles()
+        remove_datadir = True
+        remove_db = True
         if uuid in profiles:
             profile = profiles[uuid]
             path = profile['workdir'].replace("%HOME%", str(Path.home()))
@@ -401,7 +426,11 @@ class Profile:
                 self.window.ui.dialogs.alert("Directory not exists!")
                 return
             print("Clearing workdir: ", path)
-            self.window.core.filesystem.clear_workdir(path)
+            self.window.core.filesystem.clear_workdir(
+                path,
+                remove_db=remove_db,
+                remove_datadir=remove_datadir,
+            )
             self.window.ui.status("Profile cleared: " + profile['name'])
 
     def reset_by_idx(self, idx: int, force: bool = False):
@@ -425,6 +454,14 @@ class Profile:
             return
         id = self.get_id_by_idx(idx)
         self.reset(id)
+
+    def is_include_db(self):
+        """Get include db"""
+        return self.window.ui.nodes['dialog.profile.checkbox.db'].isChecked()
+
+    def is_include_datadir(self):
+        """Get include datadir"""
+        return self.window.ui.nodes['dialog.profile.checkbox.data'].isChecked()
 
     def get_id_by_idx(self, idx: int) -> str:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.11 17:00:00                  #
 # ================================================== #
 
 import os
@@ -285,6 +285,8 @@ class Filesystem:
         :return: total size of the directory
         """
         total_size = 0
+        if not os.path.exists(directory) or not os.path.isdir(directory):
+            return 0
         for dirpath, dirnames, filenames in os.walk(directory):
             for f in filenames:
                 fp = os.path.join(dirpath, f)
@@ -292,6 +294,35 @@ class Filesystem:
                 if not os.path.islink(fp):
                     total_size += os.path.getsize(fp)
 
+        if human_readable:
+            return self.sizeof_fmt(total_size)
+        return total_size
+
+    def get_datadir_size(self, path: str, human_readable: bool = True) -> str or int:
+        """
+        Calculate the total size of the given data directory
+
+        :param path: working directory path
+        :param human_readable: return human-readable format
+        :return: total size of the data directory
+        """
+        data_dir = os.path.join(path, 'data')
+        return self.get_directory_size(data_dir, human_readable)
+
+    def get_db_size(self, path: str, human_readable: bool = True) -> str or int:
+        """
+        Calculate the total size of the given database
+
+        :param path: working directory path
+        :param human_readable: return human-readable format
+        :return: total size of the database file
+        """
+        db_files = ["db.sqlite", "db.sqlite.backup"]
+        total_size = 0
+        for file in db_files:
+            db_file = os.path.join(path, file)
+            if os.path.exists(db_file):
+                total_size += os.path.getsize(db_file)
         if human_readable:
             return self.sizeof_fmt(total_size)
         return total_size
@@ -309,22 +340,33 @@ class Filesystem:
             return self.sizeof_fmt(free)
         return free
 
-    def copy_workdir(self, path: str, new_path: str) -> bool:
+    def copy_workdir(self, path: str, new_path: str, copy_db: bool = True, copy_datadir: bool = True) -> bool:
         """
         Copy working directory
 
         :param path: current working directory
         :param new_path: new working directory
+        :param copy_db: copy database file
+        :param copy_datadir: copy data directory
         :return: True if working directory is copied
         """
+        excluded_files = []
+        excluded_dirs = []
+        if not copy_db:
+            excluded_files.append("db.sqlite")
+            excluded_files.append("db.sqlite.backup")
+        if not copy_datadir:
+            excluded_dirs.append("data")
         if os.path.isdir(path):
             for item in os.listdir(path):
                 s = os.path.join(path, item)
                 d = os.path.join(new_path, item)
                 if os.path.isdir(s):
-                    shutil.copytree(s, d, symlinks=False, ignore=None)
+                    if item not in excluded_dirs:
+                        shutil.copytree(s, d, symlinks=False, ignore=None)
                 else:
-                    shutil.copy2(s, d)
+                    if item not in excluded_files:
+                        shutil.copy2(s, d)
 
         # put empty "path.cfg"
         lock_file = os.path.join(new_path, 'path.cfg')
@@ -337,20 +379,29 @@ class Filesystem:
             os.remove(profile_file)
         return True
 
-    def clear_workdir(self, path: str) -> bool:
+    def clear_workdir(self, path: str, remove_db: bool = True, remove_datadir: bool = True) -> bool:
         """
         Clear working directory
 
         :param path: path to working directory
+        :param remove_db: remove database file
+        :param remove_datadir: remove data directory
         :return: True if working directory is cleared
         """
         persist_files = ["app.log", "path.cfg", "profile.json"]
+        excluded_dirs = []
+        if remove_datadir:
+            excluded_dirs.append("data")
+        if not remove_db:
+            persist_files.append("db.sqlite")
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):
                 if item not in persist_files:
                     os.remove(item_path)
             else:
+                if item not in excluded_dirs:
+                    shutil.rmtree(item_path)
                 shutil.rmtree(item_path)
         return True
 
