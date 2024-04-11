@@ -85,6 +85,18 @@ class CalendarNote(QTextEdit):
         """On content update"""
         self.finder.clear()  # clear finder
 
+    def keyPressEvent(self, e):
+        """
+        Key press event
+
+        :param e: Event
+        """
+        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
+            self.find_open()
+        else:
+            self.finder.clear(restore=True, to_end=False)
+            super(CalendarNote, self).keyPressEvent(e)
+
     def wheelEvent(self, event):
         """
         Wheel event: set font size
