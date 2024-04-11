@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.1.44",
-        "app.version": "2.1.44",
+        "version": "2.1.45",
+        "app.version": "2.1.45",
         "updated_at": "2024-04-11T00:00:00"
     },
     "items": {
@@ -433,6 +433,67 @@
                     {
                         "name": "model",
                         "value": "gpt-4-turbo-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "gpt-4-turbo-2024-04-09": {
+            "id": "gpt-4-turbo-2024-04-09",
+            "name": "gpt-4-turbo-2024-04-09",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index",
+                "vision",
+                "agent"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-turbo-2024-04-09",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4-turbo-2024-04-09",
                         "type": "str"
                     }
                 ],
