@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 import os
+import tempfile
 from datetime import datetime
 
 from PySide6.QtWidgets import QFileDialog
@@ -453,3 +454,48 @@ class Attachment:
         if not self.window.core.config.has('attachments_send_clear'):
             self.window.core.config.set('attachments_send_clear', False)
         return self.window.core.config.get('attachments_send_clear')
+
+    def from_clipboard_image(self, image):
+        """
+        Handle image from clipboard
+        """
+        now = datetime.now()
+        dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+        name = 'clipboard-' + dt
+        path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+        image.save(path, "PNG")
+        self.from_clipboard_url(path)
+        print(path)
+
+    def from_clipboard_url(self, url):
+        """
+        Handle image from clipboard url
+        """
+        image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+        if not os.path.exists(url):
+            return
+        ext = os.path.splitext(url)[1].lower()
+        if ext not in image_ext:
+            return
+        mode = self.window.core.config.get('mode')
+        title = "Clipboard image"
+        self.window.core.attachments.new(mode, title, url, False)
+        self.window.core.attachments.save()
+        self.window.controller.attachment.update()
+
+    def from_clipboard_text(self, text: str):
+        """
+        Handle text from clipboard
+
+        :param text: text from clipboard
+        """
+        if self.window.controller.chat.vision.allowed():
+            # check if pasted text is local image path
+            image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+            ext = os.path.splitext(text)[1].lower()
+            if ext not in image_ext:
+                self.from_clipboard_url(text)
+                return
+            if os.path.exists(text):
+                self.from_clipboard_url(text)
+

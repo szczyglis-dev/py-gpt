@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 11:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 import datetime
 
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon
+from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
 from pygpt_net.utils import trans
@@ -35,6 +35,18 @@ class PainterWidget(QWidget):
         self.undoLimit = 10
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
+
+    def handle_paste(self):
+        clipboard = QApplication.clipboard()
+        mime_data = clipboard.mimeData()
+        if mime_data.hasImage():
+            image = clipboard.image()
+            if isinstance(image, QImage):
+                self.window.ui.painter.set_image(image)
+
+    def handle_copy(self):
+        clipboard = QApplication.clipboard()
+        clipboard.setImage(self.image)
 
     def contextMenuEvent(self, event):
         """
@@ -59,6 +71,26 @@ class PainterWidget(QWidget):
         else:
             actions['redo'].setEnabled(False)
 
+        actions['copy'] = QAction(QIcon(":/icons/copy.svg"),  trans('action.copy'), self)
+        actions['copy'].triggered.connect(
+            lambda: self.handle_copy()
+        )
+
+        is_paste = False
+        clipboard = QApplication.clipboard()
+        mime_data = clipboard.mimeData()
+        if mime_data.hasImage():
+            is_paste = True
+
+        actions['paste'] = QAction(QIcon(":/icons/paste.svg"), trans('action.paste'), self)
+        actions['paste'].triggered.connect(
+            lambda: self.handle_paste()
+        )
+        if is_paste:
+            actions['paste'].setEnabled(True)
+        else:
+            actions['paste'].setEnabled(False)
+
         actions['open'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open())
@@ -77,6 +109,8 @@ class PainterWidget(QWidget):
         menu.addAction(actions['redo'])
         menu.addAction(actions['open'])
         menu.addAction(actions['capture'])
+        menu.addAction(actions['copy'])
+        menu.addAction(actions['paste'])
         menu.addAction(actions['save'])
         menu.addAction(actions['clear'])
         menu.exec_(event.globalPos())
@@ -292,6 +326,8 @@ class PainterWidget(QWidget):
         """
         if event.key() == Qt.Key_Z and QApplication.keyboardModifiers() == Qt.ControlModifier:
             self.undo()
+        elif event.key() == Qt.Key_V and QApplication.keyboardModifiers() == Qt.ControlModifier:
+            self.handle_paste()
 
     def paintEvent(self, event):
         """

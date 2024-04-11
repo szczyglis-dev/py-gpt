@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 class Vision:
@@ -89,6 +89,17 @@ class Vision:
                 or (self.window.controller.plugins.is_enabled('openai_vision')
                     and mode not in self.allowed_modes):
             self.window.controller.mode.set('vision')
+
+    def allowed(self) -> bool:
+        """
+        Check if vision content is allowed
+
+        :return: True if allowed
+        """
+        if self.window.controller.plugins.is_enabled('openai_vision') \
+                or self.window.core.config.get('mode') in self.allowed_modes:
+            return True
+        return False
 
     def update(self):
         """Update vision content on mode change"""

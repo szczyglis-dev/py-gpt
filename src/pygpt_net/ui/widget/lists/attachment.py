@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
@@ -104,6 +104,14 @@ class AttachmentList(BaseList):
                 menu.addAction(action)
         menu.addAction(actions['open'])
         menu.addAction(actions['open_dir'])
+
+        if self.window.core.filesystem.actions.has_use(path):
+            use_actions = self.window.core.filesystem.actions.get_use(self, path)
+            use_menu = QMenu(trans('action.use'), self)
+            for action in use_actions:
+                use_menu.addAction(action)
+            menu.addMenu(use_menu)
+
         menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
 

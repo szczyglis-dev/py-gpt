@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -49,10 +49,10 @@ class Plugin(BasePlugin):
             "model",
             type="combo",
             use="models",
-            value="gpt-4-vision-preview",
+            value="gpt-4-turbo-2024-04-09",
             label="Model",
             description="Model used to temporarily providing vision abilities, "
-                        "default: gpt-4-vision-preview",
+                        "default: gpt-4-turbo-2024-04-09",
             tooltip="Model",
         )
         self.add_option(

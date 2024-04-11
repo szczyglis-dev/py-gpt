@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QImage
 from PySide6.QtWidgets import QTextEdit, QApplication
 
 from pygpt_net.utils import trans
@@ -33,6 +33,30 @@ class ChatInput(QTextEdit):
         self.max_font_size = 42
         self.min_font_size = 8
         self.textChanged.connect(self.window.controller.ui.update_tokens)
+
+    def insertFromMimeData(self, source):
+        """
+        Insert from mime data
+
+        :param source: source
+        """
+        if source.hasImage():
+            image = source.imageData()
+            if isinstance(image, QImage):
+                self.window.controller.attachment.from_clipboard_image(image)
+        elif source.hasUrls():
+            urls = source.urls()
+            for url in urls:
+                if url.isLocalFile():
+                    local_path = url.toLocalFile()
+                    self.window.controller.attachment.from_clipboard_url(local_path)
+            super().insertFromMimeData(source)
+        elif source.hasText():
+            text = source.text()
+            self.window.controller.attachment.from_clipboard_text(text)
+            super().insertFromMimeData(source)
+        else:
+            super().insertFromMimeData(source)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
