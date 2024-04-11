@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 05:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -188,8 +188,10 @@ class Profile:
             self.window.ui.status(trans("dialog.profile.status.updated"))
 
             # if current profile and path was changed then reload:
-            if uuid == current and old_path != path:
-                self.switch(uuid, force=True)
+            if uuid == current:
+                self.window.ui.update_title()
+                if old_path != path:
+                    self.switch(uuid, force=True)
 
         elif mode == 'duplicate':
             # duplicate profile (duplicate requires empty directory)

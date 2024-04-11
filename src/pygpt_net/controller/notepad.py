@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon, QTextCursor
@@ -55,6 +55,7 @@ class Notepad:
         selected_tab = self.window.ui.tabs['output'].currentIndex()
         # remove current tabs and recreate
         for i in range(1, len(self.window.ui.notepad) + 1):
+            self.window.ui.notepad[i].on_destroy()
             self.window.ui.notepad[i].close()
             self.window.ui.notepad[i].deleteLater()
         self.window.ui.notepad = {}
@@ -236,7 +237,6 @@ class Notepad:
                 if idx in self.window.ui.notepad:
                     prev_content = str(items[idx].content)
                     items[idx].content = self.window.ui.notepad[idx].toPlainText()
-
                     # update only if content changed
                     if prev_content != items[idx].content:
                         self.window.core.notepad.update(items[idx])

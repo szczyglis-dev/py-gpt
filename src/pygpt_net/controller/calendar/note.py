@@ -66,8 +66,10 @@ class Note:
         note = self.window.core.calendar.get_by_date(year, month, day)
         if note is None:
             self.window.ui.calendar['note'].setPlainText("")
+            self.window.ui.calendar['note'].on_update()
         else:
             self.window.ui.calendar['note'].setPlainText(note.content)
+            self.window.ui.calendar['note'].on_update()
 
     def update_label(self, year: int, month: int, day: int):
         """

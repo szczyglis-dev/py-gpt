@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 05:00:00                  #
+# Updated Date: 2024.04.11 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -143,7 +143,6 @@ class Config:
         if reload:
             self.initialized = False
             self.init(True)
-            self.load(True)
 
     def patch(self, app_version: Version) -> bool:
         """

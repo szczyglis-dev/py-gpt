@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 19:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -25,6 +25,9 @@ class FindInput(QLineEdit):
 
         self.window = window
         self.id = id
+        self.textChanged.connect(
+            lambda: self.window.controller.finder.search_text_changed(self.text()),
+        )
 
     def keyPressEvent(self, event):
         """
@@ -36,9 +39,7 @@ class FindInput(QLineEdit):
 
         # update on Enter
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            self.window.controller.finder.find(
-                self.window.ui.nodes['dialog.find.input'].text()
-            )
+            self.window.controller.finder.focus_input(self.text())
 
     def focusInEvent(self, e):
         """
@@ -47,7 +48,5 @@ class FindInput(QLineEdit):
         :param e: focus event
         """
         super(FindInput, self).focusInEvent(e)
-        self.window.controller.finder.find(
-            self.window.ui.nodes['dialog.find.input'].text()
-        )
+        self.window.controller.finder.focus_input(self.text())
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.04.11 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -21,10 +21,13 @@ class Menu:
         """
         self.window = window
         self.density_values = [-2, -1, 0, 1, 2]
+        self.loaded = False
 
     def setup_list(self):
         """Setup menu list"""
         # setup themes list menu
+        if self.loaded:
+            return
         themes = self.window.controller.theme.common.get_themes_list()
         for theme in themes:
             name = self.window.controller.theme.common.translate(theme)
@@ -37,6 +40,7 @@ class Menu:
                 self.window.ui.menu['theme.dark'].addAction(self.window.ui.menu['theme'][theme])
             elif theme.startswith('light'):
                 self.window.ui.menu['theme.light'].addAction(self.window.ui.menu['theme'][theme])
+        self.loaded = True
 
     def setup_density(self):
         """Setup menu list"""

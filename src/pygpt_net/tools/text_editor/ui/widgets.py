@@ -9,7 +9,7 @@
 # Updated Date: 2024.03.26 15:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QKeySequence
 
 from pygpt_net.ui.widget.textarea.editor import BaseCodeEditor
 from pygpt_net.utils import trans
@@ -68,5 +68,10 @@ class TextFileEditor(BaseCodeEditor):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText())
             )
             menu.addAction(action)
+
+        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action.triggered.connect(self.find_open)
+        action.setShortcut(QKeySequence("Ctrl+F"))
+        menu.addAction(action)
 
         menu.exec_(event.globalPos())

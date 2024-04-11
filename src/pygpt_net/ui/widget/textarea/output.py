@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser
 from PySide6.QtGui import QAction, QIcon, QTextOption, QKeySequence
 
+from pygpt_net.core.finder import Finder
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -26,6 +27,7 @@ class ChatOutput(QTextBrowser):
         """
         super(ChatOutput, self).__init__(window)
         self.window = window
+        self.finder = Finder(window, self)
         self.setReadOnly(True)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.value = self.window.core.config.data['font_size']
@@ -90,9 +92,12 @@ class ChatOutput(QTextBrowser):
         self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def find_open(self):
-        """Open finder"""
-        id = "chat_output"
-        self.window.controller.finder.open("chat_output")
+        """Open find dialog"""
+        self.window.controller.finder.open(self.finder)
+
+    def on_update(self):
+        """On content update"""
+        self.finder.clear()  # clear finder
 
     def keyPressEvent(self, e):
         """
@@ -132,3 +137,12 @@ class ChatOutput(QTextBrowser):
             event.accept()
         else:
             super(ChatOutput, self).wheelEvent(event)
+
+    def focusInEvent(self, e):
+        """
+        Focus in event
+
+        :param e: focus event
+        """
+        super(ChatOutput, self).focusInEvent(e)
+        self.window.controller.finder.focus_in(self.finder)

@@ -108,6 +108,7 @@ class Nodes:
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.value = size
         self.window.ui.nodes['output'].value = size
+        self.window.ui.nodes['output'].update()
 
         # update tools
         self.window.tools.setup_theme()

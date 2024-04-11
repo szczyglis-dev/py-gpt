@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.render.base import BaseRenderer
@@ -142,4 +142,5 @@ class Render:
         self.update()
 
     def update(self):
-        self.window.controller.finder.clear("chat_output")
+        """On update"""
+        self.window.ui.nodes['output'].on_update()

@@ -6,19 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QPlainTextEdit
+from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtWidgets import QTextEdit
 
+from pygpt_net.core.finder import Finder
 from pygpt_net.utils import trans
 
 import pygpt_net.icons_rc
 
 
-class BaseCodeEditor(QPlainTextEdit):
+class BaseCodeEditor(QTextEdit):
     def __init__(self, window=None):
         """
         Base code editor
@@ -27,7 +28,10 @@ class BaseCodeEditor(QPlainTextEdit):
         """
         super(BaseCodeEditor, self).__init__(window)
         self.window = window
+        self.finder = Finder(window, self)
+        self.finder.set_type("text")
         self.setReadOnly(True)
+        self.setAcceptRichText(False)
         self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
@@ -35,6 +39,13 @@ class BaseCodeEditor(QPlainTextEdit):
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
         self.excluded_copy_to = []
+        self.textChanged.connect(
+            lambda: self.on_text_changed(),
+        )
+
+    def on_text_changed(self):
+        """On text changed"""
+        pass
 
     def update_stylesheet(self, data: str):
         """
@@ -82,11 +93,39 @@ class BaseCodeEditor(QPlainTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action.triggered.connect(self.find_open)
+        action.setShortcut(QKeySequence("Ctrl+F"))
+        menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
         self.window.controller.audio.read_text(self.textCursor().selectedText())
+
+    def find_open(self):
+        """Open find dialog"""
+        self.window.controller.finder.open(self.finder)
+
+    def on_update(self):
+        """On content update"""
+        self.finder.clear()  # clear finder
+
+    def on_destroy(self):
+        """On destroy"""
+        self.window.controller.finder.unset(self.finder)  # unregister finder from memory
+
+    def keyPressEvent(self, e):
+        """
+        Key press event
+
+        :param e: Event
+        """
+        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
+            self.find_open()
+        else:
+            super(BaseCodeEditor, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
         """
@@ -107,6 +146,15 @@ class BaseCodeEditor(QPlainTextEdit):
             event.accept()
         else:
             super(BaseCodeEditor, self).wheelEvent(event)
+
+    def focusInEvent(self, e):
+        """
+        Focus in event
+
+        :param e: focus event
+        """
+        super(BaseCodeEditor, self).focusInEvent(e)
+        self.window.controller.finder.focus_in(self.finder)
 
 
 class CodeEditor(BaseCodeEditor):

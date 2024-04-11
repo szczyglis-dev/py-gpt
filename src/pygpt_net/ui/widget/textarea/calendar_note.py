@@ -10,9 +10,10 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit
 
+from pygpt_net.core.finder import Finder
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -26,6 +27,8 @@ class CalendarNote(QTextEdit):
         """
         super(CalendarNote, self).__init__(window)
         self.window = window
+        self.finder = Finder(window, self)
+        self.finder.set_type("text")
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.value = self.window.core.config.data['font_size']
@@ -61,6 +64,11 @@ class CalendarNote(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
+        action.triggered.connect(self.find_open)
+        action.setShortcut(QKeySequence("Ctrl+F"))
+        menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
@@ -68,6 +76,14 @@ class CalendarNote(QTextEdit):
         Read selected text (audio)
         """
         self.window.controller.audio.read_text(self.textCursor().selectedText())
+
+    def find_open(self):
+        """Open find dialog"""
+        self.window.controller.finder.open(self.finder)
+
+    def on_update(self):
+        """On content update"""
+        self.finder.clear()  # clear finder
 
     def wheelEvent(self, event):
         """
@@ -96,3 +112,21 @@ class CalendarNote(QTextEdit):
             event.accept()
         else:
             super(CalendarNote, self).wheelEvent(event)
+
+    def focusInEvent(self, e):
+        """
+        Focus in event
+
+        :param e: focus event
+        """
+        self.window.controller.finder.focus_in(self.finder)
+        super(CalendarNote, self).focusInEvent(e)
+
+    def focusOutEvent(self, e):
+        """
+        Focus out event
+
+        :param e: focus event
+        """
+        super(CalendarNote, self).focusOutEvent(e)
+        self.window.controller.finder.focus_out(self.finder)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -214,6 +214,8 @@ class Dialogs:
         qr.moveCenter(cp)
         self.window.ui.dialog[id].move(qr.topLeft())
         self.window.ui.dialog[id].show()
+        self.window.ui.dialog[id].activateWindow()
+        self.window.ui.dialog[id].setFocus()
 
     def open_instance(self,
             id: str,
@@ -241,6 +243,8 @@ class Dialogs:
         qr.moveCenter(cp)
         self.window.ui.dialog[id].move(qr.topLeft())
         self.window.ui.dialog[id].show()
+        self.window.ui.dialog[id].activateWindow()
+        self.window.ui.dialog[id].setFocus()
 
     def close(self, id: str):
         """

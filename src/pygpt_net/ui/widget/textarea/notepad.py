@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
+from pygpt_net.core.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -44,6 +45,7 @@ class NotepadWidget(QWidget):
         :param text: Text
         """
         self.textarea.setText(text)
+        self.textarea.on_update()
 
     def toPlainText(self) -> str:
         """
@@ -52,6 +54,11 @@ class NotepadWidget(QWidget):
         :return: Plain text
         """
         return self.textarea.toPlainText()
+
+    def on_destroy(self):
+        """On destroy"""
+        # unregister finder from memory
+        self.window.controller.finder.unset(self.textarea.finder)
 
 
 class NotepadOutput(QTextEdit):
@@ -63,29 +70,22 @@ class NotepadOutput(QTextEdit):
         """
         super(NotepadOutput, self).__init__(window)
         self.window = window
+        self.finder = Finder(window, self)
+        self.finder.set_type("text")
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
-        self.textChanged.connect(
-            lambda: self.on_text_changed()
-        )
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
         self.id = 1  # assigned in setup
+        self.textChanged.connect(
+            lambda: self.on_text_changed()
+        )
 
     def on_text_changed(self):
         """On text changed"""
         if not self.window.core.notepad.locked:
             self.window.controller.notepad.save(self.id)  # use notepad id
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
-            self.find_open()
-        else:
-            # clear in current active, not in notepad id
-            id = "notepad_" + str(self.window.controller.notepad.get_current_active())
-            self.window.controller.finder.clear(id, restore=True, to_end=False)
-            super(NotepadOutput, self).keyPressEvent(e)
 
     def contextMenuEvent(self, event):
         """
@@ -135,9 +135,24 @@ class NotepadOutput(QTextEdit):
         self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def find_open(self):
-        """Open finder"""
-        id = "notepad_" + str(self.window.controller.notepad.get_current_active())
-        self.window.controller.finder.open(id)
+        """Open find dialog"""
+        self.window.controller.finder.open(self.finder)
+
+    def on_update(self):
+        """On content update"""
+        self.finder.clear()  # clear finder
+
+    def keyPressEvent(self, e):
+        """
+        Key press event
+
+        :param e: Event
+        """
+        if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
+            self.find_open()
+        else:
+            self.finder.clear(restore=True, to_end=False)
+            super(NotepadOutput, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
         """
@@ -166,3 +181,22 @@ class NotepadOutput(QTextEdit):
             event.accept()
         else:
             super(NotepadOutput, self).wheelEvent(event)
+
+    def focusInEvent(self, e):
+        """
+        Focus in event
+
+        :param e: focus event
+        """
+        self.window.controller.finder.focus_in(self.finder)
+        super(NotepadOutput, self).focusInEvent(e)
+
+    def focusOutEvent(self, e):
+        """
+        Focus out event
+
+        :param e: focus event
+        """
+        super(NotepadOutput, self).focusOutEvent(e)
+        self.window.controller.finder.focus_out(self.finder)
+

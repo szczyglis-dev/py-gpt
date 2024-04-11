@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -35,6 +35,7 @@ class EditorFileDialog(BaseDialog):
         self.base_content = ""
         self.disable_geometry_store = False
         self.id = id
+        self.accept_close = False
 
     def reset_file_title(self):
         """Reset file title"""
@@ -142,13 +143,14 @@ class EditorFileDialog(BaseDialog):
 
         :param event: close event
         """
-        if self.id != "editor_file":  # only for text editor
+        if self.id != "editor_file" and not self.accept_close:  # only for text editor tool
             if self.is_changed():
                 self.window.ui.dialogs.confirm(
                     type='editor.changed.close',
                     id=self.id,
                     msg=trans("changed.confirm"),
                 )
+                event.ignore()
                 return
         self.cleanup()
         super(EditorFileDialog, self).closeEvent(event)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -29,26 +29,28 @@ class FindDialog(QDialog):
         self.window = window
         self.id = id
         self.current = None
-        self.window.ui.nodes['dialog.find.input'] = FindInput(window, id)
-        self.window.ui.nodes['dialog.find.input'].setMinimumWidth(400)
 
-        self.window.ui.nodes['dialog.find.input'].textChanged.connect(
-            lambda: self.window.controller.finder.find(
-                self.window.ui.nodes['dialog.find.input'].text()
-            ),
-        )
+        self.input = FindInput(window, id)
+        self.input.setMinimumWidth(400)
+        self.counter = HelpLabel('0/0')
+        self.counter.setAlignment(Qt.AlignCenter)
+        self.counter.setMinimumWidth(70)
+        self.counter.setMaximumWidth(70)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)  # always on top
 
+        self.window.ui.nodes['dialog.find.input'] = self.input
+        self.window.ui.nodes['dialog.find.counter'] = self.counter
         self.window.ui.nodes['dialog.find.btn.clear'] = QPushButton(trans('dialog.find.btn.clear'))
         self.window.ui.nodes['dialog.find.btn.clear'].clicked.connect(
             lambda: self.window.controller.finder.clear_input(),
         )
         self.window.ui.nodes['dialog.find.btn.find_prev'] = QPushButton(trans('dialog.find.btn.find_prev'))
         self.window.ui.nodes['dialog.find.btn.find_prev'].clicked.connect(
-            lambda: self.window.controller.finder.find_prev(),
+            lambda: self.window.controller.finder.prev(),
         )
         self.window.ui.nodes['dialog.find.btn.find_next'] = QPushButton(trans('dialog.find.btn.find_next'))
         self.window.ui.nodes['dialog.find.btn.find_next'].clicked.connect(
-            lambda: self.window.controller.finder.find_next(),
+            lambda: self.window.controller.finder.next(),
         )
 
         bottom = QHBoxLayout()
@@ -56,14 +58,9 @@ class FindDialog(QDialog):
         bottom.addWidget(self.window.ui.nodes['dialog.find.btn.find_prev'])
         bottom.addWidget(self.window.ui.nodes['dialog.find.btn.find_next'])
 
-        self.window.ui.nodes['dialog.find.counter'] = HelpLabel('0/0')
-        self.window.ui.nodes['dialog.find.counter'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['dialog.find.counter'].setMinimumWidth(70)
-        self.window.ui.nodes['dialog.find.counter'].setMaximumWidth(70)
-
         input_layout = QHBoxLayout()
-        input_layout.addWidget(self.window.ui.nodes['dialog.find.input'])
-        input_layout.addWidget(self.window.ui.nodes['dialog.find.counter'])
+        input_layout.addWidget(self.input)
+        input_layout.addWidget(self.counter)
 
         layout = QVBoxLayout()
         layout.addLayout(input_layout)
@@ -72,6 +69,11 @@ class FindDialog(QDialog):
         self.setLayout(layout)
 
     def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: event
+        """
         self.window.controller.finder.close(reset=False)
         event.accept()
 
