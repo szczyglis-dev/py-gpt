@@ -320,7 +320,7 @@ class Finder:
         """
         return self.parent().verticalScrollBar().value()
 
-    def set_scroll_position(self, value) -> int:
+    def set_scroll_position(self, value):
         """
         Set current scroll position
 
