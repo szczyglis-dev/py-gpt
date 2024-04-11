@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.04.11 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -30,17 +30,20 @@ class Lang:
         self.mapping = Mapping(window)
         self.plugins = Plugins(window)
         self.settings = Settings(window)
+        self.loaded = False
 
     def setup(self):
         """Setup language menu"""
         # get files from locale directory
-        langs = self.window.core.config.get_available_langs()
-        for lang in langs:
-            self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
-            self.window.ui.menu['lang'][lang].triggered.connect(
-                lambda checked=None,
-                       lang=lang: self.window.controller.lang.toggle(lang))
-            self.window.ui.menu['menu.lang'].addAction(self.window.ui.menu['lang'][lang])
+        if not self.loaded:
+            langs = self.window.core.config.get_available_langs()
+            for lang in langs:
+                self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
+                self.window.ui.menu['lang'][lang].triggered.connect(
+                    lambda checked=None,
+                           lang=lang: self.window.controller.lang.toggle(lang))
+                self.window.ui.menu['menu.lang'].addAction(self.window.ui.menu['lang'][lang])
+        self.loaded = True
         self.update()
 
     def update(self):

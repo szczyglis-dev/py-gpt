@@ -100,7 +100,7 @@ class Common:
         """
         # get font size
         if element == "font.chat.output":
-            return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
+            return 'font-size: {}px'.format(self.window.core.config.get('font_size'))
         elif element == "font.chat.input":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size.input'))
         elif element == "font.ctx.list":
