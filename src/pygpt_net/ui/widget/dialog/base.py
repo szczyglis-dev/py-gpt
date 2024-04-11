@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.04.11 05:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QEvent, QSize, QPoint
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QRect, QSize, QPoint, QEvent
 from PySide6.QtWidgets import QDialog
 
 
@@ -85,16 +86,29 @@ class BaseDialog(QDialog):
 
     def restore_geometry(self):
         """Restore dialog geometry"""
+        # get available screen geometry
+        screen = QApplication.primaryScreen()
+        available_geometry = screen.availableGeometry()
+
         if self.store_geometry_enabled():
             data = self.window.core.config.get("layout.dialog.geometry", {})
         else:
             data = self.window.core.config.get_session("layout.dialog.geometry", {})
+
         if not isinstance(data, dict):
             data = {}
+
         item = data.get(self.id, {})
-        if isinstance(item, dict):
-            if "size" in item and "pos" in item:
-                size = QSize(item["size"][0], item["size"][1])
-                pos = QPoint(item["pos"][0], item["pos"][1])
-                self.resize(size)
-                self.move(pos)
+        if isinstance(item, dict) and "size" in item and "pos" in item:
+            width, height = item["size"]
+            x, y = item["pos"]
+            width = min(width, available_geometry.width())
+            height = min(height, available_geometry.height())
+            size = QSize(width, height)
+            # adjust position
+            x = max(min(x, available_geometry.right() - width), available_geometry.left())
+            y = max(min(y, available_geometry.bottom() - height), available_geometry.top())
+
+            pos = QPoint(x, y)
+            self.resize(size)
+            self.move(pos)

@@ -6,9 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 03:00:00                  #
+# Updated Date: 2024.04.11 05:00:00                  #
 # ================================================== #
+
 import os
+
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QRect
 
 from pygpt_net.utils import trans
 
@@ -175,15 +179,29 @@ class Layout:
             return
         data = self.window.core.config.get('layout.window')
         try:
+            screen = QApplication.primaryScreen()
+            available_geometry = screen.availableGeometry()
+
             if 'geometry' in data:
                 geometry_data = data['geometry']
-                self.window.move(geometry_data['x'], geometry_data['y'])
-                self.window.resize(geometry_data['width'], geometry_data['height'])
+                x, y, width, height = (geometry_data['x'],
+                                       geometry_data['y'],
+                                       geometry_data['width'],
+                                       geometry_data['height'])
+
+                window_rect = QRect(x, y, width, height)
+                adjusted_rect = available_geometry.intersected(window_rect)
+
+                if not available_geometry.contains(window_rect):
+                    adjusted_rect.adjust(0, 0, -20, -20)  # Adjust to fit within the screen
+
+                self.window.move(adjusted_rect.x(), adjusted_rect.y())
+                self.window.resize(adjusted_rect.width(), adjusted_rect.height())
+
             if 'maximized' in data and data['maximized']:
                 self.window.showMaximized()
         except Exception as e:
             print("Error while restoring window state: " + str(e))
-            self.window.core.debug.log(e)
 
     def state_save(self):
         """Save window state"""
