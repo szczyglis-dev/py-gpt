@@ -421,7 +421,7 @@ class Profile:
         """
         profiles = self.get_profiles()
         current = self.window.core.config.profile.get_current()
-        remove_datadir = True
+        remove_datadir = False
         remove_db = True
         if uuid in profiles:
             profile = profiles[uuid]

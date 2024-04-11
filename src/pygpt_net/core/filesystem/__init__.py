@@ -388,20 +388,21 @@ class Filesystem:
         :param remove_datadir: remove data directory
         :return: True if working directory is cleared
         """
-        persist_files = ["app.log", "path.cfg", "profile.json"]
+        excluded_files = ["app.log", "path.cfg", "profile.json"]
         excluded_dirs = []
-        if remove_datadir:
+        if not remove_datadir:
             excluded_dirs.append("data")
         if not remove_db:
-            persist_files.append("db.sqlite")
+            excluded_files.append("db.sqlite")
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):
-                if item not in persist_files:
+                if item not in excluded_files:
                     os.remove(item_path)
             else:
                 if item not in excluded_dirs:
                     shutil.rmtree(item_path)
+
         return True
 
     def is_workdir_in_path(self, path: str) -> bool:
