@@ -448,7 +448,6 @@ class Profile:
         :param force: force reset
         """
         uuid = self.get_id_by_idx(idx)
-        current = self.window.core.config.profile.get_current()
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.reset',
@@ -456,8 +455,7 @@ class Profile:
                 msg=trans('confirm.profile.reset'),
             )
             return
-        id = self.get_id_by_idx(idx)
-        self.reset(id)
+        self.reset(uuid)
 
     def is_include_db(self):
         """Get include db"""
