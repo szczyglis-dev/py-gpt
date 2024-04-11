@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.43 (2024-04-11)
+
+- The "Find" option has been extended and added to all text fields.
+- Fixed menu reload issue when switching profiles.
+- Other small fixes and improvements.
+
 # 2.1.42 (2024-04-10)
 
 - Improved profile switching.
