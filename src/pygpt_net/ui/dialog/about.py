@@ -34,7 +34,7 @@ class About:
         :return: contributors list
         """
         return [
-            "BillionShields"
+            "BillionShields",
             "gfsysa",
             "glinkot",
             "kaneda2004",
