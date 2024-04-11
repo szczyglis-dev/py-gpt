@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -29,6 +29,7 @@ class Url:
         """
         extra_schemes = [
             'extra-audio-read',
+            'extra-code-copy',
             'extra-copy',
             'extra-delete',
             'extra-edit',
@@ -59,6 +60,9 @@ class Url:
         elif url.scheme() == 'extra-join':  # ctx join
             id = url.toString().split(':')[1]
             self.window.controller.ctx.extra.join_item(int(id))
+        elif url.scheme() == 'extra-code-copy':  # copy code block
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.extra.copy_code_block(int(id))
 
         else:
             # external link

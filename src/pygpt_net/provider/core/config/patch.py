@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -1274,6 +1274,13 @@ class Patch:
                 print("Migrating config from < 2.1.38...")
                 if 'lang' in data and data['lang'] == 'ua':
                     data["lang"] = "uk"
+                updated = True
+
+            # < 2.1.45
+            if old < parse_version("2.1.45"):
+                print("Migrating config from < 2.1.45...")
+                if 'ctx.copy_code' not in data:
+                    data["ctx.copy_code"] = True
                 updated = True
 
         # update file

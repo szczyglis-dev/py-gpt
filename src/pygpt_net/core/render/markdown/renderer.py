@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 import os
@@ -45,6 +45,7 @@ class Renderer(BaseRenderer):
 
         :param stream: True if it is a stream
         """
+        self.parser.reset()
         pass  # do nothing
 
     def end(self, stream: bool = False):

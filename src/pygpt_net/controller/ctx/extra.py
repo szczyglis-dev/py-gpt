@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -42,6 +42,20 @@ class Extra:
         if item is not None:
             QApplication.clipboard().setText(item.output)
             self.window.ui.status(trans("clipboard.copied"))
+
+    def copy_code_block(self, id: int):
+        """
+        Copy code block to clipboard
+
+        :param id: block id
+        """
+        blocks = self.window.controller.chat.render.markdown_renderer.parser.get_code_blocks()
+        if id not in blocks:
+            print("Code block not found: ", id)
+        value = blocks.get(id)
+        QApplication.clipboard().setText(value)
+        suffix = value[:20] + "..." if len(value) > 20 else value
+        self.window.ui.status(trans("clipboard.copied") + ": " + suffix)
 
     def edit_item(self, item_id: int):
         """

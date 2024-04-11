@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.1.44",
-    "app.version": "2.1.44",
+    "version": "2.1.45",
+    "app.version": "2.1.45",
     "updated_at": "2024-04-11T00:00:00"
   },
   "agent.auto_stop" : true,
@@ -25,6 +25,7 @@
   "ctx.auto_summary.model": "gpt-3.5-turbo-1106",
   "ctx.counters.all": false,
   "ctx.edit_icons": false,
+  "ctx.copy_code": true,
   "ctx.list.expanded": [],
   "ctx.records.limit": 0,
   "ctx.records.filter": "all",

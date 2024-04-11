@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 05:00:00                  #
+# Updated Date: 2024.04.11 22:00:00                  #
 # ================================================== #
 
 import markdown
 from bs4 import BeautifulSoup
+
+from pygpt_net.utils import trans
 
 
 class Parser:
@@ -23,6 +25,8 @@ class Parser:
         """
         self.window = window
         self.md = None
+        self.code_blocks = {}
+        self.block_idx = 1
 
     def init(self):
         """
@@ -30,6 +34,21 @@ class Parser:
         """
         if self.md is None:
             self.md = markdown.Markdown(extensions=['fenced_code'])
+
+    def reset(self):
+        """
+        Reset parser
+        """
+        self.code_blocks = {}
+        self.block_idx = 1
+
+    def get_code_blocks(self):
+        """
+        Get code blocks
+
+        :return: code blocks
+        """
+        return self.code_blocks
 
     def parse(self, text: str) -> str:
         """
@@ -44,6 +63,8 @@ class Parser:
             soup = BeautifulSoup(html, 'html.parser')
             self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
+            if self.window.core.config.get('ctx.copy_code'):
+                self.parse_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags
             text = str(soup)
         except Exception as e:
@@ -56,8 +77,24 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
-        for code in soup.find_all('code'):
-            code.string = code.string.strip()
+        for el in soup.find_all('code'):
+            el.string = el.string.strip()
+
+    def parse_code_blocks(self, soup):
+        """
+        Add copy code button to code blocks
+
+        :param soup: BeautifulSoup instance
+        """
+        for el in soup.find_all('pre'):
+            header = soup.new_tag('a', href='extra-code-copy:{}'.format(self.block_idx))
+            header['class'] = "code-copy"
+            header.string = trans('ctx.extra.copy_code')
+            el['id'] = f"code-{self.block_idx}"
+            el.string = el.string.strip()
+            el.insert_before(header)
+            self.code_blocks[self.block_idx] = el.string
+            self.block_idx += 1
 
     def convert_lists_to_paragraphs(self, soup):
         """

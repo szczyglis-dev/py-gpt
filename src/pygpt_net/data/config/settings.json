@@ -386,6 +386,18 @@
         "step": null,
         "advanced": false
     },
+    "ctx.copy_code": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.copy_code",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.auto_summary.model": {
         "section": "ctx",
         "type": "combo",
