@@ -402,7 +402,6 @@ class Filesystem:
             else:
                 if item not in excluded_dirs:
                     shutil.rmtree(item_path)
-                shutil.rmtree(item_path)
         return True
 
     def is_workdir_in_path(self, path: str) -> bool:

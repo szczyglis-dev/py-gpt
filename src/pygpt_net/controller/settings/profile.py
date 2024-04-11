@@ -40,12 +40,13 @@ class Profile:
             self.window.profiles.setup()  # widget dialog
             self.dialog_initialized = True
 
-    def switch(self, uuid: str, force: bool = False):
+    def switch(self, uuid: str, force: bool = False, save_current: bool = True):
         """
         Switch profile
 
         :param uuid: Profile UUID
         :param force: Force switch
+        :param save_current: Save current profile
         """
         current = self.window.core.config.profile.get_current()
         if uuid == current and not force:
@@ -56,8 +57,10 @@ class Profile:
             self.window.ui.dialogs.alert("Profile not found!")
             return
         self.window.ui.status("Please wait...")
-        print("Saving all settings in current profile...")
-        self.window.controller.settings.save_all(force=True)  # save all current settings
+
+        if save_current:
+            print("Saving all settings in current profile...")
+            self.window.controller.settings.save_all(force=True)  # save all current settings
         self.window.core.config.profile.set_current(uuid)
 
         # switch to profile workdir
@@ -417,6 +420,7 @@ class Profile:
         :param uuid: profile ID
         """
         profiles = self.get_profiles()
+        current = self.window.core.config.profile.get_current()
         remove_datadir = True
         remove_db = True
         if uuid in profiles:
@@ -426,11 +430,14 @@ class Profile:
                 self.window.ui.dialogs.alert("Directory not exists!")
                 return
             print("Clearing workdir: ", path)
+            self.window.core.db.close()
             self.window.core.filesystem.clear_workdir(
                 path,
                 remove_db=remove_db,
                 remove_datadir=remove_datadir,
             )
+            if uuid == current:
+                self.switch(uuid, force=True, save_current=False)  # reload current profile
             self.window.ui.status("Profile cleared: " + profile['name'])
 
     def reset_by_idx(self, idx: int, force: bool = False):
@@ -442,9 +449,6 @@ class Profile:
         """
         uuid = self.get_id_by_idx(idx)
         current = self.window.core.config.profile.get_current()
-        if uuid == current:
-            self.window.ui.dialogs.alert(trans("dialog.profile.alert.delete.current"))
-            return
         if not force:
             self.window.ui.dialogs.confirm(
                 type='profile.reset',
