@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.44** | build: **2024.04.11** | Python: **>=3.10, <3.12**
+Release: **2.1.45** | build: **2024.04.11** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2941,6 +2941,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.45 (2024-04-11)
+
+- Added the ability to paste images as attachments using Ctrl+V and to copy-paste images in the draw/painter.
+- Added a "Copy to Clipboard" option in code blocks.
+- Introduced a new model: gpt-4-turbo-2024-04-09.
+
 # 2.1.44 (2024-04-11)
 
 - Optimized "Find" option.
@@ -3069,7 +3075,11 @@ The full changelog is located in the **[CHANGELOG.md](https://github.com/szczygl
 
 GitHub community:
 
+- **BillionShields**
+
 - **gfsysa**
+
+- **glinkot**
 
 - **kaneda2004**
 

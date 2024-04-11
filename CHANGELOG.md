@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.45 (2024-04-11)
+
+- Added the ability to paste images as attachments using Ctrl+V and to copy-paste images in the draw/painter.
+- Added a "Copy to Clipboard" option in code blocks.
+- Introduced a new model: gpt-4-turbo-2024-04-09.
+
 # 2.1.44 (2024-04-11)
 
 - Optimized "Find" option.

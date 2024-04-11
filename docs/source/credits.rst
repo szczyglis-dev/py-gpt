@@ -27,7 +27,9 @@ Special thanks
 ===============
 GitHub community:
 
+* **BillionShields**
 * **gfsysa**
+* **glinkot**
 * **kaneda2004**
 * **linnflux**
 * **moritz-t-w**

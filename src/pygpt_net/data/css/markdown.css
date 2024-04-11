@@ -32,9 +32,16 @@ pre {{
     display: block;
     word-wrap: break-word;
     white-space: pre-wrap;
+    text-align: left;
 }}
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     word-wrap: break-word;
     font-family: 'Monaspace Neon';
+}}
+.code-copy {{
+    text-align: right;
+    text-decoration: none;
+    margin: 0;
+    padding:0;
 }}

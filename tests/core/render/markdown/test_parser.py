@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 05:00:00                  #
+# Updated Date: 2024.04.1 22:00:00                  #
 # ================================================== #
+from unittest.mock import MagicMock
 
 from tests.mocks import mock_window
 from pygpt_net.core.render.markdown.parser import Parser
@@ -15,6 +16,10 @@ from pygpt_net.core.render.markdown.parser import Parser
 
 def test_init():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     assert parser.md is None
     parser.init()
     assert parser.md is not None
@@ -22,6 +27,10 @@ def test_init():
 
 def test_parse_markdown_to_html():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input_ul = """
@@ -57,6 +66,10 @@ def test_parse_markdown_to_html():
 
 def test_parse_headers():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input = "# Header 1\n## Header 2\n### Header 3"
@@ -67,6 +80,10 @@ def test_parse_headers():
 
 def test_parse_emphasis():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input = "*italic* **bold** `code`"
@@ -77,6 +94,10 @@ def test_parse_emphasis():
 
 def test_parse_links():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input = "[PYGPT](https://pygpt.net)"
@@ -87,6 +108,10 @@ def test_parse_links():
 
 def test_parse_code_blocks():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input = "```\ndef example():\n    return 'example'\n```"
@@ -97,6 +122,10 @@ def test_parse_code_blocks():
 
 def test_parse_block_quotes():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
     parser.init()
 
     markdown_input = "> This is a block quote."
@@ -107,6 +136,11 @@ def test_parse_block_quotes():
 
 def test_parse_images():
     parser = Parser()
+    parser.window = MagicMock()
+    parser.window.core = MagicMock()
+    parser.window.core.config = MagicMock()
+    parser.window.core.config.get.return_value = False
+
     parser.init()
 
     markdown_input = "![Alt text](/path/to/img.jpg)"
