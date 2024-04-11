@@ -31,17 +31,17 @@ class ConfirmDialog(QDialog):
         self.parent_object = parent_object
         self.setWindowTitle(trans('dialog.confirm.title'))
 
-        btn_yes = QPushButton(trans('dialog.confirm.yes'))
-        btn_yes.clicked.connect(
+        self.window.ui.nodes['dialog.confirm.btn.yes'] = QPushButton(trans('dialog.confirm.yes'))
+        self.window.ui.nodes['dialog.confirm.btn.yes'].clicked.connect(
             lambda: self.window.controller.dialogs.confirm.accept(self.type, self.id, self.parent_object))
 
-        btn_no = QPushButton(trans('dialog.confirm.no'))
-        btn_no.clicked.connect(
+        self.window.ui.nodes['dialog.confirm.btn.no'] = QPushButton(trans('dialog.confirm.no'))
+        self.window.ui.nodes['dialog.confirm.btn.no'].clicked.connect(
             lambda: self.window.controller.dialogs.confirm.dismiss(self.type, self.id))
 
         bottom = QHBoxLayout()
-        bottom.addWidget(btn_no)
-        bottom.addWidget(btn_yes)
+        bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.no'])
+        bottom.addWidget(self.window.ui.nodes['dialog.confirm.btn.yes'])
 
         self.layout = QVBoxLayout()
         self.message = QLabel("")

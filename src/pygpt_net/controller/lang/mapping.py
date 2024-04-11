@@ -219,6 +219,10 @@ class Mapping:
         nodes['profile.editor.btn.new'] = 'dialog.profile.new'
         nodes['profile.editor.tip'] = 'dialog.profile.tip'
 
+        # dialog: confirm
+        nodes['dialog.confirm.btn.yes'] = 'dialog.confirm.yes'
+        nodes['dialog.confirm.btn.no'] = 'dialog.confirm.no'
+
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
         nodes['tip.output.tab.draw'] = 'tip.output.tab.draw'
@@ -312,6 +316,7 @@ class Mapping:
         dialog_title['editor.preset.presets'] = 'dialog.preset'
         dialog_title['image'] = 'dialog.image.title'
         dialog_title['interpreter'] = 'dialog.interpreter.title'
+        dialog_title['confirm'] = 'dialog.confirm.title'
         dialog_title['rename'] = 'dialog.rename.title'
         dialog_title['update'] = 'update.title'
         dialog_title['workdir.change'] = 'dialog.workdir.title'
