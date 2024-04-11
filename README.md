@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.43** | build: **2024.04.11** | Python: **>=3.10, <3.12**
+Release: **2.1.44** | build: **2024.04.11** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.44 (2024-04-11)
+
+- Optimized "Find" option.
+- Added copy database and copy data dir checkbox options in profile duplicate dialog.
+- Added ability to reset current active profile.
+- Added missing translations.
 
 # 2.1.43 (2024-04-11)
 

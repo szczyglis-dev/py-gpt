@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.44 (2024-04-11)
+
+- Optimized "Find" option.
+- Added copy database and copy data dir checkbox options in profile duplicate dialog.
+- Added ability to reset current active profile.
+- Added missing translations.
+
 # 2.1.43 (2024-04-11)
 
 - The "Find" option has been extended and added to all text fields.
