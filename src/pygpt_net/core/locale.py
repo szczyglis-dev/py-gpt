@@ -38,6 +38,15 @@ class Locale:
             self.lang = self.config.get_lang()
         self.load(self.lang, domain)
 
+    def reload_config(self):
+        """Reload configuration"""
+        workdir = self.config.prepare_workdir()
+        self.config.set_workdir(workdir)
+        self.config.load(False)
+        if self.config.has('lang'):
+            self.lang = self.config.get_lang()
+        self.load(self.lang)
+
     def reload(self, domain: str = None):
         """
         Reload translations for domain

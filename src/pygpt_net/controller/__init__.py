@@ -153,6 +153,7 @@ class Controller:
         self.notepad.update_tabs()
         self.window.core.notepad.locked = False
         self.files.update_explorer(reload=True)
+        self.lang.reload_config()
         self.lang.setup()
         self.theme.setup()
         self.debug.toggle_menu()

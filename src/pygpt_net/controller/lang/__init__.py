@@ -11,7 +11,7 @@
 
 from PySide6.QtGui import QAction
 
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, trans_reload
 from .custom import Custom
 from .mapping import Mapping
 from .plugins import Plugins
@@ -53,6 +53,10 @@ class Lang:
         lang = self.window.core.config.get('lang')
         if lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(True)
+
+    def reload_config(self):
+        """Reload language config"""
+        trans_reload()
 
     def toggle(self, id: str):
         """

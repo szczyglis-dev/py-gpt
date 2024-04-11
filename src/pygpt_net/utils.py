@@ -29,6 +29,15 @@ def _(key: str, reload: bool = False, domain: str = None) -> str:
     """
     return trans(key, reload, domain)
 
+def trans_reload():
+    """
+    Reload translations
+    """
+    global locale
+    if locale is None:
+        locale = Locale()
+    locale.reload_config()
+
 
 def trans(key: str, reload: bool = False, domain: str = None) -> str:
     """
