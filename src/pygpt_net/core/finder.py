@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.11 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -221,7 +221,7 @@ class Finder:
 
         while pos != -1:
             self.matches.append((pos, len(search_text)))
-            pos = plain_text.find(search_text, pos + 1)
+            pos = plain_text.find(search_text, pos + len(search_text))
 
         self.show_matches()
 
