@@ -168,8 +168,8 @@ class Ctx:
 
     def search_focus_in(self):
         """Search focus handler"""
-        # select current ctx on list
-        self.select_by_current()
+        pass
+        # self.select_by_current()
 
     def new_ungrouped(self):
         """Create new ungrouped ctx"""

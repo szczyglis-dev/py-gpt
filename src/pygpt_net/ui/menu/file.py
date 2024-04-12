@@ -35,6 +35,7 @@ class File:
         self.window.ui.menu['app.ctx.new'] = QAction(QIcon(":/icons/add.svg"), trans("menu.file.new"), self.window)
         self.window.ui.menu['app.ctx.group.new'] = QAction(QIcon(":/icons/folder_filled.svg"),
                                                            trans("menu.file.group.new"), self.window)
+        self.window.ui.menu['app.ctx.current'] = QAction(QIcon(":/icons/fullscreen.svg"), trans("menu.file.current"), self.window)
 
         self.window.ui.menu['app.clear_history'].triggered.connect(
             lambda: self.window.controller.ctx.delete_history()
@@ -48,8 +49,13 @@ class File:
             lambda: self.window.controller.ctx.new_group()
         )
 
+        self.window.ui.menu['app.ctx.current'].triggered.connect(
+            lambda: self.window.controller.ctx.select_by_current()
+        )  # new context without group
+
         self.window.ui.menu['menu.app'] = self.window.menuBar().addMenu(trans("menu.file"))
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.new'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.group.new'])
+        self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.current'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.clear_history'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.exit'])
