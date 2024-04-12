@@ -55,7 +55,7 @@ class Extra:
         value = blocks.get(id)
         QApplication.clipboard().setText(value)
         suffix = value[:20] + "..." if len(value) > 20 else value
-        self.window.ui.status(trans("clipboard.copied") + ": " + suffix)
+        self.window.ui.status(trans("clipboard.copied_to") + " " + suffix)
 
     def edit_item(self, item_id: int):
         """
