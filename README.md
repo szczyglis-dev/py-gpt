@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.45** | build: **2024.04.11** | Python: **>=3.10, <3.12**
+Release: **2.1.46** | build: **2024.04.12** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.46 (2024-04-12)
+
+- Improved code blocks formatting.
+- Improved attachment copy/paste.
 
 # 2.1.45 (2024-04-11)
 

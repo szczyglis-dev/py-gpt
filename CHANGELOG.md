@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.46 (2024-04-12)
+
+- Improved code blocks formatting.
+- Improved attachment copy/paste.
+
 # 2.1.45 (2024-04-11)
 
 - Added the ability to paste images as attachments using Ctrl+V in chat input and to copy-paste images in the draw/painter.
