@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.12 08:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon, QResizeEvent
-from PySide6.QtWidgets import QMenu
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction, QIcon, QResizeEvent, QImage
+from PySide6.QtWidgets import QMenu, QApplication
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
@@ -54,6 +55,9 @@ class AttachmentList(BaseList):
 
         :param val: click event
         """
+        # only left click
+        if val.button() != Qt.LeftButton:
+            return
         mode = self.window.core.config.get('mode')
         self.window.controller.attachment.select(mode, val.row())
 
@@ -75,11 +79,14 @@ class AttachmentList(BaseList):
         mode = self.window.core.config.get('mode')
         item = self.indexAt(event.pos())
         idx = item.row()
-        path = self.window.controller.attachment.get_path_by_idx(mode, idx)
         preview_actions = []
+        path = None
 
-        if self.window.core.filesystem.actions.has_preview(path):
-            preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
+        if idx >= 0:
+            path = self.window.controller.attachment.get_path_by_idx(mode, idx)
+            preview_actions = []
+            if self.window.core.filesystem.actions.has_preview(path):
+                preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
 
         actions = {}
         actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
@@ -99,18 +106,19 @@ class AttachmentList(BaseList):
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
-        if preview_actions:
+        if idx >= 0 and preview_actions:
             for action in preview_actions:
                 menu.addAction(action)
         menu.addAction(actions['open'])
         menu.addAction(actions['open_dir'])
 
-        if self.window.core.filesystem.actions.has_use(path):
-            use_actions = self.window.core.filesystem.actions.get_use(self, path)
-            use_menu = QMenu(trans('action.use'), self)
-            for action in use_actions:
-                use_menu.addAction(action)
-            menu.addMenu(use_menu)
+        if idx >= 0:
+            if self.window.core.filesystem.actions.has_use(path):
+                use_actions = self.window.core.filesystem.actions.get_use(self, path)
+                use_menu = QMenu(trans('action.use'), self)
+                for action in use_actions:
+                    use_menu.addAction(action)
+                menu.addMenu(use_menu)
 
         menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
@@ -118,6 +126,33 @@ class AttachmentList(BaseList):
         if idx >= 0:
             self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
+
+    def keyPressEvent(self, event):
+        """
+        Key press event to handle undo action
+
+        :param event: Event
+        """
+        if event.key() == Qt.Key_V and QApplication.keyboardModifiers() == Qt.ControlModifier:
+            self.handle_paste()
+
+    def handle_paste(self):
+        """Handle clipboard paste"""
+        clipboard = QApplication.clipboard()
+        source = clipboard.mimeData()
+        if source.hasImage():
+            image = source.imageData()
+            if isinstance(image, QImage):
+                self.window.controller.attachment.from_clipboard_image(image)
+        elif source.hasUrls():
+            urls = source.urls()
+            for url in urls:
+                if url.isLocalFile():
+                    local_path = url.toLocalFile()
+                    self.window.controller.attachment.from_clipboard_url(local_path, all=True)
+        elif source.hasText():
+            text = source.text()
+            self.window.controller.attachment.from_clipboard_text(text, all=True)
 
     def action_open(self, event):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.12 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -37,14 +37,16 @@ class PainterWidget(QWidget):
         self.setFocus()
 
     def handle_paste(self):
+        """Handle clipboard paste"""
         clipboard = QApplication.clipboard()
-        mime_data = clipboard.mimeData()
-        if mime_data.hasImage():
+        source = clipboard.mimeData()
+        if source.hasImage():
             image = clipboard.image()
             if isinstance(image, QImage):
                 self.window.ui.painter.set_image(image)
 
     def handle_copy(self):
+        """Handle clipboard copy"""
         clipboard = QApplication.clipboard()
         clipboard.setImage(self.image)
 

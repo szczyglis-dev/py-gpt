@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.12 08:00:00                  #
 # ================================================== #
 
 import os
-import tempfile
 from datetime import datetime
 
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtGui import QImage
+from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
@@ -327,6 +327,8 @@ class Attachment:
             mode=mode,
             id=file_id,
         )
+        if data is None:
+            return ''
         return data.path
 
     def import_from_assistant(self, mode: str, assistant: AssistantItem):
@@ -465,37 +467,73 @@ class Attachment:
         path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
         image.save(path, "PNG")
         self.from_clipboard_url(path)
-        print(path)
 
-    def from_clipboard_url(self, url):
+    def from_clipboard_url(self, url, all: bool = False):
         """
         Handle image from clipboard url
+
+        :param url: file url
+        :param all: all images
         """
-        image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
         if not os.path.exists(url):
             return
-        ext = os.path.splitext(url)[1].lower()
-        if ext not in image_ext:
-            return
+
+        if not all:
+            image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+            ext = os.path.splitext(url)[1].lower()
+            if ext not in image_ext:
+                return
+
         mode = self.window.core.config.get('mode')
         title = "Clipboard image"
         self.window.core.attachments.new(mode, title, url, False)
         self.window.core.attachments.save()
         self.window.controller.attachment.update()
+        self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + os.path.basename(url))
 
-    def from_clipboard_text(self, text: str):
+    def from_clipboard_text(self, text: str, all: bool = False):
         """
         Handle text from clipboard
 
         :param text: text from clipboard
+        :param all: all text
         """
-        if self.window.controller.chat.vision.allowed():
-            # check if pasted text is local image path
-            image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
-            ext = os.path.splitext(text)[1].lower()
-            if ext not in image_ext:
-                self.from_clipboard_url(text)
-                return
+        if all:
             if os.path.exists(text):
                 self.from_clipboard_url(text)
+        else:
+            if self.window.controller.chat.vision.allowed():
+                # check if pasted text is local image path
+                image_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+                ext = os.path.splitext(text)[1].lower()
+                if ext not in image_ext:
+                    self.from_clipboard_url(text)
+                    return
+                if os.path.exists(text):
+                    self.from_clipboard_url(text)
+
+    def clipboard_has_attachment(self) -> bool:
+        """
+        Check if clipboard has attachment
+
+        :return: True if clipboard has attachment
+        """
+        clipboard = QApplication.clipboard()
+        source = clipboard.mimeData()
+        if source.hasImage():
+            image = source.imageData()
+            if isinstance(image, QImage):
+                return True
+        elif source.hasUrls():
+            urls = source.urls()
+            for url in urls:
+                if url.isLocalFile():
+                    local_path = url.toLocalFile()
+                    if os.path.exists(local_path):
+                        return True
+        elif source.hasText():
+            text = source.text()
+            if os.path.exists(text):
+                return True
+        return False
 

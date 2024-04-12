@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.12 08:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -40,6 +40,16 @@ class ChatInput(QTextEdit):
 
         :param source: source
         """
+        self.handle_clipboard(source)
+        if not source.hasImage():
+            super().insertFromMimeData(source)
+
+    def handle_clipboard(self, source):
+        """
+        Handle clipboard
+
+        :param source: source
+        """
         if source.hasImage():
             image = source.imageData()
             if isinstance(image, QImage):
@@ -50,16 +60,24 @@ class ChatInput(QTextEdit):
                 if url.isLocalFile():
                     local_path = url.toLocalFile()
                     self.window.controller.attachment.from_clipboard_url(local_path)
-            super().insertFromMimeData(source)
         elif source.hasText():
             text = source.text()
             self.window.controller.attachment.from_clipboard_text(text)
-            super().insertFromMimeData(source)
-        else:
-            super().insertFromMimeData(source)
 
     def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: event
+        """
         menu = self.createStandardContextMenu()
+
+        # paste attachment
+        if self.window.controller.attachment.clipboard_has_attachment():
+            action = QAction(QIcon(":/icons/paste.svg"), trans("action.use.attachment"), self)
+            action.triggered.connect(self.action_from_clipboard)
+            menu.addAction(action)
+
         selected_text = self.textCursor().selectedText()
         if selected_text:
             # plain text
@@ -87,6 +105,14 @@ class ChatInput(QTextEdit):
             menu.addAction(action)
 
         menu.exec_(event.globalPos())
+
+    def action_from_clipboard(self):
+        """
+        Get from clipboard
+        """
+        clipboard = QApplication.clipboard()
+        source = clipboard.mimeData()
+        self.handle_clipboard(source)
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
