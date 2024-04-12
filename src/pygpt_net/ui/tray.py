@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 22:00:00                  #
+# Updated Date: 2024.04.12 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -138,7 +138,7 @@ class Tray:
     def new_ctx(self):
         """Create new context"""
         self.window.restore()
-        self.window.controller.ctx.new()
+        self.window.controller.ctx.new_ungrouped()  # new context without group
 
     def open_notepad(self):
         """Open notepad"""

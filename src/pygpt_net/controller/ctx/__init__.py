@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.12 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -36,6 +36,9 @@ class Ctx:
         # current edit IDs
         self.edit_meta_id = None
         self.edit_item_id = None
+
+        # current group ID
+        self.group_id = None
 
     def setup(self):
         """Setup ctx"""
@@ -112,6 +115,11 @@ class Ctx:
         self.window.core.ctx.current = id
         if prev_id != id:
             self.load(id)
+        else:
+            # only update current group if defined
+            meta = self.window.core.ctx.get_meta_by_id(id)
+            if meta is not None:
+                self.set_group(meta.group_id)
         self.common.focus_chat()
 
     def select_by_idx(self, idx: int):
@@ -145,6 +153,29 @@ class Ctx:
         if id in meta:
             self.select_index_by_id(id)
 
+    def unselect(self):
+        """Unselect ctx"""
+        self.set_group(None)
+        self.window.ui.nodes['ctx.list'].clearSelection()
+
+    def set_group(self, group_id: int = None):
+        """
+        Set current selected group
+
+        :param group_id: group ID
+        """
+        self.group_id = group_id
+
+    def search_focus_in(self):
+        """Search focus handler"""
+        # select current ctx on list
+        self.select_by_current()
+
+    def new_ungrouped(self):
+        """Create new ungrouped ctx"""
+        self.group_id = None
+        self.new()
+
     def new(self, force: bool = False, group_id: int = None):
         """
         Create new ctx
@@ -155,6 +186,11 @@ class Ctx:
         # lock if generating response is in progress
         if not force and self.context_change_locked():
             return
+
+        # use currently selected group if not defined
+        if group_id is None:
+            if self.group_id is not None and self.group_id > 0:
+                group_id = self.group_id
 
         self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
@@ -224,6 +260,9 @@ class Ctx:
         """
         # select ctx by id
         self.window.core.ctx.select(id, restore_model=restore_model)
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            self.set_group(meta.group_id)  # set current group if defined
 
         # reset appended data
         self.window.controller.chat.render.reset()
@@ -655,6 +694,7 @@ class Ctx:
         :param update: update ctx list
         """
         self.window.core.ctx.update_meta_group_id(meta_id, group_id)
+        self.group_id = group_id
         if update:
             self.update()
 
@@ -701,6 +741,11 @@ class Ctx:
                 "[INFO] Group '{}' created.".format(name)
             )
             self.window.ui.dialog['create'].close()
+
+            # select new group
+            self.window.ui.nodes['ctx.list'].setCurrentIndex(
+                self.get_parent_index_by_id(id)
+            )
 
     def rename_group(self, id: int, force: bool = False):
         """
@@ -752,6 +797,8 @@ class Ctx:
         group = self.window.core.ctx.get_group_by_id(id)
         if group is not None:
             self.window.core.ctx.remove_group(group, all=False)
+            if self.group_id == id:
+                self.group_id = None
             self.update()
 
     def delete_group_all(self, id: int, force: bool = False):
@@ -771,4 +818,6 @@ class Ctx:
         group = self.window.core.ctx.get_group_by_id(id)
         if group is not None:
             self.window.core.ctx.remove_group(group, all=True)
+            if self.group_id == id:
+                self.group_id = None
             self.update()

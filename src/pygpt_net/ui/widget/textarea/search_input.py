@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                  #
+# Updated Date: 2024.04.12 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -48,5 +48,10 @@ class CtxSearchInput(QLineEdit):
         """
         self.window.controller.ctx.search_string_change(text)
         self.clear_action.setVisible(bool(text))
+
+    def focusInEvent(self, event):
+        """Focus in event"""
+        super(CtxSearchInput, self).focusInEvent(event)
+        self.window.controller.ctx.search_focus_in()
 
 
