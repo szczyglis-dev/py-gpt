@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.04.12 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,6 +30,7 @@ class ConfirmDialog(QDialog):
         self.id = id
         self.parent_object = parent_object
         self.setWindowTitle(trans('dialog.confirm.title'))
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)  # always on top
 
         self.window.ui.nodes['dialog.confirm.btn.yes'] = QPushButton(trans('dialog.confirm.yes'))
         self.window.ui.nodes['dialog.confirm.btn.yes'].clicked.connect(
