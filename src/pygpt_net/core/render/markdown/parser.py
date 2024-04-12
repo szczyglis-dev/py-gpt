@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.12 08:00:00                  #
 # ================================================== #
 
 import markdown
@@ -87,13 +87,35 @@ class Parser:
         :param soup: BeautifulSoup instance
         """
         for el in soup.find_all('pre'):
-            header = soup.new_tag('a', href='extra-code-copy:{}'.format(self.block_idx))
-            header['class'] = "code-copy"
-            header.string = trans('ctx.extra.copy_code')
-            el['id'] = f"code-{self.block_idx}"
-            el.string = el.string.strip()
-            el.insert_before(header)
-            self.code_blocks[self.block_idx] = el.string
+            content = el.get_text(strip=True)
+            self.code_blocks[self.block_idx] = content
+
+            header = soup.new_tag('div', **{'class': "code-header-wrapper"})
+            link_wrapper = soup.new_tag('div')
+            a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
+            a['class'] = "code-header-copy"
+            a.string = trans('ctx.extra.copy_code')
+
+            code = el.find('code')
+            language = code['class'][0] if code.has_attr('class') else ''
+            if language:
+                lang = soup.new_tag('span', **{'class': "code-header-lang"})
+                lang['class'] = "code-header-lang"
+                lang.string = language.replace('language-', '') + "   "
+                link_wrapper.append(lang)
+
+            link_wrapper.append(a)
+            header.append(link_wrapper)
+            wrapper = soup.new_tag('div', **{'class': "code-wrapper"})
+            wrapper.append(header)
+
+            new_pre = soup.new_tag('code')
+            new_code = soup.new_tag('div')
+            new_pre.string = content
+            new_code.append(new_pre)
+            wrapper.append(new_code)
+            el.replace_with(wrapper)
+
             self.block_idx += 1
 
     def convert_lists_to_paragraphs(self, soup):

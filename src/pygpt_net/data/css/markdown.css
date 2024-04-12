@@ -33,15 +33,34 @@ pre {{
     word-wrap: break-word;
     white-space: pre-wrap;
     text-align: left;
+    background: #00ff00;
 }}
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     word-wrap: break-word;
     font-family: 'Monaspace Neon';
 }}
-.code-copy {{
+.code-header-wrapper {{
+    text-align: right;
+    width: 100%;
+    padding: 10px;
+}}
+.code-header {{
+    text-align: right;
+    width: 100%;
+    padding: 10px;
+}}
+.code-header-lang {{
+    color: #4d4d4d;
+}}
+.code-header-copy {{
     text-align: right;
     text-decoration: none;
-    margin: 0;
-    padding:0;
+    font-weight: bold;
+    display: block;
+
+}}
+.code-wrapper {{
+    background-color: #202225;
+    padding: 20px;
 }}

@@ -44,3 +44,9 @@ code {{
     word-wrap: break-word;
     font-family: 'Monaspace Neon';
 }}
+.code-wrapper {{
+    background-color: #e9e9e9;
+}}
+.code-header-lang {{
+    color: #a0a0a0;
+}}
