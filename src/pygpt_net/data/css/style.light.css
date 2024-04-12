@@ -3,6 +3,7 @@
 }}
 QWidget {{
   background-color: #e7e7e7;
+  color: #000;
 }}
 
 QListView, 
@@ -52,6 +53,9 @@ QTextEdit {{
 QMenu {{ 
   background-color: #fff; 
 }} 
+QMenu::item {{ 
+  color: #0e0e0e;
+}} 
 QComboBox,
 QComboBox::focus {{
   background-color: #fff;
@@ -67,6 +71,7 @@ QSplitter::handle:vertical {{
 QTableView::item,
 QTreeView::item,
 QListView::item {{
+  color: #0e0e0e;
   padding: 4px;
   min-height: 20px;
 }}
