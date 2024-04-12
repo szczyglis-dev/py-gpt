@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.46** | build: **2024.04.12** | Python: **>=3.10, <3.12**
+Release: **2.1.47** | build: **2024.04.12** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.47 (2024-04-12)
+
+- Added auto-creating new context in current group if the group is active.
+- Added sending input also with Ctrl+Enter in Shift+Enter mode.
+- Extended light style markdown CSS.
 
 # 2.1.46 (2024-04-12)
 

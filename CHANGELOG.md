@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.47 (2024-04-12)
+
+- Added auto-creating new context in current group if the group is active.
+- Added sending input also with Ctrl+Enter in Shift+Enter mode.
+- Extended light style markdown CSS.
+
 # 2.1.46 (2024-04-12)
 
 - Improved code blocks formatting.
