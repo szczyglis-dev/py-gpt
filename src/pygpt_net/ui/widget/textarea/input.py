@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 08:00:00                  #
+# Updated Date: 2024.04.12 10:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -130,11 +130,11 @@ class ChatInput(QTextEdit):
             if mode > 0:  # Enter or Shift + Enter
                 if mode == 2:  # Shift + Enter
                     modifiers = QApplication.keyboardModifiers()
-                    if modifiers == QtCore.Qt.ShiftModifier:
+                    if modifiers == QtCore.Qt.ShiftModifier or modifiers == QtCore.Qt.ControlModifier:
                         self.window.controller.chat.input.send_input()
                 else:  # Enter
                     modifiers = QApplication.keyboardModifiers()
-                    if modifiers != QtCore.Qt.ShiftModifier:
+                    if modifiers != QtCore.Qt.ShiftModifier and modifiers != QtCore.Qt.ControlModifier:
                         self.window.controller.chat.input.send_input()
                 self.setFocus()
 
