@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.04.14 18:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -99,6 +99,7 @@ class ImageViewer(BaseTool):
 
         w = self.width
         h = self.height
+        img_suffix = ""
 
         if path is None:
             path = self.window.ui.dialog[id].source.path  # previous img
@@ -110,13 +111,16 @@ class ImageViewer(BaseTool):
             self.window.ui.dialog[id].pixmap.resize(w, h)
         else:
             pixmap = QtGui.QPixmap(path)
+            img_suffix = " ({}x{}px)".format(pixmap.width(), pixmap.height())
+            file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
+            img_suffix += " - {}".format(file_size)
             self.window.ui.dialog[id].source.setPixmap(pixmap)
             self.window.ui.dialog[id].pixmap.path = path
             self.window.ui.dialog[id].pixmap.resize(w, h)
 
         if path is not None:
             self.window.ui.dialog[id].path = path
-            self.window.ui.dialog[id].setWindowTitle(os.path.basename(path))
+            self.window.ui.dialog[id].setWindowTitle(os.path.basename(path) + img_suffix)
         else:
             self.window.ui.dialog[id].path = None
             self.window.ui.dialog[id].setWindowTitle("Image Viewer")

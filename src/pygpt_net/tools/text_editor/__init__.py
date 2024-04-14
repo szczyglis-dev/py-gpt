@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.14 18:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -141,9 +141,12 @@ class TextEditor(BaseTool):
 
         # set file
         if file:
+            title = os.path.basename(file)
+            file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(file))
+            title += " - {}".format(file_size)
             self.window.ui.dialog[id].file = file
             self.window.core.filesystem.editor.load(id, file)  # load file to editor
-            self.window.ui.dialog[id].setWindowTitle(os.path.basename(file))  # set window title
+            self.window.ui.dialog[id].setWindowTitle(title)  # set window title
             self.window.ui.editor[id].setFocus()  # set focus
             if not force:
                 self.window.ui.status("Loaded file: {}".format(os.path.basename(file)))  # set status

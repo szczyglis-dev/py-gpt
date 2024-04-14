@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.14 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -52,6 +52,8 @@ class EditorFileDialog(BaseDialog):
             title = os.path.basename(self.file)
         if self.is_changed():
             title += "*"
+        file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(self.file))
+        title += " - {}".format(file_size)
         if self.is_changed() or force:
             time = datetime.datetime.now().strftime("%H:%M")
             title += " (" + time + ")"
