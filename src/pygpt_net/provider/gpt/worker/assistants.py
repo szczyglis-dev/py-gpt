@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.14 08:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -218,6 +218,7 @@ class AssistantsWorker:
         """
         self.window.controller.assistant.threads.handle_run_created(ctx, run, stream=stream)
 
+
 class EventHandler(AssistantEventHandler):
 
     def __init__(
@@ -230,6 +231,7 @@ class EventHandler(AssistantEventHandler):
         self.signals = signals
         self.ctx = ctx
         self.begin = False
+        
     @override
     def on_text_created(self, text) -> None:
         """Callback that is fired when a text content block is created"""
@@ -275,11 +277,13 @@ class EventHandler(AssistantEventHandler):
         """Fires if the request times out"""
         self.signals.error.emit(self.ctx,  "Timeout")
 
+    @override
     def on_tool_call_created(self, tool_call):
         """Callback that is fired when a tool call is created"""
         # print(f"\nassistant > {tool_call.type}\n", flush=True)
         self.signals.stream_tool_call_created.emit(self.ctx, tool_call)
 
+    @override
     def on_tool_call_delta(self, delta, snapshot):
         """Callback that is fired when a tool call delta is encountered"""
         self.signals.stream_tool_call_delta.emit(self.ctx, delta)

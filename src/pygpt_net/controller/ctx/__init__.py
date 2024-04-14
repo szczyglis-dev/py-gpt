@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 05:00:00                  #
+# Updated Date: 2024.04.14 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -77,19 +77,21 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
 
-    def update(self, reload: bool = True, all: bool = True):
+    def update(self, reload: bool = True, all: bool = True, select: bool = True):
         """
         Update ctx list
 
         :param reload: reload ctx list items
         :param all: update all
+        :param select: select current ctx
         """
         # reload ctx list items
         if reload:
             self.reload(True)
 
         # select current ctx on list
-        self.select_by_current()
+        if select:
+            self.select_by_current()
 
         # update all
         if all:
@@ -559,7 +561,6 @@ class Ctx:
         self.window.core.config.set('ctx.records.filter.labels', labels)
         self.update(reload=True, all=False)
 
-
     def prepare_name(self, ctx: CtxItem):
         """
         Handle context name (summarize first input and output)
@@ -765,7 +766,6 @@ class Ctx:
             self.window.ui.dialog['rename'].input.setText(group.name)
             self.window.ui.dialog['rename'].current = id
             self.window.ui.dialog['rename'].show()
-            self.update()
 
     def update_group_name(self, id: int, name: str, close: bool = True):
         """
@@ -781,7 +781,20 @@ class Ctx:
             self.window.core.ctx.update_group(group)
             if close:
                 self.window.ui.dialog['rename'].close()
-            self.update()
+            self.update(True, False, False)
+            self.select_group(id)
+
+    def select_group(self, id: int):
+        """
+        Select group
+
+        :param id: group ID
+        """
+        self.group_id = id
+        index = self.get_parent_index_by_id(id)
+        self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
+        self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
+        self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
     def delete_group(self, id: int, force: bool = False):
         """
