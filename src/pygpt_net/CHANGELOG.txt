@@ -1,3 +1,9 @@
+2.1.50 (2024-04-14)
+
+- Fixed selection update after group rename.
+- Added img resolution and filesize info in image preview dialog title.
+- Added filesize info in text editor dialog title.
+
 2.1.49 (2024-04-14)
 
 - Improved context group handling.

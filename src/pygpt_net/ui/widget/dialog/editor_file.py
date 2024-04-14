@@ -52,8 +52,9 @@ class EditorFileDialog(BaseDialog):
             title = os.path.basename(self.file)
         if self.is_changed():
             title += "*"
-        file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(self.file))
-        title += " - {}".format(file_size)
+        if self.file and os.path.exists(self.file):
+            file_size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(self.file))
+            title += " - {}".format(file_size)
         if self.is_changed() or force:
             time = datetime.datetime.now().strftime("%H:%M")
             title += " (" + time + ")"
