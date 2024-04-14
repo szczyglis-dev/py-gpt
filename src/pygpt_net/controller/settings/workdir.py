@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 02:00:00                  #
+# Updated Date: 2024.04.14 18:00:00                  #
 # ================================================== #
 
 import os
@@ -72,6 +72,7 @@ class Workdir:
 
         # reload config
         self.window.core.config.set_workdir(path, reload=True)
+        self.window.core.config.set('license.accepted', True)  # accept license to prevent show dialog again
 
         # reload components
         if force:
