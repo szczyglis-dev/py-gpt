@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.49 (2024-04-14)
+
+- Improved context group handling.
+
 # 2.1.48 (2024-04-14)
 
 - OpenAI API upgraded to version 1.17.1.
