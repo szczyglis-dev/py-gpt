@@ -191,6 +191,8 @@ class Ctx:
         if group_id is None:
             if self.group_id is not None and self.group_id > 0:
                 group_id = self.group_id
+        else:
+            self.group_id = group_id
 
         self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
