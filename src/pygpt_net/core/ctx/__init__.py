@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -688,7 +688,7 @@ class Ctx:
         :return: new ctx id
         """
         if id in self.meta:
-            meta = self.create()
+            meta = self.create(self.meta[id].group_id)
             new_id = meta.id
             old_data = self.meta[id].to_dict()
             meta.from_dict(old_data)
