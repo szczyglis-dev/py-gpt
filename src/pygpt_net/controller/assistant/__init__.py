@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -67,7 +67,7 @@ class Assistant:
         # create or get current thread, it is required before conversation start
         if self.window.core.config.get('assistant_thread') is None:
             try:
-                self.window.ui.status(trans('status.starting'))
+                self.window.ui.status(trans('status.sending'))
                 self.window.core.config.set('assistant_thread', self.threads.create_thread())
             except Exception as e:
                 self.window.core.debug.log(e)

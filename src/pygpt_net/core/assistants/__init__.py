@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 14:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
@@ -231,29 +231,35 @@ class Assistants:
             remote_ids.append(id)
             name = ""
             path = ""
+            size = 0
 
             # if file with this ID already in assistant.files
             if id in assistant.files:
                 if 'name' in assistant.files[id] and assistant.files[id]['name'] != '':
                     name = assistant.files[id]['name']
+                    if 'size' in assistant.files[id]:
+                        size = assistant.files[id]
                 else:
                     name = id
                     # import name from remote
                     if import_data:
-                        name = self.import_filenames(id)
+                        name, size = self.import_file_info(id)
                 if 'path' in assistant.files[id]:
                     path = assistant.files[id]['path']
             elif id in assistant.attachments:
                 name = assistant.attachments[id].name
                 path = assistant.attachments[id].path
+                size = assistant.attachments[id].size
             else:
                 name = id
+                size = 0
                 if import_data:
-                    name = self.import_filenames(id)
+                    name, size = self.import_file_info(id)
                 path = None
             assistant.files[id] = {
                 'id': id,
                 'name': name,
+                'size': size,
                 'path': path,
             }
 
@@ -277,6 +283,24 @@ class Assistants:
         except Exception as e:
             self.window.core.debug.log(e)
         return name
+
+    def import_file_info(self, id: str) -> (str, int):
+        """
+        Import file info from remote API
+
+        :param id: file id
+        :return: filename, size
+        """
+        name = id
+        size = 0
+        try:
+            remote_data = self.window.core.gpt.assistants.file_info(id)
+            if remote_data is not None:
+                name = remote_data.filename
+                size = remote_data.bytes
+        except Exception as e:
+            self.window.core.debug.log(e)
+        return name, size
 
     def load(self):
         """Load assistants"""

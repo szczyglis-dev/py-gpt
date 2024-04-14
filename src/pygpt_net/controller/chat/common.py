@@ -189,16 +189,16 @@ class Common:
         self.window.core.gpt.stop()
         self.unlock_input()
 
+        self.window.controller.chat.input.generating = False
+        self.window.ui.status(trans('status.stopped'))
+        self.window.stateChanged.emit(self.window.STATE_IDLE)
+
         # remotely stop assistant
         if mode == "assistant" and not exit:
             try:
                 self.window.controller.assistant.run_stop()
             except Exception as e:
                 self.window.core.debug.log(e)
-
-        self.window.controller.chat.input.generating = False
-        self.window.ui.status(trans('status.stopped'))
-        self.window.stateChanged.emit(self.window.STATE_IDLE)
 
     def check_api_key(self) -> bool:
         """

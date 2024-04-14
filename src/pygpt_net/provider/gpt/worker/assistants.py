@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 08:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -138,6 +138,8 @@ class AssistantsWorker:
         """
         if ctx.output is None:
             ctx.output = ""
+        if delta.value is not None:
+            ctx.output += delta.value
         if ctx.output_tokens is None:
             ctx.output_tokens = 0
         ctx.output_tokens += 1  # tokens++
@@ -185,7 +187,7 @@ class AssistantsWorker:
         :param ctx: context item
         :param message: message
         """
-        self.window.controller.assistant.threads.handle_message_data(ctx, message)  # handle img, files, etc.
+        self.window.controller.assistant.threads.handle_message_data(ctx, message, stream=True)  # handle img, files, etc.
 
     @Slot(object, object)
     def handle_run_step_created(self, ctx: CtxItem, run_step):

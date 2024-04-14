@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 import json
@@ -71,12 +71,13 @@ class Threads:
         # update ctx list
         self.window.controller.ctx.update()
 
-    def handle_message_data(self, ctx: CtxItem, msg):
+    def handle_message_data(self, ctx: CtxItem, msg, stream: bool = False):
         """
         Handle message data (files, images, text) - stream and not-stream
 
         :param ctx: CtxItem
         :param msg: Message
+        :param stream: stream mode
         """
         paths = []
         file_ids = []
@@ -86,7 +87,8 @@ class Threads:
         for content in msg.content:
             if content.type == "text":
                 # text
-                ctx.set_output(content.text.value)
+                if not stream or (ctx.output is None or ctx.output == ""):
+                    ctx.set_output(content.text.value)
 
                 # annotations
                 if content.text.annotations:
