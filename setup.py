@@ -73,7 +73,7 @@ setup(
         'llama-index-readers-web>=0.1.6, <0.2.0',
         'Markdown>=3.5.1, <4.0.0',
         'nbconvert>=7.16.1, <8.0.0',
-        'openai>=1.12.0, <2.0.0',
+        'openai>=1.17.1, <2.0.0',
         'opencv-python>=4.8.1.78',
         'packaging>=23.2',
         'pandas>=2.1.4, <3.0.0',
