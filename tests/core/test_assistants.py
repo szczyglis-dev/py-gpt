@@ -280,13 +280,14 @@ def test_import_files(mock_window_conf):
     """
     Test import files
     """
-    with patch('pygpt_net.core.assistants.Assistants.import_filenames') as mock_import:
-        mock_import.return_value = 'remote_name'
+    with patch('pygpt_net.core.assistants.Assistants.import_file_info') as mock_import:
+        mock_import.return_value = 'remote_name', 123
 
         files = []
         file1 = MagicMock()
         file1.id = 'file1'
         file1.name = ''
+        file1.size = 0
         files.append(file1)
 
         assistants = Assistants(window=mock_window_conf)
@@ -302,7 +303,7 @@ def test_import_files(mock_window_conf):
                  'id': 'file1',
                  'name': 'file1',
                  'path': '',
-                 'size': 0
+                 'size': 123
             },
         }
 

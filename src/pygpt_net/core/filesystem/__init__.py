@@ -270,6 +270,8 @@ class Filesystem:
         :param suffix: suffix to add
         :return: human-readable format
         """
+        if not isinstance(num, (int, float)):
+            return '-'
         for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 1024.0:
                 return "{:.1f} {}{}".format(num, unit, suffix).replace('.', ',')

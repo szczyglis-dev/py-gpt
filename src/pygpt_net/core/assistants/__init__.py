@@ -238,7 +238,7 @@ class Assistants:
                 if 'name' in assistant.files[id] and assistant.files[id]['name'] != '':
                     name = assistant.files[id]['name']
                     if 'size' in assistant.files[id]:
-                        size = assistant.files[id]
+                        size = assistant.files[id]['size']
                 else:
                     name = id
                     # import name from remote
@@ -246,6 +246,8 @@ class Assistants:
                         name, size = self.import_file_info(id)
                 if 'path' in assistant.files[id]:
                     path = assistant.files[id]['path']
+                if size == 0:
+                    _, size = self.import_file_info(id)
             elif id in assistant.attachments:
                 name = assistant.attachments[id].name
                 path = assistant.attachments[id].path
@@ -254,7 +256,7 @@ class Assistants:
                 name = id
                 size = 0
                 if import_data:
-                    name, size = self.import_file_info(id)
+                    name, size = self.import_file_info(id)  # import size from remote
                 path = None
             assistant.files[id] = {
                 'id': id,
