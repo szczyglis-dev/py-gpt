@@ -11,7 +11,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QResizeEvent, QImage
-from PySide6.QtWidgets import QMenu, QApplication
+from PySide6.QtWidgets import QMenu, QApplication, QHeaderView
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
@@ -31,11 +31,10 @@ class AttachmentList(BaseList):
         self.id = id
         self.doubleClicked.connect(self.dblclick)
         self.setHeaderHidden(False)
-
         self.clicked.disconnect(self.click)
 
         self.header = self.header()
-        self.header.setStretchLastSection(True)
+        self.header.setStretchLastSection(False)
 
         self.column_proportion = 0.3
         self.adjustColumnWidths()

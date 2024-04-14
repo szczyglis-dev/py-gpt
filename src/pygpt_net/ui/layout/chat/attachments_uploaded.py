@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
+
 import os
 
 from PySide6 import QtCore
@@ -87,8 +88,8 @@ class AttachmentsUploaded:
         """
         model = QStandardItemModel(0, 3, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.size'))
-        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.size'))
         return model
 
     def update(self, data):
@@ -108,11 +109,11 @@ class AttachmentsUploaded:
                 size = self.window.core.filesystem.sizeof_fmt(data[id]['size'])
             else:
                 if path and os.path.exists(path):
-                    size = self.window.core.filesystem.sizeof_fmt(path)
+                    size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
             self.window.ui.models[self.id].insertRow(i)
             index = self.window.ui.models[self.id].index(i, 0)
             self.window.ui.models[self.id].setData(index, "ID: " + id, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id]['name'])
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), size)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
             i += 1

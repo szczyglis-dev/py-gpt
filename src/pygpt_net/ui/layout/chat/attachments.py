@@ -127,8 +127,8 @@ class Attachments:
         """
         model = QStandardItemModel(0, 3, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.size'))
-        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.size'))
 
         return model
 
@@ -147,6 +147,6 @@ class Attachments:
                 size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
             self.window.ui.models[self.id].insertRow(i)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id].name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), size)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2),path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1),path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
             i += 1
