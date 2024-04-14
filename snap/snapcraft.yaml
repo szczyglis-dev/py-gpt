@@ -1,6 +1,6 @@
 name: pygpt
 base: core22  # Ubuntu 22.04
-version: '2.1.50'
+version: '2.1.51'
 summary: Desktop AI Assistant - GPT-4, GPT-4V, GPT-3, DALL-E 3, chat, assistant, vision
 description: |
   **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs, like those available on HuggingFace, by utilizing Langchain.

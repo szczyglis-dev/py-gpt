@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.51 (2024-04-14)
+
+- Added RMB context menu to the New... context button.
+- Added filesize info to attachments and uploaded files lists.
+- Improved Assistants API stream handling.
+
 # 2.1.50 (2024-04-14)
 
 - Fixed selection update after group rename.

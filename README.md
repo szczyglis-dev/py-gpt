@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.50** | build: **2024.04.14** | Python: **>=3.10, <3.12**
+Release: **2.1.51** | build: **2024.04.14** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.51 (2024-04-14)
+
+- Added RMB context menu to the New... context button.
+- Added filesize info to attachments and uploaded files lists.
+- Improved Assistants API stream handling.
 
 # 2.1.50 (2024-04-14)
 
