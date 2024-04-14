@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.14 20:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 from datetime import datetime, timedelta
 
 from pygpt_net.item.ctx import CtxMeta
+from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem
 from pygpt_net.utils import trans
@@ -37,10 +38,7 @@ class CtxList:
         :return: QWidget
         """
         id = 'ctx.list'
-        self.window.ui.nodes['ctx.new'] = QPushButton(trans('ctx.new'))
-        self.window.ui.nodes['ctx.new'].clicked.connect(
-            lambda: self.window.controller.ctx.new()
-        )
+        self.window.ui.nodes['ctx.new'] = NewCtxButton(trans('ctx.new'), self.window)
         self.window.ui.nodes[id] = ContextList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
         self.window.ui.nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))

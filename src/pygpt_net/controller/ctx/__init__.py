@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 18:00:00                  #
+# Updated Date: 2024.04.14 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -763,9 +763,8 @@ class Ctx:
             self.window.ui.dialog['create'].close()
 
             # select new group
-            self.window.ui.nodes['ctx.list'].setCurrentIndex(
-                self.get_parent_index_by_id(id)
-            )
+            self.select_group(id)
+            self.group_id = id
 
     def rename_group(self, id: int, force: bool = False):
         """
@@ -799,6 +798,18 @@ class Ctx:
                 self.window.ui.dialog['rename'].close()
             self.update(True, False, False)
             self.select_group(id)
+
+    def get_group_name(self, id: int) -> str:
+        """
+        Get group name by ID
+
+        :param id: group ID
+        :return: group name
+        """
+        group = self.window.core.ctx.get_group_by_id(id)
+        if group is not None:
+            return group.name
+        return ""
 
     def select_group(self, id: int):
         """
