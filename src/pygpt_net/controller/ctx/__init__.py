@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 10:00:00                  #
+# Updated Date: 2024.04.14 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -705,6 +705,7 @@ class Ctx:
         :param meta_id: int
         """
         self.window.core.ctx.update_meta_group_id(meta_id, None)
+        self.group_id = None
         self.update()
 
     def new_group(self, meta_id = None):
