@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 import os
@@ -340,6 +340,7 @@ class Files:
                         'id': new_id,
                         'name': attachment.name,
                         'path': attachment.path,
+                        'size': os.path.getsize(attachment.path),
                     }
 
                     # update assistant attachments list

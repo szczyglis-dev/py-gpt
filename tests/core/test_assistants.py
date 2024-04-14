@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -301,7 +301,8 @@ def test_import_files(mock_window_conf):
             'file1': {
                  'id': 'file1',
                  'name': 'file1',
-                 'path': ''
+                 'path': '',
+                 'size': 0
             },
         }
 
@@ -310,13 +311,14 @@ def test_import_files_with_remote_name(mock_window_conf):
     """
     Test import files with remote name
     """
-    with patch('pygpt_net.core.assistants.Assistants.import_filenames') as mock_import:
-        mock_import.return_value = 'remote_name'
+    with patch('pygpt_net.core.assistants.Assistants.import_file_info') as mock_import:
+        mock_import.return_value = 'remote_name', 123
 
         files = []
         file1 = MagicMock()
         file1.id = 'file1'
         file1.name = 'remote_name'
+        file1.size = 123
         files.append(file1)
 
         assistants = Assistants(window=mock_window_conf)
@@ -327,7 +329,7 @@ def test_import_files_with_remote_name(mock_window_conf):
         }
         assistants.get_by_id = MagicMock(return_value=assistant)
         assistants.import_files(assistant, files)
-        assert assistant.files == {'file1': {'id': 'file1', 'name': 'remote_name', 'path': ''}}
+        assert assistant.files == {'file1': {'id': 'file1', 'name': 'remote_name', 'path': '', 'size': 123}}
 
 
 def test_import_filenames(mock_window_conf):

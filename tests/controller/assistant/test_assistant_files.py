@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 14:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 import os
@@ -215,11 +215,13 @@ def test_upload(mock_window):
     item.id = "assistant_id"
 
     os.path.exists = MagicMock(return_value=True)
+    os.path.getsize = MagicMock(return_value=100)
 
     att = AttachmentItem()
     att.id = "attachment_id1"
     att.name = "attachment_id1"
     att.path = "attachment_id1"
+    att.size = 100
     att.send = False
 
     attachments = {}

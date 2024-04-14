@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 import json
@@ -21,6 +21,7 @@ class AttachmentItem:
         self.id = None
         self.path = None
         self.remote = None
+        self.size = 0
         self.send = False
 
     def serialize(self) -> dict:
@@ -33,6 +34,7 @@ class AttachmentItem:
             'id': self.id,
             'name': self.name,
             'path': self.path,
+            'size': self.size,
             'remote': self.remote,
             'send': self.send
         }
@@ -49,6 +51,8 @@ class AttachmentItem:
             self.name = data['name']
         if 'path' in data:
             self.path = data['path']
+        if 'size' in data:
+            self.size = data['size']
         if 'remote_id' in data:
             self.remote = data['remote']
         if 'send' in data:

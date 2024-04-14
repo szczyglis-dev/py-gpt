@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
+import os
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
@@ -84,9 +85,10 @@ class AttachmentsUploaded:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        model = QStandardItemModel(0, 2, parent)
+        model = QStandardItemModel(0, 3, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.size'))
+        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.path'))
         return model
 
     def update(self, data):
@@ -98,11 +100,19 @@ class AttachmentsUploaded:
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for id in data:
+            size = "-"
             if 'name' not in data[id] or 'path' not in data[id]:
                 continue
+            path = data[id]['path']
+            if 'size' in data[id] and data[id]['size'] is not None:
+                size = self.window.core.filesystem.sizeof_fmt(data[id]['size'])
+            else:
+                if path and os.path.exists(path):
+                    size = self.window.core.filesystem.sizeof_fmt(path)
             self.window.ui.models[self.id].insertRow(i)
             index = self.window.ui.models[self.id].index(i, 0)
             self.window.ui.models[self.id].setData(index, "ID: " + id, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id]['name'])
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[id]['path'])
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), size)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), path)
             i += 1

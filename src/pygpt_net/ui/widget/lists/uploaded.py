@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon, QResizeEvent
+from PySide6.QtGui import QAction, QIcon, QResizeEvent, Qt
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
@@ -31,22 +31,36 @@ class UploadedFileList(BaseList):
         self.doubleClicked.connect(self.dblclick)
         self.setHeaderHidden(False)
 
+        self.clicked.disconnect(self.click)
+
         self.header = self.header()
         self.header.setStretchLastSection(True)
 
-        self.column_proportion = 0.5
+        self.column_proportion = 0.3
         self.adjustColumnWidths()
 
     def adjustColumnWidths(self):
         total_width = self.width()
         first_column_width = int(total_width * self.column_proportion)
         self.setColumnWidth(0, first_column_width)
-        for column in range(1, 2):
-            self.setColumnWidth(column, (total_width - first_column_width) // (2 - 1))
+        for column in range(1, 3):
+            self.setColumnWidth(column, (total_width - first_column_width) // (3 - 1))
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
         self.adjustColumnWidths()
+
+    def mousePressEvent(self, event):
+        """
+        Mouse press event
+
+        :param event: mouse event
+        """
+        if event.buttons() == Qt.LeftButton:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self.window.controller.assistant.files.select(index.row())
+        super(UploadedFileList, self).mousePressEvent(event)
 
     def click(self, val):
         """
@@ -54,7 +68,7 @@ class UploadedFileList(BaseList):
 
         :param val: click event
         """
-        self.window.controller.assistant.files.select(val.row())
+        pass
 
     def dblclick(self, val):
         """

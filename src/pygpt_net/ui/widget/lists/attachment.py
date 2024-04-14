@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 20:00:00                  #
+# Updated Date: 2024.04.14 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -32,7 +32,6 @@ class AttachmentList(BaseList):
         self.doubleClicked.connect(self.dblclick)
         self.setHeaderHidden(False)
 
-        # unconnect self.click
         self.clicked.disconnect(self.click)
 
         self.header = self.header()
@@ -61,7 +60,6 @@ class AttachmentList(BaseList):
         if event.buttons() == Qt.LeftButton:
             index = self.indexAt(event.pos())
             if index.isValid():
-                print("clk", index.row())
                 mode = self.window.core.config.get('mode')
                 self.window.controller.attachment.select(mode, index.row())
         super(AttachmentList, self).mousePressEvent(event)
