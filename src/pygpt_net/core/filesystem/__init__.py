@@ -272,11 +272,9 @@ class Filesystem:
         """
         for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 1024.0:
-                num_float = float(num)
-                return f"{num_float:.0f}{unit}{suffix}" if num_float.is_integer() else f"{num_float:3.1f}{unit}{suffix}"
+                return "{:.1f} {}{}".format(num, unit, suffix).replace('.', ',')
             num /= 1024.0
-        num_float = float(num)
-        return f"{num_float:.0f}Yi{suffix}" if num_float.is_integer() else f"{num_float:.1f}Yi{suffix}"
+        return "{:.1f} {}{}".format(num, 'Yi', suffix).replace('.', ',')
 
     def get_directory_size(self, directory : str, human_readable: bool = True) -> str or int:
         """
