@@ -262,7 +262,7 @@ class Filesystem:
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
 
-    def sizeof_fmt(self, num: float, suffix='B') -> str:
+    def sizeof_fmt(self, num, suffix='B'):
         """
         Convert numbers to human-readable unit formats.
 
@@ -272,9 +272,11 @@ class Filesystem:
         """
         for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 1024.0:
-                return f"{num:3.1f}{unit}{suffix}"
+                num_float = float(num)
+                return f"{num_float:.0f}{unit}{suffix}" if num_float.is_integer() else f"{num_float:3.1f}{unit}{suffix}"
             num /= 1024.0
-        return f"{num:.1f}Yi{suffix}"
+        num_float = float(num)
+        return f"{num_float:.0f}Yi{suffix}" if num_float.is_integer() else f"{num_float:.1f}Yi{suffix}"
 
     def get_directory_size(self, directory : str, human_readable: bool = True) -> str or int:
         """
