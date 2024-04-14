@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.52 (2024-04-15)
+
+- Added real-time output from code interpreter in Assistants mode.
+- Added new option in Settings > Context: Show code interpreter output.
+
 # 2.1.51 (2024-04-14)
 
 - Added RMB context menu to the New... context button.

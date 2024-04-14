@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.51** | build: **2024.04.14** | Python: **>=3.10, <3.12**
+Release: **2.1.52** | build: **2024.04.15** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2944,6 +2944,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.52 (2024-04-15)
+
+- Added real-time output from code interpreter in Assistants mode.
+- Added new option in Settings > Context: Show code interpreter output.
 
 # 2.1.51 (2024-04-14)
 
