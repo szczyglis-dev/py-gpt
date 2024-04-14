@@ -2633,9 +2633,13 @@ Config -> Settings...
 
 - `Show Llama-index sources`: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
 
+- `Show code interpreter output`: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
+
 - `Always show audio icon`: If enabled, then read with audio icon will be always displayed.
 
 - `Use extra context output`: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output, Default: True.
+
+- `Show "copy to clipboard" in code blocks`: If enabled, copy to clipboard link will be displayed in code blocks, Default: True.
 
 - `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 

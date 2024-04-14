@@ -26,6 +26,7 @@
   "ctx.counters.all": false,
   "ctx.edit_icons": false,
   "ctx.copy_code": true,
+  "ctx.code_interpreter": true,
   "ctx.list.expanded": [],
   "ctx.records.limit": 0,
   "ctx.records.filter": "all",

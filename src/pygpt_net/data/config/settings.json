@@ -361,6 +361,19 @@
         "step": null,
         "advanced": false
     },
+    "ctx.code_interpreter": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.code_interpreter",
+        "description": "settings.ctx.code_interpreter.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.audio": {
         "section": "ctx",
         "type": "bool",
