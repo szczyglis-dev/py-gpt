@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -71,7 +71,7 @@ class Mode:
             self.window.ui.nodes['idx.options'].setVisible(False)
 
         # stream mode
-        if mode in ["img", "assistant"]:
+        if mode in ["img"]:
             self.window.ui.nodes['input.stream'].setVisible(False)
         else:
             self.window.ui.nodes['input.stream'].setVisible(True)

@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 01:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
+from openai import AssistantEventHandler
+
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from typing_extensions import override
 
 from pygpt_net.item.ctx import CtxItem
 
@@ -22,26 +25,6 @@ class AssistantsWorker:
         :param window: Window instance
         """
         self.window = window
-
-    @Slot(object, object)
-    def handle_error(self, ctx: CtxItem, err: any):
-        """
-        Handle thread error signal
-
-        :param ctx: context item
-        :param err: error message
-        """
-        self.window.controller.assistant.threads.handle_run_error(ctx, err)
-
-    @Slot(object, object)
-    def handle_run_created(self, ctx: CtxItem, run):
-        """
-        Handle thread finished signal
-
-        :param ctx: context item
-        :param run
-        """
-        self.window.controller.assistant.threads.handle_run_created(ctx, run)
 
     def create_run(
             self,
@@ -65,8 +48,8 @@ class AssistantsWorker:
         worker.thread_id = thread_id
         worker.assistant_id = assistant_id
         worker.system_prompt = system_prompt
-        worker.signals.finished.connect(self.handle_run_created)
-        worker.signals.error.connect(self.handle_error)
+        worker.stream = self.window.core.config.get("stream")
+        self.connect_signals(worker)
         self.window.threadpool.start(worker)
 
     def msg_send(
@@ -94,8 +77,8 @@ class AssistantsWorker:
         worker.assistant_id = assistant_id
         worker.prompt = prompt
         worker.system_prompt = system_prompt
-        worker.signals.finished.connect(self.handle_run_created)
-        worker.signals.error.connect(self.handle_error)
+        worker.stream = self.window.core.config.get("stream")
+        self.connect_signals(worker)
         self.window.threadpool.start(worker)
 
     def tools_submit(
@@ -114,14 +97,207 @@ class AssistantsWorker:
         worker.mode = "tools_submit"
         worker.ctx = ctx
         worker.tools_outputs = tools_outputs
+        worker.stream = self.window.core.config.get("stream")
+        self.connect_signals(worker)
+        self.window.threadpool.start(worker)
+
+    def connect_signals(self, worker):
+        """
+        Connect worker signals
+
+        :param worker: worker instance
+        """
         worker.signals.finished.connect(self.handle_run_created)
         worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(worker)
+        worker.signals.stream_text_created.connect(self.handle_text_created)
+        worker.signals.stream_text_delta.connect(self.handle_text_delta)
+        worker.signals.stream_end.connect(self.handle_end)
+        worker.signals.stream_tool_call_created.connect(self.handle_tool_call_created)
+        worker.signals.stream_tool_call_delta.connect(self.handle_tool_call_delta)
+        worker.signals.stream_message_done.connect(self.handle_message_done)
+        worker.signals.stream_run_step_created.connect(self.handle_run_step_created)
+
+    @Slot(object)
+    def handle_text_created(self, ctx: CtxItem):
+        """
+        Handle thread text created signal
+
+        :param ctx: context item
+        """
+        self.window.controller.chat.render.stream_begin()
+        self.window.controller.assistant.threads.handle_stream_begin(ctx)
+
+    @Slot(object, object)
+    def handle_text_delta(self, ctx: CtxItem, delta, begin):
+        """
+        Handle thread text delta signal
+
+        :param ctx: context item
+        :param delta: delta
+        :param begin: stream text begin
+        """
+        if ctx.output is None:
+            ctx.output = ""
+        if ctx.output_tokens is None:
+            ctx.output_tokens = 0
+        ctx.output_tokens += 1  # tokens++
+        self.window.controller.chat.render.append_chunk(
+            ctx,
+            delta.value,
+            begin,
+        )
+
+    @Slot(object)
+    def handle_end(self, ctx: CtxItem):
+        """
+        Handle thread end signal
+
+        :param ctx: context item
+        """
+        self.window.controller.chat.render.stream_end()
+        self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
+
+    @Slot(object, object)
+    def handle_tool_call_created(self, ctx: CtxItem, tool_call):
+        """
+        Handle thread tool call created signal
+
+        :param ctx: context item
+        :param tool_call: tool call
+        """
+        pass
+
+    @Slot(object, object)
+    def handle_tool_call_delta(self, ctx: CtxItem, delta):
+        """
+        Handle thread tool call delta signal
+
+        :param ctx: context item
+        :param delta: delta
+        """
+        pass
+
+    @Slot(object, object)
+    def handle_message_done(self, ctx: CtxItem, message):
+        """
+        Handle thread message done signal
+
+        :param ctx: context item
+        :param message: message
+        """
+        self.window.controller.assistant.threads.handle_message_data(ctx, message)  # handle img, files, etc.
+
+    @Slot(object, object)
+    def handle_run_step_created(self, ctx: CtxItem, run_step):
+        """
+        Handle thread run step created signal
+
+        :param ctx: context item
+        :param run_step: run step
+        """
+        ctx.run_id = run_step.run_id
+
+    @Slot(object, object)
+    def handle_error(self, ctx: CtxItem, err: any):
+        """
+        Handle thread error signal
+
+        :param ctx: context item
+        :param err: error message
+        """
+        self.window.controller.assistant.threads.handle_run_error(ctx, err)
+
+    @Slot(object, object, bool)
+    def handle_run_created(self, ctx: CtxItem, run, stream=False):
+        """
+        Handle thread finished signal
+
+        :param ctx: context item
+        :param run
+        :param stream: stream mode
+        """
+        self.window.controller.assistant.threads.handle_run_created(ctx, run, stream=stream)
+
+class EventHandler(AssistantEventHandler):
+
+    def __init__(
+            self,
+            signals: QObject = None,
+            ctx: CtxItem = None
+
+    ):
+        super().__init__()
+        self.signals = signals
+        self.ctx = ctx
+        self.begin = False
+    @override
+    def on_text_created(self, text) -> None:
+        """Callback that is fired when a text content block is created"""
+        # print(f"\nassistant > ", end="", flush=True)
+        self.begin = True
+        self.signals.stream_text_created.emit(self.ctx)
+
+    @override
+    def on_text_delta(self, delta, snapshot):
+        """Callback that is fired whenever a message delta is returned from the API"""
+        # print(delta.value, end="", flush=True)
+        self.signals.stream_text_delta.emit(self.ctx, delta, self.begin)
+        self.begin = False
+
+    @override
+    def on_run_step_created(self, run_step) -> None:
+        """Callback that is fired when a run step is created"""
+        self.signals.stream_run_step_created.emit(self.ctx, run_step)
+
+    @override
+    def on_text_done(self, text):
+        """Callback that is fired when a text content block is finished"""
+        pass
+
+    @override
+    def on_message_done(self, message) -> None:
+        """Callback that is fired when a message is completed"""
+        self.signals.stream_message_done.emit(self.ctx, message)
+
+    @override
+    def on_end(self):
+        """Fires when the stream has finished."""
+        # print("\n\nassistant > end\n", flush=True)
+        self.signals.stream_end.emit(self.ctx)
+
+    @override
+    def on_exception(self, exception: Exception):
+        """Fired whenever an exception happens during streaming"""
+        self.signals.error.emit(self.ctx,  exception)
+
+    @override
+    def on_timeout(self) -> None:
+        """Fires if the request times out"""
+        self.signals.error.emit(self.ctx,  "Timeout")
+
+    def on_tool_call_created(self, tool_call):
+        """Callback that is fired when a tool call is created"""
+        # print(f"\nassistant > {tool_call.type}\n", flush=True)
+        self.signals.stream_tool_call_created.emit(self.ctx, tool_call)
+
+    def on_tool_call_delta(self, delta, snapshot):
+        """Callback that is fired when a tool call delta is encountered"""
+        self.signals.stream_tool_call_delta.emit(self.ctx, delta)
 
 
 class WorkerSignals(QObject):
-    finished = Signal(object, object)
-    error = Signal(object, object)
+    # run create
+    finished = Signal(object, object, bool)  # ctx, run, stream
+    error = Signal(object, object)  # ctx, error
+
+    # stream
+    stream_text_created = Signal(object)  # ctx
+    stream_text_delta = Signal(object, object, bool)  # ctx, delta, begin
+    stream_end = Signal(object)  # ctx
+    stream_tool_call_created = Signal(object, object)  # ctx, tool_call
+    stream_tool_call_delta = Signal(object, object)  # ctx, delta
+    stream_message_done = Signal(object, object)  # ctx, message
+    stream_run_step_created = Signal(object, object)  # ctx, run_step
 
 
 class Worker(QRunnable):
@@ -136,6 +312,7 @@ class Worker(QRunnable):
         self.system_prompt = None
         self.tools_outputs = None
         self.ctx = None
+        self.stream = False
 
     @Slot()
     def run(self):
@@ -154,13 +331,24 @@ class Worker(QRunnable):
         :return: result
         """
         try:
-            run = self.window.core.gpt.assistants.run_create(
-                self.thread_id,
-                self.assistant_id,
-                self.system_prompt,
-            )
+            if self.stream:  # stream mode
+                run = self.window.core.gpt.assistants.run_create_stream(
+                    self.signals,
+                    self.ctx,
+                    self.thread_id,
+                    self.assistant_id,
+                    self.system_prompt,
+                )
+            else:
+                # not stream mode
+                run = self.window.core.gpt.assistants.run_create(
+                    self.thread_id,
+                    self.assistant_id,
+                    self.system_prompt,
+                )
+            # handle run (stream or not)
             if run is not None:
-                self.signals.finished.emit(self.ctx, run)
+                self.signals.finished.emit(self.ctx, run, self.stream)
                 return True
         except Exception as e:
             self.signals.error.emit(self.ctx, e)
@@ -194,7 +382,8 @@ class Worker(QRunnable):
             run = self.window.core.gpt.assistants.run_submit_tool(self.ctx, self.tools_outputs)
             if run is not None:
                 self.ctx.run_id = run.id  # update run id
-                self.signals.finished.emit(self.ctx, run)  # continue status check
+                self.signals.finished.emit(self.ctx, run, False)  # continue status check
+                # TODO: implement stream mode in tool submit
                 return True
         except Exception as e:
             self.signals.error.emit(self.ctx, e)

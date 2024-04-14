@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 import json
@@ -34,7 +34,7 @@ class Threads:
 
     def create_thread(self) -> str:
         """
-        Create assistant thread
+        Create assistant thread and store in context (stream and not stream)
 
         :return: thread id
         """
@@ -43,16 +43,20 @@ class Threads:
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
 
-    def handle_output_message(self, ctx: CtxItem):
+    def handle_output_message(self, ctx: CtxItem, stream: bool = False):
         """
-        Handle output message
+        Handle output message (not stream)
 
         :param ctx: CtxItem
+        :param stream: stream mode
         """
         # update ctx
         ctx.from_previous()  # append previous result if exists
         self.window.core.ctx.update_item(ctx)
-        self.window.controller.chat.output.handle(ctx, 'assistant', False)
+        self.window.controller.chat.output.handle(ctx, 'assistant', stream)
+
+        if stream:
+            self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
 
         ctx.clear_reply()  # reset results
         self.window.controller.chat.output.handle_cmd(ctx)
@@ -69,7 +73,7 @@ class Threads:
 
     def handle_message_data(self, ctx: CtxItem, msg):
         """
-        Handle message data
+        Handle message data (files, images, text) - stream and not-stream
 
         :param ctx: CtxItem
         :param msg: Message
@@ -81,6 +85,7 @@ class Threads:
 
         for content in msg.content:
             if content.type == "text":
+                # text
                 ctx.set_output(content.text.value)
 
                 # annotations
@@ -134,7 +139,7 @@ class Threads:
 
     def handle_messages(self, ctx: CtxItem):
         """
-        Handle run messages
+        Handle run messages (not stream)
 
         :param ctx: CtxItem
         """
@@ -149,6 +154,21 @@ class Threads:
                     print("Run: handle message error:", e)
                 break
         self.handle_output_message(ctx)  # send to chat
+
+    def handle_tool_calls_stream(self, run, ctx: CtxItem):
+        """
+        Handle tool calls (stream)
+
+        :param run: Run
+        :param ctx: CtxItem
+        """
+        self.stop = False
+        ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+            run.required_action.submit_tool_outputs.tool_calls
+        )
+        self.window.statusChanged.emit(trans('assistant.run.func.call'))
+        self.window.stateChanged.emit(self.window.STATE_IDLE)
+        self.handle_tool_calls(ctx)
 
     def handle_tool_calls(self, ctx: CtxItem):
         """
@@ -199,27 +219,27 @@ class Threads:
         :return: list of tool calls outputs
         """
         self.log("Run: preparing tool calls outputs...")
-
         ctx.run_id = self.run_id
         ctx.tool_calls = self.tool_calls  # set previous tool calls
         return self.window.core.command.get_tool_calls_outputs(ctx)
 
-    def handle_run_created(self, ctx: CtxItem, run):
+    def handle_run_created(self, ctx: CtxItem, run, stream: bool = False):
         """
-        Handle run created
+        Handle run created (stream and not stream)
 
         :param ctx: context item
         :param run
+        :param stream: stream mode
         """
         ctx.run_id = run.id
         ctx.current = False
         self.window.core.ctx.update_item(ctx)
         self.window.core.ctx.append_run(ctx.run_id)  # get run ID and store in ctx
-        self.handle_run(ctx)  # handle assistant run
+        self.handle_run(ctx, run, stream)  # handle assistant run
 
     def handle_run_error(self, ctx: CtxItem, err):
         """
-        Handle run created
+        Handle run created (stream and not stream)
 
         :param ctx: context item
         :param err: error message
@@ -229,36 +249,83 @@ class Threads:
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(err)
 
-    def handle_run(self, ctx: CtxItem):
+    def handle_run(self, ctx: CtxItem, run, stream: bool = False):
         """
-        Handle assistant's run
+        Handle assistant's run (not stream)
 
         :param ctx: CtxItem
+        :param run: Run
+        :param stream: stream mode
         """
+        self.reset()  # clear previous run
+
+        if stream:
+            self.log("Run: finishing stream...")
+            if run and run.usage is not None:
+                    ctx.input_tokens = run.usage.prompt_tokens
+                    ctx.output_tokens = run.usage.completion_tokens
+                    ctx.total_tokens = run.usage.total_tokens
+            self.handle_stream_end(ctx)  # unlock
+            if run:
+                if run.status == "requires_action":  # handle tool calls in stream mode
+                    self.handle_tool_calls_stream(run, ctx)
+            return # stop here, run is finished here in stream mode
+
+        # ---- not stream only ----
+
+        # run status listener
+        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        self.log("Run: starting run worker...")
+
         # worker
         worker = RunWorker()
         worker.window = self.window
         worker.ctx = ctx
-
-        self.reset()  # clear previous run
 
         # signals
         worker.signals.updated.connect(self.handle_status)
         worker.signals.destroyed.connect(self.handle_destroy)
         worker.signals.started.connect(self.handle_started)
 
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
-
-        self.log("Run: starting run worker...")
-
         # start
         self.window.threadpool.start(worker)
         self.started = True
 
+    def handle_stream_begin(self, ctx: CtxItem):
+        """
+        Handle stream end (stream)
+
+        :param ctx: CtxItem
+        """
+        self.window.stateChanged.emit(self.window.STATE_BUSY)
+
+    def handle_stream_end(self, ctx: CtxItem):
+        """
+        Handle stream end (stream)
+
+        :param ctx: CtxItem
+        """
+        self.window.stateChanged.emit(self.window.STATE_IDLE)
+        self.window.controller.chat.common.unlock_input()  # unlock input
+        self.stop = False
+        self.window.statusChanged.emit(trans('assistant.run.completed'))
+        self.window.controller.chat.output.show_response_tokens(ctx)  # update tokens
+
+    def handle_status_error(self, ctx: CtxItem):
+        """
+        Handle status error (stream and not stream)
+
+        :param ctx: CtxItem
+        """
+        self.stop = False
+        self.window.controller.chat.common.unlock_input()
+        self.window.statusChanged.emit(trans('assistant.run.failed'))
+        self.window.stateChanged.emit(self.window.STATE_ERROR)
+
     @Slot(object, object)
     def handle_status(self, run, ctx: CtxItem):
         """
-        Handle status
+        Handle status (not stream)
 
         :param run: Run
         :param ctx: CtxItem
@@ -292,10 +359,7 @@ class Threads:
 
         # error
         elif status in ["failed", "cancelled", "expired", "cancelling"]:
-            self.stop = False
-            self.window.controller.chat.common.unlock_input()
-            self.window.statusChanged.emit(trans('assistant.run.failed'))
-            self.window.stateChanged.emit(self.window.STATE_ERROR)
+            self.handle_status_error(ctx)
 
     @Slot()
     def handle_destroy(self):

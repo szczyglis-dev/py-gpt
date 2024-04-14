@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -34,12 +34,12 @@ class Output:
         :param mode: mode
         :param stream_mode: stream mode
         """
-        append_stream = stream_mode
         self.window.stateChanged.emit(self.window.STATE_BUSY)
 
         # if stream mode then append chunk by chunk
-        if append_stream and mode not in self.not_stream_modes:
-            self.append_stream(ctx, mode)
+        if stream_mode:
+            if mode not in self.not_stream_modes:
+                self.append_stream(ctx, mode)
 
         # check if tool calls detected
         if ctx.tool_calls:
@@ -47,7 +47,7 @@ class Output:
             if not isinstance(ctx.extra, dict):
                 ctx.extra = {}
             ctx.extra["tool_calls"] = ctx.tool_calls
-            append_stream = False  # disable stream mode, show tool calls at the end
+            stream_mode = False  # disable stream mode, show tool calls at the end
 
         # agent mode
         if mode == 'agent':
@@ -61,9 +61,12 @@ class Output:
         self.log("Appending output to chat window...")
 
         # only append output if not in stream mode, TODO: plugin output add
-        if not append_stream:
+        if not stream_mode:
             self.window.controller.chat.render.append_output(ctx)
             self.window.controller.chat.render.append_extra(ctx)
+        else:
+            if mode == 'assistant':
+                self.window.controller.chat.render.append_extra(ctx)  # append extra data only
 
         self.handle_complete(ctx)
 

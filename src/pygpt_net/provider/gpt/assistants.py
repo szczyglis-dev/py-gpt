@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 14:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 import json
@@ -14,7 +14,8 @@ import os
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.ctx import CtxItem
-from .worker.assistants import AssistantsWorker
+
+from .worker.assistants import AssistantsWorker, EventHandler
 from .worker.importer import Importer
 
 
@@ -117,6 +118,41 @@ class Assistants:
         data = content.read()
         with open(path, 'wb', ) as f:
             f.write(data)
+
+    def run_create_stream(
+            self,
+            signals,
+            ctx: CtxItem,
+            thread_id: str,
+            assistant_id: str,
+            instructions=None
+    ):
+        """
+        Create assistant run (stream)
+
+        :param signals: worker signals
+        :param ctx: context item
+        :param thread_id: tread ID
+        :param assistant_id: assistant ID
+        :param instructions: instructions
+        """
+        client = self.window.core.gpt.get_client()
+        additional_args = {}
+        if instructions is not None and instructions != "":
+            additional_args['instructions'] = instructions
+
+        model = self.window.core.config.get('model')
+        if model is not None:
+            model_id = self.window.core.models.get_id(model)
+            additional_args['model'] = model_id
+
+        with client.beta.threads.runs.stream(
+                thread_id=thread_id,
+                assistant_id=assistant_id,
+                event_handler=EventHandler(signals, ctx),
+                **additional_args
+        ) as stream:
+            return stream.get_final_run()
 
     def run_create(
             self,

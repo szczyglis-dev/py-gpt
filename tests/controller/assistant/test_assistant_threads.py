@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.14 06:00:00                  #
 # ================================================== #
 
 import os
@@ -68,9 +68,10 @@ def test_handle_run(mock_window):
     """Test handle run"""
     threads = Threads(mock_window)
     mock_window.threadpool.start = MagicMock()
+    run = MagicMock()
 
     ctx = CtxItem()
-    threads.handle_run(ctx)
+    threads.handle_run(ctx, run)
 
     mock_window.threadpool.start.assert_called_once()
 
