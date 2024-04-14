@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.47** | build: **2024.04.12** | Python: **>=3.10, <3.12**
+Release: **2.1.48** | build: **2024.04.14** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2940,6 +2940,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.48 (2024-04-14)
+
+- OpenAI API upgraded to version 1.17.1.
+- Added a stream mode to the Assistant mode (beta).
+- Fixed an issue where context group ID were not copied when duplicating context.
 
 # 2.1.47 (2024-04-12)
 

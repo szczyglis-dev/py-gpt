@@ -1,3 +1,9 @@
+2.1.48 (2024-04-14)
+
+- OpenAI API upgraded to version 1.17.1.
+- Added a stream mode to the Assistant mode (beta).
+- Fixed an issue where context group ID were not copied when duplicating context.
+
 2.1.47 (2024-04-12)
 
 - Added auto-creating new context in current group if the group is active.
