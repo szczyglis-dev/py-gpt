@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Last update:** 2024-04-14 08:00
+| **Last update:** 2024-04-14 09:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
