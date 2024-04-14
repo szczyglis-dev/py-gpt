@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 10:00:00                  #
+# Updated Date: 2024.04.14 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -127,9 +127,9 @@ class Tray:
         menu.addAction(self.window.ui.tray_menu['restore'])
         menu.addAction(self.window.ui.tray_menu['new'])
         menu.addAction(self.window.ui.tray_menu['scheduled'])
-        menu.addAction(self.window.ui.tray_menu['update'])
         menu.addAction(self.window.ui.tray_menu['open_notepad'])
         menu.addAction(self.window.ui.tray_menu['screenshot'])
+        menu.addAction(self.window.ui.tray_menu['update'])
         menu.addAction(self.window.ui.tray_menu['exit'])
         self.icon.activated.connect(self.window.tray_toggle)
         self.icon.setContextMenu(menu)
