@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 08:00:00                  #
+# Updated Date: 2024.04.14 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -609,6 +609,22 @@ class Ctx:
                 return found_index
         return QModelIndex()
 
+    def find_parent_index_by_id(self, item, id):
+        """
+        Return index of item with given ID, searching recursively through the model.
+
+        :param item: QStandardItem
+        :param id: int
+        :return: QModelIndex
+        """
+        if hasattr(item, 'id') and hasattr(item, 'isFolder') and item.isFolder and item.id == id:
+            return item.index()
+        for row in range(item.rowCount()):
+            found_index = self.find_parent_index_by_id(item.child(row), id)
+            if found_index.isValid():
+                return found_index
+        return QModelIndex()
+
     def get_parent_index_by_id(self, id):
         """
         Return QModelIndex of parent item based on its ID.
@@ -618,7 +634,7 @@ class Ctx:
         """
         model = self.window.ui.models['ctx.list']
         root = model.invisibleRootItem()
-        return self.find_index_by_id(root, id)
+        return self.find_parent_index_by_id(root, id)
 
     def get_children_index_by_id(self, parent_id, child_id):
         """
