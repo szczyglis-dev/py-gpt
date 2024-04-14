@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.04.14 20:00:00                  #
 # ================================================== #
+
+import os
 
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
@@ -123,9 +125,11 @@ class Attachments:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        model = QStandardItemModel(0, 2, parent)
+        model = QStandardItemModel(0, 3, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.size'))
+        model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.path'))
+
         return model
 
     def update(self, data):
@@ -137,7 +141,12 @@ class Attachments:
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for id in data:
+            path = data[id].path
+            size = ""
+            if path and os.path.exists(path):
+                size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
             self.window.ui.models[self.id].insertRow(i)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id].name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[id].path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), size)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2),path)
             i += 1
