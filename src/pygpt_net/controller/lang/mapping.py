@@ -251,12 +251,17 @@ class Mapping:
         nodes['tool.indexer.ctx.idx.tip'] = 'tool.indexer.tab.ctx.idx.tip'
         nodes['tool.indexer.file.path_file.label'] = 'tool.indexer.tab.files.path.files'
         nodes['tool.indexer.file.path_dir.label'] = 'tool.indexer.tab.files.path.dir'
-        nodes['tool.indexer.file.options.recursive'] = 'tool.indexer.tab.option.recursive'
+        nodes['tool.indexer.file.options.recursive'] = 'tool.indexer.option.recursive'
         nodes['tool.indexer.file.options.replace'] = 'tool.indexer.option.replace'
         nodes['tool.indexer.web.loader.label'] = 'tool.indexer.tab.web.loader'
         nodes['tool.indexer.web.options.label'] = 'tool.indexer.tab.web.source'
         nodes['tool.indexer.web.config.label'] = 'tool.indexer.tab.web.cfg'
         nodes['tool.indexer.web.options.replace'] = 'tool.indexer.option.replace'
+        nodes['tool.indexer.file.header.tip'] = 'tool.indexer.tab.files.tip'
+        nodes['tool.indexer.web.header.tip'] = 'tool.indexer.tab.web.tip'
+        nodes['tool.indexer.ctx.header.tip'] = 'tool.indexer.tab.ctx.tip'
+        nodes['tool.indexer.browse.header.tip'] = 'tool.indexer.tab.browse.tip'
+
 
         # menu title
         menu_title = {}
