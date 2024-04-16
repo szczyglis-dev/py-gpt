@@ -11,6 +11,7 @@
 
 import json
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget, QCheckBox, QHBoxLayout, QScrollArea, \
     QSizePolicy
 
@@ -96,7 +97,7 @@ class WebTab:
             self.window.ui.nodes["tool.indexer.web.loader.config_group"][loader] = groups[loader]
             params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.loader.config_group"][loader])
             self.window.ui.nodes["tool.indexer.web.loader.config_group"][loader].hide()  # hide on start
-        params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.config.help"])
+        params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.config.help"], alignment=Qt.AlignCenter)
 
         params_layout.addStretch(1)
 
@@ -123,8 +124,11 @@ class WebTab:
         options_layout = QVBoxLayout()
         options_layout.addWidget(self.window.ui.nodes["tool.indexer.web.options.replace"])
 
+        self.window.ui.nodes["tool.indexer.web.header.tip"] = HelpLabel(trans("tool.indexer.tab.web.tip"))
+
         # layout
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes["tool.indexer.web.header.tip"])
         layout.addLayout(loader_layout)
         layout.addLayout(options_layout)
         layout.addWidget(self.params_scroll)

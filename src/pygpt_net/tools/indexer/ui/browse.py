@@ -11,6 +11,8 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
+from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.utils import trans
 from .widgets import IdxBrowser
 
 
@@ -33,7 +35,9 @@ class BrowseTab:
         self.window.ui.nodes['tool.indexer.browser'] = self.browser
 
         # layout
+        self.window.ui.nodes["tool.indexer.browse.header.tip"] = HelpLabel(trans("tool.indexer.tab.browse.tip"))
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes["tool.indexer.browse.header.tip"])
         layout.addWidget(self.browser)
 
         widget = QWidget()

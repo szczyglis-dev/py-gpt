@@ -74,9 +74,11 @@ class CtxTab:
         idx_btn_layout.addWidget(self.window.ui.nodes["tool.indexer.ctx.btn.idx_update"])
 
         self.window.ui.nodes["tool.indexer.ctx.idx.tip"] = QLabel(trans("tool.indexer.tab.ctx.idx.tip"))
+        self.window.ui.nodes["tool.indexer.ctx.header.tip"] = HelpLabel(trans("tool.indexer.tab.ctx.tip"))
 
         # layout
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes["tool.indexer.ctx.header.tip"])
         layout.addLayout(auto_enabled_layout)
         layout.addLayout(last_auto_layout)
         layout.addLayout(last_meta_layout)

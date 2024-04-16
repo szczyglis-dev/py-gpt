@@ -105,14 +105,15 @@ class IndexerTool(BaseTool):
             self.window.ui.nodes["tool.indexer.btn.idx"].show()
         self.refresh()
 
-    def set_current_idx(self, idx):
+    def set_current_idx(self, idx, check: bool = True):
         """
         Set current index
 
         :param idx: index id
+        :param check: check if index is valid
         """
         self.current_idx = idx
-        self.refresh()
+        self.refresh(check)
 
     def check_current_idx(self):
         """Check if current index is valid"""
@@ -127,9 +128,14 @@ class IndexerTool(BaseTool):
         if not valid and self.current_idx != "-":
             self.current_idx = default
 
-    def refresh(self):
-        """Refresh dialog window"""
-        self.check_current_idx()
+    def refresh(self, check: bool = True):
+        """
+        Refresh dialog window
+
+        :param check: check if index is valid
+        """
+        if check:
+            self.check_current_idx()
         self.update_tabs()
 
     def update_tabs(self):
@@ -220,6 +226,9 @@ class IndexerTool(BaseTool):
 
         :param force: force indexing
         """
+        if self.current_idx == "-" or self.current_idx is None or self.current_idx == "_":
+            self.window.ui.dialogs.alert(trans("tool.indexer.alert.no_idx"))
+            return
         tab = self.window.ui.tabs['tool.indexer'].currentIndex()
         if tab == 0:
             self.index_files(force)
@@ -321,7 +330,18 @@ class IndexerTool(BaseTool):
             input_params,
             input_config,
             is_replace
-        )\
+        )
+
+    def on_finish_files(self):
+        """On finish indexing files"""
+        if self.window.ui.nodes["tool.indexer.file.options.clear"].isChecked():
+            self.window.ui.nodes["tool.indexer.file.path_file"].clear()
+            self.window.ui.nodes["tool.indexer.file.path_dir"].clear()
+        print("Indexing files finished")
+
+    def on_finish_web(self):
+        """On finish indexing web"""
+        print("Indexing web finished")
 
     def truncate_idx(self):
         """Truncate index"""
@@ -488,7 +508,7 @@ class IndexerTool(BaseTool):
         """
         return {
             'menu.text': {
-                'tools.example.tool': 'menu.tools.example.tool',  # menu key => translation key
+                'tools.indexer': 'tool.indexer',  # menu key => translation key
             }
         }
 

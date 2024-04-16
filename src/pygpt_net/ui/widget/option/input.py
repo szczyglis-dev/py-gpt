@@ -278,3 +278,8 @@ class DirectoryInput(QLineEdit):
         :param event: key event
         """
         super(DirectoryInput, self).keyPressEvent(event)
+
+    def clear(self):
+        """Clear input"""
+        self.setText("")
+        self.value = ""

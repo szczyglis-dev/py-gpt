@@ -620,6 +620,7 @@ class Indexer:
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
 
+        self.window.tools.get("indexer").on_finish_files()
         self.window.tools.get("indexer").refresh()
 
     @Slot(str, object, object, bool)
@@ -638,7 +639,6 @@ class Indexer:
         :param errors: errors
         :param silent: silent mode (no msg and status update)
         """
-        print("RECVEIVED RESPONSE")
         if num > 0:
             msg = trans('idx.status.success') + f" {num}"
             if not silent:
@@ -650,4 +650,5 @@ class Indexer:
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
 
+        self.window.tools.get("indexer").on_finish_web()
         self.window.tools.get("indexer").refresh()

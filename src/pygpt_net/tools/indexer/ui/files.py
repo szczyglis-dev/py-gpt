@@ -65,6 +65,8 @@ class FilesTab:
         self.window.ui.nodes["tool.indexer.file.options.recursive"].setChecked(True)
         self.window.ui.nodes["tool.indexer.file.options.replace"] = QCheckBox(trans("tool.indexer.option.replace"))
         self.window.ui.nodes["tool.indexer.file.options.replace"].setChecked(True)
+        self.window.ui.nodes["tool.indexer.file.options.clear"] = QCheckBox(trans("tool.indexer.option.clear"))
+        self.window.ui.nodes["tool.indexer.file.options.clear"].setChecked(True)
 
         self.window.ui.nodes["tool.indexer.file.loaders"] = HelpLabel("")
 
@@ -79,9 +81,12 @@ class FilesTab:
         options_layout = QVBoxLayout()
         options_layout.addWidget(self.window.ui.nodes["tool.indexer.file.options.recursive"])
         options_layout.addWidget(self.window.ui.nodes["tool.indexer.file.options.replace"])
+        options_layout.addWidget(self.window.ui.nodes["tool.indexer.file.options.clear"])
 
         # layout
+        self.window.ui.nodes["tool.indexer.file.header.tip"] = HelpLabel(trans("tool.indexer.tab.files.tip"))
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes["tool.indexer.file.header.tip"])
         layout.addLayout(file_layout)
         layout.addLayout(dir_layout)
         layout.addWidget(self.window.ui.nodes["tool.indexer.file.loaders"])

@@ -161,7 +161,7 @@ class DialogBuilder:
         :param args: Args
         :param kwargs: Kwargs
         """
-        self.window.tools.get("indexer").set_current_idx(value)
+        self.window.tools.get("indexer").set_current_idx(value, check=False)
 
 class IndexerDialog(BaseDialog):
     def __init__(self, window=None):

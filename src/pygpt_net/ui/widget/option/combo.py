@@ -102,4 +102,3 @@ class OptionCombo(QWidget):
         """
         self.current_id = self.combo.itemData(index)
         self.window.controller.config.combo.on_update(self.parent_id, self.id, self.option, self.current_id)
-

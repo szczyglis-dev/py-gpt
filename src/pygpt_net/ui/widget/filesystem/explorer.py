@@ -68,6 +68,14 @@ class FileExplorer(QWidget):
         self.btn_clear.setMaximumHeight(40)
         self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
+        # btn with icon
+        self.btn_tool = QPushButton(QIcon(":/icons/db.svg"), "")
+        self.btn_tool.setMaximumHeight(40)
+        self.btn_tool.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.btn_tool.clicked.connect(
+            lambda: self.window.tools.get("indexer").toggle()
+        )
+
         self.path_label = QLabel(self.directory)
         self.path_label.setMaximumHeight(40)
         self.path_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
@@ -78,6 +86,7 @@ class FileExplorer(QWidget):
         header.addWidget(self.path_label)
         header.addStretch()
 
+        header.addWidget(self.btn_tool)
         header.addWidget(self.btn_idx)
         header.addWidget(self.btn_clear)
         self.layout = QVBoxLayout()
