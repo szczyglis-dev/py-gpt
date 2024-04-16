@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -91,6 +91,7 @@ from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
 from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
 
 # tools
+from pygpt_net.tools.indexer import IndexerTool
 from pygpt_net.tools.audio_transcriber import AudioTranscriber as AudioTranscriberTool
 from pygpt_net.tools.code_interpreter import CodeInterpreter as CodeInterpreterTool
 from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
@@ -331,6 +332,7 @@ def run(**kwargs):
             launcher.add_vector_store(store)
 
     # register base tools
+    launcher.add_tool(IndexerTool())
     launcher.add_tool(MediaPlayerTool())
     launcher.add_tool(ImageViewerTool())
     launcher.add_tool(TextEditorTool())

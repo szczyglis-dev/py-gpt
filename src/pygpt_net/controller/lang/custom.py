@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 17:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,6 +30,12 @@ class Custom:
         self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
         self.window.ui.tabs['output'].setTabText(2, trans('output.tab.calendar'))
         self.window.ui.tabs['output'].setTabText(3, trans('output.tab.painter'))
+
+        # tool: indexer
+        self.window.ui.tabs['tool.indexer'].setTabText(0, trans('tool.indexer.tab.files'))
+        self.window.ui.tabs['tool.indexer'].setTabText(1, trans('tool.indexer.tab.web'))
+        self.window.ui.tabs['tool.indexer'].setTabText(2, trans('tool.indexer.tab.ctx'))
+        self.window.ui.tabs['tool.indexer'].setTabText(3, trans('tool.indexer.tab.browser'))
 
         # checkboxes
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))

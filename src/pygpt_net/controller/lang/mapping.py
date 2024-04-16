@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 17:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -238,6 +238,26 @@ class Mapping:
         nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
         nodes['plugin.settings.cmd.footer'] = 'cmd.tip'  # plugin settings cmd footer
 
+        # tool: indexer
+        nodes['tool.indexer.idx.label'] = 'tool.indexer.idx'
+        nodes['tool.indexer.btn.idx'] = 'tool.indexer.idx.btn.add'
+        nodes['tool.indexer.status.label'] = 'tool.indexer.status'
+        nodes['tool.indexer.ctx.last_auto.label'] = 'tool.indexer.tab.ctx.last_auto'
+        nodes['tool.indexer.ctx.auto_enabled.label'] = 'tool.indexer.tab.ctx.auto_enabled'
+        nodes['tool.indexer.ctx.last_meta_id.label'] = 'tool.indexer.tab.ctx.last_meta_id'
+        nodes['tool.indexer.ctx.last_meta_ts.label'] = 'tool.indexer.tab.ctx.last_meta_ts'
+        nodes['tool.indexer.ctx.btn.idx_all'] = 'settings.llama.extra.btn.idx_db_all'
+        nodes['tool.indexer.ctx.btn.idx_update'] = 'settings.llama.extra.btn.idx_db_update'
+        nodes['tool.indexer.ctx.idx.tip'] = 'tool.indexer.tab.ctx.idx.tip'
+        nodes['tool.indexer.file.path_file.label'] = 'tool.indexer.tab.files.path.files'
+        nodes['tool.indexer.file.path_dir.label'] = 'tool.indexer.tab.files.path.dir'
+        nodes['tool.indexer.file.options.recursive'] = 'tool.indexer.tab.option.recursive'
+        nodes['tool.indexer.file.options.replace'] = 'tool.indexer.option.replace'
+        nodes['tool.indexer.web.loader.label'] = 'tool.indexer.tab.web.loader'
+        nodes['tool.indexer.web.options.label'] = 'tool.indexer.tab.web.source'
+        nodes['tool.indexer.web.config.label'] = 'tool.indexer.tab.web.cfg'
+        nodes['tool.indexer.web.options.replace'] = 'tool.indexer.option.replace'
+
         # menu title
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
@@ -324,6 +344,7 @@ class Mapping:
         dialog_title['find'] = 'dialog.find.title'
         dialog_title['profile.editor'] = 'dialog.profile.editor'
         dialog_title['profile.item'] = 'dialog.profile.item.editor'
+        dialog_title['tool.indexer'] = 'tool.indexer.title'
 
         # tooltips
         tooltips = {}

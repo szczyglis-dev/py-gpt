@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -213,13 +213,17 @@ class Indexer:
     def index_path(
             self,
             path: str,
-            idx: str = "base"
+            idx: str = "base",
+            replace: bool = None,
+            recursive: bool = None
     ):
         """
         Index all files in path (threaded)
 
         :param path: path to file or directory
         :param idx: index name
+        :param replace: replace index
+        :param recursive: recursive indexing
         """
         self.window.update_status(trans('idx.status.indexing'))
         worker = IndexWorker()
@@ -227,6 +231,8 @@ class Indexer:
         worker.content = path
         worker.idx = idx
         worker.type = "file"
+        worker.replace = replace
+        worker.recursive = recursive
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -333,6 +339,39 @@ class Indexer:
             )
             return
         self.index_file_remove_confirm(path)
+        self.window.tools.get("indexer").refresh()
+
+    def index_web(
+            self,
+            idx: str,
+            loader: str,
+            params: dict,
+            config: dict,
+            replace: bool = True,
+    ):
+        """
+        Index web content (threaded)
+
+        :param idx: index name
+        :param loader: loader name
+        :param params: loader params
+        :param config: loader config
+        :param replace: replace index
+        """
+        self.window.update_status(trans('idx.status.indexing'))
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = None
+        worker.loader = loader
+        worker.params = params
+        worker.config = config
+        worker.replace = replace
+        worker.silent = False
+        worker.idx = idx
+        worker.type = "web"
+        worker.signals.finished.connect(self.handle_finished_web)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
 
     def index_ctx_meta_remove(
             self,
@@ -361,6 +400,8 @@ class Indexer:
         if self.window.core.ctx.idx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
             self.window.update_status(trans('status.deleted') + ": " + str(meta_id))
             self.window.controller.ctx.update()  # update ctx list
+
+        self.window.tools.get("indexer").refresh()
 
     def clear_by_idx(self, idx: int):
         """
@@ -419,6 +460,8 @@ class Indexer:
             print(e)
             self.window.update_status(e)
 
+        self.window.tools.get("indexer").refresh()
+
     def truncate(self, idx: str, force: bool = False):
         """
         Truncate index data
@@ -461,6 +504,8 @@ class Indexer:
             print(e)
             self.window.update_status(e)
 
+        self.window.tools.get("indexer").refresh()
+
     @Slot(object)
     def handle_error(self, err: any):
         """
@@ -472,6 +517,7 @@ class Indexer:
         self.window.update_status(str(err))
         self.window.core.debug.log(err)
         print(err)
+        self.window.tools.get("indexer").refresh()
 
     @Slot(str, object, object)
     def handle_finished_db_current(
@@ -510,6 +556,8 @@ class Indexer:
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
 
+        self.window.tools.get("indexer").refresh()
+
     @Slot(str, object, object, bool)
     def handle_finished_db_meta(
             self,
@@ -538,6 +586,8 @@ class Indexer:
 
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
+
+        self.window.tools.get("indexer").refresh()
 
     @Slot(str, object, object, bool)
     def handle_finished_file(
@@ -569,3 +619,35 @@ class Indexer:
 
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
+
+        self.window.tools.get("indexer").refresh()
+
+    @Slot(str, object, object, bool)
+    def handle_finished_web(
+            self,
+            idx: str,
+            num: int,
+            errors: list,
+            silent: bool = False
+    ):
+        """
+        Handle indexing finished signal
+
+        :param idx: index name
+        :param num: number of indexed records
+        :param errors: errors
+        :param silent: silent mode (no msg and status update)
+        """
+        print("RECVEIVED RESPONSE")
+        if num > 0:
+            msg = trans('idx.status.success') + f" {num}"
+            if not silent:
+                self.window.update_status(msg)
+                self.window.ui.dialogs.alert(msg)
+        else:
+            self.window.update_status(trans('idx.status.empty'))
+
+        if len(errors) > 0:
+            self.window.ui.dialogs.alert("\n".join(errors))
+
+        self.window.tools.get("indexer").refresh()

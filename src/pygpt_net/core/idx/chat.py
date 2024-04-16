@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -347,3 +347,4 @@ class Chat:
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print("[LLAMA-INDEX] {}".format(msg))
+        self.window.idx_logger_message.emit(msg)

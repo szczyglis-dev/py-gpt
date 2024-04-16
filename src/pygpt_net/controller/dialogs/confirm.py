@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -205,6 +205,12 @@ class Confirm:
             self.window.controller.idx.indexer.clear(id, True)
         elif type == 'idx.truncate':
             self.window.controller.idx.indexer.truncate(id, True)
+
+        # index tool
+        elif type == 'idx.tool.truncate':
+            self.window.tools.get("indexer").delete_db_idx(id, True)
+        elif type == 'idx.tool.index':
+            self.window.tools.get("indexer").index_data(True)
 
     def dismiss(self, type: str, id: any):
         """

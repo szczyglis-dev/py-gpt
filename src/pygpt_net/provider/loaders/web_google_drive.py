@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -25,7 +25,7 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "google_docs": {
+                "google_drive": {
                     "description": "read and index files from Google Drive",
                     "args": {
                         "folder_id": {
@@ -45,6 +45,11 @@ class Loader(BaseLoader):
             "credentials_path" : "credentials.json",
             "token_path": "token.json",
             "pydrive_creds_path": "creds.txt",
+        }
+        self.init_args_types = {
+            "credentials_path": "str",
+            "token_path": "str",
+            "pydrive_creds_path": "str",
         }
 
     def get(self) -> BaseReader:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 05:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,7 +21,7 @@ from llama_index.core.schema import Document
 from llama_index.core import SimpleDirectoryReader
 
 from pygpt_net.provider.loaders.base import BaseLoader
-from pygpt_net.utils import parse_args
+from pygpt_net.utils import parse_args, pack_arg
 
 
 class Indexing:
@@ -38,6 +38,7 @@ class Indexing:
         }
         self.data_providers = {}  # data providers (loaders)
         self.external_instructions = {}
+        self.external_config = {}
         self.last_call = None
 
     def register_loader(self, loader: BaseLoader):
@@ -56,6 +57,7 @@ class Indexing:
         self.data_providers[loader.id] = loader  # cache loader
         extensions = loader.extensions  # available extensions
         types = loader.type  # available types
+
         if "file" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "file"))  # set reader arguments
             try:
@@ -66,6 +68,7 @@ class Indexing:
                 msg = "Error while registering data loader: " + loader.id + " - " + str(e)
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
+
         if "web" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "web"))  # set reader arguments
             try:
@@ -75,10 +78,61 @@ class Indexing:
                     for item in loader.instructions:
                         cmd = list(item.keys())[0]
                         self.external_instructions[cmd] = item[cmd]
+                if loader.init_args:
+                    for key in loader.init_args:
+                        if loader.id not in self.external_config:
+                            self.external_config[loader.id] = {}
+                        self.external_config[loader.id][key] = {
+                            "key": key,
+                            "value": loader.init_args[key],
+                            "type": "str",  # default = str
+                        }
+                        # from config
+                        if key in loader.args:
+                            self.external_config[loader.id][key]["value"] = loader.args[key]
+                        if key in loader.init_args_types:
+                            self.external_config[loader.id][key]["type"] = loader.init_args_types[key]
+
             except ImportError as e:
                 msg = "Error while registering data loader: " + loader.id + " - " + str(e)
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
+
+    def update_loader_args(self, loader: str, args: dict):
+        """
+        Update loader arguments
+
+        :param loader: loader id
+        :param args: keyword arguments
+        """
+        if loader in self.data_providers:
+            self.data_providers[loader].set_args(args)
+            reader = self.data_providers[loader].get()  # get data reader instance
+            self.loaders["web"][loader] = reader  # update reader instance
+
+            # update in config
+            config = self.window.core.config.get("llama.hub.loaders.args")
+            if config is None:
+                config = []
+            loader_key = "web_" + loader
+            for arg in args:
+                found = False
+                for item in config:
+                    if item["loader"] == loader_key and item["name"] == arg:
+                        item["value"] = args[arg]
+                        found = True
+                if not found:
+                    type = "str"
+                    if arg in self.data_providers[loader].init_args_types:
+                        type = self.data_providers[loader].init_args_types[arg]
+                    # pack value
+                    value = pack_arg(args[arg], type)
+                    config.append({
+                        "loader": loader_key,
+                        "name": arg,
+                        "value": value,
+                        "type": type
+                    })
 
     def reload_loaders(self):
         """Reload loaders (update arguments)"""
@@ -94,6 +148,14 @@ class Indexing:
         :return: dict of external instructions
         """
         return self.external_instructions
+
+    def get_external_config(self) -> dict:
+        """
+        Get external config
+
+        :return: dict of external config
+        """
+        return self.external_config
 
     def get_online_loader(self, ext: str):
         """
@@ -264,7 +326,15 @@ class Indexing:
             if "creation_date" in doc.extra_info:
                 doc.extra_info["last_accessed_date"] = doc.extra_info["creation_date"]
 
-    def index_files(self, idx: str, index: BaseIndex, path: str = None, is_tmp: bool = False) -> tuple:
+    def index_files(
+            self,
+            idx: str,
+            index: BaseIndex,
+            path: str = None,
+            is_tmp: bool = False,
+            replace: bool = None,
+            recursive: bool = None
+    ) -> tuple:
         """
         Index all files in directory
 
@@ -272,10 +342,16 @@ class Indexing:
         :param index: index instance
         :param path: path to file or directory
         :param is_tmp: True if temporary index
+        :param replace: True if replace old document
+        :param recursive: True if recursive indexing
         :return: dict with indexed files, errors
         """
-        if self.window.core.config.get("llama.idx.recursive"):
-            return self.index_files_recursive(idx, index, path, is_tmp)
+        if recursive is not None:
+            if recursive:
+                return self.index_files_recursive(idx, index, path, is_tmp, replace)
+        else:
+            if self.window.core.config.get("llama.idx.recursive"):
+                return self.index_files_recursive(idx, index, path, is_tmp, replace)
 
         indexed = {}
         errors = []
@@ -291,8 +367,14 @@ class Indexing:
                 # remove old file from index if exists
                 file_id = self.window.core.idx.files.get_id(file)
 
-                if not is_tmp:
-                    self.remove_old_file(idx, file_id)
+                # force replace or not old document
+                if replace is not None:
+                    if replace:
+                        self.remove_old_file(idx, file_id)
+                else:
+                    # if auto, only replace if not temporary
+                    if not is_tmp:
+                        self.remove_old_file(idx, file_id)
 
                 # index new version of file
                 documents = self.get_documents(file)
@@ -309,7 +391,14 @@ class Indexing:
 
         return indexed, errors
 
-    def index_files_recursive(self, idx: str, index: BaseIndex, path: str = None, is_tmp: bool = False) -> tuple:
+    def index_files_recursive(
+            self,
+            idx: str,
+            index: BaseIndex,
+            path: str = None,
+            is_tmp: bool = False,
+            replace: bool = None
+    ) -> tuple:
         """
         Index all files in directory and subdirectories recursively.
 
@@ -317,6 +406,7 @@ class Indexing:
         :param index: index instance
         :param path: path to file or directory
         :param is_tmp: True if temporary index
+        :param replace: True if replace old document
         :return: dict with indexed files, errors
         """
         indexed = {}
@@ -331,8 +421,14 @@ class Indexing:
                         # remove old file from index if exists
                         file_id = self.window.core.idx.files.get_id(path)
 
-                        if not is_tmp:
-                            self.remove_old_file(idx, file_id)
+                        # force replace or not old document
+                        if replace is not None:
+                            if replace:
+                                self.remove_old_file(idx, file_id)
+                        else:
+                            # if auto, only replace if not temporary
+                            if not is_tmp:
+                                self.remove_old_file(idx, file_id)
 
                         # index new version of file
                         documents = self.get_documents(file_path)
@@ -353,8 +449,14 @@ class Indexing:
                 # remove old file from index if exists
                 file_id = self.window.core.idx.files.get_id(path)
 
-                if not is_tmp:
-                    self.remove_old_file(idx, file_id)
+                # force replace or not old document
+                if replace is not None:
+                    if replace:
+                        self.remove_old_file(idx, file_id)
+                else:
+                    # if auto, only replace if not temporary
+                    if not is_tmp:
+                        self.remove_old_file(idx, file_id)
 
                 # index new version of file
                 documents = self.get_documents(path)
@@ -531,7 +633,8 @@ class Indexing:
             url: str,
             type="webpage",
             extra_args: dict = None,
-            is_tmp: bool = False
+            is_tmp: bool = False,
+            replace: bool = None
     ) -> (int, list):
         """
         Index data from external (remote) resource
@@ -542,6 +645,7 @@ class Indexing:
         :param type: type of URL (webpage, feed, etc.)
         :param extra_args: extra arguments for loader
         :param is_tmp: True if temporary index
+        :param replace: True if force replace old document
         :return: number of indexed documents, errors
         """
         errors = []
@@ -567,8 +671,13 @@ class Indexing:
             unique_id = self.data_providers[type].get_external_id(extra_args)
 
             # remove old document from index
-            if not is_tmp:
-                self.remove_old_external(idx, unique_id, type)
+            if replace is not None:
+                if replace:
+                    self.remove_old_external(idx, unique_id, type)
+            else:
+                # if auto, only replace if not temporary
+                if not is_tmp:
+                    self.remove_old_external(idx, unique_id, type)
 
             self.window.core.idx.log("Loading web documents from: {}".format(unique_id))
             self.window.core.idx.log("Using web loader for type: {}".format(type))

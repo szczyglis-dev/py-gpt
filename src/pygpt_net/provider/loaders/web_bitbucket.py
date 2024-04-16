@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -48,6 +48,11 @@ class Loader(BaseLoader):
             "username": None,
             "api_key": None,
             "extensions_to_skip": [],
+        }
+        self.init_args_types = {
+            "username": "str",
+            "api_key": "str",
+            "extensions_to_skip": "list",
         }
 
     def get(self) -> BaseReader:

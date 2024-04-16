@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -55,6 +55,18 @@ class Loader(BaseLoader):
             "filter_dirs_exclude": None,  # list of directories to exclude
             "filter_file_ext_include": None,  # list of file extensions to include
             "filter_file_ext_exclude": None,  # list of file extensions to exclude
+        }
+        self.init_args_types = {
+            "token": "str",
+            "use_parser": "bool",
+            "verbose": "bool",
+            "concurrent_requests": "int",
+            "timeout": "int",
+            "retries": "int",
+            "filter_dirs_include": "list",
+            "filter_dirs_exclude": "list",
+            "filter_file_ext_include": "list",
+            "filter_file_ext_exclude": "list",
         }
 
     def get(self) -> BaseReader:

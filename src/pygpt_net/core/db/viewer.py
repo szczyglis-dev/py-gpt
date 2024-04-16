@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -29,7 +29,8 @@ class Viewer:
             search_query: str = None,
             search_column: str = None,
             offset: int = 0,
-            limit: int = 100
+            limit: int = 100,
+            filters: dict = None
     ) -> list:
         """
         Fetch data from the database with the given parameters.
@@ -42,6 +43,7 @@ class Viewer:
         :param search_column: Search column
         :param offset: Offset
         :param limit: Limit
+        :param filters: Filters
         :return: Fetched data
         """
         tables = self.database.get_tables()
@@ -59,8 +61,22 @@ class Viewer:
         params = {}
         if search_query:
             search_clauses = [f"{column} LIKE :search_query" for column in search_fields]
-            where_clause = f" WHERE {' OR '.join(search_clauses)}"
+            where_clause = f" WHERE ({' OR '.join(search_clauses)})"
             params['search_query'] = f"%{search_query}%"
+
+        # apply filters
+        # filters = {
+        #     "column1": "value1",
+        #     "column2": "value2"  # AND condition
+        # }
+        if filters:
+            filter_clauses = [f"{column} = :filter_{column}" for column in filters.keys()]
+            if where_clause == "":
+                where_clause = f" WHERE ({' AND '.join(filter_clauses)})"
+            else:
+                where_clause += f" AND ({' AND '.join(filter_clauses)})"
+            for column, value in filters.items():
+                params[f"filter_{column}"] = value  # filter placeholder prefixed with 'filter_'
 
         query = f"{base_query}{where_clause}{order_clause}{limit_clause}"
         stmt = text(query).bindparams(**params)
@@ -72,7 +88,8 @@ class Viewer:
             self,
             table: str,
             search_query: str = None,
-            search_column: str = None
+            search_column: str = None,
+            filters: dict = None
     ) -> int:
         """
         Count the number of rows in the table with an optional search query.
@@ -80,6 +97,7 @@ class Viewer:
         :param table: Table name
         :param search_query: Search query
         :param search_column: Search column
+        :param filters: Filters
         :return: Number of rows
         """
         base_query = f"SELECT COUNT(*) FROM {table}"
@@ -95,6 +113,20 @@ class Viewer:
         if search_query:
             where_clause = f" WHERE {' OR '.join([f'{column} LIKE :search_query' for column in search_fields])}"
             params['search_query'] = f"%{search_query}%"
+
+        # apply filters
+        # filters = {
+        #     "column1": "value1",
+        #     "column2": "value2"  # AND condition
+        # }
+        if filters:
+            filter_clauses = [f"{column} = :filter_{column}" for column in filters.keys()]
+            if where_clause == "":
+                where_clause = f" WHERE ({' AND '.join(filter_clauses)})"
+            else:
+                where_clause += f" AND ({' AND '.join(filter_clauses)})"
+            for column, value in filters.items():
+                params[f"filter_{column}"] = value  # filter placeholder prefixed with 'filter_'
 
         query = f"{base_query}{where_clause}"
         stmt = text(query).bindparams(**params)

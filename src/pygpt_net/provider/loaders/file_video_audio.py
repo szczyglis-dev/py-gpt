@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -25,6 +25,10 @@ class Loader(BaseLoader):
         self.init_args = {
             "use_local": False,  # use local model instead of API
             "model_version": "base", # Whisper model version
+        }
+        self.init_args_types = {
+            "use_local": "bool",
+            "model_version": "str",
         }
         """
         https://github.com/openai/whisper

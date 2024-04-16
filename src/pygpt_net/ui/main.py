@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -31,6 +31,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
     stateChanged = Signal(str)
     logger_message = Signal(object)
+    idx_logger_message = Signal(object)
 
     def __init__(self, app: QApplication, args: dict = None):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -29,6 +29,14 @@ class Loader(BaseLoader):
             "api_prompt": "Describe what you see in this image",
             "api_model": "gpt-4-vision-preview",
             "api_tokens": 1000,
+        }
+        self.init_args_types = {
+            "use_local": "bool",
+            "keep_image": "bool",
+            "local_prompt": "str",
+            "api_prompt": "str",
+            "api_model": "str",
+            "api_tokens": "int",
         }
 
     def get(self) -> BaseReader:

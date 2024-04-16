@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 05:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -150,10 +150,16 @@ class Editor:
         # reload loaders
         if self.config_changed('llama.hub.loaders.args') or self.config_changed('llama.hub.loaders.use_local'):
             self.window.core.idx.indexing.reload_loaders()
+            self.window.tools.get("indexer").refresh()
 
         # update idx list
         if self.config_changed('llama.idx.list'):
             self.window.controller.idx.settings.update_idx_choices()
+            self.window.tools.get("indexer").refresh()
+
+        # update idx storage
+        if self.config_changed('llama.idx.storage'):
+            self.window.tools.get("indexer").refresh()
 
         # update notepad tabs
         if self.config_changed('notepad.num'):

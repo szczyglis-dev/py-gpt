@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -56,7 +56,7 @@ class DatabaseList(QTableView):
 
     def __init__(self, window=None):
         """
-        Debug list
+        Database table records list
 
         :param window: Window instance
         """
@@ -91,6 +91,8 @@ class DatabaseList(QTableView):
         On data update end
         """
         # update data viewer
+        if self.viewer is None:
+            return
         if self.viewer_index:
             new = self.model().data(self.viewer_index)
             if self.viewer_current != new:
@@ -112,7 +114,8 @@ class DatabaseList(QTableView):
 
     def adjustColumns(self):
         """Adjust columns width"""
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        last_column = self.model().columnCount() - 1
+        self.horizontalHeader().setSectionResizeMode(last_column, QHeaderView.Stretch)
 
     def create_context_menu(self, parent):
         """
@@ -162,6 +165,8 @@ class DatabaseList(QTableView):
         :param index: Index
         """
         # update data viewer
+        if self.viewer is None:
+            return
         data = self.model().data(index, Qt.DisplayRole)
         id = index.sibling(index.row(), 0).data(
             Qt.DisplayRole)

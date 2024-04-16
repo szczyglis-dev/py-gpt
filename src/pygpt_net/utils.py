@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -168,3 +168,29 @@ def unpack_var(var: any, type: str) -> any:
         except Exception:
             return False
     return var
+
+def pack_arg(arg: any, type: str) -> any:
+    """
+    Pack argument to store in JSON
+
+    :param arg: Argument value
+    :param type: Argument type
+    """
+    if arg is None or arg == "":
+        return ""
+    if type == "list":
+        try:
+            return ",".join(arg)
+        except Exception:
+            return ""
+    elif type == "dict":
+        try:
+            return json.dumps(arg)
+        except Exception:
+            return ""
+    elif type == "bool":
+        try:
+            return str(arg)
+        except Exception:
+            return ""
+    return arg

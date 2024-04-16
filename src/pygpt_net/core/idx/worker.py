@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -23,6 +23,11 @@ class IndexWorker(QRunnable):
         self.signals = IndexWorkerSignals()
         self.window = None
         self.content = None
+        self.loader = None
+        self.params = None
+        self.config = None
+        self.replace = None
+        self.recursive = None
         self.from_ts = 0
         self.idx = None
         self.type = None
@@ -49,6 +54,8 @@ class IndexWorker(QRunnable):
                 result, errors = self.window.core.idx.index_files(
                     self.idx,
                     self.content,
+                    self.replace,
+                    self.recursive,
                 )
             elif self.type == "db_meta":
                 result, errors = self.window.core.idx.index_db_by_meta_id(
@@ -60,6 +67,14 @@ class IndexWorker(QRunnable):
                 result, errors = self.window.core.idx.index_db_from_updated_ts(
                     self.idx,
                     self.content,
+                )
+            elif self.type == "web":
+                result, errors = self.window.core.idx.index_web(
+                    idx=self.idx,
+                    type=self.loader,
+                    params=self.params,
+                    config=self.config,
+                    replace=self.replace,
                 )
 
             self.log("Finished indexing.")
@@ -86,3 +101,4 @@ class IndexWorker(QRunnable):
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print("[LLAMA-INDEX] {}".format(msg))
+        self.window.idx_logger_message.emit(msg)

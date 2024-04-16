@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -119,6 +119,13 @@ class Output:
             lambda: self.window.tools.get("interpreter").toggle()
         )
 
+        # indexer icon
+        self.window.ui.nodes['icon.indexer'] = IconLabel(":/icons/db.svg")
+        self.window.ui.nodes['icon.indexer'].setToolTip("Indexer")
+        self.window.ui.nodes['icon.indexer'].clicked.connect(
+            lambda: self.window.tools.get("indexer").toggle()
+        )
+
         # mode
         self.window.ui.nodes['chat.label'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -192,6 +199,7 @@ class Output:
         layout.addWidget(self.window.ui.nodes['icon.audio.input'])
         layout.addWidget(self.window.ui.nodes['icon.audio.output'])
         layout.addWidget(self.window.ui.nodes['icon.interpreter'])
+        layout.addWidget(self.window.ui.nodes['icon.indexer'])
         layout.addWidget(self.window.ui.plugin_addon['schedule'])
         layout.addWidget(QLabel(" "))
         layout.addWidget(self.window.ui.nodes['chat.plugins'])

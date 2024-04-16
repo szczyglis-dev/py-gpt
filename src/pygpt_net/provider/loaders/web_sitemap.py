@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -36,6 +36,10 @@ class Loader(BaseLoader):
         self.init_args = {
             "html_to_text": False,
             "limit": 10,
+        }
+        self.init_args_types = {
+            "html_to_text": "bool",
+            "limit": "int",
         }
 
     def get(self) -> BaseReader:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -421,3 +421,4 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg.replace("\n", " "))
         if self.is_log():
             print(full_msg)
+        self.window.idx_logger_message.emit(msg)

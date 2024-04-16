@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 20:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -148,12 +148,18 @@ class Ctx:
         })
         self.window.core.dispatcher.dispatch(event)
 
-    def select_by_current(self):
-        """Select ctx by current"""
+    def select_by_current(self, focus: bool = False):
+        """
+        Select ctx by current
+
+        :param focus: focus chat
+        """
         id = self.window.core.ctx.current
         meta = self.window.core.ctx.get_meta()
         if id in meta:
             self.select_index_by_id(id)
+        if focus:
+            self.update()
 
     def unselect(self):
         """Unselect ctx"""

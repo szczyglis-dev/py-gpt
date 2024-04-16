@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -45,6 +45,17 @@ class Loader(BaseLoader):
             "user": None,
             "password": None,
             "dbname": None,
+        }
+        self.init_args_types = {
+            "sql_database": "str",
+            "engine": "str",
+            "uri": "str",
+            "scheme": "str",
+            "host": "str",
+            "port": "int",
+            "user": "str",
+            "password": "str",
+            "dbname": "str",
         }
 
     def get(self) -> BaseReader:

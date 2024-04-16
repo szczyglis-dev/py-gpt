@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -125,13 +125,17 @@ class Idx:
     def index_files(
             self,
             idx: str = "base",
-            path: str = None
+            path: str = None,
+            replace: bool = None,
+            recursive: bool = None,
     ) -> (dict, list):
         """
         Index file or directory of files
 
         :param idx: index name
         :param path: path to file or directory
+        :param replace: replace index
+        :param recursive: recursive indexing
         :return: dict with indexed files (path -> id), list with errors
         """
         context = self.llm.get_service_context()
@@ -143,12 +147,17 @@ class Idx:
             idx=idx,
             index=index,
             path=path,
+            replace=replace,
+            recursive=recursive,
         )  # index files
         if len(files) > 0:
             self.storage.store(
                 id=idx,
                 index=index,
             )  # store index
+
+        if errors:
+            self.log("Error: " + str(errors))
         return files, errors
 
     def index_db_by_meta_id(
@@ -181,6 +190,9 @@ class Idx:
                 id=idx,
                 index=index,
             )  # store index
+
+        if errors:
+            self.log("Error: " + str(errors))
         return num, errors
 
     def index_db_from_updated_ts(
@@ -210,6 +222,9 @@ class Idx:
                 id=idx,
                 index=index,
             )  # store index
+
+        if errors:
+            self.log("Error: " + str(errors))
         return num, errors
 
     def index_urls(
@@ -245,6 +260,54 @@ class Idx:
                 id=idx,
                 index=index,
             )  # store index
+
+        if errors:
+            self.log("Error: " + str(errors))
+        return n, errors
+
+    def index_web(
+            self,
+            idx: str = "base",
+            type: str = "webpage",
+            params: dict = None,
+            config: dict = None,
+            replace: bool = None,
+    ) -> (dict, list):
+        """
+        Index URLs
+
+        :param idx: index name
+        :param type: type of url
+        :param params: extra args
+        :param config: extra config
+        :param replace: replace index
+        :return: num of indexed, list with errors
+        """
+        # update config params
+        self.indexing.update_loader_args(type, config)
+
+        context = self.llm.get_service_context()
+        index = self.storage.get(
+            id=idx,
+            service_context=context,
+        )  # get or create index
+        n, errors = self.indexing.index_url(
+            idx=idx,
+            index=index,
+            url="",
+            type=type,
+            extra_args=params,
+            is_tmp=False,
+            replace=replace,
+        )
+        if n > 0:
+            self.storage.store(
+                id=idx,
+                index=index,
+            )  # store index
+
+        if errors:
+            self.log("Error: " + str(errors))
         return n, errors
 
     def get_idx_data(self, idx: str = None) -> dict:
@@ -499,3 +562,4 @@ class Idx:
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print("[LLAMA-INDEX] {}".format(msg))
+        self.window.idx_logger_message.emit(msg)
