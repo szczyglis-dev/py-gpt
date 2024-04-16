@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 17:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
 import pytest
@@ -23,6 +23,7 @@ def mock_window():
     window.STATE_ERROR = 'error'
     window.state = MagicMock()
     window.stateChanged = MagicMock()
+    window.idx_logger_message = MagicMock()
     window.core = MagicMock()
     window.core.config = Config(window)  # real config object
     window.core.config.initialized = True  # prevent initializing config
@@ -32,6 +33,7 @@ def mock_window():
     window.core.config.get_lang = MagicMock(return_value='en')
     window.core.debug = MagicMock()
     window.controller = MagicMock()
+    window.tools = MagicMock()
     window.ui = MagicMock()
     window.threadpool = MagicMock()
     return window
@@ -42,6 +44,7 @@ def mock_window_conf():
     window = MagicMock(spec=QMainWindow)
     window.state = MagicMock()
     window.stateChanged = MagicMock()
+    window.idx_logger_message = MagicMock()
     window.STATE_IDLE = 'idle'
     window.STATE_BUSY = 'busy'
     window.STATE_ERROR = 'error'
@@ -51,4 +54,5 @@ def mock_window_conf():
     window.core.config.path = 'test_path'
     window.core.config.get_lang = MagicMock(return_value='en')
     window.core.debug = MagicMock()
+    window.tools = MagicMock()
     return window
