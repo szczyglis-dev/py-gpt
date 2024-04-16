@@ -208,26 +208,27 @@ class ContextList(BaseList):
 
                         # add to index
                         action = idx_menu.addAction("IDX: " + name)
-                        action.setIcon(QIcon(":/icons/search.svg"))
+                        action.setIcon(QIcon(":/icons/db.svg"))
                         action.triggered.connect(
                             lambda checked=False,
                                    ctx_id=ctx_id,
                                    index=id: self.action_idx(ctx_id, index)
                         )
 
-                        # remove from index
-                        if ctx.indexed is not None and ctx.indexed > 0:
-                            # get list of indexes in which context is indexed
-                            if store in ctx.indexes:
-                                store_indexes = ctx.indexes[store]
-                                for store_index in store_indexes:
-                                    action = idx_menu.addAction(trans("action.idx.remove") + ": " + store_index)
-                                    action.setIcon(QIcon(":/icons/delete.svg"))
-                                    action.triggered.connect(
-                                        lambda checked=False,
-                                               store_index=store_index,
-                                               ctx_id=ctx_id: self.action_idx_remove(store_index, ctx_id)  # by context meta id
-                                    )
+                    # remove from index
+                    if ctx.indexed is not None and ctx.indexed > 0:
+                        # get list of indexes in which context is indexed
+                        if store in ctx.indexes:
+                            store_indexes = ctx.indexes[store]
+                            idx_menu.addSeparator()
+                            for store_index in store_indexes:
+                                action = idx_menu.addAction(trans("action.idx.remove") + ": " + store_index)
+                                action.setIcon(QIcon(":/icons/delete.svg"))
+                                action.triggered.connect(
+                                    lambda checked=False,
+                                           store_index=store_index,
+                                           ctx_id=ctx_id: self.action_idx_remove(store_index, ctx_id)  # by context meta id
+                                )
                     menu.addMenu(idx_menu)
 
                 # -----------------------------------------
@@ -251,6 +252,7 @@ class ContextList(BaseList):
                 for group_id in groups:
                     group = groups[group_id]
                     action = group_menu.addAction(group.name)
+                    action.setIcon(QIcon(":/icons/folder_filled.svg"))
                     action.triggered.connect(
                         lambda checked=False,
                                group_id=group_id,

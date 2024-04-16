@@ -345,7 +345,7 @@ class FileExplorer(QWidget):
                         for idx in idx_list:
                             id = idx['id']
                             name = idx['name'] + " (" + idx['id'] + ")"
-                            action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
+                            action = QAction(QIcon(":/icons/db.svg"), "IDX: " + name, self)
                             action.triggered.connect(
                                 lambda checked=False,
                                        id=id,

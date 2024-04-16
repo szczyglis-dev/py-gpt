@@ -45,19 +45,19 @@ class IndexList(BaseList):
         )
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_all')
-        actions['idx_db_all'] = QAction(QIcon(":/icons/search.svg"), txt, self)
+        actions['idx_db_all'] = QAction(QIcon(":/icons/search.db"), txt, self)
         actions['idx_db_all'].triggered.connect(
             lambda: self.action_idx_db_all(event)
         )
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_update')
-        actions['idx_db_update'] = QAction(QIcon(":/icons/search.svg"), txt, self)
+        actions['idx_db_update'] = QAction(QIcon(":/icons/search.db"), txt, self)
         actions['idx_db_update'].triggered.connect(
             lambda: self.action_idx_db_update(event)
         )
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_files_all')
-        actions['idx_files_all'] = QAction(QIcon(":/icons/search.svg"), txt, self)
+        actions['idx_files_all'] = QAction(QIcon(":/icons/search.db"), txt, self)
         actions['idx_files_all'].triggered.connect(
             lambda: self.action_idx_files_all(event)
         )
