@@ -56,10 +56,16 @@ class Metadata:
 
                         # append or replace custom meta
                         try:
+                            relative_path = os.path.relpath(path, data_dir)
+                            relative_dir = os.path.relpath(os.path.dirname(path), data_dir)
+                            # if file is outside of data directory, strip relative path, and use absolute path
+                            if relative_path.startswith(".."):
+                                relative_path = os.path.basename(path)
+                                relative_dir = os.path.dirname(path)
                             meta[key] = value.format(
                                 path=path,
-                                relative_path=os.path.relpath(path, data_dir),
-                                relative_dir=os.path.relpath(os.path.dirname(path), data_dir),
+                                relative_path=relative_path,
+                                relative_dir=relative_dir,
                                 filename=os.path.basename(path),
                                 dirname=os.path.dirname(path),
                                 ext=ext,
