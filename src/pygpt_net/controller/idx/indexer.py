@@ -215,7 +215,8 @@ class Indexer:
             path: str,
             idx: str = "base",
             replace: bool = None,
-            recursive: bool = None
+            recursive: bool = None,
+            silent: bool = False
     ):
         """
         Index all files in path (threaded)
@@ -224,8 +225,10 @@ class Indexer:
         :param idx: index name
         :param replace: replace index
         :param recursive: recursive indexing
+        :param silent: silent mode
         """
-        self.window.update_status(trans('idx.status.indexing'))
+        if not silent:
+            self.window.update_status(trans('idx.status.indexing'))
         worker = IndexWorker()
         worker.window = self.window
         worker.content = path
@@ -233,6 +236,7 @@ class Indexer:
         worker.type = "file"
         worker.replace = replace
         worker.recursive = recursive
+        worker.silent = silent
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -358,7 +362,6 @@ class Indexer:
         :param config: loader config
         :param replace: replace index
         """
-        self.window.update_status(trans('idx.status.indexing'))
         worker = IndexWorker()
         worker.window = self.window
         worker.content = None
@@ -366,7 +369,7 @@ class Indexer:
         worker.params = params
         worker.config = config
         worker.replace = replace
-        worker.silent = False
+        worker.silent = True
         worker.idx = idx
         worker.type = "web"
         worker.signals.finished.connect(self.handle_finished_web)

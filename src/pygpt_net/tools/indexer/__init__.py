@@ -296,6 +296,7 @@ class IndexerTool(BaseTool):
                 self.current_idx,
                 is_replace,
                 is_recursive,
+                silent=True,
             )
 
     def index_web(self, force: bool = False):
