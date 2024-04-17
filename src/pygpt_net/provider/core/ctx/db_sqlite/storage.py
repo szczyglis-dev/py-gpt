@@ -913,6 +913,18 @@ class Storage:
                 conn.execute(stmt)
         return True
 
+    def truncate_groups(self) -> bool:
+        """
+        Remove all groups
+
+        :return: True if truncated
+        """
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_group"))
+            conn.execute(text("DELETE FROM sqlite_sequence WHERE name='ctx_group'"))
+        return True
+
     def update_group(self, group: CtxGroup) -> bool:
         """
         Update group

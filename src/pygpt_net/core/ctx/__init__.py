@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.17 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -908,6 +908,11 @@ class Ctx:
         :param all: remove all items
         """
         self.provider.remove_group(group.id, all=all)
+        self.load_groups()
+
+    def truncate_groups(self):
+        """Remove all groups"""
+        self.provider.truncate_groups()
         self.load_groups()
 
     def make_group(self, name: str) -> CtxGroup:

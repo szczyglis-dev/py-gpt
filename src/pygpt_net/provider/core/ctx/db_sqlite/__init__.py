@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.17 07:00:00                  #
 # ================================================== #
 
 import time
@@ -315,6 +315,10 @@ class DbSqliteProvider(BaseProvider):
         :param all: remove items
         """
         return self.storage.delete_group(id, all=all)
+
+    def truncate_groups(self):
+        """Remove groups"""
+        return self.storage.truncate_groups()
 
     def update_meta_group_id(self, id: int, group_id: int):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.17 07:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -47,6 +47,8 @@ class Confirm:
             self.window.controller.ctx.delete(id, True)
         elif type == 'ctx.delete_all':
             self.window.controller.ctx.delete_history(True)
+        elif type == 'ctx.delete_all_groups':
+            self.window.controller.ctx.delete_history_groups(True)
         elif type == 'ctx.delete_item':
             self.window.controller.ctx.delete_item(id, True)
         elif type == 'ctx.replay_item':

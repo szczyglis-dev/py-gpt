@@ -289,6 +289,7 @@ class Mapping:
         menu_text['app.ctx.group.new'] = 'menu.file.group.new'
         menu_text['app.ctx.current'] = 'menu.file.current'
         menu_text['app.clear_history'] = 'menu.file_clear_history'
+        menu_text['app.clear_history_groups'] = 'menu.file_clear_history_groups'
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'
         menu_text['config.models'] = 'menu.config.models'

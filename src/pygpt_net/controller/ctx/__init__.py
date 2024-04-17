@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.17 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -431,6 +431,39 @@ class Ctx:
         self.window.core.history.truncate()
         self.update()
         self.new()
+
+    def delete_history_groups(self, force: bool = False):
+        """
+        Delete all ctx / truncate
+
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.delete_all_groups',
+                id='',
+                msg=trans('ctx.delete.all.confirm'),
+            )
+            return
+
+        # truncate index db if exists
+        try:
+            self.window.core.idx.ctx.truncate()
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Error truncating ctx index db", e)
+
+        # truncate ctx and history
+        self.window.core.ctx.truncate()
+        self.window.core.history.truncate()
+        self.window.core.ctx.truncate_groups()
+        self.update()
+        self.new()
+
+    def new_if_empty(self):
+        """Create new context if empty"""
+        if self.window.core.ctx.count_meta() == 0:
+            self.new()
 
     def rename(self, id: int):
         """

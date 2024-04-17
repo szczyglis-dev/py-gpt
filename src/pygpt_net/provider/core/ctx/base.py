@@ -104,6 +104,9 @@ class BaseProvider:
     def remove_group(self, id: int, all: bool = False):
         pass
 
+    def truncate_groups(self):
+        pass
+
     def update_meta_group_id(self, meta_id: int, group_id: int):
         pass
 
