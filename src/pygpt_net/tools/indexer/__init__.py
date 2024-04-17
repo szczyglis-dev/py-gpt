@@ -134,6 +134,7 @@ class IndexerTool(BaseTool):
         self.update_tab_web()
         self.window.ui.nodes["tool.indexer.idx"].set_keys(self.window.controller.config.placeholder.apply_by_id("idx"))
         self.set_current_idx(self.current_idx)
+        self.window.ui.nodes["tool.indexer.idx"].set_value(self.current_idx)
 
     def refresh(self, check: bool = True):
         """
