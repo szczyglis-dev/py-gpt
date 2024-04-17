@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.57 (2024-04-17)
+
+- Fixed new ctx create on empty profile if previously group was selected.
+
 # 2.1.56 (2024-04-17)
 
 - Added a new menu option: Clear history + groups.

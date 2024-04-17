@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.1.56",
-    "app.version": "2.1.56",
+    "version": "2.1.57",
+    "app.version": "2.1.57",
     "updated_at": "2024-04-17T00:00:00"
   },
   "agent.auto_stop" : true,
