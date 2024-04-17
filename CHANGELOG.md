@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.54 (2024-04-17)
+
+- Added data loaders reload and loaders config reload in real time on profile switch.
+
 # 2.1.53 (2024-04-17)
 
 - Added a new tool: Indexer, for manually indexing files, contexts, and web content, as well as managing indexes. (beta)

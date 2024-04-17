@@ -131,6 +131,7 @@ class IndexerTool(BaseTool):
     def reload(self):
         """Reload indexes"""
         self.window.core.idx.indexing.reload_loaders()
+        self.update_tab_web()
         self.window.ui.nodes["tool.indexer.idx"].set_keys(self.window.controller.config.placeholder.apply_by_id("idx"))
         self.set_current_idx(self.current_idx)
 
@@ -150,7 +151,6 @@ class IndexerTool(BaseTool):
         self.update_tab_ctx()
         self.update_tab_files()
         self.update_tab_browse()
-        self.update_tab_web()
 
     def update_tab_ctx(self):
         """Update context tab"""
