@@ -57,6 +57,18 @@ class IndexWorker(QRunnable):
                     self.replace,
                     self.recursive,
                 )
+            elif self.type == "files":
+                result = {}
+                errors = []
+                for path in self.content:
+                    r, e = self.window.core.idx.index_files(
+                        self.idx,
+                        path,
+                        self.replace,
+                        self.recursive,
+                    )
+                    result.update(r)
+                    errors.extend(e)
             elif self.type == "db_meta":
                 result, errors = self.window.core.idx.index_db_by_meta_id(
                     self.idx,

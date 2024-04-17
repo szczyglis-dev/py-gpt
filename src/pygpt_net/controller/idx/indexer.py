@@ -215,8 +215,7 @@ class Indexer:
             path: str,
             idx: str = "base",
             replace: bool = None,
-            recursive: bool = None,
-            silent: bool = False
+            recursive: bool = None
     ):
         """
         Index all files in path (threaded)
@@ -227,8 +226,7 @@ class Indexer:
         :param recursive: recursive indexing
         :param silent: silent mode
         """
-        if not silent:
-            self.window.update_status(trans('idx.status.indexing'))
+        self.window.update_status(trans('idx.status.indexing'))
         worker = IndexWorker()
         worker.window = self.window
         worker.content = path
@@ -236,7 +234,34 @@ class Indexer:
         worker.type = "file"
         worker.replace = replace
         worker.recursive = recursive
-        worker.silent = silent
+        worker.signals.finished.connect(self.handle_finished_file)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+
+    def index_paths(
+            self,
+            paths: list,
+            idx: str = "base",
+            replace: bool = None,
+            recursive: bool = None
+    ):
+        """
+        Index all files in path (threaded)
+
+        :param paths: paths to files or directories
+        :param idx: index name
+        :param replace: replace index
+        :param recursive: recursive indexing
+        """
+        self.window.update_status(trans('idx.status.indexing'))
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = paths
+        worker.idx = idx
+        worker.type = "files"
+        worker.replace = replace
+        worker.recursive = recursive
+        worker.silent = False
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -369,7 +394,7 @@ class Indexer:
         worker.params = params
         worker.config = config
         worker.replace = replace
-        worker.silent = True
+        worker.silent = False
         worker.idx = idx
         worker.type = "web"
         worker.signals.finished.connect(self.handle_finished_web)
