@@ -244,10 +244,12 @@ class IndexerTool(BaseTool):
 
     def idx_ctx_db_all(self):
         """Index all context data"""
+        # self.clear_log()
         self.window.controller.idx.indexer.index_ctx_from_ts(self.current_idx, 0)
 
     def idx_ctx_db_update(self):
         """Index context data from last update"""
+        # self.clear_log()
         self.window.controller.idx.indexer.index_ctx_current(self.current_idx)
 
     def index_data(self, force: bool = False):
@@ -260,6 +262,7 @@ class IndexerTool(BaseTool):
             self.window.ui.dialogs.alert(trans("tool.indexer.alert.no_idx"))
             return
         tab = self.window.ui.tabs['tool.indexer'].currentIndex()
+        # self.clear_log()
         if tab == 0:
             self.index_files(force)
         elif tab == 1:
@@ -290,14 +293,12 @@ class IndexerTool(BaseTool):
                 msg=trans("tool.indexer.confirm.idx"),
             )
             return
-        for path in paths:
-            self.window.controller.idx.indexer.index_path(
-                path,
-                self.current_idx,
-                is_replace,
-                is_recursive,
-                silent=True,
-            )
+        self.window.controller.idx.indexer.index_paths(
+            paths,
+            self.current_idx,
+            is_replace,
+            is_recursive,
+        )
 
     def index_web(self, force: bool = False):
         """
@@ -360,7 +361,7 @@ class IndexerTool(BaseTool):
             loader,
             input_params,
             input_config,
-            is_replace
+            is_replace,
         )
 
     def on_finish_files(self):
