@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
@@ -92,6 +92,15 @@ class OptionCombo(QWidget):
         :return: value
         """
         return self.current_id
+
+    def set_keys(self, keys):
+        """
+        Set keys
+
+        :param keys: keys
+        """
+        self.keys = keys
+        self.update()
 
     def on_combo_change(self, index):
         """

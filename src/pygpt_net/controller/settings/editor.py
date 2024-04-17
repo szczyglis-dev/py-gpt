@@ -155,11 +155,11 @@ class Editor:
         # update idx list
         if self.config_changed('llama.idx.list'):
             self.window.controller.idx.settings.update_idx_choices()
-            self.window.tools.get("indexer").refresh()
+            self.window.tools.get("indexer").reload()
 
         # update idx storage
         if self.config_changed('llama.idx.storage'):
-            self.window.tools.get("indexer").refresh()
+            self.window.tools.get("indexer").reload()
 
         # update notepad tabs
         if self.config_changed('notepad.num'):

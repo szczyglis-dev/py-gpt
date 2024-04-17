@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.17 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -128,6 +128,12 @@ class IndexerTool(BaseTool):
         if not valid and self.current_idx != "-":
             self.current_idx = default
 
+    def reload(self):
+        """Reload indexes"""
+        self.window.core.idx.indexing.reload_loaders()
+        self.window.ui.nodes["tool.indexer.idx"].set_keys(self.window.controller.config.placeholder.apply_by_id("idx"))
+        self.set_current_idx(self.current_idx)
+
     def refresh(self, check: bool = True):
         """
         Refresh dialog window
@@ -144,6 +150,7 @@ class IndexerTool(BaseTool):
         self.update_tab_ctx()
         self.update_tab_files()
         self.update_tab_browse()
+        self.update_tab_web()
 
     def update_tab_ctx(self):
         """Update context tab"""
@@ -211,6 +218,28 @@ class IndexerTool(BaseTool):
     def update_tab_browse(self):
         """Update browse tab"""
         self.window.ui.nodes['tool.indexer.browser'].update_table_view()
+
+    def update_tab_web(self):
+        """Update web tab"""
+        loaders = self.window.core.idx.indexing.get_external_config()
+        for loader in loaders:
+            params = loaders[loader]
+            for k in params:
+                key_path = "tool.indexer.web.loader.config." + loader + "." + k
+                value = ""
+                try:
+                    if params[k]["value"] is not None:
+                        if params[k]["type"] == "list" and isinstance(params[k]["value"], list):
+                            value = ", ".join(params[k]["value"])
+                        elif params[k]["type"] == "dict" and isinstance(params[k]["dict"], dict):
+                            value = json.dumps(params[k]["value"])
+                        else:
+                            value = str(params[k]["value"])
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                if key_path in self.window.ui.nodes:
+                    self.window.ui.nodes[key_path].setText(value)
+                    self.window.ui.nodes[key_path].value = value
 
     def idx_ctx_db_all(self):
         """Index all context data"""
