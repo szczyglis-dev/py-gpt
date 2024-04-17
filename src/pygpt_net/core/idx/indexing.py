@@ -370,7 +370,7 @@ class Indexing:
                 # force replace or not old document
                 if replace is not None:
                     if replace:
-                        self.remove_old_file(idx, file_id)
+                        self.remove_old_file(idx, file_id, force=True)
                 else:
                     # if auto, only replace if not temporary
                     if not is_tmp:
@@ -419,12 +419,12 @@ class Indexing:
                     file_path = os.path.join(root, file)
                     try:
                         # remove old file from index if exists
-                        file_id = self.window.core.idx.files.get_id(path)
+                        file_id = self.window.core.idx.files.get_id(file_path)
 
                         # force replace or not old document
                         if replace is not None:
                             if replace:
-                                self.remove_old_file(idx, file_id)
+                                self.remove_old_file(idx, file_id, force=True)
                         else:
                             # if auto, only replace if not temporary
                             if not is_tmp:
@@ -452,7 +452,7 @@ class Indexing:
                 # force replace or not old document
                 if replace is not None:
                     if replace:
-                        self.remove_old_file(idx, file_id)
+                        self.remove_old_file(idx, file_id, force=True)
                 else:
                     # if auto, only replace if not temporary
                     if not is_tmp:
@@ -673,7 +673,7 @@ class Indexing:
             # remove old document from index
             if replace is not None:
                 if replace:
-                    self.remove_old_external(idx, unique_id, type)
+                    self.remove_old_external(idx, unique_id, type, force=True)
             else:
                 # if auto, only replace if not temporary
                 if not is_tmp:
@@ -752,16 +752,17 @@ class Indexing:
             errors.extend(errs)
         return n, errors
 
-    def remove_old_meta_id(self, idx: str, id: int = 0) -> bool:
+    def remove_old_meta_id(self, idx: str, id: int = 0, force: bool = False) -> bool:
         """
         Remove old meta id from index
 
         :param idx: index name
         :param id: ctx meta id
+        :param force: force remove
         :return: True if removed, False if not
         """
         # abort if not configured to replace old documents
-        if not self.window.core.config.get("llama.idx.replace_old"):
+        if not self.window.core.config.get("llama.idx.replace_old") and not force:
             return False
 
         store = self.window.core.idx.get_current_store()
@@ -779,16 +780,17 @@ class Indexing:
                 return True
         return False
 
-    def remove_old_file(self, idx: str, file_id: str):
+    def remove_old_file(self, idx: str, file_id: str, force: bool = False):
         """
         Remove old file from index
 
         :param idx: index name
         :param file_id: file id
+        :param force: force remove
         :return: True if removed, False if not
         """
         # abort if not configured to replace old documents
-        if not self.window.core.config.get("llama.idx.replace_old"):
+        if not self.window.core.config.get("llama.idx.replace_old") and not force:
             return False
 
         store = self.window.core.idx.get_current_store()
@@ -806,17 +808,18 @@ class Indexing:
                 return True
         return False
 
-    def remove_old_external(self, idx: str, content: str, type: str):
+    def remove_old_external(self, idx: str, content: str, type: str, force: bool = False):
         """
         Remove old file from index
 
         :param idx: index name
         :param content: content
         :param type: type
+        :param force: force remove
         :return: True if removed, False if not
         """
         # abort if not configured to replace old documents
-        if not self.window.core.config.get("llama.idx.replace_old"):
+        if not self.window.core.config.get("llama.idx.replace_old") and not force:
             return False
 
         store = self.window.core.idx.get_current_store()
