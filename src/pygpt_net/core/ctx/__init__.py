@@ -875,6 +875,17 @@ class Ctx:
         """Load groups"""
         self.groups = self.provider.get_groups()
 
+    def has_group(self, id: int) -> bool:
+        """
+        Check if group exists
+
+        :param id: group id
+        :return: True if exists
+        """
+        if id in self.groups:
+            return True
+        return False
+
     def get_groups(self) -> dict:
         """
         Get groups

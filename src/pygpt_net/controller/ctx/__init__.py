@@ -202,6 +202,11 @@ class Ctx:
         else:
             self.group_id = group_id
 
+        # check if group exists
+        if group_id is not None and not self.window.core.ctx.has_group(group_id):
+            group_id = None
+            self.group_id = None
+
         self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
@@ -462,6 +467,7 @@ class Ctx:
 
     def new_if_empty(self):
         """Create new context if empty"""
+        self.group_id = None
         if self.window.core.ctx.count_meta() == 0:
             self.new()
 
