@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor
 from typing_extensions import override
 
-from PySide6.QtWidgets import QApplication, QMenu
+from PySide6.QtWidgets import QApplication, QMenu, QHeaderView
 
 from pygpt_net.ui.dialog.db import DataBrowser
 from pygpt_net.ui.widget.lists.db import DatabaseList
@@ -21,6 +21,12 @@ from pygpt_net.utils import trans
 
 
 class IdxBrowseList(DatabaseList):
+
+    def adjustColumns(self):
+        """Adjust columns width"""
+        last_column = self.model().columnCount() - 1
+        self.horizontalHeader().setSectionResizeMode(last_column, QHeaderView.Stretch)
+
     def create_context_menu(self, parent):
         """
         Create context menu

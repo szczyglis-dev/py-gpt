@@ -114,8 +114,7 @@ class DatabaseList(QTableView):
 
     def adjustColumns(self):
         """Adjust columns width"""
-        last_column = self.model().columnCount() - 1
-        self.horizontalHeader().setSectionResizeMode(last_column, QHeaderView.Stretch)
+        pass
 
     def create_context_menu(self, parent):
         """

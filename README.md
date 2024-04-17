@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.52** | build: **2024.04.15** | Python: **>=3.10, <3.12**
+Release: **2.1.53** | build: **2024.04.17** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2944,6 +2944,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.53 (2024-04-17)
+
+- Added a new tool: Indexer, for manually indexing files, contexts, and web content, as well as managing indexes. (beta)
 
 # 2.1.52 (2024-04-15)
 

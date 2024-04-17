@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.04.17 01:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QPlainTextEdit
 
 from pygpt_net.utils import trans
@@ -24,6 +25,7 @@ class AlertDialog(QDialog):
         super(AlertDialog, self).__init__(window)
         self.window = window
         self.setWindowTitle(trans('alert.title'))
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)  # always on top
 
         QBtn = QDialogButtonBox.Ok
 
