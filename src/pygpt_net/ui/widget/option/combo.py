@@ -100,6 +100,7 @@ class OptionCombo(QWidget):
         :param keys: keys
         """
         self.keys = keys
+        self.combo.clear()
         self.update()
 
     def on_combo_change(self, index):
