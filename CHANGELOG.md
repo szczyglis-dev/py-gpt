@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.55 (2024-04-17)
+
+- Improved result handling from Indexer tool.
+
 # 2.1.54 (2024-04-17)
 
 - Added data loaders reload and loaders config reload in real time on profile switch.
