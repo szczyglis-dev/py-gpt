@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.56 (2024-04-17)
+
+- Added a new menu option: Clear history + groups.
+- Improved profile switching.
+
 # 2.1.55 (2024-04-17)
 
 - Improved result handling from Indexer tool.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.55** | build: **2024.04.17** | Python: **>=3.10, <3.12**
+Release: **2.1.56** | build: **2024.04.17** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2944,6 +2944,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.56 (2024-04-17)
+
+- Added a new menu option: Clear history + groups.
+- Improved profile switching.
 
 # 2.1.55 (2024-04-17)
 
