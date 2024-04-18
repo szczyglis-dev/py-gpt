@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 07:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -432,6 +432,8 @@ class Ctx:
             print("Error truncating ctx index db", e)
 
         # truncate ctx and history
+        self.group_id = None
+        self.unselect()
         self.window.core.ctx.truncate()
         self.window.core.history.truncate()
         self.update()
@@ -459,6 +461,8 @@ class Ctx:
             print("Error truncating ctx index db", e)
 
         # truncate ctx and history
+        self.group_id = None
+        self.unselect()
         self.window.core.ctx.truncate()
         self.window.core.history.truncate()
         self.window.core.ctx.truncate_groups()
