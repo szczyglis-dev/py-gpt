@@ -310,6 +310,7 @@ class Mapping:
         menu_text['info.docs'] = 'menu.info.docs'
         menu_text['info.pypi'] = 'menu.info.pypi'
         menu_text['info.snap'] = 'menu.info.snap'
+        menu_text['info.donate'] = 'menu.info.donate'
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
         menu_text['audio.output'] = 'menu.audio.output'

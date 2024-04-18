@@ -3122,6 +3122,8 @@ The full changelog is located in the **[CHANGELOG.md](https://github.com/szczygl
 
 **Documentation:** <https://pygpt.readthedocs.io>
 
+**Support/donate:** <https://pygpt.net/#donate>
+
 **GitHub:** <https://github.com/szczyglis-dev/py-gpt>
 
 **Snap Store:** <https://snapcraft.io/pygpt>

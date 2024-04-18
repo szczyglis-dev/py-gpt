@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -77,6 +77,10 @@ class Info:
     def goto_update(self):
         """Open update URL"""
         webbrowser.open(self.window.meta['website'])
+
+    def goto_donate(self):
+        """Open donate page"""
+        webbrowser.open(self.window.meta['donate'])
 
     def update_menu(self):
         """Update info menu"""

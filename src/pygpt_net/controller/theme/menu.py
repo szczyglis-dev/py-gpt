@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 02:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -22,6 +22,7 @@ class Menu:
         self.window = window
         self.density_values = [-2, -1, 0, 1, 2]
         self.loaded = False
+        self.density_loaded = False
 
     def setup_list(self):
         """Setup menu list"""
@@ -44,6 +45,8 @@ class Menu:
 
     def setup_density(self):
         """Setup menu list"""
+        if self.density_loaded:
+            return
         # setup layout density menu
         current_density = self.window.core.config.get('layout.density')
         for value in self.density_values:
@@ -56,6 +59,7 @@ class Menu:
             self.window.ui.menu['theme.density'].addAction(self.window.ui.menu['theme.layout.density'][value])
             if value == current_density:
                 self.window.ui.menu['theme.layout.density'][value].setChecked(True)
+        self.density_loaded = True
 
     def update_density(self):
         """Update layout density menu"""
