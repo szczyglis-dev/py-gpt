@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 08:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 import markdown
@@ -66,7 +66,7 @@ class Parser:
             if self.window.core.config.get('ctx.copy_code'):
                 self.parse_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags
-            text = str(soup)
+            text = " " + str(soup) + " "
         except Exception as e:
             pass
         return text

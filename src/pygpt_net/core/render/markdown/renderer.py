@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 import os
@@ -231,7 +231,10 @@ class Renderer(BaseRenderer):
             if show_edit or show_audio:
                 icons_html = " ".join(self.get_action_icons(item, all=show_edit))
                 if icons_html != "":
-                    self.get_output_node().append("<div class=\"action-icons\">{}</div> ".format(icons_html))
+                    extra = "<div class=\"action-icons\">{}</div>".format(icons_html)
+                    if item.output is not None and item.output.endswith("```"):
+                        extra = " \n&nbsp;" + extra + "<div></div>"
+                    self.get_output_node().append(extra)
                     self.to_end()
 
         # docs json
@@ -385,7 +388,9 @@ class Renderer(BaseRenderer):
             text = "<div><p>" + content + "</p></div>"
 
         text = self.post_format_text(text)
-        text = '<div class="{}">'.format(type) + text.strip() + "</div>"
+        if text.startswith("<div class"):
+            text = " " + text.strip()
+        text = '<div class="{}">'.format(type) + text + "</div>"
 
         self.get_output_node().append(text)
         self.to_end()
