@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 03:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -145,6 +145,10 @@ class IndexerTool(BaseTool):
         if check:
             self.check_current_idx()
         self.update_tabs()
+
+    def on_reload(self):
+        """On app profile reload"""
+        self.reload()
 
     def update_tabs(self):
         """Update tabs"""
