@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 17:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -108,6 +108,8 @@ class ProfileEditDialog(QDialog):
         }
         self.workdir = DirectoryInput(self.window, 'profile', 'item', option)
 
+        self.window.ui.nodes['dialog.profile.checkbox.switch'] = QCheckBox(trans("dialog.profile.checkbox.switch"))
+        self.window.ui.nodes['dialog.profile.checkbox.switch'].setChecked(True)
         self.window.ui.nodes['dialog.profile.checkbox.db'] = QCheckBox(trans("dialog.profile.checkbox.include_db"))
         self.window.ui.nodes['dialog.profile.checkbox.db'].setChecked(True)
         self.window.ui.nodes['dialog.profile.checkbox.data'] = QCheckBox(trans("dialog.profile.checkbox.include_datadir"))
@@ -127,6 +129,7 @@ class ProfileEditDialog(QDialog):
         layout.addWidget(self.window.ui.nodes['dialog.profile.workdir.label'])
         layout.addWidget(self.workdir)
         layout.addWidget(self.checkboxes)
+        layout.addWidget(self.window.ui.nodes['dialog.profile.checkbox.switch'])
         layout.addLayout(bottom)
 
         self.setLayout(layout)

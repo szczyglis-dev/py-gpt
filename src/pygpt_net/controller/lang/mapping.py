@@ -216,6 +216,7 @@ class Mapping:
         nodes['dialog.profile.workdir.label'] = 'dialog.profile.workdir.label'
         nodes['dialog.profile.checkbox.db'] = 'dialog.profile.checkbox.include_db'
         nodes['dialog.profile.checkbox.data'] = 'dialog.profile.checkbox.include_datadir'
+        nodes['dialog.profile.checkbox.switch'] = 'dialog.profile.checkbox.switch'
         nodes['profile.editor.btn.new'] = 'dialog.profile.new'
         nodes['profile.editor.tip'] = 'dialog.profile.tip'
 

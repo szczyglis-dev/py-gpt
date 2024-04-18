@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 17:00:00                  #
+# Updated Date: 2024.04.19 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -96,6 +96,7 @@ class Profile:
 
     def new(self):
         """New profile dialog"""
+        self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(True)
         self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
         self.window.ui.dialog['profile.item'].id = 'profile'
         self.window.ui.dialog['profile.item'].uuid = None
@@ -111,6 +112,7 @@ class Profile:
 
         :param uuid: profile UUID
         """
+        self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(False)
         profile = self.window.core.config.profile.get(uuid)
         self.window.ui.dialog['profile.item'].checkboxes.setVisible(False)
         if profile is None:
@@ -182,8 +184,10 @@ class Profile:
 
         if mode == 'create':
             # create new profile
-            self.window.core.config.profile.add(name, path)
+            uuid = self.window.core.config.profile.add(name, path)
             self.window.ui.status(trans("dialog.profile.status.created"))
+            if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
+                self.switch(uuid, force=True)
 
         elif mode == 'edit':
             # update profile
@@ -235,6 +239,8 @@ class Profile:
             # make duplicate
             self.duplicate(uuid, name, path)
             self.window.ui.status(trans("dialog.profile.status.duplicated"))
+            if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
+                self.switch(uuid, force=True)
 
         # close dialog and update list
         self.window.ui.dialogs.close('profile.item')
@@ -405,6 +411,7 @@ class Profile:
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
+        self.window.ui.nodes['dialog.profile.checkbox.switch'].setVisible(True)
         self.window.ui.dialog['profile.item'].id = 'profile'
         self.window.ui.dialog['profile.item'].uuid = uuid
         self.window.ui.dialog['profile.item'].mode = 'duplicate'
