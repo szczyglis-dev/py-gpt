@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.1 22:00:00                  #
+# Updated Date: 2024.04.19 03:00:00                  #
 # ================================================== #
 from unittest.mock import MagicMock
 
@@ -73,7 +73,7 @@ def test_parse_headers():
     parser.init()
 
     markdown_input = "# Header 1\n## Header 2\n### Header 3"
-    expected_html_output = "<h1>Header 1</h1><h2>Header 2</h2><h3>Header 3</h3>"
+    expected_html_output = " <h1>Header 1</h1><h2>Header 2</h2><h3>Header 3</h3> "
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 
@@ -87,7 +87,7 @@ def test_parse_emphasis():
     parser.init()
 
     markdown_input = "*italic* **bold** `code`"
-    expected_html_output = "<p><em>italic</em> <strong>bold</strong> <code>code</code></p>"
+    expected_html_output = " <p><em>italic</em> <strong>bold</strong> <code>code</code></p> "
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 
@@ -101,7 +101,7 @@ def test_parse_links():
     parser.init()
 
     markdown_input = "[PYGPT](https://pygpt.net)"
-    expected_html_output = '<p><a href="https://pygpt.net">PYGPT</a></p>'
+    expected_html_output = ' <p><a href="https://pygpt.net">PYGPT</a></p> '
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 
@@ -115,7 +115,7 @@ def test_parse_code_blocks():
     parser.init()
 
     markdown_input = "```\ndef example():\n    return 'example'\n```"
-    expected_html_output = "<pre><code>def example():    return 'example'</code></pre>"
+    expected_html_output = " <pre><code>def example():    return 'example'</code></pre> "
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 
@@ -129,7 +129,7 @@ def test_parse_block_quotes():
     parser.init()
 
     markdown_input = "> This is a block quote."
-    expected_html_output = "<blockquote><p>This is a block quote.</p></blockquote>"
+    expected_html_output = " <blockquote><p>This is a block quote.</p></blockquote> "
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 
@@ -144,6 +144,6 @@ def test_parse_images():
     parser.init()
 
     markdown_input = "![Alt text](/path/to/img.jpg)"
-    expected_html_output = '<p><img alt="Alt text" src="/path/to/img.jpg" width="400"/></p>'
+    expected_html_output = ' <p><img alt="Alt text" src="/path/to/img.jpg" width="400"/></p> '
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
