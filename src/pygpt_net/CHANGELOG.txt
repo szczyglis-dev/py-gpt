@@ -1,3 +1,10 @@
+2.1.58 (2024-04-19)
+
+- Fixed Markdown rendering if the content starts with a code block.
+- Added a "Switch to created profile" option in the profile creation/duplication dialogs.
+- Updated the locale.
+- Added a donate option.
+
 2.1.57 (2024-04-17)
 
 - Fixed new ctx create on empty profile if previously group was selected.

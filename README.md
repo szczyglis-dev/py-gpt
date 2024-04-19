@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.57** | build: **2024.04.17** | Python: **>=3.10, <3.12**
+Release: **2.1.58** | build: **2024.04.19** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2944,6 +2944,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.58 (2024-04-19)
+
+- Fixed Markdown rendering if the content starts with a code block.
+- Added a "Switch to created profile" option in the profile creation/duplication dialogs.
+- Updated the locale.
+- Added a donate option.
 
 # 2.1.57 (2024-04-17)
 
