@@ -1321,6 +1321,13 @@ class Patch:
                 self.window.core.updater.patch_css('web.css', True)  # force update
                 updated = True
 
+            # < 2.1.61
+            if old < parse_version("2.1.61"):
+                print("Migrating config from < 2.1.61...")
+                # css upgrade
+                self.window.core.updater.patch_css('web.css', True)  # force update
+                updated = True
+
         # update file
         migrated = False
         if updated:

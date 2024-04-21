@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.61 (2024-04-21)
+
+- Added real-time HTML formatting of text chunks in stream mode.
+
 # 2.1.60 (2024-04-21)
 
 - Fixed "Save as" option in WebEngine view.

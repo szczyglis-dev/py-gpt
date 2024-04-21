@@ -20,7 +20,8 @@ p {{
     max-width: 100%;
     padding-left: 10px;
     margin-left:0px;
-    padding-bottom: 5px;
+    padding-bottom: 5px; 
+    border: 1px solid transparent;
 }}
 .msg-bot {{
     color: #fff;
@@ -29,6 +30,7 @@ p {{
     max-width: 100%;
     margin-top: 10px;
     margin-bottom: 10px;
+    border: 1px solid transparent;
 }}
 .cmd {{
     font-family: 'Lato';
