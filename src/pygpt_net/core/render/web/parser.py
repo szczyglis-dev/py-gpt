@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 21:00:00                  #
+# Updated Date: 2024.04.22 01:00:00                  #
 # ================================================== #
 
 import markdown
@@ -174,7 +174,7 @@ class Parser:
                 language = language.replace('language-', '')
                 lang_span.string = language + "   "
             else:
-                lang_span.string = "Code "
+                lang_span.string = "code "
 
             link_wrapper.append(lang_span)
             link_wrapper.append(a)
@@ -189,9 +189,9 @@ class Parser:
                 try:
                     lexer = get_lexer_by_name(language)
                 except Exception:
-                    lexer = get_lexer_by_name("plaintext")
+                    lexer = get_lexer_by_name("sh")
             else:
-                lexer = get_lexer_by_name("plaintext")
+                lexer = get_lexer_by_name("sh")
 
             formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
             highlighted_code = highlight(content, lexer, formatter)
