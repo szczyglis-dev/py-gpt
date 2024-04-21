@@ -1,3 +1,9 @@
+2.1.60 (2024-04-21)
+
+- Fixed "Save as" option in WebEngine view.
+- Added hiding of empty groups on search.
+- Updated formatting and CSS.
+
 2.1.59 (2024-04-20)
 
 - Added output renderer: WebEngine/Chromium – with full HTML/CSS/JS support. (Experimental)

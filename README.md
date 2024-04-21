@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.59** | build: **2024.04.20** | Python: **>=3.10, <3.12**
+Release: **2.1.60** | build: **2024.04.21** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.60 (2024-04-21)
+
+- Fixed "Save as" option in WebEngine view.
+- Added hiding of empty groups on search.
+- Updated formatting and CSS.
 
 # 2.1.59 (2024-04-20)
 
