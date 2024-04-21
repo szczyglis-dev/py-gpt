@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 21:00:00                  #
 # ================================================== #
 
 import markdown
@@ -63,15 +63,14 @@ class Parser:
         """
         self.init()
         try:
-            html = self.md.convert(text.strip())
-            soup = BeautifulSoup(html, 'html.parser')
+            soup = BeautifulSoup(self.md.convert(text.strip()), 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             if self.window.core.config.get("ctx.convert_lists"):
                 self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
             self.highlight_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags
-            text = str(soup)
+            return str(soup)
         except Exception as e:
             pass
         return text
@@ -176,8 +175,8 @@ class Parser:
                 lang_span.string = language + "   "
             else:
                 lang_span.string = "Code "
-            link_wrapper.append(lang_span)
 
+            link_wrapper.append(lang_span)
             link_wrapper.append(a)
             header.append(link_wrapper)
 
@@ -190,9 +189,9 @@ class Parser:
                 try:
                     lexer = get_lexer_by_name(language)
                 except Exception:
-                    lexer = get_lexer_by_name("txt")
+                    lexer = get_lexer_by_name("plaintext")
             else:
-                lexer = get_lexer_by_name("txt")
+                lexer = get_lexer_by_name("plaintext")
 
             formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
             highlighted_code = highlight(content, lexer, formatter)

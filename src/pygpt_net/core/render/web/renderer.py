@@ -626,7 +626,7 @@ class Renderer(BaseRenderer):
         text = html.escape(text).replace("\n", "<br>")
         # append cmd tags if response from command detected
         if (text.strip().startswith("[") or text.strip().startswith("&gt; [")) and text.strip().endswith("]"):
-            text = '<div class="cmd">&gt; {}</div><br/>'.format(text)
+            text = '<div class="cmd">&gt; {}</div>'.format(text)
         return text
 
     def format_chunk(self, text: str) -> str:

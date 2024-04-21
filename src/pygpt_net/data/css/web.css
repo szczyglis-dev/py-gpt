@@ -20,7 +20,7 @@ p {{
     max-width: 100%;
     padding-left: 10px;
     margin-left:0px;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
 }}
 .msg-bot {{
     color: #fff;
@@ -34,7 +34,7 @@ p {{
     font-family: 'Lato';
     color: #4d4d4d;
     text-decoration: none;
-    padding-bottom: 10px;
+    padding-bottom: 0px;
 }}
 .ts {{
     color: #4d4d4d;
