@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 21:00:00                  #
 # ================================================== #
 
 
@@ -86,7 +86,8 @@ class Nodes:
         # apply to nodes
         for type in nodes:
             for key in nodes[type]:
-                # output switch
+                if key == "output" and self.window.controller.chat.render.get_engine() != 'legacy':
+                    continue
                 self.apply(key, type)
 
         # self.window.interpreter.update_stylesheet(self.window.controller.theme.style('font.chat.output'))
@@ -117,13 +118,13 @@ class Nodes:
         # ------------------------
 
         # zoom, (Chromium, web engine)
-        if hasattr(self.window.ui.nodes['output'], 'update_zoom'):
+        if self.window.controller.chat.render.get_engine() == 'web':
             zoom = self.window.core.config.get('zoom')
             self.window.ui.nodes['output'].value = zoom
             self.window.ui.nodes['output'].update_zoom()
 
         # font size, legacy (markdown)
-        elif hasattr(self.window.ui.nodes['output'], 'update'):
+        elif self.window.controller.chat.render.get_engine() == 'legacy':
             self.window.ui.nodes['output'].value = size
             self.window.ui.nodes['output'].update()
 
