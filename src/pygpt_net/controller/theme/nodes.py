@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 
@@ -46,6 +46,7 @@ class Nodes:
             ],
             'font.chat.output': [
                 'output',
+                'output_plain',
             ],
             'font.ctx.list': [
                 'ctx.list',
@@ -85,6 +86,7 @@ class Nodes:
         # apply to nodes
         for type in nodes:
             for key in nodes[type]:
+                # output switch
                 self.apply(key, type)
 
         # self.window.interpreter.update_stylesheet(self.window.controller.theme.style('font.chat.output'))
@@ -107,8 +109,23 @@ class Nodes:
             for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.value = size
-        self.window.ui.nodes['output'].value = size
-        self.window.ui.nodes['output'].update()
+
+        # plain text/markdown
+        self.window.ui.nodes['output_plain'].value = size
+        self.window.ui.nodes['output_plain'].update()
+
+        # ------------------------
+
+        # zoom, (Chromium, web engine)
+        if hasattr(self.window.ui.nodes['output'], 'update_zoom'):
+            zoom = self.window.core.config.get('zoom')
+            self.window.ui.nodes['output'].value = zoom
+            self.window.ui.nodes['output'].update_zoom()
+
+        # font size, legacy (markdown)
+        elif hasattr(self.window.ui.nodes['output'], 'update'):
+            self.window.ui.nodes['output'].value = size
+            self.window.ui.nodes['output'].update()
 
         # update tools
         self.window.tools.setup_theme()

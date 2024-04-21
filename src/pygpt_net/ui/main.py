@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.20 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
+import os
+
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory
 from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 
@@ -62,6 +64,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.init()
         self.core.patch()  # patch version if needed
 
+        # before render, handle engine args
+        self.handle_engine_args()
+
         # setup thread pool
         self.threadpool = QThreadPool()
 
@@ -81,6 +86,35 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup signals
         self.statusChanged.connect(self.update_status)
         self.stateChanged.connect(self.update_state)
+
+    def handle_engine_args(self):
+        """Handle launcher arguments"""
+        render_debug = False
+        if self.args is not None:
+            if "debug" in self.args and (self.args["debug"] == "1" or self.args["debug"] == "2"):
+                render_debug = True
+            if "legacy" in self.args and self.args["legacy"] == "1":
+                self.core.config.set("render.engine", "legacy")
+            if "disable-gpu" in self.args and self.args["disable-gpu"] == "1":
+                self.core.config.set("render.open_gl", False)
+
+        # from log level
+        if self.core.config.get("log.level") in ["debug", "info"]:
+            render_debug = True
+
+        # disable/enable logging web engine context
+        if not render_debug:
+            log = QLoggingCategory("qt.webenginecontext")
+            log.setFilterRules("*.info=false")
+        else:
+            os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=0"
+
+        # OpenGL disable
+        if self.core.config.get("render.open_gl") is False:
+            if "QTWEBENGINE_CHROMIUM_FLAGS" in os.environ:
+                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] += " --disable-gpu"
+            else:
+                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
 
     def add_plugin(self, plugin):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 05:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -144,7 +144,9 @@ class Layout:
     def scroll_save(self):
         """Save scroll state"""
         data = {}
-        data['output'] = self.window.ui.nodes['output'].verticalScrollBar().value()
+        if hasattr(self.window.ui.nodes['output'], 'verticalScrollBar'):
+            data['output'] = self.window.ui.nodes['output'].verticalScrollBar().value()
+
         # notepads
         for id in self.window.ui.notepad:
             scroll_id = "notepad." + str(id)
@@ -168,7 +170,8 @@ class Layout:
                         self.window.core.debug.log(e)
         if 'output' in data:
             try:
-                self.window.ui.nodes['output'].verticalScrollBar().setValue(data['output'])
+                if hasattr(self.window.ui.nodes['output'], 'verticalScrollBar'):
+                    self.window.ui.nodes['output'].verticalScrollBar().setValue(data['output'])
             except Exception as e:
                 print("Error while restoring scroll state: " + str(e))
                 self.window.core.debug.log(e)
@@ -215,6 +218,12 @@ class Layout:
         data['geometry'] = geometry_data
         data['maximized'] = self.window.isMaximized()
         self.window.core.config.set('layout.window', data)
+
+        # ------------------
+
+        # output zoom save (Chromium, web engine only)
+        if hasattr(self.window.ui.nodes['output'], 'get_zoom_value'):
+            self.window.core.config.set('zoom', self.window.ui.nodes['output'].get_zoom_value())
 
     def restore_plugin_settings(self):
         """Restore groups state"""

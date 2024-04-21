@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# 2.1.59 (2024-04-20)
+
+- Added output renderer: WebEngine/Chromium – with full HTML/CSS/JS support. (Experimental)
+- Added a new option to choose a render engine in Settings -> General -> Rendering engine to select between WebEngine / Chromium mode and the Legacy mode (old, with simple markdown CSS support only - for compatibility reasons and troubleshooting).
+- Added syntax highlighting to code blocks – issue #43.
+- Added a new option in Settings -> Layout -> Code syntax highlight to select a highlight theme.
+- Added a new option in Settings -> Context -> Convert lists to paragraphs to enable/disable converting ul and li into p for better copying.
+- Copy to clipboard and regenerate response icons are now visible by default.
+
 # 2.1.58 (2024-04-19)
 
 - Fixed Markdown rendering if the content starts with a code block.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -172,6 +172,8 @@ class Text:
 
         # append text from input to chat window
         self.window.controller.chat.render.append_input(ctx)
+        self.window.ui.nodes['output'].update()
+        QApplication.processEvents()
 
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)
@@ -184,7 +186,7 @@ class Text:
         )
 
         # process events to update UI
-        QApplication.processEvents()
+        #QApplication.processEvents()
 
         # get external functions (if preset is chosen and functions are defined)
         functions = self.window.controller.presets.get_current_functions()

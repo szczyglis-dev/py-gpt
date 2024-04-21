@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 17:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -20,6 +20,14 @@ class BaseRenderer:
         :param window: Window instance
         """
         self.window = window
+
+    def is_stream(self) -> bool:
+        """
+        Check if it is a stream
+
+        :return: True if it is a stream
+        """
+        return self.window.core.config.get("stream")
 
     def begin(self, stream: bool = False):
         """Render begin"""
@@ -98,4 +106,11 @@ class BaseRenderer:
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
         """
+        pass
+
+    def clear_all(self):
+        """Clear all"""
+        pass
+
+    def on_page_loaded(self):
         pass

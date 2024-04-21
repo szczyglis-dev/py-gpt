@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
+
+from pygments.styles import get_all_styles
 
 class Placeholder:
     def __init__(self, window=None):
@@ -72,6 +74,8 @@ class Placeholder:
             return self.get_var_types()
         elif id == "agent_modes":
             return self.get_agent_modes()
+        elif id == "syntax_styles":
+            return self.get_syntax_styles()
         elif id == "idx":
             return self.get_idx()
         else:
@@ -212,5 +216,17 @@ class Placeholder:
         data = []
         data.append({'_': '---'})
         for id in indexes:
+            data.append({id: id})
+        return data
+
+    def get_syntax_styles(self) -> list:
+        """
+        Get llama placeholders list
+
+        :return: placeholders list
+        """
+        styles = list(get_all_styles())
+        data = []
+        for id in styles:
             data.append({id: id})
         return data

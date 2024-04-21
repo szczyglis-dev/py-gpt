@@ -46,7 +46,6 @@ QListView::item {{
 .interpreter-output,
 .code-editor {{
   font-family: 'Monaspace Neon';
-  color: #000;
   background: #232629; 
   color: #fff;
 }}

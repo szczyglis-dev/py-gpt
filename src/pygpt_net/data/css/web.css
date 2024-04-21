@@ -1,0 +1,110 @@
+* {{
+    font-family: 'Lato'; 
+}}
+body {{ 
+    word-wrap: break-word;
+    padding: 6px;
+    line-height: 1.25;
+}}
+a {{
+    color: #fff;
+}}
+p {{ 
+    margin-top: 5px;
+    margin-bottom: 5px;
+}}
+.msg-user {{
+    color: #bdbdbd !important;
+    white-space: pre-wrap;
+    width: auto;
+    max-width: 100%;
+    padding-left: 10px;
+    margin-left:0px;
+    padding-bottom: 10px;
+}}
+.msg-bot {{
+    color: #fff;
+    white-space: pre-wrap;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}}
+.cmd {{
+    font-family: 'Lato';
+    color: #4d4d4d;
+    text-decoration: none;
+    padding-bottom: 10px;
+}}
+.ts {{
+    color: #4d4d4d;
+}}
+ul, ol, .list {{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}}
+pre {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    font-family: 'Monaspace Neon';
+    display: block;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    text-align: left;
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    font-family: 'Monaspace Neon';
+    word-wrap: break-word;
+}}
+.code-header-wrapper {{
+    text-align: right;
+    width: auto;
+    padding: 10px;
+    padding-top: 10px;
+    margin-top: 0;
+    background-color: #1d1f21;
+}}
+.code-header {{
+    text-align: right;
+    width: 90%;
+    padding: 0px;
+}}
+.code-header-lang {{
+    color: #4d4d4d;
+}}
+.code-header-copy {{
+    text-align: right;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+}}
+.code-wrapper {{
+    padding: 0px;
+    border: 1px solid #1d1f21;
+    margin: 0px;
+}}
+.code-wrapper pre {{
+    padding: 10px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}}
+.highlight span {{
+    font-family: 'Monaspace Neon';
+}}
+.action-icons {{
+    margin-top: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f5f5f5;
+}}
+.action-icons a {{
+    text-decoration: none;
+}}
+.action-icons a:hover {{
+    filter: brightness(60%);
+}}
+.append_output {{
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-top: 20px;
+}}

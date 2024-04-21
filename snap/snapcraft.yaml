@@ -1,6 +1,6 @@
 name: pygpt
 base: core22  # Ubuntu 22.04
-version: '2.1.58'
+version: '2.1.59'
 summary: Desktop AI Assistant - GPT-4, GPT-4V, GPT-3, DALL-E 3, chat, assistant, vision
 description: |
   **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs, like those available on HuggingFace, by utilizing Langchain.
@@ -24,7 +24,21 @@ parts:
       - gstreamer1.0-libav
       - docker
       - libxcb-cursor0
+      - libxkbfile1
       - ubuntu-restricted-extras
+      - libqt5webengine5
+      - mesa-utils
+      - libgl1-mesa-dri
+      - libgl1-mesa-glx
+      - libglx-mesa0
+      - libgl1
+      - libglu1-mesa
+      - libfreetype6
+      - libgtk-3-0
+      - libpng16-16
+      - libfontconfig1
+      - libxi6        
+      - xkb-data
     build-packages:
       - execstack
       - portaudio19-dev
@@ -40,6 +54,8 @@ parts:
 layout:
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
+  /usr/share/qt5:
+    bind: $SNAP/usr/share/qt5
 
 apps:
   pygpt:
@@ -48,16 +64,22 @@ apps:
     environment:
       "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
       "PYTHONPATH": "$PYTHONPATH:$SNAP/usr/lib/python3/dist-packages:$SNAP/src"
+      "QT_XKB_CONFIG_ROOT": "$SNAP/usr/share/X11/xkb"
+      "LIBGL_DRIVERS_PATH": "$SNAP/usr/lib/x86_64-linux-gnu/dri"
+      "QTWEBENGINEPROCESS_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
+      "QML_IMPORT_PATH": "$SNAP/qml"
+      "QML2_IMPORT_PATH": "$SNAP/qml"
     plugs:
     - alsa
     - audio-playback
     - audio-record
+    - browser-support
     - network
     - home
     - gsettings
     - desktop
     - desktop-legacy
-    - wayland
+    #- wayland
     - x11
     - opengl
     - unity7

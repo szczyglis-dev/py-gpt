@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -63,10 +63,7 @@ class Output:
         # only append output if not in stream mode, TODO: plugin output add
         if not stream_mode:
             self.window.controller.chat.render.append_output(ctx)
-            self.window.controller.chat.render.append_extra(ctx)
-        else:
-            if mode == 'assistant':
-                self.window.controller.chat.render.append_extra(ctx)  # append extra data only
+            self.window.controller.chat.render.append_extra(ctx, True)  # + icons
 
         self.handle_complete(ctx)
 

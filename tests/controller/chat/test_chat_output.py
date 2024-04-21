@@ -26,7 +26,7 @@ def test_handle(mock_window):
 
     mock_window.core.dispatcher.dispatch.assert_called_once()  # should dispatch event: ctx.after
     mock_window.controller.chat.render.append_output.assert_called_once_with(ctx)
-    mock_window.controller.chat.render.append_extra.assert_called_once_with(ctx)
+    mock_window.controller.chat.render.append_extra.assert_called_once_with(ctx, True)
     output.handle_complete.assert_called_once_with(ctx)
 
 

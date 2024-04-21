@@ -204,6 +204,30 @@ The absence of the installed libraries may cause display errors or completely pr
 
 It may also be necessary to add the path ``C:\path\to\venv\Lib\python3.x\site-packages\PySide6`` to the ``PATH`` variable.
 
+
+**WebEngine/Chromium renderer and OpenGL problems**
+
+If you have a problems with ``WebEngine / Chromium`` renderer you can force the legacy mode by launching the app with command line arguments:
+
+.. code-block:: console
+
+    python3 run.py --legacy=1
+
+and to force disable OpenGL hardware acceleration:
+
+.. code-block:: console
+
+    python3 run.py --disable-gpu=1
+
+
+You can also manualy enable legacy mode by editing config file - open the ``%WORKDIR%/config.json`` config file in editor and set the following options:
+
+.. code-block:: json
+
+    // config.json
+    "render.engine": "legacy",
+    "render.open_gl": false,
+
 Other requirements
 ------------------
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 

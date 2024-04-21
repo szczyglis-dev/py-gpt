@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.15 02:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -1288,6 +1288,30 @@ class Patch:
                 print("Migrating config from < 2.1.52...")
                 if 'ctx.code_interpreter' not in data:
                     data["ctx.code_interpreter"] = True
+                updated = True
+
+            # < 2.1.59
+            if old < parse_version("2.1.59"):
+                print("Migrating config from < 2.1.59...")
+                if 'render.code_syntax' not in data:
+                    data["render.code_syntax"] = "github-dark"
+                if 'zoom' not in data:
+                    data["zoom"] = 1.0
+                if 'ctx.convert_lists' not in data:
+                    data["ctx.convert_lists"] = False
+                if 'render.engine' not in data:
+                    data["render.engine"] = "web"
+                if 'render.open_gl' not in data:
+                    data["render.open_gl"] = False
+
+                # in snap, leave legacy render engine by default
+                # if self.window.core.platforms.is_snap():
+                    # data["render.engine"] = "legacy"
+
+                # css upgrade
+                self.window.core.updater.patch_css('web.css', True)  # NEW
+                self.window.core.updater.patch_css('web.light.css', True)  # NEW
+                self.window.core.updater.patch_css('web.dark.css', True)  #  NEW
                 updated = True
 
         # update file

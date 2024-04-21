@@ -1,0 +1,51 @@
+body {{ 
+    color: #000;
+    background-color: #fff;
+}}
+p {{ 
+    color: #000;
+}}
+a {{
+    color: #000;
+}}
+.msg-user {{
+    color: #3a3a3a !important;
+}}
+.msg-user p {{
+    color: #3a3a3a !important;
+}}
+.msg-bot {{
+    color: #000;
+}}
+.cmd {{
+    color: #4d4d4d;
+    text-decoration: none;
+}}
+.ts {{
+    color: #4d4d4d;
+}}
+.list {{
+}}
+pre {{
+    color: #000;
+}}
+code {{
+    color: #000;
+}}
+.code-wrapper {{
+    border: 1px solid #e1e1e1;
+    color: #fff;
+}}
+.code-header-wrapper {{
+    color: #fff;
+    background: #e1e1e1;
+}}
+.code-header-copy {{
+    color: #2a2a2a;
+}}
+.code-header-copy:hover {{
+    color: #000;
+}}
+.code-header-lang {{
+    color: #777777;
+}}

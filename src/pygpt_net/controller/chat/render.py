@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
+from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -25,6 +26,16 @@ class Render:
         self.window = window
         self.markdown_renderer = MarkdownRenderer(window)
         self.plaintext_renderer = PlainTextRenderer(window)
+        self.web_renderer = WebRenderer(window)
+        self.engine = None
+
+    def setup(self):
+        """Setup render"""
+        self.engine = self.window.core.config.get("render.engine")
+
+    def get_engine(self):
+        """Get current engine"""
+        return self.engine
 
     def get_renderer(self) -> BaseRenderer:
         """
@@ -32,10 +43,31 @@ class Render:
 
         :return: Renderer instance
         """
+        # get selected renderer
         if self.window.core.config.get('render.plain'):
             return self.plaintext_renderer
         else:
-            return self.markdown_renderer
+            if self.engine == "web":
+                return self.web_renderer
+            else:
+                return self.markdown_renderer
+
+    def switch(self):
+        """Switch renderer"""
+        plain = self.window.core.config.get('render.plain')
+        if plain:
+            self.window.controller.theme.markdown.clear()
+            if self.window.ui.nodes['output'] is not None:
+                if self.window.ui.nodes['output'].isVisible():
+                    self.window.ui.nodes['output'].setVisible(False)
+                    self.window.ui.nodes['output_plain'].setVisible(True)
+        else:
+            self.window.controller.ctx.refresh()
+            self.window.controller.theme.markdown.update(force=True)
+            if self.window.ui.nodes['output_plain'].isVisible():
+                if self.window.ui.nodes['output'] is not None:
+                    self.window.ui.nodes['output'].setVisible(True)
+                    self.window.ui.nodes['output_plain'].setVisible(False)
 
     def begin(self, stream: bool = False):
         """
@@ -121,13 +153,13 @@ class Render:
         self.get_renderer().append_output(item)
         self.update()
 
-    def append_extra(self, item: CtxItem):
+    def append_extra(self, item: CtxItem, footer: bool = False):
         """
         Append extra data (images, files, etc.) to output
 
         :param item: context item
         """
-        self.get_renderer().append_extra(item)
+        self.get_renderer().append_extra(item, footer)
         self.update()
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
@@ -141,6 +173,15 @@ class Render:
         self.get_renderer().append_chunk(item, text_chunk, begin)
         self.update()
 
+    def on_page_loaded(self):
+        self.get_renderer().on_page_loaded()
+        self.update()
+
     def update(self):
         """On update"""
         self.window.ui.nodes['output'].on_update()
+
+    def clear_all(self):
+        """Clear all"""
+        self.get_renderer().clear_all()
+        self.update()

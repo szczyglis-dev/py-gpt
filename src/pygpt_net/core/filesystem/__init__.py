@@ -42,6 +42,9 @@ class Filesystem:
             "markdown.css",
             "markdown.dark.css",
             "markdown.light.css",
+            "web.css",
+            "web.dark.css",
+            "web.light.css",
             "fix_windows.css",
         ]
 

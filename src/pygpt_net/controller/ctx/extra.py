@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -49,9 +49,10 @@ class Extra:
 
         :param id: block id
         """
-        blocks = self.window.controller.chat.render.markdown_renderer.parser.get_code_blocks()
+        blocks = self.window.controller.chat.render.get_renderer().parser.get_code_blocks()
         if id not in blocks:
             print("Code block not found: ", id)
+            return
         value = blocks.get(id)
         QApplication.clipboard().setText(value)
         suffix = value[:20] + "..." if len(value) > 20 else value

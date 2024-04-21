@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import sys
@@ -35,6 +35,8 @@ class Launcher:
         self.app = None
         self.window = None
         self.debug = False
+        self.force_legacy = False
+        self.force_disable_gpu = False
 
     def setup(self) -> dict:
         """
@@ -49,6 +51,18 @@ class Launcher:
             required=False,
             help="debug mode (0=disabled, 1=info, 2=debug)",
         )
+        parser.add_argument(
+            "-l",
+            "--legacy",
+            required=False,
+            help="force enable legacy mode (0=disabled, 1=enable)",
+        )
+        parser.add_argument(
+            "-n",
+            "--disable-gpu",
+            required=False,
+            help="force disable OpenGL (1=disabled, 0=enabled)",
+        )
         args = vars(parser.parse_args())
 
         # set log level [ERROR|WARNING|INFO|DEBUG]
@@ -62,6 +76,16 @@ class Launcher:
             self.debug = True
         else:
             Debug.init(ERROR)  # default log level
+
+        # force legacy mode
+        if "legacy" in args and args["legacy"] == "1":
+            print("** Force legacy mode enabled")
+            self.force_legacy = True
+
+        # force disable GPU
+        if "disable-gpu" in args and args["disable-gpu"] == "1":
+            print("** Force disable GPU enabled")
+            self.force_disable_gpu = True
 
         return args
 

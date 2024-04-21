@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.58** | build: **2024.04.19** | Python: **>=3.10, <3.12**
+Release: **2.1.59** | build: **2024.04.20** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -260,6 +260,28 @@ The libraries from this environment are used by `PySide6` - one of the base pack
 The absence of the installed libraries may cause display errors or completely prevent the application from running.
 
 It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-packages\PySide6` to the `PATH` variable.
+
+**WebEngine/Chromium renderer and OpenGL problems**
+
+If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
+
+``` ini
+python3 run.py --legacy=1
+```
+
+and to force disable OpenGL hardware acceleration:
+
+``` ini
+python3 run.py --disable-gpu=1
+```
+
+You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
+
+``` json
+// config.json
+"render.engine": "legacy",
+"render.open_gl": false,
+```
 
 ## Other requirements
 
@@ -2581,9 +2603,17 @@ Config -> Settings...
 
 - `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
+- `Render engine`: chat output render engine: `WebEngine / Chromium` - for full HTML/CSS and `Legacy (markdown)` for legacy, simple markdown CSS output. Default: WebEngine / Chromium.
+
+- `OpenGL hardware acceleration`: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
+
 **Layout**
 
-- `Font Size (chat window)`: Adjusts the font size in the chat window.
+- `Zoom`: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.
+
+- `Code syntax highlight`: Syntax highlight theme in code blocks. `WebEngine / Chromium` render mode only.
+
+- `Font Size (chat window)`: Adjusts the font size in the chat window (plain-text) and notepads.
 
 - `Font Size (input)`: Adjusts the font size in the input window.
 
@@ -2635,11 +2665,9 @@ Config -> Settings...
 
 - `Show code interpreter output`: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
 
-- `Always show audio icon`: If enabled, then read with audio icon will be always displayed.
-
 - `Use extra context output`: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output, Default: True.
 
-- `Show "copy to clipboard" in code blocks`: If enabled, copy to clipboard link will be displayed in code blocks, Default: True.
+- `Convert lists to paragraphs`: If enabled, lists (ul, ol) will be converted to paragraphs (p), Default: True.
 
 - `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
@@ -2914,6 +2942,28 @@ The value `1` enables the `INFO`logging level.
 
 The value `2` enables the `DEBUG` logging level (most information).
 
+## Compatibility (legacy) mode
+
+If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
+
+``` ini
+python3 run.py --legacy=1
+```
+
+and to force disable OpenGL hardware acceleration:
+
+``` ini
+python3 run.py --disable-gpu=1
+```
+
+You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
+
+``` json
+// config.json
+"render.engine": "legacy",
+"render.open_gl": false,
+```
+
 ## Updates
 
 ### Updating PyGPT
@@ -2945,180 +2995,21 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.59 (2024-04-20)
+
+- Added output renderer: WebEngine/Chromium – with full HTML/CSS/JS support. (Experimental)
+- Added a new option to choose a render engine in Settings -> General -> Rendering engine to select between WebEngine / Chromium mode and the Legacy mode (old, with simple markdown CSS support only - for compatibility reasons and troubleshooting).
+- Added syntax highlighting to code blocks – issue #43.
+- Added a new option in Settings -> Layout -> Code syntax highlight to select a highlight theme.
+- Added a new option in Settings -> Context -> Convert lists to paragraphs to enable/disable converting ul and li into p for better copying.
+- Copy to clipboard and regenerate response icons are now visible by default.
+
 # 2.1.58 (2024-04-19)
 
 - Fixed Markdown rendering if the content starts with a code block.
 - Added a "Switch to created profile" option in the profile creation/duplication dialogs.
 - Updated the locale.
 - Added a donate option.
-
-# 2.1.57 (2024-04-17)
-
-- Fixed new ctx create on empty profile if previously group was selected.
-
-# 2.1.56 (2024-04-17)
-
-- Added a new menu option: Clear history + groups.
-- Improved profile switching.
-
-# 2.1.55 (2024-04-17)
-
-- Improved result handling from Indexer tool.
-
-# 2.1.54 (2024-04-17)
-
-- Added data loaders reload and loaders config reload in real time on profile switch.
-
-# 2.1.53 (2024-04-17)
-
-- Added a new tool: Indexer, for manually indexing files, contexts, and web content, as well as managing indexes. (beta)
-
-# 2.1.52 (2024-04-15)
-
-- Added real-time output from code interpreter in Assistants mode.
-- Added new option in Settings > Context: Show code interpreter output.
-
-# 2.1.51 (2024-04-14)
-
-- Added RMB context menu to the New... context button.
-- Added filesize info to attachments and uploaded files lists.
-- Improved Assistants API stream handling.
-
-# 2.1.50 (2024-04-14)
-
-- Fixed selection update after group rename.
-- Added img resolution and filesize info in image preview dialog title.
-- Added filesize info in text editor dialog title.
-
-# 2.1.49 (2024-04-14)
-
-- Improved context group handling.
-
-# 2.1.48 (2024-04-14)
-
-- OpenAI API upgraded to version 1.17.1.
-- Added a stream mode to the Assistant mode (beta).
-- Fixed an issue where context group ID were not copied when duplicating context.
-
-# 2.1.47 (2024-04-12)
-
-- Added auto-creating new context in current group if the group is active.
-- Added sending input also with Ctrl+Enter in Shift+Enter mode.
-- Extended light style markdown CSS.
-
-# 2.1.46 (2024-04-12)
-
-- Improved code blocks formatting.
-- Improved attachment copy/paste.
-
-# 2.1.45 (2024-04-11)
-
-- Added the ability to paste images as attachments using Ctrl+V in chat input and to copy-paste images in the draw/painter.
-- Added a "Copy to Clipboard" option in code blocks.
-- Introduced a new model: gpt-4-turbo-2024-04-09.
-
-# 2.1.44 (2024-04-11)
-
-- Optimized "Find" option.
-- Added copy database and copy data dir checkbox options in profile duplicate dialog.
-- Added ability to reset current active profile.
-- Added missing translations.
-
-# 2.1.43 (2024-04-11)
-
-- The "Find" option has been extended and added to all text fields.
-- Fixed menu reload issue when switching profiles.
-- Other small fixes and improvements.
-
-# 2.1.42 (2024-04-10)
-
-- Improved profile switching.
-- Added interpreter internal files to excluded when indexing.
-
-# 2.1.41 (2024-04-10)
-
-- Added support for multiple profiles (separated config, settings and workdir), menu: Config -> Profile...
-- Added context groups for context items organizing, menu: File -> New context group...
-- Added ability to change the model on response edit and regenerate.
-- Added real-time updating number of notepads.
-- UI/theme fixes.
-
-# 2.1.40-post1 (2024-04-08)
-
-- Llama-index core downgraded to 0.10.13 due to issue #41
-
-# 2.1.40 (2024-04-08)
-
-- Added "Find..." option - text search and highlighting of the found phrase in the chat and notepad window, available via CTRL + F or right-click menu / Find... (beta)
-- Added GitHub's Monaspace font family: Argon, Krypton, Neon, Radon, Xenon (reset CSS to defaults or manual replacement in CSS files is required for older versions of application to take effect).
-- Added an "Restore Default CSS" option in the "Config / Edit CSS" menu.
-- Added the ability to use custom .ttf and .otf fonts (just place them in %workdir%/fonts directory).
-
-# 2.1.39 (2024-03-26)
-
-- Added "Change working directory..." option in "Config" menu.
-- Improved handling reply from multiple commands at once.
-- Tools have been moved to separate parts of the app.
-- Added the ability to create custom Tools, with an example tool in the "examples" directory.
-
-# 2.1.38 (2024-03-20)
-
-- Added new Tools menu, with: Media player, Transcribe audio/video files, Image viewer, Text editor and Code interpreter.
-- Improved tools.
-
-# 2.1.37 (2024-03-19)
-
-- Added generation of audio transcriptions from audio/video files.
-
-# 2.1.36 (2024-03-19)
-
-- Added split screen view (output/edit) to code interpreter.
-
-# 2.1.35 (2024-03-19)
-
-- Added text file editor and image viewer.
-- Improved video player and code interpreter.
-
-# 2.1.34 (2024-03-18)
-
-- Added video player.
-- Fixed audio input message append in agent mode.
-
-# 2.1.33 (2024-03-18)
-
-- Code interpreter enabled even if interpreter plugin is disabled.
-- Added "Connect to the Python code interpreter window" config option in Code interpreter plugin.
-- Added Monospace font support - issue #37.
-- Improved raw JSON command outputs.
-
-# 2.1.32 (2024-03-17)
-
-- Global prompts config moved to a separated settings section "Prompts".
-- Added auto-clear option in code interpreter.
-- Added "Use extra context output" config option in "Settings -> Context".
-
-# 2.1.31 (2024-03-17)
-
-- Improved code interpreter integration with sandbox/docker.
-- Added display of hidden files in Files explorer.
-- Added "Use as image" context menu action in Files explorer.
-
-# 2.1.30 (2024-03-16)
-
-- Improved real-time Python code interpreter: added edit mode and whole code execution (history).
-
-# 2.1.29 (2024-03-16)
-
-- Added real-time Python code interpreter (<> icon), connected with the Code Interpreter plugin's input and output.
-- Improved plugin command execution.
-
-# 2.1.28 (2024-03-15)
-
-- Fixed local commands handling in Assistant API.
-- Fixed system prompt replace after mode changed on app start.
-- Improved related links rendering in chat output.
-- Added RPM limit config option for embeddings API.
-- UI improvements.
 
 The full changelog is located in the **[CHANGELOG.md](https://github.com/szczyglis-dev/py-gpt/blob/master/CHANGELOG.md)** file in the main folder of this repository.
 

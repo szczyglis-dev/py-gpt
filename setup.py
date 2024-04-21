@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.1.58'
+VERSION = '2.1.59'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, ' \
               'Whisper and more with chatbot, assistant, text completion, vision and image generation, ' \
               'internet access, chat with files, commands and code execution, file upload and download and more'
@@ -80,6 +80,7 @@ setup(
         'pillow>=10.2.0, <11.0.0',
         'pinecone-client>=3.1.0, <3.2.0',
         'PyAudio>=0.2.14, <0.3.0',
+        'Pygments>=2.15.0, <3.0.0',
         'pydub>=0.25.1, <0.3.0',
         'pygame>=2.5.2, <3.0.0',
         'pyinstaller>=6.4.0, <7.0.0',

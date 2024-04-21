@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 03:00:00                  #
+# Updated Date: 2024.04.20 03:00:00                  #
 # ================================================== #
 from unittest.mock import MagicMock
 
@@ -40,9 +40,7 @@ def test_parse_markdown_to_html():
 """
 
     expected_html_output_ul = """
-<p class="list">- Item 1</p>
-<p class="list">- Item 2</p>
-<p class="list">- Item 3</p>
+<ul><li>Item1</li><li>Item2</li><li>Item3</li></ul>
 """
 
     markdown_input_ol = """
@@ -52,9 +50,7 @@ def test_parse_markdown_to_html():
 """
 
     expected_html_output_ol = """
-<p class="list">1. Item 1</p>
-<p class="list">2. Item 2</p>
-<p class="list">3. Item 3</p>
+<ol><li>Item1</li><li>Item2</li><li>Item3</li></ol>
 """
 
     actual_html_output_ul = parser.parse(markdown_input_ul)
@@ -115,7 +111,7 @@ def test_parse_code_blocks():
     parser.init()
 
     markdown_input = "```\ndef example():\n    return 'example'\n```"
-    expected_html_output = " <pre><code>def example():    return 'example'</code></pre> "
+    expected_html_output = " <div class=\"code-wrapper\"><div class=\"code-header-wrapper\"><div><a class=\"code-header-copy\" href=\"extra-code-copy:1\">copy to clipboard</a></div></div><div><code>def example():    return 'example'</code></div></div> "
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
 

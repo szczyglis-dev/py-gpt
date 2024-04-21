@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -66,7 +66,16 @@ class Common:
         self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
         # raw (plain) output
-        self.window.ui.nodes['output.raw'].setChecked(self.window.core.config.get('render.plain'))
+        plain = self.window.core.config.get('render.plain')
+        self.window.ui.nodes['output.raw'].setChecked(plain)
+        if plain:
+            self.window.ui.nodes['output'].setVisible(False)
+            self.window.ui.nodes['output_plain'].setVisible(True)
+        else:
+            self.window.ui.nodes['output'].setVisible(True)
+            self.window.ui.nodes['output_plain'].setVisible(False)
+
+        self.window.controller.chat.render.switch()  # switch renderer if needed
 
         # edit icons
         if self.window.core.config.has('ctx.edit_icons'):
@@ -238,12 +247,7 @@ class Common:
             'render.plain',
             {'value': value},
         )
-        if not value:
-            self.window.controller.theme.markdown.update(
-                force=True,
-            )  # with state store
-        else:
-            self.window.controller.theme.markdown.clear()
+        self.window.controller.chat.render.switch()
 
         # restore previous font size
         self.window.controller.ui.update_font_size()

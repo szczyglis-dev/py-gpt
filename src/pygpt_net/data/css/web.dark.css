@@ -1,0 +1,49 @@
+body {{ 
+    color: #fff;
+    background-color: #232629;
+}}
+a {{
+    color: #fff;
+}}
+.msg-user {{
+    color: #cbcbcb !important;
+    border-bottom: none;
+}}
+.msg-bot {{
+    color: #fff;
+}}
+.cmd {{
+    color: #4d4d4d;
+}}
+.ts {{
+    color: #4d4d4d;
+}}
+.list {{
+}}
+pre {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.code-wrapper {{
+    border: 1px solid #1d1f21;
+}}
+.code-header-wrapper {{
+    background-color: #1d1f21;
+}}
+.code-header-copy {{
+    color: #fff;
+}}
+.code-header-copy:hover {{
+    color: #efefef;
+}}
+.code-header-lang {{
+    color: #4d4d4d;
+}}
+.action-icons {{
+    border-bottom: 1px solid #272a2d;
+}}
+.action-icons a:hover {{
+    filter: brightness(130%);
+}}

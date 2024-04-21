@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import os
@@ -54,14 +54,10 @@ def test_apply(mock_window):
     """Test apply markdown"""
     mock_window.core.config.data['theme'] = 'light'
     theme = Theme(mock_window)
-    mock_window.ui.nodes = {'output': MagicMock()}
+    mock_window.ui.nodes = {'output_plain': MagicMock()}
     mock_window.controller.chat.render.reload()
-    mock_window.ui.nodes['output'].document().setDefaultStyleSheet = MagicMock()
-    mock_window.ui.nodes['output'].document().setMarkdown = MagicMock()
     theme.markdown.css['markdown'] = {}
     theme.markdown.apply()
-    mock_window.ui.nodes['output'].document().setDefaultStyleSheet.assert_called()
-    mock_window.ui.nodes['output'].document().setMarkdown.assert_called()
     mock_window.controller.chat.render.reload.assert_called()
 
 

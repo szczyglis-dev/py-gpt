@@ -46,45 +46,53 @@ class Markdown:
 
     def apply(self):
         """Apply CSS to markdown formatter"""
-        self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
-        self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
+        self.window.ui.nodes['output_plain'].setStyleSheet(self.css['markdown'])
+        if self.window.controller.chat.render.get_engine() == "legacy":
+            self.window.ui.nodes['output'].setStyleSheet(self.css['markdown'])
+            self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
+            self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
         self.window.controller.ctx.refresh_output()
 
+    def get_web_css(self) -> str:
+        """Get web CSS"""
+        if "web" not in self.css:
+            self.load()
+
+        return self.css["web"]
+
     def clear(self):
-        """Clear CSS to markdown formatter"""
-        self.window.ui.nodes['output'].clear()
-        self.window.ui.nodes['output'].document().setDefaultStyleSheet("")
-        self.window.ui.nodes['output'].setStyleSheet("")
-        self.window.ui.nodes['output'].document().setMarkdown("")
-        self.window.ui.nodes['output'].document().setHtml("")
-        self.window.ui.nodes['output'].setPlainText("")
+        """Clear CSS of markdown formatter"""
+        self.window.controller.chat.render.clear_all()
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
         self.window.controller.chat.render.end()
 
     def load(self):
         """Load markdown styles"""
-        theme = self.window.core.config.get('theme')
-        name = 'markdown'
-        color_name = 'markdown'
-        if theme.startswith('light'):
-            color_name += '.light'
-        else:
-            color_name += '.dark'
-        paths = []
-        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
-        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
-        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
-        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
-        content = ''
-        for path in paths:
-            if os.path.exists(path):
-                with open(path, 'r') as file:
-                    content += file.read()
-        try:
-            self.css['markdown'] = content.format(**os.environ)
-        except KeyError as e:
-            pass  # ignore missing env vars
+        parents = ["markdown", "web"]
+
+        for base_name in parents:
+            theme = self.window.core.config.get('theme')
+            name = str(base_name)
+            color_name = str(base_name)
+            if theme.startswith('light'):
+                color_name += '.light'
+            else:
+                color_name += '.dark'
+            paths = []
+            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
+            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
+            content = ''
+            for path in paths:
+                if os.path.exists(path):
+                    with open(path, 'r') as file:
+                        content += file.read()
+            try:
+                self.css[base_name] = content.format(**os.environ)
+            except KeyError as e:
+                pass  # ignore missing env vars
 
     def get_default(self):
         """Set default markdown CSS"""

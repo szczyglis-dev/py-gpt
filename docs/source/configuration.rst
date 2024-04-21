@@ -27,9 +27,17 @@ The following basic options can be modified directly within the application:
 
 * ``Minimize to tray on exit``: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
+* ``Render engine``: chat output render engine: `WebEngine / Chromium` - for full HTML/CSS and `Legacy (markdown)` for legacy, simple markdown CSS output. Default: WebEngine / Chromium.
+
+* ``OpenGL hardware acceleration``: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
+
 **Layout**
 
-* ``Font Size (chat window)``: Adjusts the font size in the chat window.
+* ``Zoom``: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.
+
+* ``Code syntax highlight``: Syntax highlight theme in code blocks. `WebEngine / Chromium` render mode only.
+
+* ``Font Size (chat window)``: Adjusts the font size in the chat window (plain-text) and notepads.
 
 * ``Font Size (input)``: Adjusts the font size in the input window.
 
@@ -81,12 +89,9 @@ The following basic options can be modified directly within the application:
 
 * ``Show code interpreter output``: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
 
-* ``Always show audio icon``: If enabled, then read with audio icon will be always displayed.
-
 * ``Use extra context output``: If enabled, plain text output (if available) from command results will be displayed alongside the JSON output, Default: True.
 
-
-* ``Show "copy to clipboard" in code blocks``: If enabled, copy to clipboard link will be displayed in code blocks, Default: True.
+* ``Convert lists to paragraphs``: If enabled, lists (ul, ol) will be converted to paragraphs (p), Default: True.
 
 * ``Model used for auto-summary``: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 

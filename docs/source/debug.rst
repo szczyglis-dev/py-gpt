@@ -25,3 +25,27 @@ or
 
 * The value ``1`` enables the ``INFO`` logging level.
 * The value ``2`` enables the ``DEBUG`` logging level (most information).
+
+
+Compatibility (legacy) mode
+===========================
+
+If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
+
+.. code-block:: console
+
+    python3 run.py --legacy=1
+
+and to force disable OpenGL hardware acceleration:
+
+.. code-block:: console
+
+    python3 run.py --disable-gpu=1
+
+You can also manualy enable legacy mode by editing config file - open the ``%WORKDIR%/config.json`` config file in editor and set the following options:
+
+.. code-block:: json
+
+    // config.json
+    "render.engine": "legacy",
+    "render.open_gl": false,

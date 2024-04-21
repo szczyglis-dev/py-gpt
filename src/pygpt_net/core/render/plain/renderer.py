@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -475,7 +475,7 @@ class Renderer(BaseRenderer):
 
         :return: output node
         """
-        return self.window.ui.nodes['output']
+        return self.window.ui.nodes['output_plain']
 
     def get_input_node(self) -> ChatInput:
         """
@@ -484,3 +484,12 @@ class Renderer(BaseRenderer):
         :return: input node
         """
         return self.window.ui.nodes['input']
+
+    def clear_all(self):
+        """Clear all"""
+        self.get_output_node().clear()
+        self.get_output_node().document().setDefaultStyleSheet("")
+        self.get_output_node().setStyleSheet("")
+        self.get_output_node().document().setMarkdown("")
+        self.get_output_node().document().setHtml("")
+        self.get_output_node().setPlainText("")

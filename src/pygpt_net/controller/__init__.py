@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -74,8 +74,9 @@ class Controller:
         self.ui = UI(window)
 
     def setup(self):
-        """Setup controller"""        
+        """Setup controller"""
         self.debug.setup()  # prepare log level
+        self.chat.render.setup()  # setup render engine
 
         # setup layout
         self.layout.setup()

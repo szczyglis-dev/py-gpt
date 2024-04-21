@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 
@@ -158,6 +158,12 @@ class Finder:
         self.window.ui.nodes['dialog.find.counter'].setText("0/0")
         if self.parent is None:
             return
-        current = self.parent.current_match_index + 1 if self.parent.current_match_index >= 0 else 0
-        total_found = len(self.parent.matches)
+        current = 0
+        total_found = 0
+        if isinstance(self.parent.matches, list):
+            current = self.parent.current_match_index + 1 if self.parent.current_match_index >= 0 else 0
+            total_found = len(self.parent.matches)
+        elif isinstance(self.parent.matches, int):
+            current = self.parent.current_match_index if self.parent.current_match_index >= 0 else 0
+            total_found = self.parent.matches
         self.window.ui.nodes['dialog.find.counter'].setText("{}/{}".format(current, total_found))

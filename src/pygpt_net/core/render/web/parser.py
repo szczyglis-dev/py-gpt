@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import markdown
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
 
 from pygpt_net.utils import trans
 
@@ -66,12 +69,21 @@ class Parser:
             if self.window.core.config.get("ctx.convert_lists"):
                 self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
-            self.parse_code_blocks(soup)  # parse code blocks
+            self.highlight_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags
-            text = " " + str(soup) + " "
+            text = str(soup)
         except Exception as e:
             pass
         return text
+
+    def strip_whitespace_codeblocks(self, soup):
+        """
+        Strip whitespace from codeblocks
+
+        :param soup: BeautifulSoup instance
+        """
+        for el in soup.find_all('code'):
+            el.string = el.string.strip()
 
     def strip_whitespace_lists(self, soup):
         """
@@ -84,15 +96,6 @@ class Parser:
                 if isinstance(item, NavigableString) and item.strip() == '':
                     item.replace_with('')
 
-    def strip_whitespace_codeblocks(self, soup):
-        """
-        Strip whitespace from codeblocks
-
-        :param soup: BeautifulSoup instance
-        """
-        for el in soup.find_all('code'):
-            el.string = el.string.strip()
-
     def parse_code_blocks(self, soup):
         """
         Add copy code button to code blocks
@@ -103,8 +106,8 @@ class Parser:
             content = el.get_text(strip=True)
             self.code_blocks[self.block_idx] = content
 
-            header = soup.new_tag('div', **{'class': "code-header-wrapper"})
-            link_wrapper = soup.new_tag('div')
+            header = soup.new_tag('p', **{'class': "code-header-wrapper"})
+            link_wrapper = soup.new_tag('span')
             a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
             a['class'] = "code-header-copy"
             a.string = trans('ctx.extra.copy_code')
@@ -122,10 +125,69 @@ class Parser:
             wrapper = soup.new_tag('div', **{'class': "code-wrapper"})
             wrapper.append(header)
 
-            new_pre = soup.new_tag('code')
-            new_code = soup.new_tag('div')
-            new_pre.string = content
-            new_code.append(new_pre)
+            new_code = soup.new_tag('code')
+            new_pre = soup.new_tag('pre')
+            new_code.string = content
+            new_pre.append(new_code)
+            wrapper.append(new_pre)
+            el.replace_with(wrapper)
+
+            self.block_idx += 1
+
+    def highlight_code_blocks(self, soup):
+        """
+        Add copy code button to code blocks
+
+        :param soup: BeautifulSoup instance
+        """
+        style = self.window.core.config.get("render.code_syntax")
+        if style is None or style == "":
+            style = "default"
+
+        for el in soup.find_all('pre'):
+            content = el.text
+            self.code_blocks[self.block_idx] = content
+
+            header = soup.new_tag('p', **{'class': "code-header-wrapper"})
+            link_wrapper = soup.new_tag('span')
+            a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
+            a['class'] = "code-header-copy"
+            a.string = trans('ctx.extra.copy_code')
+
+            # Get the class of <code> to determine the language (if available)
+            code = el.find('code')
+            language = code['class'][0] if (code and code.has_attr('class') and 'language-' in code['class'][0]) else ''
+
+            lang_span = soup.new_tag('span', **{'class': "code-header-lang"})
+            lang_span['class'] = "code-header-lang"
+            if language:  # Strip 'language-' to get the actual language
+                language = language.replace('language-', '')
+                lang_span.string = language + "   "
+            else:
+                lang_span.string = "Code "
+            link_wrapper.append(lang_span)
+
+            link_wrapper.append(a)
+            header.append(link_wrapper)
+
+            # Create wrapper to hold both the header and the code block
+            wrapper = soup.new_tag('div', **{'class': "code-wrapper highlight"})
+            wrapper.append(header)
+
+            # Use Pygments to highlight the code block
+            if language:
+                try:
+                    lexer = get_lexer_by_name(language)
+                except Exception:
+                    lexer = get_lexer_by_name("txt")
+            else:
+                lexer = get_lexer_by_name("txt")
+
+            formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
+            highlighted_code = highlight(content, lexer, formatter)
+
+            # Replace the original code block with the highlighted version
+            new_code = BeautifulSoup(highlighted_code, 'html.parser')
             wrapper.append(new_code)
             el.replace_with(wrapper)
 

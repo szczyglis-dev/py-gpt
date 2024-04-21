@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -46,16 +46,19 @@ class Editor:
         self.window.ui.add_hook("update.config.font_size.input", self.hook_update)
         self.window.ui.add_hook("update.config.font_size.ctx", self.hook_update)
         self.window.ui.add_hook("update.config.font_size.toolbox", self.hook_update)
+        self.window.ui.add_hook("update.config.zoom", self.hook_update)
         self.window.ui.add_hook("update.config.theme.markdown", self.hook_update)
         self.window.ui.add_hook("update.config.render.plain", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.convert_lists", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
         self.window.ui.add_hook("update.config.debug", self.hook_update)
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
+        self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -147,6 +150,14 @@ class Editor:
         if self.config_changed('ctx.search_content'):
             self.window.controller.ctx.update()
 
+        # syntax highlighter style
+        if self.config_changed('render.code_syntax'):
+            self.window.controller.ctx.refresh()
+
+        # convert lists
+        if self.config_changed('ctx.convert_lists'):
+            self.window.controller.ctx.refresh()
+
         # reload loaders
         if self.config_changed('llama.hub.loaders.args') or self.config_changed('llama.hub.loaders.use_local'):
             self.window.core.idx.indexing.reload_loaders()
@@ -204,6 +215,11 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.ui.update_font_size()
 
+        elif key == "zoom" and caller == "slider":
+            value = value / 100
+            self.window.core.config.set(key, value)
+            self.window.controller.ui.update_font_size()
+
         # update notepad tabs
         elif key == "notepad.num" and caller == "slider":
             self.window.core.config.set(key, value)
@@ -214,6 +230,14 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.theme.markdown.update(force=True)
 
+        elif key == "render.code_syntax":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.refresh()
+
+        elif key == "ctx.convert_lists":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.refresh()
+
         # update layout tooltips
         elif key == "layout.tooltips":
             self.window.core.config.set(key, value)
@@ -223,13 +247,10 @@ class Editor:
         elif key == "render.plain":
             self.window.core.config.set(key, value)
             if not value:
-                self.window.controller.ctx.refresh()
-                self.window.controller.theme.markdown.update(force=True)
                 self.window.ui.nodes['output.raw'].setChecked(False)
             else:
-                self.window.controller.theme.markdown.clear()
                 self.window.ui.nodes['output.raw'].setChecked(True)
-            # restore previous font size
+            self.window.controller.chat.render.switch()
             self.window.controller.ui.update_font_size()
 
         # call vision checkboxes events

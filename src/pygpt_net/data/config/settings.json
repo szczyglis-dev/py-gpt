@@ -87,7 +87,59 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },    
+    },
+    "render.engine": {
+        "section": "general",
+        "type": "combo",
+        "slider": false,
+        "label": "settings.render.engine",
+        "description": "settings.restart.required",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "keys": [
+            {"web": "WebEngine / Chromium"},
+            {"legacy": "Legacy (markdown)"}
+        ]
+    },
+    "render.open_gl": {
+        "section": "general",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.render.open_gl",
+        "description": "settings.render.web.only.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "zoom": {
+        "section": "layout",
+        "description": "settings.render.web.only.desc",
+        "type": "float",
+        "slider": true,
+        "label": "settings.zoom",
+        "value": 1.0,
+        "min": 0.2,
+        "max": 3.0,
+        "multiplier": 100,
+        "step": 1,
+        "advanced": false
+    },
+    "render.code_syntax": {
+        "section": "layout",
+        "type": "combo",
+        "use": "syntax_styles",
+        "label": "settings.render.code_syntax",
+        "description": "settings.render.web.only.desc",
+        "value": "github-dark",
+        "advanced": false
+    },
     "font_size": {
         "section": "layout",
         "description": "settings.font_size.tip",
@@ -374,18 +426,6 @@
         "step": null,
         "advanced": false
     },
-    "ctx.audio": {
-        "section": "ctx",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.audio",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "ctx.use_extra": {
         "section": "ctx",
         "type": "bool",
@@ -399,11 +439,12 @@
         "step": null,
         "advanced": false
     },
-    "ctx.copy_code": {
+
+    "ctx.convert_lists": {
         "section": "ctx",
         "type": "bool",
         "slider": false,
-        "label": "settings.ctx.copy_code",
+        "label": "settings.ctx.convert_lists",
         "value": true,
         "min": null,
         "max": null,
@@ -737,7 +778,6 @@
     "llama.idx.list": {
         "section": "llama-index",
         "type": "dict",
-        "use": "models",
         "keys": {
             "id": "text",
             "name": "text"

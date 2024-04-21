@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit
 
-from pygpt_net.core.finder import Finder
+from pygpt_net.core.text.finder import Finder
 from pygpt_net.utils import trans
 
 import pygpt_net.icons_rc

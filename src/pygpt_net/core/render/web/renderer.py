@@ -8,17 +8,18 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.04.20 06:00:00                  #
 # ================================================== #
-
+import json
 import os
 import re
 import html
 from datetime import datetime
-from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
+
+from pygments.formatters.html import HtmlFormatter
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
-from pygpt_net.ui.widget.textarea.output import ChatOutput
+from pygpt_net.ui.widget.textarea.output import ChatWebOutput, CustomWebEnginePage
 from pygpt_net.utils import trans
 from .parser import Parser
 
@@ -38,6 +39,7 @@ class Renderer(BaseRenderer):
         self.buffer = ""
         self.is_cmd = False
         self.img_width = 400
+        self.html = ""
 
     def begin(self, stream: bool = False):
         """
@@ -46,7 +48,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         self.parser.reset()
-        pass  # do nothing
+        #self.html = ""
 
     def end(self, stream: bool = False):
         """
@@ -56,6 +58,7 @@ class Renderer(BaseRenderer):
         """
         if stream:
             self.reload()  # reload ctx items only if stream
+        self.flush()
 
     def end_extra(self, stream: bool = False):
         """
@@ -76,7 +79,8 @@ class Renderer(BaseRenderer):
     def clear_output(self):
         """Clear output"""
         self.reset()
-        self.get_output_node().clear()
+        self.html = ""
+        self.flush()
 
     def clear_input(self):
         """Clear input"""
@@ -107,13 +111,18 @@ class Renderer(BaseRenderer):
                 item.first = True
             self.append_context_item(item)
             i += 1
+        self.flush()
 
-    def append_input(self, item: CtxItem):
+    def append_input(self, item: CtxItem, flush: bool = True):
         """
         Append text input to output
 
         :param item: context item
+        :param flush: flush HTML
         """
+        if not flush:
+            self.append_chunk_input_start()
+
         if item.input is None or item.input == "":
             return
         if self.is_timestamp_enabled() \
@@ -121,10 +130,10 @@ class Renderer(BaseRenderer):
             name = ""
             if item.input_name is not None \
                     and item.input_name != "":
-                name = item.input_name + " "
-            text = '{} > {}'.format(name, item.input)
+                name = item.input_name + ": "
+            text = '{}: {}'.format(name, item.input)
         else:
-            text = "> {}".format(item.input)
+            text = "{}".format(item.input)
 
         # check if it is a command response
         is_cmd = False
@@ -137,20 +146,32 @@ class Renderer(BaseRenderer):
                 and not is_cmd \
                 and not item.first \
                 and not item.input.strip().startswith("user: "):
-            self.append_raw('>>>', "msg-user", item)
+            if flush:
+                content = self.prepare_raw('>>>', "msg-user", item)
+                self.append_input_chunk(item, content, True)
+            else:
+                self.append_raw('>>>', "msg-user", item)
             return
         else:
             # don't show user prefix if provided in internal call goal update
             if item.internal and item.input.startswith("user: "):
                 text = re.sub(r'^user: ', '> ', item.input)
 
-        self.append_raw(text.strip(), "msg-user", item)
+        if flush:
+            content = self.prepare_raw(text.strip(), "msg-user", item)
+            if self.is_stream():
+                self.append_input_chunk(item, content, False)
+            else:
+                self.append_raw(text.strip(), "msg-user", item)
+        else:
+            self.append_raw(text.strip(), "msg-user", item)
 
-    def append_output(self, item: CtxItem):
+    def append_output(self, item: CtxItem, flush: bool = True):
         """
         Append text output to output
 
         :param item: context item
+        :param flush: flush HTML
         """
         if item.output is None or item.output == "":
             return
@@ -186,7 +207,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(image)
-                    self.get_output_node().append(self.get_image_html(image, n, c))
+                    self.append(self.get_image_html(image, n, c))
                     self.images_appended.append(image)
                     n+=1
                 except Exception as e:
@@ -201,7 +222,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(file)
-                    self.get_output_node().append(self.get_file_html(file, n, c))
+                    self.append(self.get_file_html(file, n, c))
                     n+=1
                 except Exception as e:
                     pass
@@ -222,7 +243,7 @@ class Renderer(BaseRenderer):
                 except Exception as e:
                     pass
             if urls_html:
-                self.get_output_node().append("<br/>" + "<br/>".join(urls_html))
+                self.append("<br/>" + "<br/>".join(urls_html))
 
         # extra action icons
         if footer:
@@ -230,9 +251,7 @@ class Renderer(BaseRenderer):
             icons_html = " ".join(self.get_action_icons(item, all=show_edit))
             if icons_html != "":
                 extra = "<div class=\"action-icons\">{}</div>".format(icons_html)
-                if item.output is not None and item.output.endswith("```"):
-                    extra = " \n&nbsp;" + extra + "<div></div>"
-                self.get_output_node().append(extra)
+                self.append(extra)
                 self.to_end()
 
         # docs json
@@ -240,7 +259,7 @@ class Renderer(BaseRenderer):
             if item.doc_ids is not None and len(item.doc_ids) > 0:
                 try:
                     docs = self.get_docs_html(item.doc_ids)
-                    self.get_output_node().append(docs)
+                    self.append(docs)
                     self.to_end()
                 except Exception as e:
                     pass
@@ -248,6 +267,9 @@ class Renderer(BaseRenderer):
         # jump to end
         if len(appended) > 0:
             self.to_end()
+
+        if not footer:
+            self.flush()
 
     def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
         """
@@ -316,7 +338,7 @@ class Renderer(BaseRenderer):
         :return: icon HTML
         """
         icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="{}" width="20" height="20" title="{}" alt="{}">'.format(icon, title, title)
+        return '<img src="file://{}" width="20" height="20" title="{}" alt="{}">'.format(icon, title, title)
         # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
@@ -331,73 +353,89 @@ class Renderer(BaseRenderer):
             return
 
         raw_chunk = str(text_chunk)
-
         if begin:
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
-
-            if self.is_timestamp_enabled() \
-                    and item.output_timestamp is not None:
-                name = ""
-                if item.output_name is not None \
-                        and item.output_name != "":
-                    name = item.output_name + " "
-                ts = datetime.fromtimestamp(item.output_timestamp)
-                hour = ts.strftime("%H:%M:%S")
-                text_chunk = "{}{}: ".format(name, hour) + text_chunk
-
-            self.append_block()
             self.append_chunk_start()
 
         self.buffer += raw_chunk
-        self.append(self.format_chunk(text_chunk), "")
+        chunk = self.format_chunk(text_chunk)
+        escaped_chunk = json.dumps(chunk)
+        try:
+            self.get_output_node().page().runJavaScript(f"appendToOutput({escaped_chunk});")
+        except Exception as e:
+            pass
+        self.scroll_to_bottom()
+
+    def append_input_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
+        """
+        Append output chunk to output
+
+        :param item: context item
+        :param text_chunk: text chunk
+        :param begin: if it is the beginning of the text
+        """
+        if text_chunk is None or text_chunk == "":
+            return
+
+        self.append_chunk_input_start()
+        chunk = self.format_chunk(text_chunk)
+        escaped_chunk = json.dumps(chunk)
+        try:
+            self.get_output_node().page().runJavaScript(f"appendToInput({escaped_chunk});")
+        except Exception as e:
+            pass
+        #self.scroll_to_bottom()
 
     def append_block(self):
         """Append block to output"""
-        cursor = self.get_output_node().textCursor()
-        cursor.movePosition(QTextCursor.End)
-        default_format = QTextCharFormat()  # reset format
-        cursor.setCharFormat(default_format)
-        block_format = QTextBlockFormat()
-        block_format.setIndent(0)
-        cursor.insertBlock(block_format)
-        self.get_output_node().setTextCursor(cursor)
+        pass
 
     def to_end(self):
         """Move cursor to end of output"""
-        cursor = self.get_output_node().textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.get_output_node().setTextCursor(cursor)
+        pass
 
-    def append_raw(self, text: str, type: str = "msg-bot", item: CtxItem = None):
+    def prepare_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
+        if type != "msg-user":  # markdown for bot messages
+            html = self.pre_format_text(html)
+            html = self.append_timestamp(html, item)
+            html = self.parser.parse(html)
+        else:
+            content = self.append_timestamp(self.format_user_text(html), item, type=type)
+            html = "<p>" + content + "</p>"
+
+        html = self.post_format_text(html)
+        html = '<div class="{}">'.format(type) + html + "</div>"
+        return html
+
+    def append_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
         """
         Append and format raw text to output
 
-        :param text: text to append
+        :param html: text to append
         :param type: type of message
         :param item: CtxItem instance
         """
-        if type != "msg-user":  # markdown for bot messages
-            text = self.pre_format_text(text)
-            text = self.append_timestamp(text, item)
-            text = self.parser.parse(text)
-        else:
-            content = self.append_timestamp(self.format_user_text(text), item, type=type)
-            text = "<div><p>" + content + "</p></div>"
-
-        text = self.post_format_text(text)
-        if text.startswith("<div class"):
-            text = " " + text.strip()
-        text = '<div class="{}">'.format(type) + text + "</div>"
-
-        self.get_output_node().append(text)
-        self.to_end()
+        html = self.prepare_raw(html, type, item)
+        self.append(html)
 
     def append_chunk_start(self):
         """Append start of chunk to output"""
-        cursor = self.get_output_node().textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.get_output_node().setTextCursor(cursor)
+        js = "var element = document.getElementById('_append_output_');"
+        js += "if (element) { element.innerHTML = ''; }"
+        try:
+            self.get_output_node().page().runJavaScript(js)
+        except Exception as e:
+            pass
+
+    def append_chunk_input_start(self):
+        """Append start of chunk to output"""
+        js = "var element = document.getElementById('_append_input_');"
+        js += "if (element) { element.innerHTML = ''; }"
+        try:
+            self.get_output_node().page().runJavaScript(js)
+        except Exception as e:
+            pass
 
     def append_context_item(self, item: CtxItem):
         """
@@ -405,8 +443,8 @@ class Renderer(BaseRenderer):
 
         :param item: context item
         """
-        self.append_input(item)
-        self.append_output(item)
+        self.append_input(item, flush=False)
+        self.append_output(item, flush=False)
         self.append_extra(item, footer=True)
 
     def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
@@ -502,22 +540,14 @@ class Renderer(BaseRenderer):
                    path=path,
                    num=num_str)
 
-    def append(self, text: str, end: str = "\n"):
+    def append(self, html: str, end: str = "\n"):
         """
         Append text to output
 
-        :param text: text to append
+        :param html: HTML code
         :param end: end of the line character
         """
-        cur = self.get_output_node().textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-        s = str(text) + end
-        while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
-            if sep:  # New line if LF
-                cur.insertHtml("<br>")
-        self.get_output_node().setTextCursor(cur)  # Update visible cursor
+        self.html += html
 
     def append_timestamp(self, text: str, item: CtxItem, type: str = None) -> str:
         """
@@ -593,9 +623,8 @@ class Renderer(BaseRenderer):
         :return: formatted text
         """
         text = html.escape(text).replace("\n", "<br>")
-
         # append cmd tags if response from command detected
-        if text.strip().startswith("&gt; [") and text.strip().endswith("]"):
+        if (text.strip().startswith("[") or text.strip().startswith("&gt; [")) and text.strip().endswith("]"):
             text = '<div class="cmd">&gt; {}</div><br/>'.format(text)
         return text
 
@@ -606,7 +635,7 @@ class Renderer(BaseRenderer):
         :param text: text to format
         :return: formatted text
         """
-        return text
+        return text.replace("\n", "<br/>")
 
     def is_timestamp_enabled(self) -> bool:
         """
@@ -616,7 +645,7 @@ class Renderer(BaseRenderer):
         """
         return self.window.core.config.get('output_timestamp')
 
-    def get_output_node(self) -> ChatOutput:
+    def get_output_node(self) -> ChatWebOutput:
         """
         Get output node
 
@@ -632,12 +661,81 @@ class Renderer(BaseRenderer):
         """
         return self.window.ui.nodes['input']
 
+    def append_html(self, html: str):
+        """
+        Append HTML to output
+
+        :param html: HTML code
+        """
+        self.html += html
+
+    def on_page_loaded(self):
+        """On page loaded"""
+        self.scroll_to_bottom()
+
+    def scroll_to_bottom(self):
+        """Scroll to bottom"""
+        self.get_output_node().page().runJavaScript("window.scrollTo(0, document.body.scrollHeight);")
+
+    def flush(self):
+        """Flush output"""
+        style = self.window.core.config.get("render.code_syntax")
+        if style is None or style == "":
+            style = "default"
+        css = self.window.controller.theme.markdown.get_web_css()
+        fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
+        content = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                @font-face {
+                  font-family: "Lato";
+                  src: url('file:///"""+fonts_path+"""/Lato/Lato-Regular.ttf');
+                }
+                @font-face {
+                  font-family: "Monaspace Neon";
+                  src: url('file:///"""+fonts_path+"""/MonaspaceNeon/MonaspaceNeon-Regular.otf');
+                }
+                body {
+                    margin: 4px;
+                }
+                """+css+"""
+                """+HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')+"""
+            </style>
+        </head>
+        <body>
+            """+self.html+"""
+            <div id="_append_input_" class="append_input"></div>
+            <div id="_append_output_" class="append_output"></div>
+        </body>
+        <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'f') {
+                window.location.href = 'bridge://open_find'; // send to bridge
+                event.preventDefault();
+            }
+        });
+        function appendToInput(content) {
+            var element = document.getElementById('_append_input_');
+            if (element) {
+                element.innerHTML += content;
+            }
+            // scroll to bottom
+        }
+        function appendToOutput(content) {
+            var element = document.getElementById('_append_output_');
+            if (element) {
+                element.innerHTML += content;
+            }
+            //  scroll to bottom
+        }
+        </script>
+        </html>
+        """
+        self.get_output_node().setHtml(content, baseUrl="file://")
+
     def clear_all(self):
         """Clear all"""
-        return
-        self.get_output_node.clear()
-        self.get_output_node.document().setDefaultStyleSheet("")
-        self.get_output_node.setStyleSheet("")
-        self.get_output_node.document().setMarkdown("")
-        self.get_output_node.document().setHtml("")
-        self.get_output_node.setPlainText("")
+        self.html = ""
+        self.flush()

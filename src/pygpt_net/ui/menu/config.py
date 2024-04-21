@@ -46,6 +46,9 @@ class Config:
         css_files.append("markdown.css")
         css_files.append("markdown.dark.css")
         css_files.append("markdown.light.css")
+        css_files.append("web.css")
+        css_files.append("web.dark.css")
+        css_files.append("web.light.css")
 
         json_files = []
         json_files.append("attachments.json")
