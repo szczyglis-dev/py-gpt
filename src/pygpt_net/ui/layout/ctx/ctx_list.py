@@ -93,6 +93,9 @@ class CtxList:
         for group_id in groups:
             group = groups[group_id]
             c = self.count_in_group(group.id, data)
+            if c == 0 and self.window.core.ctx.search_string is not None and self.window.core.ctx.search_string != "":
+                continue  # skip empty groups when searching
+
             suffix = ""
             if c > 0:
                 suffix = " (" + str(c) + ")"
