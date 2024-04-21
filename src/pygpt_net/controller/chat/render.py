@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 19:00:00                  #
 # ================================================== #
+
+from PySide6.QtCore import Slot, QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
@@ -32,6 +34,14 @@ class Render:
     def setup(self):
         """Setup render"""
         self.engine = self.window.core.config.get("render.engine")
+        if self.engine == "web":
+            self.connect_signals()
+
+    def connect_signals(self):
+        """Connect signals"""
+        signals = self.web_renderer.get_output_node().signals
+        signals.save_as.connect(self.handle_save_as)
+        signals.audio_read.connect(self.handle_audio_read)
 
     def get_engine(self):
         """Get current engine"""
@@ -158,6 +168,7 @@ class Render:
         Append extra data (images, files, etc.) to output
 
         :param item: context item
+        :param footer: True if it is a footer
         """
         self.get_renderer().append_extra(item, footer)
         self.update()
@@ -174,6 +185,7 @@ class Render:
         self.update()
 
     def on_page_loaded(self):
+        """On page loaded callback"""
         self.get_renderer().on_page_loaded()
         self.update()
 
@@ -185,3 +197,22 @@ class Render:
         """Clear all"""
         self.get_renderer().clear_all()
         self.update()
+
+    @Slot(str)
+    def handle_save_as(self, text: str):
+        """
+        Handle save as signal
+
+        :param text: Text to save
+        """
+        # fix: QTimer required here to prevent crash if signal emitted from WebEngine window
+        QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text))
+
+    @Slot(str)
+    def handle_audio_read(self, text: str):
+        """
+        Handle audio read signal
+
+        :param text: Text to read
+        """
+        self.window.controller.audio.read_text(text)

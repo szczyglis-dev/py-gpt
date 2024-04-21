@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -90,11 +90,12 @@ class BaseRenderer:
         """
         pass
 
-    def append_extra(self, item: CtxItem):
+    def append_extra(self, item: CtxItem, footer: bool = False):
         """
         Append extra data (images, files, etc.) to output
 
         :param item: context item
+        :param footer: True if it is a footer
         """
         pass
 

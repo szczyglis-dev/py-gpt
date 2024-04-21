@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -44,16 +44,18 @@ class Output:
         :return: QWidget
         :rtype: QWidget
         """
-        # chat output
+        # chat plain-text output
         self.window.ui.nodes['output_plain'] = ChatOutput(self.window)
-        self.window.ui.nodes['output'] = QWidget() # init in renderer
 
-        # init Chromium only if web engine selected
+        # chat web output
         if self.window.core.config.get("render.engine") == "web":
-            from pygpt_net.ui.widget.textarea.output import ChatWebOutput, CustomWebEnginePage
+            from pygpt_net.ui.widget.textarea.web import ChatWebOutput, CustomWebEnginePage
             self.window.ui.nodes['output'] = ChatWebOutput(self.window)
-            self.window.ui.nodes['output'].setPage(CustomWebEnginePage(self.window, self.window.ui.nodes['output']))
+            self.window.ui.nodes['output'].setPage(
+                CustomWebEnginePage(self.window, self.window.ui.nodes['output'])
+            )
         else:
+            # chat legacy output
             self.window.ui.nodes['output'] = ChatOutput(self.window)
 
         # disable at start

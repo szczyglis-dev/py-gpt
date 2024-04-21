@@ -13,6 +13,7 @@ import sys
 import argparse
 from logging import ERROR, WARNING, INFO, DEBUG
 
+from PySide6.QtCore import QCoreApplication, Qt
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QApplication
 
@@ -93,6 +94,7 @@ class Launcher:
         """Initialize app"""
         args = self.setup()
         Platforms.prepare()  # setup platform specific options
+        QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
         self.app = QApplication(sys.argv)
         self.window = MainWindow(self.app, args=args)
 

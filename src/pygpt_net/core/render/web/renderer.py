@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 19:00:00                  #
 # ================================================== #
+
 import json
 import os
 import re
@@ -19,7 +20,6 @@ from pygments.formatters.html import HtmlFormatter
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
-from pygpt_net.ui.widget.textarea.output import ChatWebOutput, CustomWebEnginePage
 from pygpt_net.utils import trans
 from .parser import Parser
 
@@ -40,6 +40,7 @@ class Renderer(BaseRenderer):
         self.is_cmd = False
         self.img_width = 400
         self.html = ""
+        self.document = ""
 
     def begin(self, stream: bool = False):
         """
@@ -645,7 +646,7 @@ class Renderer(BaseRenderer):
         """
         return self.window.core.config.get('output_timestamp')
 
-    def get_output_node(self) -> ChatWebOutput:
+    def get_output_node(self):
         """
         Get output node
 
@@ -733,7 +734,19 @@ class Renderer(BaseRenderer):
         </script>
         </html>
         """
+        self.document = content
         self.get_output_node().setHtml(content, baseUrl="file://")
+
+    def get_document(self, plain: bool = False):
+        """
+        Get document content
+
+        :param plain: True if plain text
+        :return: document content
+        """
+        if plain:
+            return self.parser.to_plain_text(self.document.replace("<br>", "\n"))
+        return self.document
 
     def clear_all(self):
         """Clear all"""

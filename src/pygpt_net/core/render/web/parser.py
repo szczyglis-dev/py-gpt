@@ -76,6 +76,17 @@ class Parser:
             pass
         return text
 
+    def to_plain_text(self, html: str) -> str:
+        """
+        Convert markdown to plain text
+
+        :param html: html text
+        :return: plain text
+        """
+        soup = BeautifulSoup(html, 'html.parser')
+        text = soup.get_text()
+        return text
+
     def strip_whitespace_codeblocks(self, soup):
         """
         Strip whitespace from codeblocks
