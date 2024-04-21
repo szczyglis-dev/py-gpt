@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.21 23:00:00                  #
 # ================================================== #
 
 import os
@@ -36,6 +36,7 @@ class Renderer(BaseRenderer):
         self.images_appended = []
         self.urls_appended = []
         self.buffer = ""
+        self.prev_position = None  # previous cursor position (for chunk append)
         self.is_cmd = False
         self.img_width = 400
 
@@ -336,6 +337,10 @@ class Renderer(BaseRenderer):
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
 
+            # store cursor position
+            cursor = self.get_output_node().textCursor()
+            self.prev_position = cursor.position()
+
             if self.is_timestamp_enabled() \
                     and item.output_timestamp is not None:
                 name = ""
@@ -350,7 +355,11 @@ class Renderer(BaseRenderer):
             self.append_chunk_start()
 
         self.buffer += raw_chunk
-        self.append(self.format_chunk(text_chunk), "")
+        to_append = self.buffer
+        if re.search(r'```(?!.*```)', self.buffer):
+            to_append += "\n```"  # fix for code block without closing ```
+        html = self.parser.parse(to_append)
+        self.append_html_chunk(self.format_chunk(html))
 
     def append_block(self):
         """Append block to output"""
@@ -368,6 +377,25 @@ class Renderer(BaseRenderer):
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
         self.get_output_node().setTextCursor(cursor)
+
+    def append_html_chunk(self, html: str):
+        """
+        Append HTML chunk to output
+
+        :param html: HTML chunk
+        """
+        # remove from cursor position to end
+        if self.prev_position is not None:
+            cursor = self.get_output_node().textCursor()
+            cursor.setPosition(self.prev_position)
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+            self.get_output_node().setTextCursor(cursor)
+
+        cursor = self.get_output_node().textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.get_output_node().setTextCursor(cursor)
+        self.get_output_node().append(html.replace("\n", "<br>"))
 
     def append_raw(self, text: str, type: str = "msg-bot", item: CtxItem = None):
         """
@@ -634,10 +662,9 @@ class Renderer(BaseRenderer):
 
     def clear_all(self):
         """Clear all"""
-        return
-        self.get_output_node.clear()
-        self.get_output_node.document().setDefaultStyleSheet("")
-        self.get_output_node.setStyleSheet("")
-        self.get_output_node.document().setMarkdown("")
-        self.get_output_node.document().setHtml("")
-        self.get_output_node.setPlainText("")
+        self.get_output_node().clear()
+        self.get_output_node().document().setDefaultStyleSheet("")
+        self.get_output_node().setStyleSheet("")
+        self.get_output_node().document().setMarkdown("")
+        self.get_output_node().document().setHtml("")
+        self.get_output_node().setPlainText("")

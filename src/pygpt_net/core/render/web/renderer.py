@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 19:00:00                  #
+# Updated Date: 2024.04.21 23:00:00                  #
 # ================================================== #
 
 import json
@@ -352,18 +352,19 @@ class Renderer(BaseRenderer):
         """
         if text_chunk is None or text_chunk == "":
             return
-
         raw_chunk = str(text_chunk)
         if begin:
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
             self.append_chunk_start()
-
         self.buffer += raw_chunk
-        chunk = self.format_chunk(text_chunk)
-        escaped_chunk = json.dumps(chunk)
+        to_append = self.buffer
+        if re.search(r'```(?!.*```)', self.buffer):
+            to_append += "\n```"  # fix for code block without closing ```
+        html = self.parser.parse(to_append)
+        escaped_chunk = json.dumps(html)
         try:
-            self.get_output_node().page().runJavaScript(f"appendToOutput({escaped_chunk});")
+            self.get_output_node().page().runJavaScript(f"replaceOutput({escaped_chunk});")
         except Exception as e:
             pass
         self.scroll_to_bottom()
@@ -397,6 +398,14 @@ class Renderer(BaseRenderer):
         pass
 
     def prepare_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
+        """
+        Prepare raw text
+
+        :param html: html text
+        :param type: type of message
+        :param item: CtxItem instance
+        :return: prepared text
+        """
         if type != "msg-user":  # markdown for bot messages
             html = self.pre_format_text(html)
             html = self.append_timestamp(html, item)
@@ -680,6 +689,11 @@ class Renderer(BaseRenderer):
 
     def flush(self):
         """Flush output"""
+        """
+        block_msg = ""
+        if self.window.core.config.get('ctx.edit_icons'):
+            block_msg = ".msg-bot { border: 1px dotted silver; }"  # TODO: implement block editing in future
+        """
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
             style = "default"
@@ -728,6 +742,13 @@ class Renderer(BaseRenderer):
             var element = document.getElementById('_append_output_');
             if (element) {
                 element.innerHTML += content;
+            }
+            //  scroll to bottom
+        }
+        function replaceOutput(content) {
+            var element = document.getElementById('_append_output_');
+            if (element) {
+                element.innerHTML = content;
             }
             //  scroll to bottom
         }
