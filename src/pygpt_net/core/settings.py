@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 06:00:00                  #
+# Updated Date: 2024.04.22 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -196,10 +196,9 @@ class Settings:
                 self.window.core.models.load()  # reload models
             elif file.endswith('.css'):
                 if self.window.controller.chat.render.get_engine() == 'web':
-                    if self.window.core.config.get("render.plain") is False:
-                        self.window.controller.theme.markdown.load()
-                        if self.window.controller.chat.render.get_renderer().loaded:
-                            self.window.controller.chat.render.get_renderer().reload_css()
+                    self.window.controller.theme.markdown.load()
+                    if self.window.controller.chat.render.web_renderer.loaded:
+                        self.window.controller.chat.render.web_renderer.reload_css()
                 self.window.controller.theme.reload(force=True)  # reload theme
         except Exception as e:
             self.window.core.debug.log(e)

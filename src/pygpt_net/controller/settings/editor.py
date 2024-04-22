@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.22 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -152,6 +152,9 @@ class Editor:
 
         # syntax highlighter style
         if self.config_changed('render.code_syntax'):
+            if self.window.controller.chat.render.web_renderer.loaded:
+                self.window.controller.theme.markdown.load()
+                self.window.controller.chat.render.web_renderer.reload_css()
             self.window.controller.ctx.refresh()
 
         # convert lists
@@ -232,6 +235,9 @@ class Editor:
 
         elif key == "render.code_syntax":
             self.window.core.config.set(key, value)
+            if self.window.controller.chat.render.web_renderer.loaded:
+                self.window.controller.theme.markdown.load()
+                self.window.controller.chat.render.web_renderer.reload_css()
             self.window.controller.ctx.refresh()
 
         elif key == "ctx.convert_lists":
