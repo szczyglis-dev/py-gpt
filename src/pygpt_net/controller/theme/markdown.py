@@ -51,6 +51,8 @@ class Markdown:
             self.window.ui.nodes['output'].setStyleSheet(self.css['markdown'])
             self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
             self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
+        elif self.window.controller.chat.render.get_engine() == "web":
+            self.window.controller.chat.render.web_renderer.reload_css()
         self.window.controller.ctx.refresh_output()
 
     def get_web_css(self) -> str:
