@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.04.22 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
@@ -38,6 +38,7 @@ class OptionTextarea(QTextEdit):
         self.real_time = False
         self.update_ui = True
         self.setAcceptRichText(False)
+        self.context_options = []
 
         # init from option data
         if self.option is not None:
@@ -47,6 +48,19 @@ class OptionTextarea(QTextEdit):
                 self.value = self.option["value"]
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
+            if "context_options" in self.option:
+                self.context_options = self.option["context_options"]
+
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: Event
+        """
+        menu = self.createStandardContextMenu()
+        if "prompt.template.paste" in self.context_options:
+            self.window.core.prompt.template.to_menu_options(menu, "editor")
+        menu.exec_(event.globalPos())
 
     def keyPressEvent(self, event):
         """

@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 13:00:00                  #
+# Updated Date: 2024.04.22 23:00:00                  #
 # ================================================== #
 
 import re
+
+from PySide6.QtGui import QTextCursor
 
 from pygpt_net.controller.presets.editor import Editor
 from pygpt_net.utils import trans
@@ -50,6 +52,47 @@ class Presets:
         self.window.controller.chat.common.append_to_input(
             self.window.ui.nodes['preset.prompt'].toPlainText()
         )
+
+    def paste_prompt(self, idx: int, parent: str = "global"):
+        """
+        Paste prompt from template
+
+        :param idx: prompt index
+        :param parent: parent name
+        """
+        template = self.window.core.prompt.template.get_by_id(idx)
+        if template is None:
+            return
+        if parent == "global":
+            self.paste_to_textarea(self.window.ui.nodes['preset.prompt'], template['prompt'])
+        elif parent == "input":
+            self.paste_to_textarea(self.window.ui.nodes['input'], template['prompt'])
+        elif parent == "editor":
+            self.paste_to_textarea(self.window.ui.config["preset"]["prompt"], template['prompt'])
+
+    def paste_to_textarea(self, textarea, text: str):
+        """
+        Paste text to textarea
+
+        :param textarea: textarea widget
+        :param text: text to paste
+        """
+        separator = "\n"
+        prev_text = textarea.toPlainText()
+        cur = textarea.textCursor()
+        cur.movePosition(QTextCursor.End)
+        text = str(text).strip()
+        if prev_text.strip() != "":
+            text = separator + text
+        s = text
+        while s:
+            head, sep, s = s.partition("\n")
+            cur.insertText(head)
+            if sep:
+                cur.insertBlock()
+        cur.movePosition(QTextCursor.End)
+        textarea.setTextCursor(cur)
+        textarea.setFocus()
 
     def set(self, mode: str, preset_id: str):
         """

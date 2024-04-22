@@ -104,6 +104,8 @@ class ChatInput(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        self.window.core.prompt.template.to_menu_options(menu, "input")
+
         menu.exec_(event.globalPos())
 
     def action_from_clipboard(self):

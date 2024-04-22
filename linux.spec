@@ -29,6 +29,7 @@ a = Analysis(
         ('src/pygpt_net/data/fonts/MonaspaceNeon/*', 'data/fonts/MonaspaceNeon'),
         ('src/pygpt_net/data/fonts/MonaspaceRadon/*', 'data/fonts/MonaspaceRadon'),
         ('src/pygpt_net/data/fonts/MonaspaceXenon/*', 'data/fonts/MonaspaceXenon'),
+        ('src/pygpt_net/data/prompts.csv', 'data'),
         ('src/pygpt_net/data/logo.png', 'data'),
         ('src/pygpt_net/data/icon.ico', 'data'),
         ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),

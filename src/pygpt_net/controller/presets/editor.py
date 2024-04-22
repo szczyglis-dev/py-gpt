@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 15:00:00                  #
+# Updated Date: 2024.04.22 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -91,6 +91,7 @@ class Editor:
             "prompt": {
                 "type": "textarea",
                 "label": "preset.prompt",
+                "context_options": ["prompt.template.paste"],
             },
             "tool.function": {
                 "type": "dict",

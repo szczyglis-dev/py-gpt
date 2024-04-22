@@ -3117,3 +3117,5 @@ https://fonts.google.com/icons
 Monaspace fonts provided by GitHub: https://github.com/githubnext/monaspace
 
 Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
+
+Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/

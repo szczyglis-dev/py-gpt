@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.04.22 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
+
+from .template import Template
 
 
 class Prompt:
@@ -20,6 +22,7 @@ class Prompt:
         :param window: Window instance
         """
         self.window = window
+        self.template = Template(window)
 
     def get(self, prompt: str) -> str:
         """
@@ -44,7 +47,7 @@ class Prompt:
         prompt = event.data['value']
 
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            
+
             # cmd syntax tokens
             data = {
                 'prompt': prompt,
