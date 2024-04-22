@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 21:00:00                  #
+# Updated Date: 2024.04.22 06:00:00                  #
 # ================================================== #
 
 
@@ -122,6 +122,9 @@ class Nodes:
             zoom = self.window.core.config.get('zoom')
             self.window.ui.nodes['output'].value = zoom
             self.window.ui.nodes['output'].update_zoom()
+            if self.window.controller.chat.render.get_renderer().loaded:
+                self.window.controller.theme.markdown.load()
+                self.window.controller.chat.render.get_renderer().reload_css()
 
         # font size, legacy (markdown)
         elif self.window.controller.chat.render.get_engine() == 'legacy':

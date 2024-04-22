@@ -5,6 +5,7 @@ body {{
     word-wrap: break-word;
     padding: 6px;
     line-height: 1.25;
+    will-change: transform, opacity;
 }}
 a {{
     color: #fff;
@@ -73,6 +74,7 @@ code {{
 }}
 .code-header-lang {{
     color: #4d4d4d;
+    float: left;
 }}
 .code-header-copy {{
     text-align: right;
@@ -108,5 +110,6 @@ code {{
 .append_output {{
     white-space: pre-wrap;
     word-wrap: break-word;
-    margin-top: 20px;
+    margin-top: 10px;
+    border: 1px solid transparent;
 }}

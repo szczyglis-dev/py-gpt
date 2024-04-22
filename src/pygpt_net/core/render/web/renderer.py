@@ -41,6 +41,20 @@ class Renderer(BaseRenderer):
         self.img_width = 400
         self.html = ""
         self.document = ""
+        self.initialized = False
+        self.loaded = False
+        self.item = None
+
+    def init(self):
+        """
+        Initialize renderer
+        """
+        self.parser.reset()
+        if not self.initialized:
+            self.initialized = True
+            self.flush()
+        else:
+            self.clear_chunks()
 
     def begin(self, stream: bool = False):
         """
@@ -48,8 +62,7 @@ class Renderer(BaseRenderer):
 
         :param stream: True if it is a stream
         """
-        self.parser.reset()
-        #self.html = ""
+        self.init()
 
     def end(self, stream: bool = False):
         """
@@ -57,9 +70,9 @@ class Renderer(BaseRenderer):
 
         :param stream: True if it is a stream
         """
-        if stream:
-            self.reload()  # reload ctx items only if stream
-        self.flush()
+        if self.item is not None and stream:
+            self.append_context_item(self.item)
+            self.item = None
 
     def end_extra(self, stream: bool = False):
         """
@@ -75,13 +88,12 @@ class Renderer(BaseRenderer):
 
     def stream_end(self):
         """Render stream end"""
-        pass  # do nothing
+        pass
 
     def clear_output(self):
         """Clear output"""
         self.reset()
         self.html = ""
-        self.flush()
 
     def clear_input(self):
         """Clear input"""
@@ -89,6 +101,10 @@ class Renderer(BaseRenderer):
 
     def reset(self):
         """Reset"""
+        self.item = None
+        self.html = ""
+        self.clear_nodes()
+        self.clear_chunks()
         self.images_appended = []
         self.urls_appended = []
 
@@ -103,6 +119,7 @@ class Renderer(BaseRenderer):
         :param items: Context items
         :param clear: True if clear all output before append
         """
+        self.init()
         if clear:
             self.clear_output()
         i = 0
@@ -112,7 +129,6 @@ class Renderer(BaseRenderer):
                 item.first = True
             self.append_context_item(item)
             i += 1
-        self.flush()
 
     def append_input(self, item: CtxItem, flush: bool = True):
         """
@@ -122,7 +138,7 @@ class Renderer(BaseRenderer):
         :param flush: flush HTML
         """
         if not flush:
-            self.append_chunk_input_start()
+            self.clear_chunks_input()
 
         if item.input is None or item.input == "":
             return
@@ -149,7 +165,7 @@ class Renderer(BaseRenderer):
                 and not item.input.strip().startswith("user: "):
             if flush:
                 content = self.prepare_raw('>>>', "msg-user", item)
-                self.append_input_chunk(item, content, True)
+                self.append_chunk_input(item, content, True)
             else:
                 self.append_raw('>>>', "msg-user", item)
             return
@@ -161,7 +177,7 @@ class Renderer(BaseRenderer):
         if flush:
             content = self.prepare_raw(text.strip(), "msg-user", item)
             if self.is_stream():
-                self.append_input_chunk(item, content, False)
+                self.append_chunk_input(item, content, False)
             else:
                 self.append_raw(text.strip(), "msg-user", item)
         else:
@@ -249,11 +265,10 @@ class Renderer(BaseRenderer):
         # extra action icons
         if footer:
             show_edit = self.window.core.config.get('ctx.edit_icons')
-            icons_html = " ".join(self.get_action_icons(item, all=show_edit))
+            icons_html = "".join(self.get_action_icons(item, all=show_edit))
             if icons_html != "":
-                extra = "<div class=\"action-icons\">{}</div>".format(icons_html)
+                extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(item.id, icons_html)
                 self.append(extra)
-                self.to_end()
 
         # docs json
         if self.window.core.config.get('ctx.sources'):
@@ -261,16 +276,8 @@ class Renderer(BaseRenderer):
                 try:
                     docs = self.get_docs_html(item.doc_ids)
                     self.append(docs)
-                    self.to_end()
                 except Exception as e:
                     pass
-
-        # jump to end
-        if len(appended) > 0:
-            self.to_end()
-
-        if not footer:
-            self.flush()
 
     def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
         """
@@ -285,61 +292,68 @@ class Renderer(BaseRenderer):
         # audio read
         if item.output is not None and item.output != "":
             icons.append(
-                '<a href="extra-audio-read:{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                     item.id,
-                    self.get_icon("audio", trans("ctx.extra.audio"))
+                    item.id,
+                    self.get_icon("audio", trans("ctx.extra.audio"), item)
                 )
             )
             # copy item
             icons.append(
-                '<a href="extra-copy:{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-copy:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                     item.id,
-                    self.get_icon("copy", trans("ctx.extra.copy"))
+                    item.id,
+                    self.get_icon("copy", trans("ctx.extra.copy"), item)
                 )
             )
             # regen link
             icons.append(
-                '<a href="extra-replay:{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-replay:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                     item.id,
-                    self.get_icon("reload", trans("ctx.extra.reply"))
+                    item.id,
+                    self.get_icon("reload", trans("ctx.extra.reply"), item)
                 )
             )
             if all:
                 # edit link
                 icons.append(
-                    '<a href="extra-edit:{}"><span class="cmd">{}</span></a>'.format(
+                    '<a href="extra-edit:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                         item.id,
-                        self.get_icon("edit", trans("ctx.extra.edit"))
+                        item.id,
+                        self.get_icon("edit", trans("ctx.extra.edit"), item)
                     )
                 )
                 # delete link
                 icons.append(
-                    '<a href="extra-delete:{}"><span class="cmd">{}</span></a>'.format(
+                    '<a href="extra-delete:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                         item.id,
-                        self.get_icon("delete", trans("ctx.extra.delete"))
+                        item.id,
+                        self.get_icon("delete", trans("ctx.extra.delete"), item)
                     )
                 )
 
                 # join link
                 if not self.window.core.ctx.is_first_item(item.id):
                     icons.append(
-                        '<a href="extra-join:{}"><span class="cmd">{}</span></a>'.format(
+                        '<a href="extra-join:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
                             item.id,
-                            self.get_icon("join", trans("ctx.extra.join"))
+                            item.id,
+                            self.get_icon("join", trans("ctx.extra.join"), item)
                         )
                     )
         return icons
 
-    def get_icon(self, icon: str, title: str = None) -> str:
+    def get_icon(self, icon: str, title: str = None, item: CtxItem = None) -> str:
         """
         Get icon
 
         :param icon: icon name
         :param title: icon title
+        :param item: context item
         :return: icon HTML
         """
         icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="file://{}" width="20" height="20" title="{}" alt="{}">'.format(icon, title, title)
+        return '<img src="file://{}" class="action-img" width="20" height="20" title="{}" alt="{}" data-id="{}">'.format(icon, title, title, item.id)
         # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
@@ -350,13 +364,15 @@ class Renderer(BaseRenderer):
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
         """
+        self.item = item
         if text_chunk is None or text_chunk == "":
             return
+
         raw_chunk = str(text_chunk)
         if begin:
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
-            self.append_chunk_start()
+            self.clear_chunk_output()
         self.buffer += raw_chunk
         to_append = self.buffer
         if re.search(r'```(?!.*```)', self.buffer):
@@ -367,9 +383,8 @@ class Renderer(BaseRenderer):
             self.get_output_node().page().runJavaScript(f"replaceOutput({escaped_chunk});")
         except Exception as e:
             pass
-        self.scroll_to_bottom()
 
-    def append_input_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk_input(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output chunk to output
 
@@ -380,14 +395,13 @@ class Renderer(BaseRenderer):
         if text_chunk is None or text_chunk == "":
             return
 
-        self.append_chunk_input_start()
+        self.clear_chunks_input()
         chunk = self.format_chunk(text_chunk)
         escaped_chunk = json.dumps(chunk)
         try:
             self.get_output_node().page().runJavaScript(f"appendToInput({escaped_chunk});")
         except Exception as e:
             pass
-        #self.scroll_to_bottom()
 
     def append_block(self):
         """Append block to output"""
@@ -410,12 +424,14 @@ class Renderer(BaseRenderer):
             html = self.pre_format_text(html)
             html = self.append_timestamp(html, item)
             html = self.parser.parse(html)
+            id = "msg-bot-" + str(item.id) if item is not None else ""
         else:
             content = self.append_timestamp(self.format_user_text(html), item, type=type)
             html = "<p>" + content + "</p>"
+            id = "msg-user-" + str(item.id )if item is not None else ""
 
         html = self.post_format_text(html)
-        html = '<div class="{}">'.format(type) + html + "</div>"
+        html = '<div class="{}" id="{}">'.format(type, id) + html + "</div>"
         return html
 
     def append_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
@@ -426,10 +442,9 @@ class Renderer(BaseRenderer):
         :param type: type of message
         :param item: CtxItem instance
         """
-        html = self.prepare_raw(html, type, item)
-        self.append(html)
+        self.append(self.prepare_raw(html, type, item))
 
-    def append_chunk_start(self):
+    def clear_chunk_output(self):
         """Append start of chunk to output"""
         js = "var element = document.getElementById('_append_output_');"
         js += "if (element) { element.innerHTML = ''; }"
@@ -438,9 +453,18 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_chunk_input_start(self):
+    def clear_chunks_input(self):
         """Append start of chunk to output"""
         js = "var element = document.getElementById('_append_input_');"
+        js += "if (element) { element.innerHTML = ''; }"
+        try:
+            self.get_output_node().page().runJavaScript(js)
+        except Exception as e:
+            pass
+
+    def clear_nodes(self):
+        """Append start of chunk to output"""
+        js = "var element = document.getElementById('_nodes_');"
         js += "if (element) { element.innerHTML = ''; }"
         try:
             self.get_output_node().page().runJavaScript(js)
@@ -550,6 +574,11 @@ class Renderer(BaseRenderer):
                    path=path,
                    num=num_str)
 
+    def clear_chunks(self):
+        """Clear chunks from output"""
+        self.clear_chunks_input()
+        self.clear_chunk_output()
+
     def append(self, html: str, end: str = "\n"):
         """
         Append text to output
@@ -557,7 +586,15 @@ class Renderer(BaseRenderer):
         :param html: HTML code
         :param end: end of the line character
         """
-        self.html += html
+        if self.loaded:
+            self.clear_chunks()
+            escaped_html = json.dumps(html)
+            try:
+                self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
+            except Exception as e:
+                pass
+        else:
+            self.html += html  # to buffer
 
     def append_timestamp(self, text: str, item: CtxItem, type: str = None) -> str:
         """
@@ -681,18 +718,25 @@ class Renderer(BaseRenderer):
 
     def on_page_loaded(self):
         """On page loaded"""
-        self.scroll_to_bottom()
+        self.loaded = True
+        if self.html != "":
+            self.append(self.html)
+            self.html = ""
 
     def scroll_to_bottom(self):
         """Scroll to bottom"""
-        self.get_output_node().page().runJavaScript("window.scrollTo(0, document.body.scrollHeight);")
+        pass
 
-    def flush(self):
-        """Flush output"""
+    def reload_css(self):
+        """Reload CSS"""
+        to_json = json.dumps(self.prepare_styles())
+        self.get_output_node().page().runJavaScript("updateCSS({});".format(to_json))
+
+    def prepare_styles(self) -> str:
         """
-        block_msg = ""
-        if self.window.core.config.get('ctx.edit_icons'):
-            block_msg = ".msg-bot { border: 1px dotted silver; }"  # TODO: implement block editing in future
+        Prepare CSS styles
+
+        :return: CSS styles
         """
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
@@ -700,58 +744,173 @@ class Renderer(BaseRenderer):
         css = self.window.controller.theme.markdown.get_web_css()
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
         content = """
+        @font-face {
+          font-family: "Lato";
+          src: url('file:///""" + fonts_path + """/Lato/Lato-Regular.ttf');
+        }
+        @font-face {
+          font-family: "Monaspace Neon";
+          src: url('file:///""" + fonts_path + """/MonaspaceNeon/MonaspaceNeon-Regular.otf');
+        }
+        body {
+            margin: 4px;
+        }
+        """ + css + """
+        """ + HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')
+        return content
+
+    def flush(self):
+        """Flush output"""
+        if self.loaded:
+            return
+
+        content = """
         <!DOCTYPE html>
         <html>
         <head>
             <style>
-                @font-face {
-                  font-family: "Lato";
-                  src: url('file:///"""+fonts_path+"""/Lato/Lato-Regular.ttf');
-                }
-                @font-face {
-                  font-family: "Monaspace Neon";
-                  src: url('file:///"""+fonts_path+"""/MonaspaceNeon/MonaspaceNeon-Regular.otf');
-                }
-                body {
-                    margin: 4px;
-                }
-                """+css+"""
-                """+HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')+"""
+                """+self.prepare_styles()+"""
             </style>
         </head>
-        <body>
-            """+self.html+"""
+        <body id="container">
+            <div id="_nodes_" class="nodes"></div>
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
         </body>
         <script>
+        let scrollTimeout = null;
+        let prevScroll = 0;
+        history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
                 window.location.href = 'bridge://open_find'; // send to bridge
                 event.preventDefault();
             }
         });
+        function scrollToBottom() {
+            if (scrollTimeout !== null) {
+                clearTimeout(scrollTimeout);
+            }  
+            scrollTimeout = setTimeout(function() {
+                //document.getElementById('container').scrollIntoView({ behavior: 'instant', block: 'end' });
+                window.scrollTo(0, document.body.scrollHeight);
+                scrollTimeout = null; // Resetowanie zmiennej po wykonaniu
+            }, 1);
+            return
+            document.getElementById('container').scrollIntoView({ behavior: 'instant', block: 'end' });
+            return;
+            window.scrollIntoView({ behavior: "smooth", block: "end" });
+            return;
+            var objDiv = document.getElementById("container");
+            objDiv.scrollTop = objDiv.scrollHeight;
+            //window.scrollTo(0, document.body.scrollHeight);
+            return;
+                    
+            if (prevScroll != document.body.scrollHeight) {
+                requestAnimationFrame(() => {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                    });
+                });
+                prevScroll = document.body.scrollHeight;
+            }
+        }
+        function scrollToBottomLater() {
+            if (scrollTimeout !== null) {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = null;
+            }        
+            if (prevScroll != document.body.scrollHeight) {
+                scrollTimeout = setTimeout(() => {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                    })
+                }, 100);
+                prevScroll = document.body.scrollHeight;     
+            }
+        }
         function appendToInput(content) {
             var element = document.getElementById('_append_input_');
             if (element) {
                 element.innerHTML += content;
             }
-            // scroll to bottom
+            scrollToBottom();
         }
         function appendToOutput(content) {
             var element = document.getElementById('_append_output_');
             if (element) {
                 element.innerHTML += content;
             }
-            //  scroll to bottom
+            scrollToBottom();
+        }
+        function appendNode(content) {
+            var element = document.getElementById('_nodes_');
+            if (element) {
+                element.innerHTML += content;
+            }
+            scrollToBottom();
         }
         function replaceOutput(content) {
             var element = document.getElementById('_append_output_');
             if (element) {
                 element.innerHTML = content;
             }
-            //  scroll to bottom
+            scrollToBottom();
         }
+        function clearNodes() {
+            var element = document.getElementById('_nodes_');
+            if (element) {
+                element.textContent = '';
+            }
+        }
+        function clearInput() {
+            var element = document.getElementById('_append_input_');
+            if (element) {
+                element.textContent = '';
+            }
+        }
+        function clearOutput() {
+            var element = document.getElementById('_append_output_');
+            if (element) {
+                element.textContent = '';
+            }
+        }
+        function updateCSS(styles) {
+            var style = document.createElement('style');
+            style.innerHTML = styles;
+            var oldStyle = document.querySelector('style');
+            if (oldStyle) {
+                oldStyle.remove();
+            }
+            document.head.appendChild(style);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var container = document.getElementById('container');
+            function addClassToMsg(id, className) {
+                var msgElement = document.getElementById('msg-bot-' + id);
+                if (msgElement) {
+                    msgElement.classList.add(className);
+                }
+            }
+            function removeClassFromMsg(id, className) {
+                var msgElement = document.getElementById('msg-bot-' + id);
+                if (msgElement) {
+                    msgElement.classList.remove(className);
+                }
+            }
+            container.addEventListener('mouseover', function(event) {
+                if (event.target.classList.contains('action-img')) {
+                    var id = event.target.getAttribute('data-id');
+                    addClassToMsg(id, 'msg-highlight');
+                }
+            });        
+            container.addEventListener('mouseout', function(event) {
+                if (event.target.classList.contains('action-img')) {
+                    var id = event.target.getAttribute('data-id');
+                    removeClassFromMsg(id, 'msg-highlight');
+                }
+            });
+        });
         </script>
         </html>
         """
@@ -771,5 +930,6 @@ class Renderer(BaseRenderer):
 
     def clear_all(self):
         """Clear all"""
+        self.clear_nodes()
+        self.clear_chunks()
         self.html = ""
-        self.flush()

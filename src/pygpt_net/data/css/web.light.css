@@ -17,6 +17,10 @@ a {{
 .msg-bot {{
     color: #000;
 }}
+.msg-highlight {{
+    border: 1px solid #dfdfdf;
+    background-color: #eaeaea;
+}}
 .cmd {{
     color: #4d4d4d;
     text-decoration: none;

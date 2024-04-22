@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.22 06:00:00                  #
 # ================================================== #
 
 import markdown
@@ -53,7 +53,7 @@ class Parser:
 
     def parse(self, text: str) -> str:
         """
-        Convert markdown to html and then convert lists to paragraphs using BeautifulSoup
+        Parse markdown text
 
         :param text: markdown text
         :return: html formatted text
