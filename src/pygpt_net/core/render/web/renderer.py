@@ -354,7 +354,7 @@ class Renderer(BaseRenderer):
         """
         icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
         return '<img src="file://{}" class="action-img" width="20" height="20" title="{}" alt="{}" data-id="{}">'.format(icon, title, title, item.id)
-        # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title)
+        # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title) # TODO: add SVG here
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -457,6 +457,7 @@ class Renderer(BaseRenderer):
         """Append start of chunk to output"""
         js = "var element = document.getElementById('_append_input_');"
         js += "if (element) { element.innerHTML = ''; }"
+        # TODO: move to function
         try:
             self.get_output_node().page().runJavaScript(js)
         except Exception as e:
@@ -466,6 +467,7 @@ class Renderer(BaseRenderer):
         """Append start of chunk to output"""
         js = "var element = document.getElementById('_nodes_');"
         js += "if (element) { element.innerHTML = ''; }"
+        # TODO: move to function
         try:
             self.get_output_node().page().runJavaScript(js)
         except Exception as e:
@@ -779,7 +781,6 @@ class Renderer(BaseRenderer):
         </body>
         <script>
         let scrollTimeout = null;
-        let prevScroll = 0;
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
@@ -792,42 +793,9 @@ class Renderer(BaseRenderer):
                 clearTimeout(scrollTimeout);
             }  
             scrollTimeout = setTimeout(function() {
-                //document.getElementById('container').scrollIntoView({ behavior: 'instant', block: 'end' });
                 window.scrollTo(0, document.body.scrollHeight);
-                scrollTimeout = null; // Resetowanie zmiennej po wykonaniu
-            }, 1);
-            return
-            document.getElementById('container').scrollIntoView({ behavior: 'instant', block: 'end' });
-            return;
-            window.scrollIntoView({ behavior: "smooth", block: "end" });
-            return;
-            var objDiv = document.getElementById("container");
-            objDiv.scrollTop = objDiv.scrollHeight;
-            //window.scrollTo(0, document.body.scrollHeight);
-            return;
-                    
-            if (prevScroll != document.body.scrollHeight) {
-                requestAnimationFrame(() => {
-                    window.scrollTo({
-                        top: document.body.scrollHeight,
-                    });
-                });
-                prevScroll = document.body.scrollHeight;
-            }
-        }
-        function scrollToBottomLater() {
-            if (scrollTimeout !== null) {
-                clearTimeout(scrollTimeout);
                 scrollTimeout = null;
-            }        
-            if (prevScroll != document.body.scrollHeight) {
-                scrollTimeout = setTimeout(() => {
-                    window.scrollTo({
-                        top: document.body.scrollHeight,
-                    })
-                }, 100);
-                prevScroll = document.body.scrollHeight;     
-            }
+            }, 1);
         }
         function appendToInput(content) {
             var element = document.getElementById('_append_input_');
