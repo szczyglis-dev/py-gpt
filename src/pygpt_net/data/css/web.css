@@ -42,6 +42,9 @@ p {{
 .ts {{
     color: #4d4d4d;
 }}
+.msg-user .ts {{
+    margin-left: -10px;
+}}
 ul, ol, .list {{
     margin-top: 0px;
     margin-bottom: 0px;

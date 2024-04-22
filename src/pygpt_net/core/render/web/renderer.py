@@ -156,8 +156,8 @@ class Renderer(BaseRenderer):
             name = ""
             if item.input_name is not None \
                     and item.input_name != "":
-                name = item.input_name + ": "
-            text = '{}: {}'.format(name, item.input)
+                name = item.input_name + " "
+            text = '{} {}'.format(name, item.input)
         else:
             text = "{}".format(item.input)
 

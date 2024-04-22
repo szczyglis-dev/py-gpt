@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.70 (2024-04-22)
+
+- Added web view CSS reload on theme switch.
+- Fixed time display CSS in web view.
+
 # 2.1.69 (2024-04-22)
 
 - Added html buffer to speed-up context initialization in web view.
