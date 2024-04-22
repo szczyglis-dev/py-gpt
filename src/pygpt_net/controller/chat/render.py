@@ -264,7 +264,7 @@ class Render:
             # remove action icons
             for tag in soup.find_all('div', class_='action-icons'):
                 tag.decompose()
-            return soup.prettify()
+            return str(soup)
         except Exception as e:
             pass
         return html

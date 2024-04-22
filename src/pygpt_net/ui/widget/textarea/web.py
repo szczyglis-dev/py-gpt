@@ -42,7 +42,7 @@ class ChatWebOutput(QWebEngineView):
         self.plain = self.window.controller.chat.render.strip_html(text)
 
     def set_html_content(self, html: str):
-        self.html_content = self.window.controller.chat.render.pretify_html(html)
+        self.html_content = "<html>" + self.window.controller.chat.render.pretify_html(html) + "</html>"
 
     def on_context_menu(self, position):
         """
