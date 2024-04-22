@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.66 (2024-04-22)
+
+- Improved content formatting in HTML export.
+
 # 2.1.65 (2024-04-22)
 
 - Improved save as in Web View output.
