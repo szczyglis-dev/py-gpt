@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.63 (2024-04-22)
+
+- Improved rendering output.
+- Updated CSS.
+
 # 2.1.62 (2024-04-22)
 
 - Added default lexer for code syntax highlighting if no language provided.
