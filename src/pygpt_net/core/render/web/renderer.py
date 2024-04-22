@@ -36,14 +36,15 @@ class Renderer(BaseRenderer):
         self.parser = Parser(window)
         self.images_appended = []
         self.urls_appended = []
-        self.buffer = ""
+        self.buffer = ""  # stream buffer
         self.is_cmd = False
         self.img_width = 400
-        self.html = ""
+        self.html = ""  # html buffer
         self.document = ""
         self.initialized = False
-        self.loaded = False
-        self.item = None
+        self.loaded = False  # page loaded
+        self.item = None  # current item
+        self.use_buffer = False  # use html buffer
 
     def init(self):
         """
@@ -88,12 +89,14 @@ class Renderer(BaseRenderer):
 
     def stream_end(self):
         """Render stream end"""
-        pass
+        if self.window.controller.agent.enabled():
+            if self.item is not None:
+                self.append_context_item(self.item)
+                self.item = None
 
     def clear_output(self):
         """Clear output"""
         self.reset()
-        self.html = ""
 
     def clear_input(self):
         """Clear input"""
@@ -124,12 +127,17 @@ class Renderer(BaseRenderer):
         if clear:
             self.clear_output()
         i = 0
+        self.use_buffer = True
+        self.html = ""
         for item in items:
             item.idx = i
             if i == 0:
                 item.first = True
-            self.append_context_item(item)
+            self.append_context_item(item)  # to html buffer
             i += 1
+        self.use_buffer = False
+        if self.html !="":
+            self.append(self.html)  # flush buffer if page loaded, otherwise it will be flushed on page load
 
     def append_input(self, item: CtxItem, flush: bool = True):
         """
@@ -175,7 +183,7 @@ class Renderer(BaseRenderer):
             if item.internal and item.input.startswith("user: "):
                 text = re.sub(r'^user: ', '> ', item.input)
 
-        if flush:
+        if flush:  # to chunk buffer
             content = self.prepare_raw(text.strip(), "msg-user", item)
             if self.is_stream():
                 self.append_chunk_input(item, content, False)
@@ -227,7 +235,7 @@ class Renderer(BaseRenderer):
                     appended.append(image)
                     self.append(self.get_image_html(image, n, c))
                     self.images_appended.append(image)
-                    n+=1
+                    n += 1
                 except Exception as e:
                     pass
 
@@ -241,7 +249,7 @@ class Renderer(BaseRenderer):
                 try:
                     appended.append(file)
                     self.append(self.get_file_html(file, n, c))
-                    n+=1
+                    n += 1
                 except Exception as e:
                     pass
 
@@ -257,7 +265,7 @@ class Renderer(BaseRenderer):
                     appended.append(url)
                     urls_html.append(self.get_url_html(url, n, c))
                     self.urls_appended.append(url)
-                    n+=1
+                    n += 1
                 except Exception as e:
                     pass
             if urls_html:
@@ -354,7 +362,8 @@ class Renderer(BaseRenderer):
         :return: icon HTML
         """
         icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="file://{}" class="action-img" width="20" height="20" title="{}" alt="{}" data-id="{}">'.format(icon, title, title, item.id)
+        return '<img src="file://{}" class="action-img" width="20" height="20" title="{}" alt="{}" data-id="{}">'.format(
+            icon, title, title, item.id)
         # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title) # TODO: add SVG here
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
@@ -429,7 +438,7 @@ class Renderer(BaseRenderer):
         else:
             content = self.append_timestamp(self.format_user_text(html), item, type=type)
             html = "<p>" + content + "</p>"
-            id = "msg-user-" + str(item.id )if item is not None else ""
+            id = "msg-user-" + str(item.id) if item is not None else ""
 
         html = self.post_format_text(html)
         html = '<div class="{}" id="{}">'.format(type, id) + html + "</div>"
@@ -498,7 +507,7 @@ class Renderer(BaseRenderer):
             num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
         return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
-        <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""".\
+        <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""". \
             format(prefix=trans('chat.prefix.img'),
                    url=url,
                    path=path,
@@ -517,7 +526,7 @@ class Renderer(BaseRenderer):
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        return """<b>{prefix}{num}:</b> <a href="{url}">{url}</a>""".\
+        return """<b>{prefix}{num}:</b> <a href="{url}">{url}</a>""". \
             format(prefix=trans('chat.prefix.url'),
                    url=url,
                    num=num_str)
@@ -547,7 +556,7 @@ class Renderer(BaseRenderer):
                 for key in doc_json[doc_id]:
                     doc_parts.append("<b>{}:</b> {}".format(key, doc_json[doc_id][key]))
                 html_sources += "[{}] {}: {}".format(num, doc_id, ", ".join(doc_parts))
-                num +=1
+                num += 1
             except Exception as e:
                 pass
 
@@ -571,7 +580,7 @@ class Renderer(BaseRenderer):
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""".\
+        return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""". \
             format(prefix=trans('chat.prefix.file'),
                    url=url,
                    path=path,
@@ -589,16 +598,24 @@ class Renderer(BaseRenderer):
         :param html: HTML code
         :param end: end of the line character
         """
-        if self.loaded:
+        if self.loaded and not self.use_buffer:
             self.clear_chunks()
-            escaped_html = json.dumps(html)
-            try:
-                self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
-                self.get_output_node().update_current_content()
-            except Exception as e:
-                pass
+            self.flush_output(html)  # render
         else:
-            self.html += html  # to buffer
+            self.html += html  # main buffer
+
+    def flush_output(self, html: str):
+        """
+        Flush output
+
+        :param html: HTML code
+        """
+        escaped_html = json.dumps(html)
+        try:
+            self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
+            self.get_output_node().update_current_content()
+        except Exception as e:
+            pass
 
     def append_timestamp(self, text: str, item: CtxItem, type: str = None) -> str:
         """
@@ -773,7 +790,7 @@ class Renderer(BaseRenderer):
         <html>
         <head>
             <style>
-                """+self.prepare_styles()+"""
+                """ + self.prepare_styles() + """
             </style>
         </head>
         <body>

@@ -184,15 +184,16 @@ class Output:
 
         self.window.controller.ui.update_tokens()  # update UI tokens
 
+        # update ctx
+        ctx.output = output
+        ctx.set_tokens(ctx.input_tokens, output_tokens)
+
         # chunks: stream end
         self.window.controller.chat.render.stream_end()
 
         # log
         self.log("End of stream.")
-
-        # update ctx
-        ctx.output = output
-        ctx.set_tokens(ctx.input_tokens, output_tokens)
+        
 
     def show_response_tokens(self, ctx: CtxItem):
         """

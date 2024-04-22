@@ -81,7 +81,7 @@ class ChatWebOutput(QWebEngineView):
             # save as (selected)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(selected_text)
+                lambda: self.signals.save_as.emit(selected_text, 'txt')
             )
             menu.addAction(action)
         else:
