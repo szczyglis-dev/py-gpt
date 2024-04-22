@@ -122,9 +122,11 @@ class Nodes:
             zoom = self.window.core.config.get('zoom')
             self.window.ui.nodes['output'].value = zoom
             self.window.ui.nodes['output'].update_zoom()
-            if self.window.controller.chat.render.get_renderer().loaded:
-                self.window.controller.theme.markdown.load()
-                self.window.controller.chat.render.get_renderer().reload_css()
+
+            if self.window.core.config.get("render.plain") is False:
+                if self.window.controller.chat.render.get_renderer().loaded:
+                    self.window.controller.theme.markdown.load()
+                    self.window.controller.chat.render.get_renderer().reload_css()
 
         # font size, legacy (markdown)
         elif self.window.controller.chat.render.get_engine() == 'legacy':
