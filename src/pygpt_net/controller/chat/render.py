@@ -207,6 +207,10 @@ class Render:
         :param text: Text to save
         :param type: File type
         """
+        if type == 'html':
+            text = self.pretify_html(text)
+        else:
+            text = self.strip_html(text)
         # fix: QTimer required here to prevent crash if signal emitted from WebEngine window
         QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text, type))
 

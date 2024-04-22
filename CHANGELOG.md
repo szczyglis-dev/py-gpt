@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.68 (2024-04-22)
+
+- Fix: CPU usage on multiple items.
+
 # 2.1.67 (2024-04-22)
 
 - Optimized items rendering.
