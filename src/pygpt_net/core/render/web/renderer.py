@@ -750,8 +750,9 @@ class Renderer(BaseRenderer):
 
     def reload_css(self):
         """Reload CSS"""
-        to_json = json.dumps(self.prepare_styles())
-        self.get_output_node().page().runJavaScript("updateCSS({});".format(to_json))
+        if self.loaded:
+            to_json = json.dumps(self.prepare_styles())
+            self.get_output_node().page().runJavaScript("updateCSS({});".format(to_json))
 
     def prepare_styles(self) -> str:
         """
