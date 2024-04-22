@@ -107,6 +107,7 @@ class Renderer(BaseRenderer):
         self.clear_chunks()
         self.images_appended = []
         self.urls_appended = []
+        self.get_output_node().reset_current_content()
 
     def reload(self):
         """Reload output, called externally only on theme change to redraw content"""
@@ -593,6 +594,7 @@ class Renderer(BaseRenderer):
             escaped_html = json.dumps(html)
             try:
                 self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
+                self.get_output_node().update_current_content()
             except Exception as e:
                 pass
         else:
@@ -774,11 +776,12 @@ class Renderer(BaseRenderer):
                 """+self.prepare_styles()+"""
             </style>
         </head>
-        <body id="container">
+        <body>
+        <div id="container">
             <div id="_nodes_" class="nodes"></div>
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
-        </body>
+        </div>
         <script>
         let scrollTimeout = null;
         history.scrollRestoration = "manual";
@@ -880,6 +883,7 @@ class Renderer(BaseRenderer):
             });
         });
         </script>
+        </body>
         </html>
         """
         self.document = content

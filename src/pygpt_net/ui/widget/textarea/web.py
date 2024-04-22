@@ -36,9 +36,13 @@ class ChatWebOutput(QWebEngineView):
         self.signals = WebEngineSignals()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.plain = ""
+        self.html_content = ""
 
     def set_plaintext(self, text: str):
-        self.plain = text
+        self.plain = self.window.controller.chat.render.strip_html(text)
+
+    def set_html_content(self, html: str):
+        self.html_content = self.window.controller.chat.render.pretify_html(html)
 
     def on_context_menu(self, position):
         """
@@ -86,10 +90,17 @@ class ChatWebOutput(QWebEngineView):
             action.triggered.connect(self.select_all_text)
             menu.addAction(action)
 
-            # save as (all)
-            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
+            # save as (all) - plain
+            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
             action.triggered.connect(
                 lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain))
+            )
+            menu.addAction(action)
+
+            # save as (all) - html
+            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
+            action.triggered.connect(
+                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content))
             )
             menu.addAction(action)
 
@@ -113,6 +124,16 @@ class ChatWebOutput(QWebEngineView):
         """
         return self.page().zoomFactor()
 
+    def reset_current_content(self):
+        """Reset current content"""
+        self.plain = ""
+        self.html_content = ""
+
+    def update_current_content(self):
+        """Update current content"""
+        self.page().runJavaScript("document.getElementById('container').outerHTML", 0, self.set_plaintext)
+        self.page().runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
+
     def on_page_loaded(self, success):
         """
         On page loaded
@@ -120,7 +141,6 @@ class ChatWebOutput(QWebEngineView):
         :param success: True if loaded successfully
         """
         if success:
-            self.page().toPlainText(self.set_plaintext)
             self.window.controller.chat.render.on_page_loaded()
 
     def get_selected_text(self) -> str:

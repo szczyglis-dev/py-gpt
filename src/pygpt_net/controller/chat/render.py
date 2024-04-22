@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
+from bs4 import BeautifulSoup
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
@@ -216,3 +217,40 @@ class Render:
         :param text: Text to read
         """
         self.window.controller.audio.read_text(text)
+
+    def strip_html(self, html: str) -> str:
+        """
+        Strip HTML tags and get plain text
+
+        :param html: HTML content
+        :return: Plain text
+        """
+        if html == "":
+            return ""
+        soup = BeautifulSoup(html, 'html.parser')
+        # remove headers from code blocks
+        for tag in soup.find_all('p', class_='code-header-wrapper'):
+            empty = soup.new_tag('p')
+            empty.string = '\n'
+            tag.replace_with(empty)
+        # add separators
+        for tag in soup.find_all('div', class_='msg-bot'):
+            sep = soup.new_tag('p')
+            sep.string = '\n\n'
+            tag.insert_before(sep)
+        for tag in soup.find_all('div', class_='msg-user'):
+            sep = soup.new_tag('p')
+            sep.string = '\n\n'
+            tag.insert_before(sep)
+        text = soup.get_text()
+        return text
+
+    def pretify_html(self, html: str) -> str:
+        """
+        Pretify HTML content
+
+        :param html: HTML content
+        :return: HTML content
+        """
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.prettify()
