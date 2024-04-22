@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.67 (2024-04-22)
+
+- Optimized items rendering.
+
 # 2.1.66 (2024-04-22)
 
 - Improved content formatting in HTML export.
