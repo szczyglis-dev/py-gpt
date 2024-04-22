@@ -1,3 +1,8 @@
+2.1.69 (2024-04-22)
+
+- Added html buffer to speed-up context initialization in web view.
+- Fixed items append in web view in agent mode.
+
 2.1.68 (2024-04-22)
 
 - Fix: CPU usage on multiple items.

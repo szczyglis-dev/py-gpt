@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.68** | build: **2024.04.22** | Python: **>=3.10, <3.12**
+Release: **2.1.69** | build: **2024.04.22** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.69 (2024-04-22)
+
+- Added html buffer to speed-up context initialization in web view.
+- Fixed items append in web view in agent mode.
 
 # 2.1.68 (2024-04-22)
 
