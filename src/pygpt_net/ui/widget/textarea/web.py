@@ -93,14 +93,14 @@ class ChatWebOutput(QWebEngineView):
             # save as (all) - plain
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain))
+                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
             )
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content))
+                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
             )
             menu.addAction(action)
 
@@ -242,5 +242,5 @@ class CustomWebEnginePage(QWebEnginePage):
 
 
 class WebEngineSignals(QObject):
-    save_as = Signal(str)
+    save_as = Signal(str, str)
     audio_read = Signal(str)

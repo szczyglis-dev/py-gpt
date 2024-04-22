@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.65 (2024-04-22)
+
+- Improved save as in Web View output.
+- Added save as text and save as html separated options.
+
 # 2.1.64 (2024-04-22)
 
 - Improved real-time CSS reloading.

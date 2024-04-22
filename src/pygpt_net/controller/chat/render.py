@@ -199,15 +199,16 @@ class Render:
         self.get_renderer().clear_all()
         self.update()
 
-    @Slot(str)
-    def handle_save_as(self, text: str):
+    @Slot(str, str)
+    def handle_save_as(self, text: str, type: str = 'txt'):
         """
         Handle save as signal
 
         :param text: Text to save
+        :param type: File type
         """
         # fix: QTimer required here to prevent crash if signal emitted from WebEngine window
-        QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text))
+        QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text, type))
 
     @Slot(str)
     def handle_audio_read(self, text: str):
@@ -227,23 +228,26 @@ class Render:
         """
         if html == "":
             return ""
-        soup = BeautifulSoup(html, 'html.parser')
-        # remove headers from code blocks
-        for tag in soup.find_all('p', class_='code-header-wrapper'):
-            empty = soup.new_tag('p')
-            empty.string = '\n'
-            tag.replace_with(empty)
-        # add separators
-        for tag in soup.find_all('div', class_='msg-bot'):
-            sep = soup.new_tag('p')
-            sep.string = '\n\n'
-            tag.insert_before(sep)
-        for tag in soup.find_all('div', class_='msg-user'):
-            sep = soup.new_tag('p')
-            sep.string = '\n\n'
-            tag.insert_before(sep)
-        text = soup.get_text()
-        return text
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            # remove headers from code blocks
+            for tag in soup.find_all('p', class_='code-header-wrapper'):
+                empty = soup.new_tag('p')
+                empty.string = '\n'
+                tag.replace_with(empty)
+            # add separators
+            for tag in soup.find_all('div', class_='msg-bot'):
+                sep = soup.new_tag('p')
+                sep.string = '\n\n'
+                tag.insert_before(sep)
+            for tag in soup.find_all('div', class_='msg-user'):
+                sep = soup.new_tag('p')
+                sep.string = '\n\n'
+                tag.insert_before(sep)
+            return soup.get_text()
+        except Exception as e:
+            pass
+        return ""
 
     def pretify_html(self, html: str) -> str:
         """
@@ -252,5 +256,15 @@ class Render:
         :param html: HTML content
         :return: HTML content
         """
-        soup = BeautifulSoup(html, 'html.parser')
-        return soup.prettify()
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            # remove copy from code blocks
+            for tag in soup.find_all('a', class_='code-header-copy'):
+                tag.decompose()
+            # remove action icons
+            for tag in soup.find_all('div', class_='action-icons'):
+                tag.decompose()
+            return soup.prettify()
+        except Exception as e:
+            pass
+        return html

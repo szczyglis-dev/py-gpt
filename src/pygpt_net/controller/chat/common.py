@@ -283,20 +283,24 @@ class Common:
         else:
             self.img_enable_raw()
 
-    def save_text(self, text: str):
+    def save_text(self, text: str, type: str = "txt"):
         """
         Save text to file
 
         :param text: text to save
+        :param type: file type
         """
         last_dir = self.window.core.config.get_last_used_dir()
         options = QFileDialog.Options()
-        selected_filter = "Text Files (*.txt)"
+        if type == "html":
+            selected_filter = "HTML Files (*.html)"
+        else:
+            selected_filter = "Text Files (*.txt)"
         file_name, _ = QFileDialog.getSaveFileName(
             self.window,
             "Save as text file",
             last_dir,
-            "All Files (*);;Text Files (*.txt);;Python Files (*.py);;Markdown Files (*.md)",
+            "All Files (*);;Text Files (*.txt);;HTML Files (*.html);;Python Files (*.py);;Markdown Files (*.md)",
             selected_filter,
             options,
         )
