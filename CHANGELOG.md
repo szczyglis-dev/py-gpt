@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.71 (2024-04-23)
+
+- Added 160+ prompt templates from ["Awesome ChatGPT Prompts"](https://github.com/f/awesome-chatgpt-prompts) repository - to use them, right-click on the input or system prompt textarea and select the "Paste from template..." option.
+
 # 2.1.70 (2024-04-22)
 
 - Added web view CSS reload on theme switch.

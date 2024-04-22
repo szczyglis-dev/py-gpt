@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.70** | build: **2024.04.22** | Python: **>=3.10, <3.12**
+Release: **2.1.71** | build: **2024.04.23** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2995,6 +2995,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.71 (2024-04-23)
+
+- Added 160+ prompt templates from ["Awesome ChatGPT Prompts"](https://github.com/f/awesome-chatgpt-prompts) repository - to use them, right-click on the input or system prompt textarea and select the "Paste from template..." option.
+
 # 2.1.70 (2024-04-22)
 
 - Added web view CSS reload on theme switch.
@@ -3088,21 +3092,21 @@ The full changelog is located in the **[CHANGELOG.md](https://github.com/szczygl
 
 GitHub community:
 
-- **BillionShields**
+- **[BillionShields](https://github.com/BillionShields)**
 
-- **gfsysa**
+- **[gfsysa](https://github.com/gfsysa)**
 
-- **glinkot**
+- **[glinkot](https://github.com/glinkot)**
 
-- **kaneda2004**
+- **[kaneda2004](https://github.com/kaneda2004)**
 
-- **linnflux**
+- **[linnflux](https://github.com/linnflux)**
 
-- **moritz-t-w**
+- **[moritz-t-w](https://github.com/moritz-t-w)**
 
-- **oleksii-honchar**
+- **[oleksii-honchar](https://github.com/oleksii-honchar)**
 
-- **yf007**
+- **[yf007](https://github.com/yf007)**
 
 ## Third-party libraries
 
