@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.64 (2024-04-22)
+
+- Improved real-time CSS reloading.
+
 # 2.1.63 (2024-04-22)
 
 - Improved rendering output.

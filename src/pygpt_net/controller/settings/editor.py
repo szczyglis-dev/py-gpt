@@ -152,9 +152,10 @@ class Editor:
 
         # syntax highlighter style
         if self.config_changed('render.code_syntax'):
-            if self.window.controller.chat.render.web_renderer.loaded:
-                self.window.controller.theme.markdown.load()
-                self.window.controller.chat.render.web_renderer.reload_css()
+            if self.window.controller.chat.render.get_engine() == "web":
+                if self.window.controller.chat.render.web_renderer.loaded:
+                    self.window.controller.theme.markdown.load()
+                    self.window.controller.chat.render.web_renderer.reload_css()
             self.window.controller.ctx.refresh()
 
         # convert lists
@@ -235,9 +236,10 @@ class Editor:
 
         elif key == "render.code_syntax":
             self.window.core.config.set(key, value)
-            if self.window.controller.chat.render.web_renderer.loaded:
-                self.window.controller.theme.markdown.load()
-                self.window.controller.chat.render.web_renderer.reload_css()
+            if self.window.controller.chat.render.get_engine() == "web":
+                if self.window.controller.chat.render.web_renderer.loaded:
+                    self.window.controller.theme.markdown.load()
+                    self.window.controller.chat.render.web_renderer.reload_css()
             self.window.controller.ctx.refresh()
 
         elif key == "ctx.convert_lists":
