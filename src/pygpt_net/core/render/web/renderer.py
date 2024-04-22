@@ -44,6 +44,7 @@ class Renderer(BaseRenderer):
         self.initialized = False
         self.loaded = False
         self.item = None
+        self.ended = False
 
     def init(self):
         """
@@ -63,6 +64,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         self.init()
+        self.ended = False
 
     def end(self, stream: bool = False):
         """
@@ -71,6 +73,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         if self.item is not None and stream:
+            self.ended = True
             self.append_context_item(self.item)
             self.item = None
 
@@ -130,6 +133,7 @@ class Renderer(BaseRenderer):
                 item.first = True
             self.append_context_item(item)
             i += 1
+        self.ended = True
 
     def append_input(self, item: CtxItem, flush: bool = True):
         """
@@ -594,7 +598,8 @@ class Renderer(BaseRenderer):
             escaped_html = json.dumps(html)
             try:
                 self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
-                self.get_output_node().update_current_content()
+                if self.ended:
+                    self.get_output_node().update_current_content()
             except Exception as e:
                 pass
         else:
