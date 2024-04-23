@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 19:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -72,13 +72,15 @@ class ChatOutput(QTextBrowser):
             # save as (selected)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(plain_text))
+                lambda: self.window.controller.chat.common.save_text(plain_text)
+            )
             menu.addAction(action)
         else:
             # save as (all)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
             action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
+                lambda: self.window.controller.chat.common.save_text(self.toPlainText())
+            )
             menu.addAction(action)
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
@@ -107,7 +109,7 @@ class ChatOutput(QTextBrowser):
         :param e: Event
         """
         if e.key() == Qt.Key_F and e.modifiers() & Qt.ControlModifier:
-            self.find_open()
+            self.find_open()  # open find dialog
         else:
             super(ChatOutput, self).keyPressEvent(e)
 

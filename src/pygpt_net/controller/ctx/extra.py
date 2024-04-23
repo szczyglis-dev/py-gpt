@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -105,7 +105,7 @@ class Extra:
             self.window.core.ctx.remove_items_from(meta_id, item_id)
             model = self.window.core.config.get('model')
             self.window.core.ctx.model = model
-            self.window.controller.ctx.refresh(restore_model=False)  # allow model change
+            self.window.controller.chat.render.on_edit_submit(item_id)
             self.window.controller.ctx.edit_item_id = None
             self.window.controller.ctx.edit_meta_id = None
             mode = self.window.core.config.get('mode')
@@ -150,7 +150,7 @@ class Extra:
             model = self.window.core.config.get('model')
             self.window.core.ctx.model = model
             self.window.core.ctx.remove_items_from(meta_id, item_id)
-            self.window.controller.ctx.refresh(restore_model=False)  # allow model change
+            self.window.controller.chat.render.on_reply_submit(item_id)
             mode = self.window.core.config.get('mode')
             self.window.controller.model.set(mode, model)
             self.window.controller.chat.input.send(input_text)

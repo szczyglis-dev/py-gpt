@@ -2,6 +2,22 @@ body {{
     color: #fff;
     background-color: #232629;
 }}
+::-webkit-scrollbar {{
+    height: 12px;
+    width: 12px;
+    background: #000;
+}}
+::-webkit-scrollbar-thumb {{
+    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+    -webkit-border-radius: 1ex;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+::-webkit-scrollbar-corner {{
+    background: #000;
+}}
 a {{
     color: #fff;
 }}
@@ -11,6 +27,7 @@ a {{
 }}
 .msg-bot {{
     color: #fff;
+    border-bottom: 1px solid #272a2d;
 }}
 .msg-highlight {{
     border: 1px solid #323436;
@@ -46,7 +63,7 @@ code {{
     color: #4d4d4d;
 }}
 .action-icons {{
-    border-bottom: 1px solid #272a2d;
+    
 }}
 .action-icons a:hover {{
     filter: brightness(130%);

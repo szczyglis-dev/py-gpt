@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 import os
@@ -26,6 +26,7 @@ class Common:
         :param window: Window instance
         """
         self.window = window
+        self.initialized = False
 
     def setup(self):
         """Set up UI"""
@@ -63,7 +64,10 @@ class Common:
             self.window.ui.nodes['cmd.enabled'].setChecked(False)
 
         # output timestamps
-        self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
+        is_timestamp = self.window.core.config.get('output_timestamp')
+        self.window.ui.nodes['output.timestamp'].setChecked(is_timestamp)
+        if is_timestamp:
+            self.window.controller.chat.render.on_enable_timestamp(self.initialized)
 
         # raw (plain) output
         plain = self.window.core.config.get('render.plain')
@@ -75,11 +79,12 @@ class Common:
             self.window.ui.nodes['output'].setVisible(True)
             self.window.ui.nodes['output_plain'].setVisible(False)
 
-        self.window.controller.chat.render.switch()  # switch renderer if needed
+        self.window.controller.chat.render.switch(self.initialized)  # switch renderer if needed
 
         # edit icons
         if self.window.core.config.has('ctx.edit_icons'):
             self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
+            self.window.controller.chat.render.on_enable_edit(self.initialized)
 
         # images generation
         if self.window.core.config.get('img_raw'):
@@ -89,6 +94,7 @@ class Common:
 
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
+        self.initialized = True
 
     def append_to_input(self, text: str, separator: str = "\n"):
         """
@@ -180,7 +186,7 @@ class Common:
         """
         Stop all
 
-        :param exit: True if app exit
+        :param exit: True if called on app exit
         """
         mode = self.window.core.config.get('mode')
         event = Event(Event.FORCE_STOP, {
@@ -224,13 +230,16 @@ class Common:
 
     def toggle_timestamp(self, value: bool):
         """
-        Toggle timestamp
+        Toggle timestamp display
 
         :param value: value of the checkbox
         """
         self.window.core.config.set('output_timestamp', value)
         self.window.core.config.save()
-        self.window.controller.ctx.refresh()
+        if value:
+            self.window.controller.chat.render.on_enable_timestamp(live=True)
+        else:
+            self.window.controller.chat.render.on_disable_timestamp(live=True)
 
     def toggle_raw(self, value: bool):
         """
@@ -245,7 +254,9 @@ class Common:
         self.window.controller.config.checkbox.apply(
             'config',
             'render.plain',
-            {'value': value},
+            {
+                'value': value
+            },
         )
         self.window.controller.chat.render.switch()
 
@@ -260,7 +271,10 @@ class Common:
         """
         self.window.core.config.set('ctx.edit_icons', value)
         self.window.core.config.save()
-        self.window.controller.ctx.refresh()
+        if value:
+            self.window.controller.chat.render.on_enable_edit(live=True)
+        else:
+            self.window.controller.chat.render.on_disable_edit(live=True)
 
     def img_enable_raw(self):
         """Enable help for images"""
@@ -310,8 +324,6 @@ class Common:
                 os.path.dirname(file_name),
             )
             with open(file_name, 'w', encoding="utf-8") as f:
-                f.write(
-                    str(text).strip()
-                )
+                f.write(str(text).strip())
             self.window.ui.status(trans('status.saved') + ": " + os.path.basename(file_name))
 

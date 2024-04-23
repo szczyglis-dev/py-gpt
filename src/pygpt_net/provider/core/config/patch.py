@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 06:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -1342,6 +1342,15 @@ class Patch:
                 print("Migrating config from < 2.1.70...")
                 # css upgrade
                 self.window.core.updater.patch_css('web.css', True)  # force update
+                updated = True
+
+            # < 2.1.72
+            if old < parse_version("2.1.72"):
+                print("Migrating config from < 2.1.72...")
+                # css upgrade
+                self.window.core.updater.patch_css('web.css', True)  # force update
+                self.window.core.updater.patch_css('web.light.css', True)  # force update
+                self.window.core.updater.patch_css('web.dark.css', True)  # force update
                 updated = True
 
         # update file

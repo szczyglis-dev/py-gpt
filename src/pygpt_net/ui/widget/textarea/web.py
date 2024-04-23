@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 19:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 import re
@@ -39,9 +39,19 @@ class ChatWebOutput(QWebEngineView):
         self.html_content = ""
 
     def set_plaintext(self, text: str):
+        """
+        Set plain text
+
+        :param text: text
+        """
         self.plain = text
 
     def set_html_content(self, html: str):
+        """
+        Set HTML content
+
+        :param html: HTML content
+        """
         self.html_content = "<html>" + html + "</html>"
 
     def on_context_menu(self, position):
@@ -187,6 +197,7 @@ class CustomWebEnginePage(QWebEnginePage):
         super(CustomWebEnginePage, self).__init__(window)
         self.window = window
         self.parent = parent
+        self.signals = WebEnginePageSignals()
         self.findTextFinished.connect(self.on_find_finished)
         self.contentsSizeChanged.connect(self.on_view_changed)
         self.selectionChanged.connect(self.on_selection_changed)
@@ -240,7 +251,21 @@ class CustomWebEnginePage(QWebEnginePage):
             return False
         return super().acceptNavigationRequest(url,  _type, isMainFrame)
 
+    def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        """
+        On JavaScript console message
+
+        :param level: log level
+        :param message: message
+        :param line_number: line number
+        :param source_id: source ID
+        """
+        self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+
 
 class WebEngineSignals(QObject):
     save_as = Signal(str, str)
     audio_read = Signal(str)
+
+class WebEnginePageSignals(QObject):
+    js_message = Signal(int, str, str)  # on Javascript message

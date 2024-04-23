@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 06:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 import os
@@ -56,10 +56,16 @@ class Markdown:
         self.window.controller.ctx.refresh_output()
 
     def get_web_css(self) -> str:
-        """Get web CSS"""
+        """
+        Get web CSS
+
+        :return: stylesheet
+        """
         if "web" not in self.css:
             self.load()
-        return self.css["web"]
+        if "web" in self.css:
+            return self.css["web"]
+        return ""
 
     def clear(self):
         """Clear CSS of markdown formatter"""
@@ -71,7 +77,6 @@ class Markdown:
     def load(self):
         """Load markdown styles"""
         parents = ["markdown", "web"]
-
         for base_name in parents:
             theme = self.window.core.config.get('theme')
             name = str(base_name)
@@ -92,8 +97,8 @@ class Markdown:
                         content += file.read()
             try:
                 self.css[base_name] = content.format(**os.environ)
-            except KeyError as e:
-                pass  # ignore missing env vars
+            except KeyError as e:  # ignore missing env vars
+                pass
 
     def get_default(self):
         """Set default markdown CSS"""

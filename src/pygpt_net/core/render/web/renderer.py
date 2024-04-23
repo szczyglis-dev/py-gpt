@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 23:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 import json
@@ -25,6 +25,9 @@ from .parser import Parser
 
 
 class Renderer(BaseRenderer):
+    NODE_INPUT = 0
+    NODE_OUTPUT = 1
+
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
         """
@@ -52,8 +55,8 @@ class Renderer(BaseRenderer):
         """
         self.parser.reset()
         if not self.initialized:
-            self.initialized = True
             self.flush()
+            self.initialized = True
         else:
             self.clear_chunks()
 
@@ -124,6 +127,7 @@ class Renderer(BaseRenderer):
         :param clear: True if clear all output before append
         """
         self.init()
+
         if clear:
             self.clear_output()
         i = 0
@@ -136,8 +140,10 @@ class Renderer(BaseRenderer):
             self.append_context_item(item)  # to html buffer
             i += 1
         self.use_buffer = False
-        if self.html !="":
-            self.append(self.html)  # flush buffer if page loaded, otherwise it will be flushed on page load
+
+        # flush
+        if self.html != "":
+            self.append(self.html, flush=True)  # flush buffer if page loaded, otherwise it will be flushed on page load
 
     def append_input(self, item: CtxItem, flush: bool = True):
         """
@@ -173,10 +179,10 @@ class Renderer(BaseRenderer):
                 and not item.first \
                 and not item.input.strip().startswith("user: "):
             if flush:
-                content = self.prepare_raw('>>>', "msg-user", item)
+                content = self.prepare_node('>>>', self.NODE_INPUT, item)
                 self.append_chunk_input(item, content, True)
             else:
-                self.append_raw('>>>', "msg-user", item)
+                self.append_node('>>>', self.NODE_INPUT, item)
             return
         else:
             # don't show user prefix if provided in internal call goal update
@@ -184,13 +190,13 @@ class Renderer(BaseRenderer):
                 text = re.sub(r'^user: ', '> ', item.input)
 
         if flush:  # to chunk buffer
-            content = self.prepare_raw(text.strip(), "msg-user", item)
+            content = self.prepare_node(text.strip(), self.NODE_INPUT, item)
             if self.is_stream():
                 self.append_chunk_input(item, content, False)
             else:
-                self.append_raw(text.strip(), "msg-user", item)
+                self.append_node(text.strip(), self.NODE_INPUT, item)
         else:
-            self.append_raw(text.strip(), "msg-user", item)
+            self.append_node(text.strip(), self.NODE_INPUT, item)
 
     def append_output(self, item: CtxItem, flush: bool = True):
         """
@@ -210,161 +216,8 @@ class Renderer(BaseRenderer):
             text = '{} {}'.format(name, item.output)
         else:
             text = "{}".format(item.output)
-        self.append_raw(text.strip(), "msg-bot", item)
 
-    def append_extra(self, item: CtxItem, footer: bool = False):
-        """
-        Append extra data (images, files, etc.) to output
-
-        :param item: context item
-        :param footer: True if it is a footer
-        """
-        appended = []
-
-        # images
-        c = len(item.images)
-        if c > 0:
-            n = 1
-            for image in item.images:
-                # don't append if it is an external url
-                if image.startswith("http"):
-                    continue
-                if image in appended or image in self.images_appended:
-                    continue
-                try:
-                    appended.append(image)
-                    self.append(self.get_image_html(image, n, c))
-                    self.images_appended.append(image)
-                    n += 1
-                except Exception as e:
-                    pass
-
-        # files and attachments, TODO check attachments
-        c = len(item.files)
-        if c > 0:
-            n = 1
-            for file in item.files:
-                if file in appended:
-                    continue
-                try:
-                    appended.append(file)
-                    self.append(self.get_file_html(file, n, c))
-                    n += 1
-                except Exception as e:
-                    pass
-
-        # urls
-        c = len(item.urls)
-        if c > 0:
-            urls_html = []
-            n = 1
-            for url in item.urls:
-                if url in appended or url in self.urls_appended:
-                    continue
-                try:
-                    appended.append(url)
-                    urls_html.append(self.get_url_html(url, n, c))
-                    self.urls_appended.append(url)
-                    n += 1
-                except Exception as e:
-                    pass
-            if urls_html:
-                self.append("<br/>" + "<br/>".join(urls_html))
-
-        # extra action icons
-        if footer:
-            show_edit = self.window.core.config.get('ctx.edit_icons')
-            icons_html = "".join(self.get_action_icons(item, all=show_edit))
-            if icons_html != "":
-                extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(item.id, icons_html)
-                self.append(extra)
-
-        # docs json
-        if self.window.core.config.get('ctx.sources'):
-            if item.doc_ids is not None and len(item.doc_ids) > 0:
-                try:
-                    docs = self.get_docs_html(item.doc_ids)
-                    self.append(docs)
-                except Exception as e:
-                    pass
-
-    def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
-        """
-        Get action icons for context item
-
-        :param item: context item
-        :param all: True to show all icons
-        :return: list of icons
-        """
-        icons = []
-
-        # audio read
-        if item.output is not None and item.output != "":
-            icons.append(
-                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("audio", trans("ctx.extra.audio"), item)
-                )
-            )
-            # copy item
-            icons.append(
-                '<a href="extra-copy:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("copy", trans("ctx.extra.copy"), item)
-                )
-            )
-            # regen link
-            icons.append(
-                '<a href="extra-replay:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("reload", trans("ctx.extra.reply"), item)
-                )
-            )
-            if all:
-                # edit link
-                icons.append(
-                    '<a href="extra-edit:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                        item.id,
-                        item.id,
-                        self.get_icon("edit", trans("ctx.extra.edit"), item)
-                    )
-                )
-                # delete link
-                icons.append(
-                    '<a href="extra-delete:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                        item.id,
-                        item.id,
-                        self.get_icon("delete", trans("ctx.extra.delete"), item)
-                    )
-                )
-
-                # join link
-                if not self.window.core.ctx.is_first_item(item.id):
-                    icons.append(
-                        '<a href="extra-join:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                            item.id,
-                            item.id,
-                            self.get_icon("join", trans("ctx.extra.join"), item)
-                        )
-                    )
-        return icons
-
-    def get_icon(self, icon: str, title: str = None, item: CtxItem = None) -> str:
-        """
-        Get icon
-
-        :param icon: icon name
-        :param title: icon title
-        :param item: context item
-        :return: icon HTML
-        """
-        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="file://{}" class="action-img" width="20" height="20" title="{}" alt="{}" data-id="{}">'.format(
-            icon, title, title, item.id)
-        # return '<img src=":/icons/{}.svg" width="25" title="{}">'.format(icon, title) # TODO: add SVG here
+        self.append_node(text.strip(), self.NODE_OUTPUT, item)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -421,30 +274,54 @@ class Renderer(BaseRenderer):
         """Move cursor to end of output"""
         pass
 
-    def prepare_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
+    def prepare_node(self, html: str, type: int = 1, item: CtxItem = None) -> str:
         """
-        Prepare raw text
+        Prepare node HTML
 
         :param html: html text
         :param type: type of message
         :param item: CtxItem instance
-        :return: prepared text
+        :return: prepared HTML
         """
-        if type != "msg-user":  # markdown for bot messages
-            html = self.pre_format_text(html)
-            html = self.append_timestamp(html, item)
-            html = self.parser.parse(html)
-            id = "msg-bot-" + str(item.id) if item is not None else ""
-        else:
-            content = self.append_timestamp(self.format_user_text(html), item, type=type)
-            html = "<p>" + content + "</p>"
-            id = "msg-user-" + str(item.id) if item is not None else ""
+        if type == self.NODE_OUTPUT:
+            return self.prepare_node_output(html, item)
+        elif type == self.NODE_INPUT:
+            return self.prepare_node_input(html, item)
 
+    def prepare_node_input(self, html: str, item: CtxItem = None) -> str:
+        """
+        Prepare input node
+
+        :param html: html text
+        :param item: CtxItem instance
+        :return: prepared HTML
+        """
+        id = "msg-user-" + str(item.id) if item is not None else ""
+        content = self.append_timestamp(self.format_user_text(html), item, type=self.NODE_INPUT)
+        html = "<p>" + content + "</p>"
         html = self.post_format_text(html)
-        html = '<div class="{}" id="{}">'.format(type, id) + html + "</div>"
+        html = '<div class="msg-box msg-user" id="{}">'.format(id) + html + "</div>"
         return html
 
-    def append_raw(self, html: str, type: str = "msg-bot", item: CtxItem = None):
+    def prepare_node_output(self, html: str, item: CtxItem = None) -> str:
+        """
+        Prepare output node
+
+        :param html: html text
+        :param item: CtxItem instance
+        :return: prepared HTML
+        """
+        id = "msg-bot-" + str(item.id) if item is not None else ""
+        html = self.pre_format_text(html)
+        html = self.append_timestamp(html, item, type=self.NODE_OUTPUT)
+        html = self.parser.parse(html)
+        html = self.post_format_text(html)
+        extra = self.append_extra(item, footer=True, render=False)
+        footer_icons = self.prepare_action_icons(item)
+        html = '<div class="msg-box msg-bot" id="{}">'.format(id) + html + '<div class="msg-extra">'+extra+'</div>' +footer_icons+ '</div>'
+        return html
+
+    def append_node(self, html: str, type: int = 1, item: CtxItem = None):
         """
         Append and format raw text to output
 
@@ -452,12 +329,15 @@ class Renderer(BaseRenderer):
         :param type: type of message
         :param item: CtxItem instance
         """
-        self.append(self.prepare_raw(html, type, item))
+        self.append(self.prepare_node(html, type, item))
 
     def clear_chunk_output(self):
         """Append start of chunk to output"""
-        js = "var element = document.getElementById('_append_output_');"
-        js += "if (element) { element.innerHTML = ''; }"
+        if not self.loaded:
+            js = "var element = document.getElementById('_append_output_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearOutput();"
         try:
             self.get_output_node().page().runJavaScript(js)
         except Exception as e:
@@ -465,9 +345,11 @@ class Renderer(BaseRenderer):
 
     def clear_chunks_input(self):
         """Append start of chunk to output"""
-        js = "var element = document.getElementById('_append_input_');"
-        js += "if (element) { element.innerHTML = ''; }"
-        # TODO: move to function
+        if not self.loaded:
+            js = "var element = document.getElementById('_append_input_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearInput();"
         try:
             self.get_output_node().page().runJavaScript(js)
         except Exception as e:
@@ -475,13 +357,35 @@ class Renderer(BaseRenderer):
 
     def clear_nodes(self):
         """Append start of chunk to output"""
-        js = "var element = document.getElementById('_nodes_');"
-        js += "if (element) { element.innerHTML = ''; }"
-        # TODO: move to function
+        if not self.loaded:
+            js = "var element = document.getElementById('_nodes_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearNodes();"
         try:
             self.get_output_node().page().runJavaScript(js)
         except Exception as e:
             pass
+
+    def clear_chunks(self):
+        """Clear chunks from output"""
+        self.clear_chunks_input()
+        self.clear_chunk_output()
+
+    def append(self, html: str, flush: bool = False):
+        """
+        Append text to output
+
+        :param html: HTML code
+        :param flush: True if flush only
+        """
+        if self.loaded and not self.use_buffer:
+            self.clear_chunks()
+            self.flush_output(html)  # render
+            self.html = ""
+        else:
+            if not flush:
+                self.html += html  # to buffer
 
     def append_context_item(self, item: CtxItem):
         """
@@ -490,8 +394,8 @@ class Renderer(BaseRenderer):
         :param item: context item
         """
         self.append_input(item, flush=False)
-        self.append_output(item, flush=False)
-        self.append_extra(item, footer=True)
+        self.append_output(item, flush=False)  # + extra
+        # self.append_extra(item, footer=True)
 
     def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
@@ -506,12 +410,11 @@ class Renderer(BaseRenderer):
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
         url, path = self.window.core.filesystem.extract_local_url(url)
-        return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
+        return """<a href="{url}"><img src="{path}" class="image"></a>
         <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""". \
             format(prefix=trans('chat.prefix.img'),
                    url=url,
                    path=path,
-                   img_width=self.img_width,
                    num=num_str)
 
     def get_url_html(self, url: str, num: int = None, num_all: int = None) -> str:
@@ -586,24 +489,6 @@ class Renderer(BaseRenderer):
                    path=path,
                    num=num_str)
 
-    def clear_chunks(self):
-        """Clear chunks from output"""
-        self.clear_chunks_input()
-        self.clear_chunk_output()
-
-    def append(self, html: str, end: str = "\n"):
-        """
-        Append text to output
-
-        :param html: HTML code
-        :param end: end of the line character
-        """
-        if self.loaded and not self.use_buffer:
-            self.clear_chunks()
-            self.flush_output(html)  # render
-        else:
-            self.html += html  # main buffer
-
     def flush_output(self, html: str):
         """
         Flush output
@@ -617,7 +502,7 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_timestamp(self, text: str, item: CtxItem, type: str = None) -> str:
+    def append_timestamp(self, text: str, item: CtxItem, type: int = None) -> str:
         """
         Append timestamp to text
 
@@ -629,9 +514,10 @@ class Renderer(BaseRenderer):
         if item is not None \
                 and self.is_timestamp_enabled() \
                 and item.input_timestamp is not None:
-            if type == "msg-user":
+            timestamp = None
+            if type == self.NODE_INPUT:
                 timestamp = item.input_timestamp
-            else:
+            elif type == self.NODE_OUTPUT:
                 timestamp = item.output_timestamp
             if timestamp is not None:
                 ts = datetime.fromtimestamp(timestamp)
@@ -737,11 +623,185 @@ class Renderer(BaseRenderer):
         """
         self.html += html
 
+    def append_extra(self, item: CtxItem, footer: bool = False, render: bool = True) -> str:
+        """
+        Append extra data (images, files, etc.) to output
+
+        :param item: context item
+        :param footer: True if it is a footer
+        :param render: True if render, False if only return HTML
+        :return: HTML code
+        """
+        appended = []
+        html = ""
+        # images
+        c = len(item.images)
+        if c > 0:
+            n = 1
+            for image in item.images:
+                # don't append if it is an external url
+                if image.startswith("http"):
+                    continue
+                if image in appended or image in self.images_appended:
+                    continue
+                try:
+                    appended.append(image)
+                    html += self.get_image_html(image, n, c)
+                    self.images_appended.append(image)
+                    n += 1
+                except Exception as e:
+                    pass
+
+        # files and attachments, TODO check attachments
+        c = len(item.files)
+        if c > 0:
+            n = 1
+            for file in item.files:
+                if file in appended:
+                    continue
+                try:
+                    appended.append(file)
+                    html += self.get_file_html(file, n, c)
+                    n += 1
+                except Exception as e:
+                    pass
+
+        # urls
+        c = len(item.urls)
+        if c > 0:
+            urls_html = []
+            n = 1
+            for url in item.urls:
+                if url in appended or url in self.urls_appended:
+                    continue
+                try:
+                    appended.append(url)
+                    urls_html.append(self.get_url_html(url, n, c))
+                    self.urls_appended.append(url)
+                    n += 1
+                except Exception as e:
+                    pass
+            if urls_html:
+                html += "<br/>" + "<br/>".join(urls_html)
+
+        # docs json
+        if self.window.core.config.get('ctx.sources'):
+            if item.doc_ids is not None and len(item.doc_ids) > 0:
+                try:
+                    docs = self.get_docs_html(item.doc_ids)
+                    html += docs
+                except Exception as e:
+                    pass
+        # flush
+        if render and html != "":
+            if footer:
+                # append to output
+                self.append(html)
+            else:
+                # append to existing message box using JS
+                escaped_html = json.dumps(html)
+                self.get_output_node().page().runJavaScript("appendExtra('{}',{});".format(item.id, escaped_html))
+
+        return html
+
+    def prepare_action_icons(self, item: CtxItem) -> str:
+        """
+        Append action icons
+
+        :param item: context item
+        :return: HTML code
+        """
+        html = ""
+        show_edit = self.window.core.config.get('ctx.edit_icons')
+        icons_html = "".join(self.get_action_icons(item, all=show_edit))
+        if icons_html != "":
+            extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(item.id, icons_html)
+            html += extra
+        return html
+
+    def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
+        """
+        Get action icons for context item
+
+        :param item: context item
+        :param all: True to show all icons
+        :return: list of icons
+        """
+        icons = []
+
+        # audio read
+        if item.output is not None and item.output != "":
+            icons.append(
+                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    item.id,
+                    self.get_icon("audio", trans("ctx.extra.audio"), item)
+                )
+            )
+            # copy item
+            icons.append(
+                '<a href="extra-copy:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    item.id,
+                    self.get_icon("copy", trans("ctx.extra.copy"), item)
+                )
+            )
+            # regen link
+            icons.append(
+                '<a href="extra-replay:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    item.id,
+                    self.get_icon("reload", trans("ctx.extra.reply"), item)
+                )
+            )
+            # edit link
+            icons.append(
+                '<a href="extra-edit:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    item.id,
+                    self.get_icon("edit", trans("ctx.extra.edit"), item)
+                )
+            )
+            # delete link
+            icons.append(
+                '<a href="extra-delete:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    item.id,
+                    item.id,
+                    self.get_icon("delete", trans("ctx.extra.delete"), item)
+                )
+            )
+
+            # join link
+            if not self.window.core.ctx.is_first_item(item.id):
+                icons.append(
+                    '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                        item.id,
+                        item.id,
+                        self.get_icon("join", trans("ctx.extra.join"), item)
+                    )
+                )
+        return icons
+
+    def get_icon(self, icon: str, title: str = None, item: CtxItem = None) -> str:
+        """
+        Get icon
+
+        :param icon: icon name
+        :param title: icon title
+        :param item: context item
+        :return: icon HTML
+        """
+        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
+        return '<img src="file://{}" class="action-img" title="{}" alt="{}" data-id="{}">'.format(
+            icon, title, title, item.id)
+
     def on_page_loaded(self):
         """On page loaded"""
         self.loaded = True
-        if self.html != "":
-            self.append(self.html)
+        if self.html != "" and not self.use_buffer:
+            self.clear_chunks()
+            self.clear_nodes()
+            self.append(self.html, flush=True)
             self.html = ""
 
     def scroll_to_bottom(self):
@@ -763,28 +823,22 @@ class Renderer(BaseRenderer):
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
             style = "default"
-        css = self.window.controller.theme.markdown.get_web_css()
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
-        content = """
-        @font-face {
-          font-family: "Lato";
-          src: url('file:///""" + fonts_path + """/Lato/Lato-Regular.ttf');
-        }
-        @font-face {
-          font-family: "Monaspace Neon";
-          src: url('file:///""" + fonts_path + """/MonaspaceNeon/MonaspaceNeon-Regular.otf');
-        }
-        body {
-            margin: 4px;
-        }
-        """ + css + """
+        stylesheet = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
+        content = stylesheet + """
         """ + HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')
         return content
 
     def flush(self):
         """Flush output"""
         if self.loaded:
-            return
+            return  # wait for page load
+
+        init_classes = ""
+        if self.window.core.config.get('ctx.edit_icons'):
+            init_classes+= " edit-icons"
+        if init_classes != "":
+            init_classes = ' class="' + init_classes + '"'
 
         content = """
         <!DOCTYPE html>
@@ -795,13 +849,14 @@ class Renderer(BaseRenderer):
             </style>
         </head>
         <body>
-        <div id="container">
-            <div id="_nodes_" class="nodes"></div>
+        <div id="container" """+init_classes+""">
+            <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
         </div>
         <script>
         let scrollTimeout = null;
+        let prevScroll = 0;
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
@@ -812,11 +867,14 @@ class Renderer(BaseRenderer):
         function scrollToBottom() {
             if (scrollTimeout !== null) {
                 clearTimeout(scrollTimeout);
-            }  
-            scrollTimeout = setTimeout(function() {
-                window.scrollTo(0, document.body.scrollHeight);
-                scrollTimeout = null;
-            }, 1);
+            }
+            if (document.body.scrollHeight > prevScroll) {
+                scrollTimeout = setTimeout(function() {
+                    window.scrollTo(0, document.body.scrollHeight);
+                    prevScroll = document.body.scrollHeight;
+                    scrollTimeout = null;
+                }, 10);
+            }
         }
         function appendToInput(content) {
             var element = document.getElementById('_append_input_');
@@ -833,9 +891,51 @@ class Renderer(BaseRenderer):
             scrollToBottom();
         }
         function appendNode(content) {
+            prevScroll = 0;
             var element = document.getElementById('_nodes_');
             if (element) {
+                element.classList.remove('empty_list');
                 element.innerHTML += content;
+            }
+            scrollToBottom();
+        }
+        function appendExtra(id, content) {
+            prevScroll = 0;
+            var element = document.getElementById('msg-bot-' + id);
+            if (element) {
+                var extra = element.querySelector('.msg-extra');
+                if (extra) {
+                    extra.innerHTML+= content;
+                }
+            }
+            scrollToBottom();
+        }
+        function removeNode(id) {
+            prevScroll = 0;
+            var element = document.getElementById('msg-user-' + id);
+            if (element) {
+                element.remove();
+            }
+            var element = document.getElementById('msg-bot-' + id);
+            if (element) {
+                element.remove();
+            }
+            scrollToBottom();
+        }
+        function removeNodesFromId(id) {
+            prevScroll = 0;
+            var container = document.getElementById('_nodes_');
+            if (container) {
+                var elements = container.querySelectorAll('.msg-box');
+                remove = false;
+                elements.forEach(function(element) {
+                    if (element.id.endsWith('-' + id)) {
+                        remove = true;
+                    }
+                    if (remove) {
+                        element.remove();
+                    }
+                });
             }
             scrollToBottom();
         }
@@ -847,9 +947,11 @@ class Renderer(BaseRenderer):
             scrollToBottom();
         }
         function clearNodes() {
+            prevScroll = 0;
             var element = document.getElementById('_nodes_');
             if (element) {
                 element.textContent = '';
+                element.classList.add('empty_list');
             }
         }
         function clearInput() {
@@ -864,7 +966,20 @@ class Renderer(BaseRenderer):
                 element.textContent = '';
             }
         }
+        function enableEditIcons() {
+            var container = document.getElementById('container');
+            if (container) {
+                container.classList.add('edit-icons');
+            }
+        }
+        function disableEditIcons() {
+            var container = document.getElementById('container');
+            if (container) {
+                container.classList.remove('edit-icons');
+            }
+        }
         function updateCSS(styles) {
+            prevScroll = 0;
             var style = document.createElement('style');
             style.innerHTML = styles;
             var oldStyle = document.querySelector('style');
@@ -923,3 +1038,69 @@ class Renderer(BaseRenderer):
         self.clear_nodes()
         self.clear_chunks()
         self.html = ""
+
+    def remove_item(self, id: int):
+        """
+        Remove item from output
+
+        :param id: context item ID
+        """
+        try:
+            self.get_output_node().page().runJavaScript("removeNode({});".format(id))
+        except Exception as e:
+            pass
+
+    def remove_items_from(self, id: int):
+        """
+        Remove item from output
+
+        :param id: context item ID
+        """
+        try:
+            self.get_output_node().page().runJavaScript("removeNodesFromId({});".format(id))
+        except Exception as e:
+            pass
+
+    def on_reply_submit(self, id: int):
+        """
+        On regenerate submit
+
+        :param id: context item ID
+        """
+        # remove all items from ID
+        self.remove_items_from(id)
+
+    def on_edit_submit(self, id: int):
+        """
+        On regenerate submit
+
+        :param id: context item ID
+        """
+        # remove all items from ID
+        self.remove_items_from(id)
+
+    def on_enable_edit(self, live: bool = True):
+        """
+        On enable edit icons
+
+        :param live: True if live update
+        """
+        if not live:
+            return
+        try:
+            self.get_output_node().page().runJavaScript("enableEditIcons();")
+        except Exception as e:
+            pass
+
+    def on_disable_edit(self, live: bool = True):
+        """
+        On disable edit icons
+
+        :param live: True if live update
+        """
+        if not live:
+            return
+        try:
+            self.get_output_node().page().runJavaScript("disableEditIcons();")
+        except Exception as e:
+            pass

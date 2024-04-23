@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 19:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
-from bs4 import BeautifulSoup
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
+from pygpt_net.core.text.utils import output_html2text, output_clean_html
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -44,8 +44,12 @@ class Render:
         signals.save_as.connect(self.handle_save_as)
         signals.audio_read.connect(self.handle_audio_read)
 
-    def get_engine(self):
-        """Get current engine"""
+    def get_engine(self) -> str:
+        """
+        Get current render engine
+
+        :return: engine name
+        """
         return self.engine
 
     def get_renderer(self) -> BaseRenderer:
@@ -63,8 +67,12 @@ class Render:
             else:
                 return self.markdown_renderer
 
-    def switch(self):
-        """Switch renderer"""
+    def switch(self, live: bool = True):
+        """
+        Switch renderer (markdown <==> plain text)
+
+        :param live: True if live update
+        """
         plain = self.window.core.config.get('render.plain')
         if plain:
             self.window.controller.theme.markdown.clear()
@@ -73,7 +81,7 @@ class Render:
                     self.window.ui.nodes['output'].setVisible(False)
                     self.window.ui.nodes['output_plain'].setVisible(True)
         else:
-            self.window.controller.ctx.refresh()
+            self.window.controller.ctx.refresh()  # TODO: move to on_switch
             self.window.controller.theme.markdown.update(force=True)
             if self.window.ui.nodes['output_plain'].isVisible():
                 if self.window.ui.nodes['output'] is not None:
@@ -185,6 +193,87 @@ class Render:
         self.get_renderer().append_chunk(item, text_chunk, begin)
         self.update()
 
+    def on_enable_edit(self, live: bool = True):
+        """
+        On enable edit icons
+
+        :param live: True if live update
+        """
+        self.get_renderer().on_enable_edit(live)
+        self.update()
+
+    def on_disable_edit(self, live: bool = True):
+        """
+        On disable edit icons
+
+        :param live: True if live update
+        """
+        self.get_renderer().on_disable_edit(live)
+        self.update()
+
+    def on_enable_timestamp(self, live: bool = True):
+        """
+        On enable timestamp
+
+        :param live: True if live update
+        """
+        self.get_renderer().on_enable_timestamp(live)
+        self.update()
+
+    def on_disable_timestamp(self, live: bool = True):
+        """
+        On disable timestamp
+
+        :param live: True if live update
+        """
+        self.get_renderer().on_disable_timestamp(live)
+        self.update()
+
+    def remove_item(self, id: int):
+        """
+        Remove item from output
+
+        :param id: context item ID
+        """
+        self.get_renderer().remove_item(id)
+        self.update()
+
+    def remove_items_from(self, id: int):
+        """
+        Remove item from output
+
+        :param id: context item ID
+        """
+        self.get_renderer().remove_items_from(id)
+        self.update()
+
+    def on_edit_submit(self, id: int):
+        """
+        On edit submit
+
+        :param id: context item ID
+        """
+        self.get_renderer().on_edit_submit(id)
+        self.update()
+
+    def on_remove_submit(self, id: int):
+        """
+        On remove submit
+
+        :param id: context item ID
+        """
+        self.get_renderer().on_remove_submit(id)
+        self.update()
+
+    def on_reply_submit(self, id: int):
+        """
+        On regenerate submit
+
+        :param id: context item ID
+        """
+        self.get_renderer().on_reply_submit(id)
+        self.update()
+
     def on_page_loaded(self):
         """On page loaded callback"""
         self.get_renderer().on_page_loaded()
@@ -204,13 +293,13 @@ class Render:
         """
         Handle save as signal
 
-        :param text: Text to save
+        :param text: Data to save
         :param type: File type
         """
         if type == 'html':
-            text = self.pretify_html(text)
+            text = output_clean_html(text)
         else:
-            text = self.strip_html(text)
+            text = output_html2text(text)
         # fix: QTimer required here to prevent crash if signal emitted from WebEngine window
         QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text, type))
 
@@ -222,53 +311,3 @@ class Render:
         :param text: Text to read
         """
         self.window.controller.audio.read_text(text)
-
-    def strip_html(self, html: str) -> str:
-        """
-        Strip HTML tags and get plain text
-
-        :param html: HTML content
-        :return: Plain text
-        """
-        if html == "":
-            return ""
-        try:
-            soup = BeautifulSoup(html, 'html.parser')
-            # remove headers from code blocks
-            for tag in soup.find_all('p', class_='code-header-wrapper'):
-                empty = soup.new_tag('p')
-                empty.string = '\n'
-                tag.replace_with(empty)
-            # add separators
-            for tag in soup.find_all('div', class_='msg-bot'):
-                sep = soup.new_tag('p')
-                sep.string = '\n\n'
-                tag.insert_before(sep)
-            for tag in soup.find_all('div', class_='msg-user'):
-                sep = soup.new_tag('p')
-                sep.string = '\n\n'
-                tag.insert_before(sep)
-            return soup.get_text()
-        except Exception as e:
-            pass
-        return ""
-
-    def pretify_html(self, html: str) -> str:
-        """
-        Pretify HTML content
-
-        :param html: HTML content
-        :return: HTML content
-        """
-        try:
-            soup = BeautifulSoup(html, 'html.parser')
-            # remove copy from code blocks
-            for tag in soup.find_all('a', class_='code-header-copy'):
-                tag.decompose()
-            # remove action icons
-            for tag in soup.find_all('div', class_='action-icons'):
-                tag.decompose()
-            return str(soup)
-        except Exception as e:
-            pass
-        return html

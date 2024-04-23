@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 05:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -94,6 +94,10 @@ class Debug:
                 if all or id not in not_realtime:
                     self.window.controller.dialogs.debug.update_worker(id)
 
+    def post_setup(self):
+        """Post setup debug"""
+        self.connect_signals()
+
     def setup(self):
         """Setup debug"""
         current = self.window.core.debug.get_log_level()
@@ -101,7 +105,6 @@ class Debug:
             self.allow_level_change = True
         else:
             return
-
         # switch log level if set in config
         if self.window.core.config.has('log.level'):
             level = self.window.core.config.get('log.level')
@@ -109,6 +112,25 @@ class Debug:
                 print("[LOGGER] Started with log level: " + self.window.core.debug.get_log_level_name())
                 print("[LOGGER] Switching to: " + level)
                 self.set_log_level(level)
+
+    def connect_signals(self):
+        """Connect signals"""
+        # webengine debug signals
+        if self.window.controller.chat.render.get_engine() == "web":
+            signals = self.window.controller.chat.render.web_renderer.get_output_node().page().signals
+            signals.js_message.connect(self.handle_js_message)
+
+    @Slot(int, str, str)
+    def handle_js_message(self, line_number: int, message: str, source_id: str):
+        """
+        Handle JS message
+
+        :param line_number: line number
+        :param message: message
+        :param source_id: source ID
+        """
+        data = "[JS] Line " + str(line_number) + ": " + message
+        self.log(data, window=True)
 
     @Slot(object)
     def handle_log(self, data: any):

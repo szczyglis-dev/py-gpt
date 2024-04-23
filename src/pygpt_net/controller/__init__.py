@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 19:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -105,6 +105,7 @@ class Controller:
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
+        self.debug.post_setup()  # post setup debug after all loaded
 
         # show license terms dialog
         if not self.window.core.config.get('license.accepted'):
