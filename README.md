@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.71** | build: **2024.04.23** | Python: **>=3.10, <3.12**
+Release: **2.1.72** | build: **2024.04.24** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.72 (2024-04-24)
+
+- Fixed context initialization in web view on app load.
+- Improved and optimized items rendering.
+- Refactored web view CSS.
+- Rendering optimization.
+- Added real-time items reload and append.
+- Added theme CSS to scrollbars.
+- Added JS console debug to Logger window.
 
 # 2.1.71 (2024-04-23)
 

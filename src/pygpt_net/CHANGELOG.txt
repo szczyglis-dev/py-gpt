@@ -1,3 +1,13 @@
+2.1.72 (2024-04-24)
+
+- Fixed context initialization in web view on app load.
+- Improved and optimized items rendering.
+- Refactored web view CSS.
+- Rendering optimization.
+- Added real-time items reload and append.
+- Added theme CSS to scrollbars.
+- Added JS console debug to Logger window.
+
 2.1.71 (2024-04-23)
 
 - Added 160+ prompt templates from "Awesome ChatGPT Prompts" repository - to use them, right-click on the input or system prompt textarea and select the "Paste from template..." option.
