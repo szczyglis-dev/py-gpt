@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 02:00:00                  #
+# Updated Date: 2024.04.24 02:00:00                  #
 # ================================================== #
 
 import os
@@ -38,6 +38,7 @@ class Theme:
         # setup menus
         self.menu.setup_list()
         self.menu.setup_density()
+        self.menu.setup_syntax()
 
         # show or hide tooltips
         self.common.toggle_tooltips()
@@ -65,6 +66,7 @@ class Theme:
 
         # update themes menu
         self.menu.update_list()
+        self.menu.update_syntax()
 
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
@@ -93,6 +95,22 @@ class Theme:
             
         self.window.core.config.save()
         self.nodes.apply_all()
+
+    def toggle_syntax(self, name: str, update_menu: bool = False):
+        """
+        Toggle syntax highlight
+
+        :param name: syntax style name
+        :param update_menu: update menu
+        """
+        self.window.core.config.set("render.code_syntax", name)
+        if self.window.controller.chat.render.get_engine() == "web":
+            if self.window.controller.chat.render.web_renderer.loaded:
+                self.window.controller.theme.markdown.load()
+                self.window.controller.chat.render.web_renderer.reload_css()
+        self.window.controller.ctx.refresh()
+        if update_menu:
+            self.menu.update_syntax()
 
     def reload(self, force: bool = True):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.04.24 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -28,12 +28,14 @@ class Theme:
     def setup(self):
         """Setup theme menu"""
         self.window.ui.menu['theme'] = {}
+        self.window.ui.menu['theme_syntax'] = {}
         self.window.ui.menu['theme.layout.density'] = {}
         self.window.ui.menu['menu.theme'] = QMenu(trans("menu.theme"), self.window)
 
         # color themes
         self.window.ui.menu['theme.dark'] = QMenu(trans("menu.theme.dark"), self.window)
         self.window.ui.menu['theme.light'] = QMenu(trans("menu.theme.light"), self.window)
+        self.window.ui.menu['theme.syntax'] = QMenu(trans("menu.theme.syntax"), self.window)
 
         # layout density
         self.window.ui.menu['theme.density'] = QMenu(trans("menu.theme.density"), self.window)
@@ -55,6 +57,7 @@ class Theme:
 
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.dark'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.light'])
+        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.syntax'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.density'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.tooltips'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.settings'])

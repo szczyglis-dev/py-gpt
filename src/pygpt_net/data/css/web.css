@@ -100,6 +100,7 @@ code {{
     padding-top: 10px;
     margin-top: 0;
     background-color: #1d1f21;
+    font-size: 0.9rem;
 }}
 .code-header {{
     text-align: right;
@@ -115,6 +116,12 @@ code {{
     text-decoration: none;
     font-weight: bold;
     display: inline-block;
+    color: #6e6e6e;
+    
+}}
+.code-header-copy img {{
+    vertical-align: middle;
+    padding-right: 5px;
 }}
 .code-wrapper {{
     padding: 0px;

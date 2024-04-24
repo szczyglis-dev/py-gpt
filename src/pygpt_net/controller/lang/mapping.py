@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.24 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -276,6 +276,7 @@ class Mapping:
         menu_title['menu.theme'] = 'menu.theme'
         menu_title['theme.dark'] = 'menu.theme.dark'
         menu_title['theme.light'] = 'menu.theme.light'
+        menu_title['theme.syntax'] = 'menu.theme.syntax'
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['menu.plugins'] = 'menu.plugins'
         menu_title['menu.plugins.presets'] = 'menu.plugins.presets'

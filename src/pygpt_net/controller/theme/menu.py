@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.24 02:00:00                  #
 # ================================================== #
 
+from pygments.styles import get_all_styles
 from PySide6.QtGui import QAction
 
 
@@ -22,6 +23,7 @@ class Menu:
         self.window = window
         self.density_values = [-2, -1, 0, 1, 2]
         self.loaded = False
+        self.syntax_loaded = False
         self.density_loaded = False
 
     def setup_list(self):
@@ -42,6 +44,20 @@ class Menu:
             elif theme.startswith('light'):
                 self.window.ui.menu['theme.light'].addAction(self.window.ui.menu['theme'][theme])
         self.loaded = True
+
+    def setup_syntax(self):
+        """Setup syntax menu"""
+        styles = list(get_all_styles())
+        styles.sort()
+        # clear menu
+        for style in self.window.ui.menu['theme_syntax']:
+            self.window.ui.menu['theme.syntax'].removeAction(self.window.ui.menu['theme_syntax'][style])
+        # setup syntax menu
+        for style in styles:
+            self.window.ui.menu['theme_syntax'][style] = QAction(style, self.window, checkable=True)
+            self.window.ui.menu['theme_syntax'][style].triggered.connect(
+                lambda checked=None, style=style: self.window.controller.theme.toggle_syntax(style, update_menu=True))
+            self.window.ui.menu['theme.syntax'].addAction(self.window.ui.menu['theme_syntax'][style])
 
     def setup_density(self):
         """Setup menu list"""
@@ -76,3 +92,11 @@ class Menu:
         current = self.window.core.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
+
+    def update_syntax(self):
+        """Update syntax menu"""
+        for style in self.window.ui.menu['theme_syntax']:
+            self.window.ui.menu['theme_syntax'][style].setChecked(False)
+        current = self.window.core.config.get('render.code_syntax')
+        if current in self.window.ui.menu['theme_syntax']:
+            self.window.ui.menu['theme_syntax'][current].setChecked(True)

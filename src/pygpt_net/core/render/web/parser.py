@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 06:00:00                  #
+# Updated Date: 2024.04.24 02:00:00                  #
 # ================================================== #
+import os
 
 import markdown
 from bs4 import BeautifulSoup
@@ -150,6 +151,7 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
+        icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "copy.png")
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
             style = "default"
@@ -163,6 +165,9 @@ class Parser:
             a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
             a['class'] = "code-header-copy"
             a.string = trans('ctx.extra.copy_code')
+
+            icon = soup.new_tag('img', src=icon_path, **{'class': "action-img"})
+            a.insert(0, icon)
 
             # Get the class of <code> to determine the language (if available)
             code = el.find('code')

@@ -51,10 +51,10 @@ code {{
     background-color: #1d1f21;
 }}
 .code-header-copy {{
-    color: #fff;
+    color: #a0a0a0;
 }}
 .code-header-copy:hover {{
-    color: #efefef;
+    color: #fff;
 }}
 .code-header-lang {{
     color: #4d4d4d;

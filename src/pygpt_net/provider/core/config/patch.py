@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.24 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -1361,6 +1361,15 @@ class Patch:
                     for arg in data["llama.idx.embeddings.args"]:
                         if "type" not in arg:
                             arg["type"] = "str"
+                updated = True
+
+            # < 2.1.74
+            if old < parse_version("2.1.74"):
+                print("Migrating config from < 2.1.74...")
+                # css upgrade
+                self.window.core.updater.patch_css('web.css', True)  # force update
+                self.window.core.updater.patch_css('web.light.css', True)  # force update
+                self.window.core.updater.patch_css('web.dark.css', True)  # force update
                 updated = True
 
         # update file
