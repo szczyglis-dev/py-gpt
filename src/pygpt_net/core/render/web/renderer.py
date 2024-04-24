@@ -922,7 +922,6 @@ class Renderer(BaseRenderer):
                 var box = element.querySelector('.msg-box');
                 var msg;
                 if (!box) {
-                    console.log("no box");
                     box = document.createElement('div');
                     box.classList.add('msg-box');
                     box.classList.add('msg-bot');
@@ -999,7 +998,6 @@ class Renderer(BaseRenderer):
                 var box = element.querySelector('.msg-box');
                 var msg;
                 if (!box) {
-                    console.log("no box");
                     box = document.createElement('div');
                     box.classList.add('msg-box');
                     box.classList.add('msg-bot');

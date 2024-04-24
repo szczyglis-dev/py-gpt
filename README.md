@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.75** | build: **2024.04.24** | Python: **>=3.10, <3.12**
+Release: **2.1.76** | build: **2024.04.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2995,6 +2995,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.76 (2024-04-25)
+
+- Chat items now displayed in blocks.
+
 # 2.1.75 (2024-04-24)
 
 - Copy to clipboard in web view fixed and moved to JS bridge.
@@ -3115,21 +3119,21 @@ The full changelog is located in the **[CHANGELOG.md](https://github.com/szczygl
 
 GitHub community:
 
-- **[BillionShields](https://github.com/BillionShields)**
+- [@BillionShields](https://github.com/BillionShields)
 
-- **[gfsysa](https://github.com/gfsysa)**
+- [@gfsysa](https://github.com/gfsysa)
 
-- **[glinkot](https://github.com/glinkot)**
+- [@glinkot](https://github.com/glinkot)
 
-- **[kaneda2004](https://github.com/kaneda2004)**
+- [@kaneda2004](https://github.com/kaneda2004)
 
-- **[linnflux](https://github.com/linnflux)**
+- [@linnflux](https://github.com/linnflux)
 
-- **[moritz-t-w](https://github.com/moritz-t-w)**
+- [@moritz-t-w](https://github.com/moritz-t-w)
 
-- **[oleksii-honchar](https://github.com/oleksii-honchar)**
+- [@oleksii-honchar](https://github.com/oleksii-honchar)
 
-- **[yf007](https://github.com/yf007)**
+- [@yf007](https://github.com/yf007)
 
 ## Third-party libraries
 

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.76 (2024-04-25)
+
+- Chat items now displayed in blocks.
+
 # 2.1.75 (2024-04-24)
 
 - Copy to clipboard in web view fixed and moved to JS bridge.
