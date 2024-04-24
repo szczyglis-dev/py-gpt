@@ -284,7 +284,7 @@ class Render:
         """On theme change"""
         if self.get_engine() == "web":
             self.web_renderer.on_theme_change()
-        elif self.get_engine() == "markdown":
+        elif self.get_engine() == "legacy":
             self.markdown_renderer.on_theme_change()
         self.update()
 
