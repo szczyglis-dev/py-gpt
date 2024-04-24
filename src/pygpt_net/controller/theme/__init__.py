@@ -67,6 +67,7 @@ class Theme:
         # update themes menu
         self.menu.update_list()
         self.menu.update_syntax()
+        self.window.ui.menu['theme.blocks'].setChecked(self.window.core.config.get("render.blocks"))
 
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
@@ -92,7 +93,14 @@ class Theme:
             self.window.controller.config.slider.apply('config', 'layout.density', {'value': value})
             self.reload()
             self.menu.update_density()
-            
+        elif name == 'render.blocks':
+            if self.window.core.config.get(name):
+                state = False
+            else:
+                state = True
+            self.window.core.config.set(name, state)
+            self.window.controller.chat.render.on_theme_change()
+            self.reload()
         self.window.core.config.save()
         self.nodes.apply_all()
 

@@ -829,6 +829,10 @@ class Renderer(BaseRenderer):
         if self.loaded:
             to_json = json.dumps(self.prepare_styles())
             self.get_output_node().page().runJavaScript("updateCSS({});".format(to_json))
+            if self.window.core.config.get('render.blocks'):
+                self.get_output_node().page().runJavaScript("enableBlocks();")
+            else:
+                self.get_output_node().page().runJavaScript("disableBlocks();")
 
     def prepare_styles(self) -> str:
         """
@@ -858,11 +862,12 @@ class Renderer(BaseRenderer):
             return  # wait for page load
 
         classes = []
+        if self.window.core.config.get('render.blocks'):
+            classes.append("display-blocks")
         if self.window.core.config.get('ctx.edit_icons'):
             classes.append("display-edit-icons")
         if self.is_timestamp_enabled():
             classes.append("display-timestamp")
-        classes.append("display-blocks")
         if classes != "":
             classes = ' class="' + " ".join(classes) + '"'
 
@@ -1040,27 +1045,39 @@ class Renderer(BaseRenderer):
             }
         }
         function enableEditIcons() {
-            var container = document.getElementById('container');
+            var container = document.body;
             if (container) {
                 container.classList.add('display-edit-icons');
             }
         }
         function disableEditIcons() {
-            var container = document.getElementById('container');
+            var container = document.body;
             if (container) {
                 container.classList.remove('display-edit-icons');
             }
         }
         function enableTimestamp() {
-            var container = document.getElementById('container');
+            var container = document.body;
             if (container) {
                 container.classList.add('display-timestamp');
             }
         }
         function disableTimestamp() {
-            var container = document.getElementById('container');
+            var container = document.body;
             if (container) {
                 container.classList.remove('display-timestamp');
+            }
+        }
+        function enableBlocks() {
+            var container = document.body;
+            if (container) {
+                container.classList.add('display-blocks');
+            }
+        }
+        function disableBlocks() {
+            var container = document.body;
+            if (container) {
+                container.classList.remove('display-blocks');
             }
         }
         function updateCSS(styles) {

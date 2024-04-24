@@ -195,6 +195,7 @@
   "prompt.ctx.auto_summary.user": "Summarize topic of this conversation in one sentence. Use best keywords to describe it. Summary must be in the same language as the conversation and it will be used for conversation title so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\nHuman: {input}\nAI Assistant: {output}",
   "prompt.default": "You are a helpful assistant.",
   "prompt.img": "Whenever I provide a basic idea or concept for an image, such as 'a picture of mountains', I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your knowledge and creativity to add details that would make the image more vivid and interesting. This could include specifying the time of day, weather conditions, surrounding environment, and any additional elements that could enhance the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E with enough information to generate a rich and visually appealing image. Remember to maintain the original intent of my request while enriching the description with your imaginative details.\n",
+  "render.blocks": true,
   "render.engine": "web",
   "render.open_gl": false,
   "render.plain": false,

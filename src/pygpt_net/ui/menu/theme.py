@@ -40,6 +40,13 @@ class Theme:
         # layout density
         self.window.ui.menu['theme.density'] = QMenu(trans("menu.theme.density"), self.window)
 
+        # blocks
+        self.window.ui.menu['theme.blocks'] = QAction(trans("menu.theme.blocks"), self.window, checkable=True)
+        self.window.ui.menu['theme.blocks'].triggered.connect(
+            lambda: self.window.controller.theme.toggle_option('render.blocks'))
+        self.window.ui.menu['theme.blocks'].setCheckable(True)
+        self.window.ui.menu['theme.blocks'].setChecked(self.window.core.config.get('render.blocks'))
+
         # tooltips
         self.window.ui.menu['theme.tooltips'] = QAction(trans("menu.theme.tooltips"), self.window, checkable=True)
         self.window.ui.menu['theme.tooltips'].triggered.connect(
@@ -59,5 +66,6 @@ class Theme:
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.light'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.syntax'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.density'])
+        self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.blocks'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.tooltips'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.settings'])

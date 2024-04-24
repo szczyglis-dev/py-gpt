@@ -1384,6 +1384,8 @@ class Patch:
             # < 2.1.76
             if old < parse_version("2.1.76"):
                 print("Migrating config from < 2.1.76...")
+                if 'render.blocks' not in data:
+                    data["render.blocks"] = True
                 # css upgrade
                 self.window.core.updater.patch_css('web.css', True)  # force update
                 self.window.core.updater.patch_css('web.light.css', True)  # force update
