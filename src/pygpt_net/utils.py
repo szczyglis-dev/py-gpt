@@ -109,9 +109,11 @@ def parse_args(data: list) -> dict:
     """
     args = {}
     for item in data:
+        type = "str"
         key = item['name']
         value = item['value']
-        type = item['type']
+        if "type" in item:
+            type = item['type']
         if type == 'int':
             try:
                 args[key] = int(value)

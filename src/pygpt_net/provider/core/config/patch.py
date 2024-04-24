@@ -1353,6 +1353,16 @@ class Patch:
                 self.window.core.updater.patch_css('web.dark.css', True)  # force update
                 updated = True
 
+            # < 2.1.73
+            if old < parse_version("2.1.73"):
+                print("Migrating config from < 2.1.73...")
+                # fix: issue #50
+                if "llama.idx.embeddings.args" in data:
+                    for arg in data["llama.idx.embeddings.args"]:
+                        if "type" not in arg:
+                            arg["type"] = "str"
+                updated = True
+
         # update file
         migrated = False
         if updated:

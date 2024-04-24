@@ -114,13 +114,14 @@
   "llama.idx.embeddings.args": [
       {
           "name": "model",
-          "value": "text-embedding-3-small"
+          "value": "text-embedding-3-small",
+          "type": "str"
       }
   ],
   "llama.idx.embeddings.env": [
       {
           "name": "OPENAI_API_KEY",
-          "value": "{api_key}"
+          "value": "{api_key}",
       },
       {
           "name": "OPENAI_API_BASE",
