@@ -41,9 +41,6 @@ a {{
 }}
 .list {{
 }}
-pre {{
-    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
-}}
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}

@@ -82,7 +82,6 @@ ul, ol, .list {{
     margin-bottom: 0px;
 }}
 pre {{
-    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     font-family: 'Monaspace Neon';
     display: block;
     word-wrap: break-word;
