@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.75 (2024-04-24)
+
+- Copy to clipboard in web view fix.
+
 # 2.1.74 (2024-04-24)
 
 - Added syntax highlight choose to Theme menu.

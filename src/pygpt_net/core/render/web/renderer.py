@@ -53,7 +53,6 @@ class Renderer(BaseRenderer):
         """
         Initialize renderer
         """
-        self.parser.reset()
         if not self.initialized:
             self.flush()
             self.initialized = True
@@ -107,6 +106,7 @@ class Renderer(BaseRenderer):
 
     def reset(self):
         """Reset"""
+        self.parser.reset()
         self.item = None
         self.html = ""
         self.clear_nodes()
