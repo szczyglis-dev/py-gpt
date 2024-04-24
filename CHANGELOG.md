@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.73 (2024-04-24)
+
+- Fixed issue #50 - missing type key in config.
+
 # 2.1.72 (2024-04-24)
 
 - Fixed context initialization in web view on app load.

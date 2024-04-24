@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.1.72",
-    "app.version": "2.1.72",
+    "version": "2.1.73",
+    "app.version": "2.1.73",
     "updated_at": "2024-04-24T00:00:00"
   },
   "agent.auto_stop" : true,
@@ -121,7 +121,7 @@
   "llama.idx.embeddings.env": [
       {
           "name": "OPENAI_API_KEY",
-          "value": "{api_key}",
+          "value": "{api_key}"
       },
       {
           "name": "OPENAI_API_BASE",
