@@ -53,6 +53,9 @@ pre {{
 code {{
     color: #000;
 }}
+pre {{
+    color: #000;
+}}
 .code-wrapper {{
     border: 1px solid #e1e1e1;
     color: #fff;

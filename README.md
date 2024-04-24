@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.73** | build: **2024.04.24** | Python: **>=3.10, <3.12**
+Release: **2.1.74** | build: **2024.04.24** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.74 (2024-04-24)
+
+- Added synax highlight choose to Theme menu.
+- Improved syntax highlight CSS colors between Dark/Light theme.
 
 # 2.1.73 (2024-04-24)
 

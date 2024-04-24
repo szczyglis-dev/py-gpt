@@ -44,6 +44,9 @@ a {{
 code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
+pre {{
+    color: #000;
+}}
 .code-wrapper {{
     border: 1px solid #1d1f21;
 }}

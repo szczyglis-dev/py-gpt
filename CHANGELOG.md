@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.74 (2024-04-24)
+
+- Added synax highlight choose to Theme menu.
+- Improved syntax highlight CSS colors between Dark/Light theme.
+
 # 2.1.73 (2024-04-24)
 
 - Fixed issue #50 - missing type key in config.
