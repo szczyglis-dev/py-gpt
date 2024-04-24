@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 import os
@@ -45,15 +45,9 @@ class Markdown:
         self.css['markdown'] = self.get_default()
 
     def apply(self):
-        """Apply CSS to markdown formatter"""
-        self.window.ui.nodes['output_plain'].setStyleSheet(self.css['markdown'])
-        if self.window.controller.chat.render.get_engine() == "legacy":
-            self.window.ui.nodes['output'].setStyleSheet(self.css['markdown'])
-            self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
-            self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
-        elif self.window.controller.chat.render.get_engine() == "web":
-            self.window.controller.chat.render.web_renderer.reload_css()
-        self.window.controller.ctx.refresh_output()
+        """Apply CSS to renderers"""
+        self.window.ui.nodes['output_plain'].setStyleSheet(self.css['markdown'])  # plain text, always apply
+        self.window.controller.chat.render.on_theme_change()  # per current engine
 
     def get_web_css(self) -> str:
         """
@@ -95,8 +89,10 @@ class Markdown:
                 if os.path.exists(path):
                     with open(path, 'r') as file:
                         content += file.read()
+
+            self.css[base_name] = content  # always append default raw in case of errors in env vars
             try:
-                self.css[base_name] = content.format(**os.environ)
+                self.css[base_name] = content.format(**os.environ)  # replace env vars
             except KeyError as e:  # ignore missing env vars
                 pass
 

@@ -3,14 +3,10 @@ body {{
     background-color: #232629;
 }}
 ::-webkit-scrollbar {{
-    height: 12px;
-    width: 12px;
     background: #000;
 }}
 ::-webkit-scrollbar-thumb {{
     background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
-    -webkit-border-radius: 1ex;
-    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }}
 ::-webkit-scrollbar-thumb:hover {{
     background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
@@ -23,11 +19,9 @@ a {{
 }}
 .msg-user {{
     color: #cbcbcb !important;
-    border-bottom: none;
 }}
 .msg-bot {{
     color: #fff;
-    border-bottom: 1px solid #272a2d;
 }}
 .msg-highlight {{
     border: 1px solid #323436;
@@ -59,9 +53,19 @@ code {{
 .code-header-lang {{
     color: #686868;
 }}
-.action-icons {{
-    
-}}
 .action-icons a:hover {{
     filter: brightness(130%);
+}}
+.display-blocks {{
+    background-color: #31363b;
+}}
+.display-blocks .msg-box {{
+    background-color: #232629;
+    border: 1px solid gray;
+}}
+.display-blocks .name-bot::before {{
+    background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.display-blocks .name-user::before {{
+    background-color: silver;
 }}

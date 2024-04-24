@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 import re
@@ -211,6 +211,7 @@ class CustomWebEnginePage(QWebEnginePage):
         if self.window.core.config.has("zoom"):
             self.setZoomFactor(self.window.core.config.get("zoom"))
 
+        # bridge Python <> JavaScript
         self.bridge = Bridge(self.window)
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)
@@ -276,13 +277,22 @@ class Bridge(QObject):
         self.window = window
 
     @Slot(str)
-    def copy_text(self, text):
+    def copy_text(self, text: str):
         """
         Copy text from web to clipboard
 
         :param text: text
         """
         self.window.controller.ctx.extra.copy_code_text(text)
+
+    @Slot(int)
+    def update_scroll_position(self, pos: int):
+        """
+        Update scroll position from web view
+
+        :param pos: scroll position
+        """
+        self.window.controller.chat.render.scroll = pos
 
 
 class WebEngineSignals(QObject):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -192,3 +192,23 @@ class BaseRenderer:
         """
         if live:  # default behavior
             self.window.controller.ctx.refresh()
+
+    def on_theme_change(self):
+        """On theme change"""
+        pass
+
+    def get_scroll_position(self) -> int:
+        """
+        Get scroll position
+
+        :return: scroll position
+        """
+        return 0
+
+    def set_scroll_position(self, position: int):
+        """
+        Set scroll position
+
+        :param position: scroll position
+        """
+        pass

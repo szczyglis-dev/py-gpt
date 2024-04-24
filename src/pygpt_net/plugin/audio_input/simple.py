@@ -6,17 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 import pyaudio
 import wave
 import os
 
+from PySide6.QtCore import QTimer
+
 from pygpt_net.utils import trans
 
 
 class Simple:
+
+    TIMEOUT_SECONDS = 120  # 2 minutes, max recording time before timeout
+
     def __init__(self, plugin=None):
         """
         Simple audio input handler
@@ -28,6 +33,7 @@ class Simple:
         self.frames = []
         self.p = None
         self.stream = None
+        self.timer = None
 
     def toggle_recording(self):
         """Toggle recording"""
@@ -47,6 +53,10 @@ class Simple:
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
 
+    def stop_timeout(self):
+        """Stop timeout"""
+        self.stop_recording(timeout=True)
+
     def start_recording(self):
         """Start recording"""
         self.frames = []  # clear audio frames
@@ -61,6 +71,13 @@ class Simple:
         try:
             self.is_recording = True
             self.switch_btn_stop()
+
+            # start timeout timer to prevent infinite recording
+            if self.timer is None:
+                self.timer = QTimer()
+                self.timer.timeout.connect(self.stop_timeout)
+                self.timer.start(self.TIMEOUT_SECONDS * 1000)
+
             self.p = pyaudio.PyAudio()
             self.stream = self.p.open(format=pyaudio.paInt16,
                                       channels=1,
@@ -83,16 +100,28 @@ class Simple:
                 )
             self.switch_btn_start()  # switch button to start
 
-    def stop_recording(self):
-        """Stop recording"""
+    def stop_recording(self, timeout: bool = False):
+        """
+        Stop recording
+
+        :param timeout: True if stopped due to timeout
+        """
         self.is_recording = False
-        self.switch_btn_start()
+        if self.timer:
+            self.timer.stop()
+            self.timer = None
+        self.switch_btn_start()  # switch button to start
         path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
 
         if self.stream is not None:
             self.stream.stop_stream()
             self.stream.close()
             self.p.terminate()
+
+            # abort if timeout
+            if timeout:
+                self.plugin.window.ui.status("Timeout ({}s). Aborting...".format(self.TIMEOUT_SECONDS))
+                return
 
             if self.frames:
                 wf = wave.open(path, 'wb')

@@ -18,18 +18,19 @@ body {{
     padding: 0;
     max-width: 100%;
 }}
-a {{
-    color: #fff;
+::-webkit-scrollbar {{
+    height: 12px;
+    width: 12px;
+}}
+::-webkit-scrollbar-thumb {{
+    -webkit-border-radius: 1ex;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }}
 p {{ 
     margin-top: 5px;
     margin-bottom: 5px;
 }}
-.web-output {{
-    border: 1px solid red;
-}}
 .msg-user {{
-    color: #bdbdbd !important;
     white-space: pre-wrap;
     width: auto;
     max-width: 100%;
@@ -38,18 +39,15 @@ p {{
     padding-left: 10px;
     margin-top: 10px;
     margin-left: 0px;
-    margin-bottom: 5px; 
-    border: 1px solid transparent;
+    margin-bottom: 5px;
 }}
 .msg-bot {{
-    color: #fff;
     white-space: pre-wrap;
     width: auto;
     max-width: 100%;
     margin-top: 10px;
     margin-bottom: 0px;
     padding-bottom: 0px;
-    border: 1px solid transparent;
 }}
 .msg-extra {{
     margin-top: 10px;
@@ -59,23 +57,29 @@ p {{
     padding: 5px;
     max-width: 100%;
 }}
+.msg-box .msg {{
+    margin: 0;
+    padding: 5px;
+}}
 .msg-box:first-child {{
     margin-top: 0px;
 }}
 .msg-box:last-child {{
     border-bottom: none;
 }}
+.msg-box .name-header {{
+    display: none;
+}}
 .image {{
     max-width: 400px;
 }}
 .cmd {{
     font-family: 'Lato';
-    color: #4d4d4d;
     text-decoration: none;
     padding-bottom: 0px;
 }}
 .ts {{
-    color: #4d4d4d;
+    display: none;
 }}
 ul, ol, .list {{
     margin-top: 0px;
@@ -89,7 +93,6 @@ pre {{
     text-align: left;
 }}
 code {{
-    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
     font-family: 'Monaspace Neon';
     word-wrap: break-word;
 }}
@@ -99,7 +102,6 @@ code {{
     padding: 10px;
     padding-top: 10px;
     margin-top: 0;
-    background-color: #1d1f21;
     font-size: 0.9rem;
 }}
 .code-header {{
@@ -108,7 +110,6 @@ code {{
     padding: 0px;
 }}
 .code-header-lang {{
-    color: #4d4d4d;
     float: left;
 }}
 .code-header-copy {{
@@ -117,7 +118,6 @@ code {{
     font-weight: bold;
     display: inline-block;
     color: #6e6e6e;
-    
 }}
 .code-header-copy img {{
     vertical-align: middle;
@@ -125,7 +125,6 @@ code {{
 }}
 .code-wrapper {{
     padding: 0px;
-    border: 1px solid #1d1f21;
     margin: 0px;
 }}
 .code-wrapper pre {{
@@ -152,28 +151,42 @@ code {{
 .edit-icon {{
     display: none;
 }}
-.edit-icons .edit-icon {{
+.display-edit-icons .edit-icon {{
     display: inline;
 }}
+.display-timestamp .ts {{
+    display: inline;
+}}
+.display-blocks {{
+}}
+.display-blocks .msg-box {{
+    border-radius: 10px;
+    padding: 10px;
+    margin-right: 10px;
+}}
+.display-blocks .msg-box:not(first-child) {{
+    margin-top: 20px !important;
+}}
+.display-blocks .name-header {{
+    display: block;
+    font-size: 0.8rem;
+}}
+.display-blocks .name-header::before {{
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}}
 .append_input {{
-    padding-top: 5px;
-    padding-left: 0px;
-    margin-top: 5px;
-    margin-left: 0px;
-    margin-bottom: 5px; 
-    max-width: 100%;
-    border-top: 1px solid transparent;
+    margin: 0;
+    padding: 0;
 }}
 .append_output {{
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin-top: 10px;
-    margin-left: 5px;
-    margin-bottom: 5px; 
-    padding-top: 5px;
-    max-width: 100%;
-    border: 1px solid transparent;
+    margin: 0;
+    padding: 0;
 }}
 .empty_list {{
-    margin-top: -7px;
 }}

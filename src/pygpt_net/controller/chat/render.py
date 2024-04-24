@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -31,6 +31,7 @@ class Render:
         self.plaintext_renderer = PlainTextRenderer(window)
         self.web_renderer = WebRenderer(window)
         self.engine = None
+        self.scroll = 0
 
     def setup(self):
         """Setup render"""
@@ -277,6 +278,31 @@ class Render:
     def on_page_loaded(self):
         """On page loaded callback"""
         self.get_renderer().on_page_loaded()
+        self.update()
+
+    def on_theme_change(self):
+        """On theme change"""
+        if self.get_engine() == "web":
+            self.web_renderer.on_theme_change()
+        elif self.get_engine() == "markdown":
+            self.markdown_renderer.on_theme_change()
+        self.update()
+
+    def get_scroll_position(self) -> int:
+        """
+        Get scroll position
+
+        :return: scroll position
+        """
+        return self.get_renderer().get_scroll_position()
+
+    def set_scroll_position(self, position: int):
+        """
+        Set scroll position
+
+        :param position: scroll position
+        """
+        self.get_renderer().set_scroll_position(position)
         self.update()
 
     def update(self):

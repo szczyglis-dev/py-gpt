@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 import json
@@ -48,6 +48,8 @@ class Renderer(BaseRenderer):
         self.loaded = False  # page loaded
         self.item = None  # current item
         self.use_buffer = False  # use html buffer
+        self.name_user = trans("chat.name.user")
+        self.name_bot = trans("chat.name.bot")
 
     def init(self):
         """
@@ -114,10 +116,23 @@ class Renderer(BaseRenderer):
         self.images_appended = []
         self.urls_appended = []
         self.get_output_node().reset_current_content()
+        self.name_user = trans("chat.name.user")
+        self.name_bot = trans("chat.name.bot")
 
     def reload(self):
         """Reload output, called externally only on theme change to redraw content"""
         self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
+
+    def update_names(self, item: CtxItem):
+        """
+        Update names
+
+        :param item: context item
+        """
+        if item.input_name is not None and item.input_name != "":
+            self.name_user = item.input_name
+        if item.output_name is not None and item.output_name != "":
+            self.name_bot = item.output_name
 
     def append_context(self, items: list, clear: bool = True):
         """
@@ -134,6 +149,7 @@ class Renderer(BaseRenderer):
         self.use_buffer = True
         self.html = ""
         for item in items:
+            self.update_names(item)
             item.idx = i
             if i == 0:
                 item.first = True
@@ -155,10 +171,11 @@ class Renderer(BaseRenderer):
         if not flush:
             self.clear_chunks_input()
 
+        self.update_names(item)
+
         if item.input is None or item.input == "":
             return
-        if self.is_timestamp_enabled() \
-                and item.input_timestamp is not None:
+        if item.input_timestamp is not None:
             name = ""
             if item.input_name is not None \
                     and item.input_name != "":
@@ -207,8 +224,9 @@ class Renderer(BaseRenderer):
         """
         if item.output is None or item.output == "":
             return
-        if self.is_timestamp_enabled() \
-                and item.output_timestamp is not None:
+
+        self.update_names(item)
+        if item.output_timestamp is not None:
             name = ""
             if item.output_name is not None \
                     and item.output_name != "":
@@ -231,6 +249,7 @@ class Renderer(BaseRenderer):
         if text_chunk is None or text_chunk == "":
             return
 
+        self.update_names(item)
         raw_chunk = str(text_chunk)
         if begin:
             self.buffer = ""  # reset buffer
@@ -243,7 +262,7 @@ class Renderer(BaseRenderer):
         html = self.parser.parse(to_append)
         escaped_chunk = json.dumps(html)
         try:
-            self.get_output_node().page().runJavaScript(f"replaceOutput({escaped_chunk});")
+            self.get_output_node().page().runJavaScript(f"replaceOutput('{self.name_bot}', {escaped_chunk});")
         except Exception as e:
             pass
 
@@ -300,7 +319,7 @@ class Renderer(BaseRenderer):
         content = self.append_timestamp(self.format_user_text(html), item, type=self.NODE_INPUT)
         html = "<p>" + content + "</p>"
         html = self.post_format_text(html)
-        html = '<div class="msg-box msg-user" id="{}">'.format(id) + html + "</div>"
+        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(id, self.name_user) + html + "</div></div>"
         return html
 
     def prepare_node_output(self, html: str, item: CtxItem = None) -> str:
@@ -318,7 +337,7 @@ class Renderer(BaseRenderer):
         html = self.post_format_text(html)
         extra = self.append_extra(item, footer=True, render=False)
         footer_icons = self.prepare_action_icons(item)
-        html = '<div class="msg-box msg-bot" id="{}">'.format(id) + html + '<div class="msg-extra">'+extra+'</div>' +footer_icons+ '</div>'
+        html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(id, self.name_bot) + html + '<div class="msg-extra">'+extra+'</div>' +footer_icons+ '</div></div>'
         return html
 
     def append_node(self, html: str, type: int = 1, item: CtxItem = None):
@@ -395,7 +414,6 @@ class Renderer(BaseRenderer):
         """
         self.append_input(item, flush=False)
         self.append_output(item, flush=False)  # + extra
-        # self.append_extra(item, footer=True)
 
     def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
         """
@@ -511,9 +529,7 @@ class Renderer(BaseRenderer):
         :param type: Type of message
         :return: Text with timestamp (if enabled)
         """
-        if item is not None \
-                and self.is_timestamp_enabled() \
-                and item.input_timestamp is not None:
+        if item is not None and item.input_timestamp is not None:
             timestamp = None
             if type == self.NODE_INPUT:
                 timestamp = item.input_timestamp
@@ -522,7 +538,7 @@ class Renderer(BaseRenderer):
             if timestamp is not None:
                 ts = datetime.fromtimestamp(timestamp)
                 hour = ts.strftime("%H:%M:%S")
-                text = '<span class="ts">{}:</span> {}'.format(hour, text)
+                text = '<span class="ts">{}: </span>{}'.format(hour, text)
         return text
 
     def replace_code_tags(self, text: str) -> str:
@@ -841,11 +857,14 @@ class Renderer(BaseRenderer):
         if self.loaded:
             return  # wait for page load
 
-        init_classes = ""
+        classes = []
         if self.window.core.config.get('ctx.edit_icons'):
-            init_classes+= " edit-icons"
-        if init_classes != "":
-            init_classes = ' class="' + init_classes + '"'
+            classes.append("display-edit-icons")
+        if self.is_timestamp_enabled():
+            classes.append("display-timestamp")
+        classes.append("display-blocks")
+        if classes != "":
+            classes = ' class="' + " ".join(classes) + '"'
 
         content = """
         <!DOCTYPE html>
@@ -855,8 +874,8 @@ class Renderer(BaseRenderer):
                 """ + self.prepare_styles() + """
             </style>
         </head>
-        <body>
-        <div id="container" """+init_classes+""">
+        <body """+classes+""">
+        <div id="container">
             <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
@@ -877,6 +896,7 @@ class Renderer(BaseRenderer):
             }
         });
         function scrollToBottom() {
+            getScrollPosition();  // store using bridge
             if (scrollTimeout !== null) {
                 clearTimeout(scrollTimeout);
             }
@@ -884,6 +904,7 @@ class Renderer(BaseRenderer):
                 scrollTimeout = setTimeout(function() {
                     window.scrollTo(0, document.body.scrollHeight);
                     prevScroll = document.body.scrollHeight;
+                    getScrollPosition();  // store using bridge
                     scrollTimeout = null;
                 }, 10);
             }
@@ -895,10 +916,31 @@ class Renderer(BaseRenderer):
             }
             scrollToBottom();
         }
-        function appendToOutput(content) {
+        function appendToOutput(bot_name, content) {
             var element = document.getElementById('_append_output_');
             if (element) {
-                element.innerHTML += content;
+                var box = element.querySelector('.msg-box');
+                var msg;
+                if (!box) {
+                    console.log("no box");
+                    box = document.createElement('div');
+                    box.classList.add('msg-box');
+                    box.classList.add('msg-bot');
+                    var name = document.createElement('div');
+                    name.classList.add('name-header');
+                    name.classList.add('name-bot');
+                    name.textContent = bot_name;
+                    msg = document.createElement('div');
+                    msg.classList.add('msg');
+                    box.appendChild(name);
+                    box.appendChild(msg);
+                    element.appendChild(box);
+                } else {
+                    msg = box.querySelector('.msg');
+                }
+                if (msg) {
+                    msg.innerHTML+= content;
+                }
             }
             scrollToBottom();
         }
@@ -951,10 +993,31 @@ class Renderer(BaseRenderer):
             }
             scrollToBottom();
         }
-        function replaceOutput(content) {
+        function replaceOutput(bot_name, content) {
             var element = document.getElementById('_append_output_');
             if (element) {
-                element.innerHTML = content;
+                var box = element.querySelector('.msg-box');
+                var msg;
+                if (!box) {
+                    console.log("no box");
+                    box = document.createElement('div');
+                    box.classList.add('msg-box');
+                    box.classList.add('msg-bot');
+                    var name = document.createElement('div');
+                    name.classList.add('name-header');
+                    name.classList.add('name-bot');
+                    name.textContent = bot_name;
+                    msg = document.createElement('div');
+                    msg.classList.add('msg');
+                    box.appendChild(name);
+                    box.appendChild(msg);
+                    element.appendChild(box);
+                } else {
+                    msg = box.querySelector('.msg');
+                }
+                if (msg) {
+                    msg.innerHTML = content;
+                }
             }
             scrollToBottom();
         }
@@ -981,17 +1044,28 @@ class Renderer(BaseRenderer):
         function enableEditIcons() {
             var container = document.getElementById('container');
             if (container) {
-                container.classList.add('edit-icons');
+                container.classList.add('display-edit-icons');
             }
         }
         function disableEditIcons() {
             var container = document.getElementById('container');
             if (container) {
-                container.classList.remove('edit-icons');
+                container.classList.remove('display-edit-icons');
+            }
+        }
+        function enableTimestamp() {
+            var container = document.getElementById('container');
+            if (container) {
+                container.classList.add('display-timestamp');
+            }
+        }
+        function disableTimestamp() {
+            var container = document.getElementById('container');
+            if (container) {
+                container.classList.remove('display-timestamp');
             }
         }
         function updateCSS(styles) {
-            prevScroll = 0;
             var style = document.createElement('style');
             style.innerHTML = styles;
             var oldStyle = document.querySelector('style');
@@ -1000,11 +1074,24 @@ class Renderer(BaseRenderer):
             }
             document.head.appendChild(style);
         }
-        function copyCode(text) {
+        function bridgeCopyCode(text) {
             if (bridge) {
                 bridge.copy_text(text);
             }
         }
+        function bridgeUpdateScrollPosition(pos) {
+            if (bridge) {
+                bridge.update_scroll_position(pos);
+            }
+        }
+        function getScrollPosition() {
+            pos = window.scrollY;
+            bridgeUpdateScrollPosition(pos);
+        }
+        function setScrollPosition(pos) {
+            window.scrollTo(0, pos);
+            prevScroll = parseInt(pos);
+        }  
         document.addEventListener('DOMContentLoaded', function() {
             var container = document.getElementById('container');
             function addClassToMsg(id, className) {
@@ -1038,7 +1125,7 @@ class Renderer(BaseRenderer):
                     var source = parent.querySelector('.source');
                     if (source) {
                         var text = source.textContent || source.innerText;
-                        copyCode(text);
+                        bridgeCopyCode(text);
                     }                        
                 }
             });
@@ -1132,3 +1219,37 @@ class Renderer(BaseRenderer):
             self.get_output_node().page().runJavaScript("disableEditIcons();")
         except Exception as e:
             pass
+
+    def on_enable_timestamp(self, live: bool = True):
+        """
+        On enable timestamp
+
+        :param live: True if live update
+        """
+        if not live:
+            return
+        try:
+            self.get_output_node().page().runJavaScript("enableTimestamp();")
+        except Exception as e:
+            pass
+
+    def on_disable_timestamp(self, live: bool = True):
+        """
+        On disable timestamp
+
+        :param live: True if live update
+        """
+        if not live:
+            return
+        try:
+            self.get_output_node().page().runJavaScript("disableTimestamp();")
+        except Exception as e:
+            pass
+
+    # TODO: on lang change
+
+    def on_theme_change(self):
+        """On theme change"""
+        self.window.controller.theme.markdown.load()
+        if self.loaded:
+            self.reload_css()

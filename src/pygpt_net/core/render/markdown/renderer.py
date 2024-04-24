@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 23:00:00                  #
+# Updated Date: 2024.04.25 01:00:00                  #
 # ================================================== #
 
 import os
@@ -668,3 +668,12 @@ class Renderer(BaseRenderer):
         self.get_output_node().document().setMarkdown("")
         self.get_output_node().document().setHtml("")
         self.get_output_node().setPlainText("")
+
+    def on_theme_change(self):
+        """On theme change"""
+        stylesheet = self.window.controller.theme.markdown.css['markdown']
+        self.window.ui.nodes['output_plain'].setStyleSheet(stylesheet)
+        self.window.ui.nodes['output'].setStyleSheet(stylesheet)
+        self.window.ui.nodes['output'].document().setDefaultStyleSheet(stylesheet)
+        self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
+        self.window.controller.ctx.refresh()

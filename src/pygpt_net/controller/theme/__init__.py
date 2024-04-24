@@ -104,11 +104,7 @@ class Theme:
         :param update_menu: update menu
         """
         self.window.core.config.set("render.code_syntax", name)
-        if self.window.controller.chat.render.get_engine() == "web":
-            if self.window.controller.chat.render.web_renderer.loaded:
-                self.window.controller.theme.markdown.load()
-                self.window.controller.chat.render.web_renderer.reload_css()
-        self.window.controller.ctx.refresh()
+        self.window.controller.chat.render.on_theme_change()
         if update_menu:
             self.menu.update_syntax()
 
