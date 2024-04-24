@@ -162,7 +162,7 @@ class Parser:
 
             header = soup.new_tag('p', **{'class': "code-header-wrapper"})
             link_wrapper = soup.new_tag('span')
-            a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
+            a = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
             a['class'] = "code-header-copy"
             a.string = trans('ctx.extra.copy_code')
 

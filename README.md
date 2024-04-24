@@ -2997,7 +2997,7 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.1.75 (2024-04-24)
 
-- Copy to clipboard in web view fix.
+- Copy to clipboard in web view fixed and moved to JS bridge.
 
 # 2.1.74 (2024-04-24)
 

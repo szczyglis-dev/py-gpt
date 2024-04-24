@@ -11,7 +11,8 @@
 
 import re
 
-from PySide6.QtCore import Qt, QObject, Signal
+from PySide6.QtCore import Qt, QObject, Signal, Slot
+from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
@@ -210,6 +211,11 @@ class CustomWebEnginePage(QWebEnginePage):
         if self.window.core.config.has("zoom"):
             self.setZoomFactor(self.window.core.config.get("zoom"))
 
+        self.bridge = Bridge(self.window)
+        self.channel = QWebChannel(self)
+        self.channel.registerObject("bridge", self.bridge)
+        self.setWebChannel(self.channel)
+
     def on_find_finished(self, result):
         """
         On find text finished
@@ -263,9 +269,26 @@ class CustomWebEnginePage(QWebEnginePage):
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
 
+class Bridge(QObject):
+    """Bridge between Python and JavaScript"""
+    def __init__(self, window):
+        super(Bridge, self).__init__(window)
+        self.window = window
+
+    @Slot(str)
+    def copy_text(self, text):
+        """
+        Copy text from web to clipboard
+
+        :param text: text
+        """
+        self.window.controller.ctx.extra.copy_code_text(text)
+
+
 class WebEngineSignals(QObject):
     save_as = Signal(str, str)
     audio_read = Signal(str)
+
 
 class WebEnginePageSignals(QObject):
     js_message = Signal(int, str, str)  # on Javascript message

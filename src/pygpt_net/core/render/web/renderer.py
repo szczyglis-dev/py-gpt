@@ -861,9 +861,14 @@ class Renderer(BaseRenderer):
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
         </div>
+        <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
         <script>
         let scrollTimeout = null;
         let prevScroll = 0;
+        let bridge;
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            bridge = channel.objects.bridge;
+        });
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
@@ -995,6 +1000,11 @@ class Renderer(BaseRenderer):
             }
             document.head.appendChild(style);
         }
+        function copyCode(text) {
+            if (bridge) {
+                bridge.copy_text(text);
+            }
+        }
         document.addEventListener('DOMContentLoaded', function() {
             var container = document.getElementById('container');
             function addClassToMsg(id, className) {
@@ -1019,6 +1029,17 @@ class Renderer(BaseRenderer):
                 if (event.target.classList.contains('action-img')) {
                     var id = event.target.getAttribute('data-id');
                     removeClassFromMsg(id, 'msg-highlight');
+                }
+            });
+            container.addEventListener('click', function(event) {
+                if (event.target.classList.contains('code-header-copy')) {
+                    event.preventDefault();
+                    var parent = event.target.closest('.code-wrapper');
+                    var source = parent.querySelector('.source');
+                    if (source) {
+                        var text = source.textContent || source.innerText;
+                        copyCode(text);
+                    }                        
                 }
             });
         });
