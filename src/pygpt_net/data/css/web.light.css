@@ -24,9 +24,6 @@ p {{
 a {{
     color: #000;
 }}
-pre {{
-    color: #000;
-}}
 .msg-user {{
     color: #3a3a3a !important;
 }}
@@ -51,9 +48,6 @@ pre {{
 .list {{
 }}
 code {{
-    color: #000;
-}}
-pre {{
     color: #000;
 }}
 .code-wrapper {{

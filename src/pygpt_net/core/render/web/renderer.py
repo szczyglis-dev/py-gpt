@@ -820,11 +820,18 @@ class Renderer(BaseRenderer):
 
         :return: CSS styles
         """
+        dark_styles = ["dracula", "fruity", "github-dark", "gruvbox-dark", "inkpot", "material", "monokai",
+                       "native", "nord", "nord-darker", "one-dark", "paraiso-dark", "rrt", "solarized-dark",
+                       "stata-dark", "vim", "zenburn"]
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
             style = "default"
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
         stylesheet = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
+        if style in dark_styles:
+            stylesheet += "pre { color: #fff; }"
+        else:
+            stylesheet += "pre { color: #000; }"
         content = stylesheet + """
         """ + HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')
         return content

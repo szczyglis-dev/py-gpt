@@ -2997,8 +2997,8 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.1.74 (2024-04-24)
 
-- Added synax highlight choose to Theme menu.
-- Improved syntax highlight CSS colors between Dark/Light theme.
+- Added syntax highlight choose to Theme menu.
+- Syntax highlight style colors integrated with Dark/Light app themes.
 
 # 2.1.73 (2024-04-24)
 
