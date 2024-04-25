@@ -3,7 +3,7 @@ body {{
     background-color: #232629;
 }}
 ::-webkit-scrollbar {{
-    background: #000;
+    background: #232629;
 }}
 ::-webkit-scrollbar-thumb {{
     background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
@@ -12,7 +12,7 @@ body {{
     background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
 ::-webkit-scrollbar-corner {{
-    background: #000;
+    background: #232629;
 }}
 a {{
     color: #fff;

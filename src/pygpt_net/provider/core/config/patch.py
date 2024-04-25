@@ -1392,6 +1392,15 @@ class Patch:
                 self.window.core.updater.patch_css('web.dark.css', True)  # force update
                 updated = True
 
+            # < 2.1.78
+            if old < parse_version("2.1.78"):
+                print("Migrating config from < 2.1.78...")
+                # css upgrade, scroll bg
+                self.window.core.updater.patch_css('web.css', True)  # force update
+                self.window.core.updater.patch_css('web.light.css', True)  # force update
+                self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                updated = True
+
         # update file
         migrated = False
         if updated:
