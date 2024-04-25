@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.76** | build: **2024.04.25** | Python: **>=3.10, <3.12**
+Release: **2.1.77** | build: **2024.04.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.77 (2024-04-25)
+
+- Added the "tree" command to the I/O Files plugin to retrieve the full directory tree.
 
 # 2.1.76 (2024-04-25)
 

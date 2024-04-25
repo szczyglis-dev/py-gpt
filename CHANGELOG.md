@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.77 (2024-04-25)
+
+- Added the "tree" command to the I/O Files plugin to retrieve the full directory tree.
+
 # 2.1.76 (2024-04-25)
 
 - Chat items now displayed in blocks.
