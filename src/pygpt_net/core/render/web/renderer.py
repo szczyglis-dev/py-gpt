@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.04.25 03:00:00                  #
 # ================================================== #
 
 import json
@@ -25,6 +25,7 @@ from .parser import Parser
 
 
 class Renderer(BaseRenderer):
+
     NODE_INPUT = 0
     NODE_OUTPUT = 1
 
@@ -862,14 +863,15 @@ class Renderer(BaseRenderer):
             return  # wait for page load
 
         classes = []
+        classes_str = ""
         if self.window.core.config.get('render.blocks'):
             classes.append("display-blocks")
         if self.window.core.config.get('ctx.edit_icons'):
             classes.append("display-edit-icons")
         if self.is_timestamp_enabled():
             classes.append("display-timestamp")
-        if classes != "":
-            classes = ' class="' + " ".join(classes) + '"'
+        if classes:
+            classes_str = ' class="' + " ".join(classes) + '"'
 
         content = """
         <!DOCTYPE html>
@@ -879,7 +881,7 @@ class Renderer(BaseRenderer):
                 """ + self.prepare_styles() + """
             </style>
         </head>
-        <body """+classes+""">
+        <body """+classes_str+""">
         <div id="container">
             <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>

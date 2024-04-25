@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.04.25 03:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -66,6 +66,10 @@ class Worker(BaseWorker):
                     # list files
                     elif item["cmd"] == "list_dir":
                         response = self.cmd_list_dir(item)
+
+                    # tree
+                    elif item["cmd"] == "tree":
+                        response = self.cmd_tree(item)
 
                     # mkdir
                     elif item["cmd"] == "mkdir":
@@ -382,6 +386,56 @@ class Worker(BaseWorker):
                 }
                 self.log("Files listed: {}".format(path))
                 self.log("Result: {}".format(files))
+            else:
+                response = {
+                    "request": request,
+                    "result": "Directory not found",
+                }
+                self.log("Directory not found: {}".format(path))
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_tree(self, item: dict) -> dict:
+        """
+        Get directory tree
+
+        :param item: item with parameters
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            path = self.plugin.window.core.config.get_user_dir('data')
+            if "path" in item["params"]:
+                path = self.prepare_path(item["params"]['path'])
+            self.msg = "Listing directory: {}".format(path)
+            self.log(self.msg)
+            tree_str = ""
+            tree = {}
+            if os.path.exists(path):
+                for root, dirs, files in os.walk(path):
+                    dirs.sort()
+                    files.sort()
+                    level = root.replace(path, '').count(os.sep)
+                    indent = ' ' * 4 * (level)
+                    tree_str += '{}{}/\n'.format(indent, os.path.basename(root))
+                    sub_indent = ' ' * 4 * (level + 1)
+                    files = sorted(files)
+                    for f in files:
+                        tree_str += '{}{}\n'.format(sub_indent, f)
+                    tree[os.path.basename(root)] = files
+                response = {
+                    "request": request,
+                    "result": tree,
+                    "context": path + "\n--------------------------------\n" + tree_str ,
+                }
+                self.log("Directory tree: {}".format(path))
+                self.log("Result: {}".format(tree_str))
             else:
                 response = {
                     "request": request,

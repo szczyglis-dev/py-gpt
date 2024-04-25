@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.04.25 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -39,6 +39,7 @@ class Plugin(BasePlugin):
             "find",
             "is_dir",
             "is_file",
+            "tree",
             "file_exists",
             "file_size",
             "file_info",
@@ -212,6 +213,20 @@ class Plugin(BasePlugin):
             ],
             enabled=True,
             description="Enable: List files in directory (ls)",
+        )
+        self.add_cmd(
+            "tree",
+            instruction="get directory tree",
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: get directory tree",
         )
         self.add_cmd(
             "mkdir",
