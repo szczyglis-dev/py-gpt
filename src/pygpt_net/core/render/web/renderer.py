@@ -176,15 +176,8 @@ class Renderer(BaseRenderer):
 
         if item.input is None or item.input == "":
             return
-        if item.input_timestamp is not None:
-            name = ""
-            if item.input_name is not None \
-                    and item.input_name != "":
-                name = item.input_name + " "
-            text = '{} {}'.format(name, item.input)
-        else:
-            text = "{}".format(item.input)
 
+        text = item.input
         # check if it is a command response
         is_cmd = False
         if item.input.strip().startswith("[") \
@@ -227,14 +220,7 @@ class Renderer(BaseRenderer):
             return
 
         self.update_names(item)
-        if item.output_timestamp is not None:
-            name = ""
-            if item.output_name is not None \
-                    and item.output_name != "":
-                name = item.output_name + " "
-            text = '{} {}'.format(name, item.output)
-        else:
-            text = "{}".format(item.output)
+        text = item.input
 
         self.append_node(text.strip(), self.NODE_OUTPUT, item)
 
