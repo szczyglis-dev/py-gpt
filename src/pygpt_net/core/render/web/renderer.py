@@ -178,10 +178,10 @@ class Renderer(BaseRenderer):
             return
 
         text = item.input
+
         # check if it is a command response
         is_cmd = False
-        if item.input.strip().startswith("[") \
-                and item.input.strip().endswith("]"):
+        if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
             is_cmd = True
 
         # hidden internal call
@@ -218,11 +218,7 @@ class Renderer(BaseRenderer):
         """
         if item.output is None or item.output == "":
             return
-
-        self.update_names(item)
-        text = item.input
-
-        self.append_node(text.strip(), self.NODE_OUTPUT, item)
+        self.append_node(item.output.strip(), self.NODE_OUTPUT, item)
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -241,7 +237,7 @@ class Renderer(BaseRenderer):
         if begin:
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
-            self.clear_chunk_output()
+            self.clear_chunks_output()
         self.buffer += raw_chunk
         to_append = self.buffer
         if re.search(r'```(?!.*```)', self.buffer):
@@ -337,8 +333,8 @@ class Renderer(BaseRenderer):
         """
         self.append(self.prepare_node(html, type, item))
 
-    def clear_chunk_output(self):
-        """Append start of chunk to output"""
+    def clear_chunks_output(self):
+        """Clear chunks from output"""
         if not self.loaded:
             js = "var element = document.getElementById('_append_output_');"
             js += "if (element) { element.innerHTML = ''; }"
@@ -350,7 +346,7 @@ class Renderer(BaseRenderer):
             pass
 
     def clear_chunks_input(self):
-        """Append start of chunk to output"""
+        """Clear chunks from input"""
         if not self.loaded:
             js = "var element = document.getElementById('_append_input_');"
             js += "if (element) { element.innerHTML = ''; }"
@@ -362,7 +358,7 @@ class Renderer(BaseRenderer):
             pass
 
     def clear_nodes(self):
-        """Append start of chunk to output"""
+        """Clear nodes from output"""
         if not self.loaded:
             js = "var element = document.getElementById('_nodes_');"
             js += "if (element) { element.innerHTML = ''; }"
@@ -376,7 +372,7 @@ class Renderer(BaseRenderer):
     def clear_chunks(self):
         """Clear chunks from output"""
         self.clear_chunks_input()
-        self.clear_chunk_output()
+        self.clear_chunks_output()
 
     def append(self, html: str, flush: bool = False):
         """

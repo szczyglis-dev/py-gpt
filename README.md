@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.77** | build: **2024.04.25** | Python: **>=3.10, <3.12**
+Release: **2.1.78** | build: **2024.04.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.78 (2024-04-25)
+
+- Removed redundant names in block view.
+- Scrollbars background integrated with blocks bg.
 
 # 2.1.77 (2024-04-25)
 
