@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.78** | build: **2024.04.25** | Python: **>=3.10, <3.12**
+Release: **2.1.79** | build: **2024.04.26** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.79 (2024-04-26)
+
+- OpenAI API upgraded to version 1.23.6.
+- Support for remote Assistant Vector Stores added (accessible through the Assistants API).
+- Remote Vector Stores management tool introduced (right-click on an Assistant, select 'Edit', then click the database icon to open Remote Vector Stores editor).
+- Importer for Remote Assistant Vector Stores and files included.
+- Files uploaded in Assistants mode can now be shared across Vector Stores.
 
 # 2.1.78 (2024-04-25)
 

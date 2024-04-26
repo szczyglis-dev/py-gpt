@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# 2.1.79 (2024-04-26)
+
+- OpenAI API upgraded to version 1.23.6.
+- Support for remote Assistant Vector Stores added (accessible through the Assistants API).
+- Remote Vector Stores management tool introduced (right-click on an Assistant, select 'Edit', then click the database icon to open Remote Vector Stores editor).
+- Importer for Remote Assistant Vector Stores and files included.
+- Files uploaded in Assistants mode can now be shared across Vector Stores.
+
 # 2.1.78 (2024-04-25)
 
 - Removed redundant names in block view.
