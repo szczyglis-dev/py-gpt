@@ -503,8 +503,9 @@ class Assistants:
                 items[id].vector_store = ""
 
                 # tool resources
-                if "file_search" in remote.tool_resources:
-                    items[id].vector_store = remote.tool_resources["file_search"]["vector_store_ids"][0]
+                if hasattr(remote.tool_resources, 'file_search') and remote.tool_resources.file_search is not None:
+                    if remote.tool_resources.file_search.vector_store_ids:
+                        items[id].vector_store = remote.tool_resources.file_search.vector_store_ids[0]
 
                 # append tools
                 for tool in remote.tools:

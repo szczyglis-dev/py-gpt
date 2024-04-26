@@ -41,6 +41,8 @@ class Importer:
             self.window.controller.assistant.store.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
             self.window.controller.assistant.store.handle_truncated_stores_failed(err)
+        elif mode in "refresh_vector_stores":
+            self.window.controller.assistant.store.handle_truncated_stores_failed(err)
 
     @Slot(str, int)
     def handle_finished(self, mode: str, num: int):
@@ -174,7 +176,7 @@ class ImportWorker(QRunnable):
             self.window.core.assistants.save()
 
             # import vector stores
-            self.import_vector_stores()
+            self.import_vector_stores(True)
 
             # import files
             self.import_files(True)

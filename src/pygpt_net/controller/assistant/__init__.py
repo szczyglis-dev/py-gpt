@@ -207,6 +207,8 @@ class Assistant:
         """
         self.window.ui.status("OK. Imported assistants: " + str(num) + ".")
         self.update()
+        self.store.update()
+        self.files.update()
 
     def handle_imported_assistants_failed(self, error: any):
         """

@@ -118,6 +118,11 @@ class Assistants:
             self.items.pop(id)
         self.save()
 
+    def clear(self):
+        """Clear all assistants"""
+        self.items = {}
+        self.save()
+
     def replace_attachment(
             self,
             assistant: AssistantItem,
