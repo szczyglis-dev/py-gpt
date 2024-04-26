@@ -118,7 +118,7 @@ class AttachmentsUploaded:
             if item.store_id is not None and item.store_id in store_names:
                 vector_store = store_names[item.store_id]
             else:
-                vector_store = "(thread only)"
+                vector_store = trans("assistant.store.thread_only")
 
             self.window.ui.models[self.id].insertRow(i)
             index = self.window.ui.models[self.id].index(i, 0)
