@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -39,7 +39,7 @@ class Custom:
 
         # checkboxes
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
-        self.window.ui.config['assistant']['tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
+        self.window.ui.config['assistant']['tool.file_search'].box.setText(trans('assistant.tool.file_search'))
         self.window.ui.config['assistant']['tool.code_interpreter'].box.setText(
             trans('assistant.tool.code_interpreter')
         )

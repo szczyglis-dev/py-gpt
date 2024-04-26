@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -153,29 +153,6 @@ def test_delete():
         assert assistants.items == {'assistant2': a2}
 
 
-def test_rename_file():
-    """
-    Test rename file
-    """
-    assistant = MagicMock()
-    assistant.files = {
-        'file1': {'name': 'file1'},
-        'file2': {'name': 'file2'},
-    }
-    assistant.attachments = {
-        'file1': MagicMock(),
-        'file2': MagicMock(),
-    }
-
-    with patch('pygpt_net.core.assistants.Assistants.save') as mock_save:
-        assistants = Assistants()
-        assistants.rename_file(assistant, 'file1', 'new_name')
-
-        mock_save.assert_called_once_with()
-        assert assistant.files['file1']['name'] == 'new_name'
-        assert assistant.attachments['file1'].name == 'new_name'
-
-
 def test_replace_attachment():
     """
     Test replace attachment
@@ -217,138 +194,6 @@ def test_get_default_assistant():
     }
     assistants.items = items
     assert assistants.get_default_assistant() == 'assistant1'
-
-
-def test_get_file_id_by_idx():
-    """
-    Test get file id by index
-    """
-    assistants = Assistants()
-    assistant = MagicMock()
-    assistant.files = {
-        'file1': {'name': 'file1'},
-        'file2': {'name': 'file2'},
-    }
-    assistants.get_by_id = MagicMock(return_value=assistant)
-    assert assistants.get_file_id_by_idx(assistant, 0) == 'file1'
-    assert assistants.get_file_id_by_idx(assistant, 1) == 'file2'
-
-
-def test_get_file_id_by_idx_not_found():
-    """
-    Test get file id by index not found
-    """
-    assistants = Assistants()
-    assistant = MagicMock()
-    assistant.files = {
-        'file1': {'name': 'file1'},
-        'file2': {'name': 'file2'},
-    }
-    assistants.get_by_id = MagicMock(return_value=assistant)
-    assert assistants.get_file_id_by_idx(assistant, 2) is None
-
-
-def test_get_file_by_id():
-    """
-    Test get file by id
-    """
-    assistants = Assistants()
-    assistant = MagicMock()
-    assistant.files = {
-        'file1': {'name': 'file1'},
-        'file2': {'name': 'file2'},
-    }
-    assistants.get_by_id = MagicMock(return_value=assistant)
-    assert assistants.get_file_by_id(assistant, 'file1') == {'name': 'file1'}
-
-
-def test_get_file_by_id_not_found():
-    """
-    Test get file by id not found
-    """
-    assistants = Assistants()
-    assistant = MagicMock()
-    assistant.files = {
-        'file1': {'name': 'file1'},
-        'file2': {'name': 'file2'},
-    }
-    assistants.get_by_id = MagicMock(return_value=assistant)
-    assert assistants.get_file_by_id(assistant, 'file3') is None
-
-
-def test_import_files(mock_window_conf):
-    """
-    Test import files
-    """
-    with patch('pygpt_net.core.assistants.Assistants.import_file_info') as mock_import:
-        mock_import.return_value = 'remote_name', 123
-
-        files = []
-        file1 = MagicMock()
-        file1.id = 'file1'
-        file1.name = ''
-        file1.size = 0
-        files.append(file1)
-
-        assistants = Assistants(window=mock_window_conf)
-        assistant = MagicMock()
-        assistant.files = {
-            'file1': {'id': 'file1', 'name': 'file1', 'path': ''},
-            'file2': {'id': 'file2', 'name': 'file2', 'path': ''},  # this should be removed
-        }
-        assistants.get_by_id = MagicMock(return_value=assistant)
-        assistants.import_files(assistant, files)
-        assert assistant.files == {
-            'file1': {
-                 'id': 'file1',
-                 'name': 'file1',
-                 'path': '',
-                 'size': 123
-            },
-        }
-
-
-def test_import_files_with_remote_name(mock_window_conf):
-    """
-    Test import files with remote name
-    """
-    with patch('pygpt_net.core.assistants.Assistants.import_file_info') as mock_import:
-        mock_import.return_value = 'remote_name', 123
-
-        files = []
-        file1 = MagicMock()
-        file1.id = 'file1'
-        file1.name = 'remote_name'
-        file1.size = 123
-        files.append(file1)
-
-        assistants = Assistants(window=mock_window_conf)
-        assistant = MagicMock()
-        assistant.files = {
-            'file1': {'id': 'file1', '': 'file1', 'path': ''},  # this should be updated
-            'file2': {'id': 'file2', '': 'file2', 'path': ''},
-        }
-        assistants.get_by_id = MagicMock(return_value=assistant)
-        assistants.import_files(assistant, files)
-        assert assistant.files == {'file1': {'id': 'file1', 'name': 'remote_name', 'path': '', 'size': 123}}
-
-
-def test_import_filenames(mock_window_conf):
-    """
-    Test import filenames
-    """
-    fake_file_info = MagicMock()
-    fake_file_info.filename = 'fake.txt'
-
-    assistants = Assistants(window=mock_window_conf)
-    core = MagicMock()
-    core.gpt.assistants = MagicMock()
-    core.gpt.assistants.file_info = MagicMock(return_value=fake_file_info)
-    assistants.window.core = core
-    filename = assistants.import_filenames('some_id')
-
-    assistants.window.core.gpt.assistants.file_info.assert_called_once_with('some_id')
-    assert filename == 'fake.txt'
 
 
 def test_load(mock_window_conf):

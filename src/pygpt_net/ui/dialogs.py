@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
 from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
+from pygpt_net.ui.dialog.assistant_store import AssistantVectorStore
 from pygpt_net.ui.dialog.changelog import Changelog
 from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.db import Database
@@ -94,6 +95,7 @@ class Dialogs:
         self.window.plugin_settings = Plugins(self.window)
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)
+        self.window.assistant_store = AssistantVectorStore(self.window)
 
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)

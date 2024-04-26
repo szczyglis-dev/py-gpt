@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -40,7 +40,7 @@ def test_handle_messages(mock_window):
     msg.content = [MagicMock()]
     msg.content[0].text.value = "test"
     msg.content[0].type = "text"
-    msg.file_ids = ["file_id"]
+    msg.file_ids = ["file_id"]  # deprecated
 
     mock_window.core.filesystem = Filesystem(mock_window)
 
@@ -57,7 +57,7 @@ def test_handle_messages(mock_window):
     threads.handle_messages(ctx)
 
     mock_window.core.gpt.assistants.msg_list.assert_called_once()
-    mock_window.controller.assistant.files.handle_received_ids.assert_called_once_with(msg.file_ids)
+    mock_window.controller.assistant.files.handle_received_ids.assert_called_once_with([])
     mock_window.controller.chat.output.handle.assert_called_once()
     mock_window.controller.chat.output.handle_cmd.assert_called_once()
     mock_window.core.ctx.update_item.assert_called()

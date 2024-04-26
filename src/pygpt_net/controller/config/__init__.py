@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from .field.checkbox import Checkbox
@@ -85,13 +85,14 @@ class Config:
         option['value'] = value
         self.apply(parent_id, key, option)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> any:
+    def get_value(self, parent_id: str, key: str, option: dict, idx: bool = False) -> any:
         """
         Get value from field handler based on type
 
         :param parent_id: Parent ID
         :param key: Option key
         :param option: Option dict
+        :param idx: return selected idx, not the value
         :return: Option value
         """
         if option['type'] == 'int' or option['type'] == 'float':
@@ -108,6 +109,16 @@ class Config:
         elif option['type'] == 'dict':
             return self.dictionary.get_value(parent_id, key, option)
         elif option['type'] == 'combo':
-            return self.combo.get_value(parent_id, key, option)
+            return self.combo.get_value(parent_id, key, option, idx)
         elif option['type'] == 'cmd':
             return self.cmd.get_value(parent_id, key, option)
+
+    def update_combo(self, parent_id: str, key: str, items: dict):
+        """
+        Update combo items
+
+        :param parent_id: Parent ID
+        :param key: Option key
+        :param items: Items dict
+        """
+        self.combo.update_list(parent_id, key, items)

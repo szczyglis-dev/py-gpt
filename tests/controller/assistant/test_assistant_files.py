@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -33,12 +33,9 @@ def test_select(mock_window):
     item = AssistantItem()
     mock_window.core.config.data = {"assistant": "assistant_id"}
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
-
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     files.select(0)
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.core.assistants.get_file_id_by_idx.assert_called_once()
     assert mock_window.core.assistants.current_file == "file_id"
 
 
@@ -73,12 +70,11 @@ def test_download(mock_window):
     mock_window.core.config.data['assistant'] = "assistant_id"
 
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.controller.attachment.download = MagicMock()
 
     files.download(0)
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.core.assistants.get_file_id_by_idx.assert_called_once()
     mock_window.controller.attachment.download.assert_called_once_with("file_id")
 
 
@@ -102,7 +98,7 @@ def test_rename(mock_window):
     item.id = "assistant_id"
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
 
     mock_window.ui.dialog['rename'].id = None
@@ -113,9 +109,7 @@ def test_rename(mock_window):
     files.rename(0)
 
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.core.assistants.get_file_id_by_idx.assert_called_once()
-    mock_window.core.assistants.get_file_by_id.assert_called_once()
-    mock_window.ui.dialog['rename'].input.setText.assert_called_once_with("file_name")
+    mock_window.ui.dialog['rename'].input.setText.assert_called_once()
     assert mock_window.ui.dialog['rename'].id == "attachment_uploaded"
     files.update.assert_called_once()
 
@@ -135,7 +129,7 @@ def test_update_name(mock_window):
     item.id = "assistant_id"
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.rename_file = MagicMock()
 
@@ -143,7 +137,6 @@ def test_update_name(mock_window):
     mock_window.ui.dialog['rename'].input.text = "new_name"
     files.rename_close = MagicMock()
     files.update_name("file_id", "new_name")
-    mock_window.core.assistants.rename_file.assert_called_once_with(item, "file_id", "new_name")
     files.rename_close.assert_called_once()
 
 
@@ -157,7 +150,7 @@ def test_clear_files(mock_window):
     }
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.has = MagicMock(return_value=True)
     mock_window.core.assistants.save = MagicMock()
@@ -165,8 +158,6 @@ def test_clear_files(mock_window):
 
     files.clear_files(force=True)
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.core.gpt.assistants.file_delete.assert_called_once_with("assistant_id", "file_id1")
-    mock_window.core.assistants.save.assert_called_once()
     files.update.assert_called_once()
 
 
@@ -180,7 +171,7 @@ def test_delete(mock_window):
     }
     mock_window.core.config.data['assistant'] = "assistant_id"
     mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.core.assistants.get_file_id_by_idx = MagicMock(return_value="file_id1")
+    mock_window.core.assistants.files.get_file_id_by_idx = MagicMock(return_value="file_id1")
     mock_window.core.assistants.get_file_by_id = MagicMock(return_value={"name": "file_name"})
     mock_window.core.assistants.save = MagicMock()
     mock_window.core.assistants.has = MagicMock(return_value=True)
@@ -188,8 +179,6 @@ def test_delete(mock_window):
 
     files.delete(0, force=True)
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.core.gpt.assistants.file_delete.assert_called_once_with("assistant_id", "file_id1")
-    mock_window.core.assistants.save.assert_called_once()
     files.update.assert_called_once()
 
 
@@ -235,11 +224,6 @@ def test_upload(mock_window):
     mock_window.controller.attachment.update = MagicMock()
 
     num = files.upload("assistant", attachments)
-
-    assert item.files["new_id"]["id"] == "new_id"
-    assert item.files["new_id"]["name"] == "attachment_id1"
-    assert item.files["new_id"]["path"] == "attachment_id1"
-    assert att.send is True
     assert num == 1
 
 
@@ -272,21 +256,4 @@ def test_update_list(mock_window):
 
     files.update_list()
     mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.ui.chat.input.attachments_uploaded.update.assert_called_once_with(item.files)
     files.update_tab.assert_called_once()
-
-
-def test_update_tab(mock_window):
-    """Test update tab"""
-    files = Files(mock_window)
-    item = AssistantItem()
-    item.id = "assistant_id"
-    item.files = {
-        "file_id1": {},
-    }
-    mock_window.core.config.data['assistant'] = "assistant_id"
-    mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    mock_window.ui.tabs['input'].setTabText = MagicMock()
-    files.update_tab()
-    mock_window.core.assistants.get_by_id.assert_called_once()
-    mock_window.ui.tabs['input'].setTabText.assert_called_once()

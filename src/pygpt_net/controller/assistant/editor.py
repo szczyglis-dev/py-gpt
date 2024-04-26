@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
+
+import copy
+
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.utils import trans
@@ -25,6 +29,7 @@ class Editor:
             "id": {
                 "type": "text",
                 "label": "assistant.id",
+                "read_only": True,
             },
             "name": {
                 "type": "text",
@@ -44,14 +49,18 @@ class Editor:
                 "type": "textarea",
                 "label": "assistant.instructions",
             },
+            "vector_store": {
+                "type": "combo",
+                "label": "assistant.vector_store",
+            },
             "tool.code_interpreter": {
                 "type": "bool",
                 "label": "assistant.tool.code_interpreter",
                 "value": True,
             },
-            "tool.retrieval": {
+            "tool.file_search": {
                 "type": "bool",
-                "label": "assistant.tool.retrieval",
+                "label": "assistant.tool.file_search",
                 "value": False,
             },
             "tool.function": {
@@ -66,20 +75,20 @@ class Editor:
         }
         self.id = "assistant"
 
-    def get_options(self):
+    def get_options(self) -> dict:
         """
         Get options list
 
-        :return: options list
+        :return: options dict
         """
         return self.options
 
-    def get_option(self, key: str):
+    def get_option(self, key: str) -> dict:
         """
         Get option by key
 
         :param key: option key
-        :return: option
+        :return: option dict
         """
         if key in self.options:
             return self.options[key]
@@ -93,6 +102,57 @@ class Editor:
             parent,
             self.get_option(key),
         )
+        self.update_store_list()  # vector store list
+
+    def update_store_list(self):
+        """Update vector store list"""
+        items = {}
+        items["--"] = "--"  # none
+        stores = self.window.core.assistants.store.get_all()
+        for id in list(stores.keys()):
+            if stores[id].name is None or stores[id].name == "":
+                if self.window.core.config.get("assistant.store.hide_threads"):
+                    continue  # hide empty names
+                items[id] = id
+            else:
+                items[id] = stores[id].name
+        self.window.controller.config.update_combo(self.id, "vector_store", items)
+
+    def get_selected_store_id(self) -> str or None:
+        """
+        Return current selected vector store ID
+
+        :return: vector store ID or None
+        """
+        idx = self.window.controller.config.get_value(
+            parent_id=self.id,
+            key='vector_store',
+            option=self.options['vector_store'],
+            idx=True,  # return idx, not the text value
+        )  # empty or not
+        if idx <= 0:
+            return None
+        stores = self.window.core.assistants.store.get_all()
+        i = 1  # from 1 here, 0 = none
+        for id in list(stores.keys()):
+            if i == idx:
+                return id
+            i += 1
+
+    def get_choice_idx_by_id(self, store_id) -> int:
+        """
+        Return combo choice index by vector store ID
+
+        :param store_id: store ID
+        :return: combo idx
+        """
+        stores = self.window.core.assistants.store.get_all()
+        i = 1
+        for id in list(stores.keys()):
+            if id == store_id:
+                return i
+            i += 1
+        return 0  # none
 
     def edit(self, idx: int = None):
         """
@@ -105,7 +165,11 @@ class Editor:
             id = self.window.core.assistants.get_by_idx(idx)
 
         self.init(id)
-        self.window.ui.dialogs.open_editor('editor.assistants', idx, width=800)
+        self.window.ui.dialogs.open_editor('editor.assistants', idx, width=900)
+
+    def close(self):
+        """Close assistant editor"""
+        self.window.ui.dialogs.close('editor.assistants')
 
     def init(self, id: str = None):
         """
@@ -124,7 +188,9 @@ class Editor:
             # defaults
             assistant.instructions = 'You are a helpful assistant.'
             assistant.tools['code_interpreter'] = True
-            assistant.tools['retrieval'] = True
+            assistant.tools['file_search'] = True
+
+        self.update_store_list()
 
         if assistant.name is None:
             assistant.name = ""
@@ -138,12 +204,17 @@ class Editor:
         options = {}
         data_dict = assistant.to_dict()
         for key in self.options:
-            options[key] = self.options[key]
+            options[key] = copy.deepcopy(self.options[key])
             options[key]['value'] = data_dict[key]
             if options[key]['value'] is None:
                 options[key]['value'] = ""
 
-        self.window.controller.config.load_options(self.id, options)
+            # if vector store, set by idx, not by value
+            if key == "vector_store":
+                idx = self.get_choice_idx_by_id(data_dict[key])
+                options[key]['idx'] = idx  # set by idx
+
+        self.window.controller.config.load_options(self.id, options)  # set combo by idx
 
         # restore functions
         if assistant.has_functions():
@@ -169,6 +240,8 @@ class Editor:
     def save(self):
         """Save assistant"""
         created = False
+
+        # get data from fields
         id = self.window.controller.config.get_value(
             parent_id=self.id, 
             key='id', 
@@ -193,8 +266,11 @@ class Editor:
             return
 
         if id is None or id == "" or not self.window.core.assistants.has(id):
+            self.window.ui.status(trans('status.sending'))
+            QApplication.processEvents()
             assistant = self.window.controller.assistant.create()  # id is created in API here
             if assistant is None:
+                self.window.ui.status("status.error")
                 print("ERROR: Assistant not created!")
                 return
             id = assistant.id  # set to ID created in API
@@ -214,6 +290,8 @@ class Editor:
 
         # update data in API if only updating data here (not creating)
         if not created:
+            self.window.ui.status(trans('status.sending'))
+            QApplication.processEvents()
             self.window.controller.assistant.update_data(assistant)
 
         # save
@@ -263,10 +341,10 @@ class Editor:
                 key='tool.code_interpreter',
                 option=self.options['tool.code_interpreter'],
             ),
-            'retrieval': self.window.controller.config.get_value(
+            'file_search': self.window.controller.config.get_value(
                 parent_id=self.id,
-                key='tool.retrieval',
-                option=self.options['tool.retrieval'],
+                key='tool.file_search',
+                option=self.options['tool.file_search'],
             ),
             'function': [],  # functions are assigned separately (below)
         }
@@ -300,3 +378,7 @@ class Editor:
             assistant.tools['function'] = functions
         else:
             assistant.tools['function'] = []
+
+        # vector store
+        store_id = self.get_selected_store_id()
+        assistant.vector_store = store_id

@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.core.assistant.json_file import JsonFileProvider
+
+from .files import Files
+from .store import Store
 
 
 class Assistants:
@@ -22,6 +25,8 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
+        self.files = Files(window)
+        self.store = Store(window)
         self.provider = JsonFileProvider(window)  # json file provider
         self.current_file = None
         self.items = {}
@@ -29,6 +34,8 @@ class Assistants:
     def install(self):
         """Install provider data"""
         self.provider.install()
+        self.files.install()
+        self.store.install()
 
     def patch(self, app_version) -> bool:
         """
@@ -37,7 +44,9 @@ class Assistants:
         :param app_version: app version
         :return: True if data was patched
         """
-        return self.provider.patch(app_version)
+        res1 = self.provider.patch(app_version)
+        res2 = self.store.patch(app_version)
+        return res1 or res2
 
     def get_by_idx(self, idx: int) -> str:
         """
@@ -109,38 +118,6 @@ class Assistants:
             self.items.pop(id)
         self.save()
 
-    def rename_file(
-            self,
-            assistant: AssistantItem,
-            file_id: str,
-            name: str
-    ):
-        """
-        Rename uploaded remote file name
-
-        :param assistant: assistant object
-        :param file_id: file_id
-        :param name: new name
-        """
-        if assistant is None:
-            return
-
-        need_save = False
-
-        # rename file in files
-        if file_id in assistant.files:
-            assistant.files[file_id]['name'] = name  # TODO: make object
-            need_save = True
-
-        # rename file in attachments
-        if file_id in assistant.attachments:
-            assistant.attachments[file_id].name = name
-            need_save = True
-
-        # save assistants
-        if need_save:
-            self.save()
-
     def replace_attachment(
             self,
             assistant: AssistantItem,
@@ -173,140 +150,11 @@ class Assistants:
             return None
         return list(assistants.keys())[0]
 
-    def get_file_id_by_idx(
-            self,
-            assistant: AssistantItem,
-            idx: int
-    ) -> str | None:
-        """
-        Return file ID by index
-
-        :param assistant: assistant object
-        :param idx: index
-        :return: file ID or None
-        """
-        files = assistant.files
-        if idx >= len(files):
-            return None
-        return list(files.keys())[idx]
-
-    def get_file_by_id(
-            self,
-            assistant: AssistantItem,
-            id: str
-    ) -> dict | None:
-        """
-        Return file by ID
-
-        :param assistant: assistant object
-        :param id: file ID
-        :return: Dict with file data
-        :rtype: dict or None
-        """
-        files = assistant.files
-        if id not in files:
-            return None
-        return files[id]
-
-    def import_files(
-            self,
-            assistant: AssistantItem,
-            data: list,
-            import_data: bool = True
-    ):
-        """
-        Import files from remote API
-
-        :param assistant: assistant object
-        :param data: data from remote API
-        :param import_data: import data from remote API
-        """
-        if assistant is None:
-            return
-
-        remote_ids = []
-        # add files from data (from remote)
-        for file in data:
-            id = file.id
-            remote_ids.append(id)
-            name = ""
-            path = ""
-            size = 0
-
-            # if file with this ID already in assistant.files
-            if id in assistant.files:
-                if 'name' in assistant.files[id] and assistant.files[id]['name'] != '':
-                    name = assistant.files[id]['name']
-                    if 'size' in assistant.files[id]:
-                        size = assistant.files[id]['size']
-                else:
-                    name = id
-                    # import name from remote
-                    if import_data:
-                        name, size = self.import_file_info(id)
-                if 'path' in assistant.files[id]:
-                    path = assistant.files[id]['path']
-                if size == 0:
-                    _, size = self.import_file_info(id)
-            elif id in assistant.attachments:
-                name = assistant.attachments[id].name
-                path = assistant.attachments[id].path
-                size = assistant.attachments[id].size
-            else:
-                name = id
-                size = 0
-                if import_data:
-                    name, size = self.import_file_info(id)  # import size from remote
-                path = None
-            assistant.files[id] = {
-                'id': id,
-                'name': name,
-                'size': size,
-                'path': path,
-            }
-
-        # remove files that are not in data (from remote)
-        for id in list(assistant.files.keys()):
-            if id not in remote_ids:
-                del assistant.files[id]
-
-    def import_filenames(self, id: str) -> str:
-        """
-        Import filenames from remote API
-
-        :param id: file id
-        :return: filename
-        """
-        name = id
-        try:
-            remote_data = self.window.core.gpt.assistants.file_info(id)
-            if remote_data is not None:
-                name = remote_data.filename
-        except Exception as e:
-            self.window.core.debug.log(e)
-        return name
-
-    def import_file_info(self, id: str) -> (str, int):
-        """
-        Import file info from remote API
-
-        :param id: file id
-        :return: filename, size
-        """
-        name = id
-        size = 0
-        try:
-            remote_data = self.window.core.gpt.assistants.file_info(id)
-            if remote_data is not None:
-                name = remote_data.filename
-                size = remote_data.bytes
-        except Exception as e:
-            self.window.core.debug.log(e)
-        return name, size
-
     def load(self):
         """Load assistants"""
         self.items = self.provider.load()
+        self.store.load()  # load vector stores
+        self.files.load()  # load files
 
     def save(self):
         """Save assistants"""

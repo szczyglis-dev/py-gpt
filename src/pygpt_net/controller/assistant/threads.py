@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import json
@@ -15,7 +15,7 @@ import time
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, get_image_extensions
 
 
 class Threads:
@@ -27,10 +27,10 @@ class Threads:
         """
         self.window = window
         self.started = False
-        self.stop = False
-        self.run_id = None
+        self.stop = False  # force stop run
+        self.run_id = None  # current run ID
         self.tool_calls = []  # list of previous tool calls
-        self.img_ext = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
+        self.img_ext = get_image_extensions()  # list, .png, .jpg, etc.
 
     def create_thread(self) -> str:
         """
@@ -45,17 +45,17 @@ class Threads:
 
     def handle_output_message(self, ctx: CtxItem, stream: bool = False):
         """
-        Handle output message (not stream)
+        Handle output message (not stream ONLY)
 
         :param ctx: CtxItem
-        :param stream: stream mode
+        :param stream: True if stream
         """
         # update ctx
         ctx.from_previous()  # append previous result if exists
         self.window.core.ctx.update_item(ctx)
         self.window.controller.chat.output.handle(ctx, 'assistant', stream)
 
-        if stream:
+        if stream:  # append all output to chat
             self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
 
         ctx.clear_reply()  # reset results
@@ -77,16 +77,17 @@ class Threads:
 
         :param ctx: CtxItem
         :param msg: Message
-        :param stream: stream mode
+        :param stream: True if stream
         """
         paths = []
         file_ids = []
         images_ids = []
         mappings = {}  # file_id: path to sandbox
+        citations = []
 
         for content in msg.content:
             if content.type == "text":
-                # text
+                # text, append only if no stream or if is stream and already streamed output is empty
                 if not stream or (ctx.output is None or ctx.output == ""):
                     ctx.set_output(content.text.value)
 
@@ -94,39 +95,64 @@ class Threads:
                 if content.text.annotations:
                     self.log("Run: received annotations: {}".format(len(content.text.annotations)))
                     for item in content.text.annotations:
+                        # file
                         if item.type == "file_path":
                             file_id = item.file_path.file_id
                             file_ids.append(file_id)
                             mappings[file_id] = item.text
+                        # citation
+                        elif item.type == "file_citation":
+                            data = {
+                                "type": "assistant",  # store is remote
+                                "text": item.text,
+                                "start_idx": item.start_index,
+                                "end_idx": item.end_index,
+                            }
+                            if item.file_citation:
+                                data["file_id"] = item.file_citation.file_id
+                                data["quote"] = item.file_citation.quote
+                            citations.append(data)
 
             # image file
             elif content.type == "image_file":
                 self.log("Run: received image file")
                 images_ids.append(content.image_file.file_id)
 
-        # handle msg files
+        """
+        # handle message files  -- legacy, deprecated
         for file_id in msg.file_ids:
             if file_id not in images_ids and file_id not in file_ids:
+                self.log("Run: appending file id: {}".format(file_id))
                 file_ids.append(file_id)
+        """
 
         # handle content images
         if images_ids:
             image_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
             ctx.images = self.window.core.filesystem.make_local_list(list(image_paths))
 
-        # download msg files
+        # citations
+        if citations:
+            ctx.doc_ids = citations
+
+        # -- files --
+
+        # download message files
         paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
         if paths:
             # convert to local paths
             local_paths = self.window.core.filesystem.make_local_list(list(paths))
-            text_msg = ctx.output
+            text_msg = ctx.output  # use current output
             if text_msg:
                 # map file ids to local paths
                 for file_id in mappings:
                     path_sandbox = mappings[file_id]
                     k = file_ids.index(file_id)
                     if len(local_paths) > k:
-                        text_msg = text_msg.replace(path_sandbox, local_paths[k])  # replace sandbox path
+                        text_msg = text_msg.replace(
+                            path_sandbox,
+                            local_paths[k]
+                        )  # replace sandbox file path with a local path
                 ctx.set_output(text_msg)
             ctx.files = local_paths
 
@@ -141,7 +167,7 @@ class Threads:
 
     def handle_messages(self, ctx: CtxItem):
         """
-        Handle run messages (not stream)
+        Handle run messages (not stream ONLY)
 
         :param ctx: CtxItem
         """
@@ -159,7 +185,7 @@ class Threads:
 
     def handle_tool_calls_stream(self, run, ctx: CtxItem):
         """
-        Handle tool calls (stream)
+        Handle tool calls (stream ONLY)
 
         :param run: Run
         :param ctx: CtxItem
@@ -231,7 +257,7 @@ class Threads:
 
         :param ctx: context item
         :param run
-        :param stream: stream mode
+        :param stream: True if stream
         """
         ctx.run_id = run.id
         ctx.current = False
@@ -253,11 +279,11 @@ class Threads:
 
     def handle_run(self, ctx: CtxItem, run, stream: bool = False):
         """
-        Handle assistant's run (not stream)
+        Handle assistant's run (not stream ONLY)
 
         :param ctx: CtxItem
         :param run: Run
-        :param stream: stream mode
+        :param stream: True if stream
         """
         self.reset()  # clear previous run
 
@@ -295,7 +321,7 @@ class Threads:
 
     def handle_stream_begin(self, ctx: CtxItem):
         """
-        Handle stream end (stream)
+        Handle stream end (stream ONLY)
 
         :param ctx: CtxItem
         """
@@ -303,7 +329,7 @@ class Threads:
 
     def handle_stream_end(self, ctx: CtxItem):
         """
-        Handle stream end (stream)
+        Handle stream end (stream ONLY)
 
         :param ctx: CtxItem
         """
@@ -327,7 +353,7 @@ class Threads:
     @Slot(object, object)
     def handle_status(self, run, ctx: CtxItem):
         """
-        Handle status (not stream)
+        Handle status (not stream ONLY)
 
         :param run: Run
         :param ctx: CtxItem
@@ -404,7 +430,7 @@ class Threads:
 
     def is_running(self) -> bool:
         """
-        Check if tool calls need submit
+        Check if tool calls need submit (tools are running)
 
         :return: True if running
         """
@@ -412,12 +438,14 @@ class Threads:
 
 
 class RunSignals(QObject):
+    """Status check signals"""
     updated = Signal(object, object)
     destroyed = Signal()
     started = Signal()
 
 
 class RunWorker(QRunnable):
+    """Status check async worker"""
     def __init__(self, *args, **kwargs):
         super(RunWorker, self).__init__()
         self.signals = RunSignals()

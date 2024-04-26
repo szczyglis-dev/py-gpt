@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.15 02:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -152,6 +152,8 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
+        if ctx.output != "" and ctx.output is not None:
+            return  # append to existing output
         self.window.controller.chat.render.stream_begin()
         self.window.controller.assistant.threads.handle_stream_begin(ctx)
 
@@ -285,7 +287,7 @@ class AssistantsWorker:
 
 
 class EventHandler(AssistantEventHandler):
-
+    """Assistants event handler"""
     def __init__(
             self,
             signals: QObject = None,
@@ -363,6 +365,7 @@ class EventHandler(AssistantEventHandler):
 
 
 class WorkerSignals(QObject):
+    """Assistants worker signals"""
     # run create
     finished = Signal(object, object, bool)  # ctx, run, stream
     error = Signal(object, object)  # ctx, error
@@ -379,6 +382,7 @@ class WorkerSignals(QObject):
 
 
 class Worker(QRunnable):
+    """Assistants worker"""
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
         self.signals = WorkerSignals()

@@ -145,6 +145,7 @@ class JsonFileProvider(BaseProvider):
             'attachments': attachments,
             'files': item.files,
             'tools': item.tools,
+            'vector_store': item.vector_store,
         }
 
     @staticmethod
@@ -171,6 +172,18 @@ class JsonFileProvider(BaseProvider):
             item.files = data['files']
         if 'tools' in data:
             item.tools = data['tools']
+        if 'vector_store' in data:
+            item.vector_store = data['vector_store']
+
+        # fix for versions < 2.1.79
+        if 'file_search' not in item.tools:
+            if 'retrieval' in item.tools:
+                item.tools['file_search'] = item.tools['retrieval']
+            else:
+                item.tools['file_search'] = False
+
+        if 'retrieval' in item.tools:
+            del item.tools['retrieval']
 
         # fix for older versions
         if 'function' in item.tools:

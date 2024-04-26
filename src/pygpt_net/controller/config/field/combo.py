@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 class Combo:
@@ -30,11 +30,15 @@ class Combo:
         :param parent_id: Options parent ID
         :param key: Option key
         :param option: Option data
+        :param idx: by idx, not the value
         """
         value = option["value"]
-        index = self.window.ui.config[parent_id][key].combo.findData(value)
-        if index != -1:
-            self.window.ui.config[parent_id][key].combo.setCurrentIndex(index)
+        if "idx" in option:  # by idx
+            self.window.ui.config[parent_id][key].combo.setCurrentIndex(option["idx"])
+        else: # by value
+            index = self.window.ui.config[parent_id][key].combo.findData(value)
+            if index != -1:
+                self.window.ui.config[parent_id][key].combo.setCurrentIndex(index)
 
     def on_update(
             self,
@@ -67,14 +71,32 @@ class Combo:
             self,
             parent_id: str,
             key: str,
-            option: dict
-    ) -> str:
+            option: dict,
+            idx: bool = False
+    ) -> str or int:
         """
         Get checkbox value
 
         :param parent_id: Parent ID
         :param key: Option key
         :param option: Option data dict
-        :return: Option value
+        :param idx: return selected idx, not the value
+        :return: Option text value or selected idx
         """
-        return self.window.ui.config[parent_id][key].combo.currentData()
+        if idx:
+            return self.window.ui.config[parent_id][key].combo.currentIndex()
+        else:
+            return self.window.ui.config[parent_id][key].combo.currentData()
+
+    def update_list(self, parent_id: str, key: str, items: dict):
+        """
+        Update combobox items
+
+        :param parent_id: Options parent ID
+        :param key: Option key
+        :param items: Items dict
+        """
+        self.window.ui.config[parent_id][key].combo.clear()
+        for item in items:
+            self.window.ui.config[parent_id][key].combo.addItem(items[item], items[item])
+        self.window.ui.config[parent_id][key].combo.setCurrentIndex(-1)

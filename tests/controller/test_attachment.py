@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -139,7 +139,6 @@ def test_update_name(mock_window):
 
     attachment.update_name('1', 'test')
     mock_window.core.attachments.rename_file.assert_called_once()
-    mock_window.controller.assistant.files.update_name.assert_called_once()
     mock_window.ui.dialog['rename'].close.assert_called_once()
     attachment.update.assert_called_once()
 
@@ -187,7 +186,6 @@ def test_clear_assistant(mock_window):
     attachment.clear(force=True)
     mock_window.core.attachments.delete_all.assert_called_once_with(mode='assistant', remove_local=False)
     mock_window.controller.chat.vision.unavailable.assert_called_once()
-    mock_window.controller.assistant.files.clear_attachments.assert_called_once()
     attachment.update.assert_called_once()
 
 
@@ -213,15 +211,6 @@ def test_open(mock_window):
         mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
         attachment.open('assistant', 1)
         mock_window.controller.files.open.assert_called_once()
-
-
-def test_import_from_assistant(mock_window):
-    attachment = Attachment(mock_window)
-    assistant = AssistantItem()
-    assistant.attachments = []
-    mock_window.core.attachments.from_attachments = MagicMock()
-    attachment.import_from_assistant('assistant', assistant)
-    mock_window.core.attachments.from_attachments.assert_called_once()
 
 
 def test_has(mock_window):

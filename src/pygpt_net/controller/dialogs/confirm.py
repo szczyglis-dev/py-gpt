@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 07:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -155,6 +155,22 @@ class Confirm:
             self.window.controller.assistant.import_api(True)
         elif type == 'assistant_import_files':
             self.window.controller.assistant.files.sync(True)
+        elif type == 'assistant.files.truncate':
+            self.window.controller.assistant.files.truncate_files(True)
+        elif type == 'assistant.files.clear':
+            self.window.controller.assistant.files.clear_files(True)
+
+        # assistants vector stores
+        elif type == 'assistant.store.delete':
+            self.window.controller.assistant.store.delete_by_idx(id, True)
+        elif type == 'assistant.store.import':
+            self.window.controller.assistant.store.import_all(True)
+        elif type == 'assistant.store.truncate':
+            self.window.controller.assistant.store.truncate_all(True)
+        elif type == 'assistant.store.clear':
+            self.window.controller.assistant.store.clear_all(True)
+        elif type == 'assistant.store.refresh':
+            self.window.controller.assistant.store.refresh_all(True)
 
         # settings
         elif type == 'settings.defaults.user':

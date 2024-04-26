@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import webbrowser
 
-from pygpt_net.controller.assistant.editor import Editor
-from pygpt_net.controller.assistant.files import Files
-from pygpt_net.controller.assistant.threads import Threads
 from pygpt_net.item.assistant import AssistantItem
+
+from .editor import Editor
+from .files import Files
+from .threads import Threads
+from .store import VectorStore
 
 from pygpt_net.utils import trans
 
@@ -30,6 +32,7 @@ class Assistant:
         self.editor = Editor(window)
         self.files = Files(window)
         self.threads = Threads(window)
+        self.store = VectorStore(window)
 
     def setup(self):
         """Setup assistants"""
@@ -102,10 +105,6 @@ class Assistant:
         # update attachments list with list of attachments from assistant
         mode = self.window.core.config.get('mode')
         assistant = self.window.core.assistants.get_by_id(id)
-        self.window.controller.attachment.import_from_assistant(
-            mode,
-            assistant,
-        )
         self.window.controller.attachment.update()
         self.update(False)
 
@@ -170,7 +169,11 @@ class Assistant:
             self.window.ui.dialogs.alert(e)
 
     def update_data(self, assistant: AssistantItem):
-        """Update assistant"""
+        """
+        Update assistant
+
+        :param assistant: AssistantItem
+        """
         self.editor.assign_data(assistant)
         try:
             return self.window.core.gpt.assistants.update(assistant)

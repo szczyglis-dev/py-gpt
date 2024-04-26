@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -230,6 +230,9 @@ class Output:
         # store to history
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "output")
+
+        # unlock input if not unlocked before
+        self.window.controller.chat.common.unlock_input()  
 
     def handle_cmd(self, ctx: CtxItem):
         """

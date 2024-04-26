@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -76,20 +76,21 @@ class Text:
 
         self.window.core.ctx.last_item = ctx  # store last item
 
-        # upload assistant attachments (only assistant mode here)
-        attachments = self.window.controller.chat.files.upload(mode)
-        if len(attachments) > 0:
-            ctx.attachments = attachments
-            self.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
-
-        # store history (input)
-        if self.window.core.config.get('store_history'):
-            self.window.core.history.append(ctx, "input")
-
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
             self.window.controller.assistant.prepare()  # create new thread if not exists
             ctx.thread = self.window.core.config.get('assistant_thread')
+
+        # upload assistant attachments (only assistant mode here)
+        attachments = self.window.controller.chat.files.upload(mode)  # current thread is already in global config
+        if len(attachments) > 0:
+            ctx.attachments = attachments
+            self.window.ui.status(trans('status.sending'))
+            self.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
+
+        # store history (input)
+        if self.window.core.config.get('store_history'):
+            self.window.core.history.append(ctx, "input")        
 
         if is_ctx_debug:
             self.log("Context: INPUT: {}".format(ctx))

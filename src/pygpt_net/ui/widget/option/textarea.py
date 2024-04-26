@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 23:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
@@ -50,6 +50,8 @@ class OptionTextarea(QTextEdit):
                 self.real_time = self.option["real_time"]
             if "context_options" in self.option:
                 self.context_options = self.option["context_options"]
+            if "read_only" in self.option and self.option["read_only"]:
+                self.setReadOnly(True)
 
     def contextMenuEvent(self, event):
         """

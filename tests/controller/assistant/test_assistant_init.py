@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -90,7 +90,6 @@ def test_select_by_id(mock_window):
 
     assistant.select_by_id('assistant_id')
     mock_window.core.assistants.get_by_id.assert_called_once_with('assistant_id')
-    mock_window.controller.attachment.import_from_assistant.assert_called_once()
     mock_window.controller.attachment.update.assert_called_once()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     assert mock_window.core.config.get('assistant') == 'assistant_id'
@@ -139,17 +138,6 @@ def test_create(mock_window):
     mock_window.core.assistants.create.assert_called_once()
     assistant.editor.assign_data.assert_called_once_with(item)
     mock_window.core.gpt.assistants.create.assert_called_once()
-
-
-def test_update_data(mock_window):
-    """Test update assistant"""
-    assistant = Assistant(mock_window)
-    item = AssistantItem()
-    mock_window.core.gpt.assistants.update = MagicMock(return_value=item)
-
-    result = assistant.update_data(item)
-    assert result == item
-    mock_window.core.gpt.assistants.update.assert_called_once_with(item)
 
 
 def test_import_api(mock_window):

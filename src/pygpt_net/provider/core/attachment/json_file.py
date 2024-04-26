@@ -141,7 +141,8 @@ class JsonFileProvider(BaseProvider):
             'name': attachment.name,
             'path': attachment.path,
             'remote': attachment.remote,
-            'send': attachment.send
+            'send': attachment.send,
+            'vector_store_ids': attachment.vector_store_ids,
         }
 
     @staticmethod
@@ -162,6 +163,8 @@ class JsonFileProvider(BaseProvider):
             attachment.remote = data['remote']
         if 'send' in data:
             attachment.send = data['send']
+        if 'vector_store_ids' in data:
+            attachment.vector_store_ids = data['vector_store_ids']
 
     def dump(self, item: AttachmentItem) -> str:
         """

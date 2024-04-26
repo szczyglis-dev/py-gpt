@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -86,10 +86,11 @@ class AttachmentsUploaded:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        model = QStandardItemModel(0, 3, parent)
+        model = QStandardItemModel(0, 4, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.size'))
+        model.setHeaderData(3, Qt.Horizontal, trans('attachments.header.store'))
         return model
 
     def update(self, data):
@@ -98,22 +99,32 @@ class AttachmentsUploaded:
 
         :param data: Data to update
         """
+        store_names = self.window.core.assistants.store.get_names()
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for id in data:
+            item = data[id]
             size = "-"
-            if 'name' not in data[id] or 'path' not in data[id]:
-                continue
-            path = data[id]['path']
-            if 'size' in data[id] and data[id]['size'] is not None:
-                size = self.window.core.filesystem.sizeof_fmt(data[id]['size'])
+            path = item.path
+
+            # size
+            if item.size is not None:
+                size = self.window.core.filesystem.sizeof_fmt(item.size)
             else:
                 if path and os.path.exists(path):
                     size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
+
+            # vector stores
+            if item.store_id is not None and item.store_id in store_names:
+                vector_store = store_names[item.store_id]
+            else:
+                vector_store = "(thread only)"
+
             self.window.ui.models[self.id].insertRow(i)
             index = self.window.ui.models[self.id].index(i, 0)
-            self.window.ui.models[self.id].setData(index, "ID: " + id, QtCore.Qt.ToolTipRole)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id]['name'])
+            self.window.ui.models[self.id].setData(index, "file_id: " + str(item.file_id), QtCore.Qt.ToolTipRole)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), item.name)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), path)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 3), vector_store)
             i += 1

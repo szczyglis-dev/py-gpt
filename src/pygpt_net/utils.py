@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import json
@@ -197,3 +197,12 @@ def pack_arg(arg: any, type: str) -> any:
         except Exception:
             return ""
     return arg
+
+
+def get_image_extensions() -> list:
+    """
+    Return list of image extensions
+
+    :return: list of image extensions
+    """
+    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']

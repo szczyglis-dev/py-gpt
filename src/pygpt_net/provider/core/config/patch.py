@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -1399,6 +1399,13 @@ class Patch:
                 self.window.core.updater.patch_css('web.css', True)  # force update
                 self.window.core.updater.patch_css('web.light.css', True)  # force update
                 self.window.core.updater.patch_css('web.dark.css', True)  # force update
+                updated = True
+
+            # < 2.1.79
+            if old < parse_version("2.1.79"):
+                print("Migrating config from < 2.1.79...")
+                if 'assistant.store.hide_threads' not in data:
+                    data["assistant.store.hide_threads"] = True
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 
@@ -53,5 +53,10 @@ class AssistantsDebug:
                 'tools[function]': assistant.tools['function']
             }
             self.window.core.debug.add(self.id, str(assistant.name), str(data))
+
+        self.window.core.debug.add(self.id, '----', '')
+
+        self.window.core.debug.add(self.id, 'Store (items)', str(self.window.core.assistants.store.items))
+        #self.window.core.debug.add(self.id, 'Store (items)', str(self.window.core.assistants.store.items))
 
         self.window.core.debug.end(self.id)

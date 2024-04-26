@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -45,6 +45,8 @@ class OptionInputInline(QLineEdit):
                 self.value = self.option["value"]
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
+            if "read_only" in self.option and self.option["read_only"]:
+                self.setReadOnly(True)
 
     def focusOutEvent(self, event):
         """On focus out event"""
@@ -102,6 +104,8 @@ class OptionInput(QLineEdit):
                 self.value = self.option["value"]
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
+            if "read_only" in self.option and self.option["read_only"]:
+                self.setReadOnly(True)
 
     def keyPressEvent(self, event):
         """

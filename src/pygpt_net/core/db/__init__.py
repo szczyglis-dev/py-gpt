@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -157,7 +157,35 @@ class Database:
             'is_initialized',
             'uuid',
         ]
-
+        columns["remote_file"] = [
+            'id',
+            'file_id',
+            'store_id',
+            'thread_id',
+            'name',
+            'path',
+            'size',
+            'created_ts',
+            'updated_ts',
+            'uuid',
+        ]
+        columns["remote_store"] = [
+            'id',
+            'store_id',
+            'name',
+            'usage_bytes',
+            'num_files',
+            'expire_days',
+            'status',
+            'status_json',
+            'last_active_ts',
+            'last_sync_ts',
+            'is_thread',
+            'description',
+            'uuid',
+            'created_ts',
+            'updated_ts',
+        ]
         self.tables = {
             'calendar_note': {
                 'columns': columns["calendar_note"],
@@ -245,6 +273,26 @@ class Database:
                 'search_fields': ['id', 'title', 'content'],
                 'timestamp_columns': ['created_ts', 'updated_ts'],
                 'json_columns': [],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'remote_file': {
+                'columns': columns["remote_file"],
+                'sort_by': columns["remote_file"],
+                'search_fields': ['id', 'file_id', 'store_id', 'thread_id', 'name', 'path'],
+                'timestamp_columns': ['created_ts', 'updated_ts'],
+                'json_columns': [],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'remote_store': {
+                'columns': columns["remote_store"],
+                'sort_by': columns["remote_store"],
+                'search_fields': ['id', 'store_id', 'uuid', 'name', 'description', 'status', 'status_json'],
+                'timestamp_columns': ['created_ts', 'updated_ts', 'last_sync_ts', 'last_active_ts'],
+                'json_columns': ['status_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',

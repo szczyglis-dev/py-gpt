@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -274,6 +274,7 @@ class Ctx:
         :param restore_model: restore model if defined in ctx
         """
         # select ctx by id
+        self.window.core.ctx.thread = None  # reset thread id
         self.window.core.ctx.select(id, restore_model=restore_model)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
@@ -312,6 +313,7 @@ class Ctx:
                 else:
                     # if empty ctx assistant then get assistant from current selected
                     assistant_id = self.window.core.config.get('assistant')
+                self.window.controller.assistant.files.update()  # always update assistant files
 
             # switch model to ctx model if model is defined in ctx and model is available for this mode
             if model is not None and self.window.core.models.has_model(mode, model):
@@ -358,6 +360,7 @@ class Ctx:
                 msg=trans('ctx.delete.confirm'),
             )
             return
+
         # delete data from indexes if exists
         try:
             self.delete_meta_from_idx(id)

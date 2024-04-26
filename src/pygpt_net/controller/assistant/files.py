@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
+
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
@@ -42,8 +44,11 @@ class Files:
         assistant = self.window.core.assistants.get_by_id(id)
         if assistant is None:
             return
-        self.window.core.assistants.current_file = \
-            self.window.core.assistants.get_file_id_by_idx(assistant, idx)
+
+        # get file by list index
+        thread_id = self.window.core.config.get('assistant_thread')
+        file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
+        self.window.core.assistants.current_file = file_id
 
     def count_upload(self, attachments: dict) -> int:
         """
@@ -77,6 +82,7 @@ class Files:
         """
         self.window.ui.status("OK. Imported files: " + str(num) + ".")
         self.update()
+        self.window.ui.dialogs.alert(trans("status.finished"))
 
     def handle_imported_files_failed(self, error: any):
         """
@@ -86,6 +92,28 @@ class Files:
         """
         self.window.core.debug.log(error)
         print("Error importing files")
+        self.window.ui.dialogs.alert(error)
+        self.update()
+
+    def handle_truncated_files(self, num: int):
+        """
+        Handle truncated (in API) files
+
+        :param num: number of truncated files
+        """
+        # self.window.core.assistants.files.truncate()  # clear all files, remove from stores and DB
+        self.window.ui.status("OK. Truncated files: " + str(num) + ".")
+        self.update()
+        self.window.ui.dialogs.alert(trans("status.finished"))
+
+    def handle_truncated_files_failed(self, error: any):
+        """
+        Handle error on truncated files
+
+        :param error: error message
+        """
+        self.window.core.debug.log(error)
+        print("Error truncating files")
         self.window.ui.dialogs.alert(error)
         self.update()
 
@@ -102,8 +130,9 @@ class Files:
         if assistant is None:
             return
 
-        # get attachment ID by index
-        file_id = self.window.core.assistants.get_file_id_by_idx(assistant, idx)
+        # get file by list index
+        thread_id = self.window.core.config.get('assistant_thread')
+        file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
 
         # download file
         self.window.controller.attachment.download(file_id)
@@ -147,18 +176,17 @@ class Files:
         if assistant is None:
             return
 
-        # get attachment ID by index
-        file_id = self.window.core.assistants.get_file_id_by_idx(assistant, idx)
+        thread_id = self.window.core.config.get('assistant_thread')
 
-        # get attachment object by ID
-        data = self.window.core.assistants.get_file_by_id(assistant, file_id)
-        if data is None:
+        # get file by list index
+        file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
+        if file is None:
             return
 
         # set dialog and show
         self.window.ui.dialog['rename'].id = 'attachment_uploaded'
-        self.window.ui.dialog['rename'].input.setText(data['name'])
-        self.window.ui.dialog['rename'].current = file_id
+        self.window.ui.dialog['rename'].input.setText(file.name)
+        self.window.ui.dialog['rename'].current = file.record_id
         self.window.ui.dialog['rename'].show()
         self.update()
 
@@ -168,24 +196,15 @@ class Files:
         self.window.ui.dialog['rename'].close()
         self.update()
 
-    def update_name(self, file_id: str, name: str):
+    def update_name(self, record_id: str, name: str):
         """
         Rename uploaded remote file name
 
-        :param file_id: file_id
+        :param record_id: file record ID
         :param name: new name
         """
-        id = self.window.core.config.get('assistant')
-        if id is None or id == "":
-            self.rename_close()
-            return
-        assistant = self.window.core.assistants.get_by_id(id)
-        if assistant is None:
-            self.rename_close()
-            return
-        self.window.core.assistants.rename_file(
-            assistant,
-            file_id,
+        self.window.core.assistants.files.rename(
+            record_id,
             name,
         )
         self.rename_close()
@@ -208,25 +227,24 @@ class Files:
         if id is None or id == "":
             return
 
-        # delete all files
+        # delete all files in current thread
         if self.window.core.assistants.has(id):
             assistant = self.window.core.assistants.get_by_id(id)
-            for file_id in list(assistant.files):
+            thread_id = self.window.core.config.get('assistant_thread')
+            items = self.window.core.assistants.files.get_by_store_or_thread(assistant.vector_store, thread_id)
+            self.window.ui.status(trans('status.sending'))
+            QApplication.processEvents()
+
+            for id in list(items.keys()):
+                file = items[id]
                 try:
-                    self.window.core.gpt.assistants.file_delete(id, file_id)
-                    assistant.delete_file(file_id)
+                    self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
                 except Exception as e:
+                    self.window.ui.status(trans('status.error'))
                     self.window.ui.dialogs.alert(e)
 
-                # delete file
-                if assistant.has_file(file_id):
-                    assistant.delete_file(file_id)
-                # delete attachment
-                if assistant.has_attachment(file_id):
-                    assistant.delete_attachment(file_id)
-
-            self.window.core.assistants.save()
-            self.update()
+            self.window.ui.status(trans('status.deleted'))
+        self.update()
 
     def delete(self, idx: int, force: bool = False):
         """
@@ -251,32 +269,24 @@ class Files:
         if assistant is None:
             return
 
-        # get attachment ID by index
-        file_id = self.window.core.assistants.get_file_id_by_idx(assistant, idx)
+        # get file by list index
+        thread_id = self.window.core.config.get('assistant_thread')
+        file = self.window.core.assistants.files.get_file_by_idx(idx, assistant.vector_store, thread_id)
+        if file is None:
+            return
 
         # delete file in API
+        self.window.ui.status(trans('status.sending'))
+        QApplication.processEvents()
         try:
-            self.window.core.gpt.assistants.file_delete(id, file_id)
+            self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
+            self.window.ui.status(trans('status.deleted'))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
-            return  # do not delete locally if not deleted in API
+            self.window.ui.status(trans('status.error'))
 
-        # delete locally
-        if self.window.core.assistants.has(id):
-            need_save = False
-            # delete file
-            if assistant.has_file(file_id):
-                assistant.delete_file(file_id)
-                need_save = True
-            # delete attachment
-            if assistant.has_attachment(file_id):
-                assistant.delete_attachment(file_id)
-                need_save = True
-            # save assistants and update assistants list
-            if need_save:
-                self.window.core.assistants.save()
-                self.update()
+        self.update()
 
     def clear_attachments(self, assistant: AssistantItem):
         """
@@ -298,10 +308,11 @@ class Files:
         """
         # get current chosen assistant
         assistant_id = self.window.core.config.get('assistant')
+        thread_id = self.window.core.config.get('assistant_thread')
         if assistant_id is None:
             return 0
-        assistant = self.window.core.assistants.get_by_id(assistant_id)
 
+        assistant = self.window.core.assistants.get_by_id(assistant_id)
         num = 0
         # loop on attachments
         for id in list(attachments):
@@ -328,6 +339,20 @@ class Files:
                     attachment.id = new_id
                     attachment.remote = new_id
 
+                    """
+                    if assistant.vector_store is None or assistant.vector_store == "":
+                        assistant.vector_store = self.window.core.gpt.assistants.vs_create(
+                            "thread-" + thread_id,
+                        )
+                    """
+
+                    # add to vector store if defined in assistant, otherwise file will be added to thread store
+                    if assistant.vector_store:
+                        self.window.core.gpt.assistants.vs_add_file(
+                            assistant.vector_store,
+                            new_id,
+                        )
+
                     # replace old ID with new one
                     self.window.core.attachments.replace_id(
                         mode,
@@ -335,13 +360,14 @@ class Files:
                         attachment,
                     )
 
-                    # update assistant remote files list
-                    assistant.files[new_id] = {
-                        'id': new_id,
-                        'name': attachment.name,
-                        'path': attachment.path,
-                        'size': os.path.getsize(attachment.path),
-                    }
+                    self.window.core.assistants.files.create(
+                        assistant,
+                        thread_id,
+                        new_id,
+                        attachment.name,
+                        attachment.path,
+                        os.path.getsize(attachment.path),
+                    )
 
                     # update assistant attachments list
                     self.window.core.assistants.replace_attachment(
@@ -378,31 +404,28 @@ class Files:
     def update_list(self):
         """Update uploaded files list"""
         assistant_id = self.window.core.config.get('assistant')
+        thread_id = self.window.core.config.get('assistant_thread')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
             return
-
-        items = assistant.files
+        items = self.window.core.assistants.files.get_by_store_or_thread(assistant.vector_store, thread_id)
         self.window.ui.chat.input.attachments_uploaded.update(items)
         self.update_tab()
 
     def update_tab(self):
         """Update tab label (attachments uploaded)"""
         assistant_id = self.window.core.config.get('assistant')
+        thread_id = self.window.core.config.get('assistant_thread')
         if assistant_id is None or assistant_id == "":
             self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
             return
-
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
             return  # no assistant
-
-        items = assistant.files
-        num_files = len(items)
+        num_files = self.window.core.assistants.files.count_by_store_or_thread(assistant.vector_store, thread_id)
         suffix = ''
-
         # append num of files
         if num_files > 0:
             suffix = f' ({num_files})'
@@ -443,6 +466,69 @@ class Files:
                 and self.window.core.config.get('log.assistants'):
             return True
         return False
+
+    def remove_store_from_assistants(self, store_id: str):
+        """
+        Remove vector store from all assistants after store deletion
+
+        :param store_id: vector store ID
+        """
+        for id in list(self.window.core.assistants.items.keys()):
+            assistant = self.window.core.assistants.get_by_id(id)
+            if assistant is not None:
+                if assistant.vector_store == store_id:
+                    assistant.vector_store = None  # remove from assistant
+
+        self.window.core.assistants.save()
+        self.window.core.assistants.files.on_store_deleted(store_id)  # remove from files
+
+    def remove_all_stores_from_assistants(self):
+        """Remove all vector stores from all assistants"""
+        for id in list(self.window.core.assistants.items.keys()):
+            assistant = self.window.core.assistants.get_by_id(id)
+            if assistant is not None:
+                assistant.vector_store = None
+
+        self.window.core.assistants.save()
+        self.window.core.assistants.files.on_all_stores_deleted()  # remove all from files
+
+    def truncate_files(self, force: bool = False):
+        """
+        Truncate all files in API
+
+        :param force: if true, imports without confirmation
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.files.truncate',
+                id='',
+                msg=trans('confirm.assistant.files.truncate'),
+            )
+            return
+        # run asynchronous
+        self.window.ui.status("Removing files...please wait...")
+        QApplication.processEvents()
+        self.window.core.gpt.assistants.importer.truncate_files()  # remove all files from API
+
+    def clear_all(self, force: bool = False):
+        """
+        Clear files (local only)
+
+        :param force: if true, clears without confirmation
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.files.clear',
+                id='',
+                msg=trans('confirm.assistant.files.clear'),
+            )
+            return
+        self.window.ui.status("Clearing files...please wait...")
+        self.window.core.assistants.files.truncate_local()  # clear files local
+        self.window.controller.assistant.files.update()
+        self.update()
+        self.window.ui.status("OK. All files cleared.")
+        self.window.ui.dialogs.alert(trans("status.finished"))
 
     def log(self, msg: str):
         """

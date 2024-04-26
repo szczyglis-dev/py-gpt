@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -31,31 +31,38 @@ class Mapping:
 
         # nodes labels
         for k in self.mapping['nodes']:
-            self.window.ui.nodes[k].setText(trans(self.mapping['nodes'][k]))
+            if k in self.window.ui.nodes:
+                self.window.ui.nodes[k].setText(trans(self.mapping['nodes'][k]))
 
         # menu title
         for k in self.mapping['menu.title']:
-            self.window.ui.menu[k].setTitle(trans(self.mapping['menu.title'][k]))
+            if k in self.window.ui.menu:
+                self.window.ui.menu[k].setTitle(trans(self.mapping['menu.title'][k]))
 
         # menu text
         for k in self.mapping['menu.text']:
-            self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
+            if k in self.window.ui.menu:
+                self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
 
         # menu tooltip
         for k in self.mapping['menu.tooltip']:
-            self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
+            if k in self.window.ui.menu:
+                self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
 
         # dialog title
         for k in self.mapping['dialog.title']:
-            self.window.ui.dialog[k].setWindowTitle(trans(self.mapping['dialog.title'][k]))
+            if k in self.window.ui.dialog:
+                self.window.ui.dialog[k].setWindowTitle(trans(self.mapping['dialog.title'][k]))
 
         # tooltip
         for k in self.mapping['tooltip']:
-            self.window.ui.nodes[k].setToolTip(trans(self.mapping['tooltip'][k]))
+            if k in self.window.ui.nodes:
+                self.window.ui.nodes[k].setToolTip(trans(self.mapping['tooltip'][k]))
 
         # placeholder
         for k in self.mapping['placeholder']:
-            self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
+            if k in self.window.ui.nodes:
+                self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
 
     def get_mapping(self) -> dict:
         """
@@ -124,14 +131,23 @@ class Mapping:
         nodes['assistants.new'] = 'assistant.new'
         nodes['assistants.import'] = 'assistant.import'
         nodes['assistant.btn.save'] = 'dialog.assistant.btn.save'
+        nodes['assistant.btn.close'] = 'dialog.assistant.btn.close'
         nodes['assistant.name.label'] = 'assistant.name'
         nodes['assistant.id.label'] = 'assistant.id'
         nodes['assistant.instructions.label'] = 'assistant.instructions'
         nodes['assistant.model.label'] = 'assistant.model'
         nodes['assistant.description.label'] = 'assistant.description'
         nodes['assistant.tool.function.label'] = 'assistant.functions.label'
-        nodes['assistant.id_tip'] = 'assistant.new.id_tip'
-        nodes['assistant.api.tip'] = 'assistant.api.tip'
+
+        # assistants: vector store
+        nodes['assistant.store.btn.new'] = 'dialog.assistant.store.btn.new'
+        nodes['assistant.store.btn.save'] = 'dialog.assistant.store.btn.save'
+        nodes['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
+        nodes['assistant.store.btn.close'] = 'dialog.assistant.store.btn.close'
+        nodes['assistant.store.hide_thread'] = 'assistant.store.hide_threads'
+
+        # nodes['assistant.id_tip'] = 'assistant.new.id_tip'
+        # nodes['assistant.api.tip'] = 'assistant.api.tip'
 
         # vision
         # nodes['vision.capture.enable'] = 'vision.capture.enable'
@@ -344,6 +360,7 @@ class Mapping:
         dialog_title['config.editor'] = 'dialog.editor.title'
         dialog_title['config.settings'] = 'dialog.settings'
         dialog_title['editor.assistants'] = 'dialog.assistant'
+        dialog_title['assistant.store'] = 'dialog.assistant.store'
         dialog_title['editor.preset.presets'] = 'dialog.preset'
         dialog_title['image'] = 'dialog.image.title'
         dialog_title['interpreter'] = 'dialog.interpreter.title'

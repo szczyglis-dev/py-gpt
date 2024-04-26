@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 08:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import os
@@ -178,15 +178,6 @@ class Attachment:
             name=name,
         )
 
-        # rename filename in assistant data if mode = assistant
-        if self.window.core.config.get('mode') == 'assistant':
-            assistant_id = self.window.core.config.get('assistant')
-            if assistant_id is not None:
-                self.window.controller.assistant.files.update_name(
-                    file_id=file_id,
-                    name=name,
-                )
-
         # close rename dialog and update attachments list
         self.window.ui.dialog['rename'].close()
         self.update()
@@ -227,18 +218,6 @@ class Attachment:
         )
 
         self.window.controller.chat.vision.unavailable()  # set no content to provide
-
-        if mode == 'assistant':
-            # delete all from assistant data
-            assistant_id = self.window.core.config.get('assistant')
-            if assistant_id is not None:
-                assistant = self.window.core.assistants.get_by_id(
-                    id=assistant_id,
-                )
-                if assistant is not None:
-                    self.window.controller.assistant.files.clear_attachments(
-                        assistant=assistant,
-                    )
         self.update()
 
     def open_add(self):
@@ -263,16 +242,6 @@ class Attachment:
                         path=path,
                         auto_save=False,
                     )
-                    # append attachment to assistant if current mode = assistant
-                    if mode == 'assistant':
-                        assistant_id = self.window.core.config.get('assistant')
-                        if assistant_id is not None:
-                            assistant = self.window.core.assistants.get_by_id(assistant_id)
-                            if assistant is not None:
-                                self.window.controller.assistant.files.append(
-                                    assistant=assistant,
-                                    attachment=attachment,
-                                )
 
             # save attachments and update attachments list
             self.window.core.attachments.save()
@@ -330,22 +299,6 @@ class Attachment:
         if data is None:
             return ''
         return data.path
-
-    def import_from_assistant(self, mode: str, assistant: AssistantItem):
-        """
-        Load attachments from assistant
-
-        :param mode: mode
-        :param assistant: assistant object
-        """
-        if assistant is None:
-            return
-
-        # restore attachments from assistant
-        self.window.core.attachments.from_attachments(
-            mode=mode,
-            attachments=assistant.attachments,
-        )
 
     def has(self, mode: str) -> bool:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 21:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import json
@@ -21,6 +21,7 @@ class AttachmentItem:
         self.id = None
         self.path = None
         self.remote = None
+        self.vector_store_ids = []
         self.size = 0
         self.send = False
 
@@ -36,6 +37,7 @@ class AttachmentItem:
             'path': self.path,
             'size': self.size,
             'remote': self.remote,
+            'vector_store_ids': self.vector_store_ids,
             'send': self.send
         }
 
@@ -55,15 +57,16 @@ class AttachmentItem:
             self.size = data['size']
         if 'remote_id' in data:
             self.remote = data['remote']
+        if 'vector_store_ids' in data:
+            self.vector_store_ids = data['vector_store_ids']
         if 'send' in data:
             self.send = data['send']
 
-    def dump(self):
+    def dump(self) -> str:
         """
         Dump item to string
 
         :return: serialized item
-        :rtype: str
         """
         try:
             return json.dumps(self.serialize())

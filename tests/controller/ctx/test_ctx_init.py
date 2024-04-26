@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -228,7 +228,7 @@ def test_load(mock_window):
     mock_window.controller.assistant.select_by_id.assert_called_once_with('as_123')
     mock_window.controller.model.set.assert_called_once_with('assistant', 'gpt-4')
 
-    assert mock_window.core.config.get('assistant_thread') == 'th_123'
+    assert mock_window.core.config.get('assistant_thread') == None
 
 
 def test_update_ctx(mock_window):

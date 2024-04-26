@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 13:00:00                  #
+# Updated Date: 2024.04.26 23:00:00                  #
 # ================================================== #
 
 import json
@@ -123,7 +123,7 @@ def test_serialize(mock_window):
     }
     item.tools = {
         "code_interpreter": True,
-        "retrieval": True,
+        "file_search": True,
         "function": [
             {
                 "name": "test",
@@ -149,7 +149,7 @@ def test_serialize(mock_window):
     }
     assert data['tools'] == {
         "code_interpreter": True,
-        "retrieval": True,
+        "file_search": True,
         "function": [
             {
                 "name": "test",
@@ -180,7 +180,7 @@ def test_deserialize(mock_window):
         },
         "tools": {
             "code_interpreter": True,
-            "retrieval": True,
+            "file_search": True,
             "function": [
                 {
                     "name": "test",
@@ -208,7 +208,7 @@ def test_deserialize(mock_window):
     }
     assert item.tools == {
         "code_interpreter": True,
-        "retrieval": True,
+        "file_search": True,
         "function": [
             {
                 "name": "test",
