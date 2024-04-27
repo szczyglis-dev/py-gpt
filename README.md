@@ -3062,17 +3062,17 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-# 2.1.81 (2024-04-27)
+**2.1.81 (2024-04-27)**
 
 - Improved remote vector stores management.
 
-# 2.1.80 (2024-04-27)
+**2.1.80 (2024-04-27)**
 
 - Fixed missing selection in Assistant store select combo.
 - Fixed store deletion.
 - Added tooltip to Stores button.
 
-# 2.1.79 (2024-04-26)
+**2.1.79 (2024-04-26)**
 
 - OpenAI API upgraded to version 1.23.6.
 - Assistants API: added tool: File search and removed deprecated tool: Retrieval.
@@ -3081,33 +3081,33 @@ may consume additional tokens that are not displayed in the main window.
 - Importer for Remote Assistant Vector Stores and files included.
 - Files uploaded in Assistants mode can now be shared between threads using Vector Stores.
 
-# 2.1.78 (2024-04-25)
+**2.1.78 (2024-04-25)**
 
 - Removed redundant names in block view.
 - Scrollbars background integrated with blocks bg.
 
-# 2.1.77 (2024-04-25)
+**2.1.77 (2024-04-25)**
 
 - Added the "tree" command to the I/O Files plugin to retrieve the full directory tree.
 
-# 2.1.76 (2024-04-25)
+**2.1.76 (2024-04-25)**
 
 - Chat items now displayed in blocks.
 
-# 2.1.75 (2024-04-24)
+**2.1.75 (2024-04-24)**
 
 - Copy to clipboard in web view fixed and moved to JS bridge.
 
-# 2.1.74 (2024-04-24)
+**2.1.74 (2024-04-24)**
 
 - Added syntax highlight choose to Theme menu.
 - Syntax highlight style colors integrated with Dark/Light app themes.
 
-# 2.1.73 (2024-04-24)
+**2.1.73 (2024-04-24)**
 
 - Fixed issue #50 - missing type key in config.
 
-# 2.1.72 (2024-04-24)
+**2.1.72 (2024-04-24)**
 
 - Fixed context initialization in web view on app load.
 - Improved and optimized items rendering.
@@ -3117,61 +3117,61 @@ may consume additional tokens that are not displayed in the main window.
 - Added theme CSS to scrollbars.
 - Added JS console debug to Logger window.
 
-# 2.1.71 (2024-04-23)
+**2.1.71 (2024-04-23)**
 
 - Added 160+ prompt templates from ["Awesome ChatGPT Prompts"](https://github.com/f/awesome-chatgpt-prompts) repository - to use them, right-click on the input or system prompt textarea and select the "Paste from template..." option.
 
-# 2.1.70 (2024-04-22)
+**2.1.70 (2024-04-22)**
 
 - Added web view CSS reload on theme switch.
 - Fixed time display CSS in web view.
 
-# 2.1.69 (2024-04-22)
+**2.1.69 (2024-04-22)**
 
 - Added html buffer to speed-up context initialization in web view.
 - Fixed items append in web view in agent mode.
 
-# 2.1.68 (2024-04-22)
+**2.1.68 (2024-04-22)**
 
 - Fix: CPU usage on multiple items.
 
-# 2.1.67 (2024-04-22)
+**2.1.67 (2024-04-22)**
 
 - Optimized items rendering.
 
-# 2.1.66 (2024-04-22)
+**2.1.66 (2024-04-22)**
 
 - Improved content formatting in HTML export.
 
-# 2.1.65 (2024-04-22)
+**2.1.65 (2024-04-22)**
 
 - Improved save as in Web View output.
 - Added save as text and save as html separated options.
 
-# 2.1.64 (2024-04-22)
+**2.1.64 (2024-04-22)**
 
 - Improved real-time CSS reloading.
 
-# 2.1.63 (2024-04-22)
+**2.1.63 (2024-04-22)**
 
 - Improved rendering output.
 - Updated CSS.
 
-# 2.1.62 (2024-04-22)
+**2.1.62 (2024-04-22)**
 
 - Added default lexer for code syntax highlighting if no language provided.
 
-# 2.1.61 (2024-04-21)
+**2.1.61 (2024-04-21)**
 
 - Added real-time HTML formatting of text chunks in stream mode.
 
-# 2.1.60 (2024-04-21)
+**2.1.60 (2024-04-21)**
 
 - Fixed "Save as" option in WebEngine view.
 - Added hiding of empty groups on search.
 - Updated formatting and CSS.
 
-# 2.1.59 (2024-04-20)
+**2.1.59 (2024-04-20)**
 
 - Added output renderer: WebEngine/Chromium – with full HTML/CSS/JS support. (Experimental)
 - Added a new option to choose a render engine in Settings -> General -> Rendering engine to select between WebEngine / Chromium mode and the Legacy mode (old, with simple markdown CSS support only - for compatibility reasons and troubleshooting).
@@ -3180,7 +3180,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new option in Settings -> Context -> Convert lists to paragraphs to enable/disable converting ul and li into p for better copying.
 - Copy to clipboard and regenerate response icons are now visible by default.
 
-# 2.1.58 (2024-04-19)
+**2.1.58 (2024-04-19)**
 
 - Fixed Markdown rendering if the content starts with a code block.
 - Added a "Switch to created profile" option in the profile creation/duplication dialogs.
