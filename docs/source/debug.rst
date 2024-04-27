@@ -46,6 +46,5 @@ You can also manualy enable legacy mode by editing config file - open the ``%WOR
 
 .. code-block:: json
 
-    // config.json
     "render.engine": "legacy",
     "render.open_gl": false,

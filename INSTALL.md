@@ -191,7 +191,6 @@ python3 run.py --disable-gpu=1
 You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
 
 ``` json
-// config.json
 "render.engine": "legacy",
 "render.open_gl": false,
 ```
