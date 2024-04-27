@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.81** | build: **2024.04.27** | Python: **>=3.10, <3.12**
+Release: **2.1.82** | build: **2024.04.27** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3061,6 +3061,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.1.82 (2024-04-27)**
+
+- Fixed correct store id saving if hidden thread stores on list.
 
 **2.1.81 (2024-04-27)**
 

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.82 (2024-04-27)
+
+- Fixed correct store id saving if hidden thread stores on list.
+
 # 2.1.81 (2024-04-27)
 
 - Improved remote vector stores management.
