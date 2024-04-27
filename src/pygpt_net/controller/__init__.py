@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -153,6 +153,7 @@ class Controller:
         self.plugins.update()
         self.painter.setup()
         self.notepad.update_tabs()
+        self.assistant.store.reset()
         self.window.core.notepad.locked = False
         self.files.update_explorer(reload=True)
         self.lang.reload_config()
@@ -163,4 +164,4 @@ class Controller:
         self.chat.common.setup()
         self.window.tools.on_reload()
         self.presets.locked = False
-        self.window.controller.ctx.new_if_empty()  # create new empty context if empty
+        self.ctx.new_if_empty()  # create new empty context if empty

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -105,6 +105,7 @@ class Mapping:
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
         nodes["indexes.label"] = "toolbox.indexes.label"
+        nodes["indexes.new"] = "idx.new"
 
         # input
         nodes['input.label'] = 'input.label'

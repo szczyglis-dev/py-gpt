@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -30,15 +30,22 @@ class Idx:
         self.common = Common(window)
         self.indexer = Indexer(window)
         self.current_idx = "base"
+        self.locked = False
 
     def setup(self):
-        """
-        Setup indexer
-        """
+        """Setup indexer"""
         self.window.core.idx.load()
         self.indexer.update_explorer()
         self.common.setup()
+
+        # restore last index
+        last_idx = self.window.core.config.get('llama.idx.current')
+        if last_idx is not None:
+            self.current_idx = last_idx
+
+        self.locked = True  # lock update from combo box on start
         self.update()
+        self.locked = False
 
     def select(self, idx: int):
         """
@@ -50,6 +57,22 @@ class Idx:
         if self.change_locked():
             return
         self.set_by_idx(idx)
+
+        # update all layout
+        self.window.controller.ui.update()
+
+    def select_by_id(self, id: int):
+        """
+        Select idx by list idx
+
+        :param id: id of the list (row idx)
+        """
+        # check if idx change is not locked
+        if self.change_locked():
+            return
+
+        self.window.core.config.set('llama.idx.current', id)
+        self.current_idx = id
 
         # update all layout
         self.window.controller.ui.update()
@@ -115,11 +138,7 @@ class Idx:
             return
         items = self.window.core.config.get('llama.idx.list')
         if items is not None:
-            idx = self.window.core.idx.get_idx_by_name(idx)
-            if idx is None:
-                return
-            current = self.window.ui.models['indexes'].index(idx, 0)
-            self.window.ui.nodes['indexes'].setCurrentIndex(current)
+            self.window.ui.nodes['indexes.select'].set_value(idx)
 
     def select_default(self):
         """Set default idx"""
@@ -211,6 +230,4 @@ class Idx:
 
         :return: True if locked
         """
-        # if self.window.controller.chat.input.generating:
-        # return True
-        return False
+        return self.locked

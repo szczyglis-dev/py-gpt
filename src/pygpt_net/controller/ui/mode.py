@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 06:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -64,10 +64,10 @@ class Mode:
 
         # indexes list
         if mode == "llama_index":
-            self.window.ui.nodes['indexes.widget'].setVisible(True)
+            # self.window.ui.nodes['indexes.widget'].setVisible(True)
             self.window.ui.nodes['idx.options'].setVisible(True)
         else:
-            self.window.ui.nodes['indexes.widget'].setVisible(False)
+            # self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['idx.options'].setVisible(False)
 
         # stream mode

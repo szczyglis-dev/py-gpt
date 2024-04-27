@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -53,7 +53,7 @@ class ToolboxMain:
 
         # presets / assistants
         self.window.ui.splitters['toolbox.presets'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['toolbox.presets'].addWidget(self.indexes.setup())  # indexes
+        # self.window.ui.splitters['toolbox.presets'].addWidget(self.indexes.setup())  # indexes
         self.window.ui.splitters['toolbox.presets'].addWidget(self.presets.setup())  # prompts
         self.window.ui.splitters['toolbox.presets'].addWidget(self.assistants.setup())  # assistants
 

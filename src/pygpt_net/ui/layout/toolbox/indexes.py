@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
@@ -77,7 +77,7 @@ class Indexes:
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id])
-        layout.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
+        #layout.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         # model
         self.window.ui.models[self.id] = self.create_model(self.window)
@@ -107,7 +107,6 @@ class Indexes:
         cols = QHBoxLayout()
         cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
 
-        """
         # index combo
         option = {
             "name": "current_index",
@@ -121,13 +120,35 @@ class Indexes:
             'current_index',
             option
         )
-        """
+        self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # tip
+        self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
+
+        # new
+        self.window.ui.nodes['indexes.new'] = QPushButton(trans('idx.new'))
+        self.window.ui.nodes['indexes.new'].clicked.connect(
+            lambda: self.window.controller.settings.open_section('llama-index'))
+
+        # label
+        self.window.ui.nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+
+        idx_layout = QHBoxLayout()
+        idx_layout.addWidget(self.window.ui.nodes['indexes.label'])
+        idx_layout.addWidget(self.window.ui.nodes['indexes.select'])
+        idx_layout.addWidget(self.window.ui.nodes['indexes.new'], alignment=Qt.AlignRight)
+        idx_layout.setContentsMargins(0, 0, 0, 10)
+        idx_widget = QWidget()
+        idx_widget.setLayout(idx_layout)
+        idx_widget.setMinimumHeight(55)
+        idx_widget.setMinimumWidth(275)
 
         # rows
         rows = QVBoxLayout()
         rows.addWidget(label)
-        # rows.addWidget(self.window.ui.nodes['indexes.select'])  # index combo
+        rows.addWidget(idx_widget)
         rows.addLayout(cols)  # raw option
+        rows.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         self.window.ui.nodes['idx.options'] = QWidget()
         self.window.ui.nodes['idx.options'].setLayout(rows)
@@ -150,16 +171,17 @@ class Indexes:
 
         :param data: Data to update
         """
-        """
-        # setup combo
+        # combo box
         combo_keys = []
         for item in data:
+            name = item['name']
+            if name == "":
+                name = item['id']
             combo_keys.append({
-                item['id']: item['name']
+                item['id']: name
             })
         self.window.ui.nodes['indexes.select'].set_keys(combo_keys)
         """
-
         # store previous selection
         self.window.ui.nodes[self.id].backup_selection()
 
@@ -175,3 +197,4 @@ class Indexes:
 
         # restore previous selection
         self.window.ui.nodes[self.id].restore_selection()
+        """

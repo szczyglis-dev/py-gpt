@@ -47,6 +47,7 @@ class Custom:
         self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
         self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
+        self.window.ui.config['global']['llama.idx.raw'].setText(trans("idx.query.raw"))
 
         # camera capture
         if not self.window.core.config.get('vision.capture.auto'):

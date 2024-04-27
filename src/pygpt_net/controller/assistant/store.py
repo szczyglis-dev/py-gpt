@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -86,6 +86,12 @@ class VectorStore:
             self.close()
         else:
             self.open()
+
+    def reset(self):
+        """Reset vector store editor"""
+        self.current = None
+        if self.dialog:
+            self.init()
 
     def open(self, force: bool = False):
         """
