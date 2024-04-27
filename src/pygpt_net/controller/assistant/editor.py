@@ -74,6 +74,7 @@ class Editor:
             },
         }
         self.id = "assistant"
+        self.current = None
 
     def get_options(self) -> dict:
         """
@@ -117,6 +118,28 @@ class Editor:
             else:
                 items[id] = stores[id].name
         self.window.controller.config.update_combo(self.id, "vector_store", items)
+
+        # restore selection
+        if self.current is not None:
+            option = copy.deepcopy(self.options["vector_store"])
+            store = self.current.vector_store
+            if store is not None and store != "":
+                idx = self.get_choice_idx_by_id(store)
+                option["idx"] = idx
+                self.window.controller.config.apply_value(
+                    parent_id=self.id,
+                    key="vector_store",
+                    option=option,
+                    value="",
+                )
+            else:
+                option["idx"] = 0
+                self.window.controller.config.apply_value(
+                    parent_id=self.id,
+                    key="vector_store",
+                    option=option,
+                    value="",
+                )
 
     def get_selected_store_id(self) -> str or None:
         """
@@ -191,6 +214,8 @@ class Editor:
             assistant.tools['file_search'] = True
 
         self.update_store_list()
+
+        self.current = assistant
 
         if assistant.name is None:
             assistant.name = ""

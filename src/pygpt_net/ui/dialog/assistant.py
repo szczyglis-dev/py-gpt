@@ -44,6 +44,7 @@ class Assistant(BaseConfigDialog):
 
         # store
         self.window.ui.nodes['assistant.btn.store.editor'] = QPushButton(QIcon(":/icons/db.svg"), "")
+        self.window.ui.nodes['assistant.btn.store.editor'].setToolTip(trans('dialog.assistant.store'))
         self.window.ui.nodes['assistant.btn.store.editor'].clicked.connect(
             lambda: self.window.controller.assistant.store.toggle_editor()
         )
