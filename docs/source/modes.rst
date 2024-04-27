@@ -66,6 +66,28 @@ In Assistant mode you are allowed to storage your files (per Assistant) and mana
    :width: 800
 
 
+**Vector stores (via Assistants API)**
+
+Starting from version 2.1.80, the Assistant mode now supports the use of external vector databases offered by the OpenAI API. This feature allows you to store your files in a database and then search them using the Assistant's API. Each assistant can be linked to one vector database—if a database is linked, all files uploaded in this mode will be stored in the linked vector database. If an assistant does not have a linked vector database, a temporary database is automatically created during the file upload, which is accessible only in the current thread. Files from temporary databases are automatically deleted after 7 days.
+
+To enable the use of vector stores, enable the ``Chat with files`` checkbox in the Assistant settings. This enables the ``File search`` tool in Assistants API.
+
+To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window. In this management window, you can create a new database, edit an existing one, or import a list of all existing databases from the OpenAI server:
+
+.. image:: images/v2_assistant_stores.png
+   :width: 800
+
+
+You can define, using ``Expire days``, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
+
+
+The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
+
+
+.. image:: images/v2_assistant_stores_upload.png
+   :width: 800
+
+
 Image generation (DALL-E)
 -------------------------
 

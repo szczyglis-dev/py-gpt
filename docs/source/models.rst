@@ -1,5 +1,5 @@
-Managing models
-===============
+Models
+======
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by ``OpenAI API``

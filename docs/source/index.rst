@@ -27,16 +27,16 @@ Contents
    quick_start
    modes
    attachments
-   tools
    context
    presets
    images
-   notebook
    profiles
    models
    plugins
    plugins_list
    functions
+   tabs
+   tools
    tokens
    configuration
    advanced   
