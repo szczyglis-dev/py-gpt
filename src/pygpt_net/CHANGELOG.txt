@@ -1,3 +1,9 @@
+2.1.83 (2024-04-27)
+
+- Index list in 'Chat with files' mode moved to combo-box at bottom.
+- Enabled display of remote images in chat output.
+- Updated docs.
+
 2.1.82 (2024-04-27)
 
 - Fixed correct store id saving if hidden thread stores on list.

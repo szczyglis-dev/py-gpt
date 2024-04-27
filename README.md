@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.82** | build: **2024.04.27** | Python: **>=3.10, <3.12**
+Release: **2.1.83** | build: **2024.04.27** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3061,6 +3061,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.1.83 (2024-04-27)**
+
+- Index list in 'Chat with files' mode moved to combo-box at bottom.
+- Enabled display of remote images in chat output.
+- Updated docs.
 
 **2.1.82 (2024-04-27)**
 
