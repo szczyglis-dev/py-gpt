@@ -109,6 +109,10 @@ class Editor:
         """Update vector store list"""
         items = {}
         items["--"] = "--"  # none
+        current_idx = 0
+        current_id = self.get_selected_store_id()
+        if current_id is not None:
+            current_idx = self.get_choice_idx_by_id(current_id)
         stores = self.window.core.assistants.store.get_all()
         for id in list(stores.keys()):
             if stores[id].name is None or stores[id].name == "":
@@ -118,28 +122,14 @@ class Editor:
             else:
                 items[id] = stores[id].name
         self.window.controller.config.update_combo(self.id, "vector_store", items)
-
-        # restore selection
-        if self.current is not None:
-            option = copy.deepcopy(self.options["vector_store"])
-            store = self.current.vector_store
-            if store is not None and store != "":
-                idx = self.get_choice_idx_by_id(store)
-                option["idx"] = idx
-                self.window.controller.config.apply_value(
-                    parent_id=self.id,
-                    key="vector_store",
-                    option=option,
-                    value="",
-                )
-            else:
-                option["idx"] = 0
-                self.window.controller.config.apply_value(
-                    parent_id=self.id,
-                    key="vector_store",
-                    option=option,
-                    value="",
-                )
+        option = copy.deepcopy(self.options["vector_store"])
+        option["idx"] = current_idx
+        self.window.controller.config.apply_value(
+            parent_id=self.id,
+            key="vector_store",
+            option=option,
+            value="",
+        )
 
     def get_selected_store_id(self) -> str or None:
         """
