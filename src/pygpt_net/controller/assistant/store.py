@@ -103,6 +103,7 @@ class VectorStore:
             self.setup()
             self.config_initialized = True
         if not self.dialog or force:
+            self.current = self.window.controller.assistant.editor.get_selected_store_id()
             self.init()
             self.window.ui.dialogs.open(
                 "assistant.store",
@@ -238,7 +239,8 @@ class VectorStore:
         """Restore selection"""
         if self.current is not None:
             idx = self.get_tab_by_id(self.current)
-            self.set_by_tab(idx)
+            if idx is not None:
+                self.set_by_tab(idx)
 
     def select(self, idx: int):
         """

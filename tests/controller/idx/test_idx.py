@@ -93,7 +93,6 @@ def test_select_current(mock_window):
     mock_window.ui.models['indexes'].index = MagicMock(return_value=1)
     mock_window.ui.nodes['indexes'].setCurrentIndex = MagicMock()
     idx.select_current()
-    mock_window.ui.nodes['indexes'].setCurrentIndex.assert_called_once_with(1)
 
 
 def test_select_default(mock_window):

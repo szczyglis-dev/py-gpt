@@ -98,5 +98,5 @@ class Combo:
         """
         self.window.ui.config[parent_id][key].combo.clear()
         for item in items:
-            self.window.ui.config[parent_id][key].combo.addItem(items[item], items[item])
+            self.window.ui.config[parent_id][key].combo.addItem(items[item], item)
         self.window.ui.config[parent_id][key].combo.setCurrentIndex(-1)

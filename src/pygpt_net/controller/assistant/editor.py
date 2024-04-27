@@ -122,6 +122,8 @@ class Editor:
             else:
                 items[id] = stores[id].name
         self.window.controller.config.update_combo(self.id, "vector_store", items)
+        if current_id is not None:
+            current_idx = self.get_choice_idx_by_id(current_id)
         option = copy.deepcopy(self.options["vector_store"])
         option["idx"] = current_idx
         self.window.controller.config.apply_value(
@@ -143,16 +145,9 @@ class Editor:
             option=self.options['vector_store'],
             idx=True,  # return idx, not the text value
         )  # empty or not
-        if idx <= 0:
-            return None
-        stores = self.window.core.assistants.store.get_all()
-        i = 1  # from 1 here, 0 = none
-        for id in list(stores.keys()):
-            if self.window.core.assistants.store.is_hidden(id):
-                continue  # ignore empty names
-            if i == idx:
-                return id
-            i += 1
+        if idx > 0:
+            return self.window.ui.config[self.id]['vector_store'].combo.itemData(idx)
+        return None
 
     def get_choice_idx_by_id(self, store_id) -> int:
         """
