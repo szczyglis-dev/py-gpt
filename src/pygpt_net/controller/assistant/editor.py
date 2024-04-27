@@ -115,9 +115,9 @@ class Editor:
             current_idx = self.get_choice_idx_by_id(current_id)
         stores = self.window.core.assistants.store.get_all()
         for id in list(stores.keys()):
+            if self.window.core.assistants.store.is_hidden(id):
+                continue
             if stores[id].name is None or stores[id].name == "":
-                if self.window.core.config.get("assistant.store.hide_threads"):
-                    continue  # hide empty names
                 items[id] = id
             else:
                 items[id] = stores[id].name
@@ -148,8 +148,7 @@ class Editor:
         stores = self.window.core.assistants.store.get_all()
         i = 1  # from 1 here, 0 = none
         for id in list(stores.keys()):
-            if ((stores[id].name is None or stores[id].name == "")
-                    and self.window.core.config.get("assistant.store.hide_threads")):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue  # ignore empty names
             if i == idx:
                 return id
@@ -165,8 +164,7 @@ class Editor:
         stores = self.window.core.assistants.store.get_all()
         i = 1
         for id in list(stores.keys()):
-            if ((stores[id].name is None or stores[id].name == "")
-                    and self.window.core.config.get("assistant.store.hide_threads")):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue  # ignore empty names
             if id == store_id:
                 return i

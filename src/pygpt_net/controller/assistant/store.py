@@ -11,10 +11,10 @@
 
 import copy
 import json
-from datetime import datetime
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.item.assistant import AssistantStoreItem
 from pygpt_net.utils import trans
 
 
@@ -115,12 +115,11 @@ class VectorStore:
         """Initialize vector store editor options"""
         self.reload_items()
 
-        # select the first plugin on list if no plugin selected yet
+        # select the first store if not selected
         if self.current is None:
-            if len(self.window.core.assistants.store.items) > 0:
-                self.current = list(self.window.core.assistants.store.items.keys())[0]
+            self.current = self.get_first_visible()
 
-        # assign plugins options to config dialog fields
+        # assign store to config dialog fields
         options = copy.deepcopy(self.get_options())  # copy options
         if self.current is not None and self.window.core.assistants.store.has(self.current):
             store = self.window.core.assistants.store.items[self.current]
@@ -151,7 +150,7 @@ class VectorStore:
                 self.window.ui.status(trans('status.assistant.saved'))
                 self.update()  # update stores list in assistant dialog
 
-    def refresh_store(self, store, update: bool = True):
+    def refresh_store(self, store: AssistantStoreItem, update: bool = True):
         """
         Refresh store by ID
 
@@ -311,8 +310,7 @@ class VectorStore:
         """
         store_idx = 0
         for id in self.window.core.assistants.store.get_ids():
-            store = self.window.core.assistants.store.items[id]
-            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue
             if store_idx == idx:
                 self.current = id
@@ -333,7 +331,7 @@ class VectorStore:
 
     def get_tab_idx(self, store_id: str) -> int:
         """
-        Get list index
+        Get list index (including hidden)
 
         :param store_id: model id
         :return: list index
@@ -341,8 +339,7 @@ class VectorStore:
         store_idx = None
         i = 0
         for id in self.window.core.assistants.store.get_ids():
-            store = self.window.core.assistants.store.items[id]
-            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue
             if id == store_id:
                 store_idx = i
@@ -352,7 +349,7 @@ class VectorStore:
 
     def get_tab_by_id(self, store_id: str) -> int:
         """
-        Get list index
+        Get list index (including hidden)
 
         :param store_id: store id
         :return: list index
@@ -360,8 +357,7 @@ class VectorStore:
         idx = None
         i = 0
         for id in self.window.core.assistants.store.get_ids():
-            store = self.window.core.assistants.store.items[id]
-            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue
             if id == store_id:
                 idx = i
@@ -371,19 +367,29 @@ class VectorStore:
 
     def get_by_tab_idx(self, idx: int) -> str or None:
         """
-        Get key by list index
+        Get key by list index (including hidden)
 
         :param idx: list index
         :return: store id / key
         """
         store_idx = 0
         for id in self.window.core.assistants.store.get_ids():
-            store = self.window.core.assistants.store.items[id]
-            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+            if self.window.core.assistants.store.is_hidden(id):
                 continue
             if store_idx == idx:
                 return id
             store_idx += 1
+        return None
+
+    def get_first_visible(self) -> str or None:
+        """
+        Get first visible store ID (including hidden)
+
+        :return: store id
+        """
+        for id in self.window.core.assistants.store.get_ids():
+            if not self.window.core.assistants.store.is_hidden(id):
+                return id
         return None
 
     def open_by_idx(self, idx: int):

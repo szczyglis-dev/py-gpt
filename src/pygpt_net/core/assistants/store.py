@@ -249,6 +249,19 @@ class Store:
         """Clear all stores"""
         self.truncate()
 
+    def is_hidden(self, id: str) -> bool:
+        """
+        Check if store is hidden
+
+        :param id: store id
+        :return: True if store is hidden
+        """
+        if id in self.items:
+            if (self.window.core.config.get("assistant.store.hide_threads")
+                    and (self.items[id].name is None or self.items[id].name == "")):
+                return True
+        return False
+
     def truncate(self) -> bool:
         """
         Truncate all stores
