@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -203,12 +203,6 @@ class VectorStore:
                     key=key,
                     option=options[key],
                 )
-
-                # name cannot be empty
-                if persist and key == "name" and (value is None or value.strip() == ""):
-                    self.window.ui.dialogs.alert("Name cannot be empty!")
-                    return
-
                 data_dict[key] = value
             self.window.core.assistants.store.items[self.current].from_dict(data_dict)
 
@@ -217,7 +211,6 @@ class VectorStore:
             self.window.ui.status(trans('status.sending'))
             QApplication.processEvents()
             if self.current is not None:
-
                 store = self.window.core.assistants.store.update(
                     self.window.core.assistants.store.items[self.current]
                 )
@@ -228,11 +221,19 @@ class VectorStore:
 
             self.update()  # update stores list in assistant dialog
             self.window.ui.status(trans("info.settings.saved"))
+            self.restore_selection()
 
     def reload_items(self):
         """Reload list items"""
         items = self.window.core.assistants.store.items
         self.window.assistant_store.update_list("assistant.store.list", items)
+        self.restore_selection()
+
+    def restore_selection(self):
+        """Restore selection"""
+        if self.current is not None:
+            idx = self.get_tab_by_id(self.current)
+            self.set_by_tab(idx)
 
     def select(self, idx: int):
         """
@@ -265,6 +266,7 @@ class VectorStore:
         idx = self.get_tab_by_id(self.current)
         self.set_by_tab(idx)
         self.init()
+        self.restore_selection()
 
     def delete_by_idx(self, idx: int, force: bool = False):
         """
@@ -285,15 +287,21 @@ class VectorStore:
         QApplication.processEvents()
         if self.current == store_id:
             self.current = None
-        if self.window.core.assistants.store.delete(store_id):
-            self.window.controller.assistant.files.remove_store_from_assistants(store_id)
-            self.window.ui.status(trans('status.deleted'))
-            self.window.core.assistants.store.save()
-            self.window.controller.assistant.files.update()
-            self.update()  # update stores list in assistant dialog
-            self.init()
-        else:
+
+        try:
+            if self.window.core.assistants.store.delete(store_id):
+                self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
+                self.window.ui.status(trans('status.deleted'))
+                self.window.core.assistants.store.save()
+                self.window.controller.assistant.files.update()
+                self.update()  # update stores list in assistant dialog
+                self.init()
+                self.restore_selection()
+            else:
+                self.window.ui.status(trans('status.error'))
+        except Exception as e:
             self.window.ui.status(trans('status.error'))
+            self.window.ui.dialogs.alert(e)
 
     def set_by_tab(self, idx: int):
         """
@@ -303,6 +311,9 @@ class VectorStore:
         """
         store_idx = 0
         for id in self.window.core.assistants.store.get_ids():
+            store = self.window.core.assistants.store.items[id]
+            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+                continue
             if store_idx == idx:
                 self.current = id
                 break
@@ -330,6 +341,9 @@ class VectorStore:
         store_idx = None
         i = 0
         for id in self.window.core.assistants.store.get_ids():
+            store = self.window.core.assistants.store.items[id]
+            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+                continue
             if id == store_id:
                 store_idx = i
                 break
@@ -346,6 +360,9 @@ class VectorStore:
         idx = None
         i = 0
         for id in self.window.core.assistants.store.get_ids():
+            store = self.window.core.assistants.store.items[id]
+            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+                continue
             if id == store_id:
                 idx = i
                 break
@@ -361,6 +378,9 @@ class VectorStore:
         """
         store_idx = 0
         for id in self.window.core.assistants.store.get_ids():
+            store = self.window.core.assistants.store.items[id]
+            if self.window.core.config.get("assistant.store.hide_threads") and (store.name is None or store.name == ""):
+                continue
             if store_idx == idx:
                 return id
             store_idx += 1
@@ -382,147 +402,6 @@ class VectorStore:
         """Update vector store editor"""
         self.reload_items()
         self.window.controller.assistant.editor.update_store_list()  # update stores list in assistant dialog
-
-    def import_all(self, force: bool = False):
-        """
-        Import vector stores from API
-
-        :param force: if true, imports without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.store.import',
-                id='',
-                msg=trans('confirm.assistant.store.import'),
-            )
-            return
-        # run asynchronous
-        self.window.ui.status("Importing vector stores...please wait...")
-        self.window.core.assistants.store.truncate()  # clear all stores
-        self.window.core.gpt.assistants.importer.import_vector_stores()
-        self.window.controller.assistant.files.update()
-        self.update()
-
-    def truncate_all(self, force: bool = False):
-        """
-        Truncate vector stores in API
-
-        :param force: if true, truncates without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.store.truncate',
-                id='',
-                msg=trans('confirm.assistant.store.truncate'),
-            )
-            return
-        # run asynchronous
-        self.window.ui.status("Removing vector stores...please wait...")
-        self.window.core.assistants.store.truncate()  # clear all stores
-        self.window.core.gpt.assistants.importer.truncate_vector_stores()
-        self.window.controller.assistant.files.update()
-        self.update()
-        self.current = None
-        self.init()
-
-    def clear_all(self, force: bool = False):
-        """
-        Clear vector stores (local only)
-
-        :param force: if true, clears without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.store.clear',
-                id='',
-                msg=trans('confirm.assistant.store.clear'),
-            )
-            return
-        self.window.ui.status("Clearing vector stores...please wait...")
-        self.window.core.assistants.store.truncate()  # clear all stores
-        self.window.controller.assistant.files.update()
-        self.update()
-        self.window.ui.status("OK. All stores cleared.")
-        self.current = None
-        self.init()
-
-    def refresh_all(self, force: bool = False):
-        """
-        Refresh all vector stores
-
-        :param force: if true, refresh without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.store.refresh',
-                id='',
-                msg=trans('confirm.assistant.store.refresh'),
-            )
-            return
-        self.window.ui.status("Refreshing vector stores...please wait...")
-        QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.refresh_vector_stores()
-
-    def handle_refreshed_stores(self, num: int):
-        """
-        Handle refreshed stores
-
-        :param num: number of refreshed files
-        """
-        self.update_current()
-        self.update()
-        self.window.ui.dialogs.alert(trans("status.finished"))
-        self.window.ui.status("OK. All stores refreshed.")
-
-    def handle_imported_stores(self, num: int):
-        """
-        Handle imported stores
-
-        :param num: number of imported files
-        """
-        self.window.ui.status("OK. Imported stores: " + str(num) + ".")
-        self.window.controller.assistant.files.update()
-        self.update()
-        self.window.ui.dialogs.alert(trans("status.finished"))
-
-    def handle_imported_stores_failed(self, error: any):
-        """
-        Handle error on importing stores
-
-        :param error: error message
-        """
-        self.window.core.debug.log(error)
-        print("Error importing stores", error)
-        self.window.ui.dialogs.alert(error)
-        self.window.controller.assistant.files.update()
-        self.update()
-
-    def handle_truncated_stores(self, num: int):
-        """
-        Handle imported stores
-
-        :param num: number of removed files
-        """
-        self.window.core.assistants.store.truncate()
-        self.window.controller.assistant.files.remove_all_stores_from_assistants()
-        self.window.ui.status("OK. Removed stores: " + str(num) + ".")
-        self.window.controller.assistant.files.update()
-        self.update()
-        self.current = None
-        self.init()
-        self.window.ui.dialogs.alert(trans("status.finished"))
-
-    def handle_truncated_stores_failed(self, error: any):
-        """
-        Handle error on removing stores
-
-        :param error: error message
-        """
-        self.window.core.debug.log(error)
-        print("Error removing stores", error)
-        self.window.ui.dialogs.alert(error)
-        self.window.controller.assistant.files.update()
-        self.update()
 
     def set_hide_thread(self, state: bool):
         """

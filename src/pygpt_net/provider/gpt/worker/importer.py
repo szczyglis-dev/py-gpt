@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -32,17 +32,17 @@ class Importer:
         :param err: error message
         """
         if mode == "assistants":
-            self.window.controller.assistant.handle_imported_assistants_failed(err)
+            self.window.controller.assistant.batch.handle_imported_assistants_failed(err)
         elif mode == "files":
-            self.window.controller.assistant.files.handle_imported_files_failed(err)
+            self.window.controller.assistant.batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
-            self.window.controller.assistant.files.handle_truncated_files_failed(err)
+            self.window.controller.assistant.batch.handle_truncated_files_failed(err)
         elif mode in "vector_stores":
-            self.window.controller.assistant.store.handle_imported_stores_failed(err)
+            self.window.controller.assistant.batch.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
-            self.window.controller.assistant.store.handle_truncated_stores_failed(err)
+            self.window.controller.assistant.batch.handle_truncated_stores_failed(err)
         elif mode in "refresh_vector_stores":
-            self.window.controller.assistant.store.handle_truncated_stores_failed(err)
+            self.window.controller.assistant.batch.handle_refreshed_stores_failed(err)
 
     @Slot(str, int)
     def handle_finished(self, mode: str, num: int):
@@ -53,17 +53,17 @@ class Importer:
         :param num: number of imported items
         """
         if mode == "assistants":
-            self.window.controller.assistant.handle_imported_assistants(num)
+            self.window.controller.assistant.batch.handle_imported_assistants(num)
         elif mode == "files":
-            self.window.controller.assistant.files.handle_imported_files(num)
+            self.window.controller.assistant.batch.handle_imported_files(num)
         elif mode == "truncate_files":
-            self.window.controller.assistant.files.handle_truncated_files(num)
+            self.window.controller.assistant.batch.handle_truncated_files(num)
         elif mode == "vector_stores":
-            self.window.controller.assistant.store.handle_imported_stores(num)
+            self.window.controller.assistant.batch.handle_imported_stores(num)
         elif mode == "truncate_vector_stores":
-            self.window.controller.assistant.store.handle_truncated_stores(num)
+            self.window.controller.assistant.batch.handle_truncated_stores(num)
         elif mode == "refresh_vector_stores":
-            self.window.controller.assistant.store.handle_refreshed_stores(num)
+            self.window.controller.assistant.batch.handle_refreshed_stores(num)
 
     def import_assistants(self):
         """Import assistants"""

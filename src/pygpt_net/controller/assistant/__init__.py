@@ -6,17 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import webbrowser
 
 from pygpt_net.item.assistant import AssistantItem
 
+from .batch import Batch
 from .editor import Editor
 from .files import Files
-from .threads import Threads
 from .store import VectorStore
+from .threads import Threads
 
 from pygpt_net.utils import trans
 
@@ -29,6 +30,7 @@ class Assistant:
         :param window: Window instance
         """
         self.window = window
+        self.batch = Batch(window)
         self.editor = Editor(window)
         self.files = Files(window)
         self.threads = Threads(window)
@@ -48,7 +50,7 @@ class Assistant:
         """
         if update_list:
             self.update_list()
-        self.window.controller.assistant.files.update_list()
+        self.files.update_list()
         self.select_current()
 
     def update_list(self):
@@ -180,46 +182,6 @@ class Assistant:
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
-
-    def import_api(self, force: bool = False):
-        """
-        Import all remote assistants from API
-
-        :param force: if true, imports without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant_import',
-                id='',
-                msg=trans('confirm.assistant.import'),
-            )
-            return
-
-        # run asynchronous
-        self.window.ui.status("Importing assistants...please wait...")
-        self.window.core.gpt.assistants.importer.import_assistants()
-
-    def handle_imported_assistants(self, num: int):
-        """
-        Handle imported assistants
-
-        :param num: number of imported assistants
-        """
-        self.window.ui.status("OK. Imported assistants: " + str(num) + ".")
-        self.update()
-        self.store.update()
-        self.files.update()
-
-    def handle_imported_assistants_failed(self, error: any):
-        """
-        Handle error on importing assistants
-
-        :param error: error message
-        """
-        self.window.core.debug.log(error)
-        print("Error importing assistants")
-        self.window.ui.dialogs.alert(error)
-        self.update()
 
     def clear(self, force: bool = False):
         """

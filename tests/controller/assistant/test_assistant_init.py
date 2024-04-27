@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -19,6 +19,7 @@ from pygpt_net.controller.assistant import Assistant
 
 def test_setup(mock_window):
     """Test setup assistant"""
+    mock_window.controller.config.get_value = MagicMock(return_value=0)
     assistant = Assistant(mock_window)
     mock_window.core.assistants.load = MagicMock()
     assistant.update = MagicMock()
@@ -30,13 +31,14 @@ def test_setup(mock_window):
 def test_update(mock_window):
     """Test update assistant"""
     assistant = Assistant(mock_window)
+    assistant.files = MagicMock()
     assistant.update_list = MagicMock()
     assistant.select_current = MagicMock()
-    mock_window.controller.assistant.files.update_list = MagicMock()
+    assistant.files.update_list = MagicMock()
     assistant.update()
     assistant.update_list.assert_called_once()
     assistant.select_current.assert_called_once()
-    mock_window.controller.assistant.files.update_list.assert_called_once()
+    assistant.files.update_list.assert_called_once()
 
 
 def test_update_list(mock_window):
@@ -89,7 +91,6 @@ def test_select_by_id(mock_window):
     mock_window.controller.ctx.update_ctx = MagicMock()
 
     assistant.select_by_id('assistant_id')
-    mock_window.core.assistants.get_by_id.assert_called_once_with('assistant_id')
     mock_window.controller.attachment.update.assert_called_once()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     assert mock_window.core.config.get('assistant') == 'assistant_id'
@@ -138,14 +139,6 @@ def test_create(mock_window):
     mock_window.core.assistants.create.assert_called_once()
     assistant.editor.assign_data.assert_called_once_with(item)
     mock_window.core.gpt.assistants.create.assert_called_once()
-
-
-def test_import_api(mock_window):
-    """Test import assistants from API"""
-    assistant = Assistant(mock_window)
-    mock_window.core.gpt.assistants.importer.import_assistants = MagicMock()
-    assistant.import_api(force=True)
-    mock_window.core.gpt.assistants.importer.import_assistants.assert_called_once()
 
 
 def test_clear(mock_window):

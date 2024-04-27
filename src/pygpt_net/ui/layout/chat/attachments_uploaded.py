@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import os
@@ -72,9 +72,9 @@ class AttachmentsUploaded:
         self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
 
         self.window.ui.nodes['attachments_uploaded.btn.sync'].clicked.connect(
-            lambda: self.window.controller.assistant.files.sync())
+            lambda: self.window.controller.assistant.batch.import_files())
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
-            lambda: self.window.controller.assistant.files.clear_files())
+            lambda: self.window.controller.assistant.files.clear())
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])

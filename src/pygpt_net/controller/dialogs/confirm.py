@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -120,7 +120,7 @@ class Confirm:
         elif type == 'attachments.delete':
             self.window.controller.attachment.delete(id, force=True, remove_local=True)
         elif type == 'attachments_uploaded.clear':
-            self.window.controller.assistant.files.clear_files(True)
+            self.window.controller.assistant.files.clear(True)
         elif type == 'attachments_uploaded.delete':
             self.window.controller.assistant.files.delete(id, True)
         elif type == 'attachments.clear':
@@ -152,25 +152,25 @@ class Confirm:
         elif type == 'assistant_delete':
             self.window.controller.assistant.delete(id, True)
         elif type == 'assistant_import':
-            self.window.controller.assistant.import_api(True)
+            self.window.controller.assistant.batch.import_assistants(True)
         elif type == 'assistant_import_files':
-            self.window.controller.assistant.files.sync(True)
+            self.window.controller.assistant.batch.import_files(True)
         elif type == 'assistant.files.truncate':
-            self.window.controller.assistant.files.truncate_files(True)
+            self.window.controller.assistant.batch.truncate_files(True)
         elif type == 'assistant.files.clear':
-            self.window.controller.assistant.files.clear_files(True)
+            self.window.controller.assistant.batch.clear_files(True)
 
         # assistants vector stores
         elif type == 'assistant.store.delete':
             self.window.controller.assistant.store.delete_by_idx(id, True)
         elif type == 'assistant.store.import':
-            self.window.controller.assistant.store.import_all(True)
+            self.window.controller.assistant.batch.import_stores(True)
         elif type == 'assistant.store.truncate':
-            self.window.controller.assistant.store.truncate_all(True)
+            self.window.controller.assistant.batch.truncate_stores(True)
         elif type == 'assistant.store.clear':
-            self.window.controller.assistant.store.clear_all(True)
+            self.window.controller.assistant.batch.clear_stores(True)
         elif type == 'assistant.store.refresh':
-            self.window.controller.assistant.store.refresh_all(True)
+            self.window.controller.assistant.batch.refresh_stores(True)
 
         # settings
         elif type == 'settings.defaults.user':

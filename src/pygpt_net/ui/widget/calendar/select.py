@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
@@ -85,7 +85,7 @@ class CalendarSelect(QCalendarWidget):
                 20,
             )
             painter.save()
-            painter.setBrush(QBrush(QColor(0, 0, 0)))
+            painter.setBrush(QBrush(QColor(40, 40, 40)))
             painter.drawRect(task_rect)
             painter.setPen(QColor(255, 255, 255))
             painter.setFont(QFont('Lato', self.font_size))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import os
@@ -74,49 +74,6 @@ class Files:
         self.window.ui.status("Importing files...please wait...")
         self.window.core.gpt.assistants.importer.import_files(assistant)
 
-    def handle_imported_files(self, num: int):
-        """
-        Handle imported files
-
-        :param num: number of imported files
-        """
-        self.window.ui.status("OK. Imported files: " + str(num) + ".")
-        self.update()
-        self.window.ui.dialogs.alert(trans("status.finished"))
-
-    def handle_imported_files_failed(self, error: any):
-        """
-        Handle error on importing files
-
-        :param error: error message
-        """
-        self.window.core.debug.log(error)
-        print("Error importing files")
-        self.window.ui.dialogs.alert(error)
-        self.update()
-
-    def handle_truncated_files(self, num: int):
-        """
-        Handle truncated (in API) files
-
-        :param num: number of truncated files
-        """
-        # self.window.core.assistants.files.truncate()  # clear all files, remove from stores and DB
-        self.window.ui.status("OK. Truncated files: " + str(num) + ".")
-        self.update()
-        self.window.ui.dialogs.alert(trans("status.finished"))
-
-    def handle_truncated_files_failed(self, error: any):
-        """
-        Handle error on truncated files
-
-        :param error: error message
-        """
-        self.window.core.debug.log(error)
-        print("Error truncating files")
-        self.window.ui.dialogs.alert(error)
-        self.update()
-
     def download(self, idx: int):
         """
         Download file
@@ -136,32 +93,6 @@ class Files:
 
         # download file
         self.window.controller.attachment.download(file_id)
-
-    def sync(self, force: bool = False):
-        """
-        Sync files with API
-
-        :param force: force sync files
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant_import_files',
-                id='',
-                msg=trans('confirm.assistant.import_files'),
-            )
-            return
-
-        id = self.window.core.config.get('assistant')
-        if id is None or id == "":
-            return
-        assistant = self.window.core.assistants.get_by_id(id)
-        if assistant is None:
-            return
-        try:
-            self.import_files(assistant)
-        except Exception as e:
-            self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(e)
 
     def rename(self, idx: int):
         """
@@ -209,7 +140,7 @@ class Files:
         )
         self.rename_close()
 
-    def clear_files(self, force: bool = False):
+    def clear(self, force: bool = False):
         """
         Delete all files
 
@@ -466,69 +397,6 @@ class Files:
                 and self.window.core.config.get('log.assistants'):
             return True
         return False
-
-    def remove_store_from_assistants(self, store_id: str):
-        """
-        Remove vector store from all assistants after store deletion
-
-        :param store_id: vector store ID
-        """
-        for id in list(self.window.core.assistants.items.keys()):
-            assistant = self.window.core.assistants.get_by_id(id)
-            if assistant is not None:
-                if assistant.vector_store == store_id:
-                    assistant.vector_store = None  # remove from assistant
-
-        self.window.core.assistants.save()
-        self.window.core.assistants.files.on_store_deleted(store_id)  # remove from files
-
-    def remove_all_stores_from_assistants(self):
-        """Remove all vector stores from all assistants"""
-        for id in list(self.window.core.assistants.items.keys()):
-            assistant = self.window.core.assistants.get_by_id(id)
-            if assistant is not None:
-                assistant.vector_store = None
-
-        self.window.core.assistants.save()
-        self.window.core.assistants.files.on_all_stores_deleted()  # remove all from files
-
-    def truncate_files(self, force: bool = False):
-        """
-        Truncate all files in API
-
-        :param force: if true, imports without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.files.truncate',
-                id='',
-                msg=trans('confirm.assistant.files.truncate'),
-            )
-            return
-        # run asynchronous
-        self.window.ui.status("Removing files...please wait...")
-        QApplication.processEvents()
-        self.window.core.gpt.assistants.importer.truncate_files()  # remove all files from API
-
-    def clear_all(self, force: bool = False):
-        """
-        Clear files (local only)
-
-        :param force: if true, clears without confirmation
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='assistant.files.clear',
-                id='',
-                msg=trans('confirm.assistant.files.clear'),
-            )
-            return
-        self.window.ui.status("Clearing files...please wait...")
-        self.window.core.assistants.files.truncate_local()  # clear files local
-        self.window.controller.assistant.files.update()
-        self.update()
-        self.window.ui.status("OK. All files cleared.")
-        self.window.ui.dialogs.alert(trans("status.finished"))
 
     def log(self, msg: str):
         """

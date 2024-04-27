@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 import os
@@ -78,19 +78,6 @@ def test_download(mock_window):
     mock_window.controller.attachment.download.assert_called_once_with("file_id")
 
 
-def test_sync(mock_window):
-    """Test sync files"""
-    files = Files(mock_window)
-    item = AssistantItem()
-    item.id = "assistant_id"
-    mock_window.core.config.data['assistant'] = "assistant_id"
-    mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-
-    files.import_files = MagicMock()
-    files.sync(force=True)
-    files.import_files.assert_called_once()
-
-
 def test_rename(mock_window):
     """Test rename file"""
     files = Files(mock_window)
@@ -140,7 +127,7 @@ def test_update_name(mock_window):
     files.rename_close.assert_called_once()
 
 
-def test_clear_files(mock_window):
+def test_clear(mock_window):
     """Test clear files"""
     files = Files(mock_window)
     item = AssistantItem()
@@ -156,7 +143,7 @@ def test_clear_files(mock_window):
     mock_window.core.assistants.save = MagicMock()
     files.update = MagicMock()
 
-    files.clear_files(force=True)
+    files.clear(force=True)
     mock_window.core.assistants.get_by_id.assert_called_once()
     files.update.assert_called_once()
 

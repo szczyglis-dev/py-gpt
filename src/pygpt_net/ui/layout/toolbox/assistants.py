@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -56,7 +56,7 @@ class Assistants:
         # import
         self.window.ui.nodes['assistants.import'] = QPushButton(trans('assistant.import'))
         self.window.ui.nodes['assistants.import'].clicked.connect(
-            lambda: self.window.controller.assistant.import_api())
+            lambda: self.window.controller.assistant.batch.import_assistants())
 
         # label
         self.window.ui.nodes['assistants.label'] = TitleLabel(trans("toolbox.assistants.label"))
