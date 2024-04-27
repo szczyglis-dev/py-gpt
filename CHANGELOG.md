@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.81 (2024-04-27)
+
+- Improved remote vector stores management.
+
 # 2.1.80 (2024-04-27)
 
 - Fixed missing selection in Assistant store select combo.

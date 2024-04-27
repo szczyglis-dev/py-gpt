@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.80** | build: **2024.04.27** | Python: **>=3.10, <3.12**
+Release: **2.1.81** | build: **2024.04.27** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2994,6 +2994,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.81 (2024-04-27)
+
+- Improved remote vector stores management.
 
 # 2.1.80 (2024-04-27)
 
