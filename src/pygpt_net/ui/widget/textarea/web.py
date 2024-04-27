@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.04.27 14:00:00                  #
 # ================================================== #
 
 import re
@@ -204,6 +204,9 @@ class CustomWebEnginePage(QWebEnginePage):
         self.selectionChanged.connect(self.on_selection_changed)
         self.settings().setAttribute(
             QWebEngineSettings.LocalContentCanAccessFileUrls, True
+        )
+        self.settings().setAttribute(
+            QWebEngineSettings.LocalContentCanAccessRemoteUrls, True
         )
         self.settings().setFontFamily(QWebEngineSettings.StandardFont, 'Lato')
         self.settings().setFontFamily(QWebEngineSettings.FixedFont, 'Monaspace Neon')
