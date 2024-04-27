@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWi
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
+from pygpt_net.ui.widget.lists.index_combo import IndexCombo
 from pygpt_net.utils import trans
 
 
@@ -106,10 +107,27 @@ class Indexes:
         cols = QHBoxLayout()
         cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
 
+        """
+        # index combo
+        option = {
+            "name": "current_index",
+            "label": "toolbox.llama_index.current_index",
+            "keys": [],
+            "value": None,
+        }
+        self.window.ui.nodes['indexes.select'] = IndexCombo(
+            self.window,
+            'global',
+            'current_index',
+            option
+        )
+        """
+
         # rows
         rows = QVBoxLayout()
         rows.addWidget(label)
-        rows.addLayout(cols)
+        # rows.addWidget(self.window.ui.nodes['indexes.select'])  # index combo
+        rows.addLayout(cols)  # raw option
 
         self.window.ui.nodes['idx.options'] = QWidget()
         self.window.ui.nodes['idx.options'].setLayout(rows)
@@ -132,6 +150,16 @@ class Indexes:
 
         :param data: Data to update
         """
+        """
+        # setup combo
+        combo_keys = []
+        for item in data:
+            combo_keys.append({
+                item['id']: item['name']
+            })
+        self.window.ui.nodes['indexes.select'].set_keys(combo_keys)
+        """
+
         # store previous selection
         self.window.ui.nodes[self.id].backup_selection()
 

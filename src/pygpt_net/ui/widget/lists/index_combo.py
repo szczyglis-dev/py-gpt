@@ -11,18 +11,10 @@
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 
+from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
 
-
-class NoScrollCombo(QComboBox):
-    def __init__(self, parent=None):
-        super(NoScrollCombo, self).__init__(parent)
-
-    def wheelEvent(self, event):
-        event.ignore()  # disable mouse wheel
-
-
-class OptionCombo(QWidget):
+class IndexCombo(QWidget):
     def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
         Settings combobox
@@ -32,7 +24,7 @@ class OptionCombo(QWidget):
         :param parent_id: parent option id
         :param option: option data
         """
-        super(OptionCombo, self).__init__(window)
+        super(IndexCombo, self).__init__(window)
         self.window = window
         self.id = id
         self.parent_id = parent_id
