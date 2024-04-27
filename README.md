@@ -2998,6 +2998,7 @@ may consume additional tokens that are not displayed in the main window.
 # 2.1.80 (2024-04-27)
 
 - Fixed missing selection in Assistant store select combo.
+- Fixed store deletion.
 - Added tooltip to Stores button.
 
 # 2.1.79 (2024-04-26)

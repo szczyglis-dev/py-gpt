@@ -283,14 +283,14 @@ class VectorStore:
             return
         self.window.ui.status(trans('status.sending'))
         QApplication.processEvents()
+        if self.current == store_id:
+            self.current = None
         if self.window.core.assistants.store.delete(store_id):
             self.window.controller.assistant.files.remove_store_from_assistants(store_id)
             self.window.ui.status(trans('status.deleted'))
             self.window.core.assistants.store.save()
             self.window.controller.assistant.files.update()
             self.update()  # update stores list in assistant dialog
-            if self.current == store_id:
-                self.current = None
             self.init()
         else:
             self.window.ui.status(trans('status.error'))
