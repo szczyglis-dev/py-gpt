@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.2.1 (2024-04-28)
+
+- Improved data reload on profile switch.
+
 # 2.2.0 (2024-04-28)
 
 - Improved code interpreter stream handling in Assistant mode.
