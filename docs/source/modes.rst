@@ -68,7 +68,7 @@ In Assistant mode you are allowed to storage your files (per Assistant) and mana
 
 **Vector stores (via Assistants API)**
 
-Starting from version 2.1.80, the Assistant mode now supports the use of external vector databases offered by the OpenAI API. This feature allows you to store your files in a database and then search them using the Assistant's API. Each assistant can be linked to one vector database—if a database is linked, all files uploaded in this mode will be stored in the linked vector database. If an assistant does not have a linked vector database, a temporary database is automatically created during the file upload, which is accessible only in the current thread. Files from temporary databases are automatically deleted after 7 days.
+Assistant mode supports the use of external vector databases offered by the OpenAI API. This feature allows you to store your files in a database and then search them using the Assistant's API. Each assistant can be linked to one vector database—if a database is linked, all files uploaded in this mode will be stored in the linked vector database. If an assistant does not have a linked vector database, a temporary database is automatically created during the file upload, which is accessible only in the current thread. Files from temporary databases are automatically deleted after 7 days.
 
 To enable the use of vector stores, enable the ``Chat with files`` checkbox in the Assistant settings. This enables the ``File search`` tool in Assistants API.
 
@@ -101,9 +101,9 @@ This mode enables image analysis using the ``GPT-4 Vision`` model. Functioning m
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
-**From version 2.0.68** - Vision is integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable the plugin and use Vision in standard modes.
+Vision is integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable the plugin and use Vision in standard modes.
 
-**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option ``Camera`` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
+Vision mode also includes real-time video capture from camera. To enable capture check the option ``Camera`` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
 
 .. image:: images/v2_capture_enable.png
    :width: 400
@@ -163,7 +163,7 @@ It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for
 
 **Querying single files**
 
-From version ``2.1.8``, you can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with Llama-index``.
+You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with Llama-index``.
 
 For example:
 
@@ -232,8 +232,8 @@ Built-in file loaders:
 You can configure data loaders in ``Settings / Llama-index / Data Loaders`` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
-**From version 2.0.100 Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in "Settings / Llama-index" section.**
+Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / Llama-index`` section.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. 
 Always control the number of tokens used on the OpenAI page.

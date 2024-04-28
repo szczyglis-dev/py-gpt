@@ -4,7 +4,7 @@ Credits
 **Official website:**
 https://pygpt.net
 
-**Support/donate:** 
+**Support and donate:** 
 https://pygpt.net/#donate
 
 **GitHub:**
@@ -28,7 +28,7 @@ MIT License
 
 Special thanks
 ===============
-GitHub community:
+GitHub's community:
 
 * **BillionShields**
 * **gfsysa**
@@ -43,7 +43,7 @@ GitHub community:
 Third-party libraries
 =====================
 
-Full list of external libraries used in this project is located in the **requirements.txt** file in the main folder of this repository.
+Full list of external libraries used in this project is located in the **requirements.txt** file in the main folder of the repository.
 
 All used SVG icons are from ``Material Design Icons`` provided by Google:
 

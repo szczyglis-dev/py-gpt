@@ -49,6 +49,7 @@ Features
 * Possesses the potential to support future OpenAI models.
 * Fully configurable.
 * Themes support.
+* Real-time code syntax highlighting.
 * Plugins support.
 * Built-in token usage calculation.
 * It's open source; source code is available on ``GitHub``.

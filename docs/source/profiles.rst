@@ -14,5 +14,3 @@ To switch to a created profile, pick the profile from the menu: ``Config -> Prof
 Each profile uses its own user directory (workdir). You can link a newly created (or edited) profile to an already existing workdir with its configuration.
 
 The name of the currently active profile is shown in (Profile Name) in the window title.
-
-This feature is available from version ``2.1.41``.

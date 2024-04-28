@@ -1,3 +1,10 @@
+2.2.0 (2024-04-28)
+
+- Improved code interpreter stream handling in Assistant mode.
+- Improved preset plugins reloading on profile switch.
+- Fixes and core improvements.
+- Updated docs to v2.2.0.
+
 2.1.83 (2024-04-27)
 
 - Index list in 'Chat with files' mode moved to combo-box at bottom.
