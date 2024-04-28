@@ -138,7 +138,7 @@ class Controller:
         self.window.core.notepad.reset()
         self.presets.locked = True
         self.settings.setup()
-        self.window.core.plugins.reset_all()  # reset all plugins options
+        self.window.core.plugins.reload_all()  # reload all plugins
         self.window.core.presets.load()
         self.window.core.debug.update_logger_path()
         self.window.ui.dialogs.app_log.update()

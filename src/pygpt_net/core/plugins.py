@@ -376,16 +376,17 @@ class Plugins:
             print("[FIX] Updated options for plugin: {}".format(plugin_id))
             self.window.core.config.save()
 
+    def reload_all(self):
+        """Reload all plugins"""
+        if self.presets is None or len(self.presets) == 0:
+            self.reset_all()  # if presets then it will be reloaded on presets load
+
     def reset_all(self):
-        """Reset all options"""
-        user_config = self.window.core.config.get('plugins')
-        for id in list(self.plugins.keys()):
-            if id in user_config:
-                for key in list(user_config[id].keys()):
-                    del user_config[id][key]
+        """Reset all options to initial values if presets"""
         # restore plugin options to initial values
         for id in list(self.plugins.keys()):
             self.restore_options(id, all=True)  # all = with persisted values
+        self.apply_all_options()  # reload from config
 
     def clean_presets(self):
         """Remove invalid options from presets"""
