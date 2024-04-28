@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -211,30 +211,34 @@ class Plugins:
             return hasattr(self.plugins[id], 'options') and len(self.plugins[id].options) > 0
         return False
 
-    def restore_options(self, id: str):
+    def restore_options(self, id: str, all: bool = False):
         """
         Restore options to initial values
 
         :param id: plugin id
+        :param all: restore all options (including persisted)
         """
         options = []
         values = {}
-        for key in self.plugins[id].options:
-            if 'persist' in self.plugins[id].options[key] and self.plugins[id].options[key]['persist']:
-                options.append(key)
+        if not all:
+            for key in self.plugins[id].options:
+                if 'persist' in self.plugins[id].options[key] and self.plugins[id].options[key]['persist']:
+                    options.append(key)
 
-        # store persisted values
-        for key in options:
-            values[key] = self.plugins[id].options[key]['value']
+        if not all:
+            # store persisted values
+            for key in options:
+                values[key] = self.plugins[id].options[key]['value']
 
         # restore initial values
         if id in self.plugins:
             if hasattr(self.plugins[id], 'initial_options'):
                 self.plugins[id].options = copy.deepcopy(self.plugins[id].initial_options)  # copy
 
-        # restore persisted values
-        for key in options:
-            self.plugins[id].options[key]['value'] = values[key]
+        if not all:
+            # restore persisted values
+            for key in options:
+                self.plugins[id].options[key]['value'] = values[key]
 
     def get_name(self, id: str) -> str:
         """
@@ -361,9 +365,9 @@ class Plugins:
         """
         updated = False
         user_config = self.window.core.config.get('plugins')
-        if plugin_id in user_config:
+        if plugin_id in list(user_config.keys()):
             for key in keys:
-                if key in user_config[plugin_id]:
+                if key in list(user_config[plugin_id].keys()):
                     del user_config[plugin_id][key]
                 self.remove_preset_values(plugin_id, key)
                 updated = True
@@ -372,6 +376,16 @@ class Plugins:
             print("[FIX] Updated options for plugin: {}".format(plugin_id))
             self.window.core.config.save()
 
+    def reset_all(self):
+        """Reset all options"""
+        user_config = self.window.core.config.get('plugins')
+        for id in list(self.plugins.keys()):
+            if id in user_config:
+                for key in list(user_config[id].keys()):
+                    del user_config[id][key]
+        # restore plugin options to initial values
+        for id in list(self.plugins.keys()):
+            self.restore_options(id, all=True)  # all = with persisted values
 
     def clean_presets(self):
         """Remove invalid options from presets"""

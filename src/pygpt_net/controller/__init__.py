@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -138,6 +138,7 @@ class Controller:
         self.window.core.notepad.reset()
         self.presets.locked = True
         self.settings.setup()
+        self.window.core.plugins.reset_all()  # reset all plugins options
         self.window.core.presets.load()
         self.window.core.debug.update_logger_path()
         self.window.ui.dialogs.app_log.update()
@@ -149,6 +150,7 @@ class Controller:
         self.presets.refresh()
         self.idx.setup()
         self.calendar.setup()
+        self.plugins.setup()
         self.plugins.settings.setup()
         self.plugins.update()
         self.painter.setup()
@@ -164,4 +166,4 @@ class Controller:
         self.chat.common.setup()
         self.window.tools.on_reload()
         self.presets.locked = False
-        self.ctx.new_if_empty()  # create new empty context if empty
+        self.ctx.new_if_empty()  # create new empty context if empty list

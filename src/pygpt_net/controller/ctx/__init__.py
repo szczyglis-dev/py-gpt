@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -224,6 +224,8 @@ class Ctx:
         assistant_id = None
         if mode == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
+            self.window.controller.assistant.files.update()  # always update assistant files
+
         self.common.update_label(mode, assistant_id)
         self.common.focus_chat()
 
