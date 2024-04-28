@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 import os
@@ -160,6 +160,10 @@ class Parser:
         for el in soup.find_all('pre'):
             content = el.text
             self.code_blocks[self.block_idx] = content
+
+            # ignore empty
+            if content.strip() == "":
+                continue
 
             header = soup.new_tag('p', **{'class': "code-header-wrapper"})
             link_wrapper = soup.new_tag('span')

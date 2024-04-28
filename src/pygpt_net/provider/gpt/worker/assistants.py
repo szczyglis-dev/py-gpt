@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -152,7 +152,7 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
-        if ctx.output != "" and ctx.output is not None:
+        if (ctx.output != "" and ctx.output is not None) or self.tool_output != "":
             return  # append to existing output
         self.window.controller.chat.render.stream_begin()
         self.window.controller.assistant.threads.handle_stream_begin(ctx)
@@ -178,6 +178,7 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
+        self.tool_output = ""
         self.window.controller.chat.render.stream_end()
         self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
@@ -207,6 +208,7 @@ class AssistantsWorker:
                     if delta.code_interpreter.input is not None:
                         if self.tool_output == "":
                             self.window.controller.chat.render.stream_begin()
+                            self.window.controller.assistant.threads.handle_stream_begin(ctx)
                             self.append_chunk(ctx, "**Code interpreter**\n```python\n", begin=begin)
                         self.tool_output += delta.code_interpreter.input
                         self.append_chunk(ctx, delta.code_interpreter.input)
@@ -234,7 +236,6 @@ class AssistantsWorker:
         if self.is_show_tool_output():
             if self.tool_output is not None and self.tool_output != "":
                 self.append_chunk(ctx, "\n```\n")
-                self.tool_output = ""
 
     @Slot(object, object)
     def handle_message_done(self, ctx: CtxItem, message):
@@ -247,7 +248,7 @@ class AssistantsWorker:
         self.window.controller.assistant.threads.handle_message_data(
             ctx,
             message,
-            stream=True
+            stream=True,
         )  # handle img, files, etc.
 
     @Slot(object, object)
@@ -299,12 +300,15 @@ class EventHandler(AssistantEventHandler):
         self.ctx = ctx
         self.begin = False
         self.tool_begin = False
+        self.stream_started = False
         
     @override
     def on_text_created(self, text) -> None:
         """Callback that is fired when a text content block is created"""
         # print(f"\nassistant > ", end="", flush=True)
-        self.begin = True
+        if not self.stream_started:
+            self.begin = True
+        self.stream_started = True
         self.signals.stream_text_created.emit(self.ctx)
 
     @override
@@ -349,7 +353,9 @@ class EventHandler(AssistantEventHandler):
     def on_tool_call_created(self, tool_call):
         """Callback that is fired when a tool call is created"""
         # print(f"\nassistant > {tool_call.type}\n", flush=True)
-        self.tool_begin = True
+        if not self.stream_started:
+            self.tool_begin = True
+        self.stream_started = True
         self.signals.stream_tool_call_created.emit(self.ctx, tool_call)
 
     @override

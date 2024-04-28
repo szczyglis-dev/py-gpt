@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 import json
@@ -165,6 +165,9 @@ class Threads:
                 if img_files:
                     ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
 
+        ctx.from_previous()  # append previous result again before save
+        self.window.core.ctx.update_item(ctx)
+
     def handle_messages(self, ctx: CtxItem):
         """
         Handle run messages (not stream ONLY)
@@ -276,6 +279,7 @@ class Threads:
         self.window.core.ctx.update_item(ctx)
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(err)
+        self.window.controller.chat.common.unlock_input()  # unlock input
 
     def handle_run(self, ctx: CtxItem, run, stream: bool = False):
         """

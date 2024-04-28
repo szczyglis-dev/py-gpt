@@ -249,7 +249,8 @@ class Text:
                 self.window.ui.dialogs.alert(e)
                 self.window.ui.status(trans('status.error'))
                 print("Error when calling API: " + str(e))
-                self.window.stateChanged.emit(self.window.STATE_ERROR)
+                self.window.controller.chat.common.unlock_input()
+            self.window.stateChanged.emit(self.window.STATE_ERROR)
 
             # handle response (if no assistant mode)
             # assistant response is handled in assistant thread
@@ -267,6 +268,7 @@ class Text:
             self.window.ui.dialogs.alert(e)
             self.window.ui.status(trans('status.error'))
             print("Error in sending text: " + str(e))
+            self.window.controller.chat.common.unlock_input()
             self.window.stateChanged.emit(self.window.STATE_ERROR)
 
         # if commands enabled: post-execute commands (if no assistant mode)

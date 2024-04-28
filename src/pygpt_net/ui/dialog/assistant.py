@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.28 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -40,7 +40,7 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.btn.close'].clicked.connect(
             lambda: self.window.controller.assistant.editor.close()
         )
-        self.window.ui.nodes['assistant.btn.save'].setAutoDefault(True)
+
 
         # store
         self.window.ui.nodes['assistant.btn.store.editor'] = QPushButton(QIcon(":/icons/db.svg"), "")
@@ -48,6 +48,9 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.btn.store.editor'].clicked.connect(
             lambda: self.window.controller.assistant.store.toggle_editor()
         )
+
+        self.window.ui.nodes['assistant.btn.store.editor'].setAutoDefault(False)
+        self.window.ui.nodes['assistant.btn.save'].setAutoDefault(True)
 
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['assistant.btn.close'])
