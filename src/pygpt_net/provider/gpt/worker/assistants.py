@@ -209,7 +209,7 @@ class AssistantsWorker:
                         if self.tool_output == "":
                             self.window.controller.chat.render.stream_begin()
                             self.window.controller.assistant.threads.handle_stream_begin(ctx)
-                            self.append_chunk(ctx, "**Code interpreter**\n```python\n", begin=begin)
+                            self.append_chunk(ctx, "\n\n**Code interpreter**\n```python\n", begin=begin)
                         self.tool_output += delta.code_interpreter.input
                         self.append_chunk(ctx, delta.code_interpreter.input)
 
