@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -87,7 +87,7 @@ class Ctx:
         """
         # reload ctx list items
         if reload:
-            self.reload(True)
+            self.update_list(True)
 
         # select current ctx on list
         if select:
@@ -238,7 +238,7 @@ class Ctx:
         self.window.core.ctx.add(ctx)
         self.update()
 
-    def reload(self, reload: bool = False):
+    def update_list(self, reload: bool = False):
         """
         Reload current ctx list
 
@@ -918,3 +918,14 @@ class Ctx:
             if self.group_id == id:
                 self.group_id = None
             self.update()
+
+    def reload(self):
+        """Reload ctx"""
+        self.window.core.ctx.reset()
+        self.setup()
+        self.update()
+        self.refresh()
+
+    def reload_after(self):
+        """After reload"""
+        self.new_if_empty()

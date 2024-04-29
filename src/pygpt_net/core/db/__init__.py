@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -487,3 +487,8 @@ class Database:
             """).bindparams(key=key, value=value, created_ts=ts, updated_ts=ts)
 
         conn.execute(stmt)
+
+    def reload(self):
+        """Reload database connection"""
+        self.close()  # close current database
+        self.init(force=True)  # re-init database with new path

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -232,4 +232,9 @@ class Debug:
         self.log('debug.' + id + ' toggled')
 
         # update menu
+        self.update()
+
+    def reload(self):
+        """Reload debug"""
+        self.toggle_menu()
         self.update()

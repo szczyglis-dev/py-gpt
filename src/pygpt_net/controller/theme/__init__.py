@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 02:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -170,3 +170,7 @@ class Theme:
         :return: CSS style for element
         """
         return self.common.get_style(element)
+
+    def reload_all(self):
+        """Reload all"""
+        self.setup()

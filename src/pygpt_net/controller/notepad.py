@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon, QTextCursor
@@ -323,3 +323,10 @@ class Notepad:
     def update(self):
         """Update notepads UI"""
         pass
+
+    def reload(self):
+        """Reload notepads"""
+        self.window.core.notepad.locked = True
+        self.window.core.notepad.reset()
+        self.update_tabs()
+        self.window.core.notepad.locked = False

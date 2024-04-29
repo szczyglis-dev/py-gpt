@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -80,3 +80,7 @@ class Painter:
         :return: True if painter is current active tab
         """
         return self.window.controller.ui.current_tab == self.window.controller.ui.tab_idx['draw']
+
+    def reload(self):
+        """Reload painter"""
+        self.setup()

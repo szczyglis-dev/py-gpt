@@ -58,6 +58,7 @@ class CtxItem:
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
         self.prev_ctx = None  # previous context (reply output)
+        self.stopped = False  # run stopped
 
     def clear_reply(self):
         """Clear current reply output"""

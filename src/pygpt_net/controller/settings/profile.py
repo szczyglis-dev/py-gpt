@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -61,6 +61,7 @@ class Profile:
         if save_current:
             print("Saving all settings in current profile...")
             self.window.controller.settings.save_all(force=True)  # save all current settings
+            # self.window.controller.layout.save()  # save layout state
         self.window.core.config.profile.set_current(uuid)
 
         # switch to profile workdir

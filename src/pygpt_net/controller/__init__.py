@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -76,7 +76,7 @@ class Controller:
     def setup(self):
         """Setup controller"""
         self.debug.setup()  # prepare log level
-        self.chat.render.setup()  # setup render engine
+        self.chat.init()
 
         # setup layout
         self.layout.setup()
@@ -130,40 +130,24 @@ class Controller:
 
     def reload(self):
         """Reload components"""
-        self.window.core.db.close()  # close current database
-        self.window.core.db.init(force=True)  # re-init database with new path
-        self.window.core.patch()
-        self.window.core.ctx.reset()
-        self.window.core.notepad.locked = True
-        self.window.core.notepad.reset()
-        self.presets.locked = True
-        self.settings.setup()
-        self.window.core.plugins.reload_all()  # reload all plugins
-        self.window.core.presets.load()
-        self.window.core.debug.update_logger_path()
-        self.window.ui.dialogs.app_log.update()
-        self.ctx.setup()
-        self.ctx.update()
-        self.ctx.refresh()
-        self.assistant.setup()
-        self.attachment.setup()
-        self.presets.refresh()
-        self.idx.setup()
-        self.calendar.setup()
-        self.plugins.setup()
-        self.plugins.settings.setup()
-        self.plugins.update()
-        self.painter.setup()
-        self.notepad.update_tabs()
-        self.assistant.store.reset()
-        self.window.core.notepad.locked = False
-        self.files.update_explorer(reload=True)
-        self.lang.reload_config()
-        self.lang.setup()
-        self.theme.setup()
-        self.debug.toggle_menu()
-        self.debug.update()
-        self.chat.common.setup()
+        self.window.core.reload()  # db, config, patch, etc.
+        self.ctx.reload()
+        self.settings.reload()
+        self.assistant.reload()
+        self.attachment.reload()
+        self.presets.reload()
+        self.idx.reload()
+        self.calendar.reload()
+        self.plugins.reload()
+        self.painter.reload()
+        self.notepad.reload()
+        self.files.reload()
+        self.lang.reload()
+        self.theme.reload_all()
+        self.debug.reload()
+        self.chat.reload()
         self.window.tools.on_reload()
-        self.presets.locked = False
-        self.ctx.new_if_empty()  # create new empty context if empty list
+        # self.layout.reload()
+
+        # post-reload
+        self.ctx.reload_after()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -489,4 +489,8 @@ class Attachment:
             if os.path.exists(text):
                 return True
         return False
+
+    def reload(self):
+        """Reload attachments"""
+        self.setup()
 

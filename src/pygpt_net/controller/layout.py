@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -282,3 +282,7 @@ class Layout:
         self.window.core.debug.info("Reloading theme...")
         self.window.controller.theme.reload(force=True)  # reload theme
         self.window.core.debug.info("Theme reloaded.")
+
+    def reload(self):
+        """Reload layout"""
+        self.post_setup()

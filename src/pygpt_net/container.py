@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -92,3 +92,14 @@ class Container:
     def patch(self):
         """Patch version"""
         self.updater.patch()
+
+    def post_setup(self):
+        """Post setup"""
+        self.config.setup_env()
+
+    def reload(self):
+        """Reload core"""
+        self.db.reload()
+        self.patch()
+        self.debug.update_logger_path()
+        self.config.setup_env()

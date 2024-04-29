@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import re
@@ -418,3 +418,10 @@ class Presets:
         if mode == "assistant":
             return True
         return False
+
+    def reload(self):
+        """Reload presets"""
+        self.locked = True
+        self.window.core.presets.load()
+        self.refresh()
+        self.locked = False

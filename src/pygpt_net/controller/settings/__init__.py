@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -231,3 +231,8 @@ class Settings:
         self.open_section("general")
         self.window.ui.config['config']['api_key'].setFocus()
         self.window.ui.dialogs.close('info.start')
+
+    def reload(self):
+        """Reload settings"""
+        self.setup()
+        self.window.ui.dialogs.app_log.update()

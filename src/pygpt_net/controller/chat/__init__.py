@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.13 15:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.chat.common import Common
@@ -36,6 +36,15 @@ class Chat:
         self.text = Text(window)
         self.vision = Vision(window)
 
+    def init(self):
+        """Init"""
+        self.render.setup()  # setup render engine
+
     def setup(self):
         """Setup"""
         self.common.setup()
+
+    def reload(self):
+        """Reload"""
+        self.common.setup()
+        self.render.reload()

@@ -446,3 +446,7 @@ class Files:
         if path.startswith("/") or path.startswith("\\"):
             path = path[1:]
         return path
+
+    def reload(self):
+        """Reload files"""
+        self.update_explorer(reload=True)

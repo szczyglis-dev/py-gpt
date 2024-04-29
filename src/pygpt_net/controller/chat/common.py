@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -84,7 +84,10 @@ class Common:
         # edit icons
         if self.window.core.config.has('ctx.edit_icons'):
             self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
-            self.window.controller.chat.render.on_enable_edit(self.initialized)
+            if self.window.core.config.get('ctx.edit_icons'):
+                self.window.controller.chat.render.on_enable_edit(self.initialized)
+            else:
+                self.window.controller.chat.render.on_disable_edit(self.initialized)
 
         # images generation
         if self.window.core.config.get('img_raw'):

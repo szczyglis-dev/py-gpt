@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 01:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from .note import Note
@@ -116,4 +116,8 @@ class Calendar:
         :return: True if calendar tab is active
         """
         return self.window.ui.tabs['output'].currentIndex() == self.window.controller.ui.tab_idx['calendar']
+
+    def reload(self):
+        """Reload calendar"""
+        self.setup()
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -19,8 +19,8 @@ from .files import Files
 from .store import VectorStore
 from .threads import Threads
 
+from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.utils import trans
-
 
 class Assistant:
     def __init__(self, window=None):
@@ -63,9 +63,24 @@ class Assistant:
         ctx = self.window.core.ctx.last_item
         if ctx is not None:
             if ctx.run_id is not None and ctx.thread is not None:
-                status = self.window.core.gpt.assistants.run_stop(ctx)
-                if status == "cancelling":
-                    print("Run has been canceled.")
+                ctx.stopped = True  # mark as canceled
+                self.threads.log("FORCE STOP: {}".format(ctx.run_id))
+                if has_unclosed_code_tag(ctx.output):
+                    ctx.output += "\n```"  # fix for code block without closing ```
+                self.window.core.ctx.update_item(ctx)  # save current output
+
+                # get status
+                try:
+                    status = self.window.core.gpt.assistants.run_stop(ctx)
+                    if status == "cancelling" or status == "cancelled":
+                        print("Run has been canceled.")
+                        self.threads.log("Run status: {}".format(status))
+                except Exception as e:
+                    print("Run stop failed: ", e)
+
+                # render final output
+                self.window.controller.chat.render.stream_end()
+                self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     def prepare(self):
         """Prepare assistants"""
@@ -253,3 +268,8 @@ class Assistant:
         :return: True if locked
         """
         return self.window.controller.chat.input.generating
+
+    def reload(self):
+        """Reload assistants"""
+        self.setup()
+        self.store.reset()
