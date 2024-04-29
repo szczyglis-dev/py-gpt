@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 
@@ -33,7 +33,7 @@ class Batch:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='assistant_import',
+                type='assistant.import',
                 id='',
                 msg=trans('confirm.assistant.import'),
             )
@@ -63,28 +63,58 @@ class Batch:
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
 
+    def import_files_current(self):
+        """Import files from API"""
+        id = self.window.core.config.get('assistant')
+        if id is None or id == "":
+            return
+        if self.window.core.assistants.has(id):
+            assistant = self.window.core.assistants.get_by_id(id)
+            store_id = assistant.vector_store
+            if store_id is None or store_id == "":
+                self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.assign"))
+                return
+            self.import_store_files(store_id)
+
     def import_files(self, force: bool = False):
         """
-        Sync files with API
+        Sync files with API (all)
 
         :param force: force sync files
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='assistant_import_files',
+                type='assistant.files.import.all',
                 id='',
                 msg=trans('confirm.assistant.import_files'),
             )
             return
+        try:
+            self.window.controller.assistant.files.import_files()  # all
+        except Exception as e:
+            self.window.core.debug.log(e)
+            self.window.ui.dialogs.alert(e)
 
-        id = self.window.core.config.get('assistant')
-        if id is None or id == "":
+    def import_store_files(self, store_id: str, force: bool = False):
+        """
+        Sync files with API (store)
+
+        :param store_id: vector store ID
+        :param force: force sync files
+        """
+        if store_id is None:
+            self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
             return
-        assistant = self.window.core.assistants.get_by_id(id)
-        if assistant is None:
+
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.files.import.store',
+                id=store_id,
+                msg=trans('confirm.assistant.import_files.store'),
+            )
             return
         try:
-            self.window.controller.assistant.files.import_files(assistant)
+            self.window.controller.assistant.files.import_files(store_id)  # by store
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
@@ -107,15 +137,82 @@ class Batch:
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.truncate_files()  # remove all files from API
 
+    def truncate_store_files_by_idx(self, idx: int, force: bool = False):
+        """
+        Truncate all files in API (store)
+
+        :param idx: store index
+        :param force: if true, imports without confirmation
+        """
+        store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
+        self.truncate_store_files(store_id, force)
+
+    def truncate_store_files(self, store_id: str, force: bool = False):
+        """
+        Truncate all files in API (store)
+
+        :param store_id: store ID
+        :param force: if true, imports without confirmation
+        """
+        if store_id is None:
+            self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
+            return
+
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.files.truncate.store',
+                id=store_id,
+                msg=trans('confirm.assistant.files.truncate.store'),
+            )
+            return
+        # run asynchronous
+        self.window.ui.status("Removing files...please wait...")
+        QApplication.processEvents()
+        self.window.core.gpt.assistants.importer.truncate_files(store_id)  # remove all files from API
+
+    def clear_store_files_by_idx(self, idx: int, force: bool = False):
+        """
+        Clear files (store, local only)
+
+        :param idx: store index
+        :param force: if true, clears without confirmation
+        """
+        store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
+        self.clear_store_files(store_id, force)
+
+    def clear_store_files(self, store_id: str = None, force: bool = False):
+        """
+        Clear files (store, local only)
+
+        :param store_id: store ID
+        :param force: if true, clears without confirmation
+        """
+        if store_id is None:
+            self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
+            return
+
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.files.clear.store',
+                id=store_id,
+                msg=trans('confirm.assistant.files.clear'),
+            )
+            return
+        self.window.ui.status("Clearing store files...please wait...")
+        self.window.core.assistants.files.truncate_local(store_id)  # clear files local
+        self.window.controller.assistant.files.update()
+        self.window.ui.status("OK. All store files cleared.")
+        self.window.ui.dialogs.alert(trans("status.finished"))
+
     def clear_files(self, force: bool = False):
         """
-        Clear files (local only)
+        Clear files (all, local only)
 
         :param force: if true, clears without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='assistant.files.clear',
+                type='assistant.files.clear.all',
                 id='',
                 msg=trans('confirm.assistant.files.clear'),
             )
@@ -307,13 +404,16 @@ class Batch:
         self.window.ui.dialogs.alert(error)
         self.window.controller.assistant.files.update()
 
-    def handle_truncated_files(self, num: int):
+    def handle_truncated_files(self, store_id: str = None, num: int = 0):
         """
         Handle truncated (in API) files
 
+        :param store_id: vector store ID
         :param num: number of truncated files
         """
         self.window.ui.status("OK. Truncated files: " + str(num) + ".")
+        if store_id is not None:
+            self.window.controller.assistant.store.refresh_by_store_id(store_id)
         self.window.controller.assistant.files.update()
         self.window.ui.dialogs.alert(trans("status.finished"))
 
@@ -410,7 +510,7 @@ class Batch:
         :param force: if true, uploads without confirmation
         """
         if self.window.controller.assistant.store.current is None:
-            self.window.ui.dialogs.alert("Please select vector store first.")
+            self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
             return
 
         store_id = self.window.controller.assistant.store.current

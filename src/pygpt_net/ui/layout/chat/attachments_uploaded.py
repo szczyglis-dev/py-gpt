@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
+from pygpt_net.ui.widget.element.button import SyncButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.uploaded import UploadedFileList
 from pygpt_net.utils import trans
@@ -68,13 +69,11 @@ class AttachmentsUploaded:
         self.window.ui.nodes[self.id] = UploadedFileList(self.window)
 
         # buttons
-        self.window.ui.nodes['attachments_uploaded.btn.sync'] = QPushButton(trans('attachments_uploaded.btn.sync'))
+        self.window.ui.nodes['attachments_uploaded.btn.sync'] = SyncButton(trans('attachments_uploaded.btn.sync'), self.window)
         self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
-
-        self.window.ui.nodes['attachments_uploaded.btn.sync'].clicked.connect(
-            lambda: self.window.controller.assistant.batch.import_files())
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
-            lambda: self.window.controller.assistant.files.clear())
+            lambda: self.window.controller.assistant.files.clear()
+        )
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])

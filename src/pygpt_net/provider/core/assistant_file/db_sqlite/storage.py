@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import time
@@ -177,6 +177,21 @@ class Storage:
             conn.execute(text("DELETE FROM sqlite_sequence WHERE name='remote_file'"))
         return True
 
+    def truncate_by_store(self, store_id: str) -> bool:
+        """
+        Truncate all files items by store ID
+
+        :param store_id: store ID
+        :return: True if truncated
+        """
+        stmt = text("""
+            DELETE FROM remote_file WHERE store_id = :store_id
+        """).bindparams(store_id=store_id)
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
     def delete_by_id(self, id: int) -> bool:
         """
         Delete file item by record ID
@@ -215,7 +230,7 @@ class Storage:
         :return: True if cleared
         """
         stmt = text("""
-            UPDATE remote_file SET store_id = NULL WHERE store_id = :store_id
+            DELETE FROM remote_file WHERE store_id = :store_id
         """).bindparams(store_id=store_id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
@@ -229,7 +244,7 @@ class Storage:
         :return: True if cleared
         """
         stmt = text("""
-            UPDATE remote_file SET store_id = NULL
+            DELETE FROM remote_file WHERE store_id IS NOT NULL
         """)
         db = self.window.core.db.get_db()
         with db.begin() as conn:

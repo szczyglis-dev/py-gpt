@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -217,16 +217,19 @@ class Files:
         """
         file_id = file.file_id
         items = self.get_all_by_file_id(file_id)  # get store_ids
-        store_ids = []
         for id in items:
             store_id = items[id].store_id
             if store_id is None or store_id == "":
                 continue  # skip if no store_id
-            if store_id in store_ids:
-                continue
-            self.window.core.gpt.assistants.vs_delete_file(store_id, file_id)  # remove from vector store
+            try:
+                self.window.core.gpt.assistants.vs_delete_file(store_id, file_id)  # remove from vector store
+            except Exception as e:
+                self.window.core.debug.log("Failed to delete file from vector store: " + str(e))
         self.provider.delete_by_id(file.record_id)  # delete file in DB
-        self.window.core.gpt.assistants.file_delete(file.file_id)  # delete file in API
+        try:
+            self.window.core.gpt.assistants.file_delete(file.file_id)  # delete file in API
+        except Exception as e:
+            self.window.core.debug.log("Failed to delete remote file: " + str(e))
         if file.record_id in self.items:
             del self.items[file.record_id]
         return True
@@ -252,28 +255,35 @@ class Files:
         :return: True if renamed
         """
         self.provider.rename_file(record_id, name)
-        # TODO: rename in API here
         if record_id in self.items:
             self.items[record_id].name = name
         return True
 
-    def truncate(self) -> bool:
+    def truncate(self, store_id: str = None) -> bool:
         """
         Truncate all files
 
+        :param store_id: store ID
         :return: True if truncated
         """
-        self.window.core.gpt.assistants.vs_remove_files_from_stores()  # remove files from all vector stores
-        return self.truncate_local()  # truncate files in DB
+        if store_id is not None:
+            self.window.core.gpt.assistants.vs_remove_files_from_store(store_id)  # remove files from vector store
+        else:
+            self.window.core.gpt.assistants.vs_remove_files_from_stores()  # remove files from all vector stores
+        return self.truncate_local(store_id)  # truncate files in DB
 
-    def truncate_local(self) -> bool:
+    def truncate_local(self, store_id: str = None) -> bool:
         """
         Truncate all files (local only)
 
+        :param store_id: store ID
         :return: True if truncated
         """
-        self.provider.truncate()  # truncate files in DB
-        self.items = {}  # clear items
+        if store_id is not None:
+            self.provider.truncate_by_store(store_id)  # truncate files in DB (by store_id)
+        else:
+            self.provider.truncate_all()  # truncate all files in DB
+            self.items = {}  # clear items
         return True
 
     def import_from_store(self, store_id: str) -> bool:

@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
-
-from pygpt_net.item.assistant import AssistantItem
 
 
 class Importer:
@@ -35,7 +33,7 @@ class Importer:
         """
         if mode == "assistants":
             self.window.controller.assistant.batch.handle_imported_assistants_failed(err)
-        elif mode == "files":
+        elif mode == "import_files":
             self.window.controller.assistant.batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
             self.window.controller.assistant.batch.handle_truncated_files_failed(err)
@@ -48,20 +46,21 @@ class Importer:
         elif mode in "refresh_vector_stores":
             self.window.controller.assistant.batch.handle_refreshed_stores_failed(err)
 
-    @Slot(str, int)
-    def handle_finished(self, mode: str, num: int):
+    @Slot(str, str, int)
+    def handle_finished(self, mode: str, store_id: str = None, num: int = 0):
         """
         Handle thread finished signal
 
         :param mode: mode
-        :param num: number of imported items
+        :param store_id: store ID
+        :param num: number of affected items
         """
         if mode == "assistants":
             self.window.controller.assistant.batch.handle_imported_assistants(num)
-        elif mode == "files":
+        elif mode == "import_files":
             self.window.controller.assistant.batch.handle_imported_files(num)
         elif mode == "truncate_files":
-            self.window.controller.assistant.batch.handle_truncated_files(num)
+            self.window.controller.assistant.batch.handle_truncated_files(store_id, num)
         elif mode == "upload_files":
             self.window.controller.assistant.batch.handle_uploaded_files(num)
         elif mode == "vector_stores":
@@ -108,11 +107,16 @@ class Importer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
-    def truncate_files(self):
-        """Truncate files"""
+    def truncate_files(self, store_id: str = None):
+        """
+        Truncate files
+
+        :param store_id: store ID
+        """
         worker = ImportWorker()
         worker.window = self.window
         worker.mode = "truncate_files"
+        worker.store_id = store_id
         worker.signals.finished.connect(self.handle_finished)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -121,8 +125,8 @@ class Importer:
         """
         Upload files
 
-        :param files: files
         :param store_id: store ID
+        :param files: files
         """
         worker = ImportWorker()
         worker.window = self.window
@@ -143,24 +147,25 @@ class Importer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
-    def import_files(self, assistant: AssistantItem):
+    def import_files(self, store_id: str = None):
         """
         Import assistant files
 
-        :param assistant: assistant
+        :param store_id: store ID
         """
         worker = ImportWorker()
         worker.window = self.window
-        worker.mode = "files"
-        worker.assistant = assistant
+        worker.mode = "import_files"
+        worker.store_id = store_id
         worker.signals.finished.connect(self.handle_finished)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
 
 class ImportWorkerSignals(QObject):
+    """Import worker signals"""
     status = Signal(str, str)
-    finished = Signal(str, int)
+    finished = Signal(str, str, int)
     error = Signal(str, object)
 
 
@@ -190,7 +195,7 @@ class ImportWorker(QRunnable):
                 self.refresh_vector_stores()
             elif self.mode == "truncate_files":
                 self.truncate_files()
-            elif self.mode == "files":
+            elif self.mode == "import_files":
                 self.import_files()
             elif self.mode == "upload_files":
                 self.upload_files()
@@ -220,9 +225,10 @@ class ImportWorker(QRunnable):
             self.import_files(True)
 
             if not silent:
-                self.signals.finished.emit("assistants", len(items))
+                self.signals.finished.emit("assistants", self.store_id, len(items))
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("assistants", e)
             return False
 
@@ -230,18 +236,20 @@ class ImportWorker(QRunnable):
         """
         Import vector stores from API
 
+        :param silent: silent mode (no signals)
         :return: result
         """
         try:
             print("Importing vector stores...")
             self.window.core.assistants.store.clear()
-            items = self.window.core.assistants.store.get_all()
+            items = {}
             self.window.core.gpt.assistants.import_vector_stores(items)
             self.window.core.assistants.store.import_items(items)
             if not silent:
-                self.signals.finished.emit("vector_stores", len(items))
+                self.signals.finished.emit("vector_stores", self.store_id, len(items))
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("vector_stores", e)
             return False
 
@@ -249,6 +257,7 @@ class ImportWorker(QRunnable):
         """
         Truncate all vector stores in API
 
+        :param silent: silent mode (no signals)
         :return: result
         """
         try:
@@ -257,9 +266,10 @@ class ImportWorker(QRunnable):
             self.window.core.assistants.store.items = {}
             self.window.core.assistants.store.save()
             if not silent:
-                self.signals.finished.emit("truncate_vector_stores", num)
+                self.signals.finished.emit("truncate_vector_stores", self.store_id, num)
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("truncate_vector_stores", e)
             return False
 
@@ -267,6 +277,7 @@ class ImportWorker(QRunnable):
         """
         Refresh all vector stores in API
 
+        :param silent: silent mode (no signals)
         :return: result
         """
         try:
@@ -275,29 +286,42 @@ class ImportWorker(QRunnable):
             stores = self.window.core.assistants.store.items
             for id in stores:
                 store = stores[id]
-                self.window.controller.assistant.store.refresh_store(store, update=False)
-                num += 1
+                try:
+                    self.window.controller.assistant.store.refresh_store(store, update=False)
+                    num += 1
+                except Exception as e:
+                    print("Failed to refresh store: {}".format(id))
+                    self.window.core.debug.log(e)
             if not silent:
-                self.signals.finished.emit("refresh_vector_stores", num)
+                self.signals.finished.emit("refresh_vector_stores", self.store_id, num)
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("refresh_vector_stores", e)
             return False
 
     def truncate_files(self, silent: bool = False) -> bool:
         """
-        Truncate all files in API
+        Truncate files in API
 
+        :param silent: silent mode (no signals)
         :return: result
         """
         try:
-            print("Truncating files...")
-            self.window.core.assistants.files.truncate()  # clear all files, remove from stores and DB
-            num = self.window.core.gpt.assistants.files_truncate()  # remove files in API
+            # if empty store_id, truncate all files, otherwise truncate only store files
+            if self.store_id is None:
+                print("Truncating all files...")
+                self.window.core.assistants.files.truncate() # clear all files
+                num = self.window.core.gpt.assistants.files_truncate()  # remove all files in API
+            else:
+                print("Truncating files for store: {}".format(self.store_id))
+                self.window.core.assistants.files.truncate(self.store_id)  # clear store files, remove from stores and DB
+                num = self.window.core.gpt.assistants.files_truncate_store(self.store_id)  # remove store files in API
             if not silent:
-                self.signals.finished.emit("truncate_files", num)  # in DB (local) handled after
+                self.signals.finished.emit("truncate_files", self.store_id, num)
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("truncate_files", e)
             return False
 
@@ -305,6 +329,7 @@ class ImportWorker(QRunnable):
         """
         Upload files to API
 
+        :param silent: silent mode (no signals)
         :return: result
         """
         num = 0
@@ -328,9 +353,10 @@ class ImportWorker(QRunnable):
                     self.window.core.debug.log(e)
                     self.signals.status.emit("upload_files", "Failed to upload file: {}".format(os.path.basename(file)))
             if not silent:
-                self.signals.finished.emit("upload_files", num)
+                self.signals.finished.emit("upload_files", self.store_id, num)
             return True
         except Exception as e:
+            print("API error: {}".format(e))
             self.signals.error.emit("upload_files", e)
             return False
 
@@ -342,12 +368,19 @@ class ImportWorker(QRunnable):
         :return: result
         """
         try:
-            print("Importing all files...")
-            self.window.core.assistants.files.truncate_local()  # clear local DB
-            num = self.window.core.gpt.assistants.vs_import_all_files()
+            if self.store_id is None:
+                print("Importing all files...")
+                self.window.core.assistants.files.truncate_local()  # clear local DB (all)
+                num = self.window.core.gpt.assistants.vs_import_all_files()  # import all files
+            else:
+                print("Importing files for store: {}".format(self.store_id))
+                self.window.core.assistants.files.truncate_local(self.store_id)  # clear local DB (all)
+                items = self.window.core.gpt.assistants.vs_import_store_files(self.store_id, [])  # import store files
+                num = len(items)
             if not silent:
-                self.signals.finished.emit("files", num)
+                self.signals.finished.emit("import_files", self.store_id, num)
             return True
         except Exception as e:
-            self.signals.error.emit("files", e)
+            print("API error: {}".format(e))
+            self.signals.error.emit("import_files", e)
         return False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import json
@@ -457,8 +457,29 @@ class Assistants:
         files = self.files_get_ids()
         for file_id in files:
             print("Removing file: " + file_id)
-            self.file_delete(file_id)
-            i += 1
+            try:
+                self.file_delete(file_id)
+                i += 1
+            except Exception as e:
+                print("Error removing file {}: {}".format(file_id, str(e)))
+        return i
+
+    def files_truncate_store(self, store_id: str) -> int:
+        """
+        Truncate all files from store
+
+        :param store_id: store ID
+        :return: number of deleted files
+        """
+        i = 0
+        files = self.vs_get_store_files_list(store_id, [])
+        for file_id in files:
+            print("Removing file: " + file_id)
+            try:
+                self.file_delete(file_id)
+                i += 1
+            except Exception as e:
+                print("Error removing file {}: {}".format(file_id, str(e)))
         return i
 
     def import_assistants(
@@ -568,6 +589,7 @@ class Assistants:
                 items[id].file_ids = []
                 items[id].status = self.window.core.assistants.store.parse_status(remote)
                 self.window.core.assistants.store.append_status(items[id], items[id].status)
+                print("Imported vector store: " + id)
             # next page
             if stores.has_more:
                 return self.import_vector_stores(items, order, limit, stores.last_id)
@@ -781,6 +803,21 @@ class Assistants:
                 i += 1
         return i
 
+    def vs_remove_files_from_store(self, store_id: str) -> int:
+        """
+        Remove all files from vector store
+
+        :param store_id: store ID
+        :return: number of deleted files
+        """
+        files = self.vs_get_all_files_ids(store_id, [])
+        i = 0
+        for file_id in files:
+            print("Removing file from vector store [{}]:{} ".format(store_id, file_id))
+            self.vs_delete_file(store_id, file_id)
+            i += 1
+        return i
+
     def vs_truncate_stores(self) -> int:
         """
         Truncate all vector stores
@@ -791,8 +828,11 @@ class Assistants:
         stores = self.vs_get_all_ids([])
         for store_id in stores:
             print("Removing vector store: " + store_id)
-            self.vs_delete(store_id)
-            i += 1
+            try:
+                self.vs_delete(store_id)
+                i += 1
+            except Exception as e:
+                print("Error removing vector store {}: {}".format(store_id, str(e)))
         return i
 
 
@@ -838,7 +878,10 @@ class Assistants:
         sum = 0
         for store_id in store_ids:
             items = []
-            items = self.vs_import_store_files(store_id, items)
+            try:
+                items = self.vs_import_store_files(store_id, items)
+            except Exception as e:
+                print("Error importing store {} files list: {}".format(store_id, str(e)))
             sum += len(items)
         return sum
 
@@ -871,14 +914,54 @@ class Assistants:
         files = client.beta.vector_stores.files.list(**args)
         if files is not None:
             for remote in files.data:
-                id = remote.id
-                if id not in items:
-                    items.append(id)
-                    # add remote file to DB
-                    data = self.file_info(remote.id)
-                    self.window.core.assistants.files.insert(store_id, data)
-                    print("Imported file ID {} to store {}".format(remote.id, store_id))
+                try:
+                    id = remote.id
+                    if id not in items:
+                        items.append(id)
+                        # add remote file to DB
+                        data = self.file_info(remote.id)
+                        self.window.core.assistants.files.insert(store_id, data)
+                        print("Imported file ID {} to store {}".format(remote.id, store_id))
+                except Exception as e:
+                    print("Error importing file {} to store {}: {}".format(remote.id, store_id, str(e)))
 
             if files.has_more:
                 return self.vs_import_store_files(store_id, items, order, limit, files.last_id)
+        return items
+
+    def vs_get_store_files_list(
+            self,
+            store_id: str,
+            items: list,
+            order: str = "asc",
+            limit: int = 100,
+            after: str = None,
+    ) -> list:
+        """
+        Get all vector store files IDs
+
+        :param store_id: store ID
+        :param items: items
+        :param order: order
+        :param limit: limit
+        :param after: next page after ID
+        :return: items dict
+        """
+        client = self.window.core.gpt.get_client()
+        args = {
+            "vector_store_id": store_id,
+            "order": order,
+            "limit": limit,
+        }
+        if after is not None:
+            args['after'] = after
+        files = client.beta.vector_stores.files.list(**args)
+        if files is not None:
+            for remote in files.data:
+                id = remote.id
+                if id not in items:
+                    items.append(id)
+
+            if files.has_more:
+                return self.vs_get_store_files_list(store_id, items, order, limit, files.last_id)
         return items

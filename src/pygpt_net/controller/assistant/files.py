@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import os
@@ -64,15 +64,15 @@ class Files:
                 num += 1  # increment uploaded files counter if file is not uploaded yet
         return num
 
-    def import_files(self, assistant: AssistantItem):
+    def import_files(self, store_id: str = None):
         """
         Import assistant files from API
 
-        :param assistant: assistant
+        :param store_id: store ID
         """
         # run asynchronous
         self.window.ui.status("Importing files...please wait...")
-        self.window.core.gpt.assistants.importer.import_files(assistant)
+        self.window.core.gpt.assistants.importer.import_files(store_id)
 
     def download(self, idx: int):
         """
@@ -148,7 +148,7 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='attachments_uploaded.clear',
+                type='attachments.uploaded.clear',
                 id=-1,
                 msg=trans('attachments_uploaded.clear.confirm'),
             )
@@ -186,7 +186,7 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='attachments_uploaded.delete',
+                type='attachments.uploaded.delete',
                 id=idx,
                 msg=trans('attachments_uploaded.delete.confirm'),
             )

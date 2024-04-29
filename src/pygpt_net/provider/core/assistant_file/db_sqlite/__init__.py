@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import uuid
@@ -180,12 +180,21 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.rename_file(record_id, name)
 
-    def truncate(self) -> bool:
+    def truncate_all(self) -> bool:
         """
         Truncate all files
 
         :return: True if truncated
         """
         return self.storage.truncate_all()
+
+    def truncate_by_store(self, store_id: str) -> bool:
+        """
+        Truncate all files
+
+        :param store_id: store ID
+        :return: True if truncated
+        """
+        return self.storage.truncate_by_store(store_id)
 
 

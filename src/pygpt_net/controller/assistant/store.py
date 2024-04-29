@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -171,6 +171,31 @@ class VectorStore:
         if update and store.id == self.current:
             self.update_current()
 
+    def refresh_by_idx(self, idx: int):
+        """
+        Refresh store by idx
+
+        :param idx: store idx
+        """
+        store_id = self.get_by_tab_idx(idx)
+        if store_id is not None:
+            self.refresh_by_store_id(store_id)
+
+    def refresh_by_store_id(self, store_id: str):
+        """
+        Refresh store by ID
+
+        :param store_id: store id
+        """
+        if store_id is not None:
+            store = self.window.core.assistants.store.items[store_id]
+            if store is not None:
+                self.window.ui.status(trans('status.sending'))
+                QApplication.processEvents()
+                self.refresh_store(store)
+                self.window.ui.status(trans('status.assistant.saved'))
+                self.update()
+
     def update_current(self):
         """Update current store"""
         if self.current is not None and self.window.core.assistants.store.has(self.current):
@@ -283,19 +308,33 @@ class VectorStore:
         :param force: force delete
         """
         store_id = self.get_by_tab_idx(idx)
+        self.delete(store_id, force=force)
+
+    def delete(self, store_id: str = None, force: bool = False):
+        """
+        Delete store by idx
+
+        :param store_id: store id
+        :param force: force delete
+        """
         if not force:
             self.window.ui.dialogs.confirm(
                 type="assistant.store.delete",
-                id=idx,
+                id=store_id,
                 msg=trans("dialog.assistant.store.delete.confirm"),
             )
             return
+
+        if store_id is None:
+            self.window.ui.dialogs.alert("Please select vector store first.")
+            return
+
         self.window.ui.status(trans('status.sending'))
         QApplication.processEvents()
         if self.current == store_id:
             self.current = None
-
         try:
+            print("Deleting store: {}".format(store_id))
             if self.window.core.assistants.store.delete(store_id):
                 self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
                 self.window.ui.status(trans('status.deleted'))

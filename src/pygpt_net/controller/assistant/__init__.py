@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -236,7 +236,7 @@ class Assistant:
                     # if exists then show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm(
-                            type='assistant_delete',
+                            type='assistant.delete',
                             id=idx,
                             msg=trans('confirm.assistant.delete'),
                         )

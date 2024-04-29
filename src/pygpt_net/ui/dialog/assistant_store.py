@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.04.29 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -235,54 +235,119 @@ class AssistantVectorStore:
         """
         self.actions = {}
         self.menu_bar = QMenuBar()
-        self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
 
-        # open
-        self.actions["import"] = QAction(QIcon(":/icons/download.svg"), trans("dialog.assistant.store.menu.import"))
-        self.actions["import"].triggered.connect(
+        self.menu = {}
+        self.menu["current"] = self.menu_bar.addMenu(trans("dialog.assistant.store.menu.current"))
+        self.menu["all"] = self.menu_bar.addMenu(trans("dialog.assistant.store.menu.all"))
+
+        # --------------------------------------------
+
+        # import files (current)
+        self.actions["current.import_files"] = QAction(QIcon(":/icons/download.svg"),
+                                                   trans("dialog.assistant.store.menu.current.import_files"))
+        self.actions["current.import_files"].triggered.connect(
+            lambda: self.window.controller.assistant.batch.import_store_files(
+                self.window.controller.assistant.store.current  # current selected store
+            )
+        )
+
+        # refresh (current)
+        self.actions["current.refresh_store"] = QAction(QIcon(":/icons/reload.svg"),
+                                                     trans("dialog.assistant.store.menu.current.refresh_store"))
+        self.actions["current.refresh_store"].triggered.connect(
+            lambda: self.window.controller.assistant.store.refresh_status()
+        )
+
+        # clear files (current, local)
+        self.actions["current.clear_files"] = QAction(QIcon(":/icons/close.svg"),
+                                                  trans("dialog.assistant.store.menu.current.clear_files"))
+        self.actions["current.clear_files"].triggered.connect(
+            lambda: self.window.controller.assistant.batch.clear_store_files(
+                self.window.controller.assistant.store.current  # current selected store
+            )
+        )
+
+        # truncate files (current, local + remote)
+        self.actions["current.truncate_files"] = QAction(QIcon(":/icons/delete.svg"),
+                                                     trans("dialog.assistant.store.menu.current.truncate_files"))
+        self.actions["current.truncate_files"].triggered.connect(
+            lambda: self.window.controller.assistant.batch.truncate_store_files(
+                self.window.controller.assistant.store.current  # current selected store
+            )
+        )
+
+        # delete (current, local + remote)
+        self.actions["current.delete"] = QAction(QIcon(":/icons/delete.svg"),
+                                                         trans("dialog.assistant.store.menu.current.delete"))
+        self.actions["current.delete"].triggered.connect(
+            lambda: self.window.controller.assistant.store.delete(
+                self.window.controller.assistant.store.current  # current selected store
+            )
+        )
+
+        # --------------------------------------------
+
+        # import all (stores + files)
+        self.actions["all.import_all"] = QAction(QIcon(":/icons/download.svg"), trans("dialog.assistant.store.menu.all.import_all"))
+        self.actions["all.import_all"].triggered.connect(
             lambda: self.window.controller.assistant.batch.import_stores()
         )
 
-        # refresh stores (local)
-        self.actions["refresh_stores"] = QAction(QIcon(":/icons/reload.svg"),
-                                               trans("dialog.assistant.store.menu.refresh_store"))
-        self.actions["refresh_stores"].triggered.connect(
+        # import files (all)
+        self.actions["all.import_files"] = QAction(QIcon(":/icons/download.svg"),
+                                             trans("dialog.assistant.store.menu.all.import_files"))
+        self.actions["all.import_files"].triggered.connect(
+            lambda: self.window.controller.assistant.batch.import_files()
+        )
+
+        # refresh (local)
+        self.actions["all.refresh_stores"] = QAction(QIcon(":/icons/reload.svg"),
+                                               trans("dialog.assistant.store.menu.all.refresh_store"))
+        self.actions["all.refresh_stores"].triggered.connect(
             lambda: self.window.controller.assistant.batch.refresh_stores()
         )
 
-        # clear stores (local)
-        self.actions["clear_stores"] = QAction(QIcon(":/icons/close.svg"),
-                                                  trans("dialog.assistant.store.menu.clear_store"))
-        self.actions["clear_stores"].triggered.connect(
+        # clear stores (all, local)
+        self.actions["all.clear_stores"] = QAction(QIcon(":/icons/close.svg"),
+                                                  trans("dialog.assistant.store.menu.all.clear_store"))
+        self.actions["all.clear_stores"].triggered.connect(
             lambda: self.window.controller.assistant.batch.clear_stores()
         )
 
-        # clear files (local)
-        self.actions["clear_files"] = QAction(QIcon(":/icons/close.svg"),
-                                               trans("dialog.assistant.store.menu.clear_files"))
-        self.actions["clear_files"].triggered.connect(
+        # clear files (all, local)
+        self.actions["all.clear_files"] = QAction(QIcon(":/icons/close.svg"),
+                                               trans("dialog.assistant.store.menu.all.clear_files"))
+        self.actions["all.clear_files"].triggered.connect(
             lambda: self.window.controller.assistant.batch.clear_files()
         )
 
-        # truncate stores
-        self.actions["truncate_stores"] = QAction(QIcon(":/icons/delete.svg"), trans("dialog.assistant.store.menu.truncate_store"))
-        self.actions["truncate_stores"].triggered.connect(
+        # truncate stores (all, local + remote)
+        self.actions["all.truncate_stores"] = QAction(QIcon(":/icons/delete.svg"), trans("dialog.assistant.store.menu.all.truncate_store"))
+        self.actions["all.truncate_stores"].triggered.connect(
             lambda: self.window.controller.assistant.batch.truncate_stores()
         )
 
-        # truncate files
-        self.actions["truncate_files"] = QAction(QIcon(":/icons/delete.svg"), trans("dialog.assistant.store.menu.truncate_files"))
-        self.actions["truncate_files"].triggered.connect(
+        # truncate files (all, local + remote)
+        self.actions["all.truncate_files"] = QAction(QIcon(":/icons/delete.svg"), trans("dialog.assistant.store.menu.all.truncate_files"))
+        self.actions["all.truncate_files"].triggered.connect(
             lambda: self.window.controller.assistant.batch.truncate_files()
         )
 
-        # add actions
-        self.file_menu.addAction(self.actions["import"])
-        self.file_menu.addAction(self.actions["refresh_stores"])
-        self.file_menu.addAction(self.actions["clear_stores"])
-        self.file_menu.addAction(self.actions["clear_files"])
-        self.file_menu.addAction(self.actions["truncate_stores"])
-        self.file_menu.addAction(self.actions["truncate_files"])
+        # current
+        self.menu["current"].addAction(self.actions["current.import_files"])
+        self.menu["current"].addAction(self.actions["current.refresh_store"])
+        self.menu["current"].addAction(self.actions["current.clear_files"])
+        self.menu["current"].addAction(self.actions["current.truncate_files"])
+        self.menu["current"].addAction(self.actions["current.delete"])
+
+        # all
+        self.menu["all"].addAction(self.actions["all.import_all"])
+        self.menu["all"].addAction(self.actions["all.import_files"])
+        self.menu["all"].addAction(self.actions["all.refresh_stores"])
+        self.menu["all"].addAction(self.actions["all.clear_stores"])
+        self.menu["all"].addAction(self.actions["all.clear_files"])
+        self.menu["all"].addAction(self.actions["all.truncate_stores"])
+        self.menu["all"].addAction(self.actions["all.truncate_files"])
 
         return self.menu_bar
 
