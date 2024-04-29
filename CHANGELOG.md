@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.3 (2024-04-29)
+
+- Fixed Assistants files sync btn.
+- Added batch upload files or directory in Assistants vector stores dialog.
+
 # 2.2.2 (2024-04-29)
 
 - Added 'Application environment' option to Config -> General for setting up custom env vars on app load.
