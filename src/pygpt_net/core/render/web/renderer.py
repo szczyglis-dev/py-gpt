@@ -54,8 +54,8 @@ class Renderer(BaseRenderer):
         self.name_user = trans("chat.name.user")
         self.name_bot = trans("chat.name.bot")
         self.last_time_called = 0
-        self.cooldown = 1 / 10  # max 10 chunks per second
-        self.throttling_min_chars = 3000  # min chars to activate cooldown
+        self.cooldown = 1 / 6  # max chunks to parse per second
+        self.throttling_min_chars = 3000  # min chunk chars to activate cooldown
 
     def init(self):
         """
@@ -247,7 +247,7 @@ class Renderer(BaseRenderer):
             self.clear_chunks_output()
         self.buffer += raw_chunk
 
-        # cooldown to prevent high CPU usage on huge text chunks
+        # cooldown (throttling) to prevent high CPU usage on huge text chunks
         if len(self.buffer) > self.throttling_min_chars:
             current_time = time.time()
             if current_time - self.last_time_called <= self.cooldown:

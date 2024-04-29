@@ -1,3 +1,11 @@
+2.2.2 (2024-04-29)
+
+- Added 'Application environment' option to Config -> General for setting up custom env vars on app load.
+- Added chunk render/parse throttling to prevent high CPU load on huge text chunks.
+- Optimized and improved Code interpreter output rendering in stream mode in Assistants.
+- Improved run stopping in Assistants.
+- Fixed syntax theme and 'Edit' icon restore on profile switch.
+
 2.2.1 (2024-04-28)
 
 - Improved data reload on profile switch.

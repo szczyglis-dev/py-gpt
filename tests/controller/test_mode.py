@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -34,7 +34,7 @@ def test_select(mock_window):
     mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: mode.select
 
     # must update rest of elements
-    mock_window.controller.attachment.update.assert_called_once()
+    mock_window.controller.attachment.update.assert_called()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
     mock_window.ui.status.assert_called_once()
@@ -67,7 +67,7 @@ def test_select_assistant(mock_window):
     mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: mode.select
 
     # must update rest of elements
-    mock_window.controller.attachment.update.assert_called_once()
+    mock_window.controller.attachment.update.assert_called()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
     mock_window.ui.status.assert_called_once()

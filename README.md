@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.1** | build: **2024.04.28** | Python: **>=3.10, <3.12**
+Release: **2.2.2** | build: **2024.04.29** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3057,6 +3057,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.2 (2024-04-29)**
+
+- Added 'Application environment' option to Config -> General for setting up custom env vars on app load.
+- Added chunk render/parse throttling to prevent high CPU load on huge text chunks.
+- Optimized and improved Code interpreter output rendering in stream mode in Assistants.
+- Improved run stopping in Assistants.
+- Fixed syntax theme and 'Edit' icon restore on profile switch.
 
 **2.2.1 (2024-04-28)**
 
