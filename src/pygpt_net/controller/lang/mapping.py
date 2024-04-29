@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -144,6 +144,8 @@ class Mapping:
         nodes['assistant.store.btn.new'] = 'dialog.assistant.store.btn.new'
         nodes['assistant.store.btn.save'] = 'dialog.assistant.store.btn.save'
         nodes['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
+        nodes['assistant.store.btn.upload.files'] = 'dialog.assistant.store.btn.upload.files'
+        nodes['assistant.store.btn.upload.dir'] = 'dialog.assistant.store.btn.upload.dir'
         nodes['assistant.store.btn.close'] = 'dialog.assistant.store.btn.close'
         nodes['assistant.store.hide_thread'] = 'assistant.store.hide_threads'
 

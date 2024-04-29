@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
+
+import os
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
@@ -37,6 +39,8 @@ class Importer:
             self.window.controller.assistant.batch.handle_imported_files_failed(err)
         elif mode == "truncate_files":
             self.window.controller.assistant.batch.handle_truncated_files_failed(err)
+        elif mode == "upload_files":
+            self.window.controller.assistant.batch.handle_uploaded_files_failed(err)
         elif mode in "vector_stores":
             self.window.controller.assistant.batch.handle_imported_stores_failed(err)
         elif mode in "truncate_vector_stores":
@@ -58,12 +62,24 @@ class Importer:
             self.window.controller.assistant.batch.handle_imported_files(num)
         elif mode == "truncate_files":
             self.window.controller.assistant.batch.handle_truncated_files(num)
+        elif mode == "upload_files":
+            self.window.controller.assistant.batch.handle_uploaded_files(num)
         elif mode == "vector_stores":
             self.window.controller.assistant.batch.handle_imported_stores(num)
         elif mode == "truncate_vector_stores":
             self.window.controller.assistant.batch.handle_truncated_stores(num)
         elif mode == "refresh_vector_stores":
             self.window.controller.assistant.batch.handle_refreshed_stores(num)
+
+    @Slot(str, str)
+    def handle_status(self, mode: str, msg: str):
+        """
+        Handle thread status change signal
+
+        :param mode: mode
+        :param msg: message
+        """
+        self.window.controller.assistant.batch.handle_status_change(mode, msg)
 
     def import_assistants(self):
         """Import assistants"""
@@ -101,6 +117,23 @@ class Importer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
+    def upload_files(self, store_id: str, files: list = None):
+        """
+        Upload files
+
+        :param files: files
+        :param store_id: store ID
+        """
+        worker = ImportWorker()
+        worker.window = self.window
+        worker.mode = "upload_files"
+        worker.store_id = store_id
+        worker.files = files
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.error.connect(self.handle_error)
+        worker.signals.status.connect(self.handle_status)
+        self.window.threadpool.start(worker)
+
     def refresh_vector_stores(self):
         """Refresh vector stores"""
         worker = ImportWorker()
@@ -126,6 +159,7 @@ class Importer:
 
 
 class ImportWorkerSignals(QObject):
+    status = Signal(str, str)
     finished = Signal(str, int)
     error = Signal(str, object)
 
@@ -138,6 +172,8 @@ class ImportWorker(QRunnable):
         self.window = None
         self.mode = "assistants"
         self.assistant = None
+        self.store_id = None
+        self.files = []
 
     @Slot()
     def run(self):
@@ -156,6 +192,8 @@ class ImportWorker(QRunnable):
                 self.truncate_files()
             elif self.mode == "files":
                 self.import_files()
+            elif self.mode == "upload_files":
+                self.upload_files()
         except Exception as e:
             self.signals.error.emit(self.mode, e)
 
@@ -261,6 +299,39 @@ class ImportWorker(QRunnable):
             return True
         except Exception as e:
             self.signals.error.emit("truncate_files", e)
+            return False
+
+    def upload_files(self, silent: bool = False) -> bool:
+        """
+        Upload files to API
+
+        :return: result
+        """
+        num = 0
+        try:
+            print("Uploading files...")
+            for file in self.files:
+                try:
+                    file_id = self.window.core.gpt.assistants.file_upload("", file)
+                    if file_id is not None:
+                        stored_file = self.window.core.gpt.assistants.vs_add_file(
+                            self.store_id,
+                            file_id,
+                        )
+                        if stored_file is not None:
+                            data = self.window.core.gpt.assistants.file_info(file_id)
+                            self.window.core.assistants.files.insert(self.store_id, data)  # insert to DB
+                            self.signals.status.emit("upload_files",
+                                                     "Uploaded file: {}/{}".format((num + 1), len(self.files)))
+                            num = num + 1
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    self.signals.status.emit("upload_files", "Failed to upload file: {}".format(os.path.basename(file)))
+            if not silent:
+                self.signals.finished.emit("upload_files", num)
+            return True
+        except Exception as e:
+            self.signals.error.emit("upload_files", e)
             return False
 
     def import_files(self, silent: bool = False) -> bool:

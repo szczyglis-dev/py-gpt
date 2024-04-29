@@ -159,6 +159,8 @@ class Confirm:
             self.window.controller.assistant.batch.truncate_files(True)
         elif type == 'assistant.files.clear':
             self.window.controller.assistant.batch.clear_files(True)
+        elif type == 'assistant.files.upload':
+            self.window.controller.assistant.batch.upload(True)
 
         # assistants vector stores
         elif type == 'assistant.store.delete':

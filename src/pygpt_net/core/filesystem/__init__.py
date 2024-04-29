@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 17:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 import os
@@ -431,4 +431,26 @@ class Filesystem:
         :return: True if directory is empty
         """
         return len(os.listdir(path)) == 0
+
+    def get_files_from_dir(self, path: str, recursive: bool = True) -> list:
+        """
+        Get files from directory
+
+        :param path: directory path
+        :param recursive: recursive search
+        :return: list of files
+        """
+        files = []
+        if not os.path.exists(path):
+            return files
+        if recursive:
+            for root, _, filenames in os.walk(path):
+                for filename in filenames:
+                    files.append(os.path.join(root, filename))
+                if not recursive:
+                    break
+        else:
+            files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        return files
+
 

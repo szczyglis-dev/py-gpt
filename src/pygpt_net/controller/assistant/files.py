@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 import os
@@ -254,14 +254,13 @@ class Files:
             if not attachment.send:
                 msg = "Uploading file: {}".format(attachment.path)
                 self.window.core.debug.info(msg, False)
-                print(msg)
                 # check if file exists
                 if not os.path.exists(attachment.path):
                     continue
 
                 # upload local attachment file and get new ID (file_id)
                 new_id = self.window.core.gpt.assistants.file_upload(
-                    assistant_id,
+                    assistant_id,  # unused, deprecated
                     attachment.path,
                 )
                 if new_id is not None:

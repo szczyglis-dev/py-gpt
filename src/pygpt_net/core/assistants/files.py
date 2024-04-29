@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -225,7 +225,6 @@ class Files:
             if store_id in store_ids:
                 continue
             self.window.core.gpt.assistants.vs_delete_file(store_id, file_id)  # remove from vector store
-            store_ids.append(store_id)
         self.provider.delete_by_id(file.record_id)  # delete file in DB
         self.window.core.gpt.assistants.file_delete(file.file_id)  # delete file in API
         if file.record_id in self.items:

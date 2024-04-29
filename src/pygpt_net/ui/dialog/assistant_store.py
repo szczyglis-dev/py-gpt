@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -53,6 +53,12 @@ class AssistantVectorStore:
             QPushButton(trans("dialog.assistant.store.btn.refresh_status"))
         self.window.ui.nodes['assistant.store.btn.close'] = \
             QPushButton(trans("dialog.assistant.store.btn.close"))
+
+        self.window.ui.nodes['assistant.store.btn.upload.files'] = \
+            QPushButton(trans("dialog.assistant.store.btn.upload.files"))
+        self.window.ui.nodes['assistant.store.btn.upload.dir'] = \
+            QPushButton(trans("dialog.assistant.store.btn.upload.dir"))
+
         self.window.ui.nodes['assistant.store.hide_thread'] = QCheckBox(trans("assistant.store.hide_threads"))
         self.window.ui.nodes['assistant.store.hide_thread'].setChecked(True)
         self.window.ui.nodes['assistant.store.hide_thread'].stateChanged.connect(
@@ -75,6 +81,12 @@ class AssistantVectorStore:
         self.window.ui.nodes['assistant.store.btn.refresh_status'].clicked.connect(
             lambda: self.window.controller.assistant.store.refresh_status()
         )
+        self.window.ui.nodes['assistant.store.btn.upload.files'].clicked.connect(
+            lambda: self.window.controller.assistant.batch.open_upload_files()
+        )
+        self.window.ui.nodes['assistant.store.btn.upload.dir'].clicked.connect(
+            lambda: self.window.controller.assistant.batch.open_upload_dir()
+        )
 
         # set enter key to save button
         self.window.ui.nodes['assistant.store.btn.new'].setAutoDefault(False)
@@ -85,6 +97,12 @@ class AssistantVectorStore:
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['assistant.store.btn.close'])
         footer.addWidget(self.window.ui.nodes['assistant.store.btn.save'])
+
+        # upload buttons
+        upload_layout = QHBoxLayout()
+        upload_layout.addWidget(self.window.ui.nodes['assistant.store.btn.upload.files'])
+        upload_layout.addWidget(self.window.ui.nodes['assistant.store.btn.upload.dir'])
+        upload_layout.setContentsMargins(0, 0, 0, 0)
 
         # editor tabs
         self.window.ui.tabs['assistant.store'] = QTabWidget()
@@ -132,6 +150,8 @@ class AssistantVectorStore:
             # add advanced options group to scroll
             content.addWidget(self.window.ui.groups[group_id])
 
+
+        content.addLayout(upload_layout)  # upload buttons
         content.addWidget(self.window.ui.nodes['assistant.store.btn.refresh_status'])  # reload status btn at the end
         content.setContentsMargins(0, 0, 0, 0)
 

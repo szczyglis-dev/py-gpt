@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QFileDialog
 
 from pygpt_net.utils import trans
 
@@ -23,6 +23,7 @@ class Batch:
         :param window: Window instance
         """
         self.window = window
+        self.files_to_upload = []
 
     def import_assistants(self, force: bool = False):
         """
@@ -83,7 +84,7 @@ class Batch:
         if assistant is None:
             return
         try:
-            self.window.controller.assistant.import_files(assistant)
+            self.window.controller.assistant.files.import_files(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
@@ -352,3 +353,99 @@ class Batch:
 
         self.window.core.assistants.save()
         self.window.core.assistants.files.on_all_stores_deleted()  # remove all from files
+
+    def open_upload_files(self):
+        """Open upload files dialog"""
+        if self.window.controller.assistant.store.current is None:
+            self.window.ui.dialogs.alert("Please select vector store first.")
+            return
+
+        options = QFileDialog.Options()
+        files, _ = QFileDialog.getOpenFileNames(
+            self.window,
+            "Select file(s)...",
+            "",
+            "All Files (*)",
+            options=options
+        )
+        if files:
+            self.files_to_upload = files
+
+        if self.files_to_upload:
+            msg = "Are you sure you want to upload {} file(s)?".format(len(self.files_to_upload))
+            self.window.ui.dialogs.confirm(
+                type="assistant.files.upload",
+                id=0,
+                msg=msg,
+            )
+
+    def open_upload_dir(self):
+        """Open upload files dialog"""
+        if self.window.controller.assistant.store.current is None:
+            self.window.ui.dialogs.alert("Please select vector store first.")
+            return
+
+        options = QFileDialog.Options()
+        directory = QFileDialog.getExistingDirectory(
+            self.window,
+            "Select directory...",
+            options=options
+        )
+        if directory:
+            self.files_to_upload = self.window.core.filesystem.get_files_from_dir(directory)
+
+        if self.files_to_upload:
+            msg = ("Are you sure you want to upload {} file(s) from directory {}?".
+                   format(len(self.files_to_upload), directory))
+            self.window.ui.dialogs.confirm(
+                type="assistant.files.upload",
+                id=0,
+                msg=msg,
+            )
+
+    def upload(self, force: bool = False):
+        """
+        Upload files to vector store
+
+        :param force: if true, uploads without confirmation
+        """
+        if self.window.controller.assistant.store.current is None:
+            self.window.ui.dialogs.alert("Please select vector store first.")
+            return
+
+        store_id = self.window.controller.assistant.store.current
+        self.window.core.gpt.assistants.importer.upload_files(store_id, self.files_to_upload)
+        self.files_to_upload = []  # clear files
+
+    def handle_uploaded_files(self, num: int):
+        """
+        Handle uploaded files
+
+        :param num: number of uploaded files
+        """
+        self.window.ui.status("OK. Uploaded files: " + str(num) + ".")
+        self.window.ui.dialogs.alert("OK. Uploaded files: " + str(num) + ".")
+        self.window.controller.assistant.files.update()
+        self.window.controller.assistant.store.refresh_status()
+
+    def handle_uploaded_files_failed(self, error: any):
+        """
+        Handle error on uploading files
+
+        :param error: error message
+        """
+        self.window.core.debug.log(error)
+        print("Error uploading files")
+        self.window.ui.status("Error uploading files.")
+        self.window.ui.dialogs.alert(error)
+        self.window.controller.assistant.files.update()
+        self.window.controller.assistant.store.refresh_status()
+
+    def handle_status_change(self, mode: str, msg: str):
+        """
+        Handle status change
+
+        :param mode: status mode
+        :param msg: status message
+        """
+        self.window.ui.status(msg)

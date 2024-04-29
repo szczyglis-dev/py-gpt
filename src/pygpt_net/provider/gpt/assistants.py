@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 12:00:00                  #
 # ================================================== #
 
 import json
@@ -307,7 +307,6 @@ class Assistants:
         deleted_file = client.files.delete(
             file_id=file_id
         )
-        print(deleted_file)
         if deleted_file is not None:
             if deleted_file is not None:
                 return deleted_file.id

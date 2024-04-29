@@ -12,6 +12,7 @@
   "ai_name": "",
   "api_endpoint": "https://api.openai.com/v1",
   "api_key": "",
+  "app.env": [],
   "assistant": "",
   "assistant_thread": "",
   "assistant.store.hide_threads": true,
@@ -139,7 +140,7 @@
       }
   ],
   "llama.idx.raw": false,
-  "llama.idx.recursive": false,
+  "llama.idx.recursive": true,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
   "llama.idx.storage": "SimpleVectorStore",
