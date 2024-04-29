@@ -31,6 +31,8 @@ The following basic options can be modified directly within the application:
 
 * ``OpenGL hardware acceleration``: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
+* ``Application environment (os.environ)``: Additional environment vars to set on application start.
+
 **Layout**
 
 * ``Zoom``: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.

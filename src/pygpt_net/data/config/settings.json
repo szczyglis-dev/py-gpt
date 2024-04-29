@@ -62,6 +62,18 @@
         "step": 1,
         "advanced": false
     },
+    "app.env": {
+        "section": "general",
+        "type": "dict",
+        "keys": {
+            "name": "text",
+            "value": "text"
+        },
+        "label": "settings.app.env",
+        "description": "settings.app.env.desc",
+        "value": [],
+        "advanced": true
+    },
     "layout.tray": {
         "section": "general",
         "type": "bool",

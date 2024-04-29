@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -1406,6 +1406,13 @@ class Patch:
                 print("Migrating config from < 2.1.79...")
                 if 'assistant.store.hide_threads' not in data:
                     data["assistant.store.hide_threads"] = True
+                updated = True
+
+            # < 2.2.2
+            if old < parse_version("2.2.2"):
+                print("Migrating config from < 2.2.2...")
+                if 'app.env' not in data:
+                    data["app.env"] = []
                 updated = True
 
         # update file

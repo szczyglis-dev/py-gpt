@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -64,7 +64,7 @@ def test_update(mock_window):
     """Test update ctx"""
     ctx = Ctx(mock_window)
 
-    ctx.reload = MagicMock()
+    ctx.update_list = MagicMock()
     ctx.select_by_current = MagicMock()
     mock_window.controller.ui.update = MagicMock()
 
@@ -73,7 +73,7 @@ def test_update(mock_window):
 
     ctx.update(reload=True, all=True)
 
-    ctx.reload.assert_called_once()  # reload
+    ctx.update_list.assert_called_once()  # reload
     ctx.select_by_current.assert_called_once()  # reload
     mock_window.controller.ui.update.assert_called_once()  # all
     mock_window.core.config.save.assert_called_once()  # save config with ctx and thread id (mocked here)
@@ -161,8 +161,8 @@ def test_add(mock_window):
     ctx.update.assert_called_once()
 
 
-def test_reload(mock_window):
-    """Test reload ctx list"""
+def test_update_list(mock_window):
+    """Test update_list"""
     ctx = Ctx(mock_window)
     ctx.update = MagicMock()
     meta = {
@@ -172,7 +172,7 @@ def test_reload(mock_window):
     }
     mock_window.core.ctx.get_meta = MagicMock(return_value=meta)
 
-    ctx.reload()
+    ctx.update_list()
     mock_window.ui.contexts.ctx_list.update.assert_called_once_with('ctx.list', meta)
 
 

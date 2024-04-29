@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 02:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -505,6 +505,23 @@ class Config:
             data[key_to] = copy.deepcopy(data[key_from])
             del data[key_from]
         return data
+
+    def setup_env(self):
+        """Setup environment vars"""
+        if "app.env" not in self.data or not isinstance(self.data["app.env"], list):
+            return
+        list_loaded = []
+        for item in self.data["app.env"]:
+            if item['name'] is None or item['name'] == "":
+                continue
+            try:
+                value = str(item['value'].format(**self.all()))
+                os.environ[item['name']] = value
+                list_loaded.append(item['name'])
+            except Exception as e:
+                print("Error setting env var: {}".format(e))
+        if list_loaded:
+            print("Loaded environment vars: {}".format(", ".join(list_loaded)))
 
     def save(self, filename: str = "config.json"):
         """

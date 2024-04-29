@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 22:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import os
@@ -63,6 +63,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core = Container(self)
         self.core.init()
         self.core.patch()  # patch version if needed
+        self.core.post_setup()
 
         # before render, handle engine args
         self.handle_engine_args()
