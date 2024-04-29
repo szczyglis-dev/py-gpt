@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.3** | build: **2024.04.29** | Python: **>=3.10, <3.12**
+Release: **2.2.4** | build: **2024.04.29** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3057,6 +3057,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.4 (2024-04-29)**
+
+- Batch actions splitted into 'Current store' and 'All stores' in Assistants remote vector stores importer.
+- Added sync current/all context menu options to Sync button.
+- Improved remote stores handling.
 
 **2.2.3 (2024-04-29)**
 

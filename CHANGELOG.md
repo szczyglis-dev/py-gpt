@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.2.4 (2024-04-29)
+
+- Batch actions splitted into 'Current store' and 'All stores' in Assistants remote vector stores importer.
+- Added sync current/all context menu options to Sync button.
+- Improved remote stores handling.
+
 # 2.2.3 (2024-04-29)
 
 - Fixed Assistants files sync btn.
