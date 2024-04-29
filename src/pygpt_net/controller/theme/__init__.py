@@ -112,6 +112,7 @@ class Theme:
         :param update_menu: update menu
         """
         self.window.core.config.set("render.code_syntax", name)
+        self.window.core.config.save()
         self.window.controller.chat.render.on_theme_change()
         if update_menu:
             self.menu.update_syntax()
