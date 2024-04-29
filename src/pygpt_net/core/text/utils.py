@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
+
+import re
 
 from bs4 import BeautifulSoup
 
@@ -61,3 +63,14 @@ def output_clean_html(html: str) -> str:
     except Exception as e:
         pass
     return html
+
+def has_unclosed_code_tag(text: str) -> bool:
+    """
+    Check if HTML content has unclosed code block
+
+    :param text: HTML content
+    :return: True if unclosed code block found
+    """
+    if re.search(r'```(?!.*```)', text):
+        return True
+    return False
