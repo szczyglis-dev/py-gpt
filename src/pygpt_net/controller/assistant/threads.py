@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import json
@@ -353,6 +353,16 @@ class Threads:
         self.window.controller.chat.common.unlock_input()
         self.window.statusChanged.emit(trans('assistant.run.failed'))
         self.window.stateChanged.emit(self.window.STATE_ERROR)
+
+    def handle_run_step_created(self, ctx: CtxItem, stream: bool = False):
+        """
+        Handle run step created (stream and not stream)
+
+        :param ctx: CtxItem
+        :param stream: True if stream
+        """
+        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        self.window.controller.chat.common.lock_input()  # lock input, show stop button
 
     @Slot(object, object)
     def handle_status(self, run, ctx: CtxItem):

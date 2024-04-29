@@ -6,18 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 03:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
 import html
+import time
 from datetime import datetime
 
 from pygments.formatters.html import HtmlFormatter
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
@@ -51,6 +53,9 @@ class Renderer(BaseRenderer):
         self.use_buffer = False  # use html buffer
         self.name_user = trans("chat.name.user")
         self.name_bot = trans("chat.name.bot")
+        self.last_time_called = 0
+        self.cooldown = 1 / 10  # max 10 chunks per second
+        self.throttling_min_chars = 3000  # min chars to activate cooldown
 
     def init(self):
         """
@@ -230,6 +235,8 @@ class Renderer(BaseRenderer):
         """
         self.item = item
         if text_chunk is None or text_chunk == "":
+            if begin:
+                self.buffer = ""  # always reset buffer
             return
 
         self.update_names(item)
@@ -239,8 +246,18 @@ class Renderer(BaseRenderer):
             self.is_cmd = False  # reset command flag
             self.clear_chunks_output()
         self.buffer += raw_chunk
+
+        # cooldown to prevent high CPU usage on huge text chunks
+        if len(self.buffer) > self.throttling_min_chars:
+            current_time = time.time()
+            if current_time - self.last_time_called <= self.cooldown:
+                return  # wait a moment
+            else:
+                self.last_time_called = current_time
+
+        # parse chunks
         to_append = self.buffer
-        if re.search(r'```(?!.*```)', self.buffer):
+        if has_unclosed_code_tag(self.buffer):
             to_append += "\n```"  # fix for code block without closing ```
         html = self.parser.parse(to_append)
         escaped_chunk = json.dumps(html)

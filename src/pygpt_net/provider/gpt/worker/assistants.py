@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.04.29 07:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -18,6 +18,9 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class AssistantsWorker:
+    CHUNK_TYPE_MSG = 1  # last chunk = message
+    CHUNK_TYPE_TOOL = 0  # last chunk = tool
+
     def __init__(self, window=None):
         """
         Assistants Worker (async)
@@ -26,6 +29,7 @@ class AssistantsWorker:
         """
         self.window = window
         self.tool_output = ""
+        self.last_chunk_type = self.CHUNK_TYPE_MSG  # msg or tool
 
     def create_run(
             self,
@@ -118,6 +122,8 @@ class AssistantsWorker:
         worker.signals.stream_tool_call_done.connect(self.handle_tool_call_done)
         worker.signals.stream_message_done.connect(self.handle_message_done)
         worker.signals.stream_run_step_created.connect(self.handle_run_step_created)
+        worker.signals.stream_run_step_done.connect(self.handle_run_step_done)
+        worker.signals.stream_run_created.connect(self.handle_run_created)
 
     def is_show_tool_output(self) -> bool:
         """
@@ -126,6 +132,32 @@ class AssistantsWorker:
         :return: bool
         """
         return self.window.core.config.get('ctx.code_interpreter', False)
+
+    def begin_chunks(self, ctx: CtxItem):
+        """
+        Begin chunks stream output
+
+        :param ctx: context item
+        """
+        self.window.controller.chat.render.stream_begin()
+        self.window.controller.assistant.threads.handle_stream_begin(ctx)
+        self.window.controller.chat.render.append_chunk(
+            ctx,
+            "",
+            True,
+        )  # only begin chunks
+
+    def reset_tool_output(self):
+        """Reset tool output"""
+        self.tool_output = ""
+
+    def has_tool_output(self) -> bool:
+        """
+        Return True if has tool output
+
+        :return: bool
+        """
+        return self.tool_output is not None and self.tool_output != ""
 
     def append_chunk(self, ctx: CtxItem, chunk: str, begin: bool = False):
         """
@@ -142,8 +174,16 @@ class AssistantsWorker:
         self.window.controller.chat.render.append_chunk(
             ctx,
             chunk,
-            begin,
+            False,
         )
+
+    def log(self, message: str):
+        """
+        Log assistant message
+
+        :param message: message
+        """
+        self.window.controller.assistant.threads.log(message)
 
     @Slot(object)
     def handle_text_created(self, ctx: CtxItem):
@@ -152,10 +192,12 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
-        if (ctx.output != "" and ctx.output is not None) or self.tool_output != "":
+        self.log("STREAM: text created")
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
+        if (ctx.output != "" and ctx.output is not None) or self.has_tool_output():
             return  # append to existing output
-        self.window.controller.chat.render.stream_begin()
-        self.window.controller.assistant.threads.handle_stream_begin(ctx)
 
     @Slot(object, object)
     def handle_text_delta(self, ctx: CtxItem, delta, begin):
@@ -166,10 +208,15 @@ class AssistantsWorker:
         :param delta: delta
         :param begin: stream text begin
         """
+        if ctx.stopped:
+            return
+        # self.window.controller.assistant.threads.log("STREAM: text delta")
         if ctx.output_tokens is None:
             ctx.output_tokens = 0
         ctx.output_tokens += 1  # tokens++
         self.append_chunk(ctx, delta.value, begin)
+        self.last_chunk_type = self.CHUNK_TYPE_MSG
+        # self.log("STREAM: chunk: msg text")
 
     @Slot(object)
     def handle_end(self, ctx: CtxItem):
@@ -178,20 +225,28 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
-        self.tool_output = ""
+        self.log("STREAM: end")
+        if ctx.stopped:
+            return
+        self.reset_tool_output()
         self.window.controller.chat.render.stream_end()
         self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
-    @Slot(object, object)
-    def handle_tool_call_created(self, ctx: CtxItem, tool_call):
+    @Slot(object, object, bool)
+    def handle_tool_call_created(self, ctx: CtxItem, tool_call, begin):
         """
         Handle thread tool call created signal
 
         :param ctx: context item
         :param tool_call: tool call
+        :param begin: stream text begin
         """
+        self.log("STREAM: tool call created: {}".format(tool_call.type))
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
         if self.is_show_tool_output():
-            self.tool_output = ""
+            self.reset_tool_output()
 
     @Slot(object, object, bool)
     def handle_tool_call_delta(self, ctx: CtxItem, delta, begin):
@@ -202,27 +257,39 @@ class AssistantsWorker:
         :param delta: delta
         :param begin: stream text begin
         """
+        if ctx.stopped:
+            return
+        # self.log("STREAM: tool call delta")
         if self.is_show_tool_output():
             if delta.type == 'code_interpreter':
+                # begin code block
+                if begin:
+                    self.log("STREAM: tool output: code_interpreter: begin")
+                    self.append_chunk(ctx, "\n\n**Code interpreter**\n```python\n", begin=False)
+
+                # input
                 if delta.code_interpreter.input:
                     if delta.code_interpreter.input is not None:
-                        if self.tool_output == "":
-                            self.window.controller.chat.render.stream_begin()
-                            self.window.controller.assistant.threads.handle_stream_begin(ctx)
-                            self.append_chunk(ctx, "\n\n**Code interpreter**\n```python\n", begin=begin)
                         self.tool_output += delta.code_interpreter.input
                         self.append_chunk(ctx, delta.code_interpreter.input)
+                        self.last_chunk_type = self.CHUNK_TYPE_TOOL
+                        # self.log("STREAM: chunk: code_interpreter: input")
 
+                # output
                 if delta.code_interpreter.outputs:
                     header = False
                     for output in delta.code_interpreter.outputs:
                         if output.type == "logs":
                             if not header:
+                                self.log("STREAM: tool output: code_interpreter: log begin")
                                 self.append_chunk(ctx, "\n\n-------\nOutput:\n")
+                                self.last_chunk_type = self.CHUNK_TYPE_TOOL
                                 header = True
                             chunk = output.logs
                             if output.logs is not None:
                                 self.append_chunk(ctx, "\n" + chunk)
+                                self.last_chunk_type = self.CHUNK_TYPE_TOOL
+                                # self.log("STREAM: chunk: code_interpreter: logs")
 
     @Slot(object, object, bool)
     def handle_tool_call_done(self, ctx: CtxItem, tool_call, begin):
@@ -233,8 +300,12 @@ class AssistantsWorker:
         :param tool_call: tool call
         :param begin: stream text begin
         """
+        self.log("STREAM: tool call done: {}".format(tool_call.type))
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
         if self.is_show_tool_output():
-            if self.tool_output is not None and self.tool_output != "":
+            if self.has_tool_output() and self.last_chunk_type == self.CHUNK_TYPE_TOOL:
                 self.append_chunk(ctx, "\n```\n")
 
     @Slot(object, object)
@@ -245,21 +316,49 @@ class AssistantsWorker:
         :param ctx: context item
         :param message: message
         """
+        self.log("STREAM: message done")
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
         self.window.controller.assistant.threads.handle_message_data(
             ctx,
             message,
             stream=True,
         )  # handle img, files, etc.
 
-    @Slot(object, object)
-    def handle_run_step_created(self, ctx: CtxItem, run_step):
+    @Slot(object, object, int)
+    def handle_run_step_created(self, ctx: CtxItem, run_step, step_idx: int):
         """
         Handle thread run step created signal
 
         :param ctx: context item
         :param run_step: run step
+        :param step_idx: step index
         """
+        self.log("STREAM: run step created: {}, idx: {}".format(run_step.id, step_idx))
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
         ctx.run_id = run_step.run_id
+        self.window.controller.assistant.threads.handle_run_step_created(ctx, stream=True)
+        if step_idx == 0:
+            self.log("STREAM: run created: {}".format(ctx.run_id))
+            self.log("STREAM: begin chunks...")
+            self.begin_chunks(ctx)
+
+    @Slot(object, object, int)
+    def handle_run_step_done(self, ctx: CtxItem, run_step, step_idx: int):
+        """
+        Handle thread run step created signal
+
+        :param ctx: context item
+        :param run_step: run step
+        :param step_idx: step index
+        """
+        self.log("STREAM: run step done: {}, idx: {}".format(run_step.id, step_idx))
+        if ctx.stopped:
+            self.log("STREAM: ignoring: stopped")
+            return
 
     @Slot(object, object)
     def handle_error(self, ctx: CtxItem, err: any):
@@ -269,6 +368,7 @@ class AssistantsWorker:
         :param ctx: context item
         :param err: error message
         """
+        self.log("STREAM: error: {}".format(err))
         self.window.controller.assistant.threads.handle_run_error(ctx, err)
 
     @Slot(object, object, bool)
@@ -280,6 +380,8 @@ class AssistantsWorker:
         :param run
         :param stream: stream mode
         """
+        if not stream:
+            self.log("STREAM: run created: {}".format(run.id))
         self.window.controller.assistant.threads.handle_run_created(
             ctx,
             run,
@@ -298,16 +400,17 @@ class EventHandler(AssistantEventHandler):
         super().__init__()
         self.signals = signals
         self.ctx = ctx
-        self.begin = False
+        self.text_begin = False
         self.tool_begin = False
         self.stream_started = False
+        self.step_idx = 0
         
     @override
     def on_text_created(self, text) -> None:
         """Callback that is fired when a text content block is created"""
         # print(f"\nassistant > ", end="", flush=True)
         if not self.stream_started:
-            self.begin = True
+            self.text_begin = True
         self.stream_started = True
         self.signals.stream_text_created.emit(self.ctx)
 
@@ -315,13 +418,20 @@ class EventHandler(AssistantEventHandler):
     def on_text_delta(self, delta, snapshot):
         """Callback that is fired whenever a message delta is returned from the API"""
         # print(delta.value, end="", flush=True)
-        self.signals.stream_text_delta.emit(self.ctx, delta, self.begin)
-        self.begin = False
+        self.signals.stream_text_delta.emit(self.ctx, delta, self.text_begin)
+        self.text_begin = False
 
     @override
     def on_run_step_created(self, run_step) -> None:
         """Callback that is fired when a run step is created"""
-        self.signals.stream_run_step_created.emit(self.ctx, run_step)
+        self.tool_begin = False  # reset
+        self.signals.stream_run_step_created.emit(self.ctx, run_step, self.step_idx)
+        self.step_idx += 1
+
+    @override
+    def on_run_step_done(self, run_step):
+        """Fires when run completed."""
+        self.signals.stream_run_step_done.emit(self.ctx, run_step, self.step_idx)
 
     @override
     def on_text_done(self, text):
@@ -353,16 +463,17 @@ class EventHandler(AssistantEventHandler):
     def on_tool_call_created(self, tool_call):
         """Callback that is fired when a tool call is created"""
         # print(f"\nassistant > {tool_call.type}\n", flush=True)
-        if not self.stream_started:
-            self.tool_begin = True
-        self.stream_started = True
-        self.signals.stream_tool_call_created.emit(self.ctx, tool_call)
+        self.tool_begin = False  # reset
+        self.signals.stream_tool_call_created.emit(self.ctx, tool_call, self.tool_begin)
 
     @override
     def on_tool_call_delta(self, delta, snapshot):
         """Callback that is fired when a tool call delta is encountered"""
-        self.signals.stream_tool_call_delta.emit(self.ctx, delta, self.tool_begin)
-        self.tool_begin = False
+        begin = True
+        if self.tool_begin:
+            begin = False
+        self.signals.stream_tool_call_delta.emit(self.ctx, delta, begin)
+        self.tool_begin = True
 
     @override
     def on_tool_call_done(self, tool_call) -> None:
@@ -380,11 +491,13 @@ class WorkerSignals(QObject):
     stream_text_created = Signal(object)  # ctx
     stream_text_delta = Signal(object, object, bool)  # ctx, delta, begin
     stream_end = Signal(object)  # ctx
-    stream_tool_call_created = Signal(object, object)  # ctx, tool_call
-    stream_tool_call_delta = Signal(object, object, bool)  # ctx, delta
+    stream_tool_call_created = Signal(object, object, bool)  # ctx, tool_call, begin
+    stream_tool_call_delta = Signal(object, object, bool)  # ctx, delta, begin
     stream_tool_call_done = Signal(object, object, bool)  # ctx, tool_call
     stream_message_done = Signal(object, object)  # ctx, message
-    stream_run_step_created = Signal(object, object)  # ctx, run_step
+    stream_run_step_created = Signal(object, object, int)  # ctx, run_step, step idx
+    stream_run_created = Signal(object, object)  # ctx, run_step
+    stream_run_step_done = Signal(object, object, int)  # ctx, run_step, step idx
 
 
 class Worker(QRunnable):
