@@ -97,6 +97,8 @@ See the section ``Image generation`` for more details.
 Vision (GPT-4 Vision)
 ---------------------
 
+**INFO:** From version ``2.2.6`` (2024-04-30) Vision is available directly in Chat mode, without any plugins - if the model supports Vision (currently: ``gpt-4-turbo`` and ``gpt-4-turbo-2024-04-09``).
+
 This mode enables image analysis using the ``GPT-4 Vision`` model. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.

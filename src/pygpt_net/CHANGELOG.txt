@@ -1,3 +1,10 @@
+2.2.6 (2024-04-30)
+
+- Added a new model: 'gpt-4-turbo'.
+- Vision integrated into Chat mode, without any plugins, if the model supports Vision - currently available for: 'gpt-4-turbo' and 'gpt-4-turbo-2024-04-09'.
+- Store importer connected with Logger.
+- Fixed: issue with batch unassigning remote files from vector stores.
+
 2.2.5 (2024-04-30)
 
 - Fix: import button handler in Assistants.

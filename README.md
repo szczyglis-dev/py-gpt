@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.5** | build: **2024.04.30** | Python: **>=3.10, <3.12**
+Release: **2.2.6** | build: **2024.04.30** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -394,6 +394,8 @@ The vector database in use will be displayed in the list of uploaded files, on t
 ![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f13c2eb-f961-4eae-b08b-0b4937f06ca9)
 
 ## Vision (GPT-4 Vision)
+
+**INFO:** From version `2.2.6` (2024-04-30) Vision is available directly in Chat mode, without any plugins - if the model supports Vision (currently: `gpt-4-turbo` and `gpt-4-turbo-2024-04-09`).
 
 This mode enables image analysis using the `GPT-4 Vision` model. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
@@ -3057,6 +3059,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.6 (2024-04-30)**
+
+- Added a new model: 'gpt-4-turbo'.
+- Vision integrated into Chat mode, without any plugins, if the model supports Vision - currently available for: 'gpt-4-turbo' and 'gpt-4-turbo-2024-04-09'.
+- Store importer connected with Logger.
+- Fixed: issue with batch unassigning remote files from vector stores.
 
 **2.2.5 (2024-04-30)**
 
