@@ -187,7 +187,7 @@ class VectorStore:
 
         :param store_id: store id
         """
-        if store_id is not None:
+        if store_id is not None and store_id in self.window.core.assistants.store.items:
             store = self.window.core.assistants.store.items[store_id]
             if store is not None:
                 self.window.ui.status(trans('status.sending'))
