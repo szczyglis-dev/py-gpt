@@ -78,6 +78,7 @@ class Interpreter:
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
+        right_widget.setMinimumWidth(300)
 
         self.window.ui.splitters['interpreter.columns'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['interpreter.columns'].addWidget(left_widget)
