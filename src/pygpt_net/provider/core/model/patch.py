@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -205,6 +205,11 @@ class Patch:
             if old < parse_version("2.1.45"):
                 print("Migrating models from < 2.1.45...")
                 # add missing 2024-04-09
+                updated = True
+
+            if old < parse_version("2.2.6"):
+                print("Migrating models from < 2.2.6...")
+                # add missing gpt-4-turbo
                 updated = True
 
         # update file
