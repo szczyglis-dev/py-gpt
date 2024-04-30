@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import  QApplication
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
@@ -73,13 +74,19 @@ class Image:
             self.window.controller.ctx.prepare_name(ctx)
 
         # generate image
+        bridge_context = BridgeContext(
+            ctx=ctx,
+            mode="image",
+            model=model_data,  # model instance
+            prompt=text,
+        )
+        extra = {
+            "num": num,
+        }
         try:
             self.window.core.bridge.call(
-                mode="image",
-                prompt=text,
-                ctx=ctx,
-                model=model_data,  # model instance
-                num=num,
+                context=bridge_context,
+                extra=extra,
             )
         except Exception as e:
             self.window.core.debug.log(e)

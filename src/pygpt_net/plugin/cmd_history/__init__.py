@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from datetime import datetime
 from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
@@ -557,7 +558,12 @@ class Plugin(BasePlugin):
         summary = self.get_summarized_text(chunks, prompt)
         return summary
 
-    def count_ctx_in_date(self, year: int = None, month: int = None, day: int = None) -> dict:
+    def count_ctx_in_date(
+            self,
+            year: int = None,
+            month: int = None,
+            day: int = None
+    ) -> dict:
         """
         Get context counters
 
@@ -600,7 +606,7 @@ class Plugin(BasePlugin):
         :param sys_prompt: system prompt
         :return: summarized text
         """
-        summary = ""
+        summary = []
 
         # get custom prompt if set
         max_tokens = int(self.get_option_value("summary_max_tokens"))
@@ -614,17 +620,22 @@ class Plugin(BasePlugin):
         # summarize per chunk
         for chunk in chunks:
             try:
-                response = self.window.core.bridge.quick_call(
+                bridge_context = BridgeContext(
                     prompt=chunk,
                     system_prompt=sys_prompt,
                     max_tokens=max_tokens,
                     model=model,
+                    temperature=0.0,
+                )
+                response = self.window.core.bridge.quick_call(
+                    context=bridge_context,
                 )
                 if response is not None and response != "":
-                    summary += response
+                    summary.append(response)
             except Exception as e:
                 self.error(e)
-        return summary
+
+        return "".join(summary)
 
     def log(self, msg: str):
         """

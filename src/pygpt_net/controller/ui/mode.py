@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -115,6 +115,9 @@ class Mode:
         if mode in ["img", "assistant"]:
             return False
 
+        if self.window.controller.ui.vision.is_vision_model():
+            return True
+
         # event: UI: vision
         value = False
         event = Event(Event.UI_VISION, {
@@ -131,6 +134,9 @@ class Mode:
 
         if mode == "img":
             return False
+
+        if self.window.controller.ui.vision.is_vision_model():
+            return True
 
         # event: UI: attachments
         value = False

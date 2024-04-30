@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 class Vision:
@@ -25,7 +25,7 @@ class Vision:
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
         else:
-            # plugin: vision
+            # plugin: vision or vision model
             if self.window.controller.plugins.is_type_enabled('vision'):
                 if mode == 'vision' or mode in self.window.controller.chat.vision.allowed_modes:
                     self.window.controller.camera.setup()
@@ -43,3 +43,17 @@ class Vision:
                 else:
                     self.window.controller.camera.setup()
                     self.window.controller.camera.show_camera()
+
+    def is_vision_model(self) -> bool:
+        """
+        Check if current model has vision capabilities
+
+        :return: True if vision model
+        """
+        model_id = self.window.core.config.get("model")
+        if model_id is not None:
+            if self.window.core.models.has(model_id):
+                model = self.window.core.models.get(model_id)
+                if "vision" in model.mode:
+                    return True
+        return False

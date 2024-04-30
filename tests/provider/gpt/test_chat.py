@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
 from pygpt_net.provider.gpt.chat import Chat
@@ -50,11 +51,12 @@ def test_send(mock_window_conf):
     chat.window.core.gpt.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
-    response = chat.send(
+    bridge_context = BridgeContext(
         prompt='test_prompt',
-        max_tokens=10,
         model=model,
+        max_tokens=10,
     )
+    response = chat.send(context=bridge_context)
     assert response.choices[0].message.content == 'test_response'
 
 
@@ -82,6 +84,9 @@ def test_build(mock_window_conf):
         prompt='test_prompt',
         system_prompt='test_system_prompt',
         model=model,
+        attachments={},
+        ai_name=None,
+        user_name=None,
     )
     assert len(messages) == 4
     assert messages[0]['content'] == 'test_system_prompt'

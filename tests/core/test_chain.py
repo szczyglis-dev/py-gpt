@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
-
 from tests.mocks import mock_window_conf
+
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.chain import Chain
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -40,12 +41,16 @@ def test_call(mock_window_conf):
     chain.completion.send = MagicMock()
     chain.chat.send.content.return_value = 'test_chat_response'
     chain.completion.send.return_value = 'test_completion_response'
-
-    chain.call(
+    bridge_context = BridgeContext(
+        ctx=ctx,
         prompt='test_prompt',
         system_prompt='test_system_prompt',
-        ctx=ctx,
         model=model,
+    )
+    extra = {}
+    chain.call(
+        context=bridge_context,
+        extra=extra,
     )
     chain.chat.send.assert_called_once_with(
         prompt='test_prompt',

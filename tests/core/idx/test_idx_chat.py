@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
@@ -28,19 +29,21 @@ def test_call(mock_window):
     idx = "test"
     sys_prompt = "test"
     stream = True
-    chat.call(
+    bridge_context = BridgeContext(
         ctx=ctx,
         idx=idx,
         model=model,
         system_prompt=sys_prompt,
         stream=stream,
     )
+    extra = {}
+    chat.call(
+        context=bridge_context,
+        extra=extra,
+    )
     chat.chat.assert_called_once_with(
-        ctx=ctx,
-        idx=idx,
-        model=model,
-        system_prompt=sys_prompt,
-        stream=stream,
+        context=bridge_context,
+        extra=extra,
     )
 
 
@@ -53,19 +56,21 @@ def test_raw_query(mock_window):
     idx = "test"
     sys_prompt = "test"
     stream = True
-    chat.raw_query(
+    bridge_context = BridgeContext(
         ctx=ctx,
         idx=idx,
         model=model,
         system_prompt=sys_prompt,
         stream=stream,
     )
+    extra = {}
+    chat.raw_query(
+        context=bridge_context,
+        extra=extra,
+    )
     chat.query.assert_called_once_with(
-        ctx=ctx,
-        idx=idx,
-        model=model,
-        system_prompt=sys_prompt,
-        stream=stream,
+        context=bridge_context,
+        extra=extra,
     )
 
 
@@ -88,12 +93,17 @@ def test_query(mock_window):
     ctx = CtxItem()
     ctx.input = "test"
     model = ModelItem()
-    chat.query(
+    bridge_context = BridgeContext(
         ctx=ctx,
         idx=index,
         model=model,
         system_prompt_raw="test",
         stream=False,
+    )
+    extra = {}
+    chat.query(
+        context=bridge_context,
+        extra=extra,
     )
     chat.get_custom_prompt.assert_called_once_with("test")
     assert ctx.input_tokens == 222
@@ -123,12 +133,17 @@ def test_chat(mock_window):
     ctx.input = "test"
     model = ModelItem()
     chat.get_memory_buffer = MagicMock(return_value=None)
-    chat.chat(
+    bridge_context = BridgeContext(
         ctx=ctx,
         idx=index,
         model=model,
         system_prompt="test",
         stream=False,
+    )
+    extra = {}
+    chat.chat(
+        context=bridge_context,
+        extra=extra,
     )
     assert ctx.input_tokens == 222
     assert ctx.output == str(response.response)

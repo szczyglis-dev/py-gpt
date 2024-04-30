@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -27,17 +28,21 @@ class Image:
         """
         self.window = window
 
-    def generate(self, **kwargs):
+    def generate(self, context: BridgeContext, extra: dict = None):
         """
         Call images API
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         """
-        prompt = kwargs.get("prompt", "")
-        ctx = kwargs.get("ctx", CtxItem())
-        num = kwargs.get("num", 1)
-        inline = kwargs.get("inline", False)
-        model = kwargs.get("model", None)  # model instance
+        prompt = context.prompt
+        ctx = context.ctx
+        model = context.model
+        num = extra.get("num", 1)
+        inline = extra.get("inline", False)
+
+        if ctx is None:
+            ctx = CtxItem()  # create empty context
 
         prompt_model = self.window.core.models.from_defaults()
         tmp_model = self.window.core.config.get('img_prompt_model')
@@ -79,10 +84,10 @@ class Image:
 
 
 class ImageSignals(QObject):
-    finished = Signal(object, object, object)
-    finished_inline = Signal(object, object, object)
-    status = Signal(object)
-    error = Signal(object)
+    finished = Signal(object, object, object)  # ctx, paths, prompt
+    finished_inline = Signal(object, object, object)  # ctx, paths, prompt
+    status = Signal(object)  # status message
+    error = Signal(object)  # error message
 
 
 class ImageWorker(QRunnable):
@@ -122,18 +127,20 @@ class ImageWorker(QRunnable):
 
     @Slot()
     def run(self):
-        if not self.raw and not self.inline:  # disable on inline and raw
-            max_tokens = 200
-            temperature = 1.0
+        """Run worker"""
+        if not self.raw and not self.inline:  # disable on inline and raw modes
             try:
-                # call GPT for generate best image generate prompt
+                # call GPT for generate better image generate prompt
                 self.signals.status.emit(trans('img.status.prompt.wait'))
-                response = self.window.core.bridge.quick_call(
+                bridge_context = BridgeContext(
                     prompt=self.input_prompt,
                     system_prompt=self.system_prompt,
-                    max_tokens=max_tokens,
                     model=self.model_prompt,  # model instance
-                    temperature=temperature,
+                    max_tokens=200,
+                    temperature=1.0,
+                )
+                response = self.window.core.bridge.quick_call(
+                    context=bridge_context,
                 )
                 if response is not None and response != "":
                     self.input_prompt = response
@@ -144,7 +151,7 @@ class ImageWorker(QRunnable):
 
         self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
 
-        paths = []
+        paths = []  # downloaded images paths
 
         try:
             # check if number of images is supported
@@ -194,7 +201,7 @@ class ImageWorker(QRunnable):
                     + self.window.core.image.make_safe_filename(self.input_prompt) + "-" + str(i + 1) + ".png"
                 path = os.path.join(self.window.core.config.get_user_dir("img"), name)
 
-                msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + path
+                msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + str(path)
                 self.signals.status.emit(msg)
 
                 # save image
@@ -205,7 +212,7 @@ class ImageWorker(QRunnable):
 
             # send finished signal
             if self.inline:
-                self.signals.finished_inline.emit(
+                self.signals.finished_inline.emit(  # separated signal for inline mode
                     self.ctx,
                     paths,
                     self.input_prompt,

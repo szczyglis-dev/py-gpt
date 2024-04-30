@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
@@ -207,26 +208,34 @@ class Text:
             # make API call
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
+                max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
                 files = self.window.core.attachments.get_all(mode)  # get attachments
+                file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
                 num_files = len(files)
                 if num_files > 0:
                     self.log("Attachments ({}): {}".format(mode, num_files))
 
                 # make call
-                result = self.window.core.bridge.call(
-                    mode=mode,
-                    model=model_data,
+                bridge_context = BridgeContext(
                     ctx=ctx,
-                    prompt=text,
+                    mode=mode,
+                    parent_mode=mode,
+                    model=model_data,
                     system_prompt=sys_prompt,
                     system_prompt_raw=sys_prompt_raw,
+                    prompt=text,
                     stream=stream_mode,
                     attachments=files,
+                    file_ids=file_ids,
                     assistant_id=self.window.core.config.get('assistant'),
-                    idx=self.window.controller.idx.current_idx,
+                    idx=self.window.controller.idx.current_idx,  # current idx
                     idx_raw=self.window.core.config.get('llama.idx.raw'),  # query mode
                     external_functions=functions,  # external functions
                     tools_outputs=tools_outputs,  # if not empty then will submit outputs
+                    max_tokens=max_tokens,  # max output tokens
+                )
+                result = self.window.core.bridge.call(
+                    context=bridge_context,
                 )
 
                 # update context in DB

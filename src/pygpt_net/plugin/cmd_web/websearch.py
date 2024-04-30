@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 19:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import re
 from bs4 import BeautifulSoup
+
+from pygpt_net.core.bridge import BridgeContext
 
 
 class WebSearch:
@@ -164,11 +166,15 @@ class WebSearch:
                 "Plugin: cmd_web:get_summary (chunk, max_tokens): {}, {}".format(chunk, max_tokens)
             )
             try:
-                response = self.plugin.window.core.bridge.quick_call(
+                bridge_context = BridgeContext(
                     prompt=chunk,
                     system_prompt=sys_prompt,
-                    max_tokens=max_tokens,
                     model=model,
+                    max_tokens=max_tokens,
+                    temperature=0.0,
+                )
+                response = self.plugin.window.core.bridge.quick_call(
+                    context=bridge_context,
                 )
                 if response is not None and response != "":
                     summary += response

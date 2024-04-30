@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -101,7 +101,7 @@ class Indexes:
         )
 
         # label
-        label = QLabel(trans("toolbox.llama_index.label"))
+        # label = QLabel(trans("toolbox.llama_index.label"))
 
         # add options
         cols = QHBoxLayout()
@@ -123,7 +123,7 @@ class Indexes:
         self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         # tip
-        self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
+        # self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
 
         # new
         self.window.ui.nodes['indexes.new'] = QPushButton(trans('idx.new'))
@@ -145,10 +145,10 @@ class Indexes:
 
         # rows
         rows = QVBoxLayout()
-        rows.addWidget(label)
+        # rows.addWidget(label)
         rows.addWidget(idx_widget)
         rows.addLayout(cols)  # raw option
-        rows.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
+        # rows.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         self.window.ui.nodes['idx.options'] = QWidget()
         self.window.ui.nodes['idx.options'].setLayout(rows)

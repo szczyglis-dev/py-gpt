@@ -6,11 +6,74 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 12:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
+
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
+
+
+class BridgeContext:
+    def __init__(self, **kwargs):
+        """
+        Bridge context
+
+        :param kwargs: keyword arguments
+        """
+        self.ctx = kwargs.get("ctx", CtxItem())
+        self.mode = kwargs.get("mode", None)
+        self.parent_mode = kwargs.get("parent_mode", None)  # real mode (global)
+        self.model = kwargs.get("model", None)  # model instance, not model name
+        self.temperature = kwargs.get("temperature", 1.0)
+        self.prompt = kwargs.get("prompt", "")
+        self.system_prompt = kwargs.get("system_prompt", "")
+        self.system_prompt_raw = kwargs.get("system_prompt_raw", "")  # without plugins addons
+        self.stream = kwargs.get("stream", False)
+        self.assistant_id = kwargs.get("assistant_id", "")
+        self.thread_id = kwargs.get("thread_id", "")
+        self.external_functions = kwargs.get("external_functions", [])
+        self.tools_outputs = kwargs.get("tools_outputs", [])
+        self.max_tokens = kwargs.get("max_tokens", 150)
+        self.idx = kwargs.get("idx", "base")
+        self.idx_raw = kwargs.get("idx_raw", False)
+        self.attachments = kwargs.get("attachments", [])
+        self.file_ids = kwargs.get("file_ids", [])
+
+        # check types
+        if self.ctx is not None and not isinstance(self.ctx, CtxItem):
+            raise ValueError("Invalid context instance")
+        if self.model is not None and not isinstance(self.model, ModelItem):
+            raise ValueError("Invalid model instance")
+
+    def to_dict(self) -> dict:
+        """
+        Return as dictionary
+
+        :return: dictionary
+        """
+        return {
+            "ctx": self.ctx,  # "ctx": self.ctx.dump() ??
+            "mode": self.mode,
+            "parent_mode": self.parent_mode,
+            "model": self.model,
+            "temperature": self.temperature,
+            "prompt": self.prompt,
+            "system_prompt": self.system_prompt,
+            "system_prompt_raw": self.system_prompt_raw,
+            "stream": self.stream,
+            "assistant_id": self.assistant_id,
+            "thread_id": self.thread_id,
+            "external_functions": self.external_functions,
+            "tools_outputs": self.tools_outputs,
+            "max_tokens": self.max_tokens,
+            "idx": self.idx,
+            "idx_raw": self.idx_raw,
+            "attachments": self.attachments,
+            "file_ids": self.file_ids,
+        }
 
 
 class Bridge:
@@ -21,13 +84,14 @@ class Bridge:
         :param window: Window instance
         """
         self.window = window
-        self.last_call = None
+        self.last_call = None  # last API call time, for throttling
 
-    def call(self, **kwargs) -> bool:
+    def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Make call to provider
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: extra data  # TODO: object also
         """
         allowed_model_change = ["vision"]
 
@@ -37,14 +101,14 @@ class Bridge:
         self.window.core.debug.info("Bridge call...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
-                debug = {k: str(v) for k, v in kwargs.items()}
+                debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
 
-        # get kwargs
-        ctx = kwargs.get("ctx", None)
-        prompt = kwargs.get("prompt", None)
-        mode = kwargs.get("mode", None)
-        model = kwargs.get("model", None)  # model instance
+        # get data
+        ctx = context.ctx
+        prompt = context.prompt
+        mode = context.mode
+        model = context.model  # model instance
 
         # get mode from config
         if mode == "agent":
@@ -53,55 +117,68 @@ class Bridge:
             if tmp_mode is not None and tmp_mode != "_":
                 mode = tmp_mode
             if mode == "llama_index":
-                kwargs['idx_raw'] = False
+                context.idx_raw = False
                 idx = self.window.core.config.get("agent.idx")
                 if idx is not None and idx != "_":
-                    kwargs['idx'] = idx
+                    context.idx = idx
 
-        # inline: mode switch
-        kwargs['parent_mode'] = mode  # store current (parent) mode
+        # inline: internal mode switch if needed
+        context.parent_mode = mode  # store REAL mode
         mode = self.window.controller.mode.switch_inline(mode, ctx, prompt)
-        kwargs['mode'] = mode
+        context.mode = mode
 
         # inline: model switch
         if mode in allowed_model_change:
             model = self.window.controller.model.switch_inline(mode, model)
-            kwargs['model'] = model
+            context.model = model
 
         # debug
         self.window.core.debug.info("Bridge call (after inline)...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
-                debug = {k: str(v) for k, v in kwargs.items()}
+                debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
 
         self.apply_rate_limit()  # apply RPM limit
 
         # Langchain
         if mode == "langchain":
-            return self.window.core.chain.call(**kwargs)
+            return self.window.core.chain.call(
+                context=context,
+                extra=extra,
+            )
 
         # Llama-index
         elif mode == "llama_index":
-            return self.window.core.idx.chat.call(**kwargs)
+            return self.window.core.idx.chat.call(
+                context=context,
+                extra=extra,
+            )
 
-        # OpenAI API, chat, completion, vision, image, etc.
+        # OpenAI API: chat, completion, vision, image, assistants, etc.
         else:
-            return self.window.core.gpt.call(**kwargs)
+            return self.window.core.gpt.call(
+                context=context,
+                extra=extra,
+            )
 
-    def quick_call(self, **kwargs) -> str:
+    def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
         """
         Make quick call to provider and get response content
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: extra data
         :return: response content
         """
         self.window.core.debug.info("Bridge quick call...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
-                debug = {k: str(v) for k, v in kwargs.items()}
+                debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
-        return self.window.core.gpt.quick_call(**kwargs)
+        return self.window.core.gpt.quick_call(
+            context=context,
+            extra=extra,
+        )
 
     def apply_rate_limit(self):
         """Apply API calls RPM limit"""

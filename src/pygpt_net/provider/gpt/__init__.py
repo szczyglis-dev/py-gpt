@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
 
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.bridge import BridgeContext
 
 from .assistants import Assistants
 from .chat import Chat
@@ -54,35 +54,33 @@ class Gpt:
                 args["base_url"] = endpoint
         return OpenAI(**args)
 
-    def call(self, **kwargs) -> bool:
+    def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Call OpenAI API
 
-        :param kwargs: Keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: result
         """
-        mode = kwargs.get("mode", None)
-        prompt = kwargs.get("prompt", "")
-        stream = kwargs.get("stream", False)
-        model = kwargs.get("model", None)  # model instance
-        system_prompt = kwargs.get("system_prompt", "")
-        assistant_id = kwargs.get("assistant_id", "")
-        tools_outputs = kwargs.get("tools_outputs", [])
+        mode = context.mode
+        prompt = context.prompt
+        stream = context.stream
+        model = context.model  # model instance (item, not id)
+        system_prompt = context.system_prompt
+        assistant_id = context.assistant_id
+        tools_outputs = context.tools_outputs
+        max_tokens = context.max_tokens  # max output tokens
 
-        ctx = kwargs.get("ctx", CtxItem())
+        ctx = context.ctx
         ai_name = ctx.output_name
-        thread_id = ctx.thread
+        thread_id = ctx.thread  # from ctx
 
-        # prepare max tokens
-        max_tokens = self.window.core.config.get('max_output_tokens')
-
+        # get model id
         model_id = None
         if model is not None:
             model_id = model.id
-
-        # check max output tokens
-        if max_tokens > model.tokens:
-            max_tokens = model.tokens
+            if max_tokens > model.tokens:  # check max output tokens
+                max_tokens = model.tokens
 
         # minimum 1 token is required
         if max_tokens < 1:
@@ -90,35 +88,43 @@ class Gpt:
 
         response = None
         used_tokens = 0
-        kwargs['max_tokens'] = max_tokens  # append max output tokens to kwargs
+        context.max_tokens = max_tokens  # update max output tokens
+        file_ids = context.file_ids  # uploaded files IDs (assistant mode only)
 
-        file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
-
-        # get response
+        # completion
         if mode == "completion":
-            response = self.completion.send(**kwargs)
+            response = self.completion.send(
+                context=context,
+                extra=extra,
+            )
             used_tokens = self.completion.get_used_tokens()
 
+        # chat
         elif mode == "chat":
-            response = self.chat.send(**kwargs)
+            response = self.chat.send(
+                context=context,
+                extra=extra,
+            )
             used_tokens = self.chat.get_used_tokens()
+            self.vision.append_images(ctx)  # append images to ctx if provided
 
+        # image
         elif mode == "image":
-            return self.image.generate(**kwargs)  # return here, async handled
+            return self.image.generate(
+                context=context,
+                extra=extra,
+            )  # return here, async handled
 
+        # vision
         elif mode == "vision":
-            response = self.vision.send(**kwargs)
+            response = self.vision.send(
+                context=context,
+                extra=extra,
+            )
             used_tokens = self.vision.get_used_tokens()
-            images = self.vision.get_attachments()  # dict -> key: id, value: path
-            urls = self.vision.get_urls()  # list
+            self.vision.append_images(ctx)  # append images to ctx if provided
 
-            # store sent images in ctx
-            if len(images) > 0:
-                ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
-            if len(urls) > 0:
-                ctx.images = urls
-                ctx.urls = urls
-
+        # assistants
         elif mode == "assistant":
             # check if assistant is already running and has tools outputs, then submit them, async handled
             if ctx.run_id is not None and len(tools_outputs) > 0:
@@ -155,7 +161,7 @@ class Gpt:
             print("Error in GPT response: " + str(response["error"]))
             return False
 
-        # get output text from response
+        # get output text from response (not-stream mode)
         output = ""
         if mode == "completion":
             output = response.choices[0].text.strip()
@@ -165,7 +171,7 @@ class Gpt:
                     output = response.choices[0].message.content.strip()
                 elif response.choices[0].message.tool_calls:
                     ctx.tool_calls = self.window.core.command.unpack_tool_calls(
-                        response.choices[0].message.tool_calls
+                        response.choices[0].message.tool_calls,
                     )
 
         ctx.set_output(output, ai_name)
@@ -175,18 +181,19 @@ class Gpt:
         )
         return True
 
-    def quick_call(self, **kwargs) -> str:
+    def quick_call(self,context: BridgeContext, extra: dict = None) -> str:
         """
         Quick call OpenAI API with custom prompt
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: response content
         """
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", None)
-        max_tokens = kwargs.get("max_tokens", 500)
-        temperature = kwargs.get("temperature", 0.0)
-        model = kwargs.get("model", None)
+        prompt = context.prompt
+        system_prompt = context.system_prompt
+        max_tokens = context.max_tokens
+        temperature = context.temperature
+        model = context.model
         if model is None:
             model = self.window.core.models.from_defaults()
 

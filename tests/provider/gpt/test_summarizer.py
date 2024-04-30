@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
 from pygpt_net.provider.gpt.summarizer import Summarizer
 from pygpt_net.item.ctx import CtxItem
@@ -33,7 +34,9 @@ def test_summary_ctx(mock_window_conf):
     """
     Test prepare ctx name
     """
+    model = ModelItem()
     summarizer = Summarizer(mock_window_conf)
+    summarizer.window.core.models.from_defaults = MagicMock(return_value=model)
     summarizer.window.core.bridge.quick_call = MagicMock(return_value='test_response')
     summarizer.window.core.config.get.side_effect = mock_get
     summarizer.window.core.models.get_num_ctx = MagicMock(return_value=2048)

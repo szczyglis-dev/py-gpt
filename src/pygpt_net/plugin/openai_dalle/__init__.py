@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.model import ModelItem
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -143,13 +144,19 @@ class Plugin(BasePlugin):
                     # if not internal call, then append image to chat only
                     model = ModelItem()
                     model.id = "dall-e-3"
-                    self.window.core.bridge.call(
-                        mode="image",
-                        prompt=query,
+                    bridge_context = BridgeContext(
                         ctx=ctx,
+                        mode="image",
                         model=model,  # model instance
-                        num=1,
-                        inline=True,  # force inline mode
+                        prompt=query,
+                    )
+                    extra = {
+                        "num": 1,  # force 1 image if dall-e-3 model is used
+                        "inline": True, # force inline mode
+                    }
+                    self.window.core.bridge.call(
+                        context=bridge_context,
+                        extra=extra,
                     )
                     # self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)  # force inline mode
             except Exception as e:

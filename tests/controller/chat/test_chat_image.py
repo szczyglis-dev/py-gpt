@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 
 from PySide6.QtWidgets import QFileDialog
 
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.image import Image
 from pygpt_net.item.ctx import CtxItem
@@ -32,6 +33,9 @@ def test_send(mock_window):
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
     mock_window.core.chain.call = MagicMock(return_value=result)
+
+    model = ModelItem()
+    mock_window.core.models.get = MagicMock(return_value=model)
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 

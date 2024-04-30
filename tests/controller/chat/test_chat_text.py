@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
 
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.text import Text
 
@@ -35,6 +36,9 @@ def test_send(mock_window):
     mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
     mock_window.controller.agent.enabled = MagicMock(return_value=False)
+
+    model = ModelItem()
+    mock_window.core.models.get = MagicMock(return_value=model)
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 
@@ -74,6 +78,9 @@ def test_send_stream(mock_window):
     mock_window.core.config.data['stream'] = True
     mock_window.core.config.data['ctx.auto_summary'] = True
     mock_window.core.config.data['store_history'] = True
+
+    model = ModelItem()
+    mock_window.core.models.get = MagicMock(return_value=model)
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
@@ -117,6 +124,9 @@ def test_send_assistant(mock_window):
     mock_window.core.config.data['ctx.auto_summary'] = True
     mock_window.core.config.data['store_history'] = True
     mock_window.core.config.data['assistant_thread'] = 'th_123'
+
+    model = ModelItem()
+    mock_window.core.models.get = MagicMock(return_value=model)
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)

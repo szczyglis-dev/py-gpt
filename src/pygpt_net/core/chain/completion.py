@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
+
+from pygpt_net.item.model import ModelItem
+
 
 class Completion:
     def __init__(self, window=None):
@@ -19,21 +22,26 @@ class Completion:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, **kwargs):
+    def send(
+            self,
+            prompt: str,
+            system_prompt: str,
+            model: ModelItem,
+            stream: bool = False,
+            ai_name: str = None,
+            user_name: str = None
+    ):
         """
         Chat with LLM
 
-        :param kwargs: keyword arguments
+        :param prompt: user prompt
+        :param system_prompt: system prompt
+        :param model: model item
+        :param stream: stream mode
+        :param ai_name: AI name
+        :param user_name: username
         :return: LLM response
         """
-        # get kwargs
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", "")
-        stream = kwargs.get("stream", False)
-        user_name = kwargs.get("user_name", None)
-        ai_name = kwargs.get("ai_name", None)
-        model = kwargs.get("model", None)
-
         llm = None
         if 'provider' in model.langchain:
             provider = model.langchain['provider']
@@ -61,28 +69,33 @@ class Completion:
         message = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
+            model=model,
             ai_name=ai_name,
             user_name=user_name,
-            model=model,
         )
         if stream:
             return llm.stream(message)
         else:
             return llm.invoke(message)
 
-    def build(self, **kwargs) -> str:
+    def build(
+            self,
+            prompt: str,
+            system_prompt: str,
+            model: ModelItem,
+            ai_name: str = None,
+            user_name: str = None
+    ) -> str:
         """
         Build completion string
 
-        :param kwargs: keyword arguments
+        :param prompt: user prompt
+        :param system_prompt: system prompt
+        :param model: model item
+        :param ai_name: AI name
+        :param user_name: username
         :return: message string (parsed with context)
         """
-        # get kwargs
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", "")
-        user_name = kwargs.get("user_name", None)
-        ai_name = kwargs.get("ai_name", None)
-        model = kwargs.get("model", None)
         message = ""
 
         # tokens config
@@ -90,11 +103,11 @@ class Completion:
             prompt,
             system_prompt,
         )
-        max_tokens = self.window.core.config.get('max_total_tokens')
+        max_ctx_tokens = self.window.core.config.get('max_total_tokens')
 
         # fit to max model ctx tokens
-        if max_tokens > model.ctx:
-            max_tokens = model.ctx
+        if max_ctx_tokens > model.ctx:
+            max_ctx_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -107,7 +120,7 @@ class Completion:
                 model.id,
                 "langchain",
                 used_tokens,
-                max_tokens,
+                max_ctx_tokens,
             )
             for item in items:
                 if item.input_name is not None \

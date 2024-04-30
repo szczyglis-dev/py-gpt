@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -118,7 +118,7 @@ class Tokens:
     @staticmethod
     def from_messages(messages: list, model: str = "gpt-4") -> int:
         """
-        Return number of tokens from prompt
+        Return number of tokens from messages list
 
         :param messages: messages
         :param model: model name
@@ -129,9 +129,17 @@ class Tokens:
         for message in messages:
             num += per_message
             for key, value in message.items():
-                num += Tokens.from_str(value)
-                if key == "name":
-                    num += per_name
+                # text message
+                if isinstance(value, str):
+                    num += Tokens.from_str(value)
+                    if key == "name":
+                        num += per_name
+                # multimodal message
+                elif key == "content" and isinstance(value, list):
+                    for part in value:
+                        if "type" in part and "text" in part:
+                            if part["type"] == "text":
+                                num += Tokens.from_str(part["text"])
         num += 3  # every reply is primed with <|start|>assistant<|message|>
         return num
 

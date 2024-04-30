@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import json
@@ -55,7 +55,7 @@ class Renderer(BaseRenderer):
         self.name_bot = trans("chat.name.bot")
         self.last_time_called = 0
         self.cooldown = 1 / 6  # max chunks to parse per second
-        self.throttling_min_chars = 3000  # min chunk chars to activate cooldown
+        self.throttling_min_chars = 5000  # min chunk chars to activate cooldown
 
     def init(self):
         """

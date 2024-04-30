@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import base64
-import json
 import os
 import re
+
+from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
 
 class Vision:
@@ -27,20 +30,20 @@ class Vision:
         self.urls = []
         self.input_tokens = 0
 
-    def send(self, **kwargs):
+    def send(self, context: BridgeContext, extra: dict = None):
         """
         Call OpenAI API for chat with vision
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: response or stream chunks
         """
-        # get kwargs
-        prompt = kwargs.get("prompt", "")
-        stream = kwargs.get("stream", False)
-        max_tokens = kwargs.get("max_tokens", 200)
-        system_prompt = kwargs.get("system_prompt", "")
-        attachments = kwargs.get("attachments", {})
-        model = kwargs.get("model", None)
+        prompt = context.prompt
+        stream = context.stream
+        max_tokens = context.max_tokens
+        system_prompt = context.system_prompt
+        attachments = context.attachments
+        model = context.model
         model_id = model.id
         client = self.window.core.gpt.get_client()
 
@@ -48,8 +51,8 @@ class Vision:
         messages = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
-            attachments=attachments,
             model=model,
+            attachments=attachments,
         )
         response = client.chat.completions.create(
             messages=messages,
@@ -59,17 +62,22 @@ class Vision:
         )
         return response
 
-    def build(self, **kwargs) -> list:
+    def build(
+            self,
+            prompt: str,
+            system_prompt: str,
+            model: ModelItem,
+            attachments: dict = None,
+    ) -> list:
         """
         Build chat messages list
 
-        :param kwargs: keyword arguments
+        :param prompt: user prompt
+        :param system_prompt: system prompt
+        :param model: model item
+        :param attachments: attachments
         :return: messages list
         """
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", None)
-        attachments = kwargs.get("attachments", {})
-        model = kwargs.get("model", None)
         messages = []
 
         # tokens config
@@ -78,11 +86,11 @@ class Vision:
             prompt,
             system_prompt,
         )  # threshold and extra included
-        max_tokens = self.window.core.config.get('max_total_tokens')
+        max_ctx_tokens = self.window.core.config.get('max_total_tokens')
 
         # fit to max model tokens
-        if max_tokens > model.ctx:
-            max_tokens = model.ctx
+        if max_ctx_tokens > model.ctx:
+            max_ctx_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -100,7 +108,7 @@ class Vision:
                 model.id,
                 mode,
                 used_tokens,
-                max_tokens,
+                max_ctx_tokens,
             )
             for item in items:
                 # input
@@ -241,3 +249,19 @@ class Vision:
         :return: input tokens
         """
         return self.input_tokens
+
+    def append_images(self, ctx: CtxItem):
+        """
+        Append images content to context item
+
+        :param ctx: context
+        """
+        images = self.get_attachments()  # dict -> key: id, value: path
+        urls = self.get_urls()  # list
+
+        # store sent images in ctx
+        if len(images) > 0:
+            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
+        if len(urls) > 0:
+            ctx.images = urls
+            ctx.urls = urls

@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from .chat import Chat
 from .completion import Completion
@@ -25,18 +26,22 @@ class Chain:
         self.chat = Chat(window)
         self.completion = Completion(window)
 
-    def call(self, **kwargs) -> bool:
+    def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Call LLM using Langchain
 
-        :param kwargs: keyword arguments
-        :return: result
+        :param context: Bridge context
+        :param extra: Extra arguments
         """
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", "")
-        stream = kwargs.get("stream", False)
-        model = kwargs.get("model", None)
-        ctx = kwargs.get("ctx", CtxItem())
+        prompt = context.prompt
+        system_prompt = context.system_prompt
+        stream = context.stream
+        model = context.model
+        ctx = context.ctx
+
+        if ctx is None:
+            ctx = CtxItem()  # create empty context
+
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
         response = None
@@ -55,20 +60,20 @@ class Chain:
                 response = self.chat.send(
                     prompt=prompt,
                     system_prompt=system_prompt,
+                    model=model,
+                    stream=stream,
                     ai_name=ai_name,
                     user_name=user_name,
-                    stream=stream,
-                    model=model,
                 )
                 used_tokens = self.chat.get_used_tokens()
             elif sub_mode == 'completion':
                 response = self.completion.send(
                     prompt=prompt,
                     system_prompt=system_prompt,
+                    model=model,
+                    stream=stream,
                     ai_name=ai_name,
                     user_name=user_name,
-                    stream=stream,
-                    model=model,
                 )
                 used_tokens = self.completion.get_used_tokens()
 

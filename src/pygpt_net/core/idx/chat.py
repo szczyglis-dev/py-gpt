@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import json
@@ -15,9 +15,10 @@ from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
 
+from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 from .context import Context
-from pygpt_net.item.model import ModelItem
 
 
 class Chat:
@@ -31,49 +32,65 @@ class Chat:
         self.storage = storage
         self.context = Context(window)
 
-    def call(self, **kwargs) -> bool:
+    def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Call chat or query mode
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: True if success
         """
-        model = kwargs.get("model", None)
-        idx_raw = kwargs.get("idx_raw", False)  # raw mode
+        model = context.model
+        idx_raw = context.idx_raw  # raw mode
+
         if model is None or not isinstance(model, ModelItem):  # check if model is provided
             raise Exception("Model config not provided")
 
         if idx_raw:  # query index (raw mode)
-            return self.raw_query(**kwargs)
+            return self.raw_query(
+                context=context,
+                extra=extra,
+            )
 
         # if not raw, check if chat mode is available
         if "chat" in model.llama_index['mode']:
-            return self.chat(**kwargs)
+            return self.chat(
+                context=context,
+                extra=extra,
+            )
         else:
-            return self.query(**kwargs)  # if not, use query mode
+            return self.query(
+                context=context,
+                extra=extra,
+            )  # if not, use query mode
 
-    def raw_query(self, **kwargs) -> bool:
+    def raw_query(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Raw query mode
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: True if success
         """
-        return self.query(**kwargs)
+        return self.query(
+            context=context,
+            extra=extra,
+        )
 
-    def query(self, **kwargs) -> bool:
+    def query(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Query index mode (no chat, only single query) and append results to context
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: True if success
         """
-        ctx = kwargs.get("ctx", CtxItem())
-        idx = kwargs.get("idx", "base")
-        model = kwargs.get("model", None)
-        system_prompt = kwargs.get("system_prompt_raw", None)  # raw system prompt, without plugin ads
-        stream = kwargs.get("stream", False)
-        query = ctx.input
+        idx = context.idx
+        model = context.model
+        system_prompt = context.system_prompt_raw  # get raw system prompt, without plugin addons
+        stream = context.stream
+        ctx = context.ctx
+        query = ctx.input  # user input
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
@@ -89,8 +106,8 @@ class Chat:
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
 
-        context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get(idx, service_context=context)  # get index
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, service_context=service_context)  # get index
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             [],
@@ -128,19 +145,19 @@ class Chat:
             return True
         return False
 
-    def chat(self, **kwargs) -> bool:
+    def chat(self, context: BridgeContext, extra: dict = None) -> bool:
         """
         Chat mode (conversation, using context from index) and append result to the context
 
-        :param kwargs: keyword arguments
-        :return: True if success
+        :param context: Bridge context
+        :param extra: Extra arguments
         """
-        ctx = kwargs.get("ctx", CtxItem())
-        idx = kwargs.get("idx", "base")
-        model = kwargs.get("model", None)
-        system_prompt = kwargs.get("system_prompt", None)
-        stream = kwargs.get("stream", False)
-        query = ctx.input
+        idx = context.idx
+        model = context.model
+        system_prompt = context.system_prompt  # get final system prompt
+        stream = context.stream
+        ctx = context.ctx
+        query = ctx.input  # user input
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
@@ -156,12 +173,12 @@ class Chat:
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
 
-        context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get(idx, service_context=context)  # get index
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, service_context=service_context)  # get index
 
         # append context from DB
         history = self.context.get_messages(ctx.input, system_prompt)
-        memory = self.get_memory_buffer(history, context.llm)
+        memory = self.get_memory_buffer(history, service_context.llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             history,
@@ -196,7 +213,13 @@ class Chat:
             return True
         return False
 
-    def query_file(self, ctx: CtxItem, path: str, query: str, model: ModelItem = None) -> str:
+    def query_file(
+            self,
+            ctx: CtxItem,
+            path: str,
+            query: str,
+            model: ModelItem = None
+    ) -> str:
         """
         Query file using temp index (created on the fly)
 
@@ -208,8 +231,9 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        context = self.window.core.idx.llm.get_service_context(model=model)
-        tmp_id, index = self.storage.get_tmp(path, service_context=context)  # get or create tmp index
+
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        tmp_id, index = self.storage.get_tmp(path, service_context=service_context)  # get or create tmp index
 
         idx = "tmp:{}".format(path)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
@@ -239,7 +263,15 @@ class Chat:
         self.log("Returning response: {}".format(output))
         return output
 
-    def query_web(self, ctx: CtxItem, type: str, url: str, args: dict, query: str, model: ModelItem = None) -> str:
+    def query_web(
+            self,
+            ctx: CtxItem,
+            type: str,
+            url: str,
+            args: dict,
+            query: str,
+            model: ModelItem = None
+    ) -> str:
         """
         Query web using temp index (created on the fly)
 

@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 18:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
 
 class Completion:
@@ -22,31 +24,34 @@ class Completion:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, **kwargs):
+    def send(self, context: BridgeContext, extra: dict = None):
         """
         Call OpenAI API for completion
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: response or stream chunks
         """
-        # get kwargs
-        ctx = kwargs.get("ctx", CtxItem())
-        prompt = kwargs.get("prompt", "")
-        stream = kwargs.get("stream", False)
-        max_tokens = kwargs.get("max_tokens", 200)
-        system_prompt = kwargs.get("system_prompt", "")
+        prompt = context.prompt
+        stream = context.stream
+        max_tokens = context.max_tokens
+        system_prompt = context.system_prompt
+        model = context.model
+        model_id = model.id
+
+        ctx = context.ctx
+        if ctx is None:
+            ctx = CtxItem()  # create empty context
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
-        model = kwargs.get("model", None)
-        model_id = model.id
 
         # build prompt message
         message = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
+            model=model,
             ai_name=ai_name,
             user_name=user_name,
-            model=model,
         )
 
         # check if max tokens not exceeded
@@ -60,6 +65,7 @@ class Completion:
             stop = [user_name + ':']
 
         client = self.window.core.gpt.get_client()
+
         # fix for deprecated OpenAI davinci models
         if model_id.startswith('text-davinci'):
             model_id = 'gpt-3.5-turbo-instruct'
@@ -77,18 +83,24 @@ class Completion:
         )
         return response
 
-    def build(self, **kwargs) -> str:
+    def build(
+            self,
+            prompt: str,
+            system_prompt: str,
+            model: ModelItem,
+            ai_name: str = None,
+            user_name: str = None,
+    ) -> str:
         """
         Build completion string
 
-        :param kwargs: keyword arguments
+        :param prompt: user prompt
+        :param system_prompt: system prompt
+        :param model: model item
+        :param ai_name: AI name
+        :param user_name: username
         :return: message string (parsed with context)
         """
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", None)
-        user_name = kwargs.get("user_name", None)
-        ai_name = kwargs.get("ai_name", None)
-        model = kwargs.get("model", None)
         message = ""
 
         # tokens config
@@ -96,11 +108,11 @@ class Completion:
             prompt,
             system_prompt,
         )
-        max_tokens = self.window.core.config.get('max_total_tokens')
+        max_ctx_tokens = self.window.core.config.get('max_total_tokens')
 
         # fit to max model ctx tokens
-        if max_tokens > model.ctx:
-            max_tokens = model.ctx
+        if max_ctx_tokens > model.ctx:
+            max_ctx_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -113,7 +125,7 @@ class Completion:
                 model.id,
                 "completion",
                 used_tokens,
-                max_tokens,
+                max_ctx_tokens,
             )
             for item in items:
                 if item.input_name is not None \

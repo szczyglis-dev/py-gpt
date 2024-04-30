@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -253,7 +253,7 @@ class Mapping:
         nodes['tip.toolbox.presets'] = 'tip.toolbox.presets'
         nodes['tip.toolbox.prompt'] = 'tip.toolbox.prompt'
         nodes['tip.toolbox.assistants'] = 'tip.toolbox.assistants'
-        nodes['tip.toolbox.indexes'] = 'tip.toolbox.indexes'
+        # nodes['tip.toolbox.indexes'] = 'tip.toolbox.indexes'
         nodes['tip.toolbox.ctx'] = 'tip.toolbox.ctx'
         nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
         nodes['plugin.settings.cmd.footer'] = 'cmd.tip'  # plugin settings cmd footer

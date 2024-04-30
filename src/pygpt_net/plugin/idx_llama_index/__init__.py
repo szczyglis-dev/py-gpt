@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .worker import Worker
+from ...core.bridge import BridgeContext
 
 
 class Plugin(BasePlugin):
@@ -254,11 +255,16 @@ class Plugin(BasePlugin):
         if self.window.core.models.has(tmp_model):
             model = self.window.core.models.get(tmp_model)
 
-        response = self.window.core.bridge.quick_call(
+        bridge_context = BridgeContext(
+            ctx=ctx,
             prompt=ctx.input,
             system_prompt=sys_prompt,
-            max_tokens=self.get_option_value("prepare_question_max_tokens"),
             model=model,
+            max_tokens=self.get_option_value("prepare_question_max_tokens"),
+            temperature=0.0,
+        )
+        response = self.window.core.bridge.quick_call(
+            context=bridge_context,
         )
         if response is not None and response != "":
             prepared_question = response
@@ -273,7 +279,8 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :return: updated system prompt
         """
-        if not self.get_option_value("ask_llama_first") or self.window.controller.agent.enabled():
+        if (not self.get_option_value("ask_llama_first")
+                or self.window.controller.agent.enabled()):
             return prompt
 
         question = ctx.input
@@ -305,6 +312,7 @@ class Plugin(BasePlugin):
         metas = []
         idx = self.get_option_value("idx")
         model = self.window.core.models.from_defaults()
+
         if self.get_option_value("model_query") is not None:
             model_query = self.get_option_value("model_query")
             if self.window.core.models.has(model_query):
@@ -319,41 +327,50 @@ class Plugin(BasePlugin):
             if len(question) > max_len:
                 question = question[:max_len]
 
-        # query index(es)
+        # query multiple indexes
         if len(indexes) > 1:
             responses = []
             for index in indexes:
                 ctx = CtxItem()  # tmp ctx
                 ctx.input = question
-                self.window.core.idx.chat.query(
+                bridge_context = BridgeContext(
                     ctx=ctx,
                     idx=index.strip(),
                     model=model,
                     stream=False,
                 )
+                self.window.core.idx.chat.query(
+                    context=bridge_context,
+                )
                 if ctx.index_meta:
                     doc_ids.append(ctx.index_meta)
                     metas.append(ctx.index_meta)
                     self.append_meta_to_response(ctx)
+
                 self.log("Using additional context: " + str(ctx.output))
                 responses.append(ctx.output)
 
             return "\n---\n".join(responses), doc_ids, metas
+
+        # query single index
         else:
             ctx = CtxItem()  # tmp ctx
             ctx.input = question
-            self.window.core.idx.chat.query(
+            bridge_context = BridgeContext(
                 ctx=ctx,
                 idx=idx,
                 model=model,
                 stream=False,
             )
+            self.window.core.idx.chat.query(
+                context=bridge_context,
+            )
             if ctx.index_meta:
                 doc_ids.append(ctx.index_meta)
                 metas.append(ctx.index_meta)
                 self.append_meta_to_response(ctx)
-            self.log("Using additional context: " + str(ctx.output))
 
+            self.log("Using additional context: " + str(ctx.output))
             return ctx.output, doc_ids, metas  # tmp ctx, llama doc_ids, meta
 
     def append_meta_to_response(self, ctx: CtxItem):

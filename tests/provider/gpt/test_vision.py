@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 22:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 import base64
@@ -14,8 +14,9 @@ import os
 
 from unittest.mock import MagicMock, mock_open, patch
 
-from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
+from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.gpt.vision import Vision
 
 
@@ -52,10 +53,13 @@ def test_send(mock_window_conf):
 
     model = ModelItem()
     vision.window.core.ctx.add_item = MagicMock()
-    response = vision.send(
+    bridge_context = BridgeContext(
         prompt='test_prompt',
-        max_tokens=10,
         model=model,
+        max_tokens=10,
+    )
+    response = vision.send(
+        context=bridge_context,
     )
     assert response.choices[0].message.content == 'test_response'
 
