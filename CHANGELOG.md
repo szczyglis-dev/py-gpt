@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.2.5 (2024-04-30)
+
+- Fix: import button handler in Assistants.
+- Refactored and improved stores batch actions events handling.
+- Added missing translations.
+
 # 2.2.4 (2024-04-29)
 
 - Batch actions splitted into 'Current store' and 'All stores' in Assistants remote vector stores importer.
