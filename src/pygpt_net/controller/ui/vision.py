@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 class Vision:
@@ -57,3 +57,4 @@ class Vision:
                 if "vision" in model.mode:
                     return True
         return False
+

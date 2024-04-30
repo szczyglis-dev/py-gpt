@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -258,9 +258,7 @@ class Camera:
 
     def enable_capture(self):
         """Enable capture"""
-        if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.painter.is_active():
+        if not self.capture_allowed():
             return
 
         self.is_capture = True
@@ -278,9 +276,7 @@ class Camera:
 
     def disable_capture(self):
         """Disable capture"""
-        if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.painter.is_active():
+        if not self.capture_allowed():
             return
 
         self.is_capture = False
@@ -319,9 +315,7 @@ class Camera:
 
     def enable_auto(self):
         """Enable capture"""
-        if self.window.core.config.data['mode'] != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.painter.is_active():
+        if not self.capture_allowed():
             return
 
         self.auto = True
@@ -343,9 +337,7 @@ class Camera:
 
     def disable_auto(self):
         """Disable capture"""
-        if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.painter.is_active():
+        if not self.capture_allowed():
             return
 
         self.auto = False
@@ -392,3 +384,21 @@ class Camera:
     def blank_screen(self):
         """Make and set blank screen"""
         self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
+
+    def capture_allowed(self) -> bool:
+        """
+        Check if capture is allowed
+
+        :return: True if capture is allowed
+        """
+        mode = self.window.core.config.get('mode')
+        if self.window.controller.painter.is_active():
+            return True
+        if mode != 'vision' and mode not in self.window.controller.chat.vision.allowed_modes:
+            return False
+        if self.window.controller.plugins.is_type_enabled('vision'):
+            return True
+        if self.window.controller.ui.vision.is_vision_model():
+            return True
+        return False
+
