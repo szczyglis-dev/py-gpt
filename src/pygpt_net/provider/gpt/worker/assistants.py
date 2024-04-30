@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -62,6 +62,8 @@ class AssistantsWorker:
             ctx: CtxItem,
             thread_id: str,
             assistant_id: str,
+            model: str,
+            file_ids: list,
             prompt: str,
             system_prompt: str
     ):
@@ -71,16 +73,20 @@ class AssistantsWorker:
         :param ctx: context item
         :param thread_id: thread id
         :param assistant_id: assistant id
+        :param model: model ID
+        :param file_ids: uploaded file IDs
         :param prompt: prompt
         :param system_prompt: system prompt
         """
         worker = Worker()
         worker.window = self.window
         worker.mode = "msg_send"
+        worker.model = model
         worker.ctx = ctx
         worker.thread_id = thread_id
         worker.assistant_id = assistant_id
         worker.prompt = prompt
+        worker.file_ids = file_ids
         worker.system_prompt = system_prompt
         worker.stream = self.window.core.config.get("stream")
         self.connect_signals(worker)
@@ -89,17 +95,20 @@ class AssistantsWorker:
     def tools_submit(
             self,
             ctx: CtxItem,
+            model: str,
             tools_outputs: list,
     ):
         """
         Send tools outputs to assistant thread
 
         :param ctx: context item
+        :param model: model ID
         :param tools_outputs: list of tools outputs
         """
         worker = Worker()
         worker.window = self.window
         worker.mode = "tools_submit"
+        worker.model = model
         worker.ctx = ctx
         worker.tools_outputs = tools_outputs
         worker.stream = self.window.core.config.get("stream")
@@ -507,8 +516,10 @@ class Worker(QRunnable):
         self.signals = WorkerSignals()
         self.window = None
         self.mode = None
+        self.model = None
         self.thread_id = None
         self.assistant_id = None
+        self.file_ids = []
         self.prompt = None
         self.system_prompt = None
         self.tools_outputs = None
@@ -538,6 +549,7 @@ class Worker(QRunnable):
                     self.ctx,
                     self.thread_id,
                     self.assistant_id,
+                    self.model,
                     self.system_prompt,
                 )
             else:
@@ -545,6 +557,7 @@ class Worker(QRunnable):
                 run = self.window.core.gpt.assistants.run_create(
                     self.thread_id,
                     self.assistant_id,
+                    self.model,
                     self.system_prompt,
                 )
             # handle run (stream or not)
@@ -565,6 +578,7 @@ class Worker(QRunnable):
             response = self.window.core.gpt.assistants.msg_send(
                 self.thread_id,
                 self.prompt,
+                self.file_ids,
             )
             if response is not None:
                 self.ctx.msg_id = response.id

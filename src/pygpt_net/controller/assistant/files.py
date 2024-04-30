@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import os
@@ -174,7 +174,12 @@ class Files:
                     self.window.ui.status(trans('status.error'))
                     self.window.ui.dialogs.alert(e)
 
+            # update store status
+            if assistant.vector_store:
+                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+
             self.window.ui.status(trans('status.deleted'))
+
         self.update()
 
     def delete(self, idx: int, force: bool = False):
@@ -211,6 +216,11 @@ class Files:
         QApplication.processEvents()
         try:
             self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
+
+            # update store status
+            if assistant.vector_store:
+                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+
             self.window.ui.status(trans('status.deleted'))
         except Exception as e:
             self.window.core.debug.log(e)
@@ -259,8 +269,7 @@ class Files:
                     continue
 
                 # upload local attachment file and get new ID (file_id)
-                new_id = self.window.core.gpt.assistants.file_upload(
-                    assistant_id,  # unused, deprecated
+                new_id = self.window.core.gpt.store.upload(
                     attachment.path,
                 )
                 if new_id is not None:
@@ -271,14 +280,14 @@ class Files:
 
                     """
                     if assistant.vector_store is None or assistant.vector_store == "":
-                        assistant.vector_store = self.window.core.gpt.assistants.vs_create(
+                        assistant.vector_store = self.window.core.gpt.store.create_store(
                             "thread-" + thread_id,
                         )
                     """
 
                     # add to vector store if defined in assistant, otherwise file will be added to thread store
                     if assistant.vector_store:
-                        self.window.core.gpt.assistants.vs_add_file(
+                        self.window.core.gpt.store.add_file(
                             assistant.vector_store,
                             new_id,
                         )
@@ -316,6 +325,10 @@ class Files:
 
         # update uploaded list
         if num > 0:
+            # update store status
+            if assistant.vector_store:
+                self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
+
             self.update_list()  # update uploaded list UI
 
         return num

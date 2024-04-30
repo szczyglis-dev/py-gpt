@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import os
@@ -339,7 +339,7 @@ class Attachment:
         """
         try:
             # get file info from assistant API
-            data = self.window.core.gpt.assistants.file_info(file_id)
+            data = self.window.core.gpt.store.get_file(file_id)
             if data is None:
                 return
 
@@ -365,7 +365,7 @@ class Attachment:
                 path = self.get_download_path(filename)
 
             # download file
-            self.window.core.gpt.assistants.file_download(
+            self.window.core.gpt.store.download(
                 file_id=file_id,
                 path=path,
             )

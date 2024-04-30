@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 01:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -17,6 +17,7 @@ from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
 from .image import Image
+from .store import Store
 from .summarizer import Summarizer
 from .vision import Vision
 
@@ -33,6 +34,7 @@ class Gpt:
         self.chat = Chat(window)
         self.completion = Completion(window)
         self.image = Image(window)
+        self.store = Store(window)
         self.summarizer = Summarizer(window)
         self.vision = Vision(window)
 
@@ -74,6 +76,10 @@ class Gpt:
         # prepare max tokens
         max_tokens = self.window.core.config.get('max_output_tokens')
 
+        model_id = None
+        if model is not None:
+            model_id = model.id
+
         # check max output tokens
         if max_tokens > model.tokens:
             max_tokens = model.tokens
@@ -85,6 +91,8 @@ class Gpt:
         response = None
         used_tokens = 0
         kwargs['max_tokens'] = max_tokens  # append max output tokens to kwargs
+
+        file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
 
         # get response
         if mode == "completion":
@@ -116,6 +124,7 @@ class Gpt:
             if ctx.run_id is not None and len(tools_outputs) > 0:
                 self.assistants.worker.tools_submit(
                     ctx,
+                    model_id,
                     tools_outputs,  # list of tools outputs
                 )
             else:
@@ -124,6 +133,8 @@ class Gpt:
                     ctx,
                     thread_id,
                     assistant_id,
+                    model_id,
+                    file_ids,
                     prompt,
                     system_prompt,
                 )

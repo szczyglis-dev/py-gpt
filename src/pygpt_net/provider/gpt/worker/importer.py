@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import os
@@ -214,7 +214,7 @@ class ImportWorker(QRunnable):
             print("Importing assistants...")
             self.window.core.assistants.clear()
             items = self.window.core.assistants.get_all()
-            self.window.core.gpt.assistants.import_assistants(items)
+            self.window.core.gpt.assistants.import_all(items)
             self.window.core.assistants.items = items
             self.window.core.assistants.save()
 
@@ -243,7 +243,7 @@ class ImportWorker(QRunnable):
             print("Importing vector stores...")
             self.window.core.assistants.store.clear()
             items = {}
-            self.window.core.gpt.assistants.import_vector_stores(items)
+            self.window.core.gpt.store.import_stores(items)
             self.window.core.assistants.store.import_items(items)
             if not silent:
                 self.signals.finished.emit("vector_stores", self.store_id, len(items))
@@ -262,7 +262,7 @@ class ImportWorker(QRunnable):
         """
         try:
             print("Truncating stores...")
-            num = self.window.core.gpt.assistants.vs_truncate_stores()
+            num = self.window.core.gpt.store.remove_all()
             self.window.core.assistants.store.items = {}
             self.window.core.assistants.store.save()
             if not silent:
@@ -312,11 +312,11 @@ class ImportWorker(QRunnable):
             if self.store_id is None:
                 print("Truncating all files...")
                 self.window.core.assistants.files.truncate() # clear all files
-                num = self.window.core.gpt.assistants.files_truncate()  # remove all files in API
+                num = self.window.core.gpt.store.remove_files()  # remove all files in API
             else:
                 print("Truncating files for store: {}".format(self.store_id))
                 self.window.core.assistants.files.truncate(self.store_id)  # clear store files, remove from stores and DB
-                num = self.window.core.gpt.assistants.files_truncate_store(self.store_id)  # remove store files in API
+                num = self.window.core.gpt.store.remove_store_files(self.store_id)  # remove store files in API
             if not silent:
                 self.signals.finished.emit("truncate_files", self.store_id, num)
             return True
@@ -337,14 +337,14 @@ class ImportWorker(QRunnable):
             print("Uploading files...")
             for file in self.files:
                 try:
-                    file_id = self.window.core.gpt.assistants.file_upload("", file)
+                    file_id = self.window.core.gpt.store.upload(file)
                     if file_id is not None:
-                        stored_file = self.window.core.gpt.assistants.vs_add_file(
+                        stored_file = self.window.core.gpt.store.add_file(
                             self.store_id,
                             file_id,
                         )
                         if stored_file is not None:
-                            data = self.window.core.gpt.assistants.file_info(file_id)
+                            data = self.window.core.gpt.store.get_file(file_id)
                             self.window.core.assistants.files.insert(self.store_id, data)  # insert to DB
                             self.signals.status.emit("upload_files",
                                                      "Uploaded file: {}/{}".format((num + 1), len(self.files)))
@@ -371,11 +371,11 @@ class ImportWorker(QRunnable):
             if self.store_id is None:
                 print("Importing all files...")
                 self.window.core.assistants.files.truncate_local()  # clear local DB (all)
-                num = self.window.core.gpt.assistants.vs_import_all_files()  # import all files
+                num = self.window.core.gpt.store.import_stores_files()  # import all files
             else:
                 print("Importing files for store: {}".format(self.store_id))
                 self.window.core.assistants.files.truncate_local(self.store_id)  # clear local DB (all)
-                items = self.window.core.gpt.assistants.vs_import_store_files(self.store_id, [])  # import store files
+                items = self.window.core.gpt.store.import_store_files(self.store_id, [])  # import store files
                 num = len(items)
             if not silent:
                 self.signals.finished.emit("import_files", self.store_id, num)

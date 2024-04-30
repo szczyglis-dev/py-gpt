@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import os
@@ -224,7 +224,7 @@ def test_download(mock_window):
     attachment = Attachment(mock_window)
     data = MagicMock()
     data.filename = 'test'
-    mock_window.core.gpt.assistants.file_info = MagicMock(return_value=data)
+    mock_window.core.gpt.store.get_file = MagicMock(return_value=data)
 
     with patch('os.path.join') as os_path_join, \
         patch('os.path.exists') as os_path_exists:
@@ -234,7 +234,7 @@ def test_download(mock_window):
 
         mock_window.core.attachments.download = MagicMock()
         result = attachment.download('file_id')
-        mock_window.core.gpt.assistants.file_download.assert_called_once_with(file_id='file_id', path='path')
+        mock_window.core.gpt.store.download.assert_called_once_with(file_id='file_id', path='path')
         assert result == 'path'
 
 

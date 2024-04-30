@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -31,6 +31,7 @@ class Files:
         :param window: Window instance
         """
         self.window = window
+        self.uploaded_ids = []
 
     def selection_change(self):
         """Select on list change"""

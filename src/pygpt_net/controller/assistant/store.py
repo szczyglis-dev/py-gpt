@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -299,6 +299,7 @@ class VectorStore:
         self.set_by_tab(idx)
         self.init()
         self.restore_selection()
+        self.refresh_by_store_id(store.id)
 
     def delete_by_idx(self, idx: int, force: bool = False):
         """

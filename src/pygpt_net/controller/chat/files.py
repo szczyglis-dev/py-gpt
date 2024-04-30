@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -28,7 +28,7 @@ class Files:
         :param mode: mode
         :return: uploaded attachments list
         """
-        self.window.core.gpt.assistants.file_ids = []  # clear file ids
+        self.window.controller.files.uploaded_ids = []  # clear uploaded files ids
         attachments_list = {}
 
         if mode == 'assistant':
@@ -45,7 +45,7 @@ class Files:
                         mode,
                         attachments,
                     )
-                    self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
+                    self.window.controller.files.uploaded_ids = self.window.core.attachments.get_ids(mode)
                     attachments_list = self.window.core.attachments.make_json_list(attachments)
 
                 # show uploaded status

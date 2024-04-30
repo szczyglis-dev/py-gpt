@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -222,12 +222,12 @@ class Files:
             if store_id is None or store_id == "":
                 continue  # skip if no store_id
             try:
-                self.window.core.gpt.assistants.vs_delete_file(store_id, file_id)  # remove from vector store
+                self.window.core.gpt.store.delete_store_file(store_id, file_id)  # remove from vector store
             except Exception as e:
                 self.window.core.debug.log("Failed to delete file from vector store: " + str(e))
         self.provider.delete_by_id(file.record_id)  # delete file in DB
         try:
-            self.window.core.gpt.assistants.file_delete(file.file_id)  # delete file in API
+            self.window.core.gpt.store.delete_file(file.file_id)  # delete file in API
         except Exception as e:
             self.window.core.debug.log("Failed to delete remote file: " + str(e))
         if file.record_id in self.items:
@@ -267,9 +267,9 @@ class Files:
         :return: True if truncated
         """
         if store_id is not None:
-            self.window.core.gpt.assistants.vs_remove_files_from_store(store_id)  # remove files from vector store
+            self.window.core.gpt.store.remove_from_store(store_id)  # remove files from vector store
         else:
-            self.window.core.gpt.assistants.vs_remove_files_from_stores()  # remove files from all vector stores
+            self.window.core.gpt.store.remove_from_stores()  # remove files from all vector stores
         return self.truncate_local(store_id)  # truncate files in DB
 
     def truncate_local(self, store_id: str = None) -> bool:
@@ -293,7 +293,7 @@ class Files:
         :param store_id: store ID
         :return: True if imported
         """
-        files = self.window.core.gpt.assistants.vs_import_store_files(store_id)
+        files = self.window.core.gpt.store.import_store_files(store_id)
         for file in files:
             self.create(file.assistant, file.thread_id, file.file_id, file.name, file.path, file.size)
         return True

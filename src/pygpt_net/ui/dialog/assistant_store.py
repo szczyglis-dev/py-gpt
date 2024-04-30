@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.04.30 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -50,9 +50,14 @@ class AssistantVectorStore:
         self.window.ui.nodes['assistant.store.btn.save'] = \
             QPushButton(trans("dialog.assistant.store.btn.save"))
         self.window.ui.nodes['assistant.store.btn.refresh_status'] = \
-            QPushButton(trans("dialog.assistant.store.btn.refresh_status"))
+            QPushButton(QIcon(":/icons/reload.svg"), "")
         self.window.ui.nodes['assistant.store.btn.close'] = \
             QPushButton(trans("dialog.assistant.store.btn.close"))
+
+        self.window.ui.nodes['assistant.store.btn.refresh_status'].setToolTip(
+            trans("dialog.assistant.store.btn.refresh_status")
+        )
+        self.window.ui.nodes['assistant.store.btn.refresh_status'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self.window.ui.nodes['assistant.store.btn.upload.files'] = \
             QPushButton(trans("dialog.assistant.store.btn.upload.files"))
@@ -100,6 +105,7 @@ class AssistantVectorStore:
 
         # upload buttons
         upload_layout = QHBoxLayout()
+        upload_layout.addWidget(self.window.ui.nodes['assistant.store.btn.refresh_status'])  # reload status btn
         upload_layout.addWidget(self.window.ui.nodes['assistant.store.btn.upload.files'])
         upload_layout.addWidget(self.window.ui.nodes['assistant.store.btn.upload.dir'])
         upload_layout.setContentsMargins(0, 0, 0, 0)
@@ -152,7 +158,6 @@ class AssistantVectorStore:
 
 
         content.addLayout(upload_layout)  # upload buttons
-        content.addWidget(self.window.ui.nodes['assistant.store.btn.refresh_status'])  # reload status btn at the end
         content.setContentsMargins(0, 0, 0, 0)
 
         # scroll widget
