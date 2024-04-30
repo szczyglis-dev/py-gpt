@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -103,7 +103,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         id = int(item["params"]["id"])
-        prompt = item["params"]["summary_query"]
+        prompt = "Summary this conversation"
+        if "summary_query" in item["params"]:
+            prompt = item["params"]["summary_query"]
         response = {
             "request": request,
             "result": self.plugin.get_summary(id, prompt),
