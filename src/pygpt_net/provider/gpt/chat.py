@@ -6,11 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
+
 import json
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
 
 class Chat:
@@ -23,32 +26,38 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, **kwargs):
+    def send(self, context: BridgeContext, extra: dict = None):
         """
         Call OpenAI API for chat
 
-        :param kwargs: keyword arguments
+        :param context: Bridge context
+        :param extra: Extra arguments
         :return: response or stream chunks
         """
-        # get kwargs
-        ctx = kwargs.get("ctx", CtxItem())
-        prompt = kwargs.get("prompt", "")
-        stream = kwargs.get("stream", False)
-        max_tokens = kwargs.get("max_tokens", 200)
-        system_prompt = kwargs.get("system_prompt", "")
+        prompt = context.prompt
+        stream = context.stream
+        max_tokens = context.max_tokens
+        system_prompt = context.system_prompt
+        model = context.model
+        functions = context.external_functions
+        attachments = context.attachments
+
+        ctx = context.ctx
+        if ctx is None:
+            ctx = CtxItem()  # create empty context
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
-        model = kwargs.get("model", None)
-        functions = kwargs.get("external_functions", None)
+
         client = self.window.core.gpt.get_client()
 
         # build chat messages
         messages = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
+            model=model,
+            attachments=attachments,
             ai_name=ai_name,
             user_name=user_name,
-            model=model,
         )
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
@@ -65,7 +74,7 @@ class Chat:
 
         # tools / functions
         tools = []
-        if functions is not None:
+        if functions is not None and isinstance(functions, list):
             for function in functions:
                 if str(function['name']).strip() == '' or function['name'] is None:
                     continue
@@ -96,31 +105,39 @@ class Chat:
         )
         return response
 
-    def build(self, **kwargs) -> list:
+    def build(
+            self,
+            prompt: str,
+            system_prompt: str,
+            model: ModelItem,
+            attachments: dict = None,
+            ai_name: str = None,
+            user_name: str = None
+    ) -> list:
         """
         Build list of chat messages
 
-        :param kwargs: keyword arguments
+        :param prompt: user prompt
+        :param system_prompt: system prompt
+        :param model: model item
+        :param attachments: attachments
+        :param ai_name: AI name
+        :param user_name: username
         :return: messages list
         """
-        prompt = kwargs.get("prompt", "")
-        system_prompt = kwargs.get("system_prompt", None)
-        user_name = kwargs.get("user_name", None)
-        ai_name = kwargs.get("ai_name", None)
-        model = kwargs.get("model", None)
         messages = []
 
         # tokens config
-        mode = self.window.core.config.get('mode')
+        mode = "chat"
         used_tokens = self.window.core.tokens.from_user(
             prompt,
             system_prompt,
         )  # threshold and extra included
-        max_tokens = self.window.core.config.get('max_total_tokens')
+        max_ctx_tokens = self.window.core.config.get('max_total_tokens')  # max context window
 
         # fit to max model tokens
-        if max_tokens > model.ctx:
-            max_tokens = model.ctx
+        if max_ctx_tokens > model.ctx:
+            max_ctx_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -141,7 +158,7 @@ class Chat:
                 model.id,
                 mode,
                 used_tokens,
-                max_tokens,
+                max_ctx_tokens,
             )
             for item in items:
                 # input
@@ -152,8 +169,13 @@ class Chat:
                 if item.output is not None and item.output != "":
                     messages.append({"role": "system", "name": ai_name, "content": item.output})
 
+        # use vision if available in current model
+        content = str(prompt)
+        if "vision" in model.mode:
+            content = self.window.core.gpt.vision.build_content(prompt, attachments)
+
         # append current prompt
-        messages.append({"role": "user", "content": str(prompt)})
+        messages.append({"role": "user", "content": content})
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(
