@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 
@@ -344,7 +344,8 @@ class Batch:
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
         self.window.ui.status("OK. Imported stores: " + str(num) + ".")
-        self.window.ui.dialogs.alert(trans("status.finished"))
+        # alert on files import after stores
+        # self.window.ui.dialogs.alert(trans("status.finished"))
 
     def handle_imported_stores_failed(self, error: any):
         """

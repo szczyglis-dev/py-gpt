@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 import json
@@ -36,6 +36,18 @@ class Assistants:
         :return: OpenAI client
         """
         return self.window.core.gpt.get_client()
+
+    def log(self, msg: str, callback: callable = None):
+        """
+        Log message
+
+        :param msg: message to log
+        :param callback: callback log function
+        """
+        if callback is not None:
+            callback(msg)
+        else:
+            print(msg)
 
     def create(self, assistant: AssistantItem) -> AssistantItem:
         """
@@ -362,6 +374,7 @@ class Assistants:
             order: str = "asc",
             limit: int = 100,
             after: str = None,
+            callback: callable = None
     ) -> dict:
         """
         Import assistants from API (all, paginated)
@@ -370,6 +383,7 @@ class Assistants:
         :param order: order
         :param limit: limit
         :param after: next page after ID
+        :param callback: callback log function
         :return: items dict
         """
         client = self.get_client()
@@ -422,7 +436,16 @@ class Assistants:
                     else:
                         if tool.type in items[id].tools:
                             items[id].tools[tool.type] = True
+
+                self.log("Imported assistant: " + remote.id, callback)
+
             # next page
             if assistants.has_more:
-                return self.import_all(items, order, limit, assistants.last_id)
+                return self.import_all(
+                    items,
+                    order,
+                    limit,
+                    assistants.last_id,
+                    callback,
+                )
         return items

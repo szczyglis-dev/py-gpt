@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.04.30 16:00:00                  #
 # ================================================== #
 
 import os
@@ -31,13 +31,17 @@ class Store:
         """
         return self.window.core.gpt.get_client()
 
-    def log(self, msg: str):
+    def log(self, msg: str, callback: callable = None):
         """
         Log message
 
         :param msg: message to log
+        :param callback: callback log function
         """
-        print(msg)
+        if callback is not None:
+            callback(msg)
+        else:
+            print(msg)
 
     def get_file(self, file_id: str):
         """
@@ -120,7 +124,12 @@ class Store:
                     items.append(id)
             # next page
             if stores.has_more:
-                return self.get_files_ids_all(items, order, limit, stores.last_id)
+                return self.get_files_ids_all(
+                    items,
+                    order,
+                    limit,
+                    stores.last_id,
+                )
         return items
 
     def get_files_ids(self) -> list:
@@ -139,39 +148,43 @@ class Store:
                     items.append(id)
         return items
 
-    def remove_files(self) -> int:
+    def remove_files(self, callback: callable = None) -> int:
         """
         Remove all files
 
+        :param callback: callback function
         :return: number of deleted files
         """
         num = 0
         files = self.get_files_ids()
         for file_id in files:
-            self.log("Removing file: " + file_id)
+            self.log("Removing file: " + file_id, callback)
             try:
                 self.delete_file(file_id)
                 num += 1
             except Exception as e:
-                self.log("Error removing file {}: {}".format(file_id, str(e)))
+                msg = "Error removing file {}: {}".format(file_id, str(e))
+                self.log(msg, callback)
         return num
 
-    def remove_store_files(self, store_id: str) -> int:
+    def remove_store_files(self, store_id: str, callback: callable = None) -> int:
         """
         Remove all files from store
 
         :param store_id: store ID
+        :param callback: callback function
         :return: number of deleted files
         """
         num = 0
         files = self.get_store_files_ids(store_id, [])
         for file_id in files:
-            self.log("Removing file: " + file_id)
+            self.log("Removing file: " + file_id, callback)
             try:
-                self.delete_store_file(file_id)
+                self.delete_store_file(store_id, file_id)
                 num += 1
             except Exception as e:
-                self.log("Error removing file {}: {}".format(file_id, str(e)))
+                msg = "Error removing file {}: {}".format(file_id, str(e))
+                self.log(msg, callback)
         return num
 
     def import_stores(
@@ -180,6 +193,7 @@ class Store:
             order: str = "asc",
             limit: int = 100,
             after: str = None,
+            callback: callable = None
     ) -> dict:
         """
         Import vector stores from API
@@ -188,6 +202,7 @@ class Store:
         :param order: order
         :param limit: limit
         :param after: next page after ID
+        :param callback: callback function
         :return: vector stores objects
         """
         client = self.get_client()
@@ -212,10 +227,16 @@ class Store:
                 items[id].file_ids = []
                 items[id].status = self.window.core.assistants.store.parse_status(remote)
                 self.window.core.assistants.store.append_status(items[id], items[id].status)
-                self.log("Imported vector store: " + id)
+                self.log("Imported vector store: " + id, callback)
             # next page
             if stores.has_more:
-                return self.import_stores(items, order, limit, stores.last_id)
+                return self.import_stores(
+                    items,
+                    order,
+                    limit,
+                    stores.last_id,
+                    callback,
+                )
         return items
 
     def create_store(self, name: str, expire_days: int = 0):
@@ -323,7 +344,12 @@ class Store:
                     items.append(id)
             # next page
             if stores.has_more:
-                return self.get_stores_ids(items, order, limit, stores.last_id)
+                return self.get_stores_ids(
+                    items,
+                    order,
+                    limit,
+                    stores.last_id,
+                )
         return items
 
     def get_store_files_ids(
@@ -360,7 +386,13 @@ class Store:
                     items.append(id)
             # next page
             if files.has_more:
-                return self.get_store_files_ids(store_id, items, order, limit, files.last_id)
+                return self.get_store_files_ids(
+                    store_id,
+                    items,
+                    order,
+                    limit,
+                    files.last_id,
+                )
         return items
 
     def remove_from_stores(self) -> int:
@@ -394,21 +426,23 @@ class Store:
             num += 1
         return num
 
-    def remove_all(self) -> int:
+    def remove_all(self, callback: callable = None) -> int:
         """
         Remove all vector stores
 
+        :param callback: callback function
         :return: number of deleted stores
         """
         num = 0
         stores = self.get_stores_ids([])
         for store_id in stores:
-            self.log("Removing vector store: " + store_id)
+            self.log("Removing vector store: " + store_id, callback)
             try:
                 self.remove_store(store_id)
                 num += 1
             except Exception as e:
-                self.log("Error removing vector store {}: {}".format(store_id, str(e)))
+                msg = "Error removing vector store {}: {}".format(store_id, str(e))
+                self.log(msg, callback)
         return num
 
     def add_file(self, store_id: str, file_id: str):
@@ -461,10 +495,11 @@ class Store:
         if vector_store_file is not None:
             return vector_store_file
 
-    def import_stores_files(self) -> int:
+    def import_stores_files(self, callback: callable = None) -> int:
         """
         Import all vector stores files
 
+        :param callback: callback function
         :return: num of imported files
         """
         store_ids = self.get_stores_ids([])
@@ -472,9 +507,14 @@ class Store:
         for store_id in store_ids:
             items = []
             try:
-                items = self.import_store_files(store_id, items)
+                items = self.import_store_files(
+                    store_id,
+                    items,
+                    callback=callback,
+                )
             except Exception as e:
-                self.log("Error importing store {} files list: {}".format(store_id, str(e)))
+                msg = "Error importing store {} files list: {}".format(store_id, str(e))
+                self.log(msg, callback)
             num += len(items)
         return num
 
@@ -485,6 +525,7 @@ class Store:
             order: str = "asc",
             limit: int = 100,
             after: str = None,
+            callback: callable = None
     ) -> list:
         """
         Import and get all vector store files IDs
@@ -494,6 +535,7 @@ class Store:
         :param order: order
         :param limit: limit
         :param after: next page after ID
+        :param callback: callback function
         :return: imported IDs dict
         """
         client = self.get_client()
@@ -513,10 +555,19 @@ class Store:
                         items.append(id)
                         data = self.get_file(remote.id)
                         self.window.core.assistants.files.insert(store_id, data)  # add remote file to DB
-                        self.log("Imported file ID {} to store {}".format(remote.id, store_id))
+                        msg = "Imported file ID {} to store {}".format(remote.id, store_id)
+                        self.log(msg, callback)
                 except Exception as e:
-                    self.log("Error importing file {} to store {}: {}".format(remote.id, store_id, str(e)))
+                    msg = "Error importing file {} to store {}: {}".format(remote.id, store_id, str(e))
+                    self.log(msg, callback)
             # next page
             if files.has_more:
-                return self.import_store_files(store_id, items, order, limit, files.last_id)
+                return self.import_store_files(
+                    store_id,
+                    items,
+                    order,
+                    limit,
+                    files.last_id,
+                    callback,
+                )
         return items
