@@ -550,6 +550,75 @@ class Ctx:
             self.meta[self.current].status = self.status
             self.save(self.current)
 
+    def count_history(
+            self,
+            history_items: list,
+            model: str,
+            mode: str,
+            used_tokens: int = 100,
+            max_tokens: int = 1000
+    ) -> (int, int):
+        """
+        Count ctx items to add to prompt
+
+        :param history_items: history items list
+        :param model: model
+        :param mode: mode
+        :param used_tokens: used tokens
+        :param max_tokens: max tokens
+        :return: ctx items count, ctx tokens count
+        """
+        i = 0
+        # loop on items from end to start
+        tokens = used_tokens
+        context_tokens = 0
+        for item in reversed(history_items):
+            num = self.window.core.tokens.from_ctx(item, mode, model)  # get num tokens for input and output
+            tokens += num
+            if tokens > max_tokens:
+                break
+            context_tokens += num
+            i += 1
+
+        return i, context_tokens
+
+    def get_history(
+            self,
+            history_items: list,
+            model: str,
+            mode: str = "chat",
+            used_tokens: int = 100,
+            max_tokens: int = 1000,
+            ignore_first: bool = True
+    ) -> list:
+        """
+        Return ctx items to add to prompt
+
+        :param history_items: history items list
+        :param model: model
+        :param mode: mode
+        :param used_tokens: used tokens
+        :param max_tokens: max tokens
+        :param ignore_first: ignore current item (provided by user)
+        :return: ctx items list
+        """
+        items = []
+        # loop on items from end to start
+        tokens = used_tokens
+        is_first = True
+        for item in reversed(history_items):
+            if is_first and ignore_first:
+                is_first = False
+                continue
+            tokens += self.window.core.tokens.from_ctx(item, mode, model)
+            if tokens > max_tokens:
+                break
+            items.append(item)
+
+        # reverse items
+        items.reverse()
+        return items
+
     def count_prompt_items(
             self,
             model: str,
@@ -566,19 +635,13 @@ class Ctx:
         :param max_tokens: max tokens
         :return: ctx items count, ctx tokens count
         """
-        i = 0
-        # loop on items from end to start
-        tokens = used_tokens
-        context_tokens = 0
-        for item in reversed(self.items):
-            num = self.window.core.tokens.from_ctx(item, mode, model)  # get num tokens for input and output
-            tokens += num
-            if tokens > max_tokens:
-                break
-            context_tokens += num
-            i += 1
-
-        return i, context_tokens
+        return self.count_history(
+            self.items,
+            model,
+            mode,
+            used_tokens,
+            max_tokens,
+        )
 
     def get_prompt_items(
             self,
@@ -598,22 +661,14 @@ class Ctx:
         :param ignore_first: ignore current item (provided by user)
         :return: ctx items list
         """
-        items = []
-        # loop on items from end to start
-        tokens = used_tokens
-        is_first = True
-        for item in reversed(self.items):
-            if is_first and ignore_first:
-                is_first = False
-                continue
-            tokens += self.window.core.tokens.from_ctx(item, mode, model)
-            if tokens > max_tokens:
-                break
-            items.append(item)
-
-        # reverse items
-        items.reverse()
-        return items
+        return self.get_history(
+            self.items,
+            model,
+            mode,
+            used_tokens,
+            max_tokens,
+            ignore_first,
+        )
 
     def get_all_items(self, ignore_first: bool = True) -> list:
         """
