@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 import os
@@ -104,6 +104,9 @@ class Database:
             'indexes_json',
             'external_id',
             'group_id',
+            'root_id',
+            'parent_id',
+            'owner_uuid',
             'uuid',
         ]
         columns["ctx_group"] = [
