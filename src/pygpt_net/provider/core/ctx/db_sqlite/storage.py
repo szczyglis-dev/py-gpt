@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -61,6 +61,9 @@ class Storage:
         where_clauses = []
         join_clauses = []
         bind_params = {}
+
+        # only base by default
+        where_clauses.append("(m.root_id IS NULL OR m.root_id = 0)")
 
         # search_string
         if search_string:
@@ -183,6 +186,48 @@ class Storage:
                 unpack_meta(meta, row._asdict())
                 items[meta.id] = meta
         return items
+
+    def get_meta_by_root_id_and_preset_id(self, root_id: int, preset_id: str) -> dict:
+        """
+        Return dict with indexed CtxMeta objects, indexed by ID
+
+        :return: dict of CtxMeta
+        """
+        stmt_text = f"""
+            SELECT * FROM ctx_meta WHERE root_id = :root_id AND preset_id = :preset_id
+        """
+        stmt = text(stmt_text).bindparams(
+            root_id=root_id,
+            preset_id=preset_id,
+        )
+        items = {}
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            for row in result:
+                meta = CtxMeta()
+                unpack_meta(meta, row._asdict())
+                items[meta.id] = meta
+        return items
+
+    def get_meta_by_id(self, id: int) -> CtxMeta or None:
+        """
+        Return ctx meta by ID
+
+        :return: CtxMeta
+        """
+        stmt = text("""
+            SELECT * FROM ctx_meta WHERE id = :id
+        """).bindparams(id=id)
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            row = result.fetchone()
+            if row:
+                meta = CtxMeta()
+                unpack_meta(meta, row._asdict())
+                return meta
+        return None
 
     def get_items(self, id: int) -> list:
         """
@@ -311,7 +356,9 @@ class Storage:
                 is_deleted = :is_deleted,
                 is_important = :is_important,
                 is_archived = :is_archived,
-                label = :label
+                label = :label,
+                root_id = :root_id,
+                parent_id = :parent_id
             WHERE id = :id
         """).bindparams(
             id=meta.id,
@@ -332,6 +379,8 @@ class Storage:
             is_important=int(meta.important),
             is_archived=int(meta.archived),
             label=int(meta.label),
+            root_id=meta.root_id,
+            parent_id=meta.parent_id,
         )
         with db.begin() as conn:
             conn.execute(stmt)
@@ -546,7 +595,9 @@ class Storage:
                 is_important,
                 is_archived,
                 label,
-                group_id
+                group_id,
+                root_id,
+                parent_id
             )
             VALUES 
             (
@@ -570,7 +621,9 @@ class Storage:
                 :is_important,
                 :is_archived,
                 :label,
-                :group_id
+                :group_id,
+                :root_id,
+                :parent_id
             )
         """).bindparams(
             uuid=meta.uuid,
@@ -594,6 +647,8 @@ class Storage:
             is_archived=int(meta.archived),
             label=int(meta.label),
             group_id=meta.group_id,
+            root_id=meta.root_id,
+            parent_id=meta.parent_id,
         )
         with db.begin() as conn:
             result = conn.execute(stmt)

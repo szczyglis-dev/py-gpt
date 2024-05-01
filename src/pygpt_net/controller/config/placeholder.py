@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 02:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
@@ -200,7 +200,7 @@ class Placeholder:
 
         :return: Models placeholders list
         """
-        modes = ["chat", "completion", "vision", "langchain", "llama_index"]
+        modes = ["chat", "completion", "vision", "langchain", "llama_index", "expert"]
         data = []
         for id in modes:
             data.append({id: id})  # TODO: name

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -49,10 +49,18 @@ class PresetList(BaseList):
 
         :param event: context menu event
         """
+        mode = self.window.core.config.get('mode')
         item = self.indexAt(event.pos())
         idx = item.row()
 
+        preset = None
+        preset_id = self.window.core.presets.get_by_idx(idx, mode)
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
+
         actions = {}
+
         actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
@@ -72,6 +80,18 @@ class PresetList(BaseList):
 
         menu = QMenu(self)
         menu.addAction(actions['edit'])
+        if mode == "expert":
+            if not preset.filename.startswith("current."):
+                if not preset.enabled:
+                    actions['enable'] = QAction(QIcon(":/icons/check.svg"), trans('preset.action.enable'), self)
+                    actions['enable'].triggered.connect(
+                        lambda: self.action_enable(event))
+                    menu.addAction(actions['enable'])
+                else:
+                    actions['disable'] = QAction(QIcon(":/icons/close.svg"), trans('preset.action.disable'), self)
+                    actions['disable'].triggered.connect(
+                        lambda: self.action_disable(event))
+                    menu.addAction(actions['disable'])
         if self.window.controller.presets.is_current(idx):
             actions['edit'].setEnabled(False)
             menu.addAction(actions['restore'])
@@ -126,3 +146,27 @@ class PresetList(BaseList):
         :param event: mouse event
         """
         self.window.controller.presets.restore()
+
+
+    def action_enable(self, event):
+        """
+        Enable action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.presets.enable(idx)
+
+
+    def action_disable(self, event):
+        """
+        Disable action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.presets.disable(idx)

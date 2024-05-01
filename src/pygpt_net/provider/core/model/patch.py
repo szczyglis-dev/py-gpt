@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -210,6 +210,17 @@ class Patch:
             if old < parse_version("2.2.6"):
                 print("Migrating models from < 2.2.6...")
                 # add missing gpt-4-turbo
+                updated = True
+
+            # < 2.2.7  <--- add expert mode
+            if old < parse_version("2.2.7"):
+                print("Migrating models from < 2.2.7...")
+                exclude = ["gpt-3.5-turbo-instruct", "gpt-4-vision-preview"]
+                for id in data:
+                    model = data[id]
+                    if model.id.startswith("gpt-") and model.id not in exclude:
+                        if "expert" not in model.mode:
+                            model.mode.append("expert")
                 updated = True
 
         # update file

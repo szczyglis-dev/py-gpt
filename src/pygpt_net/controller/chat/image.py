@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import  QApplication
@@ -29,13 +29,15 @@ class Image:
     def send(
             self,
             text: str,
-            prev_ctx: CtxItem = None
+            prev_ctx: CtxItem = None,
+            parent_id: int = None,
     ) -> CtxItem:
         """
         Send prompt for image generate
 
         :param text: prompt for image generation
         :param prev_ctx: previous ctx item
+        :param parent_id: parent ctx id
         :return: ctx item
         """
         num = int(self.window.ui.config['global']['img_variants'].input.text() or 1)

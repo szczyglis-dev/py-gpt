@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 07:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -54,14 +54,15 @@ class Ctx:
         self.current_cmd = []  # current commands
         self.current_cmd_schema = "" # current commands schema
         self.allowed_modes = {
-            'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
-            'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
+            'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
             'img': ["img"],
-            'langchain': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
-            'vision': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'langchain': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
+            'vision': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
             'assistant': ["assistant"],
-            'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
-            'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
+            'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
+            'expert': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False
@@ -177,12 +178,19 @@ class Ctx:
         meta.id = id
         return meta
 
-    def add(self, item: CtxItem):
+    def add(self, item: CtxItem, parent_id: int = None):
         """
         Add CtxItem to contexts and saves context
 
         :param item: CtxItem to append
+        :param parent_id: parent id
         """
+        # custom parent
+        if parent_id is not None:
+            self.add_to_meta(item, parent_id)
+            return
+
+        # to current
         self.items.append(item)  # add CtxItem to context items
 
         # append in provider
@@ -194,6 +202,20 @@ class Ctx:
                 result = self.provider.append_item(meta, item)
                 if not result:
                     self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
+
+    def add_to_meta(self, item: CtxItem, meta_id: int = None):
+        """
+        Add CtxItem to custom meta
+
+        :param item: CtxItem to append
+        :param meta_id: meta id
+        """
+        if meta_id in self.meta:
+            meta = self.meta[meta_id]
+        else:
+            meta = self.provider.get_meta_by_id(meta_id)
+        if meta is not None:
+            self.provider.append_item(meta, item)
 
     def update_item(self, item: CtxItem):
         """
@@ -456,13 +478,17 @@ class Ctx:
             extra = 1  # prevent create new if tmp meta exists
         return len(self.meta) + extra
 
-    def all(self) -> list:
+    def all(self, meta_id: int = None) -> list:
         """
-        Return ctx items
+        Return ctx items (current or by meta_id if provided)
 
+        :param meta_id: meta id
         :return: ctx items
         """
-        return self.items
+        if meta_id is None:
+            return self.items
+        else:
+            return self.load(meta_id)
 
     def remove(self, id: int):
         """
@@ -549,6 +575,28 @@ class Ctx:
         if self.current in self.meta:
             self.meta[self.current].status = self.status
             self.save(self.current)
+
+    def get_or_create_slave_meta(self, master_ctx: CtxItem, preset_id: str) -> CtxMeta:
+        """
+        Get or create slave meta
+
+        :param master_ctx: master context
+        :param preset_id: preset ID
+        :return: slave meta
+        """
+        slaves = self.provider.get_meta_by_root_id_and_preset_id(
+            master_ctx.meta_id,
+            preset_id,
+        )
+        if len(slaves) > 0:
+            return list(slaves.values())[0]
+        slave = self.build()
+        slave.root_id = master_ctx.meta_id
+        slave.parent_id = master_ctx.meta_id
+        slave.preset = preset_id
+        id = self.provider.create(slave)
+        slave.id = id
+        return slave
 
     def count_history(
             self,
@@ -919,7 +967,7 @@ class Ctx:
 
     def load(self, id: int) -> list:
         """
-        Load ctx data from provider
+        Load ctx items from provider
 
         :param id: ctx id
         :return: ctx items list
@@ -1110,6 +1158,8 @@ class Ctx:
         prev_ctx.results = copy.deepcopy(ctx.results)
         prev_ctx.index_meta = copy.deepcopy(ctx.index_meta)
         prev_ctx.doc_ids = copy.deepcopy(ctx.doc_ids)
+        prev_ctx.input_name = copy.deepcopy(ctx.input_name)
+        prev_ctx.output_name = copy.deepcopy(ctx.output_name)
 
         ctx.clear_reply()  # clear current reply result
         ctx.from_previous()  # get result from previous if exists

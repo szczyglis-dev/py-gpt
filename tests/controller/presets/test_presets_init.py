@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -150,9 +150,9 @@ def test_update_list(mock_window):
     items = {"preset_id": preset}
     mock_window.core.presets.get_by_mode = MagicMock(return_value=items)
 
-    mock_window.ui.toolbox.presets.update = MagicMock()
+    mock_window.ui.toolbox.presets.update_presets = MagicMock()
     presets.update_list()
-    mock_window.ui.toolbox.presets.update.assert_called_once_with(items)
+    mock_window.ui.toolbox.presets.update_presets.assert_called_once_with(items)
 
 
 def test_reset(mock_window):

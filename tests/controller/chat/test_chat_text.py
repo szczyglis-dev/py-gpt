@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -36,9 +36,11 @@ def test_send(mock_window):
     mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
     mock_window.controller.agent.enabled = MagicMock(return_value=False)
+    mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
 
     model = ModelItem()
     mock_window.core.models.get = MagicMock(return_value=model)
+    mock_window.core.prompt.prepare_sys_prompt = MagicMock()
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 
@@ -47,7 +49,8 @@ def test_send(mock_window):
         mock_window.controller.chat.files.upload.assert_called_once_with('chat')  # should upload files
         mock_window.core.history.append.assert_called_once()  # should append to history
 
-        mock_window.core.command.append_syntax.assert_called_once()  # should append cmd syntax
+
+        mock_window.core.prompt.prepare_sys_prompt.assert_called_once()  # should append cmd syntax
 
         mock_window.controller.chat.render.append_input.assert_called_once()  # should append input
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB

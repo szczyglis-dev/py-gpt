@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -23,6 +23,7 @@ from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
 from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
+from pygpt_net.plugin.experts import Plugin as ExpertsPlugin
 from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
@@ -283,6 +284,7 @@ def run(**kwargs):
     # register base plugins
     launcher.add_plugin(AgentPlugin())
     launcher.add_plugin(RealTimePlugin())
+    launcher.add_plugin(ExpertsPlugin())
     launcher.add_plugin(ExtraPromptPlugin())
     launcher.add_plugin(AudioInputPlugin())
     launcher.add_plugin(AudioOutputPlugin())

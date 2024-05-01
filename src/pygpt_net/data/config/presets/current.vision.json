@@ -12,9 +12,12 @@
   "assistant": false,
   "llama_index": false,
   "agent": false,
+  "expert": false,
+  "experts": [],
+  "enabled": true,
   "__meta__": {
-    "version": "2.1.6",
-    "app.version": "2.1.6",
-    "updated_at": "2024-03-03T02:00:00"
+    "version": "2.2.7",
+    "app.version": "2.2.7",
+    "updated_at": "2024-05-01T00:00:00"
   }
 }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 15:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -55,12 +55,20 @@ class Presets:
         """
         self.window.ui.nodes['preset.presets.new'] = QPushButton(trans('preset.new'))
         self.window.ui.nodes['preset.presets.new'].clicked.connect(
-            lambda: self.window.controller.presets.editor.edit())
+            lambda: self.window.controller.presets.editor.edit()
+        )
 
         self.window.ui.nodes['preset.presets.label'] = TitleLabel(trans("toolbox.presets.label"))
+        self.window.ui.nodes['preset.agents.label'] = TitleLabel(trans("toolbox.agents.label"))
+        self.window.ui.nodes['preset.experts.label'] = TitleLabel(trans("toolbox.experts.label"))
+        self.window.ui.nodes['preset.presets.label'].setVisible(False)
+        self.window.ui.nodes['preset.agents.label'].setVisible(False)
+        self.window.ui.nodes['preset.experts.label'].setVisible(False)
 
         header = QHBoxLayout()
         header.addWidget(self.window.ui.nodes['preset.presets.label'])
+        header.addWidget(self.window.ui.nodes['preset.agents.label'])
+        header.addWidget(self.window.ui.nodes['preset.experts.label'])
         header.addWidget(self.window.ui.nodes['preset.presets.new'], alignment=Qt.AlignRight)
         header.setContentsMargins(0, 0, 0, 0)
 
@@ -90,12 +98,14 @@ class Presets:
         """
         return QStandardItemModel(0, 1, parent)
 
-    def update(self, data):
+    def update_presets(self, data):
         """
-        Update list
+        Update presets list
 
         :param data: Data to update
         """
+        mode = self.window.core.config.get('mode')
+
         # store previous selection
         self.window.ui.nodes[self.id].backup_selection()
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
@@ -103,6 +113,15 @@ class Presets:
         for n in data:
             self.window.ui.models[self.id].insertRow(i)
             name = data[n].name
+
+            # show disabled in expert mode
+            if mode == "expert" and not n.startswith("current.") and data[n].enabled:
+                name = "[x] " + name
+            elif mode =="agent":
+                num_experts = len(data[n].experts)
+                if num_experts > 0:
+                    name = name + " (" + str(num_experts) + " experts)"
+
             index = self.window.ui.models[self.id].index(i, 0)
             self.window.ui.models[self.id].setData(index, n, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)

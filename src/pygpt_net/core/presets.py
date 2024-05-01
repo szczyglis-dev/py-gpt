@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import copy
+import uuid
 
 from packaging.version import Version
 from pygpt_net.item.preset import PresetItem
@@ -42,7 +43,9 @@ class Presets:
 
         :return: empty preset
         """
-        return PresetItem()
+        preset = PresetItem()
+        preset.uuid = str(uuid.uuid4())
+        return preset
 
     def append_current(self):
         """Append current presets"""
@@ -55,6 +58,7 @@ class Presets:
         curr_assistant = self.build()
         curr_llama = self.build()
         curr_agent = self.build()
+        curr_expert = self.build()
 
         # prepare ids
         id_chat = 'current.chat'
@@ -65,6 +69,7 @@ class Presets:
         id_assistant = 'current.assistant'
         id_llama = 'current.llama_index'
         id_agent = 'current.agent'
+        id_expert = 'current.expert'
 
         # set default initial prompt for chat mode
         curr_chat.prompt = self.window.core.prompt.get('default')
@@ -86,6 +91,8 @@ class Presets:
             curr_llama = self.items[id_llama]
         if id_agent in self.items:
             curr_agent = self.items[id_agent]
+        if id_expert in self.items:
+            curr_expert = self.items[id_expert]
 
         # allow usage in specific mode
         curr_chat.chat = True
@@ -96,6 +103,7 @@ class Presets:
         curr_assistant.assistant = True
         curr_llama.llama_index = True
         curr_agent.agent = True
+        curr_expert.expert = True
 
         # always apply default name
         curr_chat.name = '*'
@@ -106,6 +114,7 @@ class Presets:
         curr_assistant.name = '*'
         curr_llama.name = '*'
         curr_agent.name = '*'
+        curr_expert.name = '*'
 
         # append at first position
         self.items = {
@@ -117,6 +126,7 @@ class Presets:
             id_assistant: curr_assistant,
             id_llama: curr_llama,
             id_agent: curr_agent,
+            id_expert: curr_expert,
             **self.items
         }
 
@@ -130,6 +140,35 @@ class Presets:
         if id in self.items:
             return True
         return False
+
+    def exists_uuid(self, uuid: str) -> bool:
+        """
+        Check if preset exists
+
+        :param uuid: preset uuid
+        :return: True if exists
+        """
+        for id in self.items:
+            if self.items[id].uuid == uuid:
+                return True
+        return False
+
+    def enable(self, id: str):
+        """
+        Enable preset
+
+        :param id: preset id
+        """
+        if id in self.items:
+            self.items[id].enabled = True
+    def disable(self, id: str):
+        """
+        Disable preset
+
+        :param id: preset id
+        """
+        if id in self.items:
+            self.items[id].enabled = False
 
     def get_first_mode(self, id: str) -> str or None:
         """
@@ -155,6 +194,8 @@ class Presets:
             return 'llama_index'
         if preset.agent:
             return 'agent'
+        if preset.expert:
+            return 'expert'
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -181,6 +222,31 @@ class Presets:
         presets = self.get_by_mode(mode)
         return list(presets.keys())[idx]
 
+    def get_by_id(self, mode: str, id: str) -> PresetItem or None:
+        """
+        Return preset by id
+
+        :param mode: mode name
+        :param id: preset id
+        :return: preset item
+        """
+        presets = self.get_by_mode(mode)
+        if id in presets:
+            return presets[id]
+        return None
+
+    def get_by_uuid(self, uuid: str) -> PresetItem or None:
+        """
+        Return preset by UUID
+
+        :param uuid: preset UUID
+        :return: preset item
+        """
+        for id in self.items:
+            if self.items[id].uuid == uuid:
+                return self.items[id]
+        return None
+
     def get_by_mode(self, mode: str) -> dict:
         """
         Return presets for mode
@@ -197,7 +263,8 @@ class Presets:
                     or (mode == 'langchain' and self.items[id].langchain) \
                     or (mode == 'assistant' and self.items[id].assistant) \
                     or (mode == 'llama_index' and self.items[id].llama_index) \
-                    or (mode == 'agent' and self.items[id].agent):
+                    or (mode == 'agent' and self.items[id].agent) \
+                    or (mode == 'expert' and self.items[id].expert):
                 presets[id] = self.items[id]
         return presets
 
@@ -256,6 +323,7 @@ class Presets:
         id, name = self.get_duplicate_name(id)
         self.items[id] = copy.deepcopy(self.items[prev_id])
         self.items[id].name = name
+        self.items[id].filename = id
         self.sort_by_name()
         return id
 
@@ -311,6 +379,7 @@ class Presets:
     def load(self):
         """Load presets templates"""
         self.items = self.provider.load()
+        self.patch_uuids()
 
         # sort presets
         self.sort_by_name()
@@ -324,9 +393,48 @@ class Presets:
         """
         if id not in self.items:
             return
-
         self.provider.save(id, self.items[id])
 
     def save_all(self):
         """Save all presets"""
         self.provider.save_all(self.items)
+
+    def add_expert(self, agent_uuid: str, expert_uuid: str):
+        """
+        Add expert to agent
+
+        :param agent_uuid: agent uuid
+        :param expert_uuid: expert uuid
+        """
+        agent = self.get_by_uuid(agent_uuid)
+        if agent is None:
+            return
+        if expert_uuid not in agent.experts:
+            agent.experts.append(expert_uuid)
+        self.save(agent.filename)
+
+    def remove_expert(self, agent_uuid: str, expert_uuid: str):
+        """
+        Remove expert from agent
+        :param agent_uuid: agent uuid
+        :param expert_uuid: expert uuid
+        """
+        agent = self.get_by_uuid(agent_uuid)
+        if agent is None:
+            return
+        if expert_uuid in agent.experts:
+            agent.experts.remove(expert_uuid)
+        self.save(agent.filename)
+
+    def patch_uuids(self):
+        """Patch UUIDs for all presets"""
+        patched = False
+        for id in self.items:
+            if self.items[id].uuid is None:
+                self.items[id].uuid = str(uuid.uuid4())
+                patched = True
+            if self.items[id].filename is None or self.items[id].filename == "":
+                self.items[id].filename = id
+                patched = True
+        if patched:
+            self.save_all()

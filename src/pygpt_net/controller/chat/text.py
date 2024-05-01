@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -31,7 +31,8 @@ class Text:
             text: str,
             reply: bool = False,
             internal: bool = False,
-            prev_ctx: CtxItem = None
+            prev_ctx: CtxItem = None,
+            parent_id: str = None,
     ) -> CtxItem:
         """
         Send text message
@@ -40,6 +41,7 @@ class Text:
         :param reply: reply from plugins
         :param internal: internal call
         :param prev_ctx: previous context item (if reply)
+        :param parent_id: parent context id
         :return: context item
         """
         self.window.ui.status(trans('status.sending'))
@@ -63,6 +65,7 @@ class Text:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
+        base_mode = mode  # store parent mode
 
         # create ctx item
         ctx = CtxItem()
@@ -75,7 +78,18 @@ class Text:
         ctx.set_output(None, ai_name)
         ctx.prev_ctx = prev_ctx  # store previous context item if exists
 
-        self.window.core.ctx.last_item = ctx  # store last item
+        # if prev ctx is not empty
+        if prev_ctx is not None:
+            ctx.input_name = prev_ctx.input_name
+
+        # if reply from expert command
+        if parent_id is not None:
+            ctx.meta_id = parent_id
+            ctx.sub_reply = True  # mark as sub reply
+            ctx.input_name = prev_ctx.input_name
+            ctx.output_name = prev_ctx.output_name
+        else:
+            self.window.core.ctx.last_item = ctx  # store last item
 
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
@@ -93,6 +107,7 @@ class Text:
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "input")        
 
+        # log
         if is_ctx_debug:
             self.log("Context: INPUT: {}".format(ctx))
         else:
@@ -109,6 +124,22 @@ class Text:
 
         # event: prepare prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
+
+        # agent mode
+        if self.window.controller.agent.experts.enabled():
+            prev_prompt = sys_prompt
+            sys_prompt = self.window.core.prompt.get("agent.instruction")
+            if prev_prompt is not None and prev_prompt.strip() != "":
+                sys_prompt = sys_prompt + "\n\n" + prev_prompt  # append previous prompt
+
+        # expert or agent mode
+        if self.window.controller.agent.experts.enabled() and parent_id is None:  # master expert has special prompt
+            if self.window.controller.agent.enabled():  # if agent then leave agent prompt
+                sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
+            else:
+                sys_prompt = self.window.core.experts.get_prompt()
+                mode = "chat"  # change mode to chat for expert
+
         sys_prompt_raw = sys_prompt  # store raw prompt
         event = Event(Event.PRE_PROMPT, {
             'mode': mode,
@@ -125,44 +156,13 @@ class Text:
                 auto_stop=self.window.core.config.get('agent.auto_stop'),
             )
 
-        # event: system prompt (append to system prompt)
-        event = Event(Event.SYSTEM_PROMPT, {
-            'mode': mode,
-            'value': sys_prompt,
-        })
-        self.window.core.dispatcher.dispatch(event)
-        sys_prompt = event.data['value']
-
-        # event: post prompt (post-handle system prompt)
-        event = Event(Event.POST_PROMPT, {
-            'mode': mode,
-            'reply': reply,
-            'internal': internal,
-            'value': sys_prompt,
-        })
-        event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
-        sys_prompt = event.data['value']
-
-        # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
-        if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            data = {
-                'mode': mode,
-                'prompt': sys_prompt,
-                'syntax': [],
-                'cmd': [],
-            }
-            # full execute cmd syntax
-            if self.window.core.config.get('cmd'):
-                event = Event(Event.CMD_SYNTAX, data)
-                self.window.core.dispatcher.dispatch(event)
-                sys_prompt = self.window.core.command.append_syntax(event.data)
-
-            # inline cmd syntax only
-            elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
-                event = Event(Event.CMD_SYNTAX_INLINE, data)
-                self.window.core.dispatcher.dispatch(event)
-                sys_prompt = self.window.core.command.append_syntax(event.data)
+        sys_prompt = self.window.core.prompt.prepare_sys_prompt(
+            mode,
+            sys_prompt,
+            ctx,
+            reply,
+            internal,
+        )
 
         self.log("Appending input to chat window...")
 
@@ -179,7 +179,7 @@ class Text:
 
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)
-        self.window.core.ctx.add(ctx)
+        self.window.core.ctx.add(ctx, parent_id=parent_id)
 
         # update ctx list, but not reload all to prevent focus out on lists
         self.window.controller.ctx.update(
@@ -188,7 +188,7 @@ class Text:
         )
 
         # process events to update UI
-        #QApplication.processEvents()
+        # QApplication.processEvents()
 
         # get external functions (if preset is chosen and functions are defined)
         functions = self.window.controller.presets.get_current_functions()
@@ -211,7 +211,7 @@ class Text:
                 max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
                 files = self.window.core.attachments.get_all(mode)  # get attachments
                 file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
-                history = self.window.core.ctx.all()  # get all history
+                history = self.window.core.ctx.all(meta_id=parent_id)  # get all history
                 num_files = len(files)
                 if num_files > 0:
                     self.log("Attachments ({}): {}".format(mode, num_files))
@@ -221,7 +221,7 @@ class Text:
                     ctx=ctx,
                     history=history,
                     mode=mode,
-                    parent_mode=mode,
+                    parent_mode=base_mode,
                     model=model_data,
                     system_prompt=sys_prompt,
                     system_prompt_raw=sys_prompt_raw,
@@ -290,7 +290,8 @@ class Text:
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
         # render: end
-        self.window.controller.chat.render.end(stream=stream_mode)
+        if ctx.sub_calls == 0:  # if no experts called
+            self.window.controller.chat.render.end(stream=stream_mode)
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop

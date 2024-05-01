@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.2.6",
-        "app.version": "2.2.6",
-        "updated_at": "2024-04-30T00:00:00"
+        "version": "2.2.7",
+        "app.version": "2.2.7",
+        "updated_at": "2024-05-01T00:00:00"
     },
     "items": {
         "chat": {
@@ -51,6 +51,12 @@
             "id": "agent",
             "name": "Agent (autonomous)",
             "label": "mode.agent",
+            "default": false
+        },
+        "expert": {
+            "id": "expert",
+            "name": "Experts",
+            "label": "mode.expert",
             "default": false
         }
     }

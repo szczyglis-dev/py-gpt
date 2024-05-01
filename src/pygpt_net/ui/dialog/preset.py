@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSp
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
+from pygpt_net.ui.widget.lists.experts import ExpertsEditor
 from pygpt_net.utils import trans
 
 
@@ -80,7 +81,17 @@ class Preset(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
-        ignore_keys = ["chat", "completion", "img", "vision", "llama_index", "langchain", "agent", "prompt", "tool.function"]
+        ignore_keys = [
+            "chat",
+            "completion",
+            "img", "vision",
+            "llama_index",
+            "langchain",
+            "agent",
+            "expert",
+            "prompt",
+            "tool.function",
+        ]
 
         options["chat"].setContentsMargins(0, 0, 0, 0)
         options["completion"].setContentsMargins(0, 0, 0, 0)
@@ -89,6 +100,7 @@ class Preset(BaseConfigDialog):
         options["langchain"].setContentsMargins(0, 0, 0, 0)
         options["llama_index"].setContentsMargins(0, 0, 0, 0)
         options["agent"].setContentsMargins(0, 0, 0, 0)
+        options["expert"].setContentsMargins(0, 0, 0, 0)
         options["prompt"].setContentsMargins(0, 0, 0, 0)
         options["tool.function"].setContentsMargins(0, 0, 0, 0)
 
@@ -101,21 +113,26 @@ class Preset(BaseConfigDialog):
         rows_mode.addLayout(options["langchain"])
         rows_mode.addLayout(options["llama_index"])
         rows_mode.addLayout(options["agent"])
+        rows_mode.addLayout(options["expert"])
+
 
         rows_mode.addStretch()
         rows_mode.setContentsMargins(0, 0, 0, 0)
 
-        widget_mode = QWidget()
-        widget_mode.setLayout(rows_mode)
-        widget_mode.setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['preset.editor.modes'] = QWidget()
+        self.window.ui.nodes['preset.editor.modes'].setLayout(rows_mode)
+        self.window.ui.nodes['preset.editor.modes'].setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
+
+        self.window.ui.nodes['preset.editor.functions'] = QWidget()
+        self.window.ui.nodes['preset.editor.functions'].setLayout(options["tool.function"])
+        self.window.ui.nodes['preset.editor.functions'].setMinimumWidth(400)
+
+        self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
         widget_prompt = QWidget()
         widget_prompt.setLayout(options["prompt"])
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        widget_tools = QWidget()
-        widget_tools.setLayout(options["tool.function"])
-        widget_tools.setMinimumWidth(400)
 
         # append widgets options layouts to rows
         for key in options:
@@ -133,13 +150,12 @@ class Preset(BaseConfigDialog):
         # set max width to options
         widget_base.setMinimumWidth(400)
         widget_base.setMaximumWidth(450)
-        widget_mode.setMaximumWidth(300)
 
         main = QHBoxLayout()
         main.addWidget(widget_base)
-
-        main.addWidget(widget_tools)
-        main.addWidget(widget_mode)
+        main.addWidget(self.window.ui.nodes['preset.editor.functions'])
+        main.addWidget(self.window.ui.nodes['preset.editor.modes'])
+        main.addWidget(self.window.ui.nodes['preset.editor.experts'])
         main.setContentsMargins(0, 0, 0, 0)
 
         widget_main = QWidget()

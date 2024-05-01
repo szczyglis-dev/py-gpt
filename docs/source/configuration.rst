@@ -125,9 +125,13 @@ The following basic options can be modified directly within the application:
 
 * ``Context: auto-summary (user message)``: User message for context auto-summary. Placeholders: {input}, {output}
 
-* ``Agent: continue``: Prompt sent to automatically continue the conversation. Default: `continue...`
+* ``Agent: system instruction``: Prompt to instruct how to handle autonomous mode.
+
+* ``Agent: continue``: Prompt sent to automatically continue the conversation.
 
 * ``Agent: goal update``: Prompt to instruct how to update current goal status.
+
+* ``Experts: Master prompt``: Prompt to instruct how to handle experts.
 
 * ``DALL-E: image generate``: Prompt for generating prompts for DALL-E (if raw-mode is disabled).
 
@@ -194,6 +198,8 @@ The following basic options can be modified directly within the application:
 **Agent (autonomous)**
 
 * ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+
+* ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 

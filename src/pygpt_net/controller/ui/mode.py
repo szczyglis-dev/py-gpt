@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.utils import trans
 
 
 class Mode:
@@ -31,6 +32,32 @@ class Mode:
             self.window.ui.nodes['presets.widget'].setVisible(True)
         else:
             self.window.ui.nodes['presets.widget'].setVisible(False)
+
+        # presets: labels
+        if mode == "agent":
+            self.window.ui.nodes['preset.agents.label'].setVisible(True)
+            self.window.ui.nodes['preset.experts.label'].setVisible(False)
+            self.window.ui.nodes['preset.presets.label'].setVisible(False)
+        elif mode == "expert":
+            self.window.ui.nodes['preset.agents.label'].setVisible(False)
+            self.window.ui.nodes['preset.experts.label'].setVisible(True)
+            self.window.ui.nodes['preset.presets.label'].setVisible(False)
+        else:
+            self.window.ui.nodes['preset.agents.label'].setVisible(False)
+            self.window.ui.nodes['preset.experts.label'].setVisible(False)
+            self.window.ui.nodes['preset.presets.label'].setVisible(True)
+
+        # presets: editor
+        if mode == "agent":
+            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
+            self.window.ui.nodes['preset.editor.modes'].setVisible(False)
+            self.window.ui.nodes['preset.editor.experts'].setVisible(True)
+            self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent"))
+        else:
+            self.window.ui.nodes['preset.editor.functions'].setVisible(True)
+            self.window.ui.nodes['preset.editor.modes'].setVisible(True)
+            self.window.ui.nodes['preset.editor.experts'].setVisible(False)
+            self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
 
         # presets: clear
         if mode in ["img", "llama_index", "assistant"]:

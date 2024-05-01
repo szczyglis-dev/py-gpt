@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -61,6 +61,7 @@ def test_handle_cmd(mock_window):
         {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
     ]
     mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
+    mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
 
     ctx = CtxItem()
     output.handle_cmd(ctx)
@@ -82,6 +83,7 @@ def test_handle_cmd_only(mock_window):
         {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
     ]
     mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
+    mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
 
     ctx = CtxItem()
     output.handle_cmd(ctx)

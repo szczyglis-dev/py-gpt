@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import os
@@ -28,11 +28,15 @@ class Patch:
         """
         migrated = False
         is_llama = False
+        is_expert = False
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
             updated = False
 
             # get version of preset
+            if data.version is None or data.version == "":
+                continue
+
             old = parse_version(data.version)
 
             # check if presets file is older than current app version
@@ -63,6 +67,25 @@ class Patch:
                         updated = True
                         is_llama = True  # prevent multiple copies
                         print("Patched file: {}.".format(dst))
+
+                # < 2.2.7
+                if old < parse_version("2.2.7"):
+                    if not is_expert:
+                        print("Migrating preset files from < 2.2.7...")
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.expert.json')
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'current.expert.json')
+                        shutil.copyfile(src, dst)
+                        print("Patched file: {}.".format(dst))
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.agent.json')
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'current.agent.json')
+                        shutil.copyfile(src, dst)
+                        print("Patched file: {}.".format(dst))
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'joke_expert.json')
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'joke_expert.json')
+                        shutil.copyfile(src, dst)
+                        print("Patched file: {}.".format(dst))
+                        updated = True
+                        is_expert = True  # prevent multiple copies
 
             # update file
             if updated:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 23:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os
 
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
+from .experts import Experts
 
 
 class Editor:
@@ -24,6 +25,7 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
+        self.experts = Experts(window)
         self.options = {
             "filename": {
                 "type": "text",
@@ -60,6 +62,10 @@ class Editor:
             "langchain": {
                 "type": "bool",
                 "label": "preset.langchain",
+            },
+            "expert": {
+                "type": "bool",
+                "label": "preset.expert",
             },
             "agent": {
                 "type": "bool",
@@ -109,6 +115,7 @@ class Editor:
             },
         }
         self.id = "preset"
+        self.current = None
 
     def get_options(self) -> dict:
         """
@@ -183,6 +190,7 @@ class Editor:
             if id in self.window.core.presets.items:
                 data = self.window.core.presets.items[id]
                 data.filename = id
+                self.current = data.uuid
 
         if data.name is None:
             data.name = ""
@@ -212,6 +220,8 @@ class Editor:
                 # data.assistant = True
             elif mode == "llama_index":
                 data.llama_index = True
+            elif mode == "expert":
+                data.expert = True
             elif mode == "agent":
                 data.agent = True
 
@@ -226,6 +236,9 @@ class Editor:
             self.id,
             options,
         )
+
+        # update experts list, after ID loaded
+        self.experts.update_list()
 
         # restore functions
         if data.has_functions():
@@ -248,11 +261,12 @@ class Editor:
         # set focus to name field
         self.window.ui.config[self.id]['name'].setFocus()
 
-    def save(self, force: bool = False):
+    def save(self, force: bool = False, close: bool = True):
         """
         Save ore create preset
 
         :param force: force overwrite file
+        :param close: close dialog
         """
         id = self.window.controller.config.get_value(
             parent_id=self.id,
@@ -260,6 +274,7 @@ class Editor:
             option=self.options["filename"],
         )
         mode = self.window.core.config.get("mode")
+        modes = ["chat", "completion", "img", "vision", "langchain", "llama_index", "expert"]
 
         # disallow editing default preset
         if id == "current." + mode:
@@ -290,7 +305,7 @@ class Editor:
         # validate filename
         id = self.window.controller.presets.validate_filename(id)
         if id not in self.window.core.presets.items:
-            self.window.core.presets.items[id] = PresetItem()
+            self.window.core.presets.items[id] = self.window.core.presets.build()
         elif not force:
             self.window.ui.dialogs.confirm(
                 type='preset_exists',
@@ -300,17 +315,16 @@ class Editor:
             return
 
         # check if at least one mode is selected
-        modes = ["chat", "completion", "img", "vision", "langchain", "agent", "llama_index"]
         is_mode = False
-        for mode in modes:
+        for check in modes:
             if self.window.controller.config.get_value(
                 parent_id=self.id,
-                key=mode,
-                option=self.options[mode],
+                key=check,
+                option=self.options[check],
             ):
                 is_mode = True
                 break
-        if not is_mode:
+        if mode != "agent" and not is_mode:
             self.window.ui.dialogs.alert(
                 trans('alert.preset.no_chat_completion')
             )
@@ -319,18 +333,34 @@ class Editor:
         # assign data from fields to preset object in items
         self.assign_data(id)
 
+        # if agent, assign experts and select only agent mode
+        if self.window.core.config.get('mode') == 'agent':
+            self.window.core.presets.items[id].mode = ["agent"]
+
         # apply changes to current active preset
         current = self.window.core.config.get('preset')
         if current is not None and current == id:
             self.to_current(self.window.core.presets.items[id])
             self.window.core.config.save()
 
+        # update current uuid
+        self.current = self.window.core.presets.items[id].uuid
+
         # save
         self.window.core.presets.save(id)
         self.window.controller.presets.refresh()
 
         # close dialog
-        self.window.ui.dialogs.close('editor.preset.presets')
+        if close:
+            self.window.ui.dialogs.close('editor.preset.presets')
+        else:
+            # update ID in field
+            self.window.controller.config.apply_value(
+                parent_id=self.id,
+                key="filename",
+                option=self.options["filename"],
+                value=id,
+            )
         self.window.ui.status(trans('status.preset.saved'))
 
         # sort by name
@@ -353,7 +383,6 @@ class Editor:
             # assigned separately
             if key == "tool.function":
                 continue
-
             data_dict[key] = self.window.controller.config.get_value(
                 parent_id=self.id,
                 key=key,

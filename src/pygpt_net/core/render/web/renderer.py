@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import json
@@ -67,6 +67,11 @@ class Renderer(BaseRenderer):
         else:
             self.clear_chunks()
 
+    def reset_names(self):
+        """Reset names"""
+        self.name_user = trans("chat.name.user")
+        self.name_bot = trans("chat.name.bot")
+
     def begin(self, stream: bool = False):
         """
         Render begin
@@ -74,6 +79,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         self.init()
+        self.reset_names()
 
     def end(self, stream: bool = False):
         """
@@ -122,8 +128,7 @@ class Renderer(BaseRenderer):
         self.images_appended = []
         self.urls_appended = []
         self.get_output_node().reset_current_content()
-        self.name_user = trans("chat.name.user")
-        self.name_bot = trans("chat.name.bot")
+        self.reset_names()
 
     def reload(self):
         """Reload output, called externally only on theme change to redraw content"""
@@ -193,7 +198,8 @@ class Renderer(BaseRenderer):
         if item.internal \
                 and not is_cmd \
                 and not item.first \
-                and not item.input.strip().startswith("user: "):
+                and not item.input.strip().startswith("user: ")\
+                and not item.input.strip().startswith("@"):  # expert says:
             if flush:
                 content = self.prepare_node('>>>', self.NODE_INPUT, item)
                 self.append_chunk_input(item, content, True)
@@ -276,7 +282,8 @@ class Renderer(BaseRenderer):
         """
         if text_chunk is None or text_chunk == "":
             return
-
+        if item.hidden:
+            return
         self.clear_chunks_input()
         chunk = self.format_chunk(text_chunk)
         escaped_chunk = json.dumps(chunk)
@@ -319,7 +326,10 @@ class Renderer(BaseRenderer):
         content = self.append_timestamp(self.format_user_text(html), item, type=self.NODE_INPUT)
         html = "<p>" + content + "</p>"
         html = self.post_format_text(html)
-        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(id, self.name_user) + html + "</div></div>"
+        name = self.name_user
+        if item.internal and not item.input.startswith("user: "):
+            name = "System"
+        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(id, name) + html + "</div></div>"
         return html
 
     def prepare_node_output(self, html: str, item: CtxItem = None) -> str:
@@ -348,6 +358,8 @@ class Renderer(BaseRenderer):
         :param type: type of message
         :param item: CtxItem instance
         """
+        if item.hidden:
+            return
         self.append(self.prepare_node(html, type, item))
 
     def clear_chunks_output(self):

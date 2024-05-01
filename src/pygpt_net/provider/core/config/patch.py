@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -1413,6 +1413,22 @@ class Patch:
                 print("Migrating config from < 2.2.2...")
                 if 'app.env' not in data:
                     data["app.env"] = []
+                updated = True
+
+            # < 2.2.7
+            if old < parse_version("2.2.7"):
+                print("Migrating config from < 2.2.7...")
+                if 'prompt.agent.instruction' not in data:
+                    data["prompt.agent.instruction"] = ""
+                if 'prompt.expert' not in data:
+                    data["prompt.expert"] = ""
+                if 'experts.mode' not in data:
+                    data["experts.mode"] = "chat"
+                # from base
+                data["prompt.agent.instruction"] = self.window.core.config.get_base('prompt.agent.instruction')
+                data["prompt.agent.continue"] = self.window.core.config.get_base('prompt.agent.continue')
+                data["prompt.agent.goal"] = self.window.core.config.get_base('prompt.agent.goal')
+                data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
                 updated = True
 
         # update file

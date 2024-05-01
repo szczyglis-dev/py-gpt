@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 07:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import time
@@ -290,6 +290,23 @@ class DbSqliteProvider(BaseProvider):
         :return: dict of ctx meta
         """
         return self.storage.get_groups()
+
+    def get_meta_by_id(self, id: int) -> CtxMeta or None:
+        """
+        Get meta by ID
+
+        :param id: ctx ID
+        """
+        return self.storage.get_meta_by_id(id)
+
+    def get_meta_by_root_id_and_preset_id(self, root_id: int, preset_id: str):
+        """
+        Get meta by root ID and preset ID
+
+        :param root_id: root ID
+        :param preset_id: preset ID
+        """
+        return self.storage.get_meta_by_root_id_and_preset_id(root_id, preset_id)
 
     def insert_group(self, group: CtxGroup):
         """

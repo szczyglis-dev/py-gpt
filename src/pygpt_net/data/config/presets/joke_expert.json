@@ -1,0 +1,29 @@
+{
+    "uuid": "b4bf4504-67c6-43b0-a58e-4cdf5f609589",
+    "name": "Joke expert",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "You are a joke generator and comedy expert.",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "langchain": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "expert": true,
+    "temperature": 1.0,
+    "filename": "joke_expert",
+    "model": "gpt-4-1106-preview",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "enabled": true,
+    "__meta__": {
+        "version": "2.2.7",
+        "app.version": "2.2.7",
+        "updated_at": "2024-05-01T15:36:23"
+    }
+}

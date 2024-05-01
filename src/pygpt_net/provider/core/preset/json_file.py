@@ -165,6 +165,7 @@ class JsonFileProvider(BaseProvider):
         :return: serialized item
         """
         return {
+            'uuid': item.uuid,
             'name': item.name,
             'ai_name': item.ai_name,
             'user_name': item.user_name,
@@ -177,10 +178,13 @@ class JsonFileProvider(BaseProvider):
             'assistant': item.assistant,
             "llama_index": item.llama_index,
             "agent": item.agent,
+            "expert": item.expert,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
             'tools': item.tools,
+            'experts': item.experts,
+            'enabled': item.enabled,
         }
 
     @staticmethod
@@ -191,6 +195,8 @@ class JsonFileProvider(BaseProvider):
         :param data: serialized item
         :param item: item to deserialize
         """
+        if 'uuid' in data:
+            item.uuid = data['uuid']
         if 'name' in data:
             item.name = data['name']
         if 'ai_name' in data:
@@ -215,6 +221,8 @@ class JsonFileProvider(BaseProvider):
             item.llama_index = data['llama_index']
         if 'agent' in data:
             item.agent = data['agent']
+        if 'expert' in data:
+            item.expert = data['expert']
         if 'temperature' in data:
             item.temperature = data['temperature']
         if 'filename' in data:
@@ -223,6 +231,10 @@ class JsonFileProvider(BaseProvider):
             item.model = data['model']
         if 'tools' in data:
             item.tools = data['tools']
+        if 'experts' in data:
+            item.experts = data['experts']
+        if 'enabled' in data:
+            item.enabled = data['enabled']
 
         # get version
         if '__meta__' in data and 'version' in data['__meta__']:

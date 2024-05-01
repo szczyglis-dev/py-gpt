@@ -1,3 +1,11 @@
+2.2.7 (2024-05-01)
+
+- A new experimental work mode has been added: 'Experts', which allows the creation of separate background instances with their own instructions that can be consulted for help. See the documentation: 'Work Modes / Experts'.
+- Added a new plugin: 'Experts (inline)`.
+- Improved the Agent mode by adding the ability to configure and invoke defined Experts.
+- Improved the prompts that control the autonomous mode.
+- The main prompt controlling the agents has been moved from presets to the application's settings window.
+
 2.2.6 (2024-04-30)
 
 - Added a new model: 'gpt-4-turbo'.

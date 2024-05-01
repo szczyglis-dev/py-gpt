@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import os
@@ -199,6 +199,7 @@ class Common:
         event = Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
         })
+        self.window.controller.agent.experts.stop()
         self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True
         self.window.controller.assistant.threads.reset()  # reset run and func calls

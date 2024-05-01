@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QItemSelectionModel
@@ -35,7 +35,7 @@ class BaseList(QTreeView):
         self.header().hide()
 
     def click(self, val):
-        self.window.controller.mode.select(self.id, val.row())
+        self.window.controller.mode.select(self.id)
         self.selection = self.selectionModel().selection()
 
     def lockSelection(self, selected=None, deselected=None):

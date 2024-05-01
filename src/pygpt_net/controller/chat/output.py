@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -236,13 +236,38 @@ class Output:
 
     def handle_cmd(self, ctx: CtxItem):
         """
-        Handle commands
+        Handle commands and expert mentions
 
         :param ctx: CtxItem
         """
         mode = self.window.core.config.get('mode')
-        cmds = self.window.core.command.extract_cmds(ctx.output)  # extract raw commands
+        stream_mode = self.window.core.config.get('stream')
 
+        # extract expert mentions
+        if self.window.controller.agent.experts.enabled():
+            # re-send to master
+            if ctx.sub_reply:
+                self.window.core.ctx.update_item(ctx)
+                self.window.core.experts.reply(ctx)
+            else:
+                # call experts
+                if not ctx.reply:
+                    mentions = self.window.core.experts.extract_mentions(ctx)
+                    if mentions:
+                        self.log("Calling experts...")
+                        self.window.controller.chat.render.end(stream=stream_mode)  # close previous render
+                        for expert_id in mentions:
+                            self.log("Calling: " + expert_id)
+                            ctx.sub_calls += 1
+                            self.window.core.experts.call(
+                                ctx,  # master ctx
+                                expert_id,  # expert id
+                                mentions[expert_id],  # query
+                            )
+                        return  # abort commands if expert call detected
+
+        # extract commands
+        cmds = self.window.core.command.extract_cmds(ctx.output)
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
 

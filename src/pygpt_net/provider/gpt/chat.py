@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import json
+import re
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -169,11 +170,11 @@ class Chat:
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
-                    messages.append({"role": "system", "name": user_name, "content": item.input})
+                    messages.append({"role": "system", "name": self.sanitize_name(user_name), "content": item.input})
 
                 # output
                 if item.output is not None and item.output != "":
-                    messages.append({"role": "system", "name": ai_name, "content": item.output})
+                    messages.append({"role": "system", "name": self.sanitize_name(ai_name), "content": item.output})
 
         # use vision if available in current model
         content = str(prompt)
@@ -189,6 +190,20 @@ class Chat:
             model.id,
         )
         return messages
+
+    def sanitize_name(self, name: str) -> str:
+        """
+        Sanitize name
+
+        :param name: name
+        :return: sanitized name
+        """
+        if name is None:
+            return ""
+        # allowed characters: a-z, A-Z, 0-9, _, and -
+        name = name.strip().lower()
+        sanitized_name = re.sub(r'[^a-z0-9_-]', '_', name)
+        return sanitized_name[:64]  # limit to 64 characters
 
     def reset_tokens(self):
         """Reset input tokens counter"""

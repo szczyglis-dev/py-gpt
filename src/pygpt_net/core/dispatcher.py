@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import json
@@ -150,10 +150,12 @@ class Dispatcher:
         :param ctx: context item
         :return: True if async commands are allowed
         """
-        disallowed_modes = ["assistant", "agent"]
+        disallowed_modes = ["assistant", "agent", "expert"]
         if ctx.internal:
             return False
         if self.window.core.config.get("mode") in disallowed_modes:
+            return False
+        if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
             return False
         if len(ctx.cmds) > 1:  # if multiple commands then run synchronously
             return False
@@ -262,12 +264,17 @@ class Dispatcher:
         prev_ctx = self.window.core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
         self.window.core.ctx.update_item(self.reply_ctx)  # update context in db
         self.window.ui.status('...')
+
+        parent_id = None
+        if self.reply_ctx.sub_call:
+            parent_id = self.reply_ctx.meta_id  # slave meta id
         self.window.controller.chat.input.send(
             text=data,
             force=True,
             reply=True,
             internal=self.reply_ctx.internal,
             prev_ctx=prev_ctx,
+            parent_id=parent_id,
         )
         self.clear_reply_stack()
 

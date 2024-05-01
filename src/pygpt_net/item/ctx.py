@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -59,6 +59,10 @@ class CtxItem:
         self.doc_ids = []  # document ids
         self.prev_ctx = None  # previous context (reply output)
         self.stopped = False  # run stopped
+        self.sub_calls = 0  # sub calls count
+        self.sub_call = False  # is sub call
+        self.sub_reply = False  # sub call reply
+        self.hidden = False  # hidden context
 
     def clear_reply(self):
         """Clear current reply output"""
@@ -154,6 +158,10 @@ class CtxItem:
             "tool_calls": self.tool_calls,
             "index_meta": self.index_meta,
             "doc_ids": self.doc_ids,
+            "sub_calls": 0,
+            "sub_call": False,
+            "sub_reply": False,
+            "hidden": False,
         }
 
     def from_dict(self, data: dict):
@@ -197,6 +205,10 @@ class CtxItem:
         self.tool_calls = data.get("tool_calls", [])
         self.index_meta = data.get("index_meta", {})
         self.doc_ids = data.get("doc_ids", [])
+        self.sub_calls = data.get("sub_calls", 0)
+        self.sub_call = data.get("sub_call", False)
+        self.sub_reply = data.get("sub_reply", False)
+        self.hidden = data.get("hidden", False)
 
     def dump(self) -> str:
         """
@@ -247,6 +259,9 @@ class CtxMeta:
         self.label = 0  # label color
         self.indexes = {}  # indexes data
         self.group_id = None
+        self.root_id = None
+        self.parent_id = None
+        self.owner_uuid = None
 
     def to_dict(self) -> dict:
         """
@@ -280,6 +295,9 @@ class CtxMeta:
             "label": self.label,
             "indexes": self.indexes,
             "group_id": self.group_id,
+            "root_id": self.root_id,
+            "parent_id": self.parent_id,
+            "owner_uuid": self.owner_uuid,
         }
 
     def from_dict(self, data: dict):
@@ -313,6 +331,9 @@ class CtxMeta:
         self.label = data.get("label", 0)
         self.indexes = data.get("indexes", {})
         self.group_id = data.get("group_id", None)
+        self.root_id = data.get("root_id", None)
+        self.parent_id = data.get("parent_id", None)
+        self.owner_uuid = data.get("owner_uuid", None)
 
 class CtxGroup:
     def __init__(self, id=None, name=None):

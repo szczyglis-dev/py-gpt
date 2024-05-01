@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.6** | build: **2024.04.30** | Python: **>=3.10, <3.12**
+Release: **2.2.7** | build: **2024.05.01** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -36,7 +36,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 8 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files and Agent (autonomous).
+- 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode.
@@ -792,9 +792,9 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 
 ##  Agent (autonomous) 
 
-This mode is experimental.
+**This mode is experimental.**
 
-**WARNING: Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
+**WARNING: Please use this mode with caution** - autonomous mode, when connected with other plugins, may produce unexpected results!
 
 The mode activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
@@ -828,6 +828,39 @@ If you want to use the Llama-index mode when running the agent, you can also spe
 ```Settings / Agent (autonomous) / Index to use```
 
 ![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c577d219-eb25-4f0e-9ea5-adf20a6b6b81)
+
+
+##  Experts (co-op, co-operation mode)
+
+Added in version 2.2.7 (2024-05-01).
+
+**This mode is experimental.**
+
+Expert mode allows for the creation of experts (using presets) and then consulting them during a conversation. In this mode, a primary base context is created for conducting the conversation. From within this context, the model can make requests to an expert to perform a task and return the results to the main thread. When an expert is called in the background, a separate context is created for them with their own memory. This means that each expert, during the life of one main context, also has access to their own memory via their separate, isolated context.
+
+**In simple terms - you can imagine an expert as a separate, additional instance of the model running in the background, which can be called at any moment for assistance, with its own context and memory, as well as its own specialized instructions in a given subject.**
+
+Experts do not share contexts with one another, and the only point of contact between them is the main conversation thread. In this main thread, the model acts as a manager of experts, who can exchange data between them as needed.
+
+An expert is selected based on the name in the presets; for example, naming your expert as: ID = python_expert, name = "Python programmer" will create an expert whom the model will attempt to invoke for matters related to Python programming. You can also manually request to refer to a given expert:
+
+```bash
+Call the Python expert to generate some code.
+```
+
+Experts can be activated or deactivated - to enable or disable use RMB context menu to select the `Enable/Disable` options from the presets list. Only enabled experts are available to use in the thread.
+
+Experts can also be used in `Agent (autonomous)` mode - by creating a new agent using a preset. Simply move the appropriate experts to the active list to automatically make them available for use by the agent.
+
+You can also use experts in "inline" mode - by activating the `Experts (inline)` plugin. This allows for the use of experts in any mode, such as normal chat.
+
+Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at `Settings / Agent (autonomous) / Sub-mode for experts`.
+
+You can also ask for a list of active experts at any time:
+
+```bash
+Give me a list of active experts.
+```
 
 
 # Files and attachments
@@ -2767,9 +2800,13 @@ Config -> Settings...
 
 - `Context: auto-summary (user message)`: User message for context auto-summary. Placeholders: {input}, {output}
 
-- `Agent: continue`: Prompt sent to automatically continue the conversation. Default: `continue...`
+- `Agent: system instruction`: Prompt to instruct how to handle autonomous mode.
+
+- `Agent: continue`: Prompt sent to automatically continue the conversation.
 
 - `Agent: goal update`: Prompt to instruct how to update current goal status.
+
+- `Experts: Master prompt`: Prompt to instruct how to handle experts.
 
 - `DALL-E: image generate`: Prompt for generating prompts for DALL-E (if raw-mode is disabled).
 
@@ -2836,6 +2873,8 @@ Config -> Settings...
 **Agent (autonomous)**
 
 - `Sub-mode to use`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+
+- `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 - `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
@@ -3059,6 +3098,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.7 (2024-05-01)**
+
+- A new experimental work mode has been added: 'Experts', which allows the creation of separate background instances with their own instructions that can be consulted for help. See the documentation: 'Work Modes / Experts'.
+- Added a new plugin: 'Experts (inline)`.
+- Improved the Agent mode by adding the ability to configure and invoke defined Experts.
+- Improved the prompts that control the autonomous mode.
+- The main prompt controlling the agents has been moved from presets to the application's settings window.
 
 **2.2.6 (2024-04-30)**
 

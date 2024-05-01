@@ -117,6 +117,11 @@ class Theme:
         if update_menu:
             self.menu.update_syntax()
 
+    def update_syntax(self):
+        """Update syntax menu"""
+        curr = self.window.core.config.get('render.code_syntax')
+        self.toggle_syntax(curr, update_menu=True)
+
     def reload(self, force: bool = True):
         """
         Reload current theme
@@ -175,3 +180,4 @@ class Theme:
     def reload_all(self):
         """Reload all"""
         self.setup()
+        self.update_syntax()

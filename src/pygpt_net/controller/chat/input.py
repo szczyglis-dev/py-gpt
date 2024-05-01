@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -31,6 +31,7 @@ class Input:
             "langchain",
             "llama_index",
             "agent",
+            "expert",
         ]
         self.no_ctx_idx_modes = [
             # "img",
@@ -45,6 +46,8 @@ class Input:
 
         :param force: force send
         """
+        self.window.controller.agent.experts.unlock()  # unlock experts
+
         # check if not in edit mode
         if not force and self.window.controller.ctx.extra.is_editing():
             self.window.controller.ctx.extra.edit_submit()
@@ -93,7 +96,8 @@ class Input:
             force: bool = False,
             reply: bool = False,
             internal: bool = False,
-            prev_ctx: CtxItem = None
+            prev_ctx: CtxItem = None,
+            parent_id: int = None,
     ):
         """
         Send input wrapper
@@ -103,6 +107,7 @@ class Input:
         :param reply: reply mode (from plugins)
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
+        :param parent_id: parent id (if expert)
         """
         self.execute(
             text=text,
@@ -110,6 +115,7 @@ class Input:
             reply=reply,
             internal=internal,
             prev_ctx=prev_ctx,
+            parent_id=parent_id,
         )
 
     def execute(
@@ -118,7 +124,8 @@ class Input:
             force: bool = False,
             reply: bool = False,
             internal: bool = False,
-            prev_ctx: CtxItem = None
+            prev_ctx: CtxItem = None,
+            parent_id: int = None,
     ):
         """
         Execute send input text to API
@@ -128,6 +135,7 @@ class Input:
         :param reply: reply mode (from plugins)
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
+        :param parent_id: parent id (if expert)
         """
         self.window.stateChanged.emit(self.window.STATE_IDLE)
 
@@ -148,7 +156,9 @@ class Input:
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False  # unlock
                 return
-        elif mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
+        elif (mode == 'vision'
+              or self.window.controller.plugins.is_type_enabled('vision')
+              or self.window.controller.ui.vision.is_vision_model()):
             # capture frame from camera if auto-capture enabled
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
@@ -179,7 +189,11 @@ class Input:
 
         # check if image captured from camera
         camera_captured = (
-                (mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'))
+                (
+                        mode == 'vision'
+                        or self.window.controller.plugins.is_type_enabled('vision')
+                        or self.window.controller.ui.vision.is_vision_model()
+                )
                 and self.window.controller.attachment.has(mode)  # check if attachment exists
         )
 
@@ -218,6 +232,7 @@ class Input:
             ctx = self.window.controller.chat.image.send(
                 text=text,
                 prev_ctx=prev_ctx,
+                parent_id=parent_id,
             )  # image mode
         else:
             ctx = self.window.controller.chat.text.send(
@@ -225,6 +240,7 @@ class Input:
                 reply=reply,
                 internal=internal,
                 prev_ctx=prev_ctx,
+                parent_id=parent_id,
             )  # text mode: OpenAI, Langchain, Llama, etc.
 
         # clear attachments after send, only if attachments has been provided before send

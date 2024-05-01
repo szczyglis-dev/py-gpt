@@ -1,19 +1,21 @@
 {
-  "name": "*",
-  "ai_name": "Assistant",
-  "user_name": "Human",
+  "name": "Joke Agent",
+  "ai_name": "",
+  "user_name": "",
   "prompt": "",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": false,
   "vision": false,
-  "langchain": true,
+  "langchain": false,
   "assistant": false,
   "llama_index": false,
-  "agent": false,
+  "agent": true,
   "expert": false,
-  "experts": [],
+  "experts": [
+    "b4bf4504-67c6-43b0-a58e-4cdf5f609589"
+  ],
   "enabled": true,
   "__meta__": {
     "version": "2.2.7",

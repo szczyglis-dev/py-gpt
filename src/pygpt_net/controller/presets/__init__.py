@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import re
@@ -143,7 +143,6 @@ class Presets:
         # if preset is not set, set default
         if preset_id is None or preset_id == "":
             mode = self.window.core.config.get('mode')
-
             # set previously selected preset
             current = self.window.core.config.get('current_preset')  # dict of modes, preset per mode
             if mode in current and \
@@ -263,7 +262,7 @@ class Presets:
         """Update presets list"""
         mode = self.window.core.config.get('mode')
         items = self.window.core.presets.get_by_mode(mode)
-        self.window.ui.toolbox.presets.update(items)
+        self.window.ui.toolbox.presets.update_presets(items)
 
     def reset(self):
         """Reset preset data"""
@@ -299,6 +298,34 @@ class Presets:
                     idx = self.window.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
                     self.window.ui.status(trans('status.preset.duplicated'))
+
+    def enable(self, idx: int = None):
+        """
+        Enable preset
+
+        :param idx: preset index (row index)
+        """
+        if idx is not None:
+            mode = self.window.core.config.get('mode')
+            preset_id = self.window.core.presets.get_by_idx(idx, mode)
+            if preset_id is not None and preset_id != "":
+                if preset_id in self.window.core.presets.items:
+                    self.window.core.presets.enable(preset_id)
+                    self.refresh()
+
+    def disable(self, idx: int = None):
+        """
+        Disable preset
+
+        :param idx: preset index (row index)
+        """
+        if idx is not None:
+            mode = self.window.core.config.get('mode')
+            preset_id = self.window.core.presets.get_by_idx(idx, mode)
+            if preset_id is not None and preset_id != "":
+                if preset_id in self.window.core.presets.items:
+                    self.window.core.presets.disable(preset_id)
+                    self.refresh()
 
     def clear(self, force: bool = False):
         """
@@ -378,6 +405,8 @@ class Presets:
             )
             return
         mode = self.window.core.config.get('mode')
+        if mode == "agent":
+            mode = "expert"  # shared presets
         self.window.core.presets.restore(mode)
         self.refresh()
 
@@ -390,6 +419,8 @@ class Presets:
         """
         if idx is not None:
             mode = self.window.core.config.get('mode')
+            if mode == "agent":
+                mode = "expert"  # shared presets
             preset_id = self.window.core.presets.get_by_idx(idx, mode)
             if preset_id is not None and preset_id != "":
                 if preset_id == "current." + mode:

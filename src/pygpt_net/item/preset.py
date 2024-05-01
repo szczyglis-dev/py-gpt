@@ -6,14 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
 import json
+import uuid
 
 
 class PresetItem:
     def __init__(self):
+        self.uuid = None
         self.name = "*"
         self.ai_name = ""
         self.user_name = ""
@@ -26,16 +28,23 @@ class PresetItem:
         self.assistant = False
         self.llama_index = False
         self.agent = False
+        self.expert = False
         self.temperature = 1.0
         self.filename = None
         self.model = None
         self.version = None
+        self.experts = []  # agent mode
+        self.enabled = True
         self.tools = {
             "function": [],
         }
 
+    def get_id(self) -> str:
+        return self.filename
+
     def to_dict(self):
         return {
+            "uuid": str(self.uuid),
             "name": self.name,
             "ai_name": self.ai_name,
             "user_name": self.user_name,
@@ -48,13 +57,18 @@ class PresetItem:
             "assistant": self.assistant,
             "llama_index": self.llama_index,
             "agent": self.agent,
+            "expert": self.expert,
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
             "tool.function": self.tools["function"],
+            "experts": self.experts,
+            "enabled": self.enabled,
         }
 
     def from_dict(self, data):
+        if "uuid" in data:
+            self.uuid = uuid.UUID(data["uuid"])
         if "name" in data:
             self.name = data["name"]
         if "ai_name" in data:
@@ -79,6 +93,8 @@ class PresetItem:
             self.llama_index = data["llama_index"]
         if "agent" in data:
             self.agent = data["agent"]
+        if "expert" in data:
+            self.expert = data["expert"]
         if "temperature" in data:
             self.temperature = data["temperature"]
         if "filename" in data:
@@ -87,6 +103,10 @@ class PresetItem:
             self.model = data["model"]
         if "tool.function" in data:
             self.tools["function"] = data["tool.function"]
+        if "experts" in data:
+            self.experts = data["experts"]
+        if "enabled" in data:
+            self.enabled = data["enabled"]
         return self
 
     def add_function(self, name: str, parameters: str, desc: str):
