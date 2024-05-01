@@ -1429,6 +1429,7 @@ class Patch:
                 data["prompt.agent.continue"] = self.window.core.config.get_base('prompt.agent.continue')
                 data["prompt.agent.goal"] = self.window.core.config.get_base('prompt.agent.goal')
                 data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
+                data["prompt.img"] = self.window.core.config.get_base('prompt.img')
                 updated = True
 
         # update file
