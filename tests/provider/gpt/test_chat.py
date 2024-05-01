@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -76,7 +76,7 @@ def test_build(mock_window_conf):
     chat = Chat(mock_window_conf)
     chat.window.core.config.get.side_effect = mock_get
     chat.window.core.models.get_num_ctx = MagicMock(return_value=2048)
-    chat.window.core.ctx.get_prompt_items.return_value = items
+    chat.window.core.ctx.get_history.return_value = items
     chat.window.core.ctx.get_model_ctx.return_value = 2048
 
     model = ModelItem()

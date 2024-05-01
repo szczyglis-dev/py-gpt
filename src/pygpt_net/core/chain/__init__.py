@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -61,6 +61,7 @@ class Chain:
                     prompt=prompt,
                     system_prompt=system_prompt,
                     model=model,
+                    history=context.history,
                     stream=stream,
                     ai_name=ai_name,
                     user_name=user_name,
@@ -71,6 +72,7 @@ class Chain:
                     prompt=prompt,
                     system_prompt=system_prompt,
                     model=model,
+                    history=context.history,
                     stream=stream,
                     ai_name=ai_name,
                     user_name=user_name,

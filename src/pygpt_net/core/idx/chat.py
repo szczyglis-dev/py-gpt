@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 import json
@@ -177,7 +177,11 @@ class Chat:
         index = self.storage.get(idx, service_context=service_context)  # get index
 
         # append context from DB
-        history = self.context.get_messages(ctx.input, system_prompt)
+        history = self.context.get_messages(
+            ctx.input,
+            system_prompt,
+            context.history,
+        )
         memory = self.get_memory_buffer(history, service_context.llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,

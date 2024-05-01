@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 import base64
@@ -40,25 +40,31 @@ class Vision:
         """
         prompt = context.prompt
         stream = context.stream
-        max_tokens = context.max_tokens
+        max_tokens = int(context.max_tokens or 0)
         system_prompt = context.system_prompt
         attachments = context.attachments
         model = context.model
         model_id = model.id
         client = self.window.core.gpt.get_client()
 
+        # extra API kwargs
+        response_kwargs = {}
+        if max_tokens > 0:
+            response_kwargs['max_tokens'] = max_tokens
+
         # build chat messages
         messages = self.build(
             prompt=prompt,
             system_prompt=system_prompt,
             model=model,
+            history=context.history,
             attachments=attachments,
         )
         response = client.chat.completions.create(
             messages=messages,
             model=model_id,
-            max_tokens=int(max_tokens),
             stream=stream,
+            **response_kwargs
         )
         return response
 
@@ -67,6 +73,7 @@ class Vision:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
+            history: list = None,
             attachments: dict = None,
     ) -> list:
         """
@@ -75,6 +82,7 @@ class Vision:
         :param prompt: user prompt
         :param system_prompt: system prompt
         :param model: model item
+        :param history: history
         :param attachments: attachments
         :return: messages list
         """
@@ -104,7 +112,8 @@ class Vision:
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(
+            items = self.window.core.ctx.get_history(
+                history,
                 model.id,
                 mode,
                 used_tokens,

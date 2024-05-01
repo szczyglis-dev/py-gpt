@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -34,7 +34,7 @@ class Completion:
         """
         prompt = context.prompt
         stream = context.stream
-        max_tokens = context.max_tokens
+        max_tokens = int(context.max_tokens or 0)
         system_prompt = context.system_prompt
         model = context.model
         model_id = model.id
@@ -50,14 +50,16 @@ class Completion:
             prompt=prompt,
             system_prompt=system_prompt,
             model=model,
+            history=context.history,
             ai_name=ai_name,
             user_name=user_name,
         )
 
         # check if max tokens not exceeded
         available_tokens = model.ctx - self.input_tokens
-        if available_tokens < max_tokens:
-            max_tokens = available_tokens
+        if max_tokens > 0:
+            if available_tokens < max_tokens:
+                max_tokens = available_tokens
 
         # prepare stop word if user_name is set
         stop = ""
@@ -70,16 +72,21 @@ class Completion:
         if model_id.startswith('text-davinci'):
             model_id = 'gpt-3.5-turbo-instruct'
 
+        # extra API kwargs
+        response_kwargs = {}
+        if max_tokens > 0:
+            response_kwargs['max_tokens'] = max_tokens
+
         response = client.completions.create(
             prompt=message,
             model=model_id,
-            max_tokens=int(max_tokens),
             temperature=self.window.core.config.get('temperature'),
             top_p=self.window.core.config.get('top_p'),
             frequency_penalty=self.window.core.config.get('frequency_penalty'),
             presence_penalty=self.window.core.config.get('presence_penalty'),
             stop=stop,
             stream=stream,
+            **response_kwargs
         )
         return response
 
@@ -88,6 +95,7 @@ class Completion:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
+            history: list = None,
             ai_name: str = None,
             user_name: str = None,
     ) -> str:
@@ -97,6 +105,7 @@ class Completion:
         :param prompt: user prompt
         :param system_prompt: system prompt
         :param model: model item
+        :param history: history
         :param ai_name: AI name
         :param user_name: username
         :return: message string (parsed with context)
@@ -121,7 +130,8 @@ class Completion:
             message += system_prompt
 
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(
+            items = self.window.core.ctx.get_history(
+                history,
                 model.id,
                 "completion",
                 used_tokens,

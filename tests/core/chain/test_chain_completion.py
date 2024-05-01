@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -33,7 +33,7 @@ def test_build(mock_window_conf):
     mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
     completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
-    completion.window.core.ctx.get_prompt_items.return_value = items
+    completion.window.core.ctx.get_history.return_value = items
 
     model = ModelItem()
     message = completion.build(
@@ -64,7 +64,7 @@ def test_build_with_names(mock_window_conf):
     completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
     mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
-    completion.window.core.ctx.get_prompt_items.return_value = items
+    completion.window.core.ctx.get_history.return_value = items
 
     model = ModelItem()
 

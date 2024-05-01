@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -55,8 +55,9 @@ def test_call(mock_window_conf):
     chain.chat.send.assert_called_once_with(
         prompt='test_prompt',
         system_prompt='test_system_prompt',
+        model=model,
+        history=[],
         ai_name='AI',
         user_name='User',
         stream=False,
-        model=model,
     )

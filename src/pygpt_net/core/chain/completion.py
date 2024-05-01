@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.01 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.model import ModelItem
@@ -27,6 +27,7 @@ class Completion:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
+            history: list = None,
             stream: bool = False,
             ai_name: str = None,
             user_name: str = None
@@ -37,6 +38,7 @@ class Completion:
         :param prompt: user prompt
         :param system_prompt: system prompt
         :param model: model item
+        :param history: history
         :param stream: stream mode
         :param ai_name: AI name
         :param user_name: username
@@ -83,6 +85,7 @@ class Completion:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
+            history: list = None,
             ai_name: str = None,
             user_name: str = None
     ) -> str:
@@ -92,6 +95,7 @@ class Completion:
         :param prompt: user prompt
         :param system_prompt: system prompt
         :param model: model item
+        :param history: history
         :param ai_name: AI name
         :param user_name: username
         :return: message string (parsed with context)
@@ -116,7 +120,8 @@ class Completion:
             message += system_prompt
 
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(
+            items = self.window.core.ctx.get_history(
+                history,
                 model.id,
                 "langchain",
                 used_tokens,
