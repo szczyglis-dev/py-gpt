@@ -107,24 +107,30 @@ class Control:
         # tabs: notepads
         elif event.name == ControlEvent.TAB_NOTEPAD:
             tmp_idx = 1
-            if "params" in event.data and event.data["params"] != "":
+            if event.data is not None and "params" in event.data and event.data["params"] != "":
                 try:
                     # regex extract number
                     num = re.findall(r'\d+', event.data["params"])
                     if len(num) > 0:
                         tmp_idx = int(num[0])
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
             self.window.controller.notepad.switch_to_tab(tmp_idx)
             self.handle_result(event, True)
 
         # voice control
         elif event.name == ControlEvent.VOICE_COMMAND_START:
+            if not self.window.core.config.get("access.voice_control"):
+                self.window.core.config.set("access.voice_control", True)
+                self.window.controller.access.voice.update()
             self.window.controller.access.voice.start_recording()
         elif event.name == ControlEvent.VOICE_COMMAND_STOP:
-            self.window.controller.access.self.voice.stop_recording()
+            self.window.controller.access.voice.stop_recording()
         elif event.name == ControlEvent.VOICE_COMMAND_TOGGLE:
-            self.window.controller.access.self.voice.toggle_recording()
+            if not self.window.core.config.get("access.voice_control"):
+                self.window.core.config.set("access.voice_control", True)
+                self.window.controller.access.voice.update()
+            self.window.controller.access.voice.toggle_recording()
 
         # voice input
         elif event.name == ControlEvent.VOICE_MESSAGE_START:
@@ -150,14 +156,14 @@ class Control:
 
         # input
         elif event.name == ControlEvent.INPUT_SEND:
-            if "params" in event.data:
+            if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
                     self.window.controller.chat.common.clear_input()
                     self.window.controller.chat.common.append_to_input(msg)
                 self.window.controller.chat.input.send_input()
         elif event.name == ControlEvent.INPUT_APPEND:
-            if "params" in event.data:
+            if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
                     self.window.controller.chat.common.append_to_input(msg)
@@ -165,7 +171,7 @@ class Control:
 
         # notepad
         elif event.name == ControlEvent.NOTE_ADD:
-            if "params" in event.data:
+            if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
                     if self.window.controller.notepad.is_active():
@@ -175,7 +181,7 @@ class Control:
                         self.window.controller.notepad.append_text(msg, 1)
                     self.handle_result(event, True)
         elif event.name == ControlEvent.NOTEPAD_READ:
-            if "params" in event.data and event.data["params"] != "":
+            if event.data is not None and "params" in event.data and event.data["params"] != "":
                 idx = 1
                 try:
                     # regex extract number

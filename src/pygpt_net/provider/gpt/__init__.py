@@ -197,16 +197,19 @@ class Gpt:
         messages = []
         messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
+        additional_kwargs = {}
+        if max_tokens > 0:
+            additional_kwargs["max_tokens"] = max_tokens
         
         try:
             response = client.chat.completions.create(
                 messages=messages,
                 model=model.id,
-                max_tokens=max_tokens,
                 temperature=temperature,
                 top_p=1.0,
                 frequency_penalty=0.0,
                 presence_penalty=0.0,
+                **additional_kwargs,
             )
             return response.choices[0].message.content
         except Exception as e:

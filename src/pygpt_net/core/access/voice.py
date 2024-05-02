@@ -137,7 +137,7 @@ class Voice:
             prompt=prompt,
             system_prompt="You are a helpful assistant",
             model=model,  # model instance
-            max_tokens=200,
+            max_tokens=0,
             temperature=0.0,
         )
         response = self.window.core.bridge.quick_call(

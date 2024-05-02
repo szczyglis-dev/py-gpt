@@ -1,3 +1,9 @@
+2.2.8 (2024-05-02)
+
+- Added support for disabled people, including voice control and screen event translation with audio synthesis.
+- A new section in Settings called 'Accessibility' has been added with options for assistance: voice control, keyboard shortcut definitions for actions, and screen event translation using audio synthesis.
+- A new section called 'Accessibility' has been added to the Documentation.
+
 2.2.7 (2024-05-01)
 
 - A new experimental work mode has been added: 'Experts', which allows the creation of separate background instances with their own instructions that can be consulted for help. See the documentation: 'Work Modes / Experts'.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.7** | build: **2024.05.01** | Python: **>=3.10, <3.12**
+Release: **2.2.8** | build: **2024.05.02** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -37,8 +37,8 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-- Options for blind 
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
+- Included support for disabled people: voice control and translates actions on the screen using audio synthesis.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode.
 - Internet access via `Google` and `Microsoft Bing`.
@@ -3197,6 +3197,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.8 (2024-05-02)**
+
+- Added support for disabled people, including voice control and screen event translation with audio synthesis.
+- A new section in Settings called 'Accessibility' has been added with options for assistance: voice control, keyboard shortcut definitions for actions, and screen event translation using audio synthesis.
+- A new section called 'Accessibility' has been added to the Documentation.
 
 **2.2.7 (2024-05-01)**
 

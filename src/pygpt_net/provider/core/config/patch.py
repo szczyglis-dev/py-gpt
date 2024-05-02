@@ -1442,7 +1442,38 @@ class Patch:
                 if 'access.microphone.notify' not in data:
                     data["access.microphone.notify"] = True
                 if 'access.shortcuts' not in data:
-                    data["access.shortcuts"] = []
+                    data["access.shortcuts"] = [
+                        {
+                            "action": "voice_cmd.toggle",
+                            "key": "Space",
+                            "key_modifier": "Control"
+                        },
+                        {
+                            "action": "tab.chat",
+                            "key": "1",
+                            "key_modifier": "Control"
+                        },
+                        {
+                            "action": "tab.files",
+                            "key": "2",
+                            "key_modifier": "Control"
+                        },
+                        {
+                            "action": "tab.calendar",
+                            "key": "3",
+                            "key_modifier": "Control"
+                        },
+                        {
+                            "action": "tab.draw",
+                            "key": "4",
+                            "key_modifier": "Control"
+                        },
+                        {
+                            "action": "tab.notepad",
+                            "key": "5",
+                            "key_modifier": "Control"
+                        }
+                    ]
                 if 'access.voice_control' not in data:
                     data["access.voice_control"] = False
                 if 'access.voice_control.model' not in data:
