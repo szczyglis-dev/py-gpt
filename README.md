@@ -907,7 +907,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Read the calendar memos
 - Enable the camera
 - Disable the camera
-- Capture the camera
+- Capture image from camera
 - Create a new context
 - Go to the previous context
 - Go to the next context
