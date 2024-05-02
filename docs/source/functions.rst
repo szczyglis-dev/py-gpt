@@ -1,5 +1,5 @@
-Functions and commands execute
-==============================
+Functions and commands
+======================
 
 **Tip:** ``gpt-4-1106-preview`` is the best model to use for command handling, The ``gpt-4-turbo-preview`` model can sometimes refuse to execute commands.
 

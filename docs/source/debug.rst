@@ -28,7 +28,7 @@ or
 
 
 Compatibility (legacy) mode
-===========================
+---------------------------
 
 If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
 
