@@ -34,7 +34,6 @@ Contents
    profiles
    models
    plugins
-   plugins_list
    functions
    tabs
    tools
