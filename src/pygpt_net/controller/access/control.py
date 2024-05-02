@@ -23,14 +23,21 @@ class Control:
         :param window: Window instance
         """
         self.window = window
+        self.last_confirm = None
 
-    def handle(self, event: ControlEvent):
+    def handle(self, event: ControlEvent, force: bool = False):
         """
         Handle accessibility event (control)
 
         :param event: event object
+        :param force: force handle
         """
         self.window.core.debug.info("EVENT CTRL: " + event.name)
+
+        # reset last confirm
+        if event.name != ControlEvent.CMD_CONFIRM:
+            self.last_confirm = None
+
         # app
         if event.name == ControlEvent.APP_EXIT:
             self.window.close()
@@ -38,6 +45,12 @@ class Control:
             status = self.window.core.access.voice.get_status()
             if status != "":
                 self.window.controller.audio.read_text(status)
+
+        # confirm last action
+        elif event.name == ControlEvent.CMD_CONFIRM:
+            if self.last_confirm is not None:
+                self.handle(self.last_confirm, force=True)
+                self.last_confirm = None
 
         # camera
         elif event.name == ControlEvent.CAMERA_ENABLE:
@@ -105,8 +118,12 @@ class Control:
                     self.window.controller.calendar.note.append_text(msg)
                     self.handle_result(event, True)
         elif event.name == ControlEvent.CALENDAR_CLEAR:
-            self.window.controller.calendar.note.clear_note()
-            self.handle_result(event, True)
+            if force:
+                self.window.controller.calendar.note.clear_note()
+                self.handle_result(event, True)
+            else:
+                self.last_confirm = event
+                self.window.controller.audio.read_text(trans("event.audio.confirm"))
         elif event.name == ControlEvent.CALENDAR_READ:
             text = self.window.controller.calendar.note.get_note_text()
             self.window.controller.audio.read_text(text)
@@ -212,21 +229,25 @@ class Control:
                         self.window.controller.notepad.append_text(msg, 1)
                     self.handle_result(event, True)
         elif event.name == ControlEvent.NOTEPAD_CLEAR:
-            if event.data is not None and "params" in event.data and event.data["params"] != "":
-                idx = 1
-                try:
-                    # regex extract number
-                    num = re.findall(r'\d+', event.data["params"])
-                    if len(num) > 0:
-                        idx = int(num[0])
-                except:
-                    pass
-                if self.window.controller.notepad.clear(idx):
-                    self.handle_result(event, True)
+            if force:
+                if event.data is not None and "params" in event.data and event.data["params"] != "":
+                    idx = 1
+                    try:
+                        # regex extract number
+                        num = re.findall(r'\d+', event.data["params"])
+                        if len(num) > 0:
+                            idx = int(num[0])
+                    except:
+                        pass
+                    if self.window.controller.notepad.clear(idx):
+                        self.handle_result(event, True)
+                else:
+                    idx = self.window.controller.notepad.get_current_active()
+                    if idx is not None and self.window.controller.notepad.clear(idx):
+                        self.handle_result(event, True)
             else:
-                idx = self.window.controller.notepad.get_current_active()
-                if idx is not None and self.window.controller.notepad.clear(idx):
-                    self.handle_result(event, True)
+                self.last_confirm = event
+                self.window.controller.audio.read_text(trans("event.audio.confirm"))
         elif event.name == ControlEvent.NOTEPAD_READ:
             if event.data is not None and "params" in event.data and event.data["params"] != "":
                 idx = 1

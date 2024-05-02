@@ -1,3 +1,7 @@
+2.2.9 (2024-05-02)
+
+- Added more commands to voice control: search for contexts, clear search, add, read and clear calendar memos, context rename.
+
 2.2.8 (2024-05-02)
 
 - Added support for disabled people, including voice control and screen event translation with audio synthesis.

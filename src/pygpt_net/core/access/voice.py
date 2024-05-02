@@ -38,6 +38,7 @@ class Voice:
             ControlEvent.CAMERA_ENABLE: "Enable the camera",
             ControlEvent.CAMERA_DISABLE: "Disable the camera",
             ControlEvent.CAMERA_CAPTURE: "Capture the camera",
+            ControlEvent.CMD_CONFIRM: "Confirmation of the command",
             ControlEvent.CTX_NEW: "Create a new context",
             ControlEvent.CTX_PREV: "Go to the previous context",
             ControlEvent.CTX_NEXT: "Go to the next context",

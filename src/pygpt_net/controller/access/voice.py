@@ -45,6 +45,10 @@ class Voice:
             AppEvent.INPUT_CALL,
             AppEvent.VOICE_CONTROL_TOGGLE,
         ]
+        self.confirm_events = [
+            ControlEvent.NOTEPAD_CLEAR,
+            ControlEvent.CALENDAR_CLEAR,
+        ]
 
     def setup(self):
         """Setup voice control"""
@@ -271,8 +275,12 @@ class Voice:
                 self.window.core.dispatcher.dispatch(event)
                 self.window.core.debug.info("VOICE CONTROL COMMAND: " + cmd, params)
                 trans_key = "event.control." + cmd
-                self.window.ui.status("Voice command: " + trans(trans_key))
-                QApplication.processEvents()
+
+                if cmd in self.confirm_events:
+                    self.window.ui.status(trans("event.audio.confirm"))
+                else:
+                    self.window.ui.status("Voice command: " + trans(trans_key))
+                    QApplication.processEvents()
 
             # play OK sound
             if self.window.core.config.get("access.audio.notify.execute"):

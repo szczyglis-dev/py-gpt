@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.8** | build: **2024.05.02** | Python: **>=3.10, <3.12**
+Release: **2.2.9** | build: **2024.05.02** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3204,6 +3204,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.9 (2024-05-02)**
+
+- Added more commands to voice control: search for contexts, clear search, add, read and clear calendar memos, context rename.
 
 **2.2.8 (2024-05-02)**
 
