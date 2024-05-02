@@ -58,7 +58,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Read the last conversation entry
 - Read the whole conversation
 - Rename current context
-- Search for a string in the conversation
+- Search for a conversation
 - Clear the search results
 - Send the message to input
 - Append message to current input without sending it
