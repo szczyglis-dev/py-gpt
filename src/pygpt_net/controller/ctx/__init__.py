@@ -583,6 +583,14 @@ class Ctx:
         else:
             self.update(True, False)
 
+    def update_name_current(self, name: str):
+        """
+        Update current ctx name
+
+        :param name: context name
+        """
+        self.update_name(self.window.core.ctx.current, name)
+
     def handle_allowed(self, mode: str) -> bool:
         """
         Check if append to current ctx is allowed for this mode, if not then switch to new context

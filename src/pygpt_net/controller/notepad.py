@@ -374,3 +374,15 @@ class Notepad:
         if idx in self.window.ui.notepad:
             return self.window.ui.notepad[idx].toPlainText()
         return ""
+
+    def clear(self, idx: int) -> bool:
+        """
+        Clear notepad contents
+
+        :param idx: notepad idx
+        """
+        if idx in self.window.ui.notepad:
+            self.window.ui.notepad[idx].textarea.clear()
+            self.save(idx)
+            return True
+        return False

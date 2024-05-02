@@ -261,3 +261,17 @@ class Note:
         cursor = self.window.ui.calendar['note'].textCursor()
         cursor.movePosition(QTextCursor.End)
         self.window.ui.calendar['note'].setTextCursor(cursor)
+
+    def clear_note(self):
+        """Clear note"""
+        self.window.ui.calendar['note'].clear()
+        self.update()
+        self.window.ui.calendar['note'].on_update()
+
+    def get_note_text(self) -> str:
+        """
+        Get notepad text
+
+        :return: notepad text
+        """
+        return self.window.ui.calendar['note'].toPlainText()

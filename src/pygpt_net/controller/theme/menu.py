@@ -87,16 +87,16 @@ class Menu:
 
     def update_list(self):
         """Update theme list menu"""
+        current = self.window.core.config.get('theme')
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
-        current = self.window.core.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
 
     def update_syntax(self):
         """Update syntax menu"""
+        current = self.window.core.config.get('render.code_syntax')
         for style in self.window.ui.menu['theme_syntax']:
             self.window.ui.menu['theme_syntax'][style].setChecked(False)
-        current = self.window.core.config.get('render.code_syntax')
         if current in self.window.ui.menu['theme_syntax']:
             self.window.ui.menu['theme_syntax'][current].setChecked(True)

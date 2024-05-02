@@ -487,6 +487,14 @@ class Ctx:
             extra = 1  # prevent create new if tmp meta exists
         return len(self.meta) + extra
 
+    def count_found_meta(self) -> int:
+        """
+        Count ctx meta items
+
+        :return: ctx meta count
+        """
+        return len(self.meta)
+
     def all(self, meta_id: int = None) -> list:
         """
         Return ctx items (current or by meta_id if provided)

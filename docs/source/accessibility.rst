@@ -39,6 +39,9 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Disable audio output
 - Enable audio input
 - Disable audio input
+- Add a memo to the calendar
+- Clear memos from calendar
+- Read the calendar memos
 - Enable the camera
 - Disable the camera
 - Capture the camera
@@ -54,11 +57,15 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Clear the attachments
 - Read the last conversation entry
 - Read the whole conversation
+- Rename current context
+- Search for a string in the conversation
+- Clear the search results
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
 - Switch to Chat with files (llama-index) mode
 - Add note to notepad
+- Clear notepad contents
 - Read current notepad contents
 - Switch to the chat tab
 - Switch to the calendar tab

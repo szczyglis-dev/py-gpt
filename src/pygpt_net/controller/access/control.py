@@ -78,13 +78,45 @@ class Control:
             text = self.window.core.access.voice.get_all_ctx_items()
             if text != "":
                 self.window.controller.audio.read_text(text)
+        elif event.name == ControlEvent.CTX_RENAME:
+            if event.data is not None and "params" in event.data:
+                msg = event.data["params"]
+                if msg != "":
+                    self.window.controller.ctx.update_name_current(msg)
+                    msg = trans("event.audio.ctx.rename").format(ctx=msg)
+                    self.window.controller.audio.read_text(msg)
+        elif event.name == ControlEvent.CTX_SEARCH_STRING:
+            if event.data is not None and "params" in event.data:
+                msg = event.data["params"]
+                if msg != "":
+                    self.window.controller.ctx.append_search_string(msg)
+                    num = self.window.core.ctx.count_found_meta()
+                    msg = trans("event.audio.ctx.search.string").format(num=num)
+                    self.window.controller.audio.read_text(msg)
+        elif event.name == ControlEvent.CTX_SEARCH_CLEAR:
+                self.window.controller.ctx.search_string_clear()
+                self.handle_result(event, True)
+
+        # calendar
+        elif event.name == ControlEvent.CALENDAR_ADD:
+            if event.data is not None and "params" in event.data:
+                msg = event.data["params"]
+                if msg != "":
+                    self.window.controller.calendar.note.append_text(msg)
+                    self.handle_result(event, True)
+        elif event.name == ControlEvent.CALENDAR_CLEAR:
+            self.window.controller.calendar.note.clear_note()
+            self.handle_result(event, True)
+        elif event.name == ControlEvent.CALENDAR_READ:
+            text = self.window.controller.calendar.note.get_note_text()
+            self.window.controller.audio.read_text(text)
 
         # mode
         elif event.name == ControlEvent.MODE_CHAT:
             self.window.controller.mode.set("chat")
             self.handle_result(event, True)
         elif event.name == ControlEvent.MODE_LLAMA_INDEX:
-            self.window.controller.mode.se("llama_index")
+            self.window.controller.mode.set("llama_index")
             self.handle_result(event, True)
 
         # tabs
@@ -178,6 +210,22 @@ class Control:
                         self.window.controller.notepad.append_text(msg, idx)
                     else:
                         self.window.controller.notepad.append_text(msg, 1)
+                    self.handle_result(event, True)
+        elif event.name == ControlEvent.NOTEPAD_CLEAR:
+            if event.data is not None and "params" in event.data and event.data["params"] != "":
+                idx = 1
+                try:
+                    # regex extract number
+                    num = re.findall(r'\d+', event.data["params"])
+                    if len(num) > 0:
+                        idx = int(num[0])
+                except:
+                    pass
+                if self.window.controller.notepad.clear(idx):
+                    self.handle_result(event, True)
+            else:
+                idx = self.window.controller.notepad.get_current_active()
+                if idx is not None and self.window.controller.notepad.clear(idx):
                     self.handle_result(event, True)
         elif event.name == ControlEvent.NOTEPAD_READ:
             if event.data is not None and "params" in event.data and event.data["params"] != "":
