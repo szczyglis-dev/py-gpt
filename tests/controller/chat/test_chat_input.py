@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -26,7 +26,7 @@ def test_send_input(mock_window):
     mock_window.ui.nodes['input'].toPlainText = MagicMock(return_value=message)
 
     input.send_input()
-    mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: user.send
+    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: user.send
     input.send.assert_called_once_with(message)
 
 
@@ -42,7 +42,7 @@ def test_send_input_stop(mock_window):
     input.send_input()
     mock_window.controller.chat.common.stop.assert_called_once()
     mock_window.controller.chat.render.clear_input.assert_called_once()
-    mock_window.core.dispatcher.dispatch.assert_not_called()
+    mock_window.core.dispatcher.dispatch.assert_called()
     input.send.assert_not_called()
 
 

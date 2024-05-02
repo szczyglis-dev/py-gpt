@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -170,6 +170,25 @@ class UI:
         elif idx == self.tab_idx['draw']:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
+        self.window.controller.access.voice.read_tab_name()
+
+    def next_tab(self):
+        """Switch to next tab"""
+        current = self.window.ui.tabs['output'].currentIndex()
+        all = len(self.window.ui.tabs['output'].children())
+        next = current + 1
+        if next >= all:
+            next = 0
+        self.switch_tab_by_idx(next)
+
+    def prev_tab(self):
+        """Switch to previous tab"""
+        current = self.window.ui.tabs['output'].currentIndex()
+        all = len(self.window.ui.tabs['output'].children())
+        prev = current - 1
+        if prev < 0:
+            prev = all - 1
+        self.switch_tab_by_idx(prev)
 
     def switch_tab(self, tab: str):
         """
@@ -189,3 +208,11 @@ class UI:
         """
         self.window.ui.tabs['output'].setCurrentIndex(idx)
         self.output_tab_changed(idx)
+
+    def get_current_tab_name(self) -> str:
+        """
+        Get current tab name
+
+        :return: tab name
+        """
+        return self.window.ui.tabs['output'].tabText(self.current_tab)

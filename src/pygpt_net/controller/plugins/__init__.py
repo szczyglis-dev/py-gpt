@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -365,19 +365,6 @@ class Plugins:
         self.window.ui.nodes['chat.plugins'].setText(count_str)
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
-    def from_commands(self, cmds: list):
-        """
-        Pack commands
-
-        :param cmds: commands list
-        :return parsed commands
-        """
-        commands = []
-        for cmd in cmds:
-            if 'cmd' in cmd:
-                commands.append(cmd)
-        return commands
-
     def apply_cmds(self, ctx: CtxItem, cmds: list):
         """
         Apply commands
@@ -385,8 +372,7 @@ class Plugins:
         :param ctx: CtxItem
         :param cmds: commands list
         """
-        commands = self.from_commands(cmds)
-
+        commands = self.window.core.command.from_commands(cmds)
         if len(commands) == 0:
             return
 
@@ -405,8 +391,7 @@ class Plugins:
         :param ctx: CtxItem
         :param cmds: commands list
         """
-        commands = self.from_commands(cmds)
-
+        commands = self.window.core.command.from_commands(cmds)
         if len(commands) == 0:
             return
 

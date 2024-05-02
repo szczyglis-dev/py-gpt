@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import time
@@ -112,15 +112,15 @@ class Bridge:
         mode = context.mode
         model = context.model  # model instance
 
-        # get mode from config
+        # get agent internal sub-mode
         if mode == "agent":
-            mode = "chat"  # inline switch to chat mode, because agent is a virtual mode only
-            tmp_mode = self.window.core.config.get("agent.mode")
-            if tmp_mode is not None and tmp_mode != "_":
-                mode = tmp_mode
+            mode = "chat"  # inline switch to sub-mode, because agent is a virtual mode only
+            sub_mode = self.window.core.agents.get_mode()
+            if sub_mode is not None and sub_mode != "_":
+                mode = sub_mode
             if mode == "llama_index":
                 context.idx_raw = False
-                idx = self.window.core.config.get("agent.idx")
+                idx = self.window.core.agents.get_mode()
                 if idx is not None and idx != "_":
                     context.idx = idx
 

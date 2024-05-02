@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
+
+from pygpt_net.utils import trans
+
 
 class Placeholder:
     def __init__(self, window=None):
@@ -78,6 +81,12 @@ class Placeholder:
             return self.get_syntax_styles()
         elif id == "idx":
             return self.get_idx()
+        elif id == "keys":
+            return self.get_keys()
+        elif id == "keys_modifiers":
+            return self.get_modifiers()
+        elif id == "access_actions":
+            return self.get_access_actions()
         else:
             return []
 
@@ -189,18 +198,17 @@ class Placeholder:
         """
         models = self.window.core.models.get_all()
         data = []
-        data.append({'_': '---'})
         for id in models:
             data.append({id: id})  # TODO: name
         return data
 
     def get_agent_modes(self) -> list:
         """
-        Get modes placeholders list
+        Get agent/expert modes placeholders list
 
         :return: Models placeholders list
         """
-        modes = ["chat", "completion", "vision", "langchain", "llama_index", "expert"]
+        modes = self.window.core.agents.get_allowed_modes()
         data = []
         for id in modes:
             data.append({id: id})  # TODO: name
@@ -231,3 +239,34 @@ class Placeholder:
         for id in styles:
             data.append({id: id})
         return data
+
+    def get_keys(self) -> list:
+        """
+        Get keys
+
+        :return: keys
+        """
+        return self.window.core.access.shortcuts.get_keys_choices()
+
+    def get_modifiers(self) -> list:
+        """
+        Get modifiers
+
+        :return: keys
+        """
+        return self.window.core.access.shortcuts.get_modifiers_choices()
+
+    def get_access_actions(self) -> list:
+        """
+        Get access actions list
+
+        :return: app actions list
+        """
+        choices = self.window.core.access.actions.get_access_choices()
+        translated_choices = []
+        for choice in choices:
+            for key, value in choice.items():
+                translated_choices.append({key: trans(value)})
+        return translated_choices
+
+

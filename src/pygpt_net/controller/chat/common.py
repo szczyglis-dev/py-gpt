@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ import os
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
@@ -218,6 +219,9 @@ class Common:
                 self.window.controller.assistant.run_stop()
             except Exception as e:
                 self.window.core.debug.log(e)
+
+        if not exit:
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
     def check_api_key(self) -> bool:
         """

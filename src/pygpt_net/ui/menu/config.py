@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -38,6 +38,9 @@ class Config:
 
         self.window.ui.menu['config.models'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                                        trans("menu.config.models"), self.window)
+
+        self.window.ui.menu['config.access'] = QAction(QIcon(":/icons/accessibility.svg"),
+                                                       trans("menu.config.access"), self.window)
 
         css_files = []
         css_files.append("style.css")
@@ -129,6 +132,9 @@ class Config:
         self.window.ui.menu['config.models'].triggered.connect(
             lambda: self.window.controller.model.editor.toggle_editor())
 
+        self.window.ui.menu['config.access'].triggered.connect(
+            lambda: self.window.controller.settings.open_section('access'))
+
         self.window.ui.menu['config.open_dir'].triggered.connect(
             lambda: self.window.controller.settings.open_config_dir())
 
@@ -144,6 +150,7 @@ class Config:
         self.window.ui.menu['menu.config'] = self.window.menuBar().addMenu(trans("menu.config"))
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.settings'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.models'])
+        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.access'])
 
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.theme'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.lang'])

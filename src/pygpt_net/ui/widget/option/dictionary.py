@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
@@ -374,7 +374,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         editor = QComboBox(parent)
         for item in self.keys:
-            if type(item) is dict:
+            if isinstance(item, dict):
                 for key, value in item.items():
                     editor.addItem(value, key)
             else:
@@ -382,11 +382,22 @@ class ComboBoxDelegate(QStyledItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value = index.model().data(index, Qt.EditRole)
-        editor.setCurrentText(value)
+        key = index.model().data(index, Qt.EditRole)
+        if key is not None:
+            index = editor.findData(key)
+            if index >= 0:
+                editor.setCurrentIndex(index)
 
     def setModelData(self, editor, model, index):
-        model.setData(index, editor.currentText(), Qt.EditRole)
+        key = editor.currentData()
+        model.setData(index, key, Qt.EditRole)
+
+    def displayText(self, value, locale):
+        for item in self.keys:
+            if isinstance(item, dict):
+                if value in item:
+                    return item[value]
+        return value
 
 
 class MaxHeightDelegate(QStyledItemDelegate):

@@ -3,6 +3,9 @@
         <file alias="abc.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/abc.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="accessibility.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/accessibility.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="add.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/add.svg</file>
     </qresource>
     <qresource prefix="/icons">

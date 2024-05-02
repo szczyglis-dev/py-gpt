@@ -6,22 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 01:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QSize
-from PySide6.QtGui import Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QSizePolicy
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy
+
+from pygpt_net.ui.widget.textarea.name import NameInput
+from pygpt_net.ui.widget.option.slider import OptionSlider
+from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
+from pygpt_net.utils import trans
 
 from .agent import Agent
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
-from pygpt_net.ui.widget.textarea.name import NameInput
-from pygpt_net.ui.widget.option.slider import OptionSlider
-from pygpt_net.utils import trans
 
 
 class Footer:
@@ -55,6 +57,10 @@ class Footer:
             OptionSlider(self.window, 'global', 'current_temperature', option)
         self.window.ui.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
 
+        # voice control btn
+        self.window.ui.nodes['voice.control.btn'] = VoiceControlButton(self.window)
+        self.window.ui.nodes['voice.control.btn'].setVisible(False)
+
         # per mode options
         rows = QVBoxLayout()
         # rows.addWidget(self.window.ui.nodes['temperature.label'])
@@ -63,6 +69,7 @@ class Footer:
         rows.addWidget(self.image.setup())
         # rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())
+        rows.addWidget(self.window.ui.nodes['voice.control.btn'])
         rows.setContentsMargins(0, 0, 0, 0)
 
         # logo

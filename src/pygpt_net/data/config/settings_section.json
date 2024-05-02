@@ -29,6 +29,9 @@
     "agent": {
         "label": "settings.section.agent"
     },
+    "access": {
+        "label": "settings.section.access"
+    },
     "updates": {
         "label": "settings.section.updates"
     },

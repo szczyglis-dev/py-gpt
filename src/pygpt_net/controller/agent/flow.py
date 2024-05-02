@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -29,6 +29,7 @@ class Flow:
         self.allowed_cmds = [
             "goal_update",
         ]
+        self.pause_status = ["pause", "failed", "wait"]
 
     def on_system_prompt(
             self,
@@ -62,7 +63,7 @@ class Flow:
         if not self.is_user:
             return prompt
 
-        return "user: " + prompt
+        return "user: " + prompt  # add user prefix
 
     def on_user_send(self, text: str):
         """
@@ -184,8 +185,6 @@ class Flow:
         if not is_cmd:
             return
 
-        pause_status = ["pause", "failed", "wait"]
-
         for item in my_commands:
             try:
                 if item["cmd"] == "goal_update":
@@ -198,7 +197,7 @@ class Flow:
                                 trans("notify.agent.goal.title"),
                                 trans("notify.agent.goal.content"),
                             )
-                    elif item["params"]["status"] in pause_status:
+                    elif item["params"]["status"] in self.pause_status:
                         self.on_stop(auto=True)
                         self.window.ui.status(trans('status.finished'))  # show info
                         self.finished = True
@@ -220,4 +219,7 @@ class Flow:
 
         # update index if auto-index enabled
         if auto:
-            self.window.controller.idx.on_ctx_end(ctx=None, mode="agent")
+            self.window.controller.idx.on_ctx_end(
+                ctx=None,
+                mode="agent",
+            )

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import sys
@@ -17,6 +17,8 @@ from PySide6.QtCore import QCoreApplication, Qt
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.access.shortcuts import GlobalShortcutFilter
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.tools import BaseTool
@@ -38,6 +40,7 @@ class Launcher:
         self.debug = False
         self.force_legacy = False
         self.force_disable_gpu = False
+        self.shortcut_filter = None
 
     def setup(self) -> dict:
         """
@@ -97,6 +100,7 @@ class Launcher:
         QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
         self.app = QApplication(sys.argv)
         self.window = MainWindow(self.app, args=args)
+        self.shortcut_filter = GlobalShortcutFilter(self.window)
 
     def add_plugin(self, plugin: BasePlugin):
         """
@@ -231,4 +235,6 @@ class Launcher:
         self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.window.ui.tray.setup(self.app)
         self.window.controller.after_setup()
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
+        self.window.installEventFilter(self.shortcut_filter)
         sys.exit(self.app.exec())

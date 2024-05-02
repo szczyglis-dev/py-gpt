@@ -26,6 +26,7 @@ Contents
    requirements
    quick_start
    modes
+   accessibility
    attachments
    context
    presets

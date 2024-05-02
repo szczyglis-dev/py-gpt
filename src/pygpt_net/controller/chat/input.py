@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -47,6 +48,8 @@ class Input:
         :param force: force send
         """
         self.window.controller.agent.experts.unlock()  # unlock experts
+        if not force:
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
 
         # check if not in edit mode
         if not force and self.window.controller.ctx.extra.is_editing():
@@ -276,6 +279,7 @@ class Input:
             # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
 
         self.log("End.")
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_END))  # app event
 
         # restore state to idle if no errors
         if self.window.state != self.window.STATE_ERROR:

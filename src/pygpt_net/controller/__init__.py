@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
+from pygpt_net.controller.access import Access
 from pygpt_net.controller.agent import Agent
 from pygpt_net.controller.assistant import Assistant
 from pygpt_net.controller.attachment import Attachment
@@ -45,6 +46,7 @@ class Controller:
         :param window: Window instance
         """
         self.window = window
+        self.access = Access(window)
         self.agent = Agent(window)
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
@@ -96,6 +98,7 @@ class Controller:
         self.attachment.setup()
         self.notepad.setup()
         self.camera.setup_ui()
+        self.access.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
@@ -137,6 +140,7 @@ class Controller:
         self.attachment.reload()
         self.presets.reload()
         self.idx.reload()
+        self.agent.reload()
         self.calendar.reload()
         self.plugins.reload()
         self.painter.reload()
@@ -147,6 +151,7 @@ class Controller:
         self.debug.reload()
         self.chat.reload()
         self.window.tools.on_reload()
+        self.access.reload()
         # self.layout.reload()
 
         # post-reload

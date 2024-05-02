@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon, QTextCursor
@@ -330,3 +330,47 @@ class Notepad:
         self.window.core.notepad.reset()
         self.update_tabs()
         self.window.core.notepad.locked = False
+
+    def switch_to_tab(self, idx: int = None):
+        """
+        Switch to notepad tab
+
+        :param idx: notepad idx
+        """
+        if idx is None:
+            idx = 1  # get first notepad idx
+        tab = idx + (self.start_tab_idx - 1)
+        if tab < self.window.ui.tabs['output'].count():
+            self.window.ui.tabs['output'].setCurrentIndex(tab)
+        else:
+            self.window.ui.tabs['output'].setCurrentIndex(self.window.ui.tabs['output'].count() - 1)
+
+    def get_first_notepad_tab_idx(self) -> int:
+        """
+        Get first notepad tab index
+
+        :return: first notepad tab index
+        """
+        return self.start_tab_idx
+
+    def get_current_notepad_text(self) -> str:
+        """
+        Get current notepad text
+
+        :return: current notepad text
+        """
+        idx = self.get_current_active()
+        if idx in self.window.ui.notepad:
+            return self.window.ui.notepad[idx].toPlainText()
+        return ""
+
+    def get_notepad_text(self, idx: int) -> str:
+        """
+        Get notepad text
+
+        :param idx: notepad index
+        :return: notepad text
+        """
+        if idx in self.window.ui.notepad:
+            return self.window.ui.notepad[idx].toPlainText()
+        return ""

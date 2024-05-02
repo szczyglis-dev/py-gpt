@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .common import Common
@@ -117,6 +118,7 @@ class Ctx:
         self.window.core.ctx.current = id
         if prev_id != id:
             self.load(id)
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
         else:
             # only update current group if defined
             meta = self.window.core.ctx.get_meta_by_id(id)
@@ -229,6 +231,9 @@ class Ctx:
         self.common.update_label(mode, assistant_id)
         self.common.focus_chat()
 
+        # app event
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_CREATED))
+
     def add(self, ctx: CtxItem):
         """
         Add ctx item (CtxItem object)
@@ -237,6 +242,24 @@ class Ctx:
         """
         self.window.core.ctx.add(ctx)
         self.update()
+
+    def prev(self):
+        """Select previous ctx"""
+        id = self.window.core.ctx.get_prev()
+        if id is not None:
+            self.select(id)
+
+    def next(self):
+        """Select next ctx"""
+        id = self.window.core.ctx.get_next()
+        if id is not None:
+            self.select(id)
+
+    def last(self):
+        """Select last (newest) ctx"""
+        id = self.window.core.ctx.get_last_meta()
+        if id is not None:
+            self.select(id)
 
     def update_list(self, reload: bool = False):
         """

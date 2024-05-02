@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 06:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -254,3 +254,34 @@ class Worker(BaseWorker):
             self.error(e)
             self.destroyed()
             print("Audio input thread error: {}".format(str(e)))
+
+
+class ControlWorker(BaseWorker):
+    def __init__(self, *args, **kwargs):
+        super(ControlWorker, self).__init__()
+        self.signals = WorkerSignals()
+        self.window = None
+        self.args = args
+        self.kwargs = kwargs
+        self.path = None
+        self.transcribe = False
+
+    @Slot()
+    def run(self):
+        """Handle mic simple mode."""
+        try:
+            # do transcribe
+            if os.path.exists(self.path):
+                # set status
+                self.status(trans('audio.speak.wait'))
+                # transcribe audio
+                transcript = self.window.core.plugins.get('audio_input').get_provider().transcribe(self.path)
+
+                # handle transcript
+                if transcript is not None and transcript.strip() != '':
+                    self.response(transcript)
+
+        except Exception as e:
+            self.error(e)
+            self.stopped()
+            self.status('Error: {}'.format(e))

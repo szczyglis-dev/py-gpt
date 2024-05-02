@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -255,6 +255,15 @@ def test_apply_cmds(mock_window):
     """Test apply commands"""
     plugins = Plugins(mock_window)
     ctx = CtxItem()
+    cmds = [
+        {
+            'cmd': 'test',
+            'params': {
+                'status': 'finished'
+            }
+        }
+    ]
+    mock_window.core.command.from_commands = MagicMock(return_value=cmds)
     mock_window.controller.command.dispatch = MagicMock()
     plugins.apply_cmds(ctx, [{'cmd': 'test'}])
     mock_window.controller.command.dispatch.assert_called_once()
@@ -264,6 +273,15 @@ def test_apply_cmds_inline(mock_window):
     """Test apply commands only (inline)"""
     plugins = Plugins(mock_window)
     ctx = CtxItem()
+    cmds = [
+        {
+            'cmd': 'test',
+            'params': {
+                'status': 'finished'
+            }
+        }
+    ]
+    mock_window.core.command.from_commands = MagicMock(return_value=cmds)
     mock_window.controller.command.dispatch = MagicMock()
     plugins.apply_cmds_inline(ctx, [{'cmd': 'test'}])
     mock_window.controller.command.dispatch.assert_called_once()

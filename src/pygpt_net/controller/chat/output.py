@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -97,7 +97,7 @@ class Output:
 
         response_mode = mode
         if mode == "agent":
-            tmp_mode = self.window.core.config.get("agent.mode")
+            tmp_mode = self.window.core.agents.get_mode()
             if tmp_mode is not None and tmp_mode != "_":
                 response_mode = tmp_mode
 
@@ -252,7 +252,7 @@ class Output:
             else:
                 # call experts
                 if not ctx.reply:
-                    mentions = self.window.core.experts.extract_mentions(ctx)
+                    mentions = self.window.core.experts.extract_calls(ctx)
                     if mentions:
                         self.log("Calling experts...")
                         self.window.controller.chat.render.end(stream=stream_mode)  # close previous render
@@ -273,7 +273,7 @@ class Output:
 
             # agent mode
             if mode == 'agent':
-                commands = self.window.controller.plugins.from_commands(cmds)  # pack to execution list
+                commands = self.window.core.command.from_commands(cmds)  # pack to execution list
                 self.window.controller.agent.flow.on_cmd(
                     ctx,
                     commands,

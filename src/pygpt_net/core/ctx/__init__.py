@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -364,6 +364,15 @@ class Ctx:
             self.load_meta()
         return self.meta
 
+    def get_current_meta(self) -> CtxMeta or None:
+        """
+        Get current meta
+
+        :return: current meta
+        """
+        if self.current is not None:
+            return self.get_meta_by_id(self.current)
+
     def get_id_by_idx(self, idx: int) -> int:
         """
         Get ctx id (id) by index
@@ -597,6 +606,40 @@ class Ctx:
         id = self.provider.create(slave)
         slave.id = id
         return slave
+
+    def get_prev(self) -> int or None:
+        """
+        Get previous context
+
+        :return: previous context
+        """
+        if self.current is None:
+            return None
+        idx = self.get_idx_by_id(self.current)
+        if idx is not None:
+            if idx > 0:
+                return self.get_id_by_idx(idx - 1)
+
+    def get_next(self) -> int or None:
+        """
+        Get next context
+
+        :return: next context
+        """
+        if self.current is None:
+            return None
+        idx = self.get_idx_by_id(self.current)
+        if idx is not None:
+            if idx < self.count_meta() - 1:
+                return self.get_id_by_idx(idx + 1)
+
+    def get_last_meta(self) -> int or None:
+        """
+        Get last context
+
+        :return: last meta
+        """
+        return self.provider.get_last_meta_id()
 
     def count_history(
             self,

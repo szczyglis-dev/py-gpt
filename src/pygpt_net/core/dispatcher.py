@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import json
@@ -16,7 +16,28 @@ from PySide6.QtWidgets import QApplication
 from pygpt_net.item.ctx import CtxItem
 
 
-class Event:
+class BaseEvent:
+    def __init__(
+            self,
+            name: str = None,
+            data: dict = None,
+            ctx: CtxItem = None
+    ):
+        """
+        Base Event object class
+
+        :param name: event name
+        :param data: event data
+        :param ctx: context instance
+        """
+        self.name = name
+        self.data = data
+        self.ctx = ctx  # CtxItem
+        self.stop = False  # True to stop propagation
+        self.internal = False
+
+
+class Event(BaseEvent):
 
     # Events
     AI_NAME = "ai.name"
@@ -69,6 +90,7 @@ class Event:
         :param data: event data
         :param ctx: context instance
         """
+        super(Event, self).__init__(name, data, ctx)
         self.name = name
         self.data = data
         self.ctx = ctx  # CtxItem
@@ -115,7 +137,7 @@ class Dispatcher:
         self.reply_stack = []
         self.reply_ctx = None
 
-    def is_log(self, event: Event) -> bool:
+    def is_log(self, event: BaseEvent) -> bool:
         """
         Check if event can be logged
 
@@ -163,9 +185,9 @@ class Dispatcher:
 
     def dispatch(
             self,
-            event: Event,
+            event: BaseEvent,
             all: bool = False
-    ) -> (list, Event):
+    ) -> (list, BaseEvent):
         """
         Dispatch event to plugins
 
@@ -178,6 +200,10 @@ class Dispatcher:
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("EVENT BEFORE: " + str(event))
 
+        # dispatch event to accessibility controller
+        self.window.controller.access.handle(event)
+
+        # dispatch event to plugins
         affected = []
         for id in self.window.core.plugins.plugins:
             if self.window.controller.plugins.is_enabled(id) or all:
@@ -198,7 +224,7 @@ class Dispatcher:
     def apply(
             self,
             id: str,
-            event: Event
+            event: BaseEvent
     ):
         """
         Handle event in plugin with provided id

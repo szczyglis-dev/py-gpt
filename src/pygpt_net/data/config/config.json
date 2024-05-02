@@ -4,6 +4,12 @@
     "app.version": "2.2.7",
     "updated_at": "2024-05-01T00:00:00"
   },
+  "access.audio.event.speech": false,
+  "access.audio.notify.execute": true,
+  "access.microphone.notify": true,
+  "access.shortcuts": [],
+  "access.voice_control": false,
+  "access.voice_control.model": "gpt-3.5-turbo",
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
   "agent.idx": "base",

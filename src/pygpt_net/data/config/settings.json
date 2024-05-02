@@ -1276,5 +1276,97 @@
             {"info": "INFO"},
             {"debug": "DEBUG"}
         ]
+    },
+    "access.voice_control": {
+        "section": "access",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.access.voice_control",
+        "urls": {
+            "List of commands": "https://pygpt.readthedocs.io/en/latest/accessibility.html"
+        },
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "access.voice_control.model": {
+        "section": "access",
+        "type": "combo",
+        "use": "models",
+        "slider": false,
+        "label": "settings.access.voice_control.model",
+        "description": "settings.access.voice_control.model.desc",
+        "value": "gpt-3.5-turbo",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "access.audio.event.speech": {
+        "section": "access",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.access.audio.event.speech",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "access.microphone.notify": {
+        "section": "access",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.access.microphone.notify",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "access.audio.notify.execute": {
+        "section": "access",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.access.audio.notify.execute",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "access.shortcuts": {
+        "section": "access",
+        "type": "dict",
+        "keys": {
+            "action": {
+                "type": "combo",
+                "use": "access_actions"
+            },
+            "key": {
+                "type": "combo",
+                "use": "keys"
+            },
+            "key_modifier": {
+                "type": "combo",
+                "use": "keys_modifiers"
+            }
+        },
+        "slider": false,
+        "label": "settings.access.shortcuts",
+        "description": "settings.access.shortcuts.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     }
 }

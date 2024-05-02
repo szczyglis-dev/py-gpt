@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
+import os
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.plugin.audio_output.worker import PlayWorker
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -139,6 +141,27 @@ class Audio:
         event = Event(Event.AUDIO_READ_TEXT)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event, all=all)
+
+    def play_audio(self, path: str):
+        """
+        Play audio file
+
+        :param path: audio file path
+        """
+        worker = PlayWorker()
+        worker.window = self.window
+        worker.path = path
+        self.window.threadpool.start(worker)
+
+    def play_sound(self, filename: str):
+        """
+        Play sound
+
+        :param filename
+        """
+        path = os.path.join(self.window.core.config.get_app_path(), "data", "audio", filename)
+        if path:
+            self.play_audio(path)
 
     def toggle_output_icon(self, state: bool):
         """

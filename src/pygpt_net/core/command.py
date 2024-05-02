@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -147,6 +147,19 @@ class Command:
                 # do nothing
                 pass
         return cmd
+
+    def from_commands(self, cmds: list) -> list:
+        """
+        Unpack commands to execution list
+
+        :param cmds: commands list
+        :return parsed commands
+        """
+        commands = []
+        for cmd in cmds:
+            if 'cmd' in cmd:
+                commands.append(cmd)
+        return commands
 
     def unpack_tool_calls(self, tool_calls: list) -> list:
         """

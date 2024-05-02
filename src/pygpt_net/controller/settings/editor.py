@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 02:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -56,6 +56,7 @@ class Editor:
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
+        self.window.ui.add_hook("update.config.access.voice_control", self.hook_update)
         self.window.ui.add_hook("update.config.debug", self.hook_update)
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
         self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
@@ -159,6 +160,10 @@ class Editor:
         if self.config_changed('ctx.convert_lists'):
             self.window.controller.ctx.refresh()
 
+        # access: voice control
+        if self.config_changed('access.voice_control'):
+            self.window.controller.access.update()
+
         # reload loaders
         if self.config_changed('llama.hub.loaders.args') or self.config_changed('llama.hub.loaders.use_local'):
             self.window.core.idx.indexing.reload_loaders()
@@ -243,6 +248,11 @@ class Editor:
         elif key == "layout.tooltips":
             self.window.core.config.set(key, value)
             self.window.controller.theme.common.toggle_tooltips()
+
+        # access: voice control
+        elif key == "access.voice_control":
+            self.window.core.config.set(key, value)
+            self.window.controller.access.update()
 
         # update raw output
         elif key == "render.plain":

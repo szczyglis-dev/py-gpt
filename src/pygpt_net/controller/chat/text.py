@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
@@ -210,11 +211,12 @@ class Text:
                 self.window.controller.chat.common.lock_input()  # lock input
                 max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
                 files = self.window.core.attachments.get_all(mode)  # get attachments
-                file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
-                history = self.window.core.ctx.all(meta_id=parent_id)  # get all history
                 num_files = len(files)
                 if num_files > 0:
                     self.log("Attachments ({}): {}".format(mode, num_files))
+                file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
+                history = self.window.core.ctx.all(meta_id=parent_id)  # get all history
+                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
 
                 # make call
                 bridge_context = BridgeContext(
@@ -259,8 +261,9 @@ class Text:
                 self.window.core.debug.log(e)
                 self.window.ui.dialogs.alert(e)
                 self.window.ui.status(trans('status.error'))
-                print("Error when calling API: " + str(e))
                 self.window.controller.chat.common.unlock_input()
+                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+                print("Error when calling API: " + str(e))
             self.window.stateChanged.emit(self.window.STATE_ERROR)
 
             # handle response (if no assistant mode)
@@ -278,9 +281,10 @@ class Text:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
             self.window.ui.status(trans('status.error'))
-            print("Error in sending text: " + str(e))
             self.window.controller.chat.common.unlock_input()
             self.window.stateChanged.emit(self.window.STATE_ERROR)
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+            print("Error in sending text: " + str(e))
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":

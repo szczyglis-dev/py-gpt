@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -15,6 +15,7 @@ import os
 
 from PySide6.QtCore import QTimer
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.utils import trans
 
 
@@ -87,6 +88,7 @@ class Simple:
                                       stream_callback=callback)
 
             self.plugin.window.ui.status(trans('audio.speak.now'))
+            self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
             self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
@@ -107,6 +109,7 @@ class Simple:
         :param timeout: True if stopped due to timeout
         """
         self.is_recording = False
+        self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STOPPED))  # app event
         if self.timer:
             self.timer.stop()
             self.timer = None
@@ -120,7 +123,7 @@ class Simple:
 
             # abort if timeout
             if timeout:
-                self.plugin.window.ui.status("Timeout ({}s). Aborting...".format(self.TIMEOUT_SECONDS))
+                self.plugin.window.ui.status("Aborted.".format(self.TIMEOUT_SECONDS))
                 return
 
             if self.frames:

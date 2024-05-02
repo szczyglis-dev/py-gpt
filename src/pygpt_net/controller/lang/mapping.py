@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -314,6 +314,7 @@ class Mapping:
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'
         menu_text['config.models'] = 'menu.config.models'
+        menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
         menu_text['config.edit.css.restore'] = 'menu.config.edit.css.restore'

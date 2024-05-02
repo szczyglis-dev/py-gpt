@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -1430,6 +1430,23 @@ class Patch:
                 data["prompt.agent.goal"] = self.window.core.config.get_base('prompt.agent.goal')
                 data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
                 data["prompt.img"] = self.window.core.config.get_base('prompt.img')
+                updated = True
+
+            # < 2.2.8
+            if old < parse_version("2.2.8"):
+                print("Migrating config from < 2.2.8...")
+                if 'access.audio.event.speech' not in data:
+                    data["access.audio.event.speech"] = False
+                if 'access.audio.notify.execute' not in data:
+                    data["access.audio.notify.execute"] = True
+                if 'access.microphone.notify' not in data:
+                    data["access.microphone.notify"] = True
+                if 'access.shortcuts' not in data:
+                    data["access.shortcuts"] = []
+                if 'access.voice_control' not in data:
+                    data["access.voice_control"] = False
+                if 'access.voice_control.model' not in data:
+                    data["access.voice_control.model"] = "gpt-3.5-turbo"
                 updated = True
 
         # update file
