@@ -39,8 +39,8 @@ class Extra:
         :param item_id: Item id
         """
         item = self.window.core.ctx.get_item_by_id(item_id)
-        if item is not None:
-            QApplication.clipboard().setText(item.output)
+        if item is not None and item.output is not None:
+            QApplication.clipboard().setText(item.output.strip())
             self.window.ui.status(trans("clipboard.copied"))
 
     def copy_code_block(self, id: int):
@@ -54,8 +54,8 @@ class Extra:
             print("Code block not found: ", id)
             return
         value = blocks.get(id)
-        QApplication.clipboard().setText(value)
-        suffix = value[:20] + "..." if len(value) > 20 else value
+        QApplication.clipboard().setText(value.strip())
+        suffix = value[:30] + "..." if len(value) > 20 else value
         self.window.ui.status(trans("clipboard.copied_to") + " " + suffix)
 
     def copy_code_text(self, value: str):
@@ -64,7 +64,7 @@ class Extra:
 
         :param value: block text
         """
-        QApplication.clipboard().setText(value)
+        QApplication.clipboard().setText(value.strip())
         suffix = value[:20] + "..." if len(value) > 20 else value
         self.window.ui.status(trans("clipboard.copied_to") + " " + suffix)
 
