@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 
@@ -48,6 +48,6 @@ class Experts:
         """
         modes = ["agent", "expert"]
         mode = self.window.core.config.get('mode')
-        if mode in modes or self.window.controller.plugins.is_type_enabled("experts"):
+        if mode in modes or self.window.controller.plugins.is_type_enabled("expert"):
             return True
         return False

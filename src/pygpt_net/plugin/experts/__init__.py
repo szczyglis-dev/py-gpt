@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -20,13 +20,14 @@ class Plugin(BasePlugin):
         self.name = "Experts (inline)"
         self.description = "Enables inline experts in current mode."
         self.type = [
-            "experts",
+            "expert",
         ]
         self.allowed_cmds = [
             "expert_call",
         ]
         self.order = 9998
         self.use_locale = True
+        self.disallowed_modes = ["agent", "expert"]
         self.init_options()
 
     def init_options(self):
@@ -57,7 +58,7 @@ class Plugin(BasePlugin):
 
         :return: True if plugin is allowed to run
         """
-        return self.window.core.config.get("mode") != "expert"  # check global mode
+        return self.window.core.config.get("mode") not in self.disallowed_modes
 
     def handle(self, event: Event, *args, **kwargs):
         """
@@ -67,12 +68,11 @@ class Plugin(BasePlugin):
         :param args: event args
         :param kwargs: event kwargs
         """
-        name = event.name
-        data = event.data
-
-        if not self.is_allowed() and name != Event.DISABLE:
+        if not self.is_allowed():
             return
 
+        name = event.name
+        data = event.data
         if name == Event.SYSTEM_PROMPT:
             data['value'] = self.on_system_prompt(data['value'])
 

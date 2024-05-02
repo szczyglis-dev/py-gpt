@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
+from .common import Common
 from .experts import Experts
 from .flow import Flow
 
@@ -21,6 +22,7 @@ class Agent:
         :param window: Window instance
         """
         self.window = window
+        self.common = Common(window)
         self.experts = Experts(window)
         self.flow = Flow(window)
         self.options = {
@@ -38,16 +40,41 @@ class Agent:
 
     def setup(self):
         """Setup agent controller"""
-        # restore options
+        # register hooks
+        self.window.ui.add_hook("update.global.agent.iterations", self.hook_update)
+
+        # restore config
+        self.reload()
+
+    def update(self):
+        """Update agent status"""
+        iterations = "-"
+        mode = self.window.core.config.get('mode')
+
+        # get iterations from plugin or from agent mode
+        if mode == "agent":
+            iterations = int(self.window.core.config.get("agent.iterations"))
+        elif self.is_inline():
+            if self.window.controller.plugins.is_enabled("agent"):
+                iterations = int(self.window.core.plugins.get_option("agent", "iterations"))
+        if iterations == 0:
+            iterations_str = "∞"  # infinity loop
+        else:
+            iterations_str = str(iterations)
+
+        status = str(self.flow.iteration) + " / " + iterations_str
+        self.window.ui.nodes['status.agent'].setText(status)
+        self.common.toggle_status()
+
+    def reload(self):
+        """Reload agent controller"""
+        # auto-stop
         if self.window.core.config.get('agent.auto_stop'):
             self.window.ui.config['global']['agent.auto_stop'].setChecked(True)
         else:
             self.window.ui.config['global']['agent.auto_stop'].setChecked(False)
 
-        # register hooks
-        self.window.ui.add_hook("update.global.agent.iterations", self.hook_update)
-
-        # load config
+        # iterations
         self.window.controller.config.apply_value(
             parent_id="global",
             key="agent.iterations",
@@ -73,7 +100,7 @@ class Agent:
             self.window.core.config.save()
             self.update()
 
-    def is_agent_inline(self) -> bool:
+    def is_inline(self) -> bool:
         """
         Is agent inline (plugin) enabled
 
@@ -81,72 +108,14 @@ class Agent:
         """
         return self.window.controller.plugins.is_type_enabled("agent")
 
-    def toggle_status(self):
-        """Toggle agent status"""
-        mode = self.window.core.config.get('mode')
-        if mode == 'agent' or self.is_agent_inline():
-            self.show_status()
-        else:
-            self.hide_status()
-
-    def enable_auto_stop(self):
-        """Enable auto stop"""
-        self.window.core.config.set('agent.auto_stop', True)
-        self.window.core.config.save()
-
-    def disable_auto_stop(self):
-        """Disable auto stop"""
-        self.window.core.config.set('agent.auto_stop', False)
-        self.window.core.config.save()
-
     def enabled(self) -> bool:
         """
         Is agent enabled
 
         :return: True if enabled
         """
-        return self.window.core.config.get('mode') == 'agent' or self.is_agent_inline()
+        return self.window.core.config.get('mode') == 'agent' or self.is_inline()
 
     def add_run(self):
         """Increment agent iteration"""
         self.flow.iteration += 1
-
-    def update(self):
-        """Update agent status"""
-        iterations = "-"
-        mode = self.window.core.config.get('mode')
-
-        # get iterations from plugin or from mode
-        if mode == "agent":
-            iterations = int(self.window.core.config.get("agent.iterations"))
-        elif self.is_agent_inline():
-            if self.window.controller.plugins.is_enabled("agent"):
-                iterations = int(self.window.core.plugins.get_option("agent", "iterations"))
-
-        if iterations == 0:
-            iterations_str = "∞"  # infinity loop
-        else:
-            iterations_str = str(iterations)
-
-        status = str(self.flow.iteration) + " / " + iterations_str
-        self.window.ui.nodes['status.agent'].setText(status)
-        self.toggle_status()
-
-    def show_status(self):
-        """Show agent status"""
-        self.window.ui.nodes['status.agent'].setVisible(True)
-
-    def hide_status(self):
-        """Hide agent status"""
-        self.window.ui.nodes['status.agent'].setVisible(False)
-
-    def toggle_auto_stop(self, state: bool):
-        """
-        Toggle auto stop
-
-        :param state: state of checkbox
-        """
-        if not state:
-            self.disable_auto_stop()
-        else:
-            self.enable_auto_stop()

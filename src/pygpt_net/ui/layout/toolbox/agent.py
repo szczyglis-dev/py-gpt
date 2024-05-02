@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 15:00:00                  #
+# Updated Date: 2024.05.02 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -45,7 +45,7 @@ class Agent:
         self.window.ui.config['global']['agent.auto_stop'] = QCheckBox(trans("toolbox.agent.auto_stop.label"))
         self.window.ui.config['global']['agent.auto_stop'].stateChanged.connect(
             lambda:
-            self.window.controller.agent.toggle_auto_stop(
+            self.window.controller.agent.common.toggle_auto_stop(
                 self.window.ui.config['global']['agent.auto_stop'].isChecked())
         )
 
