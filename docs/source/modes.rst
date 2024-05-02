@@ -1,5 +1,5 @@
-Working modes
-=============
+Work modes
+==========
 
 Chat
 -----
