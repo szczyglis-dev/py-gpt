@@ -888,7 +888,7 @@ Turn on the voice control option in `Config / Accessibility`:
 Enable voice control (using microphone)
 ```
 
-Once you enable this option, an `Audio Control` button will appear at the bottom right corner of the window. When you click on this button, the microphone will start listening; clicking it again stops listening and starts recognizing the voice command you said. You can cancel voice recording at any time with the `ESC` key. You can also set a keyboard shortcut to turn voice recording on/off.
+Once you enable this option, an `Voice Control` button will appear at the bottom right corner of the window. When you click on this button, the microphone will start listening; clicking it again stops listening and starts recognizing the voice command you said. You can cancel voice recording at any time with the `ESC` key. You can also set a keyboard shortcut to turn voice recording on/off.
 
 
 Voice command recognition works based on a model, so you don't have to worry about saying things perfectly.
