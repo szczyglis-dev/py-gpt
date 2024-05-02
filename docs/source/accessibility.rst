@@ -63,7 +63,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
-- Switch to Chat with files (llama-index) mode
+- Switch to chat with files (llama-index) mode
 - Add note to notepad
 - Clear notepad contents
 - Read current notepad contents

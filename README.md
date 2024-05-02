@@ -926,7 +926,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
-- Switch to Chat with files (llama-index) mode
+- Switch to chat with files (llama-index) mode
 - Add note to notepad
 - Clear notepad contents
 - Read current notepad contents
@@ -1375,6 +1375,8 @@ as well as list and create directories.
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
 - `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `Execute commands` option to be enabled.
+
+- `Experts (inline)` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
 - `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
