@@ -29,7 +29,7 @@ class Voice:
 
     def __init__(self, window=None):
         """
-        Accessibility controller
+        Accessibility voice controller
 
         :param window: Window instance
         """
@@ -51,7 +51,11 @@ class Voice:
         self.update()
 
     def play(self, event: AppEvent):
-        """Notify voice event"""
+        """
+        Play audio event
+
+        :param event: AppEvent
+        """
         mic_events = [
             AppEvent.VOICE_CONTROL_STARTED,
             AppEvent.VOICE_CONTROL_STOPPED,
@@ -82,9 +86,13 @@ class Voice:
             trans_key = "event.audio." + event.name
             if event.name == AppEvent.CTX_SELECTED:
                 self.window.controller.audio.read_text(
-                    self.window.core.access.voice.get_selected_ctx()
+                    self.window.core.access.voice.get_selected_ctx()  # with info about ctx
                 )
+            elif event.name == AppEvent.CTX_END:
+                if not self.window.controller.plugins.is_type_enabled("audio.output"):
+                    self.window.controller.audio.read_text(trans(trans_key))  # only if audio output is disabled
             else:
+                # handle rest of events
                 self.window.controller.audio.read_text(trans(trans_key))
             self.window.core.debug.info("AUDIO EVENT PLAY: " + event.name)
 
@@ -196,7 +204,6 @@ class Voice:
                 self.handle_thread(True)  # handle transcription in simple mode
         else:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
-
 
     def handle_thread(self, force: bool = False):
         """
@@ -310,8 +317,7 @@ class Voice:
         self.thread_started = False
 
     def read_tab_name(self):
-        """Read tab name"""
-        # read tab name
+        """Read audio tab name"""
         text = self.window.core.access.voice.get_selected_tab()
         if self.window.core.config.get("access.audio.event.speech"):
             self.window.controller.audio.read_text(text)

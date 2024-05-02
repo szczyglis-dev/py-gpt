@@ -65,8 +65,7 @@ class Control:
         elif event.name == ControlEvent.CTX_STOP:
             self.window.controller.chat.common.stop()
         elif event.name == ControlEvent.CTX_ATTACHMENTS_CLEAR:
-            self.window.controller.attachment.clear()
-            self.handle_result(event, True)  # TODO event
+            self.window.controller.attachment.clear(force=True)
         elif event.name == ControlEvent.CTX_CURRENT:
             status = self.window.core.access.voice.get_current_ctx()
             if status != "":

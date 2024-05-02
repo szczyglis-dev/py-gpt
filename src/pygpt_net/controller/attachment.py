@@ -15,6 +15,7 @@ from datetime import datetime
 from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QFileDialog, QApplication
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.utils import trans
@@ -219,6 +220,7 @@ class Attachment:
 
         self.window.controller.chat.vision.unavailable()  # set no content to provide
         self.update()
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
 
     def open_add(self):
         """Open add attachment file dialog"""

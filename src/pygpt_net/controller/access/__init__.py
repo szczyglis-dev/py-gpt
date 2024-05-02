@@ -15,6 +15,7 @@ from pygpt_net.core.access.events import ControlEvent, AppEvent
 from .control import Control
 from .voice import Voice
 
+
 class Access:
     def __init__(self, window=None):
         """

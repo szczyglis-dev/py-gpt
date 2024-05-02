@@ -11,9 +11,9 @@
 
 from pygpt_net.core.dispatcher import BaseEvent
 
+
 class ControlEvent(BaseEvent):
     """Events used for app control"""
-
     APP_STATUS = "app.status"
     APP_EXIT = "app.exit"
     AUDIO_OUTPUT_ENABLE = "audio.output.enable"
@@ -56,14 +56,13 @@ class ControlEvent(BaseEvent):
     VOICE_COMMAND_TOGGLE = "voice_cmd.toggle"
 
 
-
 class AppEvent(BaseEvent):
     """Events dispatched by application"""
-
     APP_STARTED = "app.started"
     CTX_CREATED = "ctx.created"
     CTX_END = "ctx.end"
     CTX_SELECTED = "ctx.selected"
+    CTX_ATTACHMENTS_CLEAR = "ctx.attachments.clear"
     CAMERA_ENABLED = "camera.enabled"
     CAMERA_DISABLED = "camera.disabled"
     CAMERA_CAPTURED = "camera.captured"
