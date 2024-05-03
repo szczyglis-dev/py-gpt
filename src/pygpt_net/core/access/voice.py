@@ -173,6 +173,8 @@ class Voice:
         total = self.window.core.ctx.count_meta()
         meta = self.window.core.ctx.get_current_meta()
         mode = trans("mode." + self.window.core.config.get("mode"))
+        mode += " " + self.get_selected_model()
+        mode += " " + self.get_selected_preset()
         tab = self.window.controller.ui.get_current_tab_name()
         last = ""
         msg = ""
