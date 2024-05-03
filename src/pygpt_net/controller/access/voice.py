@@ -43,16 +43,15 @@ class Voice:
         self.audio_disabled_events = [
             AppEvent.INPUT_CALL,
             AppEvent.VOICE_CONTROL_TOGGLE,
-            AppEvent.CTX_END,
         ]
         self.confirm_events = [
             ControlEvent.NOTEPAD_CLEAR,
             ControlEvent.CALENDAR_CLEAR,
         ]
         self.pending_text = None
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.play_audio)
-        self.delay_msec = 500
+        self.play_timer = QTimer(self.window)
+        self.play_timer.timeout.connect(self.play_audio)
+        self.play_delay = 500  # ms
 
     def setup(self):
         """Setup voice control"""
@@ -65,11 +64,11 @@ class Voice:
         :param text: text to play
         """
         self.pending_text = text
-        self.timer.start(self.delay_msec)
+        self.play_timer.start(self.play_delay)
 
     def play_audio(self):
-        """Play current audio"""
-        self.timer.stop()
+        """Play current pending audio"""
+        self.play_timer.stop()
         if self.pending_text is not None:
             self.window.controller.audio.read_text(self.pending_text)
             self.pending_text = None

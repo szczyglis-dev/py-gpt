@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.2.11 (2024-05-03)
+
+- Added a blacklist for events for the voice event description in settings.
+- Added a delay to playing audio when describing events.
+- Sorted the list of events in the configuration.
+
 # 2.2.10 (2024-05-03)
 
 - Extended voice control commands list.

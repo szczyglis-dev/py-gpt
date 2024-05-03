@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.10** | build: **2024.05.03** | Python: **>=3.10, <3.12**
+Release: **2.2.11** | build: **2024.05.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3232,6 +3232,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.11 (2024-05-03)**
+
+- Added a blacklist for events for the voice event description in settings.
+- Added a delay to playing audio when describing events.
+- Sorted the list of events in the configuration.
 
 **2.2.10 (2024-05-03)**
 
