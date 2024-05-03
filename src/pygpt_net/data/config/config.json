@@ -12,8 +12,7 @@
       {
           "action": "voice_cmd.toggle",
           "key": "Space",
-          "key_modifier": "Control",
-          "voice_command": ""
+          "key_modifier": "Control"
       },
       {
           "action": "tab.chat",
