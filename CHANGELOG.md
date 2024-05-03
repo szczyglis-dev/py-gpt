@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.10 (2024-05-03)
+
+- Extended voice control commands list.
+- Extended actions and keyboard shortcuts.
+
 # 2.2.9 (2024-05-02)
 
 - Added more commands to voice control: search for contexts, clear search, add, read and clear calendar memos, context rename.

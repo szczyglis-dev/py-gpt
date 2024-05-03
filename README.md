@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.9** | build: **2024.05.02** | Python: **>=3.10, <3.12**
+Release: **2.2.10** | build: **2024.05.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3216,6 +3216,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.10 (2024-05-03)**
+
+- Extended voice control commands list.
+- Extended actions and keyboard shortcuts.
 
 **2.2.9 (2024-05-02)**
 
