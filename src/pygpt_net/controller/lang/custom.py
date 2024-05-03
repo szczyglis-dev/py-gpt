@@ -95,3 +95,7 @@ class Custom:
             self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.update"))
         elif self.window.ui.dialog['profile.item'].mode == 'duplicate':
             self.window.ui.nodes['dialog.profile.item.btn.update'].setText(trans("dialog.profile.item.btn.duplicate"))
+
+        # audio input
+        self.window.ui.nodes['voice.control.btn'].btn_toggle.setText(trans('audio.control.btn'))
+        self.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
