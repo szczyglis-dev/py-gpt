@@ -75,6 +75,7 @@ class Worker(BaseWorker):
                 self.status(trans('audio.speak.wait'))
                 # transcribe audio
                 transcript = self.plugin.get_provider().transcribe(self.path)
+                self.status('')
 
                 # handle transcript
                 if transcript is not None and transcript.strip() != '':
@@ -276,6 +277,7 @@ class ControlWorker(BaseWorker):
                 self.status(trans('audio.speak.wait'))
                 # transcribe audio
                 transcript = self.window.core.plugins.get('audio_input').get_provider().transcribe(self.path)
+                self.status('')
 
                 # handle transcript
                 if transcript is not None and transcript.strip() != '':

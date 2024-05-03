@@ -25,6 +25,8 @@ from pygpt_net.utils import trans
 class Voice:
 
     TIMEOUT_SECONDS = 120  # 2 minutes, max recording time before timeout
+    MIN_FRAMES = 25  # minimum frames to start transcription
+    PLAY_DELAY = 500  # ms, delay before playing audio event
 
     def __init__(self, window=None):
         """
@@ -51,7 +53,6 @@ class Voice:
         self.pending_text = None
         self.play_timer = QTimer(self.window)
         self.play_timer.timeout.connect(self.play_audio)
-        self.play_delay = 500  # ms
 
     def setup(self):
         """Setup voice control"""
@@ -64,7 +65,7 @@ class Voice:
         :param text: text to play
         """
         self.pending_text = text
-        self.play_timer.start(self.play_delay)
+        self.play_timer.start(self.PLAY_DELAY)
 
     def play_audio(self):
         """Play current pending audio"""
@@ -205,7 +206,7 @@ class Voice:
                 self.window.ui.dialogs.open(
                     'snap_audio_input',
                     width=400,
-                    height=200
+                    height=200,
                 )
             self.switch_btn_start()  # switch button to start
 
@@ -234,6 +235,10 @@ class Voice:
                 return
 
             if self.frames:
+                if len(self.frames) < self.MIN_FRAMES:
+                    self.window.ui.status(trans("status.audio.too_short"))
+                    self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+                    return
                 wf = wave.open(path, 'wb')
                 wf.setnchannels(1)
                 wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
@@ -243,6 +248,7 @@ class Voice:
                 self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_SENT))  # app event
                 self.handle_thread(True)  # handle transcription in simple mode
         else:
+            self.window.ui.status("")
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
 
     def handle_thread(self, force: bool = False):
@@ -296,6 +302,7 @@ class Voice:
         :param ctx: CtxItem
         """
         if text is None or text.strip() == '':
+            self.window.ui.status("")
             return
         self.window.core.debug.info("VOICE CONTROL INPUT: " + text)
         commands = self.window.core.access.voice.recognize_commands(text)
@@ -303,7 +310,7 @@ class Voice:
             for command in commands:
                 cmd = command["cmd"]
                 params = command.get("params", "")
-                self.window.ui.status("Voice command: " + cmd)
+                self.window.ui.status(trans("event.audio.cmd").format(cmd=cmd))
                 event = ControlEvent(cmd)
                 event.data = {
                     "params": params,
@@ -316,9 +323,9 @@ class Voice:
                     self.window.ui.status(trans("event.audio.confirm"))
                 else:
                     event_name = trans(trans_key)
-                    if event_name == trans_key:
+                    if event_name == trans_key:  # if no translation
                         event_name = cmd
-                    self.window.ui.status("Voice command: " + event_name)
+                    self.window.ui.status(trans("event.audio.cmd").format(cmd=event_name))
                     QApplication.processEvents()
 
             # play OK sound
@@ -326,7 +333,7 @@ class Voice:
                 self.window.controller.audio.play_sound("ok.mp3")
 
         else:
-            self.window.ui.status("Voice command not recognized.")
+            self.window.ui.status(trans("event.audio.cmd.unrecognized"))
             QApplication.processEvents()
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_UNRECOGNIZED))
 

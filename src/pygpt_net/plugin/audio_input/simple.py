@@ -22,6 +22,7 @@ from pygpt_net.utils import trans
 class Simple:
 
     TIMEOUT_SECONDS = 120  # 2 minutes, max recording time before timeout
+    MIN_FRAMES = 25  # minimum frames to start transcription
 
     def __init__(self, plugin=None):
         """
@@ -127,6 +128,10 @@ class Simple:
                 return
 
             if self.frames:
+                if len(self.frames) < self.MIN_FRAMES:
+                    self.plugin.window.ui.status(trans("status.audio.too_short"))
+                    self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+                    return
                 wf = wave.open(path, 'wb')
                 wf.setnchannels(1)
                 wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
@@ -134,3 +139,5 @@ class Simple:
                 wf.writeframes(b''.join(self.frames))
                 wf.close()
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
+        else:
+            self.plugin.window.ui.status("")
