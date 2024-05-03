@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import BaseEvent
@@ -61,7 +61,9 @@ class Access:
         self.window.core.debug.info("EVENT APP: " + event.name)
         if event.name == AppEvent.VOICE_CONTROL_TOGGLE:
             self.voice.toggle_recording()
-        self.voice.play(event)  # handle audio events
+        if self.window.core.access.voice.is_muted(event.name):
+            return  # ignore muted events
+        self.voice.play(event)  # handle audio synthesis
 
     def on_escape(self):
         """Handle escape key"""

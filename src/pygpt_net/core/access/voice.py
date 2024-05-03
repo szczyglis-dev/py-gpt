@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 import json
@@ -162,6 +162,21 @@ class Voice:
             return []
 
         return self.extract_json(response)
+
+    def is_muted(self, action: str) -> bool:
+        """
+        Check if audio event is blacklisted
+
+        :param action: event name
+        :return: True if blacklisted
+        """
+        data = self.window.core.config.get("access.audio.event.speech.disabled")
+        if data is None or not isinstance(data, list):
+            return False
+        for item in data:
+            if "muted_action" in item and item["muted_action"] == action:
+                return True
+        return False
 
     def get_status(self) -> str:
         """

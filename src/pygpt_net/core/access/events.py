@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import BaseEvent
@@ -89,6 +89,7 @@ class AppEvent(BaseEvent):
     MODE_SELECTED = "mode.selected"
     MODEL_SELECTED = "model.selected"
     PRESET_SELECTED = "preset.selected"
+    TAB_SELECTED = "tab.switch"
     VOICE_CONTROL_TOGGLE = "voice.control.toggle"
     VOICE_CONTROL_STARTED = "voice.control.started"
     VOICE_CONTROL_STOPPED = "voice.control.stopped"

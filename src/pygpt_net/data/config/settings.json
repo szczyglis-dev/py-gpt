@@ -1369,5 +1369,24 @@
         "multiplier": null,
         "step": null,
         "advanced": false
+    },
+    "access.audio.event.speech.disabled": {
+        "section": "access",
+        "type": "dict",
+        "keys": {
+            "muted_action": {
+                "type": "combo",
+                "use": "speech_synthesis_actions"
+            }
+        },
+        "slider": false,
+        "label": "settings.access.audio.event.speech.disabled",
+        "description": "settings.access.audio.event.speech.disabled.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     }
 }

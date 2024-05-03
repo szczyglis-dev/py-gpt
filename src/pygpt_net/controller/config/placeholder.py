@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
@@ -87,6 +87,8 @@ class Placeholder:
             return self.get_modifiers()
         elif id == "access_actions":
             return self.get_access_actions()
+        elif id == "speech_synthesis_actions":
+            return self.get_speech_synthesis_actions()
         else:
             return []
 
@@ -267,6 +269,23 @@ class Placeholder:
         for choice in choices:
             for key, value in choice.items():
                 translated_choices.append({key: trans(value)})
+        # sort by translated values
+        translated_choices.sort(key=lambda x: list(x.values())[0])
+        return translated_choices
+
+    def get_speech_synthesis_actions(self) -> list:
+        """
+        Get speech actions list
+
+        :return: app actions list
+        """
+        choices = self.window.core.access.actions.get_speech_synthesis_choices()
+        translated_choices = []
+        for choice in choices:
+            for key, value in choice.items():
+                translated_choices.append({key: trans(value)})
+        # sort by translated values
+        translated_choices.sort(key=lambda x: list(x.values())[0])
         return translated_choices
 
 

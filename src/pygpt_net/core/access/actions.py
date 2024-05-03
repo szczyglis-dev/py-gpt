@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
-from .events import ControlEvent
+from .events import ControlEvent, AppEvent
 
 
 class Actions:
@@ -72,4 +72,47 @@ class Actions:
         choices = []
         for event in events_list:
             choices.append({event: f"event.control.{event}"})
+        return choices
+
+    def get_speech_synthesis_choices(self) -> list:
+        """
+        Get app access events choices
+
+        :return: choices
+        """
+        events_list_control = [
+            ControlEvent.CALENDAR_ADD,
+            ControlEvent.CALENDAR_CLEAR,
+            ControlEvent.CTX_ATTACHMENTS_CLEAR,
+            ControlEvent.CTX_RENAME,
+            ControlEvent.CTX_SEARCH_STRING,
+            ControlEvent.CTX_SEARCH_CLEAR,
+            ControlEvent.INPUT_APPEND,
+            ControlEvent.NOTE_ADD,
+            ControlEvent.NOTEPAD_CLEAR,
+        ]
+        events_list_app = [
+            AppEvent.APP_STARTED,
+            AppEvent.CTX_CREATED,
+            AppEvent.CTX_END,
+            AppEvent.CTX_SELECTED,
+            AppEvent.CTX_ATTACHMENTS_CLEAR,
+            AppEvent.CAMERA_ENABLED,
+            AppEvent.CAMERA_DISABLED,
+            AppEvent.CAMERA_CAPTURED,
+            AppEvent.INPUT_ERROR,
+            AppEvent.INPUT_SENT,
+            AppEvent.INPUT_CALL,
+            AppEvent.INPUT_STOPPED,
+            AppEvent.MODE_SELECTED,
+            AppEvent.MODEL_SELECTED,
+            AppEvent.PRESET_SELECTED,
+            AppEvent.TAB_SELECTED,
+        ]
+        # build choices
+        choices = []
+        for event in events_list_control:
+            choices.append({event: f"event.audio.{event}"})
+        for event in events_list_app:
+            choices.append({event: f"event.audio.{event}"})
         return choices

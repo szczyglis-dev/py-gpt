@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -1478,6 +1478,13 @@ class Patch:
                     data["access.voice_control"] = False
                 if 'access.voice_control.model' not in data:
                     data["access.voice_control.model"] = "gpt-3.5-turbo"
+                updated = True
+
+            # < 2.2.11
+            if old < parse_version("2.2.11"):
+                print("Migrating config from < 2.2.11...")
+                if 'access.audio.event.speech.disabled' not in data:
+                    data["access.audio.event.speech.disabled"] = []
                 updated = True
 
         # update file

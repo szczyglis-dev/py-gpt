@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -14,6 +14,7 @@ from PySide6.QtGui import QColor
 from pygpt_net.utils import trans
 from .mode import Mode
 from .vision import Vision
+from ...core.access.events import AppEvent
 
 
 class UI:
@@ -172,7 +173,7 @@ class UI:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
         if prev_tab != idx:
-            self.window.controller.access.voice.read_tab_name()
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
     def next_tab(self):
         """Switch to next tab"""

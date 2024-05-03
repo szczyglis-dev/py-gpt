@@ -195,7 +195,7 @@ The following basic options can be modified directly within the application:
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)``: Index the data – batch indexing is available here.
 
-**Agent (autonomous)**
+**Agent and experts**
 
 * ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
@@ -204,6 +204,22 @@ The following basic options can be modified directly within the application:
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
 * ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
+
+**Accessibility**
+
+* ``Enable voice control (using microphone)``: enables voice control (using microphone and defined commands).
+
+* ``Model``: model used for voice command recognition.
+
+* ``Use voice synthesis to describe events on the screen.``: enables audio description of on-screen events.
+
+* ``Audio notify microphone listening start/stop``: enables audio "tick" notify when microphone listening started/ended.
+
+* ``Audio notify voice command execution``: enables audio "tick" notify when voice command is executed.
+
+* ``Control shortcut keys``: configuration for keyboard shortcuts for a specified actions.
+
+* ``Blacklist for voice synthesis events describe (ignored events)``: list of muted events for 'Use voice synthesis to describe event' option.
 
 **Updates**
 

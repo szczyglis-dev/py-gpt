@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.05.03 15:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -18,7 +18,6 @@ from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.audio_input.worker import ControlWorker
-from pygpt_net.core.dispatcher import BaseEvent
 from pygpt_net.core.access.events import ControlEvent, AppEvent
 from pygpt_net.utils import trans
 
@@ -44,15 +43,36 @@ class Voice:
         self.audio_disabled_events = [
             AppEvent.INPUT_CALL,
             AppEvent.VOICE_CONTROL_TOGGLE,
+            AppEvent.CTX_END,
         ]
         self.confirm_events = [
             ControlEvent.NOTEPAD_CLEAR,
             ControlEvent.CALENDAR_CLEAR,
         ]
+        self.pending_text = None
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.play_audio)
+        self.delay_msec = 500
 
     def setup(self):
         """Setup voice control"""
         self.update()
+
+    def delayed_play(self, text: str):
+        """
+        Delayed play audio
+
+        :param text: text to play
+        """
+        self.pending_text = text
+        self.timer.start(self.delay_msec)
+
+    def play_audio(self):
+        """Play current audio"""
+        self.timer.stop()
+        if self.pending_text is not None:
+            self.window.controller.audio.read_text(self.pending_text)
+            self.pending_text = None
 
     def play(self, event: AppEvent):
         """
@@ -88,28 +108,33 @@ class Voice:
 
         if event.name not in self.audio_disabled_events:
             trans_key = "event.audio." + event.name
+
             if event.name == AppEvent.CTX_SELECTED:
-                self.window.controller.audio.read_text(
+                self.delayed_play(
                     self.window.core.access.voice.get_selected_ctx()  # with info about ctx
                 )
             elif event.name == AppEvent.MODE_SELECTED:
-                self.window.controller.audio.read_text(
+                self.delayed_play(
                     self.window.core.access.voice.get_selected_mode()  # with info about mode
                 )
             elif event.name == AppEvent.MODEL_SELECTED:
-                self.window.controller.audio.read_text(
+                self.delayed_play(
                     self.window.core.access.voice.get_selected_model()  # with info about model
                 )
             elif event.name == AppEvent.PRESET_SELECTED:
-                self.window.controller.audio.read_text(
+                self.delayed_play(
                     self.window.core.access.voice.get_selected_preset()  # with info about preset
+                )
+            elif event.name == AppEvent.TAB_SELECTED:
+                self.delayed_play(
+                    self.window.core.access.voice.get_selected_tab()  # with info about tab
                 )
             elif event.name == AppEvent.CTX_END:
                 if not self.window.controller.plugins.is_type_enabled("audio.output"):
-                    self.window.controller.audio.read_text(trans(trans_key))  # only if audio output is disabled
+                    self.delayed_play(trans(trans_key))  # only if audio output is disabled
             else:
                 # handle rest of events
-                self.window.controller.audio.read_text(trans(trans_key))
+                self.delayed_play(trans(trans_key))
             self.window.core.debug.info("AUDIO EVENT PLAY: " + event.name)
 
     def update(self):
@@ -338,9 +363,3 @@ class Voice:
     def handle_stop(self):
         """Handle stop listening"""
         self.thread_started = False
-
-    def read_tab_name(self):
-        """Read audio tab name"""
-        text = self.window.core.access.voice.get_selected_tab()
-        if self.window.core.config.get("access.audio.event.speech"):
-            self.window.controller.audio.read_text(text)
