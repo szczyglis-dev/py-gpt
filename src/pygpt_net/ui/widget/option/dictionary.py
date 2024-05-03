@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
-    QCheckBox, QSizePolicy
+    QCheckBox, QSizePolicy, QHeaderView
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -181,6 +181,10 @@ class OptionDictItems(QTreeView):
         self.parent = owner
         self.setIndentation(0)
         self.setHeaderHidden(False)
+
+        header = self.header()
+        header.setStretchLastSection(True)
+        header.setSectionResizeMode(QHeaderView.Stretch)
 
         # setup fields
         keys = self.parent.keys
