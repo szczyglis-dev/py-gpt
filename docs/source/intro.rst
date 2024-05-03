@@ -23,7 +23,7 @@ Features
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain``.
-- Included support for disabled people: voice control and translates actions on the screen using audio synthesis.
+* Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short-term memory).
 * Real-time video camera capture in Vision mode.
 * Internet access via ``Google`` and ``Microsoft Bing``.
