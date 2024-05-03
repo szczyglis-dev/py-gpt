@@ -196,7 +196,7 @@ class Camera:
         """
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
-            self.window.controller.attachment.clear(True)
+            self.window.controller.attachment.clear(True, auto=True)
 
         # capture frame
         try:

@@ -249,7 +249,7 @@ class Input:
         # clear attachments after send, only if attachments has been provided before send
         if has_attachments:
             if self.window.core.config.get('attachments_send_clear'):
-                self.window.controller.attachment.clear(True)
+                self.window.controller.attachment.clear(True, auto=True)
                 self.window.controller.attachment.update()
                 self.log("Attachments cleared.")  # log
 

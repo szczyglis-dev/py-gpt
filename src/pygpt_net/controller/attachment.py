@@ -196,12 +196,13 @@ class Attachment:
         )
         self.update()
 
-    def clear(self, force: bool = False, remove_local=False):
+    def clear(self, force: bool = False, remove_local=False, auto: bool = False):
         """
         Clear attachments list
 
         :param force: force clear
         :param remove_local: remove local copies
+        :param auto: auto clear
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -220,7 +221,8 @@ class Attachment:
 
         self.window.controller.chat.vision.unavailable()  # set no content to provide
         self.update()
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
+        if not auto:
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
 
     def open_add(self):
         """Open add attachment file dialog"""
