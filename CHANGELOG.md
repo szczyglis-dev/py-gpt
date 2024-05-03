@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.2.12 (2024-05-03)
+
+- Improved speech recognition.
+- Added minimum required length of audio input.
+- Added missing translations.
+- Fixed settings hooks triggering on profile switch.
+
 # 2.2.11 (2024-05-03)
 
 - Added a blacklist for events for the voice event description in settings.

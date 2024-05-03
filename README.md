@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.11** | build: **2024.05.03** | Python: **>=3.10, <3.12**
+Release: **2.2.12** | build: **2024.05.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3232,6 +3232,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.12 (2024-05-03)**
+
+- Improved speech recognition.
+- Added minimum required length of audio input.
+- Added missing translations.
+- Fixed settings hooks triggering on profile switch.
 
 **2.2.11 (2024-05-03)**
 

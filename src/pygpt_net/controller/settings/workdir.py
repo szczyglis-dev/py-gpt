@@ -85,6 +85,7 @@ class Workdir:
                 self.window.ui.dialogs.alert(e)
                 print("Error reloading components: ", e)
                 self.restore(current_path)
+                self.window.controller.reloading = False  # unlock
         else:
             self.window.controller.reload()
 
@@ -183,10 +184,12 @@ class Workdir:
                 self.window.ui.dialogs.alert(e)
                 print("Error migrating workdir: ", e)
                 self.restore(current)  # restore current if failed
+                self.window.controller.reloading = False  # unlock
         else:
             self.window.ui.dialogs.workdir.show_status(trans("dialog.workdir.result.failed"))
             self.window.ui.dialogs.alert(trans("dialog.workdir.result.failed"))
             self.restore(current)  # restore current if failed
+            self.window.controller.reloading = False  # unlock
 
         self.busy = False
         self.window.core.debug.info("Finished migrating workdir from: {} to: {}".format(current, path))
