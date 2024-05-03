@@ -3,6 +3,8 @@ Plugins
 
 **PyGPT** can be enhanced with plugins to add new features.
 
+**Tip:** Plugins works best with GPT-4 models.
+
 The following plugins are currently available, and model can use them instantly:
 
 * ``Audio Input`` - provides speech recognition.

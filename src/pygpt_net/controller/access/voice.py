@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -91,6 +91,18 @@ class Voice:
             if event.name == AppEvent.CTX_SELECTED:
                 self.window.controller.audio.read_text(
                     self.window.core.access.voice.get_selected_ctx()  # with info about ctx
+                )
+            elif event.name == AppEvent.MODE_SELECTED:
+                self.window.controller.audio.read_text(
+                    self.window.core.access.voice.get_selected_mode()  # with info about mode
+                )
+            elif event.name == AppEvent.MODEL_SELECTED:
+                self.window.controller.audio.read_text(
+                    self.window.core.access.voice.get_selected_model()  # with info about model
+                )
+            elif event.name == AppEvent.PRESET_SELECTED:
+                self.window.controller.audio.read_text(
+                    self.window.core.access.voice.get_selected_preset()  # with info about preset
                 )
             elif event.name == AppEvent.CTX_END:
                 if not self.window.controller.plugins.is_type_enabled("audio.output"):
@@ -279,7 +291,10 @@ class Voice:
                 if cmd in self.confirm_events:
                     self.window.ui.status(trans("event.audio.confirm"))
                 else:
-                    self.window.ui.status("Voice command: " + trans(trans_key))
+                    event_name = trans(trans_key)
+                    if event_name == trans_key:
+                        event_name = cmd
+                    self.window.ui.status("Voice command: " + event_name)
                     QApplication.processEvents()
 
             # play OK sound

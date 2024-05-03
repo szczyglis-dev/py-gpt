@@ -61,7 +61,7 @@
   "cmd": false,
   "ctx": "",
   "ctx.auto_summary": true,
-  "ctx.auto_summary.model": "gpt-3.5-turbo-1106",
+  "ctx.auto_summary.model": "gpt-3.5-turbo",
   "ctx.convert_lists": false,
   "ctx.counters.all": false,
   "ctx.edit_icons": false,
@@ -90,8 +90,9 @@
     "img": "dall-e-3",
     "langchain": "gpt-3.5-turbo",
     "llama_index": "gpt-3.5-turbo",
-    "vision": "gpt-4-vision-preview",
-    "agent": "gpt-4-turbo-preview"
+    "vision": "gpt-4-turbo",
+    "agent": "gpt-4-turbo",
+    "expert": "gpt-4-turbo"
   },
   "current_preset": {
     "assistant": "",
@@ -101,7 +102,8 @@
     "langchain": "",
     "llama_index": "",
     "vision": "",
-    "agent": ""
+    "agent": "",
+    "expert": ""
   },
   "debug": false,
   "download.dir": "download",
@@ -112,7 +114,7 @@
   "font_size.toolbox": 12,
   "frequency_penalty": 0.0,
   "img_dialog_open": true,
-  "img_prompt_model": "gpt-4-1106-preview",
+  "img_prompt_model": "gpt-4-turbo",
   "img_raw": true,
   "img_resolution": "1792x1024",
   "img_quality": "standard",
@@ -218,10 +220,11 @@
     "cmd_serial": false,
     "cmd_web": true,
     "crontab": false,
+    "experts": false,
     "idx_llama_index": false,
-    "openai_dalle": true,
+    "openai_dalle": false,
     "openai_vision": true,
-    "real_time": true
+    "real_time": false
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",

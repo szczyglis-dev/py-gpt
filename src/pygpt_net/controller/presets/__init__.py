@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 import re
@@ -14,6 +14,7 @@ import re
 from PySide6.QtGui import QTextCursor
 
 from pygpt_net.controller.presets.editor import Editor
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.utils import trans
 
 
@@ -46,6 +47,23 @@ class Presets:
 
         # update all layout
         self.window.controller.ui.update()
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
+
+    def next(self):
+        """Select next preset"""
+        idx = self.window.ui.nodes['preset.presets'].currentIndex().row()
+        idx += 1
+        if idx >= self.window.ui.models['preset.presets'].rowCount():
+            idx = 0
+        self.select(idx)
+
+    def prev(self):
+        """Select previous preset"""
+        idx = self.window.ui.nodes['preset.presets'].currentIndex().row()
+        idx -= 1
+        if idx < 0:
+            idx = self.window.ui.models['preset.presets'].rowCount() - 1
+        self.select(idx)
 
     def use(self):
         """Copy preset prompt to input"""

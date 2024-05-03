@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -34,8 +34,9 @@ class Shortcuts:
         keys.extend([{str(i): str(i)} for i in range(0, 10)])  # 0-9
         keys.extend([{str(i): str(i)} for i in range(1, 13)])  # F1-F12
         symbols = [
-            'Space', 'Comma', 'Period', 'Slash', 'Backslash', 'Minus', 'Equal',
-            'Semicolon', 'Apostrophe'
+            'Space', 'Comma', 'Period', 'Slash', 'Backslash', 'Plus', 'Minus', 'Equal', 'BracketLeft', 'BracketRight',
+            'Semicolon', 'Apostrophe', 'CapsLock', 'Up', 'Down', 'Left', 'Right', 'PageUp', 'PageDown', 'Home', 'End',
+            'Insert', 'Delete', 'Enter', 'Return', 'Tab', 'Backspace', 'Escape', 'Print', 'SysReq', 'Pause', 'ScrollLock',
         ]
         keys.extend([{name: name} for name in symbols])
         return keys
@@ -44,11 +45,9 @@ class Shortcuts:
         """
         Get modifiers choices with identical key and value.
         """
+        # SHIFT not working properly
         modifiers_names = [
-            'Shift', 'Control', 'Meta', 'Alt', 'Escape', 'Tab', 'Backtab',
-            'Backspace', 'Return', 'Enter', 'Insert', 'Delete', 'Pause',
-            'Print', 'SysReq', 'Clear', 'Home', 'End', 'Left', 'Up',
-            'Right', 'Down', 'PageUp', 'PageDown', 'Super_L', 'Super_R', 'Menu'
+            '---', 'Control', 'Alt', 'Meta', 'Keypad', 'GroupSwitch',
         ]
         modifiers = [{name: name} for name in modifiers_names]
         return modifiers
@@ -77,8 +76,17 @@ class GlobalShortcutFilter(QObject):
             for shortcut in config:
                 if shortcut['key'] == "" or shortcut['key'] is None:
                     continue
-                shortcut['key'] = getattr(QtCore.Qt, 'Key_' + str(shortcut['key']))
-                shortcut['key_modifier'] = getattr(QtCore.Qt, str(shortcut['key_modifier']) + 'Modifier', QtCore.Qt.NoModifier)
+                key_name = 'Key_' + str(shortcut['key'])
+                if hasattr(QtCore.Qt, key_name):
+                    shortcut['key'] = getattr(QtCore.Qt, 'Key_' + str(shortcut['key']))
+                else:
+                    continue
+                modifier_name = str(shortcut['key_modifier']) + 'Modifier'
+                if shortcut['key_modifier'] == "" or shortcut['key_modifier'] is None or shortcut['key_modifier'] == "---":
+                    shortcut['key_modifier'] = QtCore.Qt.NoModifier
+                elif hasattr(QtCore.Qt, modifier_name):
+                    shortcut['key_modifier'] = getattr(QtCore.Qt, modifier_name, QtCore.Qt.NoModifier)
+
             if event.type() == QEvent.KeyPress:
                 for shortcut in config:
                     if (event.key() == shortcut['key'] and

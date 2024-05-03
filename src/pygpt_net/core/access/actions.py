@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 from .events import ControlEvent
@@ -48,6 +48,12 @@ class Actions:
             ControlEvent.CTX_ATTACHMENTS_CLEAR,
             ControlEvent.MODE_CHAT,
             ControlEvent.MODE_LLAMA_INDEX,
+            ControlEvent.MODE_NEXT,
+            ControlEvent.MODE_PREV,
+            ControlEvent.MODEL_NEXT,
+            ControlEvent.MODEL_PREV,
+            ControlEvent.PRESET_NEXT,
+            ControlEvent.PRESET_PREV,
             ControlEvent.TAB_CHAT,
             ControlEvent.TAB_CALENDAR,
             ControlEvent.TAB_DRAW,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -608,6 +608,9 @@ class Ctx:
         # TODO: implement this
         # idx = self.window.ui.nodes['ctx.list'].currentIndex().row()
         # self.select(idx)
+        selected_idx = self.window.ui.nodes['ctx.list'].currentIndex()
+        if selected_idx.isValid():
+            id = self.window.core.ctx.get_id_by_idx(selected_idx.row())
         self.window.ui.nodes['ctx.list'].lockSelection()
 
     def search_string_change(self, text: str):

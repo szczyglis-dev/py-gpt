@@ -4,6 +4,8 @@ Quick Start
 Setting-up OpenAI API KEY
 -------------------------
 
+**Tip:** The API key is required to work with the OpenAI API. If you wish to use custom API endpoints or local API that do not require API keys, simply enter anything into the API key field to avoid a prompt about the API key being empty.
+
 During the initial launch, you must configure your API key within the application.
 
 To do so, navigate to the menu:

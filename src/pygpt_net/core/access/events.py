@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import BaseEvent
@@ -46,9 +46,15 @@ class ControlEvent(BaseEvent):
     INPUT_APPEND = "input.append"
     MODE_CHAT = "mode.chat"
     MODE_LLAMA_INDEX = "mode.llama_index"
+    MODE_NEXT = "mode.next"
+    MODE_PREV = "mode.prev"
+    MODEL_NEXT = "model.next"
+    MODEL_PREV = "model.prev"
     NOTE_ADD = "note.add"
     NOTEPAD_CLEAR = "notepad.clear"
     NOTEPAD_READ = "notepad.read"
+    PRESET_NEXT = "preset.next"
+    PRESET_PREV = "preset.prev"
     TAB_CHAT = "tab.chat"
     TAB_CALENDAR = "tab.calendar"
     TAB_DRAW = "tab.draw"
@@ -80,6 +86,9 @@ class AppEvent(BaseEvent):
     INPUT_STOPPED = "input.stopped"
     INPUT_VOICE_LISTEN_STARTED = "input.voice.listen.started"
     INPUT_VOICE_LISTEN_STOPPED = "input.voice.listen.stopped"
+    MODE_SELECTED = "mode.selected"
+    MODEL_SELECTED = "model.selected"
+    PRESET_SELECTED = "preset.selected"
     VOICE_CONTROL_TOGGLE = "voice.control.toggle"
     VOICE_CONTROL_STARTED = "voice.control.started"
     VOICE_CONTROL_STOPPED = "voice.control.stopped"

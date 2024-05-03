@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -41,6 +42,7 @@ class Mode:
         })
         self.window.core.dispatcher.dispatch(event)
         self.window.controller.attachment.update()
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
 
     def set(self, mode: str):
         """
@@ -171,6 +173,22 @@ class Mode:
         self.window.core.config.set('prompt', None)
         self.window.core.config.set('ai_name', None)
         self.window.core.config.set('user_name', None)
+
+    def next(self):
+        """Select next mode"""
+        idx = self.window.ui.nodes['prompt.mode'].currentIndex().row()
+        idx += 1
+        if idx >= self.window.ui.models['prompt.mode'].rowCount():
+            idx = 0
+        self.select(idx)
+
+    def prev(self):
+        """Select previous mode"""
+        idx = self.window.ui.nodes['prompt.mode'].currentIndex().row()
+        idx -= 1
+        if idx < 0:
+            idx = self.window.ui.models['prompt.mode'].rowCount() - 1
+        self.select(idx)
 
     def change_locked(self) -> bool:
         """

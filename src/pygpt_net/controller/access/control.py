@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 import re
@@ -131,10 +131,24 @@ class Control:
         # mode
         elif event.name == ControlEvent.MODE_CHAT:
             self.window.controller.mode.set("chat")
-            self.handle_result(event, True)
         elif event.name == ControlEvent.MODE_LLAMA_INDEX:
             self.window.controller.mode.set("llama_index")
-            self.handle_result(event, True)
+        elif event.name == ControlEvent.MODE_NEXT:
+            self.window.controller.mode.next()
+        elif event.name == ControlEvent.MODE_PREV:
+            self.window.controller.mode.prev()
+
+        # model
+        elif event.name == ControlEvent.MODEL_NEXT:
+            self.window.controller.model.next()
+        elif event.name == ControlEvent.MODEL_PREV:
+            self.window.controller.model.prev()
+
+        # presets
+        elif event.name == ControlEvent.PRESET_NEXT:
+            self.window.controller.presets.next()
+        elif event.name == ControlEvent.PRESET_PREV:
+            self.window.controller.presets.prev()
 
         # tabs
         elif event.name == ControlEvent.TAB_NEXT:

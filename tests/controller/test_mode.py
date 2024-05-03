@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -31,7 +31,7 @@ def test_select(mock_window):
     mode.change_locked.return_value = False
 
     mode.select(1)
-    mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: mode.select
+    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: mode.select
 
     # must update rest of elements
     mock_window.controller.attachment.update.assert_called()
@@ -64,7 +64,7 @@ def test_select_assistant(mock_window):
     mock_window.core.ctx.assistant = 'test'
 
     mode.select(1)
-    mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: mode.select
+    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: mode.select
 
     # must update rest of elements
     mock_window.controller.attachment.update.assert_called()

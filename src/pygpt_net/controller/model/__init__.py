@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.model import ModelItem
+from pygpt_net.core.access.events import AppEvent
 from .editor import Editor
 
 
@@ -40,6 +41,23 @@ class Model:
 
         # update all layout
         self.window.controller.ui.update()
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.MODEL_SELECTED))  # app event
+
+    def next(self):
+        """Select next model"""
+        idx = self.window.ui.nodes['prompt.model'].currentIndex().row()
+        idx += 1
+        if idx >= self.window.ui.models['prompt.model'].rowCount():
+            idx = 0
+        self.select(idx)
+
+    def prev(self):
+        """Select previous model"""
+        idx = self.window.ui.nodes['prompt.model'].currentIndex().row()
+        idx -= 1
+        if idx < 0:
+            idx = self.window.ui.models['prompt.model'].rowCount() - 1
+        self.select(idx)
 
     def set(self, mode: str, model: str):
         """

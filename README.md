@@ -298,6 +298,8 @@ and an active API key that must be input into the program.
 
 ## Setting-up OpenAI API KEY
 
+**Tip:** The API key is required to work with the OpenAI API. If you wish to use custom API endpoints or local API that do not require API keys, simply enter anything into the API key field to avoid a prompt about the API key being empty.
+
 During the initial launch, you must configure your API key within the application.
 
 To do so, navigate to the menu:
@@ -911,7 +913,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Create a new context
 - Go to the previous context
 - Go to the next context
-- Go to the last context
+- Go to the latest context
 - Focus on the input
 - Send the input
 - Clear the input
@@ -927,9 +929,15 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Append message to current input without sending it
 - Switch to chat mode
 - Switch to chat with files (llama-index) mode
+- Switch to the next mode
+- Switch to the previous mode
+- Switch to the next model
+- Switch to the previous model
 - Add note to notepad
 - Clear notepad contents
 - Read current notepad contents
+- Switch to the next preset
+- Switch to the previous preset
 - Switch to the chat tab
 - Switch to the calendar tab
 - Switch to the draw (painter) tab
@@ -1342,6 +1350,8 @@ run(
 # Plugins
 
 **PyGPT** can be enhanced with plugins to add new features.
+
+**Tip:** Plugins works best with GPT-4 models.
 
 The following plugins are currently available, and model can use them instantly:
 

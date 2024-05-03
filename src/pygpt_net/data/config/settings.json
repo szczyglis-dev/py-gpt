@@ -4,6 +4,7 @@
         "type": "text",
         "slider": false,
         "label": "settings.api_key",
+        "description": "settings.api_key.desc",
         "value": "",
         "min": null,
         "max": null,

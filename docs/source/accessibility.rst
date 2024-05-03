@@ -44,11 +44,11 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Read the calendar memos
 - Enable the camera
 - Disable the camera
-- Capture the camera
+- Capture image from camera
 - Create a new context
 - Go to the previous context
 - Go to the next context
-- Go to the last context
+- Go to the latest context
 - Focus on the input
 - Send the input
 - Clear the input
@@ -64,9 +64,15 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Append message to current input without sending it
 - Switch to chat mode
 - Switch to chat with files (llama-index) mode
+- Switch to the next mode
+- Switch to the previous mode
+- Switch to the next model
+- Switch to the previous model
 - Add note to notepad
 - Clear notepad contents
 - Read current notepad contents
+- Switch to the next preset
+- Switch to the previous preset
 - Switch to the chat tab
 - Switch to the calendar tab
 - Switch to the draw (painter) tab

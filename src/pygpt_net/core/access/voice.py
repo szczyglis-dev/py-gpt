@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.03 12:00:00                  #
 # ================================================== #
+
 import json
 import re
 from datetime import datetime, timedelta
@@ -37,12 +38,12 @@ class Voice:
             ControlEvent.CALENDAR_READ: "Read the calendar memos",
             ControlEvent.CAMERA_ENABLE: "Enable the camera",
             ControlEvent.CAMERA_DISABLE: "Disable the camera",
-            ControlEvent.CAMERA_CAPTURE: "Capture the camera",
+            ControlEvent.CAMERA_CAPTURE: "Capture image from camera",
             ControlEvent.CMD_CONFIRM: "Confirmation of the command",
             ControlEvent.CTX_NEW: "Create a new context",
             ControlEvent.CTX_PREV: "Go to the previous context",
             ControlEvent.CTX_NEXT: "Go to the next context",
-            ControlEvent.CTX_LAST: "Go to the last context",
+            ControlEvent.CTX_LAST: "Go to the latest context",
             ControlEvent.CTX_INPUT_FOCUS: "Focus on the input",
             ControlEvent.CTX_INPUT_SEND: "Send the input",
             ControlEvent.CTX_INPUT_CLEAR: "Clear the input",
@@ -52,15 +53,21 @@ class Voice:
             ControlEvent.CTX_READ_LAST: "Read the last conversation entry",
             ControlEvent.CTX_READ_ALL: "Read the whole conversation",
             ControlEvent.CTX_RENAME: "Rename current context",
-            ControlEvent.CTX_SEARCH_STRING: "Search for a string in the conversation",
+            ControlEvent.CTX_SEARCH_STRING: "Search for a conversation",
             ControlEvent.CTX_SEARCH_CLEAR: "Clear the search results",
             ControlEvent.INPUT_SEND: "Send the message to input",
             ControlEvent.INPUT_APPEND: "Append message to current input without sending it",
             ControlEvent.MODE_CHAT: "Switch to chat mode",
-            ControlEvent.MODE_LLAMA_INDEX: "Switch to Chat with files (llama-index) mode",
+            ControlEvent.MODE_LLAMA_INDEX: "Switch to chat with files (llama-index) mode",
+            ControlEvent.MODE_NEXT: "Switch to the next mode",
+            ControlEvent.MODE_PREV: "Switch to the previous mode",
+            ControlEvent.MODEL_NEXT: "Switch to the next model",
+            ControlEvent.MODEL_PREV: "Switch to the previous model",
             ControlEvent.NOTE_ADD: "Add note to notepad",
             ControlEvent.NOTEPAD_CLEAR: "Clear notepad contents",
             ControlEvent.NOTEPAD_READ: "Read current notepad contents",
+            ControlEvent.PRESET_NEXT: "Switch to the next preset",
+            ControlEvent.PRESET_PREV: "Switch to the previous preset",
             ControlEvent.TAB_CHAT: "Switch to the chat tab",
             ControlEvent.TAB_CALENDAR: "Switch to the calendar tab",
             ControlEvent.TAB_DRAW: "Switch to the draw (painter) tab",
@@ -156,7 +163,7 @@ class Voice:
 
         return self.extract_json(response)
 
-    def get_status(self):
+    def get_status(self) -> str:
         """
         Get the current application status
 
@@ -184,7 +191,7 @@ class Voice:
             pass
         return msg
 
-    def get_current_ctx(self):
+    def get_current_ctx(self) -> str:
         """
         Get current context
 
@@ -204,7 +211,7 @@ class Voice:
             return msg
         return ""
 
-    def get_selected_ctx(self):
+    def get_selected_ctx(self) -> str:
         """
         Get current context
 
@@ -224,7 +231,7 @@ class Voice:
             return msg
         return ""
 
-    def get_selected_tab(self):
+    def get_selected_tab(self) -> str:
         """
         Get current tab
 
@@ -240,7 +247,63 @@ class Voice:
             pass
         return msg
 
-    def get_last_ctx_item(self):
+    def get_selected_mode(self) -> str:
+        """
+        Get current mode
+
+        :return: text to read
+        """
+        mode = self.window.core.config.get("mode")
+        if mode is None:
+            return ""
+        try:
+            msg = trans("event.audio.mode.selected").format(
+                mode=trans("mode." + mode),
+            )
+        except Exception as e:
+            msg = ""
+        return msg
+
+    def get_selected_model(self) -> str:
+        """
+        Get current model
+
+        :return: text to read
+        """
+        model = self.window.core.config.get("model")
+        if model is None:
+            return ""
+        try:
+            msg = trans("event.audio.model.selected").format(
+                model=model,
+            )
+        except Exception as e:
+            msg = ""
+        return msg
+
+    def get_selected_preset(self) -> str:
+        """
+        Get current preset
+
+        :return: text to read
+        """
+        preset_id = self.window.core.config.get("preset")
+        if preset_id is None:
+            return ""
+        mode = self.window.core.config.get("mode")
+        preset = self.window.core.presets.get_by_id(mode, preset_id)
+        if preset is None:
+            return ""
+        try:
+            msg = trans("event.audio.preset.selected").format(
+                preset=preset.name,
+            )
+        except Exception as e:
+            msg = ""
+        return msg
+
+
+    def get_last_ctx_item(self) -> str:
         """
         Get last context item
 
