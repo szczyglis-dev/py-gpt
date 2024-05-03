@@ -161,6 +161,7 @@ class UI:
 
         :param idx: tab index
         """
+        prev_tab = self.current_tab
         self.current_tab = idx
         self.mode.update()
         self.vision.update()
@@ -170,7 +171,8 @@ class UI:
         elif idx == self.tab_idx['draw']:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
-        self.window.controller.access.voice.read_tab_name()
+        if prev_tab != idx:
+            self.window.controller.access.voice.read_tab_name()
 
     def next_tab(self):
         """Switch to next tab"""
