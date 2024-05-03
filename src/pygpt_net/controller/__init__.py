@@ -74,6 +74,7 @@ class Controller:
         self.settings = Settings(window)
         self.theme = Theme(window)
         self.ui = UI(window)
+        self.reloading = False
 
     def setup(self):
         """Setup controller"""
@@ -133,6 +134,7 @@ class Controller:
 
     def reload(self):
         """Reload components"""
+        self.reloading = True
         self.window.core.reload()  # db, config, patch, etc.
         self.ctx.reload()
         self.settings.reload()
@@ -156,3 +158,4 @@ class Controller:
 
         # post-reload
         self.ctx.reload_after()
+        self.reloading = False

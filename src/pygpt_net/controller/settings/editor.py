@@ -213,8 +213,11 @@ class Editor:
         :param args: args
         :param kwargs: kwargs
         """
+        if self.window.controller.reloading:
+            return  # ignore hooks during reloading process
+
         if self.window.core.config.get(key) == value:
-            return
+            return  # ignore if value is the same
 
         # update font size
         if key.startswith('font_size') and caller == "slider":
