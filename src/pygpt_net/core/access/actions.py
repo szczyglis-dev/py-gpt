@@ -83,7 +83,6 @@ class Actions:
         events_list_control = [
             ControlEvent.CALENDAR_ADD,
             ControlEvent.CALENDAR_CLEAR,
-            ControlEvent.CTX_ATTACHMENTS_CLEAR,
             ControlEvent.CTX_RENAME,
             ControlEvent.CTX_SEARCH_STRING,
             ControlEvent.CTX_SEARCH_CLEAR,
