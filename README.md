@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.12** | build: **2024.05.03** | Python: **>=3.10, <3.12**
+Release: **2.2.13** | build: **2024.05.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3233,6 +3233,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.2.13 (2024-05-03)**
+
+- Added stretch to dictionary config fields.
+- Removed redundant attachments clear event.
+
 **2.2.12 (2024-05-03)**
 
 - Improved speech recognition.
@@ -3260,192 +3265,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added support for disabled people, including voice control and screen event translation with audio synthesis.
 - A new section in Settings called 'Accessibility' has been added with options for assistance: voice control, keyboard shortcut definitions for actions, and screen event translation using audio synthesis.
 - A new section called 'Accessibility' has been added to the Documentation.
-
-**2.2.7 (2024-05-01)**
-
-- A new experimental work mode has been added: 'Experts', which allows the creation of separate background instances with their own instructions that can be consulted for help. See the documentation: 'Work Modes / Experts'.
-- Added a new plugin: 'Experts (inline)`.
-- Improved the Agent mode by adding the ability to configure and invoke defined Experts.
-- Improved the prompts that control the autonomous mode.
-- The main prompt controlling the agents has been moved from presets to the application's settings window.
-
-**2.2.6 (2024-04-30)**
-
-- Added a new model: 'gpt-4-turbo'.
-- Vision integrated into Chat mode, without any plugins, if the model supports Vision - currently available for: 'gpt-4-turbo' and 'gpt-4-turbo-2024-04-09'.
-- Store importer connected with Logger.
-- Fixed: issue with batch unassigning remote files from vector stores.
-
-**2.2.5 (2024-04-30)**
-
-- Fix: import button handler in Assistants.
-- Refactored and improved stores batch actions events handling.
-- Added missing translations.
-
-**2.2.4 (2024-04-29)**
-
-- Batch actions splitted into 'Current store' and 'All stores' in Assistants remote vector stores importer.
-- Added sync current/all context menu options to Sync button.
-- Improved remote stores handling.
-
-**2.2.3 (2024-04-29)**
-
-- Fixed Assistants files sync btn.
-- Added batch upload files or directory in Assistants vector stores dialog.
-
-**2.2.2 (2024-04-29)**
-
-- Added 'Application environment' option to Config -> General for setting up custom env vars on app load.
-- Added chunk render/parse throttling to prevent high CPU load on huge text chunks.
-- Optimized and improved Code interpreter output rendering in stream mode in Assistants.
-- Improved run stopping in Assistants.
-- Fixed syntax theme and 'Edit' icon restore on profile switch.
-
-**2.2.1 (2024-04-28)**
-
-- Improved data reload on profile switch.
-
-**2.2.0 (2024-04-28)**
-
-- Improved code interpreter stream handling in Assistant mode.
-- Improved preset plugins reloading on profile switch.
-- Fixes and core improvements.
-- Updated docs to v2.2.0.
-
-**2.1.83 (2024-04-27)**
-
-- Index list in 'Chat with files' mode moved to combo-box at bottom.
-- Enabled display of remote images in chat output.
-- Updated docs.
-
-**2.1.82 (2024-04-27)**
-
-- Fixed correct store id saving if hidden thread stores on list.
-
-**2.1.81 (2024-04-27)**
-
-- Improved remote vector stores management.
-
-**2.1.80 (2024-04-27)**
-
-- Fixed missing selection in Assistant store select combo.
-- Fixed store deletion.
-- Added tooltip to Stores button.
-
-**2.1.79 (2024-04-26)**
-
-- OpenAI API upgraded to version 1.23.6.
-- Assistants API: added tool: File search and removed deprecated tool: Retrieval.
-- Support for remote Assistant Vector Stores added (accessible through the Assistants API).
-- Remote Vector Stores management tool introduced (right-click on an Assistant, select 'Edit', then click the database icon to open Remote Vector Stores editor).
-- Importer for Remote Assistant Vector Stores and files included.
-- Files uploaded in Assistants mode can now be shared between threads using Vector Stores.
-
-**2.1.78 (2024-04-25)**
-
-- Removed redundant names in block view.
-- Scrollbars background integrated with blocks bg.
-
-**2.1.77 (2024-04-25)**
-
-- Added the "tree" command to the I/O Files plugin to retrieve the full directory tree.
-
-**2.1.76 (2024-04-25)**
-
-- Chat items now displayed in blocks.
-
-**2.1.75 (2024-04-24)**
-
-- Copy to clipboard in web view fixed and moved to JS bridge.
-
-**2.1.74 (2024-04-24)**
-
-- Added syntax highlight choose to Theme menu.
-- Syntax highlight style colors integrated with Dark/Light app themes.
-
-**2.1.73 (2024-04-24)**
-
-- Fixed issue #50 - missing type key in config.
-
-**2.1.72 (2024-04-24)**
-
-- Fixed context initialization in web view on app load.
-- Improved and optimized items rendering.
-- Refactored web view CSS.
-- Rendering optimization.
-- Added real-time items reload and append.
-- Added theme CSS to scrollbars.
-- Added JS console debug to Logger window.
-
-**2.1.71 (2024-04-23)**
-
-- Added 160+ prompt templates from ["Awesome ChatGPT Prompts"](https://github.com/f/awesome-chatgpt-prompts) repository - to use them, right-click on the input or system prompt textarea and select the "Paste from template..." option.
-
-**2.1.70 (2024-04-22)**
-
-- Added web view CSS reload on theme switch.
-- Fixed time display CSS in web view.
-
-**2.1.69 (2024-04-22)**
-
-- Added html buffer to speed-up context initialization in web view.
-- Fixed items append in web view in agent mode.
-
-**2.1.68 (2024-04-22)**
-
-- Fix: CPU usage on multiple items.
-
-**2.1.67 (2024-04-22)**
-
-- Optimized items rendering.
-
-**2.1.66 (2024-04-22)**
-
-- Improved content formatting in HTML export.
-
-**2.1.65 (2024-04-22)**
-
-- Improved save as in Web View output.
-- Added save as text and save as html separated options.
-
-**2.1.64 (2024-04-22)**
-
-- Improved real-time CSS reloading.
-
-**2.1.63 (2024-04-22)**
-
-- Improved rendering output.
-- Updated CSS.
-
-**2.1.62 (2024-04-22)**
-
-- Added default lexer for code syntax highlighting if no language provided.
-
-**2.1.61 (2024-04-21)**
-
-- Added real-time HTML formatting of text chunks in stream mode.
-
-**2.1.60 (2024-04-21)**
-
-- Fixed "Save as" option in WebEngine view.
-- Added hiding of empty groups on search.
-- Updated formatting and CSS.
-
-**2.1.59 (2024-04-20)**
-
-- Added output renderer: WebEngine/Chromium – with full HTML/CSS/JS support. (Experimental)
-- Added a new option to choose a render engine in Settings -> General -> Rendering engine to select between WebEngine / Chromium mode and the Legacy mode (old, with simple markdown CSS support only - for compatibility reasons and troubleshooting).
-- Added syntax highlighting to code blocks – issue #43.
-- Added a new option in Settings -> Layout -> Code syntax highlight to select a highlight theme.
-- Added a new option in Settings -> Context -> Convert lists to paragraphs to enable/disable converting ul and li into p for better copying.
-- Copy to clipboard and regenerate response icons are now visible by default.
-
-**2.1.58 (2024-04-19)**
-
-- Fixed Markdown rendering if the content starts with a code block.
-- Added a "Switch to created profile" option in the profile creation/duplication dialogs.
-- Updated the locale.
-- Added a donate option.
 
 The full changelog is located in the [CHANGELOG.md](https://github.com/szczyglis-dev/py-gpt/blob/master/CHANGELOG.md) file in the main folder of this repository.
 

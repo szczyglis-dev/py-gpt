@@ -101,7 +101,6 @@ class Actions:
             AppEvent.CAMERA_CAPTURED,
             AppEvent.INPUT_ERROR,
             AppEvent.INPUT_SENT,
-            AppEvent.INPUT_CALL,
             AppEvent.INPUT_STOPPED,
             AppEvent.MODE_SELECTED,
             AppEvent.MODEL_SELECTED,

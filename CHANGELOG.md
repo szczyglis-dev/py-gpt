@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.13 (2024-05-03)
+
+- Added stretch to dictionary config fields.
+- Removed redundant attachments clear event.
+
 # 2.2.12 (2024-05-03)
 
 - Improved speech recognition.
