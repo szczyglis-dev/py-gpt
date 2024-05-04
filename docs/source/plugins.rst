@@ -24,6 +24,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``System Prompt Extra (append)`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+* ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 
 
 Creating Your Own Plugins
@@ -1216,6 +1217,13 @@ The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply e
 
 The prompt is used to generate a query for the ``DALL-E`` image generation model, which runs in the background.
 
+Experts (inline)
+-----------------
+
+The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
+
+See the ``Mode -> Experts`` section for more details.
+
 
 GPT-4 Vision (inline)
 ---------------------
@@ -1282,3 +1290,10 @@ The plugin appends additional system prompts (extra data) from a list to every c
 
 List of extra prompts - prompts that will be appended to system prompt. 
 All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
+
+Voice Control (inline)
+----------------------
+
+The plugin provides voice control command execution within a conversation.
+
+See the ``Accessibility`` section for more details.
