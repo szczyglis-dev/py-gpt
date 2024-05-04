@@ -6,16 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 15:00:00                  #
+# Updated Date: 2024.05.04 11:00:00                  #
 # ================================================== #
 
 import re
 
+from PySide6.QtCore import QTimer
 from pygpt_net.core.access.events import ControlEvent
 from pygpt_net.utils import trans
 
 
 class Control:
+
+    CTX_TIMER_DELAY = 2000
+
     def __init__(self, window=None):
         """
         Control handler
@@ -24,6 +28,23 @@ class Control:
         """
         self.window = window
         self.last_confirm = None
+        self.ctx_timer = QTimer(self.window)
+        self.ctx_timer.timeout.connect(self.handle_ctx)
+        self.ctx_action = None
+
+    def handle_ctx(self):
+        """Handle context action (delayed)"""
+        self.ctx_timer.stop()
+        if self.ctx_action is not None:
+            if self.ctx_action == ControlEvent.CTX_NEW:
+                self.window.controller.ctx.new(force=True)
+            elif self.ctx_action == ControlEvent.CTX_PREV:
+                self.window.controller.ctx.prev()
+            elif self.ctx_action == ControlEvent.CTX_NEXT:
+                self.window.controller.ctx.next()
+            elif self.ctx_action == ControlEvent.CTX_LAST:
+                self.window.controller.ctx.last()
+            self.ctx_action = None
 
     def handle(self, event: ControlEvent, force: bool = False):
         """
@@ -62,13 +83,17 @@ class Control:
 
         # ctx
         elif event.name == ControlEvent.CTX_NEW:
-            self.window.controller.ctx.new()
+            self.ctx_action = ControlEvent.CTX_NEW
+            self.ctx_timer.start(self.CTX_TIMER_DELAY)
         elif event.name == ControlEvent.CTX_PREV:
-            self.window.controller.ctx.prev()
+            self.ctx_action = ControlEvent.CTX_PREV
+            self.ctx_timer.start(self.CTX_TIMER_DELAY)
         elif event.name == ControlEvent.CTX_NEXT:
-            self.window.controller.ctx.next()
+            self.ctx_action = ControlEvent.CTX_NEXT
+            self.ctx_timer.start(self.CTX_TIMER_DELAY)
         elif event.name == ControlEvent.CTX_LAST:
-            self.window.controller.ctx.last()
+            self.ctx_action = ControlEvent.CTX_LAST
+            self.ctx_timer.start(self.CTX_TIMER_DELAY)
         elif event.name == ControlEvent.CTX_INPUT_FOCUS:
             self.window.controller.chat.common.focus_input()
             self.handle_result(event, True)
