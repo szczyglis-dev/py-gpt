@@ -97,7 +97,7 @@ class Voice:
             elif event.name in [
                 AppEvent.VOICE_CONTROL_STOPPED,
                 AppEvent.VOICE_CONTROL_SENT,
-                AppEvent.INPUT_VOICE_LISTEN_STOPPED
+                AppEvent.INPUT_VOICE_LISTEN_STOPPED,
             ]:
                 if self.window.core.config.get("access.audio.notify.execute"):
                     self.window.controller.audio.play_sound("click_off.mp3")
@@ -180,6 +180,10 @@ class Voice:
         try:
             self.is_recording = True
             self.switch_btn_stop()
+
+            # stop audio output if playing
+            if self.window.controller.audio.is_playing():
+                self.window.controller.audio.stop_output()
 
             # start timeout timer to prevent infinite recording
             if self.timer is None:
@@ -314,6 +318,7 @@ class Voice:
 
         :param commands: commands list
         """
+        unrecognized = False
         if len(commands) > 0:
             for command in commands:
                 cmd = command["cmd"]
@@ -323,6 +328,8 @@ class Voice:
                 event.data = {
                     "params": params,
                 }
+                if event.name == "unrecognized":
+                    unrecognized = True
                 self.window.core.dispatcher.dispatch(event)
                 self.window.core.debug.info("VOICE CONTROL COMMAND: " + cmd, params)
                 trans_key = "event.control." + cmd
@@ -337,8 +344,9 @@ class Voice:
                     QApplication.processEvents()
 
             # play OK sound
-            if self.window.core.config.get("access.audio.notify.execute"):
-                self.window.controller.audio.play_sound("ok.mp3")
+            if not unrecognized:
+                if self.window.core.config.get("access.audio.notify.execute"):
+                    self.window.controller.audio.play_sound("ok.mp3")
 
     @Slot(object)
     def handle_error(self, data: str):

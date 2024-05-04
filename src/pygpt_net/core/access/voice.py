@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.utils import trans
-from .events import ControlEvent
+from .events import ControlEvent, AppEvent
 
 
 class Voice:
@@ -184,7 +184,7 @@ class Voice:
                             cmds.append(item)
                         else:
                             cmds.append({
-                                "cmd": "unknown",
+                                "cmd": "unrecognized",
                                 "params": ""
                             })
                 except Exception as e:

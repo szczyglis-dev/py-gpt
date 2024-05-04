@@ -74,6 +74,10 @@ class Simple:
             self.is_recording = True
             self.switch_btn_stop()
 
+            # stop audio output if playing
+            if self.plugin.window.controller.audio.is_playing():
+                self.plugin.window.controller.audio.stop_output()
+
             # start timeout timer to prevent infinite recording
             if self.timer is None:
                 self.timer = QTimer()

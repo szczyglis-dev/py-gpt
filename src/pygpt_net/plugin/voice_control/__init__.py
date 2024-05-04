@@ -9,6 +9,7 @@
 # Updated Date: 2024.05.04 11:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -37,6 +38,9 @@ class Plugin(BasePlugin):
             value="Execute voice command",
             label="Magic prefix for voice commands",
             description="Optional magic prefix required for voice commands, e.g. 'OK PyGPT', 'Execute voice command', etc.",
+            urls={
+                "List of commands": "https://pygpt.readthedocs.io/en/latest/accessibility.html",
+            },
         )
 
     def setup(self) -> dict:
@@ -158,7 +162,7 @@ class Plugin(BasePlugin):
                     params = cmd["params"]["args"]
                 if action not in available_commands:
                     voice_commands.append({
-                        "cmd": "unknown",
+                        "cmd": "unrecognized",
                         "params": "",
                     })
                     continue

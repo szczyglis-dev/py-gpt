@@ -69,6 +69,7 @@ class ControlEvent(BaseEvent):
     VOICE_COMMAND_START = "voice_cmd.start"
     VOICE_COMMAND_STOP = "voice_cmd.stop"
     VOICE_COMMAND_TOGGLE = "voice_cmd.toggle"
+    VOICE_CONTROL_UNRECOGNIZED = "unrecognized"
 
 
 class AppEvent(BaseEvent):

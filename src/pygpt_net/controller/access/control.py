@@ -19,6 +19,7 @@ from pygpt_net.utils import trans
 class Control:
 
     CTX_TIMER_DELAY = 2000
+    MODE_TIMER_DELAY = 2000
 
     def __init__(self, window=None):
         """
@@ -30,7 +31,10 @@ class Control:
         self.last_confirm = None
         self.ctx_timer = QTimer(self.window)
         self.ctx_timer.timeout.connect(self.handle_ctx)
+        self.mode_timer = QTimer(self.window)
+        self.mode_timer.timeout.connect(self.handle_mode)
         self.ctx_action = None
+        self.mode_action = None
 
     def handle_ctx(self):
         """Handle context action (delayed)"""
@@ -45,6 +49,20 @@ class Control:
             elif self.ctx_action == ControlEvent.CTX_LAST:
                 self.window.controller.ctx.last()
             self.ctx_action = None
+
+    def handle_mode(self):
+        """Handle mode action (delayed)"""
+        self.mode_timer.stop()
+        if self.mode_action is not None:
+            if self.mode_action == ControlEvent.MODE_NEXT:
+                self.window.controller.mode.next()
+            elif self.mode_action == ControlEvent.MODE_PREV:
+                self.window.controller.mode.prev()
+            elif self.mode_action == ControlEvent.MODE_CHAT:
+                self.window.controller.mode.set("chat")
+            elif self.mode_action == ControlEvent.MODE_LLAMA_INDEX:
+                self.window.controller.mode.set("llama_index")
+            self.mode_action = None
 
     def handle(self, event: ControlEvent, force: bool = False):
         """
@@ -61,11 +79,18 @@ class Control:
 
         # app
         if event.name == ControlEvent.APP_EXIT:
-            self.window.close()
+            if force:
+                self.window.close()
+            else:
+                self.last_confirm = event
+                self.window.controller.audio.read_text(trans("event.audio.confirm"))
         elif event.name == ControlEvent.APP_STATUS:
             status = self.window.core.access.voice.get_status()
             if status != "":
                 self.window.controller.audio.read_text(status)
+
+        if event.name == ControlEvent.VOICE_CONTROL_UNRECOGNIZED:
+            self.window.controller.audio.read_text(trans("event.audio.voice.control.unrecognized"))
 
         # confirm last action
         elif event.name == ControlEvent.CMD_CONFIRM:
@@ -155,13 +180,17 @@ class Control:
 
         # mode
         elif event.name == ControlEvent.MODE_CHAT:
-            self.window.controller.mode.set("chat")
+            self.mode_action = ControlEvent.MODE_CHAT
+            self.mode_timer.start(self.MODE_TIMER_DELAY)
         elif event.name == ControlEvent.MODE_LLAMA_INDEX:
-            self.window.controller.mode.set("llama_index")
+            self.mode_action = ControlEvent.MODE_LLAMA_INDEX
+            self.mode_timer.start(self.MODE_TIMER_DELAY)
         elif event.name == ControlEvent.MODE_NEXT:
-            self.window.controller.mode.next()
+            self.mode_action = ControlEvent.MODE_NEXT
+            self.mode_timer.start(self.MODE_TIMER_DELAY)
         elif event.name == ControlEvent.MODE_PREV:
-            self.window.controller.mode.prev()
+            self.mode_action = ControlEvent.MODE_PREV
+            self.mode_timer.start(self.MODE_TIMER_DELAY)
 
         # model
         elif event.name == ControlEvent.MODEL_NEXT:
