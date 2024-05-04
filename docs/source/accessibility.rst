@@ -14,7 +14,18 @@ In the ``Config / Accessibility`` menu, you can turn on accessibility features s
 - setting up keyboard shortcuts for actions.
 
 
-**To enable voice control:**
+**Using voice control**
+
+Voice control can be turned on in two ways: globally, through settings in ``Config -> Accessibility``, and by using the ``Voice control (inline)`` plugin. Both options let you use the same voice commands, but they work a bit differently - the global option allows you to run commands outside of a conversation, anywhere, while the plugin option lets you execute commands directly during a conversation – allowing you to interact with the model and execute commands at the same time, within the conversation.
+
+In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to ``Plugins -> Settings -> Voice Control (inline)``:
+
+.. code-block:: ini
+
+   Magic prefix for voice commands
+
+
+**Enabling voice control globally**
 
 
 Turn on the voice control option in ``Config / Accessibility``:
@@ -53,6 +64,7 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the input
 - Clear the input
 - Get current conversation info
+- Get available commands list
 - Stop executing current action
 - Clear the attachments
 - Read the last conversation entry

@@ -114,3 +114,16 @@ class Actions:
         for event in events_list_app:
             choices.append({event: f"event.audio.{event}"})
         return choices
+
+    def get_voice_control_choices(self) -> list:
+        """
+        Get voice control choices
+
+        :return: choices
+        """
+        actions = self.window.core.access.voice.get_commands().items()
+        # build choices
+        choices = []
+        for k, v in actions:
+            choices.append({k: v})
+        return choices

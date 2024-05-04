@@ -17,6 +17,7 @@ class ControlEvent(BaseEvent):
     APP_STATUS = "app.status"
     APP_EXIT = "app.exit"
     CMD_CONFIRM = "cmd.confirm"
+    CMD_LIST = "cmd.list"
     AUDIO_OUTPUT_ENABLE = "audio.output.enable"
     AUDIO_OUTPUT_DISABLE = "audio.output.disable"
     AUDIO_INPUT_ENABLE = "audio.input.enable"

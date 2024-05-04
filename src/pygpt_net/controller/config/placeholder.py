@@ -89,6 +89,8 @@ class Placeholder:
             return self.get_access_actions()
         elif id == "speech_synthesis_actions":
             return self.get_speech_synthesis_actions()
+        elif id == "voice_control_actions":
+            return self.get_voice_control_actions()
         else:
             return []
 
@@ -280,6 +282,21 @@ class Placeholder:
         :return: app actions list
         """
         choices = self.window.core.access.actions.get_speech_synthesis_choices()
+        translated_choices = []
+        for choice in choices:
+            for key, value in choice.items():
+                translated_choices.append({key: trans(value)})
+        # sort by translated values
+        translated_choices.sort(key=lambda x: list(x.values())[0])
+        return translated_choices
+
+    def get_voice_control_actions(self) -> list:
+        """
+        Get voice control actions list
+
+        :return: app actions list
+        """
+        choices = self.window.core.access.actions.get_voice_control_choices()
         translated_choices = []
         for choice in choices:
             for key, value in choice.items():

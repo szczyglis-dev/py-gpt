@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.14 (2024-05-04)
+
+- Added a 'Voice Control (inline)' plugin that allows for voice command control directly during a conversation.
+- Added configuration in 'Settings -> Accessibility' for a blacklist of actions available as voice commands.
+
 # 2.2.13 (2024-05-03)
 
 - Added stretch to dictionary config fields.

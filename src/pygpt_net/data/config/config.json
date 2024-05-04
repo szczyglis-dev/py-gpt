@@ -41,6 +41,7 @@
       }        
   ],
   "access.voice_control": false,
+  "access.voice_control.blacklist": [],
   "access.voice_control.model": "gpt-3.5-turbo",
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
@@ -224,7 +225,8 @@
     "idx_llama_index": false,
     "openai_dalle": false,
     "openai_vision": true,
-    "real_time": false
+    "real_time": false,
+    "voice_control": false
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",

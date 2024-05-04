@@ -1487,6 +1487,13 @@ class Patch:
                     data["access.audio.event.speech.disabled"] = []
                 updated = True
 
+            # < 2.2.14
+            if old < parse_version("2.2.14"):
+                print("Migrating config from < 2.2.14...")
+                if 'access.voice_control.blacklist' not in data:
+                    data["access.voice_control.blacklist"] = []
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -13,15 +13,15 @@ import json
 import re
 from datetime import datetime, timedelta
 
+from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.utils import trans
 from .events import ControlEvent
-from ..bridge import BridgeContext
-from ...utils import trans
 
 
 class Voice:
     def __init__(self, window=None):
         """
-        Voice core
+        Voice access core
 
         :param window: Window instance
         """
@@ -40,6 +40,7 @@ class Voice:
             ControlEvent.CAMERA_DISABLE: "Disable the camera",
             ControlEvent.CAMERA_CAPTURE: "Capture image from camera",
             ControlEvent.CMD_CONFIRM: "Confirmation of the command",
+            ControlEvent.CMD_LIST: "Get available commands list",
             ControlEvent.CTX_NEW: "Create a new context",
             ControlEvent.CTX_PREV: "Go to the previous context",
             ControlEvent.CTX_NEXT: "Go to the next context",
@@ -80,19 +81,46 @@ class Voice:
             ControlEvent.VOICE_MESSAGE_TOGGLE: "Toggle listening for voice input",
         }
 
-    def get_prompt(self, text: str):
+    def get_commands(self) -> dict:
         """
-        Get prompt for voice
+        Get available commands
+
+        :return: commands
+        """
+        cmds = {}
+        for k, v in self.commands.items():
+            if not self.is_blacklisted(k):
+                cmds[k] = v
+        return cmds
+
+    def get_commands_string(self, values: bool = False) -> str:
+        """
+        Get available commands as string
+
+        :param values: if True, then only values are returned
+        :return: commands list as string
+        """
+        if values:
+            numbered = {}
+            for i, v in enumerate(self.get_commands().values()):
+                numbered[str(i+1)] = v
+            return "\n".join([f"{k}) {v}" for k, v in numbered.items()])
+        else:
+            return "\n".join([f"{k} = {v}" for k, v in self.get_commands().items()])
+
+    def get_prompt(self, text: str) -> str:
+        """
+        Get prompt for voice command recognition
 
         :param text: text to be spoken
         :return: prompt
         """
-        commands_str = "\n".join([f"{k} = {v}" for k, v in self.commands.items()])
+        commands_str = self.get_commands_string()
         prompt = """
         Recognize the voice command and select the corresponding command from the list below. 
         Return the chosen command ID as a JSON string in the following syntax:
 
-        {"cmd": "command_id", params: "optional message"}
+        {"cmd": "command_id", "params": "optional message"}
         
         If no command matches the voice request, then return "unknown" as the command ID.
         If user provide additional message, it should be extracted from voice command and included (WITHOUT the command part) in the JSON response in "params" param.
@@ -101,16 +129,34 @@ class Voice:
         
         Available command IDs (with descriptions):
         ----------------------
-        """+commands_str+"""
-        
+        """+commands_str+"""        
         
         User's voice input to recognize:
         
         """+text
 
-        return prompt
+        return prompt.strip()
 
-    def extract_json(self, text: str):
+    def get_inline_prompt(self, prefix: str = None) -> str:
+        """
+        Get prompt for inline voice command recognition
+
+        :return: prompt
+        """
+        prefix_str = ""
+        if prefix is not None and prefix.strip() != "":
+            prefix_str = 'or action prefixed via "{}" (or similar)'.format(prefix)
+
+        prompt = """
+           If user provides the voice action (as a text)"""+prefix_str+""" then recognize this voice action and execute the corresponding voice action from the enum list.
+           If no defined actions matches the voice action, then return "unknown" as the action.
+           If user provide additional message, it should be extracted from query and included (WITHOUT the action part) in the "args" param.
+           IMPORTANT: Only execute actions from provided list and remember than list describes only voice actions, not real commands, so don't execute any commands from this list separately.
+           When calling voice action, the action should be returned in a JSON string, without any additional text."""
+
+        return prompt.strip()
+
+    def extract_json(self, text: str) -> list:
         """
         Extract JSON from text
 
@@ -119,6 +165,7 @@ class Voice:
         """
         json_pattern = r'(\{.*?\})'
         cmds = []
+        enabled_cmds = self.get_commands()
         matches = re.findall(json_pattern, text, re.DOTALL)
         if len(matches) > 0:
             for match in matches:
@@ -126,7 +173,7 @@ class Voice:
                     data = json.loads(match)
                     if "cmd" in data:
                         cmd = data["cmd"]
-                        if cmd in self.commands:
+                        if cmd in enabled_cmds:
                             item = {
                                 "cmd": cmd,
                                 "params": data.get("params", "")
@@ -175,6 +222,21 @@ class Voice:
             return False
         for item in data:
             if "muted_action" in item and item["muted_action"] == action:
+                return True
+        return False
+
+    def is_blacklisted(self, action: str) -> bool:
+        """
+        Check if audio control action is blacklisted
+
+        :param action: action name
+        :return: True if blacklisted
+        """
+        data = self.window.core.config.get("access.voice_control.blacklist")
+        if data is None or not isinstance(data, list):
+            return False
+        for item in data:
+            if "disabled_action" in item and item["disabled_action"] == action:
                 return True
         return False
 

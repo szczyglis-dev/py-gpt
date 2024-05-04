@@ -1388,5 +1388,24 @@
         "multiplier": null,
         "step": null,
         "advanced": false
+    },
+    "access.voice_control.blacklist": {
+        "section": "access",
+        "type": "dict",
+        "keys": {
+            "disabled_action": {
+                "type": "combo",
+                "use": "voice_control_actions"
+            }
+        },
+        "slider": false,
+        "label": "settings.access.voice_control.blacklist",
+        "description": "settings.access.voice_control.blacklist.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     }
 }

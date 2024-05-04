@@ -277,6 +277,11 @@ class Control:
                 text = self.window.controller.notepad.get_current_notepad_text()
             self.window.controller.audio.read_text(text)
 
+        # cmd list
+        elif event.name == ControlEvent.CMD_LIST:
+            text = self.window.core.access.voice.get_commands_string(values=True)
+            self.window.controller.audio.read_text(text)
+
     def handle_result(self, event, result: bool = True):
         """
         Play result

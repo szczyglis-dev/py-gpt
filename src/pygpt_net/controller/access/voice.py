@@ -306,6 +306,14 @@ class Voice:
             return
         self.window.core.debug.info("VOICE CONTROL INPUT: " + text)
         commands = self.window.core.access.voice.recognize_commands(text)
+        self.handle_commands(commands)
+
+    def handle_commands(self, commands: list):
+        """
+        Handle commands
+
+        :param commands: commands list
+        """
         if len(commands) > 0:
             for command in commands:
                 cmd = command["cmd"]
@@ -331,11 +339,6 @@ class Voice:
             # play OK sound
             if self.window.core.config.get("access.audio.notify.execute"):
                 self.window.controller.audio.play_sound("ok.mp3")
-
-        else:
-            self.window.ui.status(trans("event.audio.cmd.unrecognized"))
-            QApplication.processEvents()
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_UNRECOGNIZED))
 
     @Slot(object)
     def handle_error(self, data: str):

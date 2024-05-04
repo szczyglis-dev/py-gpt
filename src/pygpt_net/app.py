@@ -12,6 +12,7 @@
 from pygpt_net.launcher import Launcher
 
 # plugins
+from pygpt_net.plugin.voice_control import Plugin as VoiceControlPlugin
 from pygpt_net.plugin.audio_output import Plugin as AudioOutputPlugin
 from pygpt_net.plugin.audio_input import Plugin as AudioInputPlugin
 from pygpt_net.plugin.cmd_api import Plugin as CmdApiPlugin
@@ -282,6 +283,7 @@ def run(**kwargs):
             launcher.add_loader(loader)
 
     # register base plugins
+    launcher.add_plugin(VoiceControlPlugin())
     launcher.add_plugin(AgentPlugin())
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(ExpertsPlugin())
