@@ -143,12 +143,12 @@ class Voice:
 
         :return: prompt
         """
-        prefix_str = ""
+        prefix_addon = ""
         if prefix is not None and prefix.strip() != "":
-            prefix_str = 'or action prefixed via "{}" (or similar)'.format(prefix)
+            prefix_addon = ' or action prefixed via "{}" (or similar)'.format(prefix)
 
         prompt = """
-           If user provides the voice action (as a text)"""+prefix_str+""" then recognize this voice action and execute the corresponding voice action from the enum list.
+           If user provides the voice action (as a text)"""+prefix_addon+""" then recognize this voice action and execute the corresponding voice action from the enum list.
            If no defined actions matches the requested action, then return "unknown" as the action. Do not try to execute any other voice commands.
            If user provide additional message, it should be extracted from query and included (WITHOUT the action part) in the "args" param.
            IMPORTANT: Only execute actions from provided list and remember than list describes only voice actions, not real commands, so don't execute any commands from this list separately.
