@@ -84,6 +84,14 @@ class Plugin(BasePlugin):
                 data['commands'],
             )
 
+        elif name in [
+            Event.ENABLE,
+            Event.DISABLE,
+        ]:
+            if name == Event.ENABLE:
+                if data["value"] == self.id:
+                    self.window.controller.plugins.enable("audio_input")
+
     def prepare_cmd_list(self) -> dict:
         """
         Prepare command list
