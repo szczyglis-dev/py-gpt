@@ -890,6 +890,9 @@ In the plugin (inline) option, you can also turn on a special trigger word that 
 Magic prefix for voice commands
 ```
 
+**Tip:** When the voice control is enabled via a plugin, simply provide commands while providing the content of the conversation by using the standard `Microphone` button.
+
+
 **Enabling voice control globally**
 
 
