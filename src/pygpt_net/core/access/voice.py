@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 15:00:00                  #
+# Updated Date: 2024.05.04 11:00:00                  #
 # ================================================== #
 
 import json
@@ -149,10 +149,13 @@ class Voice:
 
         prompt = """
            If user provides the voice action (as a text)"""+prefix_str+""" then recognize this voice action and execute the corresponding voice action from the enum list.
-           If no defined actions matches the voice action, then return "unknown" as the action.
+           If no defined actions matches the requested action, then return "unknown" as the action. Do not try to execute any other voice commands.
            If user provide additional message, it should be extracted from query and included (WITHOUT the action part) in the "args" param.
            IMPORTANT: Only execute actions from provided list and remember than list describes only voice actions, not real commands, so don't execute any commands from this list separately.
-           When calling voice action, the action should be returned in a JSON string, without any additional text."""
+           When calling voice action, the action should be returned in a JSON string, without any additional text.
+           JSON schema required for voice action is below:
+           {"cmd": "voice_cmd", "params": {"action": "action_id", "args": "optional message"}}
+           """
 
         return prompt.strip()
 
@@ -179,6 +182,11 @@ class Voice:
                                 "params": data.get("params", "")
                             }
                             cmds.append(item)
+                        else:
+                            cmds.append({
+                                "cmd": "unknown",
+                                "params": ""
+                            })
                 except Exception as e:
                     self.window.core.debug.log(e)
         return cmds
