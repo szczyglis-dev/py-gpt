@@ -1,3 +1,9 @@
+2.2.15 (2024-05-04)
+
+- Added audio output stop on audio input start.
+- Added notify about unrecognized command.
+- Voice control improvements.
+
 2.2.14 (2024-05-04)
 
 - Added a 'Voice Control (inline)' plugin that allows for voice command control directly during a conversation.

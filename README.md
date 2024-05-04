@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.14** | build: **2024.05.04** | Python: **>=3.10, <3.12**
+Release: **2.2.15** | build: **2024.05.04** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3263,6 +3263,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.15 (2024-05-04)**
+
+- Added audio output stop on audio input start.
+- Added notify about unrecognized command.
+- Voice control improvements.
 
 **2.2.14 (2024-05-04)**
 
