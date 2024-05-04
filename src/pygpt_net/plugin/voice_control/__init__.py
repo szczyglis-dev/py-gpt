@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.05.04 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
-
-from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -149,6 +147,7 @@ class Plugin(BasePlugin):
 
         # prepare voice commands
         voice_commands = []
+        available_commands = self.window.core.access.voice.get_commands()
         for cmd in my_commands:
             if cmd["cmd"] == "voice_cmd":
                 if "action" not in cmd["params"]:
@@ -157,7 +156,11 @@ class Plugin(BasePlugin):
                 params = ""
                 if "args" in cmd["params"]:
                     params = cmd["params"]["args"]
-                if self.window.core.access.voice.is_blacklisted(action):
+                if action not in available_commands:
+                    voice_commands.append({
+                        "cmd": "unknown",
+                        "params": "",
+                    })
                     continue
                 voice_commands.append({
                     "cmd": action,
