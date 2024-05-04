@@ -3025,6 +3025,8 @@ Config -> Settings...
 
 - `Blacklist for voice synthesis events describe (ignored events)`: list of muted events for 'Use voice synthesis to describe event' option.
 
+- `Voice control actions blacklist`: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
+
 **Updates**
 
 - `Check for updates on start`: Enables checking for updates on start. Default: True.
