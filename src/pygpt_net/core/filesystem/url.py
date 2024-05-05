@@ -41,6 +41,9 @@ class Url:
         if url.toString() == 'bridge://open_find':
             self.window.ui.nodes['output'].find_open()
             return
+        elif url.toString() == 'bridge://escape':
+            self.window.controller.access.on_escape()
+            return
 
         # -------------
 

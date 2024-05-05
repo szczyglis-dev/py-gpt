@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.05 16:00:00                  #
 # ================================================== #
 
 import json
@@ -910,6 +910,10 @@ class Renderer(BaseRenderer):
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
                 window.location.href = 'bridge://open_find'; // send to bridge
+                event.preventDefault();
+            }
+            if (event.key === 'Escape') {
+                window.location.href = 'bridge://escape'; // send to bridge
                 event.preventDefault();
             }
         });
