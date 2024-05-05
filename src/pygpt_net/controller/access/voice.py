@@ -142,7 +142,8 @@ class Voice:
                     event,
                 )
             elif event.name == AppEvent.CTX_END:
-                if not self.window.controller.plugins.is_type_enabled("audio.output"):
+                if (not self.window.controller.plugins.is_type_enabled("audio.output") and
+                        not self.window.controller.plugins.is_type_enabled("audio.control")):
                     self.delayed_play(
                         trans(trans_key),
                         event,

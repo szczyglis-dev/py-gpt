@@ -199,6 +199,9 @@ class Audio:
             if not self.window.core.config.get("access.audio.use_cache"):
                 use_cache = False
 
+        if text is None or text.strip() == "":
+            return
+
         if use_cache:
             lang = self.window.core.config.get("lang")
             cache_dir = os.path.join(self.window.core.config.get_user_path(), "cache", "audio", lang)
