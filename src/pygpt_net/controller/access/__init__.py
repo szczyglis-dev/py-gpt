@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 15:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import BaseEvent
@@ -67,7 +67,16 @@ class Access:
 
     def on_escape(self):
         """Handle escape key"""
+        # stop voice recording if active
         if self.voice.is_recording:
             self.voice.stop_recording(timeout=True)
         if self.window.core.plugins.get("audio_input").handler_simple.is_recording:
             self.window.core.plugins.get("audio_input").handler_simple.stop_recording(timeout=True)
+
+        # stop audio output if playing
+        if self.window.controller.audio.is_playing():
+            self.window.controller.audio.stop_output()
+
+        # stop generating if active
+        if self.window.controller.chat.input.generating:
+            self.window.controller.chat.common.stop()

@@ -3035,6 +3035,8 @@ Config -> Settings...
 
 - `Use voice synthesis to describe events on the screen.`: enables audio description of on-screen events.
 
+- `Use audio output cache`: If enabled, all static audio outputs will be cached on the disk instead of being generated every time. Default: True.
+
 - `Audio notify microphone listening start/stop`: enables audio "tick" notify when microphone listening started/ended.
 
 - `Audio notify voice command execution`: enables audio "tick" notify when voice command is executed.
@@ -3116,6 +3118,7 @@ You can manually edit the configuration files in this directory (this is your wo
 - `attachments.json` - stores the list of current attachments.
 - `config.json` - stores the main configuration settings.
 - `models.json` - stores models configurations.
+- `cache` - a directory for audio cache.
 - `capture` - a directory for captured images from camera and screenshots
 - `css` - a directory for CSS stylesheets (user override)
 - `history` - a directory for context history in `.txt` format.

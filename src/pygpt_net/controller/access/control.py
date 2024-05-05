@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.04 11:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 import re
@@ -83,14 +83,23 @@ class Control:
                 self.window.close()
             else:
                 self.last_confirm = event
-                self.window.controller.audio.read_text(trans("event.audio.confirm"))
+                self.window.controller.audio.play_event(
+                    trans("event.audio.confirm"),
+                    event,
+                )
         elif event.name == ControlEvent.APP_STATUS:
-            status = self.window.core.access.voice.get_status()
+            status = self.window.core.access.helpers.get_status()
             if status != "":
-                self.window.controller.audio.read_text(status)
+                self.window.controller.audio.play_event(
+                    status,
+                    event,
+                )
 
         if event.name == ControlEvent.VOICE_CONTROL_UNRECOGNIZED:
-            self.window.controller.audio.read_text(trans("event.audio.voice.control.unrecognized"))
+            self.window.controller.audio.play_event(
+                trans("event.audio.voice.control.unrecognized"),
+                event,
+            )
 
         # confirm last action
         elif event.name == ControlEvent.CMD_CONFIRM:
@@ -130,24 +139,36 @@ class Control:
         elif event.name == ControlEvent.CTX_ATTACHMENTS_CLEAR:
             self.window.controller.attachment.clear(force=True)
         elif event.name == ControlEvent.CTX_CURRENT:
-            status = self.window.core.access.voice.get_current_ctx()
+            status = self.window.core.access.helpers.get_current_ctx()
             if status != "":
-                self.window.controller.audio.read_text(status)
+                self.window.controller.audio.play_event(
+                    status,
+                    event,
+                )
         elif event.name == ControlEvent.CTX_READ_LAST:
-            text = self.window.core.access.voice.get_last_ctx_item()
+            text = self.window.core.access.helpers.get_last_ctx_item()
             if text != "":
-                self.window.controller.audio.read_text(text)
+                self.window.controller.audio.play_event(
+                    text,
+                    event,
+                )
         elif event.name == ControlEvent.CTX_READ_ALL:
-            text = self.window.core.access.voice.get_all_ctx_items()
+            text = self.window.core.access.helpers.get_all_ctx_items()
             if text != "":
-                self.window.controller.audio.read_text(text)
+                self.window.controller.audio.play_event(
+                    text,
+                    event,
+                )
         elif event.name == ControlEvent.CTX_RENAME:
             if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
                     self.window.controller.ctx.update_name_current(msg)
                     msg = trans("event.audio.ctx.rename").format(ctx=msg)
-                    self.window.controller.audio.read_text(msg)
+                    self.window.controller.audio.play_event(
+                        msg,
+                        event,
+                    )
         elif event.name == ControlEvent.CTX_SEARCH_STRING:
             if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
@@ -155,7 +176,10 @@ class Control:
                     self.window.controller.ctx.append_search_string(msg)
                     num = self.window.core.ctx.count_found_meta()
                     msg = trans("event.audio.ctx.search.string").format(num=num)
-                    self.window.controller.audio.read_text(msg)
+                    self.window.controller.audio.play_event(
+                        msg,
+                        event,
+                    )
         elif event.name == ControlEvent.CTX_SEARCH_CLEAR:
                 self.window.controller.ctx.search_string_clear()
                 self.handle_result(event, True)
@@ -173,10 +197,16 @@ class Control:
                 self.handle_result(event, True)
             else:
                 self.last_confirm = event
-                self.window.controller.audio.read_text(trans("event.audio.confirm"))
+                self.window.controller.audio.play_event(
+                    trans("event.audio.confirm"),
+                    event,
+                )
         elif event.name == ControlEvent.CALENDAR_READ:
             text = self.window.controller.calendar.note.get_note_text()
-            self.window.controller.audio.read_text(text)
+            self.window.controller.audio.play_event(
+                text,
+                event,
+            )
 
         # mode
         elif event.name == ControlEvent.MODE_CHAT:
@@ -315,7 +345,10 @@ class Control:
                         self.handle_result(event, True)
             else:
                 self.last_confirm = event
-                self.window.controller.audio.read_text(trans("event.audio.confirm"))
+                self.window.controller.audio.play_event(
+                    trans("event.audio.confirm"),
+                    event,
+                )
         elif event.name == ControlEvent.NOTEPAD_READ:
             if event.data is not None and "params" in event.data and event.data["params"] != "":
                 idx = 1
@@ -329,12 +362,18 @@ class Control:
                 text = self.window.controller.notepad.get_notepad_text(idx)
             else:
                 text = self.window.controller.notepad.get_current_notepad_text()
-            self.window.controller.audio.read_text(text)
+            self.window.controller.audio.play_event(
+                text,
+                event,
+            )
 
         # cmd list
         elif event.name == ControlEvent.CMD_LIST:
             text = self.window.core.access.voice.get_commands_string(values=True)
-            self.window.controller.audio.read_text(text)
+            self.window.controller.audio.play_event(
+                text,
+                event,
+            )
 
     def handle_result(self, event, result: bool = True):
         """
@@ -347,4 +386,7 @@ class Control:
             return
         if self.window.core.access.voice.is_muted(event.name):
             return
-        self.window.controller.audio.read_text(trans("event.audio." + event.name))
+        self.window.controller.audio.play_event(
+            trans("event.audio." + event.name),
+            event,
+        )

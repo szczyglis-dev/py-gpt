@@ -7,6 +7,7 @@
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
   "access.audio.notify.execute": true,
+  "access.audio.use_cache": true,
   "access.microphone.notify": true,
   "access.shortcuts": [
       {

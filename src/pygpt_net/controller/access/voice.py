@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.04 11:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -51,6 +51,7 @@ class Voice:
             ControlEvent.CALENDAR_CLEAR,
         ]
         self.pending_text = None
+        self.pending_event = None
         self.play_timer = QTimer(self.window)
         self.play_timer.timeout.connect(self.play_audio)
 
@@ -58,21 +59,27 @@ class Voice:
         """Setup voice control"""
         self.update()
 
-    def delayed_play(self, text: str):
+    def delayed_play(self, text: str, event: AppEvent = None):
         """
         Delayed play audio
 
         :param text: text to play
+        :param event: AppEvent
         """
         self.pending_text = text
+        self.pending_event = event
         self.play_timer.start(self.PLAY_DELAY)
 
     def play_audio(self):
         """Play current pending audio"""
         self.play_timer.stop()
-        if self.pending_text is not None:
-            self.window.controller.audio.read_text(self.pending_text)
+        if self.pending_text is not None and self.pending_event is not None:
+            self.window.controller.audio.play_event(
+                self.pending_text,
+                self.pending_event,
+            )  # use cached audio if available
             self.pending_text = None
+            self.pending_event = None
 
     def play(self, event: AppEvent):
         """
@@ -111,30 +118,41 @@ class Voice:
 
             if event.name == AppEvent.CTX_SELECTED:
                 self.delayed_play(
-                    self.window.core.access.voice.get_selected_ctx()  # with info about ctx
+                    self.window.core.access.helpers.get_selected_ctx(),  # with info about ctx
+                    event,
                 )
             elif event.name == AppEvent.MODE_SELECTED:
                 self.delayed_play(
-                    self.window.core.access.voice.get_selected_mode()  # with info about mode
+                    self.window.core.access.helpers.get_selected_mode(),  # with info about mode
+                    event,
                 )
             elif event.name == AppEvent.MODEL_SELECTED:
                 self.delayed_play(
-                    self.window.core.access.voice.get_selected_model()  # with info about model
+                    self.window.core.access.helpers.get_selected_model(),  # with info about model
+                    event,
                 )
             elif event.name == AppEvent.PRESET_SELECTED:
                 self.delayed_play(
-                    self.window.core.access.voice.get_selected_preset()  # with info about preset
+                    self.window.core.access.helpers.get_selected_preset(),  # with info about preset
+                    event,
                 )
             elif event.name == AppEvent.TAB_SELECTED:
                 self.delayed_play(
-                    self.window.core.access.voice.get_selected_tab()  # with info about tab
+                    self.window.core.access.helpers.get_selected_tab(),  # with info about tab
+                    event,
                 )
             elif event.name == AppEvent.CTX_END:
                 if not self.window.controller.plugins.is_type_enabled("audio.output"):
-                    self.delayed_play(trans(trans_key))  # only if audio output is disabled
+                    self.delayed_play(
+                        trans(trans_key),
+                        event,
+                    )  # only if audio output is disabled
             else:
                 # handle rest of events
-                self.delayed_play(trans(trans_key))
+                self.delayed_play(
+                    trans(trans_key),
+                    event,
+                )
             self.window.core.debug.info("AUDIO EVENT PLAY: " + event.name)
 
     def update(self):
@@ -143,6 +161,31 @@ class Voice:
             self.window.ui.nodes['voice.control.btn'].setVisible(True)
         else:
             self.window.ui.nodes['voice.control.btn'].setVisible(False)
+
+        self.window.controller.audio.update()  # update audio menu, etc.
+
+    def enable_voice_control(self):
+        """Enable voice control"""
+        self.window.core.config.set("access.voice_control", True)
+        self.window.core.config.save()
+        self.update()
+
+    def disable_voice_control(self):
+        """Disable voice control"""
+        self.window.core.config.set("access.voice_control", False)
+        self.window.core.config.save()
+        self.update()
+
+    def toggle_voice_control(self):
+        """Toggle voice control"""
+        if self.is_voice_control_enabled():
+            self.disable_voice_control()
+        else:
+            self.enable_voice_control()
+
+    def is_voice_control_enabled(self) -> bool:
+        """Check if voice control is enabled"""
+        return self.window.core.config.get("access.voice_control")
 
     def toggle_recording(self):
         """Toggle recording"""

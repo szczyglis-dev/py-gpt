@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -77,6 +77,10 @@ class Confirm:
             self.window.tools.get("transcriber").transcribe(id, force=True)
         elif type == 'audio.transcribe.clear':
             self.window.tools.get("transcriber").clear(True)
+
+        # audio cache clear
+        elif type == 'audio.cache.clear':
+            self.window.controller.audio.clear_cache(True)
 
         # restore default CSS
         elif type == 'restore.css':

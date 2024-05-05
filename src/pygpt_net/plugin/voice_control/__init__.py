@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.04 11:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -20,7 +20,10 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "voice_control"
         self.name = "Voice Control (inline)"
-        self.type = ["cmd.inline"]
+        self.type = [
+            "cmd.inline",
+            "audio.control",
+        ]
         self.description = "Provide voice control command execution within a conversation."
         self.input_text = None
         self.allowed_cmds = [
@@ -39,7 +42,7 @@ class Plugin(BasePlugin):
             label="Magic prefix for voice commands",
             description="Optional magic prefix required for voice commands, e.g. 'OK PyGPT', 'Execute voice command', etc.",
             urls={
-                "List of commands": "https://pygpt.readthedocs.io/en/latest/accessibility.html",
+                "Help": "https://pygpt.readthedocs.io/en/latest/accessibility.html",
             },
         )
 

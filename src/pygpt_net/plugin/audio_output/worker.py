@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -27,6 +27,7 @@ class Worker(BaseWorker):
         self.plugin = None
         self.text = None
         self.event = None
+        self.cache_file = None  # path to cache file
 
     @Slot()
     def run(self):
@@ -39,6 +40,24 @@ class Worker(BaseWorker):
                 self.stop_playback()  # stop previous playback
                 playback.play()
                 self.send(playback)  # send playback object to main thread
+
+                # store in cache if enabled
+                if self.cache_file:
+                    self.cache_audio_file(path, self.cache_file)
+        except Exception as e:
+            self.error(e)
+
+    def cache_audio_file(self, src: str, dst: str):
+        """
+        Store audio file in cache
+
+        :param src: source path
+        :param dst: destination path
+        """
+        import shutil
+        try:
+            shutil.copy(src, dst)
+            print("Cached audio file:", dst)
         except Exception as e:
             self.error(e)
 

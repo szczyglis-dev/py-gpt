@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 10:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -140,7 +140,7 @@ class Plugin(BasePlugin):
             Event.CTX_AFTER,
             Event.AUDIO_READ_TEXT
         ]:
-            self.on_ctx_after(ctx, name)
+            self.on_ctx_after(ctx, event)
 
         elif name == Event.AUDIO_OUTPUT_STOP:
             self.stop_audio()
@@ -153,12 +153,12 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def on_ctx_after(self, ctx: CtxItem, name: str):
+    def on_ctx_after(self, ctx: CtxItem, event: Event):
         """
         Events: CTX_AFTER, AUDIO_READ_TEXT
 
         :param ctx: CtxItem
-        :param name: event name
+        :param event: Event
         """
         # check if provider is configured
         if not self.get_provider().is_configured():
@@ -166,13 +166,19 @@ class Plugin(BasePlugin):
             self.window.ui.dialogs.alert(msg)
             return
 
+        name = event.name
         text = ctx.output
+        cache_file = None
+        if event.data is not None and isinstance(event.data, dict) and "cache_file" in event.data:
+            cache_file = event.data["cache_file"]
+        
         try:
             if text is not None and len(text) > 0:
                 # worker
                 worker = Worker()
                 worker.plugin = self
                 worker.event = name
+                worker.cache_file = cache_file
                 worker.text = self.window.core.audio.clean_text(text)
 
                 # signals

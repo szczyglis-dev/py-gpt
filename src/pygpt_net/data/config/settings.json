@@ -1343,6 +1343,19 @@
         "step": null,
         "advanced": false
     },
+    "access.audio.use_cache": {
+        "section": "access",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.access.audio.use_cache",
+        "description": "settings.access.audio.use_cache.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "access.shortcuts": {
         "section": "access",
         "type": "dict",
