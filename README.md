@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.15** | build: **2024.05.04** | Python: **>=3.10, <3.12**
+Release: **2.2.16** | build: **2024.05.05** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3266,6 +3266,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.16 (2024-05-05)**
+
+- Escape key now stops response generation and audio output (if playing).
+- Voice control options added to the Audio menu.
+- Added cache on disk for generated static audio content.
+- Added plugin translations for other languages.
 
 **2.2.15 (2024-05-04)**
 

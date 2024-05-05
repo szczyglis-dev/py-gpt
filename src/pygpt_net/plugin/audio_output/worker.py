@@ -57,7 +57,7 @@ class Worker(BaseWorker):
         import shutil
         try:
             shutil.copy(src, dst)
-            print("Cached audio file:", dst)
+            # print("Cached audio file:", dst)
         except Exception as e:
             self.error(e)
 

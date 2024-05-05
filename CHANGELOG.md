@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.2.16 (2024-05-05)
+
+- Escape key now stops response generation and audio output (if playing).
+- Voice control options added to the Audio menu.
+- Added cache on disk for generated static audio content.
+- Added plugin translations for other languages.
+
 # 2.2.15 (2024-05-04)
 
 - Added audio output stop on audio input start.
