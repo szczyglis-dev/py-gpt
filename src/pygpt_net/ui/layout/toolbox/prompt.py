@@ -9,13 +9,13 @@
 # Updated Date: 2024.03.15 15:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import Qt
+from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
 from pygpt_net.utils import trans
-
+import pygpt_net.icons_rc
 
 class Prompt:
     def __init__(self, window=None):
@@ -43,7 +43,7 @@ class Prompt:
         self.window.ui.nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))
 
         # clear
-        self.window.ui.nodes['preset.clear'] = QPushButton(trans('preset.clear'))
+        self.window.ui.nodes['preset.clear'] = QPushButton(QIcon(":/icons/close.svg"),"")
         self.window.ui.nodes['preset.clear'].clicked.connect(
             lambda: self.window.controller.presets.clear())
 

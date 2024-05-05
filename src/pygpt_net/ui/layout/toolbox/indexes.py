@@ -9,14 +9,14 @@
 # Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
-from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Indexes:
@@ -50,7 +50,7 @@ class Indexes:
         :return: QVBoxLayout
         """
         # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(trans('idx.new'))
+        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
         self.window.ui.nodes['indexes.new'].clicked.connect(
             lambda: self.window.controller.settings.open_section('llama-index'))
 
@@ -126,7 +126,7 @@ class Indexes:
         # self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
 
         # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(trans('idx.new'))
+        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
         self.window.ui.nodes['indexes.new'].clicked.connect(
             lambda: self.window.controller.settings.open_section('llama-index'))
 

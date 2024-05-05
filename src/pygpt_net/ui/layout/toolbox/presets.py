@@ -10,14 +10,14 @@
 # ================================================== #
 
 from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSplitter, QWidget
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 from pygpt_net.ui.layout.toolbox.footer import Footer
 from pygpt_net.utils import trans
-
+import pygpt_net.icons_rc
 
 class Presets:
     def __init__(self, window=None):
@@ -53,7 +53,7 @@ class Presets:
 
         :return: QVBoxLayout
         """
-        self.window.ui.nodes['preset.presets.new'] = QPushButton(trans('preset.new'))
+        self.window.ui.nodes['preset.presets.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
         self.window.ui.nodes['preset.presets.new'].clicked.connect(
             lambda: self.window.controller.presets.editor.edit()
         )

@@ -99,13 +99,13 @@ class Mapping:
         nodes['prompt.mode.label'] = 'toolbox.mode.label'
         nodes['prompt.model.label'] = 'toolbox.model.label'
         nodes['preset.presets.label'] = 'toolbox.presets.label'
-        nodes['preset.presets.new'] = 'preset.new'
-        nodes['preset.clear'] = 'preset.clear'
+        # nodes['preset.presets.new'] = 'preset.new'
+        # nodes['preset.clear'] = 'preset.clear'
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
         nodes["indexes.label"] = "toolbox.indexes.label"
-        nodes["indexes.new"] = "idx.new"
+        # nodes["indexes.new"] = "idx.new"
 
         # input
         nodes['input.label'] = 'input.label'
@@ -130,7 +130,7 @@ class Mapping:
 
         # assistants
         nodes['assistants.label'] = 'toolbox.assistants.label'
-        nodes['assistants.new'] = 'assistant.new'
+        # nodes['assistants.new'] = 'assistant.new'
         nodes['assistants.import'] = 'assistant.import'
         nodes['assistant.btn.save'] = 'dialog.assistant.btn.save'
         nodes['assistant.btn.close'] = 'dialog.assistant.btn.close'
@@ -338,7 +338,7 @@ class Mapping:
         menu_text['info.github'] = 'menu.info.github'
         menu_text['audio.output'] = 'menu.audio.output'
         menu_text['audio.input'] = 'menu.audio.input'
-        menu_text['audio.control.inline'] = 'menu.audio.control.inline'
+        menu_text['audio.control.plugin'] = 'menu.audio.control.plugin'
         menu_text['audio.control.global'] = 'menu.audio.control.global'
         menu_text['audio.cache.clear'] = 'menu.audio.cache.clear'
         menu_text['video.capture'] = 'menu.video.capture'

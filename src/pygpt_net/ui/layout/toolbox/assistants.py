@@ -10,13 +10,13 @@
 # ================================================== #
 
 from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel, Qt
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.assistant import AssistantList
 from pygpt_net.utils import trans
-
+import pygpt_net.icons_rc
 
 class Assistants:
     def __init__(self, window=None):
@@ -49,7 +49,7 @@ class Assistants:
         :return: QVBoxLayout
         """
         # new
-        self.window.ui.nodes['assistants.new'] = QPushButton(trans('assistant.new'))
+        self.window.ui.nodes['assistants.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
         self.window.ui.nodes['assistants.new'].clicked.connect(
             lambda: self.window.controller.assistant.editor.edit())
 
@@ -66,8 +66,9 @@ class Assistants:
         header = QHBoxLayout()
         header.addWidget(self.window.ui.nodes['assistants.label'])
         header.addStretch(1)
-        header.addWidget(self.window.ui.nodes['assistants.import'], alignment=Qt.AlignRight)
+
         header.addWidget(self.window.ui.nodes['assistants.new'], alignment=Qt.AlignRight)
+        header.addWidget(self.window.ui.nodes['assistants.import'], alignment=Qt.AlignRight)
         header.setContentsMargins(0, 0, 0, 0)
         header_widget = QWidget()
         header_widget.setLayout(header)
