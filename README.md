@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.16** | build: **2024.05.05** | Python: **>=3.10, <3.12**
+Release: **2.2.17** | build: **2024.05.05** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3266,6 +3266,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.17 (2024-05-05)**
+
+- Fix: Added prevent try to play audio if empty output.
+- Disabled playing finish event on audio or voice control enabled.
 
 **2.2.16 (2024-05-05)**
 

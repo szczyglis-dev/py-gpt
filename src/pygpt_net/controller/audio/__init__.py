@@ -147,6 +147,9 @@ class Audio:
         :param text: text to read
         :param cache_file: cache file to save
         """
+        if text is None or text.strip() == "":
+            return
+
         ctx = CtxItem()
         ctx.output = text
         all = True  # to all plugins (even if disabled)

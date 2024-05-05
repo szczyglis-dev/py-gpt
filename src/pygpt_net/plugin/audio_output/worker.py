@@ -33,6 +33,9 @@ class Worker(BaseWorker):
     def run(self):
         from pygame import mixer
         try:
+            if self.text is None or self.text == "":
+                self.stop_playback()  # stop previous playback
+                return
             path = self.plugin.get_provider().speech(self.text)
             if path:
                 mixer.init()

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.17 (2024-05-05)
+
+- Fix: Added prevent try to play audio if empty output.
+- Disabled playing finish event on audio or voice control enabled.
+
 # 2.2.16 (2024-05-05)
 
 - Escape key now stops response generation and audio output (if playing).
