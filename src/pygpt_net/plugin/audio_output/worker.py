@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
+import time
 
 from PySide6.QtCore import Slot, Signal
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
@@ -34,7 +35,7 @@ class Worker(BaseWorker):
         from pygame import mixer
         try:
             if self.text is None or self.text == "":
-                self.stop_playback()  # stop previous playback
+                time.sleep(0.2)  # wait
                 return
             path = self.plugin.get_provider().speech(self.text)
             if path:
