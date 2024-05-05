@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.2.18 (2024-05-05)
+
+- Fix: prevent crash if no audio to play.
+
 # 2.2.17 (2024-05-05)
 
 - Fix: Added prevent try to play audio if empty output.
