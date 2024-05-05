@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -162,7 +162,7 @@ class Editor:
 
         # access: voice control
         if self.config_changed('access.voice_control'):
-            self.window.controller.access.update()
+            self.window.controller.access.voice.update()
 
         # reload loaders
         if self.config_changed('llama.hub.loaders.args') or self.config_changed('llama.hub.loaders.use_local'):
@@ -255,7 +255,7 @@ class Editor:
         # access: voice control
         elif key == "access.voice_control":
             self.window.core.config.set(key, value)
-            self.window.controller.access.update()
+            self.window.controller.access.voice.update()
 
         # update raw output
         elif key == "render.plain":

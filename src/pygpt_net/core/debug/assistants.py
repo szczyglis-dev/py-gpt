@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
-
 
 class AssistantsDebug:
     def __init__(self, window=None):
@@ -56,7 +55,11 @@ class AssistantsDebug:
 
         self.window.core.debug.add(self.id, '----', '')
 
-        self.window.core.debug.add(self.id, 'Store (items)', str(self.window.core.assistants.store.items))
+        store_items = {}
+        for id in self.window.core.assistants.store.items:
+            store_items[id] = self.window.core.assistants.store.items[id].to_dict()
+
+        self.window.core.debug.add(self.id, 'Store (items)', str(store_items))
         #self.window.core.debug.add(self.id, 'Store (items)', str(self.window.core.assistants.store.items))
 
         self.window.core.debug.end(self.id)

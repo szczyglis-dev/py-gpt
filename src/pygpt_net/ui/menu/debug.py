@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.05.05 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -33,6 +33,7 @@ class Debug:
         self.window.ui.menu['debug.attachments'] = QAction(trans("menu.debug.attachments"), self.window, checkable=True)
         self.window.ui.menu['debug.assistants'] = QAction(trans("menu.debug.assistants"), self.window, checkable=True)
         self.window.ui.menu['debug.agent'] = QAction(trans("menu.debug.agent"), self.window, checkable=True)
+        self.window.ui.menu['debug.events'] = QAction(trans("menu.debug.events"), self.window, checkable=True)
         self.window.ui.menu['debug.indexes'] = QAction(trans("menu.debug.indexes"), self.window, checkable=True)
         self.window.ui.menu['debug.ui'] = QAction(trans("menu.debug.ui"), self.window, checkable=True)
         self.window.ui.menu['debug.db'] = QAction(trans("menu.debug.db"), self.window, checkable=True)
@@ -55,6 +56,8 @@ class Debug:
             lambda: self.window.controller.debug.toggle('assistants'))
         self.window.ui.menu['debug.agent'].triggered.connect(
             lambda: self.window.controller.debug.toggle('agent'))
+        self.window.ui.menu['debug.events'].triggered.connect(
+            lambda: self.window.controller.debug.toggle('events'))
         self.window.ui.menu['debug.indexes'].triggered.connect(
             lambda: self.window.controller.debug.toggle('indexes'))
         self.window.ui.menu['debug.logger'].triggered.connect(
@@ -76,6 +79,7 @@ class Debug:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.assistants'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.indexes'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.agent'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.events'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.ui'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.db'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
