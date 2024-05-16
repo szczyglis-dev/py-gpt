@@ -48,7 +48,7 @@ parts:
       - libxcb-cursor0
     override-build: |
       snapcraftctl build
-      find $SNAPCRAFT_PART_INSTALL -name 'onnxruntime_pybind11_state.cpython-310-x86_64-linux-gnu.so' -exec execstack --clear-execstack {} \;
+      find $SNAPCRAFT_PART_INSTALL -name 'onnxruntime_pybind11_state.cpython-310-${SNAPCRAFT_ARCH_TRIPLET}.so' -exec execstack --clear-execstack {} \;
       cp -r $SNAPCRAFT_PART_SRC/snaprun.sh $SNAPCRAFT_PART_INSTALL/
       cp -r $SNAPCRAFT_PART_SRC/src $SNAPCRAFT_PART_INSTALL/
       python3 -m nltk.downloader -d $SNAPCRAFT_PART_INSTALL/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache stopwords punkt
@@ -67,7 +67,7 @@ apps:
       "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
       "PYTHONPATH": "$PYTHONPATH:$SNAP/usr/lib/python3/dist-packages:$SNAP/src"
       "QT_XKB_CONFIG_ROOT": "$SNAP/usr/share/X11/xkb"
-      "LIBGL_DRIVERS_PATH": "$SNAP/usr/lib/x86_64-linux-gnu/dri"
+      "LIBGL_DRIVERS_PATH": "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
       "QTWEBENGINEPROCESS_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
       "QML_IMPORT_PATH": "$SNAP/qml"
       "QML2_IMPORT_PATH": "$SNAP/qml"
