@@ -9,7 +9,7 @@ grade: stable  # 'stable', 'devel'
 confinement: strict  # 'strict', 'classic', 'devmode'
 architectures:
     - build-on: amd64
-      build-for: [amd64, i386]
+      build-for: [amd64]
     - build-on: i386
       build-for: [i386]
 
