@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.18** | build: **2024.05.05** | Python: **>=3.10, <3.12**
+Release: **2.2.19** | build: **2024.05.16** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3266,6 +3266,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.19 (2024-05-16)**
+
+- Added a newest multimodal model: GPT-4 "omni": https://openai.com/index/hello-gpt-4o
 
 **2.2.18 (2024-05-05)**
 

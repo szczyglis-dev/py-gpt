@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.05.16 02:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -221,6 +221,12 @@ class Patch:
                     if model.id.startswith("gpt-") and model.id not in exclude:
                         if "expert" not in model.mode:
                             model.mode.append("expert")
+                updated = True
+
+            # < 2.2.19  <--- add gpt-4o
+            if old < parse_version("2.2.19"):
+                print("Migrating models from < 2.2.19...")
+                # add gpt-4o
                 updated = True
 
         # update file

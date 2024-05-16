@@ -1,3 +1,7 @@
+2.2.19 (2024-05-16)
+
+- Added a newest multimodal model: GPT-4 "omni": https://openai.com/index/hello-gpt-4o
+
 2.2.18 (2024-05-05)
 
 - Fix: prevent crash if no audio to play.

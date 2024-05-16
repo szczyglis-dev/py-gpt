@@ -223,6 +223,15 @@ class Mapping:
         nodes['dialog.license.label'] = 'dialog.license.label'
         nodes['dialog.license.accept'] = 'dialog.license.accept'
 
+        # dialog: about
+        nodes['dialog.about.btn.website'] = 'about.btn.website'
+        nodes['dialog.about.btn.github'] = 'about.btn.github'
+        nodes['dialog.about.btn.support'] = 'about.btn.support'
+        nodes['dialog.about.thanks'] = 'about.thanks'
+        nodes['dialog.about.thanks.contributors'] = 'about.thanks.contributors'
+        nodes['dialog.about.thanks.supporters'] = 'about.thanks.supporters'
+        nodes['dialog.about.thanks.sponsors'] = 'about.thanks.sponsors'
+
         # dialog: find
         nodes['dialog.find.btn.clear'] = 'dialog.find.btn.clear'
         nodes['dialog.find.btn.find_prev'] = 'dialog.find.btn.find_prev'

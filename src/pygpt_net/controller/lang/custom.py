@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.05.16 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -76,7 +76,6 @@ class Custom:
 
         # dialog: about
         self.window.ui.nodes['dialog.about.content'].setText(trans(self.window.ui.dialogs.about.prepare_content()))
-        self.window.ui.nodes['dialog.about.thanks'].setText(trans('about.thanks') + ":")
 
         # settings: llama-idx
         self.window.controller.idx.settings.update_text_last_updated()

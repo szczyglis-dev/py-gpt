@@ -44,6 +44,8 @@ class Info:
             self.window.ui.dialogs.close('info.' + id)
             self.active[id] = False
         else:
+            if id == 'about':
+                self.window.ui.dialogs.about.prepare()
             self.window.ui.dialogs.open(
                 'info.' + id,
                 width=width,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.05.16 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -32,6 +32,9 @@ class Updater:
         :param window: Window instance
         """
         self.window = window
+        self.contributors = None  # cache
+        self.donates = None  # cache
+        self.sponsors = None  # cache
 
     def patch(self):
         """Patch config data to current version"""
@@ -211,6 +214,47 @@ class Updater:
         """
         return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
 
+    def get_support(self) -> (str, str, str):
+        """
+        Get contributors, donates and sponsors
+
+        :return: (contributors, donates, sponsors)
+        """
+        url = self.get_updater_url()
+        self.contributors = ""
+        self.donates = ""
+        self.sponsors = ""
+        try:
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = True
+            req = Request(
+                url=url,
+                headers={'User-Agent': 'Mozilla/5.0'},
+            )
+            response = urlopen(req, context=ctx, timeout=5)
+            data_json = json.loads(response.read())
+            if "contributors" in data_json:
+                self.contributors = data_json["contributors"]
+            if "sponsors" in data_json:
+                self.sponsors = data_json["sponsors"]
+            if "donates" in data_json:
+                self.donates = data_json["donates"]
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Failed to fetch data")
+
+        return self.contributors, self.donates, self.sponsors
+
+    def get_or_fetch_support(self) -> (str, str, str):
+        """
+        Get contributors, donates and sponsors
+
+        :return: (contributors, donates, sponsors)
+        """
+        if self.contributors is None or self.donates is None or self.sponsors is None:
+            return self.get_support()
+        return self.contributors, self.donates, self.sponsors
+
     def check_silent(self) -> (bool, str, str, str, str, str):
         """
         Check version in background
@@ -247,6 +291,12 @@ class Updater:
                 download_windows = data_json["download_windows"]
             if "download_linux" in data_json:
                 download_linux = data_json["download_linux"]
+            if "contributors" in data_json:
+                self.contributors = data_json["contributors"]
+            if "sponsors" in data_json:
+                self.sponsors = data_json["sponsors"]
+            if "donates" in data_json:
+                self.donates = data_json["donates"]
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.meta['version'])
