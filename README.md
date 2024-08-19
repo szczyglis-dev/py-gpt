@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.19** | build: **2024.05.16** | Python: **>=3.10, <3.12**
+Release: **2.2.20** | build: **2024.08.20** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -731,6 +731,7 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 - `credentials_path` - str, default: `credentials.json`
 - `token_path` - str, default: `token.json`
 - `pydrive_creds_path` - str, default: `creds.txt`
+- `client_config` - dict, default: `{}`
 
 **Google Gmail** (web_google_gmail)
 
@@ -3266,6 +3267,17 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.20 (2024-08-20)**
+
+- Llama-index upgraded to `0.10.65`
+- Langchain upgraded to `0.2.14`
+- OpenAI API upgraded to `1.41.0`
+- Added new model: `gpt-4o-mini`
+- Added native API function calls by default
+- Added functions importer (from plugins) into assistants
+- Fixed: input message disappear on command response in stream mode
+- Fixed: assistants tool outputs submitting
 
 **2.2.19 (2024-05-16)**
 

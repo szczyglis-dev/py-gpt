@@ -1,5 +1,16 @@
 # CHANGELOG
 
+# 2.2.20 (2024-08-20)
+
+- Llama-index upgraded to 0.10.65
+- Langchain upgraded to 0.2.14
+- OpenAI API upgraded to 1.41.0
+- Added new model: gpt-4o mini
+- Added native API function calls by default
+- Added functions importer (from plugins) into assistants
+- Fixed: input message disappear on command response in stream mode
+- Fixed: assistants tool outputs submitting
+
 # 2.2.19 (2024-05-16)
 
 - Added a newest multimodal model: GPT-4 "omni": https://openai.com/index/hello-gpt-4o
