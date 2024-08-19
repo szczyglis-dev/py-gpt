@@ -198,7 +198,7 @@ class Text:
             func_plugins = self.window.core.command.as_native_functions()
         if func_user is None:
             func_user = []
-        functions = func_user + func_plugins  # merge both
+        functions = func_plugins + func_user  # merge both
 
         # assistant only
         tools_outputs = []
