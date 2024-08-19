@@ -191,8 +191,14 @@ class Text:
         # process events to update UI
         # QApplication.processEvents()
 
-        # get external functions (if preset is chosen and functions are defined)
-        functions = self.window.controller.presets.get_current_functions()
+        # FUNC CALLS: prepare user & plugins function calls
+        func_plugins = []
+        func_user = self.window.controller.presets.get_current_functions()
+        if self.window.core.command.is_native_enabled():
+            func_plugins = self.window.core.command.as_native_functions()
+        if func_user is None:
+            func_user = []
+        functions = func_user + func_plugins  # merge both
 
         # assistant only
         tools_outputs = []

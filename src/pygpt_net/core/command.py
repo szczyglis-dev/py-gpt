@@ -12,6 +12,7 @@
 import copy
 import json
 
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -294,3 +295,137 @@ class Command:
             ctx.extra = {}
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
+
+    def as_native_functions(self) -> list:
+        """
+        Convert internal functions to native API format
+
+        :return: native functions list
+        """
+        """
+        # Native API format (example):
+        # https://platform.openai.com/docs/guides/function-calling
+        # At this moment it must be converted to format:
+        
+        functions = [
+        {
+            "name": "get_delivery_date",
+            "description": "Get the delivery date for a customer's order. Call this whenever you need to know the delivery date, for example when a customer asks 'Where is my package'",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "order_id": {
+                        "type": "string",
+                        "description": "The customer's order ID.",
+                    },
+                },
+                "required": ["order_id"],
+                "additionalProperties": False,
+            },
+        }]
+        """
+        functions = []
+        data = {
+            'syntax': [],
+            'cmd': [],
+        }
+        event = Event(Event.CMD_SYNTAX, data)
+        self.window.core.dispatcher.dispatch(event)
+        cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original data
+        for cmd in cmds:
+            if "cmd" in cmd and "instruction" in cmd:
+                cmd_name = cmd["cmd"]
+                functions.append(
+                    {
+                        "name": cmd_name,
+                        "desc": cmd["instruction"],
+                        "params": json.dumps(self.extract_params(cmd), indent=4),
+                    }
+                )
+        return functions
+
+    def extract_params(self, cmd: dict) -> dict:
+        """
+        Extract parameters from command (to native API JSON schema format)
+
+        :param cmd: command dict
+        :return: parameters dict
+        """
+        required = []
+        params = {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": False,
+        }
+        if "params" in cmd and len(cmd["params"]) > 0:
+            for param in cmd["params"]:
+                # add required params
+                if "required" in param and param["required"]:
+                    required.append(param["name"])
+
+            # extract params and convert to JSON schema format
+            for param in cmd["params"]:
+                try:
+                    if isinstance(param, dict):
+                        if "name" in param:
+                            key = param["name"]
+                            params["properties"][key] = {}
+                            params["properties"][key]["type"] = "string"
+                            params["properties"][key]["description"] = ""
+
+                            # add required fields
+                            if "type" in param:
+                                params["properties"][key]["type"] = param["type"]
+                            if "description" in param:
+                                params["properties"][key]["description"] = param["description"]
+
+                            # append enum if exists
+                            if "enum" in param:
+                                params["properties"][key]["description"] += ", enum: " + json.dumps(
+                                    param["enum"]) + ")"
+                                # get dict keys from param["enum"][key] as list:
+                                if key in param["enum"]:
+                                    params["properties"][key]["enum"] = list(param["enum"][key].keys())
+
+                            # remove defaults and append to description
+                            if "default" in param:
+                                params["properties"][key]["description"] += ", default: " + str(
+                                    param["default"]) + ")"
+
+                            # convert internal types to supported by JSON schema
+                            if params["properties"][key]["type"] == "str":
+                                params["properties"][key]["type"] = "string"
+                            elif params["properties"][key]["type"] == "enum":
+                                params["properties"][key]["type"] = "string"
+                            elif params["properties"][key]["type"] == "int":
+                                params["properties"][key]["type"] = "integer"
+                            elif params["properties"][key]["type"] == "bool":
+                                params["properties"][key]["type"] = "boolean"
+                            elif params["properties"][key]["type"] == "dict":
+                                params["properties"][key]["type"] = "object"
+                            elif params["properties"][key]["type"] == "list":
+                                params["properties"][key]["type"] = "array"
+                                params["properties"][key]["items"] = {
+                                    "$ref": "#"
+                                }
+
+                except Exception as e:
+                    pass
+        return params
+
+    def is_native_enabled(self) -> bool:
+        """
+        Check if native tool calls are enabled
+
+        :return: True if enabled
+        """
+        disabled_modes = [
+            "llama_index",
+            "langchain",
+            "completion"
+        ]
+        mode = self.window.core.config.get('mode')
+        if mode in disabled_modes:
+            return False  # disabled for specific modes
+        return self.window.core.config.get('func_call.native', False)  # otherwise check config

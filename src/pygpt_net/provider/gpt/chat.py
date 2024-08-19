@@ -81,7 +81,9 @@ class Chat:
             for function in functions:
                 if str(function['name']).strip() == '' or function['name'] is None:
                     continue
-                params = json.loads(function['params'])  # unpack JSON from string
+                params = {}
+                if function['params'] is not None and function['params'] != "":
+                    params = json.loads(function['params'])  # unpack JSON from string
                 tools.append(
                     {
                         "type": "function",

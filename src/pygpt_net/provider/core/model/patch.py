@@ -229,6 +229,12 @@ class Patch:
                 # add gpt-4o
                 updated = True
 
+            # < 2.2.20  <--- add gpt-4o-mini
+            if old < parse_version("2.2.20"):
+                print("Migrating models from < 2.2.20...")
+                # add gpt-4o-mini
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

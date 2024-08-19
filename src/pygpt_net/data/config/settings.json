@@ -576,6 +576,19 @@
         "step": 1,
         "advanced": false
     },
+    "func_call.native": {
+        "section": "prompts",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.func_call.native",
+        "description": "settings.func_call.native.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "prompt.cmd": {
         "section": "prompts",
         "type": "textarea",

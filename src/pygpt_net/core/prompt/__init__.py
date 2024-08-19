@@ -48,6 +48,8 @@ class Prompt:
         prompt = event.data['value']
 
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
+            if self.window.core.command.is_native_enabled():
+                return prompt  # abort if native func call enabled
 
             # cmd syntax tokens
             data = {
@@ -111,6 +113,9 @@ class Prompt:
 
         # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
+            if self.window.core.command.is_native_enabled():
+                return sys_prompt  # abort if native func call enabled
+
             data = {
                 'mode': mode,
                 'prompt': sys_prompt,
