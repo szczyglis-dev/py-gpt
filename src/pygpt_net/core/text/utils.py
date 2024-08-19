@@ -71,6 +71,8 @@ def has_unclosed_code_tag(text: str) -> bool:
     :param text: HTML content
     :return: True if unclosed code block found
     """
+    if text is None:
+        return False
     if re.search(r'```(?!.*```)', text):
         return True
     return False
