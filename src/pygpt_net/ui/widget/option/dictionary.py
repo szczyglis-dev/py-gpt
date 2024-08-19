@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.20 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
-    QCheckBox, QSizePolicy, QHeaderView
+    QCheckBox, QHeaderView, QHBoxLayout
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -63,21 +63,29 @@ class OptionDict(QWidget):
         # append dict model
         self.list.setModel(self.model)
 
+        # init layout
+        self.init_layout()
+
+        # update model list
+        self.update()
+
+    def init_layout(self):
         # add button
         self.add_btn = QPushButton(trans('action.add'), self)
         self.add_btn.setCursor(Qt.PointingHandCursor)
         self.add_btn.clicked.connect(self.add)
         self.add_btn.setAutoDefault(False)
 
+        self.buttons = QHBoxLayout()
+        self.buttons.addWidget(self.add_btn)
+        self.buttons.setContentsMargins(0, 0, 0, 0)
+
         # layout
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.addWidget(self.add_btn)
+        self.layout.addLayout(self.buttons)
         self.layout.addWidget(self.list)
         self.setLayout(self.layout)
-
-        # update model list
-        self.update()
 
     def add(self):
         """Add new empty item to settings dict"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.20 00:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -173,6 +173,8 @@ class Confirm:
             self.window.controller.assistant.batch.upload(True)
         elif type == 'assistant.functions.import':
             self.window.controller.assistant.editor.import_functions(True)
+        elif type == 'assistant.functions.clear':
+            self.window.controller.assistant.editor.clear_functions(True)
 
         # assistants vector stores
         elif type == 'assistant.store.delete':

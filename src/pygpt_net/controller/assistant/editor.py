@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 12:00:00                  #
+# Updated Date: 2024.08.20 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -287,6 +287,23 @@ class Editor:
                         "desc": func['desc'],
                     }
                 )
+        self.window.ui.config[self.id]['tool.function'].items = values
+        self.window.ui.config[self.id]['tool.function'].model.updateData(values)
+
+    def clear_functions(self, force: bool = False):
+        """
+        Clear functions list
+
+        :param force: force clear
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.functions.clear',
+                id='',
+                msg=trans('confirm.assistant.functions.clear'),
+            )
+            return
+        values = []
         self.window.ui.config[self.id]['tool.function'].items = values
         self.window.ui.config[self.id]['tool.function'].model.updateData(values)
 

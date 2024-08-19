@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.08.20 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -32,12 +32,6 @@ class Assistant(BaseConfigDialog):
 
     def setup(self):
         """Setups assistant editor dialog"""
-        # functions import (from plugins)
-        self.window.ui.nodes['assistant.btn.import_func'] = QPushButton(trans("dialog.assistant.btn.import_func"))
-        self.window.ui.nodes['assistant.btn.import_func'].clicked.connect(
-            lambda: self.window.controller.assistant.editor.import_functions()
-        )
-
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.editor.save()
@@ -59,7 +53,7 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.btn.save'].setAutoDefault(True)
 
         footer = QHBoxLayout()
-        footer.addWidget(self.window.ui.nodes['assistant.btn.import_func'])
+        #footer.addWidget(self.window.ui.nodes['assistant.btn.import_func'])
         footer.addWidget(self.window.ui.nodes['assistant.btn.close'])
         footer.addWidget(self.window.ui.nodes['assistant.btn.save'])
 
@@ -73,7 +67,17 @@ class Assistant(BaseConfigDialog):
         for key in widgets:
             self.window.ui.config[self.id][key] = widgets[key]
 
-        # btn: add function
+        # functions
+        self.window.ui.nodes['assistant.btn.import_func'] = QPushButton(trans("dialog.assistant.btn.import_func"))
+        self.window.ui.nodes['assistant.btn.import_func'].clicked.connect(
+            lambda: self.window.controller.assistant.editor.import_functions()
+        )
+        self.window.ui.nodes['assistant.btn.clear_func'] = QPushButton(trans("dialog.assistant.btn.clear_func"))
+        self.window.ui.nodes['assistant.btn.clear_func'].clicked.connect(
+            lambda: self.window.controller.assistant.editor.clear_functions()
+        )
+        self.window.ui.config[self.id]['tool.function'].buttons.addWidget(self.window.ui.nodes['assistant.btn.import_func'])
+        self.window.ui.config[self.id]['tool.function'].buttons.addWidget(self.window.ui.nodes['assistant.btn.clear_func'])
         self.window.ui.config[self.id]['tool.function'].add_btn.setText(trans('assistant.func.add'))
         # Empty params: {"type": "object", "properties": {}}
 
@@ -86,7 +90,7 @@ class Assistant(BaseConfigDialog):
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
                 options[key] = self.add_raw_option(widgets[key], fields[key])
-            elif fields[key]["type"] == 'dict':
+            elif fields[key]["type"] == 'dict' or fields[key]["type"] == 'function':
                 options[key] = self.add_row_option(widgets[key], fields[key])
                 if key == "tool.function":
                     widgets[key].setMinimumHeight(150)
