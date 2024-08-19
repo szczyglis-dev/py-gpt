@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.08.19 20:00:00                  #
 # ================================================== #
 
 import json
@@ -42,11 +42,13 @@ class Loader(BaseLoader):
             }
         ]
         self.init_args = {
+            "client_config": {},
             "credentials_path" : "credentials.json",
             "token_path": "token.json",
             "pydrive_creds_path": "creds.txt",
         }
         self.init_args_types = {
+            "client_config": "dict",
             "credentials_path": "str",
             "token_path": "str",
             "pydrive_creds_path": "str",
