@@ -171,6 +171,8 @@ class Confirm:
             self.window.controller.assistant.batch.clear_store_files(id, True)  # by store_id
         elif type == 'assistant.files.upload':
             self.window.controller.assistant.batch.upload(True)
+        elif type == 'assistant.functions.import':
+            self.window.controller.assistant.editor.import_functions(True)
 
         # assistants vector stores
         elif type == 'assistant.store.delete':

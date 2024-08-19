@@ -251,6 +251,45 @@ class Editor:
         # set focus to name field
         self.window.ui.config[self.id]['name'].setFocus()
 
+    def import_functions(self, force: bool = False):
+        """
+        Import functions from plugins
+
+        :param force: force import
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='assistant.functions.import',
+                id='',
+                msg=trans('confirm.assistant.functions.import'),
+            )
+            return
+        func_plugin = self.window.core.command.as_native_functions()
+        values = self.window.ui.config[self.id]['tool.function'].items
+
+        # import to editor
+        for func in func_plugin:
+            if func['name'] in [f['name'] for f in values]:
+                # replace if exists
+                for i in range(len(values)):
+                    if values[i]['name'] == func['name']:
+                        values[i] = {
+                            "name": func['name'],
+                            "params": func['params'],
+                            "desc": func['desc'],
+                        }
+            else:
+                # add new
+                values.append(
+                    {
+                        "name": func['name'],
+                        "params": func['params'],
+                        "desc": func['desc'],
+                    }
+                )
+        self.window.ui.config[self.id]['tool.function'].items = values
+        self.window.ui.config[self.id]['tool.function'].model.updateData(values)
+
     def save(self):
         """Save assistant"""
         created = False

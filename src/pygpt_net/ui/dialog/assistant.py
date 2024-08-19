@@ -32,6 +32,12 @@ class Assistant(BaseConfigDialog):
 
     def setup(self):
         """Setups assistant editor dialog"""
+        # functions import (from plugins)
+        self.window.ui.nodes['assistant.btn.import_func'] = QPushButton(trans("dialog.assistant.btn.import_func"))
+        self.window.ui.nodes['assistant.btn.import_func'].clicked.connect(
+            lambda: self.window.controller.assistant.editor.import_functions()
+        )
+
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.editor.save()
@@ -53,6 +59,7 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.btn.save'].setAutoDefault(True)
 
         footer = QHBoxLayout()
+        footer.addWidget(self.window.ui.nodes['assistant.btn.import_func'])
         footer.addWidget(self.window.ui.nodes['assistant.btn.close'])
         footer.addWidget(self.window.ui.nodes['assistant.btn.save'])
 
