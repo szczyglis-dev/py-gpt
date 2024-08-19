@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.08.19 20:00:00                  #
 # ================================================== #
 
 import json
@@ -226,7 +226,7 @@ class WebTab:
                     if params[k]["value"] is not None:
                         if params[k]["type"] == "list" and isinstance(params[k]["value"], list):
                             widget.setText(", ".join(params[k]["value"]))
-                        elif params[k]["type"] == "dict" and isinstance(params[k]["dict"], dict):
+                        elif params[k]["type"] == "dict" and isinstance(params[k]["value"], dict):
                             widget.setText(json.dumps(params[k]["value"]))
                         else:
                             widget.setText(str(params[k]["value"]))
