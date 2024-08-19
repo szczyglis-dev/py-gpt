@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 16:00:00                  #
+# Updated Date: 2024.08.19 23:00:00                  #
 # ================================================== #
 
 import json
@@ -172,12 +172,13 @@ class Renderer(BaseRenderer):
         if self.html != "":
             self.append(self.html, flush=True)  # flush buffer if page loaded, otherwise it will be flushed on page load
 
-    def append_input(self, item: CtxItem, flush: bool = True):
+    def append_input(self, item: CtxItem, flush: bool = True, node: bool = False):
         """
         Append text input to output
 
         :param item: context item
         :param flush: flush HTML
+        :param node: True if force append node
         """
         if not flush:
             self.clear_chunks_input()
@@ -213,7 +214,7 @@ class Renderer(BaseRenderer):
 
         if flush:  # to chunk buffer
             content = self.prepare_node(text.strip(), self.NODE_INPUT, item)
-            if self.is_stream():
+            if self.is_stream() and not node:
                 self.append_chunk_input(item, content, False)
             else:
                 self.append_node(text.strip(), self.NODE_INPUT, item)
@@ -327,7 +328,7 @@ class Renderer(BaseRenderer):
         html = "<p>" + content + "</p>"
         html = self.post_format_text(html)
         name = self.name_user
-        if item.internal and not item.input.startswith("user: "):
+        if item.internal and item.input.startswith("[{"):
             name = "System"
         html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(id, name) + html + "</div></div>"
         return html

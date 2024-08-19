@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.19 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -37,7 +37,8 @@ class Output:
         self.window.stateChanged.emit(self.window.STATE_BUSY)
 
         # if stream mode then append chunk by chunk
-        if stream_mode:
+        stream_enabled = self.window.core.config.get("stream")  # global stream enabled
+        if stream_mode:  # local stream enabled
             if mode not in self.not_stream_modes:
                 self.append_stream(ctx, mode)
 
@@ -62,6 +63,8 @@ class Output:
 
         # only append output if not in stream mode, TODO: plugin output add
         if not stream_mode:
+            if stream_enabled:  # use global stream settings here to persist previously added input
+                self.window.controller.chat.render.append_input(ctx, flush=True, node=True)
             self.window.controller.chat.render.append_output(ctx)
             self.window.controller.chat.render.append_extra(ctx, True)  # + icons
 

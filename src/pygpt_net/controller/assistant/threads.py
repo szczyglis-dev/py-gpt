@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.08.19 23:00:00                  #
 # ================================================== #
 
 import json
@@ -178,13 +178,13 @@ class Threads:
         for msg in data:
             if msg.role == "assistant":
                 try:
-                    self.log("Run: handling message...")
+                    self.log("Run: handling non-stream message...")
                     self.handle_message_data(ctx, msg)
                 except Exception as e:
                     self.window.core.debug.log(e)
                     print("Run: handle message error:", e)
                 break
-        self.handle_output_message(ctx)  # send to chat
+        self.handle_output_message(ctx)
 
     def handle_tool_calls_stream(self, run, ctx: CtxItem):
         """

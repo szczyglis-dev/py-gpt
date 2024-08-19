@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.08.19 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -155,13 +155,15 @@ class Render:
         self.get_renderer().append_context(items, clear)
         self.update()
 
-    def append_input(self, item: CtxItem):
+    def append_input(self, item: CtxItem, flush: bool = True, node: bool = False):
         """
         Append text input to output
 
         :param item: context item
+        :param flush: True if flush output
+        :param node: True to force append node
         """
-        self.get_renderer().append_input(item)
+        self.get_renderer().append_input(item, flush=flush, node=node)
         self.update()
 
     def append_output(self, item: CtxItem):
