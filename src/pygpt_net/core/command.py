@@ -398,6 +398,8 @@ class Command:
                                 params["properties"][key]["type"] = "string"
                             elif params["properties"][key]["type"] == "enum":
                                 params["properties"][key]["type"] = "string"
+                            elif params["properties"][key]["type"] == "text":
+                                params["properties"][key]["type"] = "string"
                             elif params["properties"][key]["type"] == "int":
                                 params["properties"][key]["type"] = "integer"
                             elif params["properties"][key]["type"] == "bool":
