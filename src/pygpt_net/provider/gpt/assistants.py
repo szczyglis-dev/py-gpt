@@ -361,6 +361,10 @@ class Assistants:
         :param outputs: outputs
         :return: run
         """
+        # tool output must be string
+        for output in outputs:
+            if type(output["output"]) is dict or type(output["output"]) is list:
+                output["output"] = json.dumps(output["output"])
         client = self.get_client()
         return client.beta.threads.runs.submit_tool_outputs(
             thread_id=ctx.thread,
