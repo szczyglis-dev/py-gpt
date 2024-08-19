@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.19 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -1499,6 +1499,13 @@ class Patch:
                 print("Migrating config from < 2.2.16...")
                 if 'access.audio.use_cache' not in data:
                     data["access.audio.use_cache"] = True
+                updated = True
+
+            # < 2.2.20
+            if old < parse_version("2.2.20"):
+                print("Migrating config from < 2.2.20...")
+                if 'func_call.native' not in data:
+                    data["func_call.native"] = True
                 updated = True
 
         # update file
