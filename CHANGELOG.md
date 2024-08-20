@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.21 (2024-08-20)
+
+- Added inline execution for external function calls.
+- Added a stop to file indexing if an error occurs.
+
 # 2.2.20 (2024-08-20)
 
 - Llama-index upgraded to 0.10.65

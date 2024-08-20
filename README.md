@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.20** | build: **2024.08.20** | Python: **>=3.10, <3.12**
+Release: **2.2.21** | build: **2024.08.20** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3269,6 +3269,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.21 (2024-08-20)**
+
+- Added inline execution for external function calls.
+- Added a stop to file indexing if an error occurs.
 
 **2.2.20 (2024-08-20)**
 
