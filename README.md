@@ -2938,6 +2938,8 @@ Config -> Settings...
 
 **Prompts**
 
+- `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts, default: True
+
 - `Command execute: instruction`: Prompt for appending command execution instructions. Placeholders: {schema}, {extra}
 
 - `Command execute: extra footer (non-Assistant modes)`: Extra footer to append after commands JSON schema.

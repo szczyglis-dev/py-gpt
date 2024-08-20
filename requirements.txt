@@ -193,7 +193,7 @@ pyee==11.0.1
 pygame==2.5.2
 Pygments==2.18.0
 pyinstaller==6.4.0
-pyinstaller-hooks-contrib==2024.1
+pyinstaller-hooks-contrib==2024.8
 PyJWT==2.8.0
 PyMuPDF==1.23.24
 PyMuPDFb==1.23.22
