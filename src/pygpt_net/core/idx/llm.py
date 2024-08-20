@@ -29,6 +29,8 @@ class Llm:
         self.window = window
         self.default_model = "gpt-3.5-turbo"
         self.default_embed = "openai"
+        self.initialized = False
+
 
     def init(self):
         """Init base ENV vars"""
@@ -43,6 +45,14 @@ class Llm:
         :param model: Model item
         :return: Llama LLM instance
         """
+        # TMP: deprecation warning fix
+        # https://github.com/DataDog/dd-trace-py/issues/8212#issuecomment-1971063988
+        if not self.initialized:
+            import warnings
+            from langchain._api import LangChainDeprecationWarning
+            warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
+            self.initialized = True
+
         llm = None
         if model is not None:
             if 'provider' in model.llama_index:
