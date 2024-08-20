@@ -1176,7 +1176,7 @@ class Renderer(BaseRenderer):
                 if (event.target.classList.contains('code-header-copy')) {
                     event.preventDefault();
                     var parent = event.target.closest('.code-wrapper');
-                    var source = parent.querySelector('.source');
+                    var source = parent.querySelector('code');
                     if (source) {
                         var text = source.textContent || source.innerText;
                         bridgeCopyCode(text);
