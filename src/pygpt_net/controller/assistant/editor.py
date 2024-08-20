@@ -264,7 +264,7 @@ class Editor:
                 msg=trans('confirm.assistant.functions.import'),
             )
             return
-        func_plugin = self.window.core.command.as_native_functions()
+        func_plugin = self.window.core.command.as_native_functions(True)
         values = self.window.ui.config[self.id]['tool.function'].items
 
         # import to editor

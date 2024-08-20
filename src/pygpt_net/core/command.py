@@ -296,10 +296,11 @@ class Command:
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
 
-    def as_native_functions(self) -> list:
+    def as_native_functions(self, all: bool = True) -> list:
         """
         Convert internal functions to native API format
-
+        
+        :param all True to include all
         :return: native functions list
         """
         """
@@ -330,7 +331,7 @@ class Command:
             'cmd': [],
         }
 
-        if self.window.core.config.get('cmd'):
+        if self.window.core.config.get('cmd') or all:
             event = Event(Event.CMD_SYNTAX, data)
             self.window.core.dispatcher.dispatch(event)
         elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
