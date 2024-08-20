@@ -103,6 +103,7 @@ class Chat:
         ))
 
         index, service_context = self.get_index(idx, model)
+        llm = service_context.llm
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             [],
@@ -113,11 +114,13 @@ class Chat:
         if tpl is not None:
             self.log("Query index with custom prompt: {}...".format(system_prompt))
             response = index.as_query_engine(
+                llm=llm,
                 streaming=stream,
                 text_qa_template=tpl,
             ).query(query)  # query with custom sys prompt
         else:
             response = index.as_query_engine(
+                llm=llm,
                 streaming=stream,
             ).query(query)  # query with default prompt
 
@@ -165,6 +168,7 @@ class Chat:
         ))
 
         index, service_context = self.get_index(idx, model)
+        llm = service_context.llm
 
         # append context from DB
         history = self.context.get_messages(
@@ -179,6 +183,7 @@ class Chat:
             model.id,
         )
         chat_engine = index.as_chat_engine(
+            llm=llm,
             chat_mode="context",
             memory=memory,
             system_prompt=system_prompt,
@@ -227,6 +232,7 @@ class Chat:
             model = self.window.core.models.from_defaults()
 
         service_context = self.window.core.idx.llm.get_service_context(model=model)
+        llm = service_context.llm
         tmp_id, index = self.storage.get_tmp(path, service_context=service_context)  # get or create tmp index
 
         idx = "tmp:{}".format(path)  # tmp index id
@@ -245,6 +251,7 @@ class Chat:
         if len(files) > 0:
             self.log("Querying temporary in-memory index: {}...".format(idx))
             response = index.as_query_engine(
+                llm=llm,
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
@@ -287,6 +294,7 @@ class Chat:
             model = self.window.core.models.from_defaults()
         context = self.window.core.idx.llm.get_service_context(model=model)
         tmp_id, index = self.storage.get_tmp(id, service_context=context)  # get or create tmp index
+        llm = context.llm
 
         idx = "tmp:{}".format(id)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
@@ -306,6 +314,7 @@ class Chat:
         if num > 0:
             self.log("Querying temporary in-memory index: {}...".format(idx))
             response = index.as_query_engine(
+                llm=llm,
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
