@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.08.20 16:00:00                  #
 # ================================================== #
 
 from langchain_openai import AzureOpenAI
@@ -24,6 +24,14 @@ from pygpt_net.item.model import ModelItem
 class AzureOpenAILLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(AzureOpenAILLM, self).__init__(*args, **kwargs)
+        """
+        Required ENV variables:
+            - AZURE_OPENAI_API_KEY - API key for Azure OpenAI API
+            - AZURE_OPENAI_ENDPOINT - API endpoint for Azure OpenAI API
+        Required args:
+            - model: model name, e.g. gpt-4
+            - api_key: API key for Azure OpenAI API
+        """
         self.id = "azure_openai"
         self.type = ["langchain", "llama_index", "embeddings"]
 
