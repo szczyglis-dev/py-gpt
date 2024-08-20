@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -48,22 +48,18 @@ class Llm:
             if 'provider' in model.llama_index:
                 provider = model.llama_index['provider']
                 if provider in self.window.core.llm.llms:
-                    try:
-                        # init env vars
-                        self.window.core.llm.llms[provider].init(
-                            window=self.window,
-                            model=model,
-                            mode="llama_index",
-                            sub_mode="",
-                        )
-                        # get llama LLM instance
-                        llm = self.window.core.llm.llms[provider].llama(
-                            window=self.window,
-                            model=model,
-                        )
-                    except Exception as e:
-                        self.window.core.debug.error(e)
-                        print(e)
+                    # init env vars
+                    self.window.core.llm.llms[provider].init(
+                        window=self.window,
+                        model=model,
+                        mode="llama_index",
+                        sub_mode="",
+                    )
+                    # get llama LLM instance
+                    llm = self.window.core.llm.llms[provider].llama(
+                        window=self.window,
+                        model=model,
+                    )
 
         # default model
         if llm is None:
