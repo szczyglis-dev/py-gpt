@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.08.20 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -329,8 +329,14 @@ class Command:
             'syntax': [],
             'cmd': [],
         }
-        event = Event(Event.CMD_SYNTAX, data)
-        self.window.core.dispatcher.dispatch(event)
+
+        if self.window.core.config.get('cmd'):
+            event = Event(Event.CMD_SYNTAX, data)
+            self.window.core.dispatcher.dispatch(event)
+        elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
+            event = Event(Event.CMD_SYNTAX_INLINE, data)
+            self.window.core.dispatcher.dispatch(event)
+
         cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original data
         for cmd in cmds:
             if "cmd" in cmd and "instruction" in cmd:
