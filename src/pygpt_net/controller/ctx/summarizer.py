@@ -34,7 +34,10 @@ class Summarizer:
         :param id: CtxMeta ID
         :param ctx: CtxItem
         """
-        self.start_worker(id, ctx)
+        # make copy of ctx
+        ctx_copy = CtxItem()
+        ctx_copy.from_dict(ctx.to_dict())
+        self.start_worker(id, ctx_copy)
 
     def summarizer(self, id: int, ctx: CtxItem, window, updated_signal: Signal):
         """
