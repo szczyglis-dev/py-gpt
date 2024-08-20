@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 05:00:00                  #
+# Updated Date: 2024.08.20 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -300,7 +300,7 @@ class Command:
         """
         Convert internal functions to native API format
         
-        :param all True to include all
+        :param: all True to include all
         :return: native functions list
         """
         """
@@ -423,6 +423,20 @@ class Command:
                     pass
         return params
 
+    def get_functions(self) -> list:
+        """
+        Get current functions list
+
+        :return: functions list
+        """
+        func_plugins = []
+        func_user = self.window.controller.presets.get_current_functions()
+        if self.is_native_enabled():
+            func_plugins = self.as_native_functions()
+        if func_user is None:
+            func_user = []
+        return func_plugins + func_user  # merge both
+
     def is_native_enabled(self) -> bool:
         """
         Check if native tool calls are enabled
@@ -432,9 +446,13 @@ class Command:
         disabled_modes = [
             "llama_index",
             "langchain",
-            "completion"
+            "completion",
         ]
         mode = self.window.core.config.get('mode')
+        agent_mode = self.window.core.config.get('agent.mode')
         if mode in disabled_modes:
             return False  # disabled for specific modes
+        if self.window.controller.agent.enabled():
+            if agent_mode in disabled_modes:
+                return False
         return self.window.core.config.get('func_call.native', False)  # otherwise check config

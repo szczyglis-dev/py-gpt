@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.20 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -191,14 +191,8 @@ class Text:
         # process events to update UI
         # QApplication.processEvents()
 
-        # FUNC CALLS: prepare user & plugins function calls
-        func_plugins = []
-        func_user = self.window.controller.presets.get_current_functions()
-        if self.window.core.command.is_native_enabled():
-            func_plugins = self.window.core.command.as_native_functions()
-        if func_user is None:
-            func_user = []
-        functions = func_plugins + func_user  # merge both
+        # FUNCTION CALLS: prepare user & plugins functions if native mode is enabled
+        functions = self.window.core.command.get_functions()
 
         # assistant only
         tools_outputs = []
