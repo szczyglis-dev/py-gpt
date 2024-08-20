@@ -1234,7 +1234,7 @@ Example available models:
 
 You can add more models by editing the models list.
 
-List of supported by Ollama models: https://github.com/ollama/ollama
+List of models supported by Ollama : https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the model settings!
 
@@ -1257,7 +1257,7 @@ Define parameters like model and Ollama base URL in the Embeddings provider **kw
 To use `Gemini` or `Claude` models, select the `Chat with files` mode in PyGPT and select a predefined model.
 Remember to define the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
 
-**Google Gemini:**
+**Google Gemini**
 
 Required ENV:
 
@@ -1267,7 +1267,7 @@ Required **kwargs:
 
 - model
 
-**Anthropic Claude:**
+**Anthropic Claude**
 
 Required ENV:
 
@@ -3349,9 +3349,9 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.2.22 (2024-08-20)**
 
-- Added new **API** models for "Chat with Files": `Google Gemini` and `Anthropic Claude` (see the new section in the documentation: Managing models -> `Using other models (non-GPT)` for more information on how to set API keys)
-- Added new **local** models for "Chat with Files": `Llama 3.1`, `Mistral`, `Codellama`, and `Llama2-Uncensored` (requires `Ollama` installed on the local machine - see the new section in the documentation: Managing models -> `Using other models (non-GPT)` for more information on how to enable local model support).
-- Added abilitify for context summarization using Llama-index models (local models can be used to summarize context titles now).
+- Added new **API** models for "Chat with Files": `Google Gemini` and `Anthropic Claude` (see the new section in the documentation: Managing models -> [`Using other models (non-GPT)`](https://github.com/szczyglis-dev/py-gpt?tab=readme-ov-file#using-other-models-non-gpt) for more information on how to set API keys)
+- Added new **local** models for "Chat with Files": `Llama 3.1`, `Mistral`, `Codellama`, and `Llama2-Uncensored` (requires `Ollama` installed on the local machine - see the new section in the documentation: Managing models -> [`Using other models (non-GPT)`](https://github.com/szczyglis-dev/py-gpt?tab=readme-ov-file#using-other-models-non-gpt) for more information on how to enable local model support).
+- Added ability for context summarization using Llama-index models (local models can be used to summarize context titles now).
 - Added a new option in Config -> Indexes (llama-index) -> Indexing: `Stop indexing on error`. If enabled, indexing will stop whenever an error occurs.
 
 **2.2.21 (2024-08-20)**

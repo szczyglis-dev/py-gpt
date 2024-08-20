@@ -114,7 +114,7 @@ Example available models:
 
 You can add more models by editing the models list.
 
-List of supported by Ollama models: https://github.com/ollama/ollama
+List of models supported by Ollama: https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the model settings!
 
@@ -134,12 +134,12 @@ Define parameters like model and Ollama base URL in the Embeddings provider **kw
 
 - name: ``base_url``, value: ``http://localhost:11434``, type: ``str``
 
-** Google Gemini and Anthropic Claude:**
+**Google Gemini and Anthropic Claude**
 
 To use ``Gemini`` or ``Claude`` models, select the ``Chat with files`` mode in PyGPT and select a predefined model.
 Remember to define the required parameters like API keys in the model ENV config fields (RMB click on the model name and select ``Edit``).
 
-**Google Gemini:**
+**Google Gemini**
 
 Required ENV:
 
@@ -149,7 +149,7 @@ Required **kwargs:
 
 - model
 
-**Anthropic Claude:**
+**Anthropic Claude**
 
 Required ENV:
 
