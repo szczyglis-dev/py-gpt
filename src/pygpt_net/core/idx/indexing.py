@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 05:00:00                  #
+# Updated Date: 2024.08.20 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -387,7 +387,8 @@ class Indexing:
                 errors.append(str(e))
                 print("Error while indexing file: " + file)
                 self.window.core.debug.log(e)
-                break  # break loop if error
+                if self.stop_enabled():
+                    break  # break loop if error
 
         return indexed, errors
 
@@ -411,6 +412,7 @@ class Indexing:
         """
         indexed = {}
         errors = []
+        is_break = False
 
         # directory
         if os.path.isdir(path):
@@ -441,7 +443,11 @@ class Indexing:
                         errors.append(str(e))
                         print("Error while indexing file: " + file_path)
                         self.window.core.debug.log(e)
-                        break  # break loop if error
+                        if self.stop_enabled():
+                            is_break = True
+                            break  # break loop if error
+                if is_break:
+                    break  # stop os.walk if error
 
         # file
         elif os.path.isfile(path):
@@ -863,3 +869,11 @@ class Indexing:
                 self.window.core.idx.log("RPM limit: sleep for {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
         self.last_call = now
+
+    def stop_enabled(self) -> bool:
+        """
+        Check if stop on error is enabled
+
+        :return: True if enabled
+        """
+        return self.window.core.config.get('llama.idx.stop.error')

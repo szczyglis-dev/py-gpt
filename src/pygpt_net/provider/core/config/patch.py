@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 20:00:00                  #
+# Updated Date: 2024.08.20 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -1507,6 +1507,13 @@ class Patch:
                 if 'func_call.native' not in data:
                     data["func_call.native"] = True
                 self.window.core.updater.patch_css('web.css', True)  # force update
+                updated = True
+
+            # < 2.2.22
+            if old < parse_version("2.2.22"):
+                print("Migrating config from < 2.2.22...")
+                if 'llama.idx.stop.error' not in data:
+                    data["llama.idx.stop.error"] = True
                 updated = True
 
         # update file

@@ -988,6 +988,20 @@
         "advanced": false,
         "tab": "indexing"
     },
+    "llama.idx.stop.error": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.stop.error",
+        "description": "settings.llama.idx.stop.error.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
     "llama.idx.custom_meta": {
         "section": "llama-index",
         "type": "dict",
