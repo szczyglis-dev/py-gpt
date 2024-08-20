@@ -147,10 +147,12 @@ class Idx:
     def select_default(self):
         """Set default idx"""
         idx = self.window.core.config.get('llama.idx.current')
+        """
         if idx is None:
             idx = self.window.core.idx.get_default_idx()
             if idx is not None:
                 self.current_idx = idx
+        """
 
     def update(self):
         """Update idx list"""
