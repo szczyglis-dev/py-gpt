@@ -1,10 +1,106 @@
 {
     "__meta__": {
-        "version": "2.2.21",
-        "app.version": "2.2.21",
+        "version": "2.2.22",
+        "app.version": "2.2.22",
         "updated_at": "2024-08-20T00:00:00"
     },
     "items": {
+        "claude-3-5-sonnet-20240620": {
+            "id": "claude-3-5-sonnet-20240620",
+            "name": "claude-3-5-sonnet-20240620",
+            "mode": [
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-5-sonnet-20240620",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-5-sonnet-20240620",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 4096,
+            "default": false
+        },
+        "claude-3-opus-20240229": {
+            "id": "claude-3-opus-20240229",
+            "name": "claude-3-opus-20240229",
+            "mode": [
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-opus-20240229",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-opus-20240229",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 4096,
+            "default": false
+        },
         "dall-e-2": {
             "id": "dall-e-2",
             "name": "DALL-E 2",
@@ -48,6 +144,102 @@
             "ctx": 0,
             "tokens": 0,
             "default": true
+        },
+        "gemini-1.5-flash": {
+            "id": "gemini-1.5-flash",
+            "name": "gemini-1.5-flash",
+            "mode": [
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gemini-1.5-flash",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-1.5-flash",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "gemini-1.5-pro": {
+            "id": "gemini-1.5-pro",
+            "name": "gemini-1.5-pro",
+            "mode": [
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gemini-1.5-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-1.5-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
         },
         "gpt-3.5-turbo": {
             "id": "gpt-3.5-turbo",
@@ -826,6 +1018,162 @@
                 "env": []
             },
             "ctx": 4096,
+            "tokens": 4096,
+            "default": false
+        },
+        "llama3.1": {
+            "id": "llama3.1",
+            "name": "llama3.1",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "codellama": {
+            "id": "codellama",
+            "name": "codellama",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "codellama",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "codellama",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "mistral": {
+            "id": "mistral",
+            "name": "mistral",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "mistral",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "mistral",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "llama2-uncensored": {
+            "id": "llama2-uncensored",
+            "name": "llama2-uncensored",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama2-uncensored",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama2-uncensored",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
             "tokens": 4096,
             "default": false
         }

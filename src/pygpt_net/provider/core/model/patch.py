@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.16 02:00:00                  #
+# Updated Date: 2024.08.20 18:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -233,6 +233,12 @@ class Patch:
             if old < parse_version("2.2.20"):
                 print("Migrating models from < 2.2.20...")
                 # add gpt-4o-mini
+                updated = True
+
+            # < 2.2.22  <--- add Llama index models
+            if old < parse_version("2.2.22"):
+                print("Migrating models from < 2.2.22...")
+                # add Gemini, Claude, Llama3, Mistral and etc.
                 updated = True
 
         # update file
