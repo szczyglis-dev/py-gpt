@@ -140,14 +140,14 @@ into the application, allowing you to interact with any LLM by simply supplying 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named ``models.json``.
 
-Available LLMs providers supported by **PyGPT**:
+Available LLMs providers supported by **PyGPT**, in ``Langchain`` and ``Chat with files (llama-index)`` modes:
 
 * OpenAI
 * Azure OpenAI
+* Google (Gemini, etc.)
 * HuggingFace
 * Anthropic
-* Llama 2
-* Ollama
+* Ollama (Llama 3, Mistral, etc.)
 
 .. image:: images/v2_mode_langchain.png
    :width: 800

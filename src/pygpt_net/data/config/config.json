@@ -187,6 +187,7 @@
   "llama.idx.recursive": true,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
+  "llama.idx.stop.error": true,
   "llama.idx.storage": "SimpleVectorStore",
   "llama.idx.storage.args": [],
   "lock_modes": true,

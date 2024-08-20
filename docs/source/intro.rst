@@ -4,7 +4,7 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. By utilizing ``Langchain`` and ``Llama-index``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models (like ``Llama 3`` or ``Mistral``), ``Google Gemini`` and ``Anthropic Claude``.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google`` and ``Microsoft Bing``.
 
@@ -22,7 +22,7 @@ Features
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-* Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain``.
+* Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain`` and ``Llama-index`` like ``Llama 3``, ``Mistral``, ``Google Gemini``, ``Anthropic Claude``, etc.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short-term memory).
 * Real-time video camera capture in Vision mode.

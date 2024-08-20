@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.21** | build: **2024.08.20** | Python: **>=3.10, <3.12**
+Release: **2.2.22** | build: **2024.08.20** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -12,7 +12,7 @@ Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3` or `Mistral`), `Google Gemini` and `Anthropic Claude`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -37,7 +37,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-- Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
+- Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain` and `Llama-index` like `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode.
@@ -433,15 +433,15 @@ into the application, allowing you to interact with any LLM by simply supplying 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named `models.json`.
 
-Available LLMs providers supported by **PyGPT**:
+Available LLMs providers supported by **PyGPT**, in `Langchain` and `Chat with files (llama-index)` modes:
 
 ```
 - OpenAI
 - Azure OpenAI
+- Google (Gemini, etc.)
 - HuggingFace
 - Anthropic
-- Llama 2
-- Ollama
+- Ollama (Llama3, Mistral, etc.)
 ```
 
 ![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/0471b6f9-7953-42cc-92bd-007f2c2e59d0)
@@ -1129,11 +1129,11 @@ Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API`
-and those supported by `Langchain` to this file. Configuration for Langchain wrapper is placed in `langchain` key.
+and those supported by `Langchain` and `Llama-index` to this file. Configuration for Langchain wrapper is placed in `langchain` key.
 
-## Adding custom LLMs via Langchain
+## Adding custom LLMs via Langchain and Llama-index
 
-To add a new model using the Langchain wrapper in **PyGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
+To add a new model using the Langchain or Llama-index wrapper in **PyGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
 
 Example of models configuration - `models.json`:
 
@@ -1196,11 +1196,86 @@ There is bult-in support for those LLMs providers:
 ```
 - OpenAI (openai)
 - Azure OpenAI (azure_openai)
+- Google (google)
 - HuggingFace (huggingface)
 - Anthropic (anthropic)
-- Llama 2 (llama2)
 - Ollama (ollama)
 ```
+
+## Using other models (non-GPT)
+
+
+### Llama 3, Mistral, and other local models:
+
+How to use locally installed Llama 3 or Mistral models:
+
+1) Choose a mode: `Chat with files` or `Langchain`
+
+2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the right mouse button click -> `Edit`, then configure the model parameters in the `advanced` section.
+
+3) Download and install Ollama from here: https://github.com/ollama/ollama
+
+For example, on Linux:
+
+```curl -fsSL https://ollama.com/install.sh | sh```
+
+4) Run the model (e.g. Llama 3) locally on your machine. For example, on Linux:
+
+```ollama run llama3.1```
+
+5) Return to PyGPT and select the correct model from list to chat with it using Ollama running locally.
+
+Example available models:
+
+- llama3.1
+- codellama
+- mistral
+- llama2-uncensored
+
+You can add more models by editing the models list.
+
+List of supported by Ollama models: https://github.com/ollama/ollama
+
+**IMPORTANT:** Remember to define the correct model name in the model settings!
+
+**Using local embeddings:**
+
+Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
+
+You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
+
+```Config -> Llama-index -> Embeddings -> Embeddings provider```
+
+Define parameters like model and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
+
+- name: `model_name`, value: `llama3.1`, type: `str`
+
+- name: `base_url`, value: `http://localhost:11434`, type: `str`
+
+### Google Gemini and Anthropic Claude:
+
+To use `Gemini` or `Claude` models, select the `Chat with files` mode in PyGPT and select a predefined model.
+Remember to define the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
+
+**Google Gemini:**
+
+Required ENV:
+
+- GOOGLE_API_KEY
+
+Required **kwargs:
+
+- model
+
+**Anthropic Claude:**
+
+Required ENV:
+
+- ANTHROPIC_API_KEY
+
+Required **kwargs:
+
+- model
 
 ## Adding custom LLM providers
 
