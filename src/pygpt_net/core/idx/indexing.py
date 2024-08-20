@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.08.20 05:00:00                  #
 # ================================================== #
 
 import datetime
@@ -387,7 +387,7 @@ class Indexing:
                 errors.append(str(e))
                 print("Error while indexing file: " + file)
                 self.window.core.debug.log(e)
-                continue
+                break  # break loop if error
 
         return indexed, errors
 
@@ -441,7 +441,7 @@ class Indexing:
                         errors.append(str(e))
                         print("Error while indexing file: " + file_path)
                         self.window.core.debug.log(e)
-                        continue
+                        break  # break loop if error
 
         # file
         elif os.path.isfile(path):
