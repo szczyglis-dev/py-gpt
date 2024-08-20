@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 import hashlib
 
 from llama_index.core.indices.base import BaseIndex
+from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
 from .base import BaseStore
 from .temp import TempProvider
@@ -216,3 +217,11 @@ class Storage:
         if storage is None:
             raise Exception('Storage engine not found!')
         storage.clean(id)
+
+    def index_from_empty(self) -> BaseIndex:
+        """
+        Create empty index
+
+        :return: index instance
+        """
+        return VectorStoreIndex([])

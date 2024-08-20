@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 import json
@@ -102,12 +102,7 @@ class Chat:
             model.id,
         ))
 
-        # check if index exists
-        if not self.storage.exists(idx):
-            raise Exception("Index not prepared")
-
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get(idx, service_context=service_context)  # get index
+        index, service_context = self.get_index(idx, model)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             [],
@@ -169,12 +164,7 @@ class Chat:
             model.id,
         ))
 
-        # check if index exists
-        if not self.storage.exists(idx):
-            raise Exception("Index not prepared")
-
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get(idx, service_context=service_context)  # get index
+        index, service_context = self.get_index(idx, model)
 
         # append context from DB
         history = self.context.get_messages(
@@ -369,6 +359,27 @@ class Chat:
             ),
         ]
         return ChatPromptTemplate(qa_msgs)
+
+    def get_index(self, idx, model):
+        """
+        Get index instance
+
+        :param idx: idx name (id)
+        :param model: model name
+        :return:
+        """
+        # check if index exists
+        if not self.storage.exists(idx):
+            if idx is None:
+                # create empty in memory idx
+                service_context = self.window.core.idx.llm.get_service_context(model=model)
+                index = self.storage.index_from_empty()
+                return index, service_context
+            raise Exception("Index not prepared")
+
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, service_context=service_context)  # get index
+        return index, service_context
 
     def log(self, msg: str):
         """

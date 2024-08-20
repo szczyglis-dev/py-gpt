@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 import time
@@ -38,7 +38,7 @@ class BridgeContext:
         self.external_functions = kwargs.get("external_functions", [])
         self.tools_outputs = kwargs.get("tools_outputs", [])
         self.max_tokens = kwargs.get("max_tokens", 150)
-        self.idx = kwargs.get("idx", "base")
+        self.idx = kwargs.get("idx", None)
         self.idx_raw = kwargs.get("idx_raw", False)
         self.attachments = kwargs.get("attachments", [])
         self.file_ids = kwargs.get("file_ids", [])
@@ -173,6 +173,24 @@ class Bridge:
         :return: response content
         """
         self.window.core.debug.info("Bridge quick call...")
+        # check if model is supported by chat API, if not try to use llama-index call
+        if context.model is not None:
+            if "chat" not in context.model.mode:
+                if "llama_index" in context.model.mode:
+                    context.stream = False
+                    ctx = context.ctx  # output will be filled in query
+                    try:
+                        res = self.window.core.idx.chat.query(
+                            context=context,
+                            extra=extra,
+                        )
+                        if res:
+                            return ctx.output
+                    except Exception as e:
+                        self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
+                        self.window.core.debug.error(e)
+                    return ""
+
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
                 debug = {k: str(v) for k, v in context.to_dict().items()}

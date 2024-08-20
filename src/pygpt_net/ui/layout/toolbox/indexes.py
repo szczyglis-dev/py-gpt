@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
@@ -173,6 +173,9 @@ class Indexes:
         """
         # combo box
         combo_keys = []
+        combo_keys.append({  # add empty
+            "-": "---"
+        })
         for item in data:
             name = item['name']
             if name == "":

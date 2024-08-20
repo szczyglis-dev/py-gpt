@@ -177,7 +177,7 @@ class Gpt:
         )
         return True
 
-    def quick_call(self,context: BridgeContext, extra: dict = None) -> str:
+    def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
         """
         Quick call OpenAI API with custom prompt
 

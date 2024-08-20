@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.08.20 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -68,6 +68,10 @@ class Idx:
         :param id: id of the list (row idx)
         """
         # check if idx change is not locked
+        if id is None or id == "-":
+            self.current_idx = None
+            id = None
+
         if self.change_locked():
             return
 
