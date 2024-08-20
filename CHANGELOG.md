@@ -5,7 +5,8 @@
 - Llama-index upgraded to 0.10.65
 - Langchain upgraded to 0.2.14
 - OpenAI API upgraded to 1.41.0
-- Added new model: gpt-4o mini
+- Code syntax highlight changed from Pygments to highlight.js (better performance)
+- Added new model: gpt-4o-mini
 - Added native API function calls by default
 - Added functions importer (from plugins) into assistants
 - Fixed: input message disappear on command response in stream mode

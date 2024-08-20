@@ -3273,6 +3273,7 @@ may consume additional tokens that are not displayed in the main window.
 - Llama-index upgraded to `0.10.65`
 - Langchain upgraded to `0.2.14`
 - OpenAI API upgraded to `1.41.0`
+- Code syntax highlight changed from Pygments to highlight.js (better performance)
 - Added new model: `gpt-4o-mini`
 - Added native API function calls by default
 - Added functions importer (from plugins) into assistants
@@ -3401,3 +3402,5 @@ Monaspace fonts provided by GitHub: https://github.com/githubnext/monaspace
 Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
 
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/
+
+Code syntax highlight powered by: https://highlightjs.org

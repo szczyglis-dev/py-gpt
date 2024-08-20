@@ -194,6 +194,8 @@ class Parser:
             wrapper = soup.new_tag('div', **{'class': "code-wrapper highlight"})
             wrapper.append(header)
 
+            # DEPRECATED: Use Pygments to highlight the code block
+            """
             # Use Pygments to highlight the code block
             if language:
                 try:
@@ -203,12 +205,22 @@ class Parser:
             else:
                 lexer = get_lexer_by_name("sh")
 
-            formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
-            highlighted_code = highlight(content, lexer, formatter)
-
+            
+            # formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
+            # highlighted_code = highlight(content, lexer, formatter)
             # Replace the original code block with the highlighted version
-            new_code = BeautifulSoup(highlighted_code, 'html.parser')
-            wrapper.append(new_code)
+            # new_code = BeautifulSoup(highlighted_code, 'html.parser')
+            # wrapper.append(new_code)
+            # el.replace_with(wrapper)
+            """
+
+            pre = soup.new_tag('pre')
+            code = soup.new_tag('code')
+            if language:
+                code['class'] = 'language-' + language
+            code.string = content
+            pre.append(code)
+            wrapper.append(pre)
             el.replace_with(wrapper)
 
             self.block_idx += 1

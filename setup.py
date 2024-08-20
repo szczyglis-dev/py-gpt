@@ -38,7 +38,13 @@ setup(
         'data/icons/chat/*',
         'data/locale/*',
         'data/config/*',
-        'data/config/presets/*'
+        'data/config/presets/*',
+        'data/js/*',
+        'data/js/highlight/*',
+        'data/js/highlight/styles/*',
+        'data/js/highlight/languages/*',
+        'data/js/highlight/es/*',
+        'data/js/highlight/es/languages/*'
     ]},
     url='https://github.com/szczyglis-dev/py-gpt',
     keywords='py_gpt, py-gpt, pygpt, PyGPT, desktop, app, gpt, gpt-4, gpt-4o, gpt-4v, gpt-3.5, tts, whisper, vision, '

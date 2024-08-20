@@ -47,7 +47,7 @@ class Menu:
 
     def setup_syntax(self):
         """Setup syntax menu"""
-        styles = list(get_all_styles())
+        styles = self.window.controller.chat.render.web_renderer.highlight.get_styles()
         styles.sort()
         # clear menu
         for style in self.window.ui.menu['theme_syntax']:

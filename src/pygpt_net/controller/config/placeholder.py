@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 15:00:00                  #
+# Updated Date: 2024.08.20 00:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
@@ -233,11 +233,11 @@ class Placeholder:
 
     def get_syntax_styles(self) -> list:
         """
-        Get llama placeholders list
+        Get highlighter styles list
 
         :return: placeholders list
         """
-        styles = list(get_all_styles())
+        styles = self.window.controller.chat.render.web_renderer.highlight.get_styles()
         styles.sort()
         data = []
         for id in styles:

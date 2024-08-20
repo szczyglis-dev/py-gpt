@@ -24,6 +24,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
 from .parser import Parser
+from .syntax_highlight import SyntaxHighlight
 
 
 class Renderer(BaseRenderer):
@@ -34,12 +35,13 @@ class Renderer(BaseRenderer):
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
         """
-        Markdown renderer
+        Web renderer
 
         :param window: Window instance
         """
         self.window = window
         self.parser = Parser(window)
+        self.highlight = SyntaxHighlight(window)
         self.images_appended = []
         self.urls_appended = []
         self.buffer = ""  # stream buffer
@@ -254,6 +256,7 @@ class Renderer(BaseRenderer):
             self.clear_chunks_output()
         self.buffer += raw_chunk
 
+        """
         # cooldown (throttling) to prevent high CPU usage on huge text chunks
         if len(self.buffer) > self.throttling_min_chars:
             current_time = time.time()
@@ -261,6 +264,7 @@ class Renderer(BaseRenderer):
                 return  # wait a moment
             else:
                 self.last_time_called = current_time
+        """
 
         # parse chunks
         to_append = self.buffer
@@ -866,7 +870,7 @@ class Renderer(BaseRenderer):
         else:
             stylesheet += "pre { color: #000; }"
         content = stylesheet + """
-        """ + HtmlFormatter(style=style, cssclass='source', lineanchors='line').get_style_defs('.highlight')
+        """ + self.highlight.get_style_defs()
         return content
 
     def flush(self):
@@ -885,6 +889,8 @@ class Renderer(BaseRenderer):
         if classes:
             classes_str = ' class="' + " ".join(classes) + '"'
 
+        js_dir = os.path.join(self.window.core.config.get_app_path(), "data", "js").replace("\\", "/")
+
         content = """
         <!DOCTYPE html>
         <html>
@@ -899,8 +905,11 @@ class Renderer(BaseRenderer):
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
         </div>
+        
         <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
+        <script type='text/javascript' src='file:///"""+js_dir+"""/highlight/highlight.min.js'></script>
         <script>
+        
         let scrollTimeout = null;
         let prevScroll = 0;
         let bridge;
@@ -918,6 +927,11 @@ class Renderer(BaseRenderer):
                 event.preventDefault();
             }
         });
+        function highlightCode() {
+            document.querySelectorAll('pre code').forEach(el => {
+              hljs.highlightElement(el);
+            });
+        }
         function scrollToBottom() {
             getScrollPosition();  // store using bridge
             if (scrollTimeout !== null) {
@@ -937,6 +951,7 @@ class Renderer(BaseRenderer):
             if (element) {
                 element.innerHTML += content;
             }
+            highlightCode();
             scrollToBottom();
         }
         function appendToOutput(bot_name, content) {
@@ -964,6 +979,7 @@ class Renderer(BaseRenderer):
                     msg.innerHTML+= content;
                 }
             }
+            highlightCode();
             scrollToBottom();
         }
         function appendNode(content) {
@@ -973,6 +989,7 @@ class Renderer(BaseRenderer):
                 element.classList.remove('empty_list');
                 element.innerHTML += content;
             }
+            highlightCode();
             scrollToBottom();
         }
         function appendExtra(id, content) {
@@ -984,6 +1001,7 @@ class Renderer(BaseRenderer):
                     extra.innerHTML+= content;
                 }
             }
+            highlightCode();
             scrollToBottom();
         }
         function removeNode(id) {
@@ -996,6 +1014,7 @@ class Renderer(BaseRenderer):
             if (element) {
                 element.remove();
             }
+            highlightCode();
             scrollToBottom();
         }
         function removeNodesFromId(id) {
@@ -1013,6 +1032,7 @@ class Renderer(BaseRenderer):
                     }
                 });
             }
+            highlightCode();
             scrollToBottom();
         }
         function replaceOutput(bot_name, content) {
@@ -1040,6 +1060,7 @@ class Renderer(BaseRenderer):
                     msg.innerHTML = content;
                 }
             }
+            highlightCode();
             scrollToBottom();
         }
         function clearNodes() {
