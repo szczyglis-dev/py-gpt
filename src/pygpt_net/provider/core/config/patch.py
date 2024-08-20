@@ -1506,6 +1506,7 @@ class Patch:
                 print("Migrating config from < 2.2.20...")
                 if 'func_call.native' not in data:
                     data["func_call.native"] = True
+                self.window.core.updater.patch_css('web.css', True)  # force update
                 updated = True
 
         # update file
