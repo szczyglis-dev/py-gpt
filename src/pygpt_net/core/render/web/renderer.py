@@ -13,18 +13,18 @@ import json
 import os
 import re
 import html
-import time
 from datetime import datetime
-
-from pygments.formatters.html import HtmlFormatter
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
+
 from .parser import Parser
 from .syntax_highlight import SyntaxHighlight
+
+import pygpt_net.js_rc
 
 
 class Renderer(BaseRenderer):
@@ -907,7 +907,7 @@ class Renderer(BaseRenderer):
         </div>
         
         <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <script type='text/javascript' src='file:///"""+js_dir+"""/highlight/highlight.min.js'></script>
+        <script type='text/javascript' src='qrc:///js/highlight.min.js'></script>
         <script>
         
         let scrollTimeout = null;
