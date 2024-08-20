@@ -179,8 +179,9 @@ class Bridge:
                 if "llama_index" in context.model.mode:
                     context.stream = False
                     ctx = context.ctx  # output will be filled in query
+                    ctx.input = context.prompt
                     try:
-                        res = self.window.core.idx.chat.query(
+                        res = self.window.core.idx.chat.chat(
                             context=context,
                             extra=extra,
                         )
