@@ -2,10 +2,10 @@
 
 # 2.2.22 (2024-08-20)
 
-- Added new API models for "Chat with Files": Google Gemini and Anthropic Claude (see the new section in the documentation: Managing models -> "Using other models" for more information on how to set API keys)
-- Added new local models for "Chat with Files": Llama 3.1, Mistral, Codellama, and Llama2-Uncensored (requires Ollama installed on the local machine - see the new section in the documentation: Managing models -> "Using other models" for more information on how to enable local model support).
+- Added new API models for "Chat with Files": Google Gemini and Anthropic Claude (see the new section in the documentation: Managing models -> "Using other models (non-GPT)" for more information on how to set API keys)
+- Added new local models for "Chat with Files": Llama 3.1, Mistral, Codellama, and Llama2-Uncensored (requires Ollama installed on the local machine - see the new section in the documentation: Managing models -> "Using other models (non-GPT)" for more information on how to enable local model support).
 - Added abilitify for context summarization using Llama-index models (local models can be used to summarize context titles now).
-- Added a new option in Config -> Llama Index: "Stop indexing on error". If enabled, indexing will stop whenever an error occurs.
+- Added a new option in Config -> Indexes (llama-index) -> Indexing: "Stop indexing on error". If enabled, indexing will stop whenever an error occurs.
 
 # 2.2.21 (2024-08-20)
 
