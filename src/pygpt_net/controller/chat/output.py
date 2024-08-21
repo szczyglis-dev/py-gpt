@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -44,11 +44,16 @@ class Output:
 
         # check if tool calls detected
         if ctx.tool_calls:
-            self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
-            if not isinstance(ctx.extra, dict):
-                ctx.extra = {}
-            ctx.extra["tool_calls"] = ctx.tool_calls
-            stream_mode = False  # disable stream mode, show tool calls at the end
+            # if not internal commands in a text body then append tool calls as commands (prevent double commands)
+            if not self.window.core.command.has_cmds(ctx.output):
+                self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["tool_calls"] = ctx.tool_calls
+                stream_mode = False  # disable stream mode, show tool calls at the end
+                self.log("Tool call received...")
+            else:  # prevent execute twice
+                self.log("Ignoring tool call because command received...")
 
         # agent mode
         if mode == 'agent':
@@ -273,7 +278,7 @@ class Output:
         cmds = self.window.core.command.extract_cmds(ctx.output)
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
-
+            self.log("Command call received...")
             # agent mode
             if mode == 'agent':
                 commands = self.window.core.command.from_commands(cmds)  # pack to execution list
@@ -283,7 +288,9 @@ class Output:
                 )
                 # check if agent flow is not finished
                 if self.window.controller.agent.flow.finished:
-                    return
+                    pass
+                    # allow to continue commands execution if agent flow is finished
+                    # return
 
             # plugins
             if self.window.core.config.get('cmd'):
