@@ -101,6 +101,7 @@ class Indexer:
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
+        self.window.controller.idx.on_idx_start()  # on start
 
     def index_ctx_current(
             self,
@@ -209,6 +210,7 @@ class Indexer:
         worker.signals.finished.connect(self.handle_finished_db_current)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
+        self.window.controller.idx.on_idx_start()  # on start
 
     def index_path(
             self,
@@ -237,6 +239,7 @@ class Indexer:
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
+        self.window.controller.idx.on_idx_start()  # on start
 
     def index_paths(
             self,
@@ -265,6 +268,7 @@ class Indexer:
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
+        self.window.controller.idx.on_idx_start()  # on start
 
     def index_all_files(
             self,
@@ -400,6 +404,7 @@ class Indexer:
         worker.signals.finished.connect(self.handle_finished_web)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
+        self.window.controller.idx.on_idx_start()  # on start
 
     def index_ctx_meta_remove(
             self,
@@ -546,6 +551,7 @@ class Indexer:
         self.window.core.debug.log(err)
         print(err)
         self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_error()  # on error
 
     @Slot(str, object, object)
     def handle_finished_db_current(
@@ -585,6 +591,7 @@ class Indexer:
             self.window.ui.dialogs.alert("\n".join(errors))
 
         self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_end()  # on end
 
     @Slot(str, object, object, bool)
     def handle_finished_db_meta(
@@ -616,6 +623,7 @@ class Indexer:
             self.window.ui.dialogs.alert("\n".join(errors))
 
         self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_end()  # on end
 
     @Slot(str, object, object, bool)
     def handle_finished_file(
@@ -650,6 +658,7 @@ class Indexer:
 
         self.window.tools.get("indexer").on_finish_files()
         self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_end()  # on end
 
     @Slot(str, object, object, bool)
     def handle_finished_web(
@@ -680,3 +689,4 @@ class Indexer:
 
         self.window.tools.get("indexer").on_finish_web()
         self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_end()  # on end

@@ -367,6 +367,9 @@ class Indexing:
                 # remove old file from index if exists
                 file_id = self.window.core.idx.files.get_id(file)
 
+                if self.is_stopped():  # force stop
+                    break
+
                 # force replace or not old document
                 if replace is not None:
                     if replace:
@@ -379,6 +382,9 @@ class Indexing:
                 # index new version of file
                 documents = self.get_documents(file)
                 for d in documents:
+                    if self.is_stopped():  # force stop
+                        break
+
                     self.prepare_document(d)
                     self.index_document(index, d)
                     indexed[file] = d.id_  # add to index
@@ -423,6 +429,9 @@ class Indexing:
                         # remove old file from index if exists
                         file_id = self.window.core.idx.files.get_id(file_path)
 
+                        if self.is_stopped():  # force stop
+                            break
+
                         # force replace or not old document
                         if replace is not None:
                             if replace:
@@ -435,6 +444,9 @@ class Indexing:
                         # index new version of file
                         documents = self.get_documents(file_path)
                         for d in documents:
+                            if self.is_stopped():  # force stop
+                                break
+
                             self.prepare_document(d)
                             self.index_document(index, d)
                             indexed[file_path] = d.id_  # add to index
@@ -446,8 +458,9 @@ class Indexing:
                         if self.stop_enabled():
                             is_break = True
                             break  # break loop if error
-                if is_break:
-                    break  # stop os.walk if error
+
+                if is_break or self.is_stopped():
+                    break  # stop os.walk if error or forced stop
 
         # file
         elif os.path.isfile(path):
@@ -467,6 +480,9 @@ class Indexing:
                 # index new version of file
                 documents = self.get_documents(path)
                 for d in documents:
+                    if self.is_stopped():  # force stop
+                        break
+
                     self.prepare_document(d)
                     self.index_document(index, d)
                     indexed[path] = d.id_  # add to index
@@ -603,6 +619,9 @@ class Indexing:
             # get items from database
             documents = self.get_db_data_by_id(id, from_ts)
             for d in documents:
+                if self.is_stopped():  # force stop
+                    break
+
                 self.index_document(index, d)
                 doc_id = d.id_
                 self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
@@ -627,6 +646,9 @@ class Indexing:
         n = 0
         ids = self.get_db_meta_ids_from_ts(from_ts)
         for id in ids:
+            if self.is_stopped():  # force stop
+                break
+
             indexed, errs = self.index_db_by_meta_id(idx, index, id, from_ts)
             n += indexed
             errors.extend(errs)
@@ -699,6 +721,9 @@ class Indexing:
             self.window.core.idx.metadata.append_web_metadata(documents, type, args)
 
             for d in documents:
+                if self.is_stopped():  # force stop
+                    break
+
                 self.index_document(index, d)
                 doc_id = d.id_  # URL is used as document ID
                 if not is_tmp:
@@ -746,6 +771,9 @@ class Indexing:
             return n, errors
 
         for url in urls:
+            if self.is_stopped():  # force stop
+                break
+
             indexed, errs = self.index_url(
                 idx=idx,
                 index=index,
@@ -877,3 +905,11 @@ class Indexing:
         :return: True if enabled
         """
         return self.window.core.config.get('llama.idx.stop.error')
+
+    def is_stopped(self) -> bool:
+        """
+        Check if indexing is stopped
+
+        :return: True if stopped
+        """
+        return self.window.controller.idx.is_stopped()

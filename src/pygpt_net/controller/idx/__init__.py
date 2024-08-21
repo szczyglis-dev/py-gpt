@@ -31,6 +31,7 @@ class Idx:
         self.indexer = Indexer(window)
         self.current_idx = "base"
         self.locked = False
+        self.stop = False
 
     def setup(self):
         """Setup indexer"""
@@ -241,3 +242,46 @@ class Idx:
     def reload(self):
         """Reload indexer"""
         self.setup()
+
+    def on_idx_start(self):
+        """
+        Called on indexing started
+
+        :param idx: index name
+        """
+        self.stop = False
+        self.window.controller.ui.stop_action = "idx"
+        self.window.controller.ui.show_global_stop()
+
+    def on_idx_end(self):
+        """
+        Called on indexing started
+
+        :param idx: index name
+        """
+        self.stop = False
+        self.window.controller.ui.stop_action = None
+        self.window.controller.ui.hide_global_stop()
+
+    def on_idx_error(self):
+        """
+        Called on indexing started
+
+        :param idx: index name
+        """
+        self.stop = False
+        self.window.controller.ui.stop_action = None
+        self.window.controller.ui.hide_global_stop()
+
+    def force_stop(self):
+        """Force stop indexing"""
+        print("Force stop indexing...")
+        self.stop = True
+
+    def is_stopped(self) -> bool:
+        """
+        Check if indexing is stopped
+
+        :return: True if stopped
+        """
+        return self.stop

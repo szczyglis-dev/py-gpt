@@ -44,6 +44,7 @@ class UI:
             6: {'label': 'label.color.indigo', 'color': QColor(75, 0, 130), 'font': QColor(255, 255, 255)},
             7: {'label': 'label.color.violet', 'color': QColor(238, 130, 238), 'font': QColor(255, 255, 255)},
         }
+        self.stop_action = None
 
     def setup(self):
         """Setup UI"""
@@ -219,3 +220,16 @@ class UI:
         :return: tab name
         """
         return self.window.ui.tabs['output'].tabText(self.current_tab)
+
+    def show_global_stop(self):
+        """Show global stop button"""
+        self.window.ui.nodes['global.stop'].setVisible(True)
+
+    def hide_global_stop(self):
+        """Hide global stop button"""
+        self.window.ui.nodes['global.stop'].setVisible(False)
+
+    def on_global_stop(self):
+        """Global stop button action"""
+        if self.stop_action == "idx":
+            self.window.controller.idx.force_stop()

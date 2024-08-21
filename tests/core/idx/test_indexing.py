@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.08.21 19:00:00                  #
 # ================================================== #
 
 import os
@@ -62,6 +62,8 @@ def test_index_files_single_file(mock_window):
     docs = [doc]
     idx.get_documents = MagicMock(return_value=docs)
     idx.index_documents = MagicMock()
+    idx.window.controller.idx = MagicMock()
+    idx.window.controller.idx.is_stopped = MagicMock(return_value=False)
     with patch("os.path.isdir") as mock_isdir:
         mock_isdir.return_value = False
         with patch("os.path.isfile") as mock_isfile:
@@ -75,6 +77,8 @@ def test_index_files_in_directory(mock_window):
     """Test index directory"""
     index = MagicMock()
     idx = Indexing(mock_window)
+    idx.window.controller.idx = MagicMock()
+    idx.window.controller.idx.is_stopped = MagicMock(return_value=False)
     doc = Document()
     doc.id_ = "test_id"
     docs = [doc]
@@ -154,6 +158,8 @@ def test_get_db_data_by_id(mock_window):
 def test_index_db_by_meta_id(mock_window):
     """Test index db by meta id"""
     idx = Indexing(mock_window)
+    idx.window.controller.idx = MagicMock()
+    idx.window.controller.idx.is_stopped = MagicMock(return_value=False)
     doc = Document()
     doc.id_ = "test_id"
     docs = [doc]
@@ -168,6 +174,8 @@ def test_index_db_by_meta_id(mock_window):
 def test_index_db_from_updated_ts(mock_window):
     """Test index db from updated ts"""
     idx = Indexing(mock_window)
+    idx.window.controller.idx = MagicMock()
+    idx.window.controller.idx.is_stopped = MagicMock(return_value=False)
     idx.index_db_by_meta_id = MagicMock(return_value=(1, []))
     idx.get_db_meta_ids_from_ts = MagicMock(return_value=[123])
     doc = Document()
