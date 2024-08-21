@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -125,6 +125,7 @@ class Text:
 
         # event: prepare prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
+        functions = []
 
         # agent mode
         if self.window.controller.agent.experts.enabled():
@@ -192,7 +193,7 @@ class Text:
         # QApplication.processEvents()
 
         # FUNCTION CALLS: prepare user & plugins functions if native mode is enabled
-        functions = self.window.core.command.get_functions()
+        functions += self.window.core.command.get_functions(parent_id)
 
         # assistant only
         tools_outputs = []
