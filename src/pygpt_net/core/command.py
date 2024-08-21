@@ -399,11 +399,11 @@ class Command:
                                         for k in param["enum"][key]:
                                             if isinstance(param["enum"][key][k], dict):
                                                 for v in list(param["enum"][key][k].keys()):
-                                                    if v not in values:
+                                                    if v not in sub_values:
                                                         sub_values.append(v)
                                             elif isinstance(param["enum"][key][k], list):
                                                 for v in param["enum"][key][k]:
-                                                    if v not in values:
+                                                    if v not in sub_values:
                                                         sub_values.append(v)
                                         if len(sub_values) > 0:
                                             values = sub_values
