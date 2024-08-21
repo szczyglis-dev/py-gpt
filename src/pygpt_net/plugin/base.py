@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.18 03:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -260,6 +260,14 @@ class BasePlugin:
         :param extra_data: extra data
         """
         self.handle_finished(response, ctx, extra_data)
+
+    def is_native_cmd(self) -> bool:
+        """
+        Check if native API command execution is enabled
+
+        :return: True if native execution is enabled
+        """
+        return self.window.core.command.is_native_enabled()
 
     def is_log(self) -> bool:
         """
