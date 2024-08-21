@@ -138,17 +138,17 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "get_context",
-            instruction="get additional context for a given question",
+            instruction="get additional context for a given query",
             params=[
                 {
                     "name": "query",
                     "type": "str",
-                    "description": "question to retrieve additional context for",
+                    "description": "query to retrieve additional context for",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="If enabled, model will be able to get additional context for a given question",
+            description="If enabled, model will be able to get additional context for a given query",
         )
 
     def setup(self) -> dict:
@@ -206,6 +206,9 @@ class Plugin(BasePlugin):
             Event.CMD_SYNTAX,
             Event.CMD_SYNTAX_INLINE,
         ]:
+            if self.mode in self.ignored_modes:  # ignore
+                return
+
             self.cmd_syntax(data)
 
         elif name in [
