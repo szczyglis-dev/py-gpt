@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 21:00:00                  #
+# Updated Date: 2024.08.21 17:00:00                  #
 # ================================================== #
 
 import ssl
@@ -277,7 +277,7 @@ class Plugin(BasePlugin):
         self.add_cmd(
             "web_index",
             instruction="",
-            params=[],
+            params=[],  # prepared dynamically
             enabled=True,
             tab="indexing",
             description="If enabled, model will be able to index web content using Llama-index (persistent index)",
@@ -285,20 +285,7 @@ class Plugin(BasePlugin):
         self.add_cmd(
             "web_index_query",
             instruction="read, index and query external content for additional context.",
-            params=[
-                {
-                    "name": "query",
-                    "description": "query",
-                },
-                {
-                    "name": "type",
-                    "description": "[use config from web_index command]",
-                },
-                {
-                    "name": "args",
-                    "description": "[use config from web_index command]",
-                },
-            ],
+            params=[],  # prepared dynamically
             enabled=True,
             tab="indexing",
             description="If enabled, model will be able to index and query web content using Llama-index "
@@ -484,6 +471,49 @@ class Plugin(BasePlugin):
         }
         return cmd
 
+    def prepare_idx_query_syntax(self) -> dict:
+        """
+        Prepare web_index command syntax with instructions parsed from web loaders
+
+        :return: syntax string
+        """
+        instructions = self.window.core.idx.indexing.get_external_instructions()
+        types = {}
+        args = {}
+        for type in instructions:
+            if not self.is_indexing_allowed(type):  # check if data loader is allowed
+                continue
+            types[type] = instructions[type]["description"]
+            args[type] = list(instructions[type]["args"].keys())
+
+        cmd = {
+            "cmd": "web_index_query",
+            "instruction": "read, index and query external content for additional context",
+            "params": [
+                {
+                    "name": "type",
+                    "type": "enum",
+                    "description": "data type",
+                    "required": True,
+                    "default": "webpage",
+                    "enum": {
+                        "type": types,
+                    }
+                },
+                {
+                    "name": "args",
+                    "type": "dict",
+                    "description": "extra args for type",
+                    "required": True,
+                    "enum": {
+                        "args": args,
+                    }
+                }
+            ],
+            "enabled": True,
+        }
+        return cmd
+
     def cmd_syntax(self, data: dict):
         """
         Event: CMD_SYNTAX
@@ -496,7 +526,10 @@ class Plugin(BasePlugin):
 
             # special case for web_index
             if option == "web_index":
-                data['cmd'].append(self.prepare_idx_syntax())
+                data['cmd'].append(self.prepare_idx_syntax())  # prepare params
+                continue
+            elif option == "web_index_query":
+                data['cmd'].append(self.prepare_idx_query_syntax())  # prepare params
                 continue
             elif option == "web_search":
                 max_pages = self.get_option_value("num_pages")
