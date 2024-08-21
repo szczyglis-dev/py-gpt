@@ -1,3 +1,9 @@
+2.2.24 (2024-08-21)
+
+- Added a STOP button that allows stopping indexing at any time.
+- Improved conversion of ENUM types when generating a native list of functions for the API.
+- Disabled adding functions to the list when the option to execute commands is unchecked.
+
 2.2.23 (2024-08-21)
 
 - Improved context summarization in Llama-index provider.

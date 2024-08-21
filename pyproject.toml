@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.2.23"
+version = "2.2.24"
 description = "Desktop AI Assistant powered by GPT-4, GPT-4o, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, Whisper with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more"
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"

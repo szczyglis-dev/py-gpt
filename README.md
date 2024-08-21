@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.23** | build: **2024.08.20** | Python: **>=3.10, <3.12**
+Release: **2.2.24** | build: **2024.08.21** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3347,6 +3347,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.2.24 (2024-08-21)**
+
+- Added a STOP button that allows stopping indexing at any time.
+- Improved conversion of ENUM types when generating a native list of functions for the API.
+- Disabled adding functions to the list when the option to execute commands is unchecked.
+
 **2.2.23 (2024-08-21)**
 
 - Improved context summarization in Llama-index provider.
@@ -3378,68 +3384,6 @@ may consume additional tokens that are not displayed in the main window.
 **2.2.19 (2024-05-16)**
 
 - Added a newest multimodal model: GPT-4 "omni": https://openai.com/index/hello-gpt-4o
-
-**2.2.18 (2024-05-05)**
-
-- Fix: prevent crash if no audio to play.
-
-**2.2.17 (2024-05-05)**
-
-- Fix: Added prevent try to play audio if empty output.
-- Disabled playing finish event on audio or voice control enabled.
-
-**2.2.16 (2024-05-05)**
-
-- Escape key now stops response generation and audio output (if playing).
-- Voice control options added to the Audio menu.
-- Added cache on disk for generated static audio content.
-- Added plugin translations for other languages.
-
-**2.2.15 (2024-05-04)**
-
-- Added audio output stop on audio input start.
-- Added notify about unrecognized command.
-- Voice control improvements.
-
-**2.2.14 (2024-05-04)**
-
-- Added a 'Voice Control (inline)' plugin that allows for voice command control directly during a conversation.
-- Added configuration in 'Settings -> Accessibility' for a blacklist of actions available as voice commands.
-
-**2.2.13 (2024-05-03)**
-
-- Added stretch to dictionary config fields.
-- Removed redundant attachments clear event.
-
-**2.2.12 (2024-05-03)**
-
-- Improved speech recognition.
-- Added minimum required length of audio input.
-- Added missing translations.
-- Fixed settings hooks triggering on profile switch.
-
-**2.2.11 (2024-05-03)**
-
-- Added a blacklist for events for the voice event description in settings.
-- Added a delay to playing audio when describing events.
-- Sorted the list of events in the configuration.
-
-**2.2.10 (2024-05-03)**
-
-- Extended voice control commands list.
-- Extended actions and keyboard shortcuts.
-
-**2.2.9 (2024-05-02)**
-
-- Added more commands to voice control: search for contexts, clear search, add, read and clear calendar memos, context rename.
-
-**2.2.8 (2024-05-02)**
-
-- Added support for disabled people, including voice control and screen event translation with audio synthesis.
-- A new section in Settings called 'Accessibility' has been added with options for assistance: voice control, keyboard shortcut definitions for actions, and screen event translation using audio synthesis.
-- A new section called 'Accessibility' has been added to the Documentation.
-
-The full changelog is located in the [CHANGELOG.md](https://github.com/szczyglis-dev/py-gpt/blob/master/CHANGELOG.md) file in the main folder of this repository.
 
 
 # Credits and links
