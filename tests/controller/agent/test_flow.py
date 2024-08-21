@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 import os
@@ -20,6 +20,7 @@ from pygpt_net.controller.agent.flow import Flow
 def test_on_system_prompt(mock_window):
     """Test on system prompt"""
     flow = Flow(mock_window)
+    flow.window.core.command.is_native_enabled = MagicMock(return_value=False)
     result = flow.on_system_prompt("prompt", "append_prompt", True)
     assert result.startswith("prompt\nappend_prompt\n\nSTATUS UPDATE:")
 
