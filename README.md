@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.24** | build: **2024.08.21** | Python: **>=3.10, <3.12**
+Release: **2.2.25** | build: **2024.08.22** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -3346,6 +3346,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.25 (2024-08-22)**
+
+- Improved native API functions handling.
+- Improved expert prompts.
+- Fixed/improved inline plugin commands handling.
 
 **2.2.24 (2024-08-21)**
 

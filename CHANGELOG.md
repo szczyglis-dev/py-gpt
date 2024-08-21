@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.2.25 (2024-08-22)
+
+- Improved native API functions handling.
+- Improved expert prompts.
+- Fixed/improved inline plugin commands handling.
+
 # 2.2.24 (2024-08-21)
 
 - Added a STOP button that allows stopping indexing at any time.
