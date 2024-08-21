@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -30,6 +30,39 @@ class Flow:
             "goal_update",
         ]
         self.pause_status = ["pause", "failed", "wait"]
+        self.prompt_goal_native = """
+        STATUS UPDATE: You can use "goal_update" command to update status of the task. 
+        ON GOAL FINISH: When you believe that the task has been completed 100% and all goals have been achieved, 
+        run "goal_update" command with status = "finished".
+        ON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task run must be paused 
+        or task was failed or when the conversation falls into a loop, THEN STOP REASONING and include "goal_update" 
+        command with one of these statuses: "pause", "failed" or "wait".
+        """
+
+    def get_functions(self) -> list:
+        """
+        Append goal commands
+
+        :return: goal commands
+        """
+        cmds = [
+            {
+                "cmd": "goal_update",
+                "instruction": "Update goal status",
+                "params": [
+                    {
+                        "name": "status",
+                        "description": "status to update",
+                        "required": True,
+                        "type": "str",
+                        "enum": {
+                            "status": ["finished", "pause", "failed", "wait"],
+                        }
+                    }
+                ]
+            }
+        ]
+        return cmds
 
     def on_system_prompt(
             self,
@@ -47,7 +80,10 @@ class Flow:
         """
         stop_cmd = ""
         if auto_stop:
-            stop_cmd = "\n\n" + self.window.core.prompt.get("agent.goal")
+            if not self.window.core.command.is_native_enabled():
+                stop_cmd = "\n\n" + self.window.core.prompt.get("agent.goal")  # use ### commands
+            else:
+                stop_cmd = "\n\n" + self.prompt_goal_native  # use API native functions
         if append_prompt is not None and append_prompt.strip() != "":
             append_prompt = "\n" + append_prompt
         prompt += str(append_prompt) + stop_cmd

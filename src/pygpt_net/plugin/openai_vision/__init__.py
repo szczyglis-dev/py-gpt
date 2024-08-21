@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.16 02:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -21,6 +21,7 @@ class Plugin(BasePlugin):
         self.name = "GPT-4 Vision (inline)"
         self.type = [
             "vision",
+            "cmd.inline",
         ]
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
         self.order = 100
@@ -164,7 +165,10 @@ class Plugin(BasePlugin):
         ]:
             self.on_toggle(False)  # always reset vision flag / disable vision mode
 
-        elif name == Event.CMD_SYNTAX:
+        elif name in [
+            Event.CMD_SYNTAX,
+            Event.CMD_SYNTAX_INLINE,
+        ]:
             self.cmd_syntax(data)
 
         elif name == Event.CMD_EXECUTE:

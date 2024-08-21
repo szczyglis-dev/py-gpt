@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -114,7 +114,9 @@ class Plugin(BasePlugin):
                     "type": "enum",
                     "required": True,
                     "description": "Voice action",
-                    "enum": self.window.core.access.voice.get_commands(),  # voice cmds list
+                    "enum": {
+                        "action": self.window.core.access.voice.get_commands(),  # voice cmds list
+                    },
                 },
                 {
                     "name": "args",
@@ -125,6 +127,7 @@ class Plugin(BasePlugin):
             ],
             "enabled": True,  # enabled
         }
+        print(self.window.core.access.voice.get_commands())
         return cmd_syntax
 
     def cmd_syntax(self, data: dict):

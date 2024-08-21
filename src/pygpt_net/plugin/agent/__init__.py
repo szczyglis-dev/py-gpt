@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -24,6 +24,7 @@ class Plugin(BasePlugin):
                            "may produce unexpected results!"
         self.type = [
             "agent",
+            "cmd.inline",
         ]
         self.order = 9998
         self.use_locale = True
@@ -84,7 +85,7 @@ class Plugin(BasePlugin):
                           "be able to provide you with ANY additional commands or goal updates in this manner. " \
                           "The other inputs, not prefixed with 'user: ' will represent your previous responses.\n" \
                           "16. Start by breaking down the task into as many smaller sub-tasks as possible, then " \
-                          "proceed to complete each one in sequence.  Next, break down each sub-task into even " \
+                          "proceed to complete each one in sequence. Next, break down each sub-task into even " \
                           "smaller tasks, carefully and step by step go through all of them until the required " \
                           "goal is fully and correctly achieved.\n17. Always split every step into parts: " \
                           "main goal, current sub-task, potential problems, pros and cons, criticism of the " \

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -100,6 +100,45 @@ class Experts:
         :return: prompt with list of experts appended
         """
         prompt = self.window.core.config.get('prompt.expert')
+        if self.window.core.command.is_native_enabled():
+            prompt = """
+            EXPERT MODE IS ENABLED
+            ======================
+            You are the professional manager of a team of experts, each of whom is the best in their respective fields. 
+            
+            IMPORTANT RULES:
+            
+            YOU MUST ALWAYS FOLLOW THIS RULES WHILE MANAGING EXPERTS:
+            
+            1. Instead of directly answering questions, you can manage these experts by forwarding queries to them, 
+            collecting their responses, and controlling the flow of information between them as well as sending 
+            requests to them. 
+            2. You will serve as a bridge between them. 
+            3. Each expert has their own conversation context, so you can communicate with them normally. 
+            4. The experts can communicate with you but not with each other, so you will be responsible for relaying 
+            information between them. 
+            5. After consulting with the experts, your task will be to prepare the best possible answer based on the 
+            assistance received and to use it in your Chain-of-Thought. 
+            6. To send a request to an expert prepare the "expert_call" function call.
+            7. Remember that the call must contain a query and the ID of the expert to be forwarded to the expert. 
+            8. Use ONLY experts listed below, DO NOT TRY to ask any non-existing experts - they will not respond.
+            9. Do not respond to the expert's replies, or use commands again if replying; the expert only has 
+            the ability to listen to your queries sent and to respond to them.
+            10. Always follow ALL user commands, even if you thing than expert can't do something. 
+            Experts are allowed to execute commands same as you can.
+            11. After query an expert, always wait for expert response before sending another query.
+            12. Do not try to query experts in the middle of the conversation, put your queries and commands at the end of the text.
+            13. Always call only one expert at a time.
+            14. Always execute only one function call at a time.
+            15. Always use the language used by user in conversation.
+            16. Never write as an called expert and do not imagine response from him.
+            17. Your response cannot include ~###~{...}~###~ commands in the conversation body - this syntax is reserved only for response purposes.
+            18. First message after your query is always a response from asked expert, not from me.
+            
+            List of available experts, along with their IDs:
+            
+            {presets}
+            """
         experts = self.get_experts()
         experts_list = []
         for k in experts:
@@ -307,3 +346,31 @@ class Experts:
             internal=False,
             prev_ctx=ctx,
         )
+
+    def get_functions(self) -> list:
+        """
+        Append goal commands
+
+        :return: goal commands
+        """
+        cmds = [
+            {
+                "cmd": "expert_call",
+                "instruction": "Call an expert",
+                "params": [
+                    {
+                        "name": "id",
+                        "description": "expert id",
+                        "required": True,
+                        "type": "str",
+                    },
+                    {
+                        "name": "query",
+                        "description": "query to expert",
+                        "required": False,
+                        "type": "str",
+                    }
+                ]
+            }
+        ]
+        return cmds

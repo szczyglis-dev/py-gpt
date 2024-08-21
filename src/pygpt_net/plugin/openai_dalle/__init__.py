@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -22,6 +22,9 @@ class Plugin(BasePlugin):
         self.id = "openai_dalle"
         self.name = "DALL-E 3: Image generation"
         self.description = "Integrates DALL-E 3 image generation with any chat"
+        self.type = [
+            "cmd.inline",
+        ]
         self.allowed_modes = [
             "chat",
             "langchain",
@@ -54,6 +57,29 @@ class Plugin(BasePlugin):
                  'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
                  'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \
                  'engage with me about the photo itself, not only by giving the generate command. '
+        prompt_func = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'give me a picture of ' \
+                 'mountains\', I want you to translate it into English and expand and elaborate on this idea. ' \
+                 'Use your knowledge and creativity to add details that would make the image more vivid and ' \
+                 'interesting. This could include specifying the time of day, weather conditions, surrounding ' \
+                 'environment, and any additional elements that could enhance the scene. Your goal is to create a ' \
+                 'detailed and descriptive prompt (query) that provides DALL-E with enough information to generate a rich ' \
+                 'and visually appealing image. Use this command to start image generation. Use English in the image query.  ' \
+                 'The image will be generated on my machine immediately after the command is issued, allowing us to ' \
+                 'discuss the photo once it has been created. Please engage with me about the photo itself, not only by giving the generate command. '
+        self.add_cmd(
+            "image",
+            instruction=prompt_func,
+            params=[
+                {
+                    "name": "query",
+                    "type": "str",
+                    "description": "image generation query (prompt for DALL-E)",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="If enabled, DALL-E 3 image generation is available in chat.",
+        )
         self.add_option(
             "prompt",
             type="textarea",
@@ -93,12 +119,24 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == Event.SYSTEM_PROMPT:
+            if self.is_native_cmd():  # only if native commands are disabled, otherwise use commands only
+                return
+
             mode = ""
             if "mode" in data:
                 mode = data["mode"]
             if mode not in self.allowed_modes:
                 return
             data['value'] = self.on_system_prompt(data['value'])
+
+        elif name in [
+            Event.CMD_SYNTAX_INLINE,  # inline is allowed
+            Event.CMD_SYNTAX,
+        ]:
+            if not self.is_native_cmd():  # only if native commands are enabled, otherwise use prompt only
+                return
+
+            self.cmd_syntax(data)
 
         elif name in [
             Event.CMD_INLINE,
@@ -108,6 +146,17 @@ class Plugin(BasePlugin):
                 ctx,
                 data['commands'],
             )
+
+    def cmd_syntax(self, data: dict):
+        """
+        Event: CMD_SYNTAX or CMD_SYNTAX_INLINE
+
+        :param data: event data dict
+        """
+        for option in self.allowed_cmds:
+            if not self.has_cmd(option):
+                continue
+            data['cmd'].append(self.get_cmd(option))  # append command
 
     def on_system_prompt(self, prompt: str) -> str:
         """

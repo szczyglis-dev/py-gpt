@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 import json
@@ -30,6 +30,9 @@ class Plugin(BasePlugin):
         ]
         self.ignored_modes = [
             "llama_index",
+        ]
+        self.type = [
+            "cmd.inline",
         ]
         self.order = 100
         self.use_locale = True
@@ -199,7 +202,10 @@ class Plugin(BasePlugin):
                 ctx,
             )
 
-        elif name == Event.CMD_SYNTAX:
+        elif name in [
+            Event.CMD_SYNTAX,
+            Event.CMD_SYNTAX_INLINE,
+        ]:
             self.cmd_syntax(data)
 
         elif name in [
