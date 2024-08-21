@@ -8,6 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.04.14 05:00:00                  #
 # ================================================== #
+import json
+
 
 class ContextDebug:
     def __init__(self, window=None):
@@ -44,6 +46,7 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'allowed_modes', str(self.window.core.ctx.allowed_modes))
         self.window.core.debug.add(self.id, 'CMD (current)', str(self.window.core.ctx.current_cmd))
         self.window.core.debug.add(self.id, 'CMD schema (current)', str(self.window.core.ctx.current_cmd_schema))
+        self.window.core.debug.add(self.id, 'FUNCTIONS (current)', str(self.get_functions()))
 
         current = None
         if self.window.core.ctx.current is not None:
@@ -61,3 +64,23 @@ class ContextDebug:
             i += 1
 
         self.window.core.debug.end(self.id)
+
+    def get_functions(self) -> list:
+        """
+        Parse functions
+
+        :return: List of functions
+        """
+        parsed = []
+        functions = self.window.core.command.get_functions()
+        for func in functions:
+            try:
+                item = {
+                    "name": func['name'],
+                    "desc": func['desc'],
+                    "params": json.loads(func['params']),
+                }
+                parsed.append(item)
+            except Exception as e:
+                pass
+        return parsed
