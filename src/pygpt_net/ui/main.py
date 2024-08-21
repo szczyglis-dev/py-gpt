@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.08.21 16:00:00                  #
 # ================================================== #
 
 import os
@@ -205,13 +205,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.tools.post_setup()
 
     def update(self):
-        """Called on every update"""
+        """Called on every update (real-time)"""
         self.controller.on_update()
         self.controller.plugins.on_update()
         self.tools.on_update()
 
     def post_update(self):
-        """Called on post-update (slow)"""
+        """Called on post-update (lazy)"""
         self.controller.debug.on_post_update()
         self.controller.plugins.on_post_update()
         self.tools.on_post_update()

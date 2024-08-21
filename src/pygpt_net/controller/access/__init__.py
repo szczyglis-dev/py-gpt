@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.21 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import BaseEvent
@@ -41,7 +41,7 @@ class Access:
 
     def handle(self, event: BaseEvent):
         """
-        Handle accessibility event
+        Handle accessibility event (ControlEvent or AppEvent)
 
         :param event: event object
         """
@@ -54,7 +54,7 @@ class Access:
 
     def handle_app(self, event: AppEvent):
         """
-        Handle accessibility event (app)
+        Handle accessibility event (AppEvent only)
 
         :param event: event object
         """

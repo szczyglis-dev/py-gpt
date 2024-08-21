@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.21 16:00:00                  #
 # ================================================== #
 
 import re
@@ -18,8 +18,8 @@ from pygpt_net.utils import trans
 
 class Control:
 
-    CTX_TIMER_DELAY = 2000
-    MODE_TIMER_DELAY = 2000
+    CTX_TIMER_DELAY = 2000  # delay before ctx change execute (ms)
+    MODE_TIMER_DELAY = 2000  # delay before mode change execute (ms)
 
     def __init__(self, window=None):
         """
@@ -66,10 +66,10 @@ class Control:
 
     def handle(self, event: ControlEvent, force: bool = False):
         """
-        Handle accessibility event (control)
+        Handle accessibility event (ControlEvent)
 
         :param event: event object
-        :param force: force handle
+        :param force: True if force window close on APP_EXIT event
         """
         self.window.core.debug.info("EVENT CTRL: " + event.name)
 
@@ -77,16 +77,18 @@ class Control:
         if event.name != ControlEvent.CMD_CONFIRM:
             self.last_confirm = None
 
-        # app
+        # app exit
         if event.name == ControlEvent.APP_EXIT:
-            if force:
+            if force:  # if confirmed
                 self.window.close()
-            else:
+            else:  # play confirm
                 self.last_confirm = event
                 self.window.controller.audio.play_event(
                     trans("event.audio.confirm"),
                     event,
                 )
+            return
+        # status changed
         elif event.name == ControlEvent.APP_STATUS:
             status = self.window.core.access.helpers.get_status()
             if status != "":
@@ -95,11 +97,13 @@ class Control:
                     event,
                 )
 
+        # unrecognized command (abort)
         if event.name == ControlEvent.VOICE_CONTROL_UNRECOGNIZED:
             self.window.controller.audio.play_event(
                 trans("event.audio.voice.control.unrecognized"),
                 event,
             )
+            return
 
         # confirm last action
         elif event.name == ControlEvent.CMD_CONFIRM:
@@ -208,7 +212,7 @@ class Control:
                 event,
             )
 
-        # mode
+        # mode change
         elif event.name == ControlEvent.MODE_CHAT:
             self.mode_action = ControlEvent.MODE_CHAT
             self.mode_timer.start(self.MODE_TIMER_DELAY)
@@ -222,19 +226,19 @@ class Control:
             self.mode_action = ControlEvent.MODE_PREV
             self.mode_timer.start(self.MODE_TIMER_DELAY)
 
-        # model
+        # model change
         elif event.name == ControlEvent.MODEL_NEXT:
             self.window.controller.model.next()
         elif event.name == ControlEvent.MODEL_PREV:
             self.window.controller.model.prev()
 
-        # presets
+        # preset change
         elif event.name == ControlEvent.PRESET_NEXT:
             self.window.controller.presets.next()
         elif event.name == ControlEvent.PRESET_PREV:
             self.window.controller.presets.prev()
 
-        # tabs
+        # tab change
         elif event.name == ControlEvent.TAB_NEXT:
             self.window.controller.ui.next_tab()
         elif event.name == ControlEvent.TAB_PREV:
@@ -300,7 +304,7 @@ class Control:
             self.window.controller.plugins.disable('audio_output')
             self.handle_result(event, True)
 
-        # input
+        # text input
         elif event.name == ControlEvent.INPUT_SEND:
             if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
@@ -367,7 +371,7 @@ class Control:
                 event,
             )
 
-        # cmd list
+        # cmd list (help)
         elif event.name == ControlEvent.CMD_LIST:
             text = self.window.core.access.voice.get_commands_string(values=True)
             self.window.controller.audio.play_event(
