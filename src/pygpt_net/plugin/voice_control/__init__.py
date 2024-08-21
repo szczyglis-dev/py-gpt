@@ -127,7 +127,6 @@ class Plugin(BasePlugin):
             ],
             "enabled": True,  # enabled
         }
-        print(self.window.core.access.voice.get_commands())
         return cmd_syntax
 
     def cmd_syntax(self, data: dict):
