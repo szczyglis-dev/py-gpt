@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.08.21 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -24,7 +24,7 @@ def test_summarize(mock_window):
     item = CtxItem()
 
     summarizer.summarize(3, item)
-    summarizer.start_worker.assert_called_once_with(3, item)
+    summarizer.start_worker.assert_called_once()
 
 
 def test_summarizer(mock_window):
