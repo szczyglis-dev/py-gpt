@@ -296,7 +296,7 @@ class Command:
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
 
-    def as_native_functions(self, all: bool = True) -> list:
+    def as_native_functions(self, all: bool = False) -> list:
         """
         Convert internal functions to native API format
         
@@ -393,7 +393,22 @@ class Command:
                                     param["enum"]) + ")"
                                 # get dict keys from param["enum"][key] as list:
                                 if key in param["enum"]:
-                                    params["properties"][key]["enum"] = list(param["enum"][key].keys())
+                                    values = list(param["enum"][key].keys())
+                                    if isinstance(param["enum"][key], dict):  # check for sub-dicts
+                                        sub_values = []
+                                        for k in param["enum"][key]:
+                                            if isinstance(param["enum"][key][k], dict):
+                                                for v in list(param["enum"][key][k].keys()):
+                                                    if v not in values:
+                                                        sub_values.append(v)
+                                            elif isinstance(param["enum"][key][k], list):
+                                                for v in param["enum"][key][k]:
+                                                    if v not in values:
+                                                        sub_values.append(v)
+                                        if len(sub_values) > 0:
+                                            values = sub_values
+
+                                    params["properties"][key]["enum"] = values # rss, git, web
 
                             # remove defaults and append to description
                             if "default" in param:
