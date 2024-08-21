@@ -6,17 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.08.22 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
+import re
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
 
 class Command:
+    DESC_LIMIT = 1024
+
     def __init__(self, window=None):
         """
         Commands core
@@ -95,6 +98,16 @@ class Command:
 
         self.window.core.ctx.current_cmd_schema = data  # for debug
         return json.dumps(data)  # pack, return JSON string without indent and formatting
+
+    def has_cmds(self, text: str) -> bool:
+        """
+        Check if text has command execute syntax
+
+        :param text: text to check
+        :return: True if text has commands
+        """
+        regex_cmd = r'~###~\s*{.*}\s*~###~'
+        return bool(re.search(regex_cmd, text))
 
     def extract_cmds(self, text: str) -> list:
         """
@@ -296,11 +309,27 @@ class Command:
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
 
-    def as_native_functions(self, all: bool = False) -> list:
+    def get_functions(self, parent_id: str = None) -> list:
+        """
+        Get current functions list
+
+        :param parent_id: parent ID
+        :return: functions list
+        """
+        func = []
+        func_user = self.window.controller.presets.get_current_functions()
+        if self.is_native_enabled():
+            func = self.as_native_functions(all=False, parent_id=parent_id)
+        if func_user is None:
+            func_user = []
+        return func + func_user  # merge both
+
+    def as_native_functions(self, all: bool = False, parent_id: str = None) -> list:
         """
         Convert internal functions to native API format
         
         :param: all True to include all
+        :param: parent_id: parent context ID
         :return: native functions list
         """
         """
@@ -325,7 +354,9 @@ class Command:
             },
         }]
         """
-        functions = []
+        func_plugins = []
+        func_agent = []
+        func_experts = []
         data = {
             'syntax': [],
             'cmd': [],
@@ -338,14 +369,32 @@ class Command:
             event = Event(Event.CMD_SYNTAX_INLINE, data)
             self.window.core.dispatcher.dispatch(event)
 
-        cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original data
+        cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original plugins cmd
+        func_plugins = self.cmds_to_functions(cmds)  # plugin functions
+        if self.window.controller.agent.enabled():
+            func_agent = self.cmds_to_functions(self.window.controller.agent.flow.get_functions())  # agent functions
+        if self.window.controller.agent.experts.enabled():
+            func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())  # agent functions
+        return func_plugins + func_agent + func_experts
+
+    def cmds_to_functions(self, cmds: list) -> list:
+        """
+        Convert commands to functions (native API format)
+
+        :param cmds: commands list
+        :return: functions list
+        """
+        functions = []
         for cmd in cmds:
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
+                desc = cmd["instruction"]
+                if len(desc) > self.DESC_LIMIT:
+                    desc = desc[:self.DESC_LIMIT]  # limit description to 1024 characters
                 functions.append(
                     {
                         "name": cmd_name,
-                        "desc": cmd["instruction"],
+                        "desc": desc,
                         "params": json.dumps(self.extract_params(cmd), indent=4),
                     }
                 )
@@ -385,16 +434,20 @@ class Command:
                             if "type" in param:
                                 params["properties"][key]["type"] = param["type"]
                             if "description" in param:
-                                params["properties"][key]["description"] = param["description"]
+                                desc = param["description"]
+                                if len(desc) > self.DESC_LIMIT:
+                                    desc = desc[:self.DESC_LIMIT]  # limit description to 1024 characters
+                                params["properties"][key]["description"] = desc
 
                             # append enum if exists
                             if "enum" in param:
                                 params["properties"][key]["description"] += ", enum: " + json.dumps(
                                     param["enum"]) + ")"
                                 # get dict keys from param["enum"][key] as list:
+                                values = []
                                 if key in param["enum"]:
-                                    values = list(param["enum"][key].keys())
                                     if isinstance(param["enum"][key], dict):  # check for sub-dicts
+                                        values = list(param["enum"][key].keys())
                                         sub_values = []
                                         for k in param["enum"][key]:
                                             if isinstance(param["enum"][key][k], dict):
@@ -407,8 +460,11 @@ class Command:
                                                         sub_values.append(v)
                                         if len(sub_values) > 0:
                                             values = sub_values
+                                    elif isinstance(param["enum"][key], list):
+                                        values = param["enum"][key]
 
-                                    params["properties"][key]["enum"] = values # rss, git, web
+                                    if values:
+                                        params["properties"][key]["enum"] = values
 
                             # remove defaults and append to description
                             if "default" in param:
@@ -433,24 +489,10 @@ class Command:
                                 params["properties"][key]["items"] = {
                                     "$ref": "#"
                                 }
-
                 except Exception as e:
+                    print(e)
                     pass
         return params
-
-    def get_functions(self) -> list:
-        """
-        Get current functions list
-
-        :return: functions list
-        """
-        func_plugins = []
-        func_user = self.window.controller.presets.get_current_functions()
-        if self.is_native_enabled():
-            func_plugins = self.as_native_functions()
-        if func_user is None:
-            func_user = []
-        return func_plugins + func_user  # merge both
 
     def is_native_enabled(self) -> bool:
         """
@@ -464,10 +506,8 @@ class Command:
             "completion",
         ]
         mode = self.window.core.config.get('mode')
-        agent_mode = self.window.core.config.get('agent.mode')
         if mode in disabled_modes:
             return False  # disabled for specific modes
-        if self.window.controller.agent.enabled():
-            if agent_mode in disabled_modes:
-                return False
+        if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
+            return False
         return self.window.core.config.get('func_call.native', False)  # otherwise check config
