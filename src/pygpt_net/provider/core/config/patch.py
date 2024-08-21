@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.08.25 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -1514,6 +1514,12 @@ class Patch:
                 print("Migrating config from < 2.2.22...")
                 if 'llama.idx.stop.error' not in data:
                     data["llama.idx.stop.error"] = True
+                updated = True
+
+            # < 2.2.25
+            if old < parse_version("2.2.25"):
+                print("Migrating config from < 2.2.25...")
+                data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
                 updated = True
 
         # update file
