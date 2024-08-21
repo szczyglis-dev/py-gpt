@@ -77,7 +77,7 @@ class Worker(BaseWorker):
             "result": answer,
             "doc_ids": doc_ids,
             "metas": metas,
-            "context": "ADDITIONAL CONTEXT:\n--------------------------------\n" + answer,
+            "context": "ADDITIONAL CONTEXT (response from DB):\n--------------------------------\n" + answer,
         }
         if doc_ids:
             self.ctx.doc_ids = doc_ids  # store doc_ids in context
