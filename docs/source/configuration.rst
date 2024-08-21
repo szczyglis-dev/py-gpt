@@ -115,7 +115,7 @@ The following basic options can be modified directly within the application:
 
 **Prompts**
 
-* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts, default: True
+* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Chat and Assistants modes ONLY, default: True
 
 * ``Command execute: instruction``: Prompt for appending command execution instructions. Placeholders: {schema}, {extra}
 
