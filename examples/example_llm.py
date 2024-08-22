@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 02:00:00                  #
+# Updated Date: 2024.08.22 17:00:00                  #
 # ================================================== #
 
-from langchain_community.llms import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
+from langchain_openai import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
 from langchain_openai import ChatOpenAI  # <--- Import ChatOpenAI provider for Langchain (chat)
-from llama_index.llms.openai import OpenAI as LlamaOpenAI  # <--- Import OpenAI provider for Llama-Index
 
+from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from llama_index.core.base.embeddings.base import BaseEmbedding
+from llama_index.llms.openai import OpenAI as LlamaOpenAI  # <--- Import OpenAI provider for Llama-Index
+from llama_index.embeddings.openai import OpenAIEmbedding  # <--- Import OpenAI embeddings for Llama-Index
 
 from pygpt_net.provider.llms.base import BaseLLM  # <--- provider must inherit from BaseLLM class
 from pygpt_net.item.model import ModelItem  # <--- ModelItem class with selected model config
@@ -96,7 +99,7 @@ class ExampleLlm(BaseLLM):
         # return ChatOpenAI provider instance
         return ChatOpenAI(**args)  # <--- pass all parsed args from model config to the provider
 
-    def llama(self, window, model: ModelItem, stream: bool = False):
+    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         """
         Return Llama-index LLM provider instance for 'Chat with files' (llama_index) mode.
 
@@ -126,3 +129,32 @@ class ExampleLlm(BaseLLM):
 
         # return OpenAI provider instance
         return LlamaOpenAI(**args)  # <--- pass all parsed args from model config to the provider
+
+    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
+        """
+        Return provider instance for embeddings
+
+        This method is used to get provider instance for embeddings.
+        It must return an instance of the Embedding provider which will be used for embeddings in Llama-Index.
+
+        See how it is handled internally for more details:
+            - `pygpt_net.core.idx.llm.get_embeddings_provider`
+
+        In this example, the method returns OpenAIEmbedding provider instance.
+        Keyword arguments for the Embedding provider are parsed from the global config and can be
+        configured in 'Config -> Indexes (Llama-index) -> Embeddings -> Embeddings provider **kwargs' option.
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        print("Using example embeddings provider (llama-index)...")
+        print("Using config:", config)
+
+        # arguments parser is provided by BaseLLM class
+        args = {}
+        if config is not None:
+            args = self.parse_args({  # <--- config for embeddings is passed as a list of keyword arguments from the global config
+                "args": config,
+            })
+        return OpenAIEmbedding(**args)  # <--- pass all parsed args from model config to the provider
