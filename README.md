@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.25** | build: **2024.08.22** | Python: **>=3.10, <3.12**
+Release: **2.2.26** | build: **2024.08.22** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2973,6 +2973,12 @@ Config -> Settings...
 
 - `Limit of last contexts on list to show  (0 = unlimited)`: Limit of the last contexts on list, default: 0 (unlimited)
 
+- `Show context groups on top of the context list`: Display groups on top, default: False
+
+- `Show date separators on the context list`: Show date periods, default: True
+
+- `Show date separators in groups on the context list`: Show date periods in groups, default: True
+
 - `Use Context`: Toggles the use of conversation context (memory of previous inputs).
 
 - `Store History`: Toggles conversation history store.
@@ -3346,6 +3352,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.26 (2024-08-22)**
+
+- Added separators for date intervals in the context list.
+- Added a new option: Context -> Show context groups on top of the context list, default: False.
+- Added a new option: Context -> Show date separators on the context list, default: True.
+- Added a new option: Context -> Show date separators in groups on the context list, default: True.
 
 **2.2.25 (2024-08-22)**
 

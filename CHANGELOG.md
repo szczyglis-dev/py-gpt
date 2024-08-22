@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.2.26 (2024-08-22)
+
+- Added separators for date intervals in the context list.
+- Added a new option: Context -> Show context groups on top of the context list, default: False.
+- Added a new option: Context -> Show date separators on the context list, default: True.
+- Added a new option: Context -> Show date separators in groups on the context list, default: True.
+
 # 2.2.25 (2024-08-22)
 
 - Improved native API functions handling.
