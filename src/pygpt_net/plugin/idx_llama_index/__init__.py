@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.22 19:00:00                  #
 # ================================================== #
-
+import copy
 import json
 
 from pygpt_net.plugin.base import BasePlugin
@@ -264,9 +264,12 @@ class Plugin(BasePlugin):
         if self.window.core.models.has(tmp_model):
             model = self.window.core.models.get(tmp_model)
 
+        tmp_ctx = CtxItem()  # use copy of original context
+        tmp_ctx.from_dict(ctx.to_dict())
+
         bridge_context = BridgeContext(
-            ctx=ctx,
-            prompt=ctx.input,
+            ctx=tmp_ctx,
+            prompt=tmp_ctx.input,
             system_prompt=sys_prompt,
             model=model,
             max_tokens=self.get_option_value("prepare_question_max_tokens"),
