@@ -75,6 +75,12 @@ The following basic options can be modified directly within the application:
 
 * ``Limit of last contexts on list to show  (0 = unlimited)``: Limit of the last contexts on list, default: 0 (unlimited).
 
+* ``Show context groups on top of the context list``: Display groups on top, default: False
+
+* ``Show date separators on the context list``: Show date periods, default: True
+
+* ``Show date separators in groups on the context list``: Show date periods in groups, default: True
+
 * ``Use Context``: Toggles the use of conversation context (memory of previous inputs).
 
 * ``Store History``: Toggles conversation history store.

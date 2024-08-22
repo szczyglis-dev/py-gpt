@@ -340,6 +340,42 @@
         "step": 1,
         "advanced": false
     },
+    "ctx.records.folders.top": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.ctx.records.folders.top",
+        "value": false,
+        "min": 0,
+        "max": 10000,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "ctx.records.separators": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.ctx.records.separators",
+        "value": true,
+        "min": 0,
+        "max": 10000,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "ctx.records.groups.separators": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.ctx.records.groups.separators",
+        "value": true,
+        "min": 0,
+        "max": 10000,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "use_context": {
         "section": "ctx",
         "type": "bool",

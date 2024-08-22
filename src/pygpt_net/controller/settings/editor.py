@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.08.22 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -53,6 +53,9 @@ class Editor:
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.convert_lists", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.records.separators", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.records.groups.separators", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.records.folders.top", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
@@ -151,6 +154,16 @@ class Editor:
         if self.config_changed('ctx.search_content'):
             self.window.controller.ctx.update()
 
+        # ctx list layout
+        if self.config_changed('ctx.records.folders.top'):
+            self.window.controller.ctx.update()
+
+        if self.config_changed('ctx.records.groups.separators'):
+            self.window.controller.ctx.update()
+
+        if self.config_changed('ctx.records.separators'):
+            self.window.controller.ctx.update()
+
         # syntax highlighter style
         if self.config_changed('render.code_syntax'):
             value = self.window.core.config.get('render.code_syntax')
@@ -246,6 +259,18 @@ class Editor:
         elif key == "ctx.convert_lists":
             self.window.core.config.set(key, value)
             self.window.controller.ctx.refresh()
+
+        elif key == "ctx.records.separators":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.update()
+
+        elif key == "ctx.records.groups.separators":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.update()
+
+        elif key == "ctx.records.folders.top":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.update()
 
         # update layout tooltips
         elif key == "layout.tooltips":

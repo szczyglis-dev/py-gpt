@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 10:00:00                  #
+# Updated Date: 2024.08.22 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -64,10 +64,11 @@ class ContextList(BaseList):
         """
         for i in range(self.window.ui.models['ctx.list'].rowCount()):
             item = self.window.ui.models['ctx.list'].item(i)
-            if item.id == id:
-                index = self.window.ui.models['ctx.list'].indexFromItem(item)
-                self.window.ui.nodes['ctx.list'].expand(index)
-                self.expanded_items.add(id)
+            if isinstance(item, GroupItem):
+                if item.id == id:
+                    index = self.window.ui.models['ctx.list'].indexFromItem(item)
+                    self.window.ui.nodes['ctx.list'].expand(index)
+                    self.expanded_items.add(id)
 
     def dblclick(self, index):
         """
@@ -454,6 +455,7 @@ class GroupItem(QStandardItem):
         self.id = id
         self.name = name
         self.isFolder = True
+        self.dt = None
 
 class Item(QStandardItem):
     def __init__(self, name, id):
@@ -461,3 +463,13 @@ class Item(QStandardItem):
         self.id = id
         self.name = name
         self.isFolder = False
+        self.dt = None
+
+class SectionItem(QStandardItem):
+    def __init__(self, title):
+        super().__init__(title)
+        self.title = title
+        self.setSelectable(False)
+        self.setTextAlignment(QtCore.Qt.AlignRight)
+        font = self.font()
+        font.setBold(True)

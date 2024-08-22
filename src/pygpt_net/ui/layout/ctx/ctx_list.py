@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 20:00:00                  #
+# Updated Date: 2024.08.22 02:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem
+from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -80,17 +80,46 @@ class CtxList:
         self.window.ui.nodes[id].backup_selection()
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
 
-        # get groups
-        groups = self.window.core.ctx.get_groups()
+        if self.window.core.config.get("ctx.records.folders.top"):
+            self.update_groups(id, data)
+            self.update_items(id, data)
+        else:
+            self.update_items(id, data)
+            self.update_groups(id, data)
 
-        # 1) not grouped on top
+    def update_items(self, id, data):
+        """
+        Update items
+
+        :param id: ID of the list
+        :param data: Data to update
+        """
+        i = 0
+        last_dt_str = None
         for meta_id in data:
             if data[meta_id].group_id is None or data[meta_id].group_id == 0:
                 item = self.build_item(meta_id, data[meta_id])
+                if self.window.core.config.get("ctx.records.separators"):
+                    if i == 0 or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt)
+                        if section:
+                            self.window.ui.models[id].appendRow(section)
+                    last_dt_str = item.dt
                 self.window.ui.models[id].appendRow(item)
+                i += 1
 
-        # 2) grouped items
+    def update_groups(self, id, data):
+        """
+        Update groups
+
+        :param id: ID of the list
+        :param data: Data to update
+        """
+        # get groups
+        groups = self.window.core.ctx.get_groups()
+
         for group_id in groups:
+            last_dt_str = None
             group = groups[group_id]
             c = self.count_in_group(group.id, data)
             if c == 0 and self.window.core.ctx.search_string is not None and self.window.core.ctx.search_string != "":
@@ -101,11 +130,19 @@ class CtxList:
                 suffix = " (" + str(c) + ")"
             group_name = group.name + suffix
             group_item = GroupItem(QIcon(":/icons/folder_filled.svg"), group_name, group.id)
+            i = 0
             for meta_id in data:
                 if data[meta_id].group_id != group.id:
                     continue  # skip not in group
                 item = self.build_item(meta_id, data[meta_id])
+                if self.window.core.config.get("ctx.records.groups.separators"):
+                    if i == 0 or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt)
+                        if section:
+                            group_item.appendRow(section)
+                    last_dt_str = item.dt
                 group_item.appendRow(item)
+                i += 1
 
             self.window.ui.models[id].appendRow(group_item)
 
@@ -114,8 +151,6 @@ class CtxList:
                 self.window.ui.nodes[id].setExpanded(group_item.index(), True)
             else:
                 self.window.ui.nodes[id].setExpanded(group_item.index(), False)
-
-        self.window.ui.nodes[id].restore_selection()
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
@@ -157,6 +192,7 @@ class CtxList:
         )
         item = Item(name, id)
         item.id = id
+        item.dt = dt
         item.setData(tooltip_text, QtCore.Qt.ToolTipRole)
         if data.important:
             item.setData(data.label + 10, QtCore.Qt.ItemDataRole.UserRole)
@@ -164,6 +200,15 @@ class CtxList:
             item.setData(data.label, QtCore.Qt.ItemDataRole.UserRole)
         item.setData(name)
         return item
+
+    def build_date_section(self, dt: str) -> SectionItem:
+        """
+        Build date section
+
+        :param dt: date section string
+        :return: SectionItem
+        """
+        return SectionItem(dt)
 
     def convert_date(self, timestamp: int) -> str:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 00:00:00                  #
+# Updated Date: 2024.08.22 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -1520,6 +1520,17 @@ class Patch:
             if old < parse_version("2.2.25"):
                 print("Migrating config from < 2.2.25...")
                 data["prompt.expert"] = self.window.core.config.get_base('prompt.expert')
+                updated = True
+
+            # < 2.2.26
+            if old < parse_version("2.2.26"):
+                print("Migrating config from < 2.2.26...")
+                if 'ctx.records.folders.top' not in data:
+                    data["ctx.records.folders.top"] = False
+                if 'ctx.records.separators' not in data:
+                    data["ctx.records.separators"] = True
+                if 'ctx.records.groups.separators' not in data:
+                    data["ctx.records.groups.separators"] = True
                 updated = True
 
         # update file
