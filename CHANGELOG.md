@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.2.27 (2024-08-22)
+
+- Added functionality to hide the date suffix if date period separators are enabled.
+- Added a new option: Context -> Show date separators in pinned items on the context list, default: False.
+
 # 2.2.26 (2024-08-22)
 
 - Added separators for date intervals in the context list.

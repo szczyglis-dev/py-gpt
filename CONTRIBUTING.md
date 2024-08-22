@@ -59,3 +59,9 @@ See these [instructions](https://docs.github.com/en/pull-requests/collaborating-
 
 ## Note
 Please remember that the project is still in the early stages of development, many things require refactoring and will undergo changes.
+
+## Donate
+
+You can also support the project by making a donation via BuyMeACoffee or PayPal here:
+
+https://pygpt.net/#donate

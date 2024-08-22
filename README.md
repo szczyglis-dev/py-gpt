@@ -2,9 +2,9 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.26** | build: **2024.08.22** | Python: **>=3.10, <3.12**
+Release: **2.2.27** | build: **2024.08.22** | Python: **>=3.10, <3.12**
 
-Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
+Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | Donate: https://pygpt.net/#donate
 
 Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 
@@ -37,9 +37,9 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-- Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain` and `Llama-index` like `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
+- Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
-- Handles and stores the full context of conversations (short-term memory).
+- Handles and stores the full context of conversations (short and long-term memory).
 - Real-time video camera capture in Vision mode.
 - Internet access via `Google` and `Microsoft Bing`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
@@ -3354,6 +3354,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.27 (2024-08-22)**
+
+- Added functionality to hide the date suffix if date period separators are enabled.
+- Added a new option: Context -> Show date separators in pinned items on the context list, default: False.
 
 **2.2.26 (2024-08-22)**
 

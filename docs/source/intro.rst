@@ -24,7 +24,7 @@ Features
 * 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain`` and ``Llama-index`` like ``Llama 3``, ``Mistral``, ``Google Gemini``, ``Anthropic Claude``, etc.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
-* Handles and stores the full context of conversations (short-term memory).
+* Handles and stores the full context of conversations (short and long-term memory).
 * Real-time video camera capture in Vision mode.
 * Internet access via ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.
