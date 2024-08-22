@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.08.22 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin  # <-- every plugin must inherit from BasePlugin
@@ -177,6 +177,14 @@ class Plugin(BasePlugin):
         To call this command in the app just ask the model for: "Execute a funny command with a random funny query".
         Model will generate the command in JSON format, and after the response with command will be received,
         the Event.CMD_EXECUTE event will be dispatched with the command to be executed and its params.
+
+        Available parameter types:
+        - str
+        - int
+        - float
+        - bool
+        - dict
+        - list
 
         :param data: event data dictionary
         """
