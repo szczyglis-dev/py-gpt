@@ -2979,6 +2979,8 @@ Config -> Settings...
 
 - `Show date separators in groups on the context list`: Show date periods in groups, default: True
 
+- `Show date separators in pinned on the context list`: Show date periods in pinned items, default: False
+
 - `Use Context`: Toggles the use of conversation context (memory of previous inputs).
 
 - `Store History`: Toggles conversation history store.

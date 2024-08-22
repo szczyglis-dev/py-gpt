@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 02:00:00                  #
+# Updated Date: 2024.08.22 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -98,13 +98,14 @@ class CtxList:
         last_dt_str = None
         for meta_id in data:
             if data[meta_id].group_id is None or data[meta_id].group_id == 0:
-                item = self.build_item(meta_id, data[meta_id])
+                item = self.build_item(meta_id, data[meta_id], is_group=False)
                 if self.window.core.config.get("ctx.records.separators"):
-                    if i == 0 or last_dt_str != item.dt:
-                        section = self.build_date_section(item.dt)
-                        if section:
-                            self.window.ui.models[id].appendRow(section)
-                    last_dt_str = item.dt
+                    if not item.isPinned or self.window.core.config.get("ctx.records.pinned.separators"):
+                        if i == 0 or last_dt_str != item.dt:
+                            section = self.build_date_section(item.dt)
+                            if section:
+                                self.window.ui.models[id].appendRow(section)
+                        last_dt_str = item.dt
                 self.window.ui.models[id].appendRow(item)
                 i += 1
 
@@ -134,13 +135,14 @@ class CtxList:
             for meta_id in data:
                 if data[meta_id].group_id != group.id:
                     continue  # skip not in group
-                item = self.build_item(meta_id, data[meta_id])
+                item = self.build_item(meta_id, data[meta_id], is_group=True)
                 if self.window.core.config.get("ctx.records.groups.separators"):
-                    if i == 0 or last_dt_str != item.dt:
-                        section = self.build_date_section(item.dt)
-                        if section:
-                            group_item.appendRow(section)
-                    last_dt_str = item.dt
+                    if not item.isPinned or self.window.core.config.get("ctx.records.pinned.separators"):
+                        if i == 0 or last_dt_str != item.dt:
+                            section = self.build_date_section(item.dt)
+                            if section:
+                                group_item.appendRow(section)
+                        last_dt_str = item.dt
                 group_item.appendRow(item)
                 i += 1
 
@@ -166,21 +168,35 @@ class CtxList:
                 count += 1
         return count
 
-    def build_item(self, id: int, data: CtxMeta) -> Item:
+    def build_item(self, id: int, data: CtxMeta, is_group: bool = False) -> Item:
         """
         Build item for list (child)
 
         :param id: context meta id
         :param data: context meta item
+        :param is_group: is group
         :return: Item
         """
+        append_dt = True
+        if is_group:
+            if self.window.core.config.get("ctx.records.groups.separators"):
+                append_dt = False
+        else:
+            if self.window.core.config.get("ctx.records.separators"):
+                append_dt = False
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name
         # truncate to max 40 chars
         if len(title) > 80:
             title = title[:80] + '...'
-        name = title.replace("\n", "") + ' (' + dt + ')'
+
+        # append date suffix to title
+        if append_dt:
+            name = title.replace("\n", "") + ' (' + dt + ')'
+        else:
+            name = title.replace("\n", "")
+
         mode_str = ''
         if data.last_mode is not None:
             mode_str = " ({})".format(trans('mode.' + data.last_mode))
@@ -193,6 +209,7 @@ class CtxList:
         item = Item(name, id)
         item.id = id
         item.dt = dt
+        item.isPinned = data.important
         item.setData(tooltip_text, QtCore.Qt.ToolTipRole)
         if data.important:
             item.setData(data.label + 10, QtCore.Qt.ItemDataRole.UserRole)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 02:00:00                  #
+# Updated Date: 2024.08.22 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -55,6 +55,7 @@ class Editor:
         self.window.ui.add_hook("update.config.ctx.convert_lists", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.groups.separators", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.records.pinned.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.folders.top", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
@@ -150,18 +151,12 @@ class Editor:
             self.window.core.config.set('layout.dialog.geometry', {})
             self.window.core.config.save()
 
-        # update search result if needed
-        if self.config_changed('ctx.search_content'):
-            self.window.controller.ctx.update()
-
-        # ctx list layout
-        if self.config_changed('ctx.records.folders.top'):
-            self.window.controller.ctx.update()
-
-        if self.config_changed('ctx.records.groups.separators'):
-            self.window.controller.ctx.update()
-
-        if self.config_changed('ctx.records.separators'):
+        # update search result or ctx layout if needed
+        if (self.config_changed('ctx.search_content') or
+                self.config_changed('ctx.records.folders.top') or
+                self.config_changed('ctx.records.groups.separators') or
+                self.config_changed('ctx.records.pinned.separators') or
+                self.config_changed('ctx.records.separators')):
             self.window.controller.ctx.update()
 
         # syntax highlighter style
@@ -265,6 +260,10 @@ class Editor:
             self.window.controller.ctx.update()
 
         elif key == "ctx.records.groups.separators":
+            self.window.core.config.set(key, value)
+            self.window.controller.ctx.update()
+
+        elif key == "ctx.records.pinned.separators":
             self.window.core.config.set(key, value)
             self.window.controller.ctx.update()
 

@@ -376,6 +376,18 @@
         "step": 1,
         "advanced": false
     },
+    "ctx.records.pinned.separators": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.ctx.records.pinned.separators",
+        "value": false,
+        "min": 0,
+        "max": 10000,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "use_context": {
         "section": "ctx",
         "type": "bool",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 02:00:00                  #
+# Updated Date: 2024.08.22 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -455,6 +455,7 @@ class GroupItem(QStandardItem):
         self.id = id
         self.name = name
         self.isFolder = True
+        self.isPinned = False
         self.dt = None
 
 class Item(QStandardItem):
@@ -463,6 +464,7 @@ class Item(QStandardItem):
         self.id = id
         self.name = name
         self.isFolder = False
+        self.isPinned = False
         self.dt = None
 
 class SectionItem(QStandardItem):
@@ -470,6 +472,7 @@ class SectionItem(QStandardItem):
         super().__init__(title)
         self.title = title
         self.setSelectable(False)
+        self.setEnabled(False)
         self.setTextAlignment(QtCore.Qt.AlignRight)
         font = self.font()
         font.setBold(True)
