@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This script is used to run the app in the snap environment
 # export QTWEBENGINE_DISABLE_GPU=1
 # export QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --log-level=0 --v=1"
 
