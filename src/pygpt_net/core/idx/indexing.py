@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -810,7 +810,7 @@ class Indexing:
                         doc_id=doc_id,
                     )
                 except Exception as e:
-                    pass
+                    self.window.core.debug.log(e)
                 return True
         return False
 
@@ -838,7 +838,7 @@ class Indexing:
                         doc_id=doc_id,
                     )
                 except Exception as e:
-                    pass
+                    self.window.core.debug.log(e)
                 return True
         return False
 
@@ -867,7 +867,7 @@ class Indexing:
                         doc_id=doc_id,
                     )
                 except Exception as e:
-                    pass
+                    self.window.core.debug.log(e)
                 return True
         return False
 
@@ -879,6 +879,11 @@ class Indexing:
         :param doc: document
         """
         self.apply_rate_limit()  # apply RPM limit
+        try:
+            # display embedding model info
+            self.window.core.idx.log("Embedding model: {}".format(index.service_context.embed_model.model_name))
+        except Exception as e:
+            self.window.core.debug.log(e)
         index.insert(document=doc)
 
     def apply_rate_limit(self):
