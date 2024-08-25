@@ -1,4 +1,4 @@
-Image generation (DALL-E 3)
+Image generation / DALL-E 3
 ===========================
 
 DALL-E 3
