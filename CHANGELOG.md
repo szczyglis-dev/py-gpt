@@ -1,10 +1,14 @@
 # CHANGELOG
 
+# 2.2.29 (2024-08-25)
+
+- Fix: Removed 'Index not prepared' monit when index not created yet.
+
 # 2.2.28 (2024-08-25)
 
 - Fix: Added mechanism to prevent the current index from being deselected when saving settings.
 - Added models: llama3.1:70b, llama3.1:405b, and mistral-large.
-- Added configuration option: Indexes (llama-indexes) -> Chat -> Chat mode.
+- Added configuration option: Indexes (llama-index) -> Chat -> Chat mode.
 - Split prompt templates context menu into alphabetical submenus.
 
 # 2.2.27 (2024-08-22)
