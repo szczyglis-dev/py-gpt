@@ -149,6 +149,7 @@
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
   "llama.idx.auto.modes": "chat,completion,vision,assistant,langchain,llama_index,agent",
+  "llama.idx.chat.mode": "context",
   "llama.idx.current": "base",
   "llama.idx.custom_meta": [
       {
@@ -187,7 +188,7 @@
           "name": "Base"
       }
   ],
-  "llama.idx.raw": false,
+  "llama.idx.mode": "chat",
   "llama.idx.recursive": true,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
