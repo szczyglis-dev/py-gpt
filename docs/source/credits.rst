@@ -10,6 +10,9 @@ https://pygpt.net/#donate
 **GitHub:**
 https://github.com/szczyglis-dev/py-gpt
 
+**Discord:**
+https://pygpt.net/discord
+
 **Snap Store:**
 https://snapcraft.io/pygpt
 

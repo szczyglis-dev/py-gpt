@@ -93,6 +93,7 @@ def get_app_meta() -> dict:
         'pypi': get_init_value("__pypi__"),
         'snap': get_init_value("__snap__"),
         'donate': get_init_value("__donate__"),
+        'discord': get_init_value("__discord__"),
         'version': get_init_value("__version__"),
         'build': get_init_value("__build__"),
         'author': get_init_value("__author__"),

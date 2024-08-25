@@ -84,6 +84,10 @@ class Info:
         """Open donate page"""
         webbrowser.open(self.window.meta['donate'])
 
+    def goto_discord(self):
+        """Open discord page"""
+        webbrowser.open(self.window.meta['discord'])
+
     def update_menu(self):
         """Update info menu"""
         for id in self.ids:

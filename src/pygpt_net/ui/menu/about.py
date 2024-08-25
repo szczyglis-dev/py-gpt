@@ -44,6 +44,9 @@ class About:
         self.window.ui.menu['info.github'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.github"),
                                                      self.window)
 
+        self.window.ui.menu['info.discord'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.discord"),
+                                                     self.window)
+
         self.window.ui.menu['info.license'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.license"),
                                                       self.window)
 
@@ -66,6 +69,8 @@ class About:
             lambda: self.window.controller.dialogs.info.goto_snap())
         self.window.ui.menu['info.github'].triggered.connect(
             lambda: self.window.controller.dialogs.info.goto_github())
+        self.window.ui.menu['info.discord'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.goto_discord())
         self.window.ui.menu['info.license'].triggered.connect(
             lambda: self.window.controller.dialogs.info.toggle(
                 'license',
@@ -84,5 +89,6 @@ class About:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.website'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])
+        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.discord'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.donate'])
