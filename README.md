@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.27** | build: **2024.08.22** | Python: **>=3.10, <3.12**
+Release: **2.2.28** | build: **2024.08.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | Donate: https://pygpt.net/#donate
 
@@ -3358,6 +3358,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.28 (2024-08-25)**
+
+- Fix: Added mechanism to prevent the current index from being deselected when saving settings.
+- Added models: `llama3.1:70b`, `llama3.1:405b`, and `mistral-large`.
+- Added configuration option: Indexes (llama-indexes) -> Chat -> Chat mode.
+- Split prompt templates context menu into alphabetical submenus.
 
 **2.2.27 (2024-08-22)**
 
