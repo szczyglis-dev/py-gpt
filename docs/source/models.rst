@@ -118,6 +118,7 @@ You can add more models by editing the models list.
 **List of all models supported by Ollama:**
 
 https://ollama.com/library
+
 https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
