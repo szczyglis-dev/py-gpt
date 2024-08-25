@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.2.30 (2024-08-25)
+
+- Added link to Discord server in About -> Discord.
+
 # 2.2.29 (2024-08-25)
 
 - Fix: Removed 'Index not prepared' monit when index not created yet.

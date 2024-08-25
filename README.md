@@ -2,13 +2,15 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.29** | build: **2024.08.25** | Python: **>=3.10, <3.12**
+Release: **2.2.30** | build: **2024.08.25** | Python: **>=3.10, <3.12**
 
-Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | Donate: https://pygpt.net/#donate
-
-Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
-
-Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
+> Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
+> 
+> Discord: https://pygpt.net/discord | Donate: https://pygpt.net/#donate
+> 
+> Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
+> 
+> Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
 
 ## Overview
 
@@ -1205,7 +1207,7 @@ There is built-in support for those LLMs providers:
 ## Using other models (non-GPT)
 
 
-### Llama 3, Mistral, and other local models:
+### Llama 3, Mistral, and other local models
 
 How to use locally installed Llama 3 or Mistral models:
 
@@ -1225,7 +1227,7 @@ For example, on Linux:
 
 5) Return to PyGPT and select the correct model from models list to chat with selected model using Ollama running locally.
 
-**Example available models:**
+**Example available models**
 
 - llama3.1
 - codellama
@@ -1234,14 +1236,15 @@ For example, on Linux:
 
 You can add more models by editing the models list.
 
-**List of all models supported by Ollama:**
+**List of all models supported by Ollama**
 
 https://ollama.com/library
+
 https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
 
-**Using local embedding models:**
+**Using local embedding models**
 
 Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
 
@@ -1255,7 +1258,7 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 
 - name: `base_url`, value: `http://localhost:11434`, type: `str`
 
-### Google Gemini and Anthropic Claude:
+### Google Gemini and Anthropic Claude
 
 To use `Gemini` or `Claude` models, select the `Chat with files` mode in PyGPT and select a predefined model.
 Remember to configure the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
@@ -3359,6 +3362,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.2.30 (2024-08-25)**
+
+- Added link to Discord server in About -> Discord.
+
 **2.2.29 (2024-08-25)**
 
 - Fix: Removed 'Index not prepared' monit when index not created yet.
@@ -3436,6 +3443,8 @@ may consume additional tokens that are not displayed in the main window.
 **Support and donate:** <https://pygpt.net/#donate>
 
 **GitHub:** <https://github.com/szczyglis-dev/py-gpt>
+
+**Discord:** <https://pygpt.net/discord>
 
 **Snap Store:** <https://snapcraft.io/pygpt>
 
