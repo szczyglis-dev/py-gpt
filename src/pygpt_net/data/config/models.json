@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.2.27",
-        "app.version": "2.2.27",
-        "updated_at": "2024-08-22T00:00:00"
+        "version": "2.2.28",
+        "app.version": "2.2.28",
+        "updated_at": "2024-08-25T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -1060,6 +1060,84 @@
             "tokens": 4096,
             "default": false
         },
+        "llama3.1:70b": {
+            "id": "llama3.1:70b",
+            "name": "llama3.1:70b",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1:70b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1:70b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "llama3.1:405b": {
+            "id": "llama3.1:405b",
+            "name": "llama3.1:405b",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1:405b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.1:405b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
         "codellama": {
             "id": "codellama",
             "name": "codellama",
@@ -1129,6 +1207,45 @@
                     {
                         "name": "model",
                         "value": "mistral",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "mistral-large": {
+            "id": "mistral-large",
+            "name": "mistral-large",
+            "mode": [
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "mistral-large",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "mistral-large",
                         "type": "str"
                     }
                 ],
