@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -30,6 +30,7 @@ class Idx:
         self.common = Common(window)
         self.indexer = Indexer(window)
         self.current_idx = "base"
+        self.current_mode = "chat"
         self.locked = False
         self.stop = False
 
@@ -44,9 +45,41 @@ class Idx:
         if last_idx is not None:
             self.current_idx = last_idx
 
+        # restore mode
+        last_mode = self.window.core.config.get('llama.idx.mode')
+        if last_mode is not None:
+            self.current_mode = last_mode
+
         self.locked = True  # lock update from combo box on start
         self.update()
         self.locked = False
+
+    def get_modes_keys(self) -> list:
+        """
+        Get list of available modes
+
+        :return: list of modes
+        """
+        return [
+            {"chat": trans('toolbox.llama_index.mode.chat')},
+            {"query": trans('toolbox.llama_index.mode.query')},
+        ]
+
+    def select_mode(self, mode: str):
+        """
+        Select llama index mode
+
+        :param mode: key of the list
+        """
+        # check if mode change is not locked
+        if self.change_locked():
+            return
+
+        self.window.core.config.set('llama.idx.mode', mode)
+        self.current_mode = mode
+
+        # update all layout
+        self.window.controller.ui.update()
 
     def select(self, idx: int):
         """
@@ -143,7 +176,17 @@ class Idx:
             return
         items = self.window.core.config.get('llama.idx.list')
         if items is not None:
-            self.window.ui.nodes['indexes.select'].set_value(idx)
+            if self.window.ui.nodes['indexes.select'].has_key(idx):
+                self.window.ui.nodes['indexes.select'].set_value(idx)
+                return
+        self.current_idx = None  # clear if no index on list
+
+    def select_current_mode(self):
+        """Select current mode on list"""
+        mode = self.window.core.config.get('llama.idx.mode')
+        if mode is None:
+            return
+        self.window.ui.nodes['llama_index.mode.select'].set_value(mode)
 
     def select_default(self):
         """Set default idx"""
@@ -156,10 +199,13 @@ class Idx:
         """
 
     def update(self):
-        """Update idx list"""
+        """Update lists"""
         self.select_default()
-        self.update_list()
-        self.select_current()
+        self.locked = True  # lock update from combo box
+        self.update_list()  # update idx list
+        self.locked = False
+        self.select_current()  # select current idx on list
+        self.select_current_mode()  # select current mode on list
 
     def update_list(self):
         """Update list"""
