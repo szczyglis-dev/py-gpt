@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 23:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import os
@@ -66,11 +66,21 @@ class Template:
         self.init()
         menu.addSeparator()
         submenu = menu.addMenu(trans("preset.prompt.paste_template"))
+        letter_submenus = {}
+
+        # add submenus for each letter
         for key, value in self.prompts.items():
+            letter = value['name'][0].upper()
+            if letter not in letter_submenus:
+                letter_submenus[letter] = submenu.addMenu(letter)
+
+        # add prompts to letter submenus
+        for key, value in self.prompts.items():
+            letter = value['name'][0].upper()
             action = QAction(value['name'], menu)
             action.triggered.connect(lambda checked=False, key=key: self.window.controller.presets.paste_prompt(key, parent))
             action.setToolTip(value['prompt'])
-            submenu.addAction(action)
+            letter_submenus[letter].addAction(action)
 
     def get_by_id(self, id: int) -> dict or None:
         """
