@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QC
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
+from pygpt_net.ui.widget.lists.llama_mode_combo import LlamaModeCombo
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -93,21 +94,23 @@ class Indexes:
         :rtype: QWidget
         """
         # idx query only
+        """
         self.window.ui.config['global']['llama.idx.raw'] = QCheckBox(trans("idx.query.raw"))
         self.window.ui.config['global']['llama.idx.raw'].stateChanged.connect(
             lambda: self.window.controller.idx.common.toggle_raw(
                 self.window.ui.config['global']['llama.idx.raw'].isChecked()
             )
         )
+        """
 
         # label
         # label = QLabel(trans("toolbox.llama_index.label"))
 
         # add options
-        cols = QHBoxLayout()
-        cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
+        # cols = QHBoxLayout()
+        # cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
 
-        # index combo
+        # indexes combo
         option = {
             "name": "current_index",
             "label": "toolbox.llama_index.current_index",
@@ -118,9 +121,25 @@ class Indexes:
             self.window,
             'global',
             'current_index',
-            option
+            option,
         )
         self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # mode select combo
+        option = {
+            "name": "llama.idx.mode",
+            "label": "toolbox.llama_index.mode",
+            "keys": self.window.controller.idx.get_modes_keys(),
+            "value": "chat",
+        }
+        self.window.ui.nodes['llama_index.mode.select'] = LlamaModeCombo(
+            self.window,
+            'global',
+            'llama.idx.mode',
+            option,
+        )
+        self.window.ui.nodes['indexes.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.window.ui.nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         # tip
         # self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
@@ -130,9 +149,11 @@ class Indexes:
         self.window.ui.nodes['indexes.new'].clicked.connect(
             lambda: self.window.controller.settings.open_section('llama-index'))
 
-        # label
+        # labels
         self.window.ui.nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+        self.window.ui.nodes['llama_index.mode.label'] = TitleLabel(trans("toolbox.llama_index.mode.label"))
 
+        # idx select combo
         idx_layout = QHBoxLayout()
         idx_layout.addWidget(self.window.ui.nodes['indexes.label'])
         idx_layout.addWidget(self.window.ui.nodes['indexes.select'])
@@ -143,11 +164,22 @@ class Indexes:
         idx_widget.setMinimumHeight(55)
         idx_widget.setMinimumWidth(275)
 
+        # mode select combo
+        mode_layout = QHBoxLayout()
+        mode_layout.addWidget(self.window.ui.nodes['llama_index.mode.label'])
+        mode_layout.addWidget(self.window.ui.nodes['llama_index.mode.select'])
+        mode_layout.setContentsMargins(0, 0, 0, 10)
+        mode_widget = QWidget()
+        mode_widget.setLayout(mode_layout)
+        mode_widget.setMinimumHeight(55)
+        mode_widget.setMinimumWidth(275)
+
         # rows
         rows = QVBoxLayout()
         # rows.addWidget(label)
         rows.addWidget(idx_widget)
-        rows.addLayout(cols)  # raw option
+        rows.addWidget(mode_widget)
+        # rows.addLayout(cols)  # raw option
         # rows.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         self.window.ui.nodes['idx.options'] = QWidget()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import time
@@ -39,7 +39,7 @@ class BridgeContext:
         self.tools_outputs = kwargs.get("tools_outputs", [])
         self.max_tokens = kwargs.get("max_tokens", 150)
         self.idx = kwargs.get("idx", None)
-        self.idx_raw = kwargs.get("idx_raw", False)
+        self.idx_mode = kwargs.get("idx_mode", "chat")
         self.attachments = kwargs.get("attachments", [])
         self.file_ids = kwargs.get("file_ids", [])
 
@@ -72,7 +72,7 @@ class BridgeContext:
             "tools_outputs": self.tools_outputs,
             "max_tokens": self.max_tokens,
             "idx": self.idx,
-            "idx_raw": self.idx_raw,
+            "idx_mode": self.idx_mode,
             "attachments": self.attachments,
             "file_ids": self.file_ids,
         }
@@ -119,7 +119,7 @@ class Bridge:
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
             if mode == "llama_index":
-                context.idx_raw = False
+                context.idx_mode = "chat"
                 idx = self.window.core.agents.get_mode()
                 if idx is not None and idx != "_":
                     context.idx = idx

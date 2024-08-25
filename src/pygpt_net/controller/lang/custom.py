@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.16 02:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -47,7 +47,6 @@ class Custom:
         self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
         self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
-        self.window.ui.config['global']['llama.idx.raw'].setText(trans("idx.query.raw"))
 
         # camera capture
         if not self.window.core.config.get('vision.capture.auto'):
@@ -98,3 +97,6 @@ class Custom:
         # audio input
         self.window.ui.nodes['voice.control.btn'].btn_toggle.setText(trans('audio.control.btn'))
         self.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
+
+        # llama index model
+        self.window.ui.nodes['llama_index.mode.select'].set_keys(self.window.controller.idx.get_modes_keys())

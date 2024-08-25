@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 17:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -1538,6 +1538,15 @@ class Patch:
                 print("Migrating config from < 2.2.27...")
                 if 'ctx.records.pinned.separators' not in data:
                     data["ctx.records.pinned.separators"] = False
+                updated = True
+
+            # < 2.2.28
+            if old < parse_version("2.2.28"):
+                print("Migrating config from < 2.2.28...")
+                if 'llama.idx.chat.mode' not in data:
+                    data["llama.idx.chat.mode"] = "context"
+                if 'llama.idx.mode' not in data:
+                    data["llama.idx.mode"] = "chat"
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -308,7 +308,7 @@ class Experts:
             file_ids=file_ids,
             assistant_id=self.window.core.config.get('assistant'),
             idx=self.window.controller.idx.current_idx,
-            idx_raw=self.window.core.config.get('llama.idx.raw'),
+            idx_mode=self.window.core.config.get('llama.idx.mode'),
             external_functions=functions,
             tools_outputs=tools_outputs,
             max_tokens=max_tokens,
@@ -349,9 +349,9 @@ class Experts:
 
     def get_functions(self) -> list:
         """
-        Append goal commands
+        Append call the expert commands
 
-        :return: goal commands
+        :return: call the expert commands
         """
         cmds = [
             {
@@ -367,7 +367,7 @@ class Experts:
                     {
                         "name": "query",
                         "description": "query to expert",
-                        "required": False,
+                        "required": True,
                         "type": "str",
                     }
                 ]

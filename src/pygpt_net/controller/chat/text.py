@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -234,7 +234,7 @@ class Text:
                     file_ids=file_ids,
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,  # current idx
-                    idx_raw=self.window.core.config.get('llama.idx.raw'),  # query mode
+                    idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode
                     external_functions=functions,  # external functions
                     tools_outputs=tools_outputs,  # if not empty then will submit outputs
                     max_tokens=max_tokens,  # max output tokens
