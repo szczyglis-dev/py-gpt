@@ -388,7 +388,7 @@ class Chat:
                 service_context = self.window.core.idx.llm.get_service_context(model=model)
                 index = self.storage.index_from_empty()
                 return index, service_context
-            raise Exception("Index not prepared")
+            # raise Exception("Index not prepared")
 
         service_context = self.window.core.idx.llm.get_service_context(model=model)
         index = self.storage.get(idx, service_context=service_context)  # get index
