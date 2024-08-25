@@ -1200,6 +1200,24 @@
         "step": null,
         "advanced": false
     },
+    "llama.idx.chat.mode": {
+        "section": "llama-index",
+        "type": "combo",
+        "use": "llama_index_chat_modes",
+        "slider": false,
+        "label": "settings.llama.idx.chat.mode",
+        "description": "settings.llama.idx.chat.mode.desc",
+        "urls": {
+            "Help": "https://docs.llamaindex.ai/en/stable/module_guides/deploying/chat_engines/usage_pattern/#available-chat-modes"
+        },
+        "value": "default",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "chat"
+    },
     "experts.mode": {
         "section": "agent",
         "type": "combo",

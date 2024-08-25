@@ -1191,7 +1191,7 @@ Example of models configuration - `models.json`:
 },
 ```
 
-There is bult-in support for those LLMs providers:
+There is built-in support for those LLMs providers:
 
 ```
 - OpenAI (openai)
@@ -1209,7 +1209,7 @@ There is bult-in support for those LLMs providers:
 
 How to use locally installed Llama 3 or Mistral models:
 
-1) Choose a mode: `Chat with files` or `Langchain`
+1) Choose a working mode: `Chat with files` or `Langchain`.
 
 2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the right mouse button click -> `Edit`, then configure the model parameters in the `advanced` section.
 
@@ -1223,9 +1223,9 @@ For example, on Linux:
 
 ```ollama run llama3.1```
 
-5) Return to PyGPT and select the correct model from list to chat with it using Ollama running locally.
+5) Return to PyGPT and select the correct model from models list to chat with selected model using Ollama running locally.
 
-Example available models:
+**Example available models:**
 
 - llama3.1
 - codellama
@@ -1234,19 +1234,22 @@ Example available models:
 
 You can add more models by editing the models list.
 
-List of models supported by Ollama : https://github.com/ollama/ollama
+**List of all models supported by Ollama:**
 
-**IMPORTANT:** Remember to define the correct model name in the model settings!
+https://ollama.com/library
+https://github.com/ollama/ollama
 
-**Using local embeddings:**
+**IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
+
+**Using local embedding models:**
 
 Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
 
 You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
 
-```Config -> Llama-index -> Embeddings -> Embeddings provider```
+```Config -> Settings -> Indexes (llama-index) -> Embeddings -> Embeddings provider```
 
-Define parameters like model and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
+Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
 
 - name: `model_name`, value: `llama3.1`, type: `str`
 
@@ -1255,7 +1258,7 @@ Define parameters like model and Ollama base URL in the Embeddings provider **kw
 ### Google Gemini and Anthropic Claude:
 
 To use `Gemini` or `Claude` models, select the `Chat with files` mode in PyGPT and select a predefined model.
-Remember to define the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
+Remember to configure the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
 
 **Google Gemini**
 
@@ -1308,7 +1311,6 @@ def run(**kwargs):
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
     launcher.add_llm(HuggingFaceLLM())
-    launcher.add_llm(Llama2LLM())
     launcher.add_llm(OllamaLLM())
 
     # Launch the app
@@ -3104,6 +3106,8 @@ Config -> Settings...
 - `Enable auto-index in modes`: List of modes with enabled context auto-index, separated by comma.
 
 - `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
+
+- `Chat mode`: chat mode for use in query engine, default: context
 
 **Agent and experts**
 

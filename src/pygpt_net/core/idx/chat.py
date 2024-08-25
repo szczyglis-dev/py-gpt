@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import json
@@ -34,19 +34,19 @@ class Chat:
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
-        Call chat or query mode
+        Call chat, complete or query mode
 
         :param context: Bridge context
         :param extra: Extra arguments
         :return: True if success
         """
         model = context.model
-        idx_raw = context.idx_raw  # raw mode
+        idx_mode = context.idx_mode  # mode
 
         if model is None or not isinstance(model, ModelItem):  # check if model is provided
             raise Exception("Model config not provided")
 
-        if idx_raw:  # query index (raw mode)
+        if idx_mode == "query":  # query index only (raw mode)
             return self.raw_query(
                 context=context,
                 extra=extra,
@@ -156,14 +156,16 @@ class Chat:
         stream = context.stream
         ctx = context.ctx
         query = ctx.input  # user input
+        chat_mode = self.window.core.config.get("llama.idx.chat.mode")
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
         self.log("Chat with index...")
-        self.log("Idx: {}, query: {}, model: {}".format(
+        self.log("Idx: {}, query: {}, chat_mode: {}, model: {}".format(
             idx,
             query,
+            chat_mode,
             model.id,
         ))
 
@@ -184,7 +186,7 @@ class Chat:
         )
         chat_engine = index.as_chat_engine(
             llm=llm,
-            chat_mode="context",
+            chat_mode=chat_mode,
             memory=memory,
             system_prompt=system_prompt,
         )

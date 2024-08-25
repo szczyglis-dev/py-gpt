@@ -207,6 +207,8 @@ The following basic options can be modified directly within the application:
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)``: Index the data – batch indexing is available here.
 
+* ``Chat mode``: chat mode for use in query engine, default: context
+
 **Agent and experts**
 
 * ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 00:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
@@ -71,6 +71,8 @@ class Placeholder:
             return self.get_llama_index_loaders(type="file")
         elif id == "llama_index_loaders_web":
             return self.get_llama_index_loaders(type="web")
+        elif id == "llama_index_chat_modes":
+            return self.get_llama_index_chat_modes()
         elif id == "vector_storage":
             return self.get_vector_storage()
         elif id == "var_types":
@@ -128,10 +130,25 @@ class Placeholder:
         """
         ids = self.window.core.llm.get_ids("embeddings")
         data = []
-        data.append({'_': '---'})
         for id in ids:
             data.append({id: id})
         return data
+
+    def get_llama_index_chat_modes(self) -> list:
+        """
+        Get llama chat modes list
+
+        :return: placeholders list
+        """
+        return [
+            {"best": "best"},
+            {"condense_question": "condense_question"},
+            {"context": "context (default)"},
+            {"condense_plus_context": "condense_plus_context"},
+            {"simple": "simple (no query engine)"},
+            {"react": "react"},
+            {"openai": "openai"},
+        ]
 
     def get_llama_index_loaders(self, type: str = "all") -> list:
         """
