@@ -157,6 +157,8 @@ class Chat:
         ctx = context.ctx
         query = ctx.input  # user input
         chat_mode = self.window.core.config.get("llama.idx.chat.mode")
+        if idx is None:
+            chat_mode = "simple"  # do not use query engine if no index
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
