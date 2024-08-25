@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.08.25 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -27,6 +27,8 @@ class IndexesDebug:
         self.window.core.debug.begin(self.id)
         self.window.core.debug.add(self.id, 'Current storage:', str(self.window.core.idx.get_current_store()))
         self.window.core.debug.add(self.id, 'Current idx:', str(self.window.controller.idx.current_idx))
+        self.window.core.debug.add(self.id, 'Current mode:', str(self.window.controller.idx.current_mode))
+        self.window.core.debug.add(self.id, 'Chat mode:', str(self.window.core.config.get("llama.idx.chat.mode")))
         self.window.core.debug.add(self.id, 'Indexes (list):', str(list(self.window.core.config.get("llama.idx.list"))))
 
         # count items in DB
