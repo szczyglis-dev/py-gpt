@@ -157,6 +157,14 @@ Syntax: ``event name`` - triggered on, ``event data`` *(data type)*:
 
 - ``AI_NAME`` - when preparing an AI name, ``data['value']`` *(string, name of the AI assistant)*
 
+- ``AUDIO_INPUT_RECORD_START`` - start audio input recording
+
+- ``AUDIO_INPUT_RECORD_STOP`` -  stop audio input recording
+
+- ``AUDIO_INPUT_RECORD_TOGGLE`` - toggle audio input recording
+
+- ``AUDIO_INPUT_TRANSCRIBE`` - on audio file transcribe, ``data['path']`` *(string, path to audio file)*
+
 - ``AUDIO_INPUT_STOP`` - force stop audio input
 
 - ``AUDIO_INPUT_TOGGLE`` - when speech input is enabled or disabled, ``data['value']`` *(bool, True/False)*
@@ -165,7 +173,7 @@ Syntax: ``event name`` - triggered on, ``event data`` *(data type)*:
 
 - ``AUDIO_OUTPUT_TOGGLE`` - when speech output is enabled or disabled, ``data['value']`` *(bool, True/False)*
 
-- ``AUDIO_READ_TEXT`` - on text read with speech synthesis, ``data['value']`` *(str)*
+- ``AUDIO_READ_TEXT`` - on text read using speech synthesis, ``data['text']`` *(str, text to read)*
 
 - ``CMD_EXECUTE`` - when a command is executed, ``data['commands']`` *(list, commands and arguments)*
 
@@ -201,7 +209,7 @@ Syntax: ``event name`` - triggered on, ``event data`` *(data type)*:
 
 - ``MODEL_SELECT`` - on model select ``data['value']`` *(string, model ID)*
 
-- ``PLUGIN_SETTINGS_CHANGED`` - on plugin settings update
+- ``PLUGIN_SETTINGS_CHANGED`` - on plugin settings update (saving settings)
 
 - ``PLUGIN_OPTION_GET`` - on request for plugin option value ``data['name'], data['value']`` *(string, any, name of requested option, value)*
 
@@ -225,6 +233,9 @@ You can stop the propagation of a received event at any time by setting ``stop``
 .. code-block:: python
 
    event.stop = True
+
+
+Events flow can be debugged by enabling the option ``Config -> Settings -> Developer -> Log and debug events``.
 
 
 Plugins reference

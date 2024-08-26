@@ -16,7 +16,7 @@ It is a JSON object wrapped between ``~###~``. The application extracts the JSON
 .. image:: images/v2_code_execute.png
    :width: 400
 
-A special system prompt responsible for invoking commands is added to the main system prompt if the ``Execute commands`` option is active.
+When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the ``Execute commands`` option is active.
 
 However, there is an additional possibility to define your own commands and execute them with the help of GPT.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:

@@ -2682,6 +2682,14 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 
 - `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
 
+- `AUDIO_INPUT_RECORD_START` - start audio input recording
+
+- `AUDIO_INPUT_RECORD_STOP` -  stop audio input recording
+
+- `AUDIO_INPUT_RECORD_TOGGLE` - toggle audio input recording
+
+- `AUDIO_INPUT_TRANSCRIBE` - on audio file transcribe, `data['path']` *(string, path to audio file)*
+
 - `AUDIO_INPUT_STOP` - force stop audio input
 
 - `AUDIO_INPUT_TOGGLE` - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
@@ -2690,7 +2698,7 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 
 - `AUDIO_OUTPUT_TOGGLE` - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
 
-- `AUDIO_READ_TEXT` - on text read with speech synthesis, `data['value']` *(str)*
+- `AUDIO_READ_TEXT` - on text read using speech synthesis, `data['text']` *(str, text to read)*
 
 - `CMD_EXECUTE` - when a command is executed, `data['commands']` *(list, commands and arguments)*
 
@@ -2726,7 +2734,7 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 
 - `MODEL_SELECT` - on model select `data['value']` *(string, model ID)*
 
-- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update
+- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update (saving settings)
 
 - `PLUGIN_OPTION_GET` - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
 
@@ -2751,9 +2759,11 @@ You can stop the propagation of a received event at any time by setting `stop` t
 event.stop = True
 ```
 
+Events flow can be debugged by enabling the option `Config -> Settings -> Developer -> Log and debug events`.
+
 # Functions and commands execution
 
-**INFO:** From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. Native API function calls are available in Chat and Completion modes only (using OpenAI API).
+**INFO:** From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
 
 In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
@@ -2765,7 +2775,7 @@ It is a JSON object wrapped between `~###~`. The application extracts the JSON o
 
 ![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
 
-A special system prompt responsible for invoking commands is added to the main system prompt if the `Execute commands` option is active.
+When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `Execute commands` option is active.
 
 However, there is an additional possibility to define your own commands and execute them with the help of GPT.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:
