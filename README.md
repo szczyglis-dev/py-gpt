@@ -1285,7 +1285,7 @@ Required **kwargs:
 
 ## Adding custom LLM providers
 
-Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
+Handling LLMs with Langchain and Llama-index is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain or Llama-index. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
 
 These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
 
@@ -1346,7 +1346,7 @@ plugins = [
     OtherCustomPlugin(),
 ]
 llms = [
-    CustomLLM(),  # <--- custom LLM provider
+    CustomLLM(),  # <--- custom LLM provider (wrapper)
 ]
 vector_stores = []
 
@@ -1380,6 +1380,8 @@ See the `examples` directory in this repository with examples of custom launcher
 These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
 To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+
+Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 3 components: provider for Langchain, provider for Llama-index, and provider for Embeddings.
 
 
 ## Adding custom Vector Store providers

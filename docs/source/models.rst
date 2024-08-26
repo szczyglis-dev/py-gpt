@@ -169,7 +169,7 @@ Required **kwargs:
 Adding custom LLM providers
 ---------------------------
 
-Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers  are placed in the ``pygpt_net.provider.llms``.
+Handling LLMs with Langchain and Llama-index is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain or Llama-index. All built-in wrappers for the models and its providers  are placed in the ``pygpt_net.provider.llms``.
 
 These wrappers are loaded into the application during startup using ``launcher.add_llm()`` method:
 
@@ -229,14 +229,14 @@ To register custom LLM wrappers:
         OtherCustomPlugin(),
     ]
     llms = [
-        CustomLLM(),
+        CustomLLM(),  # <--- custom LLM provider (wrapper)
     ]
     vector_stores = []
 
     run(
         plugins=plugins, 
         llms=llms, 
-        vector_stores=vector_stores
+        vector_stores=vector_stores,
     )
 
 **Examples (tutorial files)** 
@@ -247,7 +247,7 @@ See the ``examples`` directory in this repository with examples of custom launch
 * ``examples/example_audio_input.py``
 * ``examples/example_audio_output.py``
 * ``examples/example_data_loader.py``
-* ``examples/example_llm.py``
+* ``examples/example_llm.py``  <-- use it as an example
 * ``examples/example_plugin.py``
 * ``examples/example_vector_store.py``
 * ``examples/example_web_search.py``
@@ -255,6 +255,8 @@ See the ``examples`` directory in this repository with examples of custom launch
 These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
 To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the ``pygpt_net.provider.llms``. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
+
+Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 3 components: provider for Langchain, provider for Llama-index, and provider for Embeddings.
 
 
 Adding custom Vector Store providers
