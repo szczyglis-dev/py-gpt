@@ -182,6 +182,7 @@ These wrappers are loaded into the application during startup using ``launcher.a
     from pygpt_net.provider.llms.anthropic import AnthropicLLM
     from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
     from pygpt_net.provider.llms.ollama import OllamaLLM
+    from pygpt_net.provider.llms.google import GoogleLLM
 
     def run(**kwargs):
         """Runs the app."""
@@ -192,12 +193,13 @@ These wrappers are loaded into the application during startup using ``launcher.a
         # Register plugins
         ...
 
-        # Register langchain LLMs wrappers
+        # Register langchain and llama-index LLMs wrappers
         launcher.add_llm(OpenAILLM())
         launcher.add_llm(AzureOpenAILLM())
         launcher.add_llm(AnthropicLLM())
         launcher.add_llm(HuggingFaceLLM())
         launcher.add_llm(OllamaLLM())
+        launcher.add_llm(GoogleLLM())
 
         # Launch the app
         launcher.run()
@@ -307,11 +309,11 @@ To register your custom vector store provider just register it by passing provid
         CustomLLM(),
     ]
     vector_stores = [
-        CustomVectorStore(),
+        CustomVectorStore(),  # <--- custom vector store provider
     ]
 
     run(
         plugins=plugins,
         llms=llms,
-        vector_stores=vector_stores
+        vector_stores=vector_stores,
     )

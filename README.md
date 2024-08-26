@@ -1296,8 +1296,8 @@ from pygpt_net.provider.llms.openai import OpenAILLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
-from pygpt_net.provider.llms.llama import Llama2LLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
+from pygpt_net.provider.llms.google import GoogleLLM
 
 
 def run(**kwargs):
@@ -1309,12 +1309,13 @@ def run(**kwargs):
     # Register plugins
     ...
 
-    # Register langchain LLMs wrappers
+    # Register langchain and llama-index LLMs wrappers
     launcher.add_llm(OpenAILLM())
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
     launcher.add_llm(HuggingFaceLLM())
     launcher.add_llm(OllamaLLM())
+    launcher.add_llm(GoogleLLM())
 
     # Launch the app
     launcher.run()
@@ -1345,14 +1346,14 @@ plugins = [
     OtherCustomPlugin(),
 ]
 llms = [
-    CustomLLM(),
+    CustomLLM(),  # <--- custom LLM provider
 ]
 vector_stores = []
 
 run(
     plugins=plugins, 
     llms=llms, 
-    vector_stores=vector_stores
+    vector_stores=vector_stores,
 )
 ```
 
@@ -1432,13 +1433,13 @@ llms = [
     CustomLLM(),
 ]
 vector_stores = [
-    CustomVectorStore(),
+    CustomVectorStore(),  # <--- custom vector store provider
 ]
 
 run(
     plugins=plugins,
     llms=llms,
-    vector_stores=vector_stores
+    vector_stores=vector_stores,
 )
 ```
 
