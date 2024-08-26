@@ -2641,7 +2641,7 @@ vector_stores = [
 run(
     plugins=plugins,
     llms=llms,
-    vector_stores=vector_stores
+    vector_stores=vector_stores,
 )
 ```
 
@@ -2751,15 +2751,15 @@ You can stop the propagation of a received event at any time by setting `stop` t
 event.stop = True
 ```
 
-# Functions and commands execute
+# Functions and commands execution
 
-**Tip:** `gpt-4-1106-preview` is the best model to use for command handling, The `gpt-4-turbo-preview` model can sometimes refuse to execute commands.
+**INFO:** From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. Native API function calls are available in Chat and Completion modes only (using OpenAI API).
 
-**PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
+In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
 ```~###~{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}~###~```
 
-It is JSON wrapped between `~###~`. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the `Custom Commands` plugin, or simply by creating your own plugin and adding it to the application.
+It is a JSON object wrapped between `~###~`. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the `Custom Commands` plugin, or simply by creating your own plugin and adding it to the application.
 
 **Tip:** The `Execute commands` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
 
@@ -2773,7 +2773,6 @@ These are functions - defined on the OpenAI API side and described using JSON ob
 https://platform.openai.com/docs/guides/function-calling
 
 https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models
-
 
 PyGPT offers compatibility of these functions with commands used in the application. All you need to do is define the appropriate functions using the syntax required by OpenAI, and PyGPT will do the rest, translating such syntax on the fly into its own internal format.
 
@@ -3187,24 +3186,23 @@ The application has a built-in notepad, divided into several tabs. This can be u
 
 # Profiles
 
-You can create many "profiles" for an app and switch between them. Each profile uses its own configuration, settings, history of contexts, and a separate folder for user files. This allows you to make many setups and quickly switch between them, changing the whole setting with one click.
+You can create multiple profiles for an app and switch between them. Each profile uses its own configuration, settings, context history, and a separate folder for user files. This allows you to set up different environments and quickly switch between them, changing the entire setup with just one click.
 
-The app allows you to make new profiles, edit existing ones, and duplicate current ones.
+The app lets you create new profiles, edit existing ones, and duplicate current ones.
 
-To make a new profile, select the option from the menu `Config -> Profile -> New profile...`
+To create a new profile, select the option from the menu: `Config -> Profile -> New Profile...`
 
-To edit saved profiles, choose the option from the menu `Config -> Profile -> Edit profiles...`
+To edit saved profiles, choose the option from the menu: `Config -> Profile -> Edit Profiles...`
 
-To switch to a created profile, pick the profile from the menu: `Config -> Profile -> (profile name)`
+To switch to a created profile, pick the profile from the menu: `Config -> Profile -> [Profile Name]`
 
-Each profile uses its own user directory (workdir). You can link a newly created (or edited) profile to an already existing workdir with its configuration.
+Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration.
 
-The name of the currently active profile is shown in (Profile Name) in the window title.
+The name of the currently active profile is shown as (Profile Name) in the window title.
 
 # Advanced configuration
 
 ## Manual configuration
-
 
 You can manually edit the configuration files in this directory (this is your work directory):
 

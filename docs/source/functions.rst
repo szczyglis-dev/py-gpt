@@ -1,15 +1,15 @@
 Functions and commands
 ======================
 
-**Tip:** ``gpt-4-1106-preview`` is the best model to use for command handling, The ``gpt-4-turbo-preview`` model can sometimes refuse to execute commands.
+**INFO:** From version ``2.2.20`` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option ``Config -> Settings -> Prompts -> Use native API function calls``. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
 
-**PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
+In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
 .. code-block:: json
 
 	~###~{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}~###~
 
-It is JSON wrapped between ``~###~``. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom Commands`` plugin, or simply by creating your own plugin and adding it to the application.
+It is a JSON object wrapped between ``~###~``. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom Commands`` plugin, or simply by creating your own plugin and adding it to the application.
 
 **Tip:** The ``Execute commands`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
 
@@ -24,7 +24,6 @@ These are functions - defined on the OpenAI API side and described using JSON ob
 https://platform.openai.com/docs/guides/function-calling
 
 https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models
-
 
 PyGPT offers compatibility of these functions with commands used in the application. All you need to do is define the appropriate functions using the syntax required by OpenAI, and PyGPT will do the rest, translating such syntax on the fly into its own internal format.
 
