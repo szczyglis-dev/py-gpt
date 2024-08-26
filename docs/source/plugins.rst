@@ -116,7 +116,7 @@ To register custom web providers:
    run(
        plugins=plugins,
        llms=llms,
-       vector_stores=vector_stores
+       vector_stores=vector_stores,
    )
 
 Handling events
