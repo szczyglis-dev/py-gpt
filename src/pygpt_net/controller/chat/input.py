@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -246,44 +246,7 @@ class Input:
                 parent_id=parent_id,
             )  # text mode: OpenAI, Langchain, Llama, etc.
 
-        # clear attachments after send, only if attachments has been provided before send
-        if has_attachments:
-            if self.window.core.config.get('attachments_send_clear'):
-                self.window.controller.attachment.clear(True, auto=True)
-                self.window.controller.attachment.update()
-                self.log("Attachments cleared.")  # log
-
-        if self.window.core.config.get("log.ctx"):
-            self.log("Context: END: {}".format(ctx))
-        else:
-            self.log("Context: END.")
-
-        # agent mode
-        if mode == 'agent':
-            agent_iterations = int(self.window.core.config.get("agent.iterations"))
-            self.log("Agent: ctx end, iterations: {}".format(agent_iterations))
-            self.window.controller.agent.flow.on_ctx_end(
-                ctx,
-                iterations=agent_iterations,
-            )
-
-        # event: context end
-        event = Event(Event.CTX_END)
-        event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
-        self.window.controller.ui.update_tokens()  # update UI
-        self.generating = False  # unlock
-
-        if mode not in self.no_ctx_idx_modes and not self.window.controller.agent.enabled():
-            self.window.controller.idx.on_ctx_end(ctx, mode=mode)  # update ctx DB index
-            # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
-
-        self.log("End.")
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_END))  # app event
-
-        # restore state to idle if no errors
-        if self.window.state != self.window.STATE_ERROR:
-            self.window.stateChanged.emit(self.window.STATE_IDLE)
+        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
 
     def log(self, data: any):
         """
