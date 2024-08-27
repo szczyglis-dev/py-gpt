@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.31** | build: **2024.08.27** | Python: **>=3.10, <3.12**
+Release: **2.2.32** | build: **2024.08.27** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3376,6 +3376,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.32 (2024-08-27)**
+
+- Fixed the selection of the chosen index for use in Agent mode if the internal mode for Agent is Llama-index.
+- Added the ability to select an index for use by experts.
+- Added automatic, in background mode switching if the given mode is not supported by the selected model in Agent mode and for experts (this allows the use of models available only through Llama-index or Langchain in modes such as Agent or Experts).
 
 **2.2.31 (2024-08-27)**
 
