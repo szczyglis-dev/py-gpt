@@ -134,7 +134,13 @@ class Flow:
             return
 
         # if ctx has commands to execute then abort sending reply (command response will be sent)
+        reply_abort = False
         if len(ctx.cmds) > 0:
+            reply_abort = True
+            # exception for expert_call command
+            if len(ctx.cmds) == 1 and ctx.cmds[0]["cmd"] == "expert_call":
+                reply_abort = False
+        if reply_abort:
             return
 
         if iterations == 0 or self.iteration < int(iterations):
