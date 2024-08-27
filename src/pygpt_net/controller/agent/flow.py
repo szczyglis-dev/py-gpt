@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -139,6 +139,9 @@ class Flow:
             reply_abort = True
             # exception for expert_call command
             if len(ctx.cmds) == 1 and ctx.cmds[0]["cmd"] == "expert_call":
+                reply_abort = False
+            # if commands execution is disabled, then don't abort (there is no command response)
+            if not self.window.core.config.get("cmd"):
                 reply_abort = False
         if reply_abort:
             return
