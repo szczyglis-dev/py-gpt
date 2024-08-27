@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.08.27 19:00:00                  #
 # ================================================== #
 
 from .common import Common
@@ -125,3 +125,7 @@ class Agent:
     def add_run(self):
         """Increment agent iteration"""
         self.flow.iteration += 1
+
+    def stop(self):
+        """Stop agent"""
+        self.flow.on_stop()

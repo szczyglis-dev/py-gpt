@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.08.27 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -313,6 +313,10 @@ class Text:
         self.window.controller.chat.common.unlock_input()
         self.window.stateChanged.emit(self.window.STATE_ERROR)
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+
+        # stop agent on error
+        if self.window.controller.agent.enabled():
+            self.window.controller.agent.flow.on_stop()
 
     def log(self, data: any):
         """
