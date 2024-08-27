@@ -114,12 +114,12 @@ class Output:
                 if not model_config.is_supported(response_mode):
                     # tmp switch to: llama-index
                     if model_config.is_supported("llama_index"):
-                        self.window.core.debug.debug(
+                        self.window.core.debug.info(
                             "WARNING: Switching to llama_index mode (model not supported in: {})".format(response_mode))
                         response_mode = "llama_index"
                     # tmp switch to: langchain
                     elif model_config.is_supported("langchain"):
-                        self.window.core.debug.debug(
+                        self.window.core.debug.info(
                             "WARNING: Switching to langchain mode (model not supported in: {})".format(response_mode))
                         response_mode = "langchain"
 
