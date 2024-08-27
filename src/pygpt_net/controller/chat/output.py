@@ -248,9 +248,13 @@ class Output:
                 if not ctx.reply:
                     mentions = self.window.core.experts.extract_calls(ctx)
                     if mentions:
+                        num_calls = 0
                         self.log("Calling experts...")
                         self.window.controller.chat.render.end(stream=stream_mode)  # close previous render
                         for expert_id in mentions:
+                            if not self.window.core.experts.exists(expert_id):
+                                self.log("Expert not found: " + expert_id)
+                                continue
                             self.log("Calling: " + expert_id)
                             ctx.sub_calls += 1
                             self.window.core.experts.call(
@@ -258,7 +262,9 @@ class Output:
                                 expert_id,  # expert id
                                 mentions[expert_id],  # query
                             )
-                        return  # abort commands if expert call detected
+                            num_calls += 1
+                        if num_calls > 0:
+                            return  # abort commands if expert call detected
 
         # extract commands
         cmds = self.window.core.command.extract_cmds(ctx.output)

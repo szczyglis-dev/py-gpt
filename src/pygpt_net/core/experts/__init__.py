@@ -54,6 +54,15 @@ class Experts:
         """
         return self.window.controller.agent.enabled()
 
+    def exists(self, id: str) -> bool:
+        """
+        Check if expert exists
+
+        :param id: expert id
+        :return: True if exists
+        """
+        return self.window.core.presets.exists("expert", id)
+
     def get_expert(self, id: str) -> PresetItem:
         """
         Get expert by id
