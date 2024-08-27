@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.30** | build: **2024.08.25** | Python: **>=3.10, <3.12**
+Release: **2.2.31** | build: **2024.08.27** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3376,6 +3376,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.2.31 (2024-08-27)**
+
+- Improved behavior of agent and expert calls.
+- Improved chat window auto scroll.
+- Added a new option "Always continue..." to Agent mode (as opposed to the Auto-stop option).
 
 **2.2.30 (2024-08-25)**
 

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.2.31 (2024-08-27)
+
+- Improved behavior of agent and expert calls.
+- Improved chat window auto scroll.
+- Added a new option "Always continue..." to Agent mode (as opposed to the Auto-stop option).
+
 # 2.2.30 (2024-08-25)
 
 - Added link to Discord server in About -> Discord.
