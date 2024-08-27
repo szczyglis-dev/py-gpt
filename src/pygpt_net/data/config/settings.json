@@ -1199,6 +1199,20 @@
         "step": null,
         "advanced": false
     },
+    "experts.mode": {
+        "section": "agent",
+        "type": "combo",
+        "use": "agent_modes",
+        "slider": false,
+        "label": "settings.experts.mode",
+        "description": "settings.experts.mode.desc",
+        "value": "chat",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "agent.idx": {
         "section": "agent",
         "type": "combo",
@@ -1230,20 +1244,6 @@
         "step": null,
         "advanced": false,
         "tab": "chat"
-    },
-    "experts.mode": {
-        "section": "agent",
-        "type": "combo",
-        "use": "agent_modes",
-        "slider": false,
-        "label": "settings.experts.mode",
-        "description": "settings.experts.mode.desc",
-        "value": "chat",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
     },
     "agent.goal.notify": {
         "section": "agent",

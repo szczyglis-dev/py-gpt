@@ -3130,11 +3130,11 @@ Config -> Settings...
 
 **Agent and experts**
 
-- `Sub-mode to use`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+- `Sub-mode for agents`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 - `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
-- `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
+- `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
