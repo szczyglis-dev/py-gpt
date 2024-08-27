@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 import json
@@ -935,7 +935,7 @@ class Renderer(BaseRenderer):
         function scrollToBottom() {
             getScrollPosition();  // store using bridge
             if (scrollTimeout !== null) {
-                clearTimeout(scrollTimeout);
+                return;
             }
             if (document.body.scrollHeight > prevScroll) {
                 scrollTimeout = setTimeout(function() {
@@ -943,7 +943,7 @@ class Renderer(BaseRenderer):
                     prevScroll = document.body.scrollHeight;
                     getScrollPosition();  // store using bridge
                     scrollTimeout = null;
-                }, 10);
+                }, 30);
             }
         }
         function appendToInput(content) {
