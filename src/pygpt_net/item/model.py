@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
 import json
@@ -155,6 +155,15 @@ class ModelItem:
                 data['llama_index.env'] = self.llama_index['env']
 
         return data
+
+    def is_supported(self, mode: str) -> bool:
+        """
+        Check if model supports mode
+
+        :param mode: Mode
+        :return: True if supported
+        """
+        return mode in self.mode
 
     def dump(self) -> str:
         """
