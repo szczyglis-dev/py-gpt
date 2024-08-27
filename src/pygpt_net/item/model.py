@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 17:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 
 import json
@@ -164,6 +164,33 @@ class ModelItem:
         :return: True if supported
         """
         return mode in self.mode
+
+    def has_mode(self, mode: str) -> bool:
+        """
+        Check if model has mode
+
+        :param mode: Mode
+        :return: True if supported
+        """
+        return mode in self.mode
+
+    def add_mode(self, mode: str):
+        """
+        Add mode
+
+        :param mode: Mode
+        """
+        if mode not in self.mode:
+            self.mode.append(mode)
+
+    def remove_mode(self, mode: str):
+        """
+        Remove mode
+
+        :param mode: Mode
+        """
+        if mode in self.mode:
+            self.mode.remove(mode)
 
     def dump(self) -> str:
         """
