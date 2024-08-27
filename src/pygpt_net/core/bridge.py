@@ -127,11 +127,11 @@ class Bridge:
                     if not model.is_supported(mode):  # check selected mode
                         # tmp switch to: llama-index
                         if model.is_supported("llama_index"):
-                            self.window.core.debug.debug("AGENT/EXPERT: Switching to llama_index mode (model not supported by OpenAI API)")
+                            self.window.core.debug.debug("AGENT/EXPERT: Switching to llama_index mode (model not supported in: {})".format(mode))
                             mode = "llama_index"
                         # tmp switch to: langchain
                         elif model.is_supported("langchain"):
-                            self.window.core.debug.debug("AGENT/EXPERT: Switching to langchain mode (model not supported by OpenAI API)")
+                            self.window.core.debug.debug("AGENT/EXPERT: Switching to langchain mode (model not supported in: {})".format(mode))
                             mode = "langchain"
             if mode == "llama_index":
                 context.idx_mode = "chat"

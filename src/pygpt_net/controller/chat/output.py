@@ -104,7 +104,7 @@ class Output:
         # chunks: stream begin
         self.window.controller.chat.render.stream_begin()
 
-        # prepare response mode
+        # prepare response mode, check for model is supported by selected mode
         response_mode = mode
         if mode == "agent":
             tmp_mode = self.window.core.agents.get_mode()
@@ -115,12 +115,12 @@ class Output:
                     # tmp switch to: llama-index
                     if model_config.is_supported("llama_index"):
                         self.window.core.debug.debug(
-                            "WARNING: Switching to llama_index mode (model not supported by OpenAI API)")
+                            "WARNING: Switching to llama_index mode (model not supported in: {})".format(response_mode))
                         response_mode = "llama_index"
                     # tmp switch to: langchain
                     elif model_config.is_supported("langchain"):
                         self.window.core.debug.debug(
-                            "WARNING: Switching to langchain mode (model not supported by OpenAI API)")
+                            "WARNING: Switching to langchain mode (model not supported in: {})".format(response_mode))
                         response_mode = "langchain"
 
         # read stream
