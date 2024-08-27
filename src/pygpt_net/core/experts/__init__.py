@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -273,6 +273,27 @@ class Experts:
         # from current config
         max_tokens = self.window.core.config.get('max_output_tokens')
         stream_mode = self.window.core.config.get('stream')
+        db_idx = self.window.controller.idx.current_idx # get idx from agent config
+
+        # check if model is supported by selected mode, if not then try to use llama-index or langchain call
+        if model is not None:
+            model_config = self.window.core.models.get(model)
+            if not model_config.is_supported(mode):  # check selected mode
+                # tmp switch to: llama-index
+                if model_config.is_supported("llama_index"):
+                    self.window.core.debug.debug(
+                        "EXPERT: Switching to llama_index mode (model not supported by OpenAI API)")
+                    mode = "llama_index"
+                # tmp switch to: langchain
+                elif model_config.is_supported("langchain"):
+                    self.window.core.debug.debug(
+                        "EXPERT: Switching to langchain mode (model not supported by OpenAI API)")
+                    mode = "langchain"
+        if mode == "llama_index":
+            idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
+            if idx is not None and idx != "_":
+                db_idx = idx
+                self.window.core.debug.debug("EXPERT: Using index: " + db_idx)
 
         # create slave item
         ctx = CtxItem()
@@ -323,7 +344,7 @@ class Experts:
             attachments=files,
             file_ids=file_ids,
             assistant_id=self.window.core.config.get('assistant'),
-            idx=self.window.controller.idx.current_idx,
+            idx=db_idx,
             idx_mode=self.window.core.config.get('llama.idx.mode'),
             external_functions=functions,
             tools_outputs=tools_outputs,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -87,12 +87,12 @@ class Output:
         output_tokens = 0
         begin = True
         sub_mode = None  # sub mode for langchain (chat, completion)
+        model_config = self.window.core.models.get(
+            self.window.core.config.get('model')
+        )
 
         # get sub mode for langchain
         if mode == "langchain":
-            model_config = self.window.core.models.get(
-                self.window.core.config.get('model')
-            )
             sub_mode = 'chat'
             # get available modes for langchain
             if 'mode' in model_config.langchain:
@@ -104,11 +104,24 @@ class Output:
         # chunks: stream begin
         self.window.controller.chat.render.stream_begin()
 
+        # prepare response mode
         response_mode = mode
         if mode == "agent":
             tmp_mode = self.window.core.agents.get_mode()
             if tmp_mode is not None and tmp_mode != "_":
                 response_mode = tmp_mode
+            if model_config is not None:
+                if not model_config.is_supported(response_mode):
+                    # tmp switch to: llama-index
+                    if model_config.is_supported("llama_index"):
+                        self.window.core.debug.debug(
+                            "WARNING: Switching to llama_index mode (model not supported by OpenAI API)")
+                        response_mode = "llama_index"
+                    # tmp switch to: langchain
+                    elif model_config.is_supported("langchain"):
+                        self.window.core.debug.debug(
+                            "WARNING: Switching to langchain mode (model not supported by OpenAI API)")
+                        response_mode = "langchain"
 
         # read stream
         try:

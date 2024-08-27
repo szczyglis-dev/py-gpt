@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
 import time
@@ -112,17 +112,33 @@ class Bridge:
         mode = context.mode
         model = context.model  # model instance
 
-        # get agent internal sub-mode
-        if mode == "agent":
+        # get agent or expert internal sub-mode
+        if mode == "agent" or mode == "expert":
             mode = "chat"  # inline switch to sub-mode, because agent is a virtual mode only
-            sub_mode = self.window.core.agents.get_mode()
+            sub_mode = "chat"
+            if mode == "agent":
+                sub_mode = self.window.core.agents.get_mode()
+            elif mode == "expert":
+                sub_mode = self.window.core.experts.get_mode()
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
+                # check if model is supported by selected mode, if not then try to use llama-index or langchain call
+                if model is not None:
+                    if not model.is_supported(mode):  # check selected mode
+                        # tmp switch to: llama-index
+                        if model.is_supported("llama_index"):
+                            self.window.core.debug.debug("AGENT/EXPERT: Switching to llama_index mode (model not supported by OpenAI API)")
+                            mode = "llama_index"
+                        # tmp switch to: langchain
+                        elif model.is_supported("langchain"):
+                            self.window.core.debug.debug("AGENT/EXPERT: Switching to langchain mode (model not supported by OpenAI API)")
+                            mode = "langchain"
             if mode == "llama_index":
                 context.idx_mode = "chat"
-                idx = self.window.core.agents.get_mode()
+                idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
+                    self.window.core.debug.debug("AGENT/EXPERT: Using index: " + idx)
 
         # inline: internal mode switch if needed
         context.parent_mode = mode  # store REAL mode
@@ -173,11 +189,17 @@ class Bridge:
         :return: response content
         """
         self.window.core.debug.info("Bridge quick call...")
-        # check if model is supported by chat API, if not try to use llama-index call
+        if self.window.core.debug.enabled():
+            if self.window.core.config.get("log.ctx"):
+                debug = {k: str(v) for k, v in context.to_dict().items()}
+                self.window.core.debug.debug(str(debug))
+
         if context.model is not None:
-            if "chat" not in context.model.mode:
-                if "llama_index" in context.model.mode:
-                    context.stream = False
+            # check if model is supported by chat API, if not then try to use llama-index or langchain call
+            if not context.model.is_supported("chat"):
+                # tmp switch to: llama-index
+                if context.model.is_supported("llama_index"):
+                    context.stream = False  # force disable stream
                     ctx = context.ctx  # output will be filled in query
                     ctx.input = context.prompt
                     try:
@@ -186,16 +208,29 @@ class Bridge:
                             extra=extra,
                         )
                         if res:
-                            return ctx.output
+                            return ctx.output  # response text is in ctx.output
                     except Exception as e:
                         self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
                         self.window.core.debug.error(e)
                     return ""
+                # tmp switch to: langchain
+                elif context.model.is_supported("langchain"):
+                    context.stream = False
+                    ctx = context.ctx
+                    ctx.input = context.prompt
+                    try:
+                        res = self.window.core.chain.chat(
+                            context=context,
+                            extra=extra,
+                        )
+                        if res:
+                            return ctx.output  # response text is in ctx.output
+                    except Exception as e:
+                        self.window.core.debug.error("Error in Langchain quick call: " + str(e))
+                        self.window.core.debug.error(e)
+                    return ""
 
-        if self.window.core.debug.enabled():
-            if self.window.core.config.get("log.ctx"):
-                debug = {k: str(v) for k, v in context.to_dict().items()}
-                self.window.core.debug.debug(str(debug))
+        # default: OpenAI API call
         return self.window.core.gpt.quick_call(
             context=context,
             extra=extra,
