@@ -97,9 +97,10 @@ class ExpertsEditor(QWidget):
         i = 0
         for n in data:
             self.window.ui.models[id].insertRow(i)
-            name = data[n].name
+            name = data[n].name + "  [" + data[n].filename + "]"
             index = self.window.ui.models[id].index(i, 0)
-            self.window.ui.models[id].setData(index, n, QtCore.Qt.ToolTipRole)
+            tooltip = data[n].model + ", " + n
+            self.window.ui.models[id].setData(index, tooltip, QtCore.Qt.ToolTipRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
         self.window.ui.nodes[id].restore_selection()
@@ -116,9 +117,10 @@ class ExpertsEditor(QWidget):
         i = 0
         for n in data:
             self.window.ui.models[id].insertRow(i)
-            name = data[n].name
+            name = data[n].name + "  [" + data[n].filename + "]"
             index = self.window.ui.models[id].index(i, 0)
-            self.window.ui.models[id].setData(index, n, QtCore.Qt.ToolTipRole)
+            tooltip = data[n].model + ", " + n
+            self.window.ui.models[id].setData(index, tooltip, QtCore.Qt.ToolTipRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
         self.window.ui.nodes[id].restore_selection()

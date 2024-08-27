@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -324,6 +324,7 @@ class Presets:
         self.items[id] = copy.deepcopy(self.items[prev_id])
         self.items[id].name = name
         self.items[id].filename = id
+        self.items[id].uuid = str(uuid.uuid4())  # generate new uuid
         self.sort_by_name()
         return id
 
@@ -379,7 +380,8 @@ class Presets:
     def load(self):
         """Load presets templates"""
         self.items = self.provider.load()
-        self.patch_uuids()
+        self.patch_empty()  # patch empty UUIDs and filenames
+        self.patch_duplicated()  # patch duplicated UUIDs
 
         # sort presets
         self.sort_by_name()
@@ -426,7 +428,7 @@ class Presets:
             agent.experts.remove(expert_uuid)
         self.save(agent.filename)
 
-    def patch_uuids(self):
+    def patch_empty(self):
         """Patch UUIDs for all presets"""
         patched = False
         for id in self.items:
@@ -436,5 +438,17 @@ class Presets:
             if self.items[id].filename is None or self.items[id].filename == "":
                 self.items[id].filename = id
                 patched = True
+        if patched:
+            self.save_all()
+
+    def patch_duplicated(self):
+        """Patch UUIDs for all presets"""
+        patched = False
+        uuids = []
+        for id in self.items:
+            if self.items[id].uuid in uuids:
+                self.items[id].uuid = str(uuid.uuid4())
+                patched = True
+            uuids.append(self.items[id].uuid)
         if patched:
             self.save_all()
