@@ -61,7 +61,7 @@ class Experts:
         :param id: expert id
         :return: True if exists
         """
-        return self.window.core.presets.exists("expert", id)
+        return self.window.core.presets.has("expert", id)
 
     def get_expert(self, id: str) -> PresetItem:
         """
