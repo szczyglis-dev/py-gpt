@@ -3382,6 +3382,7 @@ may consume additional tokens that are not displayed in the main window.
 - Improved behavior of agent and expert calls.
 - Improved chat window auto scroll.
 - Added a new option "Always continue..." to Agent mode (as opposed to the Auto-stop option).
+- Added a new prompt: Config -> Settings -> Prompts -> Agent: continue (always, more steps).
 
 **2.2.30 (2024-08-25)**
 
