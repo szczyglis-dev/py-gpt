@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.08.27 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -162,6 +162,9 @@ class Ctx:
             self.select_index_by_id(id)
         if focus:
             self.update()
+            index = self.get_child_index_by_id(id)
+            if index.isValid():
+                self.window.ui.nodes['ctx.list'].scrollTo(index)
 
     def unselect(self):
         """Unselect ctx"""

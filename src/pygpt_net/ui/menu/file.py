@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 07:00:00                  #
+# Updated Date: 2024.08.27 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -56,7 +56,7 @@ class File:
         )
 
         self.window.ui.menu['app.ctx.current'].triggered.connect(
-            lambda: self.window.controller.ctx.select_by_current()
+            lambda: self.window.controller.ctx.select_by_current(True)
         )  # new context without group
 
         self.window.ui.menu['menu.app'] = self.window.menuBar().addMenu(trans("menu.file"))
