@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.08.28 01:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -118,7 +118,7 @@ class Presets:
             if mode == "expert" and not n.startswith("current.") and data[n].enabled:
                 name = "[x] " + name
             elif mode =="agent":
-                num_experts = len(data[n].experts)
+                num_experts = self.window.core.experts.count_experts(n)
                 if num_experts > 0:
                     name = name + " (" + str(num_experts) + " experts)"
 
