@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.08.28 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -348,29 +348,31 @@ class Renderer(BaseRenderer):
         html = ""
         html_sources = ""
         num = 1
-        for doc_json in docs:
-            try:
-                """
-                Example doc (file metadata):
-                {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
-                    'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
-                    'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
-                    'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
-                    'last_accessed_date': '2024-03-03'}}
-                """
-                doc_id = list(doc_json.keys())[0]
-                doc_parts = []
-                for key in doc_json[doc_id]:
-                    doc_parts.append("{}: {}".format(key, doc_json[doc_id][key]))
-                html_sources += "[{}] {}: {}".format(num, doc_id, ", ".join(doc_parts))
-                num +=1
-            except Exception as e:
-                pass
+        max = 3
+        try:
+            for item in docs:
+                for uuid, doc_json in item.items():
+                    """
+                    Example doc (file metadata):
+                    {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
+                        'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
+                        'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
+                        'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
+                        'last_accessed_date': '2024-03-03'}}
+                    """
+                    doc_parts = []
+                    for key in doc_json:
+                        doc_parts.append("{}: {}".format(key, doc_json[key]))
+                    html_sources += "\n[{}] {}: {}".format(num, uuid, ", ".join(doc_parts))
+                    num += 1
+                if num >= max:
+                    break
+        except Exception as e:
+            pass
 
         if html_sources != "":
-            html += "\n{prefix}:\n\n".format(prefix=trans('chat.prefix.doc'))
+            html += "\n----------\n{prefix}:\n".format(prefix=trans('chat.prefix.doc'))
             html += html_sources
-
         return html
 
     def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:

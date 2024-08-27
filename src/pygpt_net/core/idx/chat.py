@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.28 00:00:00                  #
 # ================================================== #
 
 import json
@@ -126,12 +126,12 @@ class Chat:
 
         if response:
             if stream:
-                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 ctx.stream = response.response_gen
                 ctx.input_tokens = input_tokens
                 ctx.set_output("", "")
             else:
-                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 ctx.input_tokens = input_tokens
                 ctx.output_tokens = self.window.core.tokens.from_llama_messages(
                     response.response,
@@ -139,7 +139,6 @@ class Chat:
                     model.id,
                 )  # calc from response
                 ctx.set_output(str(response.response), "")
-            self.log("Found in metadata: {}".format(response.metadata))
             return True
         return False
 
@@ -199,12 +198,12 @@ class Chat:
 
         if response:
             if stream:
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 ctx.stream = response.response_gen
                 ctx.input_tokens = input_tokens
                 ctx.set_output("", "")
-                # no metadata here in agent chat stream response!
             else:
-                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 ctx.input_tokens = input_tokens
                 ctx.output_tokens = self.window.core.tokens.from_llama_messages(
                     response.response,
@@ -212,7 +211,6 @@ class Chat:
                     model.id,
                 )  # calc from response
                 ctx.set_output(str(response.response), "")
-                self.log("Found in metadata: {}".format(response.metadata))
             return True
         return False
 
@@ -259,7 +257,7 @@ class Chat:
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
-                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
 
         # clean tmp index
@@ -322,7 +320,7 @@ class Chat:
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
-                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
 
         # clean tmp index# clean tmp index
@@ -393,6 +391,50 @@ class Chat:
         service_context = self.window.core.idx.llm.get_service_context(model=model)
         index = self.storage.get(idx, service_context=service_context)  # get index
         return index, service_context
+
+    def get_metadata(self, source_nodes: list):
+        """
+        Get metadata from source nodes
+
+        :param source_nodes: source nodes
+        :return: metadata
+        """
+        if (source_nodes is None
+                or not isinstance(source_nodes, list)
+                or len(source_nodes) == 0):
+            return {}
+        metadata = {}
+        i = 1
+        max = 3
+        for node in source_nodes:
+            if hasattr(node, "id_"):
+                id = node.id_
+                if node.metadata is not None:
+                    score = node.get_score()
+                    metadata[id] = node.metadata
+                    metadata[id]["score"] = score
+                    i += 1
+                    if i > max:
+                        break
+        return metadata
+
+    def parse_metadata(self, metadata: dict):
+        """
+        Parse metadata
+
+        :param metadata: metadata
+        :return: metadata
+        """
+        if (metadata is None
+                or not isinstance(metadata, dict)
+                or len(metadata) == 0):
+            return {}
+        meta = {}
+        for node in metadata:
+            doc_id = list(node.keys())[0]
+            meta[doc_id] = node[doc_id]
+            break
+        return meta
 
     def log(self, msg: str):
         """
