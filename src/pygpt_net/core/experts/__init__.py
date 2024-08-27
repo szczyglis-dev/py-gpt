@@ -102,6 +102,22 @@ class Experts:
                 experts[k] = presets[k].name
         return experts
 
+    def count_experts(self, uuid: str) -> int:
+        """
+        Count experts in agent
+
+        :param uuid: agent uuid
+        :return: number of experts
+        """
+        i = 0
+        agents = self.window.core.presets.get_by_mode("agent")
+        if uuid in agents:
+            for expert_uuid in agents[uuid].experts:
+                expert = self.window.core.presets.get_by_uuid(expert_uuid)
+                if expert is not None:
+                    i += 1
+        return i
+
     def get_prompt(self) -> str:
         """
         Get prompt for handle experts

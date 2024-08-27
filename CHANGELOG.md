@@ -1,5 +1,15 @@
 # CHANGELOG
 
+# 2.2.33 (2024-08-28)
+
+- Improved model compatibility across different modes.
+- Enhanced appending of Llama-index response metadata (sources) to context.
+- Added scrolling to the selected item when choosing the current context from the File -> Select current menu.
+- Hidden clear preset button.
+- Fixed duplicated UUIDs in expert presets.
+- Extended context and events debugging.
+- Added non-GPT models to Agent and Expert modes.
+
 # 2.2.32 (2024-08-27)
 
 - Fixed the selection of the chosen index for use in Agent mode if the internal mode for Agent is Llama-index.
