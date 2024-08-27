@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 import os.path
@@ -194,7 +194,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -227,7 +227,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
@@ -276,7 +276,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -317,7 +317,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -348,7 +348,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -371,8 +371,24 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + str(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
+
+    def parse_result(self, result):
+        """
+        Parse result
+
+        :param result: result
+        :return: parsed result
+        """
+        if result is None:
+            return ""
+        img_ext = ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]
+        if result.strip().split(".")[-1].lower() in img_ext:
+            path = self.prepare_path(result.strip().replace("file://", ""), on_host=True)
+            if os.path.isfile(path):
+                return "![Image](file://{})".format(path)
+        return str(result)
 
     def append_input(self, data: str):
         """
