@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 17:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 
 import time
@@ -55,9 +55,9 @@ class BridgeContext:
 
         :return: dictionary
         """
-        return {
-            "ctx": self.ctx,  # "ctx": self.ctx.dump() ??
-            "history": self.history,
+        data = {
+            "ctx": self.ctx,
+            "history": len(self.history),
             "mode": self.mode,
             "parent_mode": self.parent_mode,
             "model": self.model,
@@ -76,6 +76,14 @@ class BridgeContext:
             "attachments": self.attachments,
             "file_ids": self.file_ids,
         }
+        if self.ctx is not None:
+            data["ctx"] = self.ctx.to_dict()
+        if self.model is not None:
+            data["model"] = self.model.to_dict()
+
+        # sort by keys
+        data = dict(sorted(data.items(), key=lambda item: item[0]))
+        return data
 
 
 class Bridge:
@@ -87,6 +95,8 @@ class Bridge:
         """
         self.window = window
         self.last_call = None  # last API call time, for throttling
+        self.last_context = None  # last context
+        self.last_context_quick = None  # last context for quick call
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
@@ -114,36 +124,31 @@ class Bridge:
 
         # get agent or expert internal sub-mode
         if mode == "agent" or mode == "expert":
-            mode = "chat"  # inline switch to sub-mode, because agent is a virtual mode only
-            sub_mode = "chat"
+            sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if mode == "agent":
                 sub_mode = self.window.core.agents.get_mode()
             elif mode == "expert":
                 sub_mode = self.window.core.experts.get_mode()
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
-                # check if model is supported by selected mode, if not then try to use llama-index or langchain call
-                if model is not None:
-                    if not model.is_supported(mode):  # check selected mode
-                        # tmp switch to: llama-index
-                        if model.is_supported("llama_index"):
-                            self.window.core.debug.info("AGENT/EXPERT: Switching to llama_index mode (model not supported in: {})".format(mode))
-                            mode = "llama_index"
-                        # tmp switch to: langchain
-                        elif model.is_supported("langchain"):
-                            self.window.core.debug.info("AGENT/EXPERT: Switching to langchain mode (model not supported in: {})".format(mode))
-                            mode = "langchain"
-            if mode == "llama_index":
-                context.idx_mode = "chat"
-                idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
-                if idx is not None and idx != "_":
-                    context.idx = idx
-                    self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
+
+        # check if model is supported by selected mode, if not then try to use supported mode
+        if model is not None:
+            if not model.is_supported(mode):  # check selected mode
+                mode = self.window.core.models.get_supported_mode(model, mode)
+
+        if mode == "llama_index":
+            context.idx_mode = "chat"
+            idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
+            if idx is not None and idx != "_":
+                context.idx = idx
+                self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
 
         # inline: internal mode switch if needed
         context.parent_mode = mode  # store REAL mode
         mode = self.window.controller.mode.switch_inline(mode, ctx, prompt)
         context.mode = mode
+        # context.ctx.mode = mode
 
         # inline: model switch
         if mode in allowed_model_change:
@@ -158,6 +163,7 @@ class Bridge:
                 self.window.core.debug.debug(str(debug))
 
         self.apply_rate_limit()  # apply RPM limit
+        self.last_context = context  # store last context for call (debug)
 
         # Langchain
         if mode == "langchain":
@@ -193,6 +199,8 @@ class Bridge:
             if self.window.core.config.get("log.ctx"):
                 debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
+
+        self.last_context_quick = context  # store last context for quick call (debug)
 
         if context.model is not None:
             # check if model is supported by chat API, if not then try to use llama-index or langchain call

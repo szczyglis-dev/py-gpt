@@ -32,7 +32,7 @@ class Output:
         Handle response from LLM
 
         :param ctx: CtxItem
-        :param mode: mode
+        :param mode: mode (global)
         :param stream_mode: stream mode
         """
         self.window.stateChanged.emit(self.window.STATE_BUSY)
@@ -41,7 +41,7 @@ class Output:
         stream_enabled = self.window.core.config.get("stream")  # global stream enabled
         if stream_mode:  # local stream enabled
             if mode not in self.not_stream_modes:
-                self.append_stream(ctx, mode)
+                self.append_stream(ctx)
 
         # check if tool calls detected
         if ctx.tool_calls:
@@ -76,57 +76,18 @@ class Output:
 
         self.handle_complete(ctx)
 
-    def append_stream(self, ctx: CtxItem, mode: str):
+    def append_stream(self, ctx: CtxItem):
         """
         Handle stream response from LLM
 
         :param ctx: CtxItem
-        :param mode: mode
         """
         output = ""
         output_tokens = 0
         begin = True
-        sub_mode = None  # sub mode for langchain (chat, completion)
-        model_config = self.window.core.models.get(
-            self.window.core.config.get('model')
-        )
 
         # chunks: stream begin
         self.window.controller.chat.render.stream_begin()
-
-        # prepare response mode, check for model is supported by selected mode
-        response_mode = mode
-        tmp_mode = None
-        if mode == "agent" or mode == "expert":  # checking parent mode (global)
-            if mode == "agent":
-                tmp_mode = self.window.core.agents.get_mode()
-            elif mode == "expert":
-                tmp_mode = self.window.core.experts.get_mode()
-            if tmp_mode is not None and tmp_mode != "_":
-                response_mode = tmp_mode
-            if model_config is not None:
-                if not model_config.is_supported(response_mode):
-                    # tmp switch to: llama-index
-                    if model_config.is_supported("llama_index"):
-                        self.window.core.debug.info(
-                            "WARNING: Switching to llama_index mode (model not supported in: {})".format(response_mode))
-                        response_mode = "llama_index"
-                    # tmp switch to: langchain
-                    elif model_config.is_supported("langchain"):
-                        self.window.core.debug.info(
-                            "WARNING: Switching to langchain mode (model not supported in: {})".format(response_mode))
-                        response_mode = "langchain"
-
-        # get sub-mode for langchain
-        if response_mode == "langchain":
-            sub_mode = 'chat'
-            # get available modes for langchain
-            if model_config is not None:
-                if 'mode' in model_config.langchain:
-                    if 'chat' in model_config.langchain['mode']:
-                        sub_mode = 'chat'
-                    elif 'completion' in model_config.langchain['mode']:
-                        sub_mode = 'completion'
 
         # read stream
         try:
@@ -141,9 +102,23 @@ class Output:
                         break
 
                     response = None
+                    chunk_type = "raw"
+                    if (hasattr(chunk, 'choices')
+                            and chunk.choices[0] is not None
+                            and hasattr(chunk.choices[0], 'delta')
+                            and chunk.choices[0].delta is not None):
+                        chunk_type = "api_chat"
+                    elif (hasattr(chunk, 'choices')
+                          and chunk.choices[0] is not None
+                          and hasattr(chunk.choices[0], 'text')
+                          and chunk.choices[0].text is not None):
+                        chunk_type = "api_completion"
+                    elif (hasattr(chunk, 'content')
+                          and chunk.content is not None):
+                        chunk_type = "langchain_chat"
 
-                    # chat and vision
-                    if response_mode == "chat" or response_mode == "vision":
+                    # OpenAI chat completion
+                    if chunk_type == "api_chat":
                         if chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
                             response = chunk.choices[0].delta.content
                         elif chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
@@ -168,26 +143,20 @@ class Output:
                                 if tool_chunk.function.arguments:
                                     tool_call["function"]["arguments"] += tool_chunk.function.arguments
 
-                    # completion
-                    elif response_mode == "completion":
+                    # OpenAI completion
+                    elif chunk_type == "api_completion":
                         if chunk.choices[0].text is not None:
                             response = chunk.choices[0].text
 
-                    # llama_index
-                    elif response_mode == "llama_index":
+                    # langchain chat
+                    elif chunk_type == "langchain_chat":
+                        if chunk.content is not None:
+                            response = chunk.content
+
+                    # raw text: llama-index and langchain completion
+                    else:
                         if chunk is not None:
                             response = chunk
-
-                    # langchain (can provide different modes itself)
-                    elif response_mode == "langchain":
-                        if sub_mode == 'chat':
-                            # if chat model response is an object
-                            if chunk.content is not None:
-                                response = chunk.content
-                        elif sub_mode == 'completion':
-                            # if completion response is string
-                            if chunk is not None:
-                                response = chunk
 
                     if response is not None:
                         if begin and response == "":  # prevent empty beginning

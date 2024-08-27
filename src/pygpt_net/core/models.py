@@ -293,6 +293,28 @@ class Models:
         """Save models"""
         self.provider.save(self.items)
 
+    def get_supported_mode(self, model: ModelItem, mode: str) -> str:
+        """
+        Get supported mode
+
+        :param model: ModelItem
+        :param mode: mode (initial)
+        :return: mode (supported)
+        """
+        if model.is_supported("chat"):
+            self.window.core.debug.info(
+                "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
+            mode = "chat"
+        elif model.is_supported("llama_index"):
+            self.window.core.debug.info(
+                "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
+            mode = "llama_index"
+        elif model.is_supported("langchain"):
+            self.window.core.debug.info(
+                "WARNING: Switching to langchain mode (model not supported in: {})".format(mode))
+            mode = "langchain"
+        return mode
+
     def get_version(self) -> str:
         """Get config version"""
         return self.provider.get_version()

@@ -257,7 +257,7 @@ class Experts:
             internal = False
             hidden = True
 
-        mode = self.get_mode()
+        mode = self.window.core.config.get("mode")
         base_mode = mode
         model = expert.model
         expert_name = expert.name
@@ -275,25 +275,7 @@ class Experts:
         stream_mode = self.window.core.config.get('stream')
         db_idx = self.window.controller.idx.current_idx # get idx from agent config
 
-        # check if model is supported by selected mode, if not then try to use llama-index or langchain call
-        if model is not None:
-            model_config = self.window.core.models.get(model)
-            if not model_config.is_supported(mode):  # check selected mode
-                # tmp switch to: llama-index
-                if model_config.is_supported("llama_index"):
-                    self.window.core.debug.debug(
-                        "EXPERT: Switching to llama_index mode (model not supported by OpenAI API)")
-                    mode = "llama_index"
-                # tmp switch to: langchain
-                elif model_config.is_supported("langchain"):
-                    self.window.core.debug.debug(
-                        "EXPERT: Switching to langchain mode (model not supported by OpenAI API)")
-                    mode = "langchain"
-        if mode == "llama_index":
-            idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
-            if idx is not None and idx != "_":
-                db_idx = idx
-                self.window.core.debug.debug("EXPERT: Using index: " + db_idx)
+        mode = "expert"  # force expert mode, mode will change in bridge
 
         # create slave item
         ctx = CtxItem()
