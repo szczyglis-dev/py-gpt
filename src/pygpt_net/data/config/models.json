@@ -9,7 +9,9 @@
             "id": "claude-3-5-sonnet-20240620",
             "name": "claude-3-5-sonnet-20240620",
             "mode": [
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -57,7 +59,9 @@
             "id": "claude-3-opus-20240229",
             "name": "claude-3-opus-20240229",
             "mode": [
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -149,7 +153,9 @@
             "id": "gemini-1.5-flash",
             "name": "gemini-1.5-flash",
             "mode": [
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "google",
@@ -197,7 +203,9 @@
             "id": "gemini-1.5-pro",
             "name": "gemini-1.5-pro",
             "mode": [
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "google",
@@ -1026,7 +1034,9 @@
             "name": "llama3.1",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1065,7 +1075,9 @@
             "name": "llama3.1:70b",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1104,7 +1116,9 @@
             "name": "llama3.1:405b",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1143,7 +1157,9 @@
             "name": "codellama",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1182,7 +1198,9 @@
             "name": "mistral",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1221,7 +1239,9 @@
             "name": "mistral-large",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -1260,7 +1280,9 @@
             "name": "llama2-uncensored",
             "mode": [
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent",
+                "expert"
             ],
             "langchain": {
                 "provider": "ollama",
