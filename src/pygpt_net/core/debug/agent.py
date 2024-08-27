@@ -23,6 +23,7 @@ class AgentDebug:
         """Update debug window"""
         self.window.core.debug.begin(self.id)
         self.window.core.debug.add(self.id, 'iteration', str(self.window.controller.agent.flow.iteration))
+        self.window.core.debug.add(self.id, 'limit', str(self.window.core.config.get("agent.iterations")))
         self.window.core.debug.add(self.id, 'prev_output', str(self.window.controller.agent.flow.prev_output))
         self.window.core.debug.add(self.id, 'is_user', str(self.window.controller.agent.flow.is_user))
         self.window.core.debug.add(self.id, 'stop', str(self.window.controller.agent.flow.stop))
