@@ -818,6 +818,8 @@ All plugins are available for agents, so you can enable features such as file ac
 
 When the `Auto-stop` option is enabled, the agent will attempt to stop once the goal has been reached.
 
+In opposition to `Auto-stop`, when the `Always continue...` option is enabled, the agent will use the "always continue" prompt to generate additional reasoning and automatically proceed to the next step, even if it appears that the task has been completed.
+
 **Options**
 
 The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
@@ -3053,6 +3055,8 @@ Config -> Settings...
 - `Agent: system instruction`: Prompt to instruct how to handle autonomous mode.
 
 - `Agent: continue`: Prompt sent to automatically continue the conversation.
+
+- `Agent: continue (always, more steps)`: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
 
 - `Agent: goal update`: Prompt to instruct how to update current goal status.
 

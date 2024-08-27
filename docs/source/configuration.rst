@@ -139,6 +139,8 @@ The following basic options can be modified directly within the application:
 
 * ``Agent: continue``: Prompt sent to automatically continue the conversation.
 
+* ``Agent: continue (always, more steps)``: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
+
 * ``Agent: goal update``: Prompt to instruct how to update current goal status.
 
 * ``Experts: Master prompt``: Prompt to instruct how to handle experts.

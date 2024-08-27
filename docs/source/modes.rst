@@ -526,6 +526,8 @@ vision analysis, etc., for your agents. Connecting agents with plugins can creat
 
 When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.
 
+In opposition to ``Auto-stop``, when the ``Always continue...`` option is enabled, the agent will use the "always continue" prompt to generate additional reasoning and automatically proceed to the next step, even if it appears that the task has been completed.
+
 **Options**
 
 The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
