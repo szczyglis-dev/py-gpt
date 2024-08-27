@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -80,11 +80,11 @@ class Text:
         ctx.prev_ctx = prev_ctx  # store previous context item if exists
 
         # if prev ctx is not empty
-        if prev_ctx is not None:
+        if prev_ctx is not None and prev_ctx.sub_call is True:  # sub_call = sent from expert
             ctx.input_name = prev_ctx.input_name
 
         # if reply from expert command
-        if parent_id is not None:
+        if parent_id is not None:  # parent_id = reply from expert
             ctx.meta_id = parent_id
             ctx.sub_reply = True  # mark as sub reply
             ctx.input_name = prev_ctx.input_name
@@ -259,13 +259,8 @@ class Text:
 
             except Exception as e:
                 self.log("GPT output error: {}".format(e))  # log
-                self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(e)
-                self.window.ui.status(trans('status.error'))
-                self.window.controller.chat.common.unlock_input()
-                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+                self.handle_error(e)
                 print("Error when calling API: " + str(e))
-            self.window.stateChanged.emit(self.window.STATE_ERROR)
 
             # handle response (if no assistant mode)
             # assistant response is handled in assistant thread
@@ -279,12 +274,7 @@ class Text:
 
         except Exception as e:
             self.log("Output ERROR: {}".format(e))  # log
-            self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(e)
-            self.window.ui.status(trans('status.error'))
-            self.window.controller.chat.common.unlock_input()
-            self.window.stateChanged.emit(self.window.STATE_ERROR)
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+            self.handle_error(e)
             print("Error in sending text: " + str(e))
 
         # if commands enabled: post-execute commands (if no assistant mode)
@@ -310,6 +300,19 @@ class Text:
                 self.window.controller.ctx.prepare_name(ctx)  # async
 
         return ctx
+
+    def handle_error(self, e: any):
+        """
+        Handle error
+
+        :param e: Exception
+        """
+        self.window.core.debug.log(e)
+        self.window.ui.dialogs.alert(e)
+        self.window.ui.status(trans('status.error'))
+        self.window.controller.chat.common.unlock_input()
+        self.window.stateChanged.emit(self.window.STATE_ERROR)
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
 
     def log(self, data: any):
         """

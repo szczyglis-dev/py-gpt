@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 class Common:
@@ -38,6 +38,27 @@ class Common:
             self.disable_auto_stop()
         else:
             self.enable_auto_stop()
+
+    def enable_continue(self):
+        """Enable always continue"""
+        self.window.core.config.set('agent.continue.always', True)
+        self.window.core.config.save()
+
+    def disable_continue(self):
+        """Disable always continue"""
+        self.window.core.config.set('agent.continue.always', False)
+        self.window.core.config.save()
+
+    def toggle_continue(self, state: bool):
+        """
+        Toggle always continue
+
+        :param state: state of checkbox
+        """
+        if not state:
+            self.disable_continue()
+        else:
+            self.enable_continue()
 
     def show_status(self):
         """Show agent status"""

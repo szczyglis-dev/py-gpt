@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -201,25 +202,6 @@ class Output:
 
         # log
         self.log("End of stream.")
-        
-
-    def show_response_tokens(self, ctx: CtxItem):
-        """
-        Update response tokens
-
-        :param ctx: CtxItem
-        """
-        extra_data = ""
-        if ctx.is_vision:
-            extra_data = " (VISION)"
-        self.window.ui.status(
-            trans('status.tokens') + ": {} + {} = {}{}".
-            format(
-                ctx.input_tokens,
-                ctx.output_tokens,
-                ctx.total_tokens,
-                extra_data,
-            ))
 
     def handle_complete(self, ctx: CtxItem):
         """
@@ -240,7 +222,11 @@ class Output:
             self.window.core.history.append(ctx, "output")
 
         # unlock input if not unlocked before
-        self.window.controller.chat.common.unlock_input()  
+        unlock_input = True
+        if mode == "agent" and (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop):
+            unlock_input = False
+        if unlock_input:
+            self.window.controller.chat.common.unlock_input()
 
     def handle_cmd(self, ctx: CtxItem):
         """
@@ -292,10 +278,17 @@ class Output:
                     # allow to continue commands execution if agent flow is finished
                     # return
 
+            # don't change status if only goal update command
+            change_status = True
+            if mode == 'agent':
+                if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
+                    change_status = False
+
             # plugins
             if self.window.core.config.get('cmd'):
-                self.log("Executing plugin commands...")
-                self.window.ui.status(trans('status.cmd.wait'))
+                if change_status:
+                    self.log("Executing plugin commands...")
+                    self.window.ui.status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(
                     ctx,
                     cmds,
@@ -305,6 +298,72 @@ class Output:
                     ctx,
                     cmds,
                 )
+
+    def handle_end(self, ctx: CtxItem, mode: str, has_attachments: bool = False):
+        """
+        Handle context end (finish output)
+
+        :param ctx: CtxItem
+        :param mode: mode
+        :param has_attachments: has attachments
+        """
+        # clear attachments after send, only if attachments has been provided before send
+        if has_attachments:
+            if self.window.core.config.get('attachments_send_clear'):
+                self.window.controller.attachment.clear(True, auto=True)
+                self.window.controller.attachment.update()
+                self.log("Attachments cleared.")  # log
+
+        if self.window.core.config.get("log.ctx"):
+            self.log("Context: END: {}".format(ctx))
+        else:
+            self.log("Context: END.")
+
+        # agent mode
+        if mode == 'agent':
+            agent_iterations = int(self.window.core.config.get("agent.iterations"))
+            self.log("Agent: ctx end, iterations: {}".format(agent_iterations))
+            self.window.controller.agent.flow.on_ctx_end(
+                ctx,
+                iterations=agent_iterations,
+            )
+
+        # event: context end
+        event = Event(Event.CTX_END)
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
+        self.window.controller.ui.update_tokens()  # update UI
+        self.window.controller.chat.input.generating = False  # unlock
+
+        if (mode not in self.window.controller.chat.input.no_ctx_idx_modes
+                and not self.window.controller.agent.enabled()):
+            self.window.controller.idx.on_ctx_end(ctx, mode=mode)  # update ctx DB index
+            # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
+
+        self.log("End.")
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_END))  # app event
+
+        # restore state to idle if no errors
+        if self.window.state != self.window.STATE_ERROR:
+            self.window.stateChanged.emit(self.window.STATE_IDLE)
+
+    def show_response_tokens(self, ctx: CtxItem):
+        """
+        Update response tokens
+
+        :param ctx: CtxItem
+        """
+        extra_data = ""
+        if ctx.is_vision:
+            extra_data = " (VISION)"
+        self.window.ui.status(
+            trans('status.tokens') + ": {} + {} = {}{}".
+            format(
+                ctx.input_tokens,
+                ctx.output_tokens,
+                ctx.total_tokens,
+                extra_data,
+            ))
 
     def log(self, data: any):
         """

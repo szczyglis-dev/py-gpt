@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -1547,6 +1547,15 @@ class Patch:
                     data["llama.idx.chat.mode"] = "context"
                 if 'llama.idx.mode' not in data:
                     data["llama.idx.mode"] = "chat"
+                updated = True
+
+            # < 2.2.31
+            if old < parse_version("2.2.31"):
+                print("Migrating config from < 2.2.31...")
+                if 'agent.continue.always' not in data:
+                    data["agent.continue.always"] = False
+                if 'prompt.agent.continue.always' not in data:
+                    data["prompt.agent.continue.always"] = "Continue reasoning..."
                 updated = True
 
         # update file

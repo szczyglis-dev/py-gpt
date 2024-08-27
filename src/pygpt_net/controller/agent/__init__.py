@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from .common import Common
@@ -67,12 +67,18 @@ class Agent:
         self.common.toggle_status()
 
     def reload(self):
-        """Reload agent controller"""
+        """Reload agent toolbox options"""
         # auto-stop
         if self.window.core.config.get('agent.auto_stop'):
             self.window.ui.config['global']['agent.auto_stop'].setChecked(True)
         else:
             self.window.ui.config['global']['agent.auto_stop'].setChecked(False)
+
+        # continuous
+        if self.window.core.config.get('agent.continue.always'):
+            self.window.ui.config['global']['agent.continue'].setChecked(True)
+        else:
+            self.window.ui.config['global']['agent.continue'].setChecked(False)
 
         # iterations
         self.window.controller.config.apply_value(

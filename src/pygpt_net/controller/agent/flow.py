@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -128,9 +128,14 @@ class Flow:
         """
         if self.stop:
             self.stop = False
+            # self.window.controller.agent.update()  # update status
             self.iteration = 0
             self.prev_output = None
-            self.window.controller.agent.update()  # update status
+            return
+
+        # if ctx has commands to execute then abort sending reply (command response will be sent)
+        if len(ctx.cmds) > 0:
+            return
 
         if iterations == 0 or self.iteration < int(iterations):
             self.iteration += 1
@@ -182,7 +187,9 @@ class Flow:
 
         :param ctx: CtxItem
         """
-        self.prev_output = self.window.core.prompt.get("agent.continue")  # continue...
+        self.prev_output = self.window.core.prompt.get("agent.continue")  # continue if needed...
+        if self.window.core.config.get('agent.continue.always'):
+            self.prev_output = self.window.core.prompt.get("agent.continue.always")  # continue reasoning...
         if ctx.extra_ctx is not None and ctx.extra_ctx != "":
             self.prev_output = ctx.extra_ctx
 

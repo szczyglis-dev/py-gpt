@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -41,12 +41,20 @@ class Agent:
                 option,
             )
 
-        # img raw
+        # auto stop
         self.window.ui.config['global']['agent.auto_stop'] = QCheckBox(trans("toolbox.agent.auto_stop.label"))
         self.window.ui.config['global']['agent.auto_stop'].stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_auto_stop(
                 self.window.ui.config['global']['agent.auto_stop'].isChecked())
+        )
+
+        # continue more
+        self.window.ui.config['global']['agent.continue'] = QCheckBox(trans("toolbox.agent.continue.label"))
+        self.window.ui.config['global']['agent.continue'].stateChanged.connect(
+            lambda:
+            self.window.controller.agent.common.toggle_continue(
+                self.window.ui.config['global']['agent.continue'].isChecked())
         )
 
         # label
@@ -55,11 +63,12 @@ class Agent:
         # options
         cols = QHBoxLayout()
         cols.addWidget(self.window.ui.config['global']['agent.auto_stop'])
-        cols.addWidget(self.window.ui.config['global']['agent.iterations'])
+        cols.addWidget(self.window.ui.config['global']['agent.continue'])
 
         # rows
         rows = QVBoxLayout()
         rows.addWidget(label)
+        rows.addWidget(self.window.ui.config['global']['agent.iterations'])
         rows.addLayout(cols)
 
         self.window.ui.nodes['agent.options'] = QWidget()

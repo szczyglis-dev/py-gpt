@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 import os
@@ -65,10 +65,10 @@ def test_on_ctx_end_stop(mock_window):
     iterations = 2
     flow.prev_output = "output"
     flow.on_ctx_end(ctx, iterations=iterations)
-    assert flow.iteration == 1
+    assert flow.iteration == 0
     assert flow.stop is False
     assert flow.prev_output is None
-    assert mock_window.controller.agent.update.called
+    # assert mock_window.controller.agent.update.called
 
 
 def test_on_ctx_before(mock_window):

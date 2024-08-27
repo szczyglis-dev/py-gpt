@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.27 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -199,19 +199,26 @@ class Experts:
         if self.stopped():
             return
 
+        # make copy of ctx for reply, and change input name to expert name
+        reply_ctx = CtxItem()
+        reply_ctx.from_dict(ctx.to_dict())
+        reply_ctx.input_name = "Expert"
+        reply_ctx.output_name = ""
+        reply_ctx.sub_call = True  # this flag is not copied in to_dict
+
         internal = False
         if self.agent_enabled():  # hide in agent mode
             internal = True
         if ctx.output.strip() != "":
-            response = ctx.output
+            response = reply_ctx.output
         else:
-            response = ctx.input
+            response = reply_ctx.input
         self.window.controller.chat.input.send(
             "Result from expert:\n\n" + str(response),
             force=True,
             reply=True,
             internal=internal,
-            prev_ctx=ctx,
+            prev_ctx=reply_ctx,
         )
 
     def call(
@@ -244,8 +251,8 @@ class Experts:
         mode = self.get_mode()
         base_mode = mode
         model = expert.model
-        user_name = expert.name
-        ai_name = expert.name
+        expert_name = expert.name
+        ai_name = ""
         sys_prompt = expert.prompt
         model_data = self.window.core.models.get(model)
 
@@ -266,8 +273,8 @@ class Experts:
         ctx.current = True  # mark as current context item
         ctx.mode = mode  # store current selected mode (not inline changed)
         ctx.model = model  # store model list key, not real model id
-        ctx.set_input(query, user_name)
-        ctx.set_output(None, str(ai_name))
+        ctx.set_input(query, str(ai_name))
+        ctx.set_output(None, expert_name)
         ctx.sub_call = True  # mark as sub-call
 
         # render: begin
@@ -338,13 +345,20 @@ class Experts:
         if ctx.reply:
             return
 
+        # make copy of ctx for reply, and change input name to expert name
+        reply_ctx = CtxItem()
+        reply_ctx.from_dict(ctx.to_dict())
+        reply_ctx.input_name = expert_name
+        reply_ctx.output_name = ""
+        reply_ctx.sub_call = True  # this flag is not copied in to_dict
+
         # send slave expert response to master expert
         self.window.controller.chat.input.send(
-            "@"+expert_id+" says:\n\n" + str(ctx.output),
+            "@"+expert_id+" says:\n\n" + str(reply_ctx.output),
             force=True,
             reply=False,
             internal=False,
-            prev_ctx=ctx,
+            prev_ctx=reply_ctx,
         )
 
     def get_functions(self) -> list:
