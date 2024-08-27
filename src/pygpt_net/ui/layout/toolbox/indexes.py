@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
@@ -51,7 +51,7 @@ class Indexes:
         :return: QVBoxLayout
         """
         # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
+        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/settings.svg"), "")
         self.window.ui.nodes['indexes.new'].clicked.connect(
             lambda: self.window.controller.settings.open_section('llama-index'))
 
@@ -145,7 +145,7 @@ class Indexes:
         # self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
 
         # new
-        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
+        self.window.ui.nodes['indexes.new'] = QPushButton(QIcon(":/icons/settings.svg"), "")
         self.window.ui.nodes['indexes.new'].clicked.connect(
             lambda: self.window.controller.settings.open_section('llama-index'))
 
