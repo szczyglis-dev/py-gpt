@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 05:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 import json
 
@@ -24,6 +24,14 @@ class ContextDebug:
     def update(self):
         """Update debug window"""
         self.window.core.debug.begin(self.id)
+        if self.window.core.bridge.last_context is not None:
+            self.window.core.debug.add(self.id, 'bridge (last call)', str(self.window.core.bridge.last_context.to_dict()))
+        else:
+            self.window.core.debug.add(self.id, 'bridge (last call)', '---')
+        if self.window.core.bridge.last_context_quick is not None:
+            self.window.core.debug.add(self.id, 'bridge (last quick call)', str(self.window.core.bridge.last_context_quick.to_dict()))
+        else:
+            self.window.core.debug.add(self.id, 'bridge (last quick call)', '---')
         self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.current))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
         self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.items))
