@@ -91,23 +91,17 @@ class Output:
             self.window.core.config.get('model')
         )
 
-        # get sub mode for langchain
-        if mode == "langchain":
-            sub_mode = 'chat'
-            # get available modes for langchain
-            if 'mode' in model_config.langchain:
-                if 'chat' in model_config.langchain['mode']:
-                    sub_mode = 'chat'
-                elif 'completion' in model_config.langchain['mode']:
-                    sub_mode = 'completion'
-
         # chunks: stream begin
         self.window.controller.chat.render.stream_begin()
 
         # prepare response mode, check for model is supported by selected mode
         response_mode = mode
-        if mode == "agent":
-            tmp_mode = self.window.core.agents.get_mode()
+        tmp_mode = None
+        if mode == "agent" or mode == "expert":  # checking parent mode (global)
+            if mode == "agent":
+                tmp_mode = self.window.core.agents.get_mode()
+            elif mode == "expert":
+                tmp_mode = self.window.core.experts.get_mode()
             if tmp_mode is not None and tmp_mode != "_":
                 response_mode = tmp_mode
             if model_config is not None:
@@ -122,6 +116,17 @@ class Output:
                         self.window.core.debug.info(
                             "WARNING: Switching to langchain mode (model not supported in: {})".format(response_mode))
                         response_mode = "langchain"
+
+        # get sub-mode for langchain
+        if response_mode == "langchain":
+            sub_mode = 'chat'
+            # get available modes for langchain
+            if model_config is not None:
+                if 'mode' in model_config.langchain:
+                    if 'chat' in model_config.langchain['mode']:
+                        sub_mode = 'chat'
+                    elif 'completion' in model_config.langchain['mode']:
+                        sub_mode = 'completion'
 
         # read stream
         try:
