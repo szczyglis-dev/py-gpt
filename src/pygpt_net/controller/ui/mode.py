@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.08.27 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -60,10 +60,13 @@ class Mode:
             self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
 
         # presets: clear
-        if mode in ["img", "llama_index", "assistant"]:
+        self.window.ui.nodes['preset.clear'].setVisible(False)
+        """
+        if mode in ["img", "assistant"]:
             self.window.ui.nodes['preset.clear'].setVisible(False)
         else:
             self.window.ui.nodes['preset.clear'].setVisible(True)
+        """
 
         # presets: use
         if mode == 'img':
