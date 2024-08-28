@@ -309,7 +309,11 @@ class AssistantsWorker:
         :param tool_call: tool call
         :param begin: stream text begin
         """
-        self.log("STREAM: tool call done: {}".format(tool_call.type))
+        if type(tool_call) == "dict":  # not-native call
+            self.log("STREAM: tool call done: {}".format(tool_call))
+        else:  # native call
+            self.log("STREAM: tool call done: {}".format(tool_call.type))
+            
         if ctx.stopped:
             self.log("STREAM: ignoring: stopped")
             return
