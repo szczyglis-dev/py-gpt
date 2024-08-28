@@ -107,7 +107,7 @@
         },
         "dall-e-2": {
             "id": "dall-e-2",
-            "name": "DALL-E 2",
+            "name": "dall-e-2",
             "mode": [
                 "img"
             ],
@@ -129,7 +129,7 @@
         },
         "dall-e-3": {
             "id": "dall-e-3",
-            "name": "DALL-E 3",
+            "name": "dall-e-3",
             "mode": [
                 "img"
             ],

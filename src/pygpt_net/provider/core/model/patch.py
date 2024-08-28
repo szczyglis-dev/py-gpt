@@ -258,6 +258,11 @@ class Patch:
                             model.mode.append("agent")
                         if "expert" not in model.mode:
                             model.mode.append("expert")
+                # change dalle model names
+                if "dall-e-2" in data:
+                    data["dall-e-2"].name = "dall-e-2"
+                if "dall-e-3" in data:
+                    data["dall-e-3"].name = "dall-e-3"
                 updated = True
 
         # update file
