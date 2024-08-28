@@ -32,6 +32,12 @@ class ContextDebug:
             self.window.core.debug.add(self.id, 'bridge (last quick call)', str(self.window.core.bridge.last_context_quick.to_dict()))
         else:
             self.window.core.debug.add(self.id, 'bridge (last quick call)', '---')
+        if self.window.controller.chat.reply.current is not None:
+            self.window.core.debug.add(self.id, 'reply (queue)', str(self.window.controller.chat.reply.current.to_dict()))
+        else:
+            self.window.core.debug.add(self.id, 'reply (queue)', '---')
+        self.window.core.debug.add(self.id, 'reply (locked)', str(self.window.controller.chat.reply.locked))
+        self.window.core.debug.add(self.id, 'reply (processed)', str(self.window.controller.chat.reply.processed))
         self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.current))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
         self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.items))
