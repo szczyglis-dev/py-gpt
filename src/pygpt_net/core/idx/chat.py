@@ -406,16 +406,18 @@ class Chat:
         metadata = {}
         i = 1
         max = 3
+        min_score = 0.3
         for node in source_nodes:
             if hasattr(node, "id_"):
                 id = node.id_
                 if node.metadata is not None:
                     score = node.get_score()
-                    metadata[id] = node.metadata
-                    metadata[id]["score"] = score
-                    i += 1
-                    if i > max:
-                        break
+                    if score > min_score:
+                        metadata[id] = node.metadata
+                        metadata[id]["score"] = score
+                        i += 1
+                        if i > max:
+                            break
         return metadata
 
     def parse_metadata(self, metadata: dict):
