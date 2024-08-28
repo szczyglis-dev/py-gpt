@@ -121,6 +121,7 @@ class Bridge:
         prompt = context.prompt
         mode = context.mode
         model = context.model  # model instance
+        base_mode = mode
         is_agent = False
 
         # get agent or expert internal sub-mode
@@ -139,7 +140,7 @@ class Bridge:
             if not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)
 
-        if mode == "llama_index":
+        if mode == "llama_index" and base_mode != "llama_index":
             context.idx_mode = "chat"
 
         if is_agent:
