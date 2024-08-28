@@ -6,15 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 17:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
-
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import trans
 
 
 class Output:
@@ -41,7 +38,7 @@ class Output:
         stream_enabled = self.window.core.config.get("stream")  # global stream enabled
         if stream_mode:  # local stream enabled
             if mode not in self.not_stream_modes:
-                self.append_stream(ctx)
+                self.window.controller.chat.stream.append(ctx)
 
         # check if tool calls detected
         if ctx.tool_calls:
@@ -76,120 +73,6 @@ class Output:
 
         self.handle_complete(ctx)
 
-    def append_stream(self, ctx: CtxItem):
-        """
-        Handle stream response from LLM
-
-        :param ctx: CtxItem
-        """
-        output = ""
-        output_tokens = 0
-        begin = True
-
-        # chunks: stream begin
-        self.window.controller.chat.render.stream_begin()
-
-        # read stream
-        try:
-            if ctx.stream is not None:
-                self.log("Reading stream...")  # log
-
-                tool_calls = []
-
-                for chunk in ctx.stream:
-                    # if force stop then break
-                    if self.window.controller.chat.input.stop:
-                        break
-
-                    response = None
-                    chunk_type = "raw"
-                    if (hasattr(chunk, 'choices')
-                            and chunk.choices[0] is not None
-                            and hasattr(chunk.choices[0], 'delta')
-                            and chunk.choices[0].delta is not None):
-                        chunk_type = "api_chat"
-                    elif (hasattr(chunk, 'choices')
-                          and chunk.choices[0] is not None
-                          and hasattr(chunk.choices[0], 'text')
-                          and chunk.choices[0].text is not None):
-                        chunk_type = "api_completion"
-                    elif (hasattr(chunk, 'content')
-                          and chunk.content is not None):
-                        chunk_type = "langchain_chat"
-
-                    # OpenAI chat completion
-                    if chunk_type == "api_chat":
-                        if chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
-                            response = chunk.choices[0].delta.content
-                        elif chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
-                            tool_chunks = chunk.choices[0].delta.tool_calls
-                            for tool_chunk in tool_chunks:
-                                if len(tool_calls) <= tool_chunk.index:
-                                    tool_calls.append(
-                                        {
-                                            "id": "",
-                                            "type": "function",
-                                            "function": {
-                                                "name": "",
-                                                "arguments": ""
-                                            }
-                                        }
-                                    )
-                                tool_call = tool_calls[tool_chunk.index]
-                                if tool_chunk.id:
-                                    tool_call["id"] += tool_chunk.id
-                                if tool_chunk.function.name:
-                                    tool_call["function"]["name"] += tool_chunk.function.name
-                                if tool_chunk.function.arguments:
-                                    tool_call["function"]["arguments"] += tool_chunk.function.arguments
-
-                    # OpenAI completion
-                    elif chunk_type == "api_completion":
-                        if chunk.choices[0].text is not None:
-                            response = chunk.choices[0].text
-
-                    # langchain chat
-                    elif chunk_type == "langchain_chat":
-                        if chunk.content is not None:
-                            response = chunk.content
-
-                    # raw text: llama-index and langchain completion
-                    else:
-                        if chunk is not None:
-                            response = chunk
-
-                    if response is not None:
-                        if begin and response == "":  # prevent empty beginning
-                            continue
-                        output += response
-                        output_tokens += 1
-                        self.window.controller.chat.render.append_chunk(
-                            ctx,
-                            response,
-                            begin,
-                        )
-                        QApplication.processEvents()  # process events to update UI after each chunk
-                        begin = False
-
-                # unpack and store tool calls
-                if tool_calls:
-                    self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
-
-        except Exception as e:
-            self.window.core.debug.log(e)
-
-        self.window.controller.ui.update_tokens()  # update UI tokens
-
-        # update ctx
-        ctx.output = output
-        ctx.set_tokens(ctx.input_tokens, output_tokens)
-
-        # chunks: stream end
-        self.window.controller.chat.render.stream_end()
-
-        # log
-        self.log("End of stream.")
-
     def handle_complete(self, ctx: CtxItem):
         """
         Handle completed context
@@ -202,7 +85,7 @@ class Output:
         self.window.controller.ctx.update_ctx()  # update current ctx info
 
         # update response tokens
-        self.show_response_tokens(ctx)
+        self.window.controller.chat.common.show_response_tokens(ctx)
 
         # store to history
         if self.window.core.config.get('store_history'):
@@ -210,87 +93,55 @@ class Output:
 
         # unlock input if not unlocked before
         unlock_input = True
-        if mode == "agent" and (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop):
+        if (mode == "agent" and
+                (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop)):
             unlock_input = False
         if unlock_input:
             self.window.controller.chat.common.unlock_input()
 
-    def handle_cmd(self, ctx: CtxItem):
+    def post_handle(
+            self,
+            ctx: CtxItem,
+            mode: str,
+            stream: bool = False,
+            reply: bool = False,
+            internal: bool = False):
         """
-        Handle commands and expert mentions
+        Post handle results
 
         :param ctx: CtxItem
+        :param mode: mode (global)
+        :param stream: stream mode
+        :param reply: is reply
+        :param internal: is internal
         """
-        mode = self.window.core.config.get('mode')
-        stream_mode = self.window.core.config.get('stream')
+        # if commands enabled: post-execute commands (not assistant mode)
+        if mode != "assistant":
+            ctx.clear_reply()  # reset results
 
-        # extract expert mentions
-        if self.window.controller.agent.experts.enabled():
-            # re-send to master
-            if ctx.sub_reply:
-                self.window.core.ctx.update_item(ctx)
-                self.window.core.experts.reply(ctx)
-            else:
-                # call experts
-                if not ctx.reply:
-                    mentions = self.window.core.experts.extract_calls(ctx)
-                    if mentions:
-                        num_calls = 0
-                        self.log("Calling experts...")
-                        self.window.controller.chat.render.end(stream=stream_mode)  # close previous render
-                        for expert_id in mentions:
-                            if not self.window.core.experts.exists(expert_id):
-                                self.log("Expert not found: " + expert_id)
-                                continue
-                            self.log("Calling: " + expert_id)
-                            ctx.sub_calls += 1
-                            self.window.core.experts.call(
-                                ctx,  # master ctx
-                                expert_id,  # expert id
-                                mentions[expert_id],  # query
-                            )
-                            num_calls += 1
-                        if num_calls > 0:
-                            return  # abort commands if expert call detected
+            # extract expert mentions and handle experts reply
+            num_calls = self.window.controller.agent.experts.handle(ctx)
+            if num_calls == 0:
+                # handle commands only if no expert calls in queue
+                self.window.controller.chat.command.handle(ctx)
 
-        # extract commands
-        cmds = self.window.core.command.extract_cmds(ctx.output)
-        if len(cmds) > 0:
-            ctx.cmds = cmds  # append commands to ctx
-            self.log("Command call received...")
-            # agent mode
-            if mode == 'agent':
-                commands = self.window.core.command.from_commands(cmds)  # pack to execution list
-                self.window.controller.agent.flow.on_cmd(
-                    ctx,
-                    commands,
-                )
-                # check if agent flow is not finished
-                if self.window.controller.agent.flow.finished:
-                    pass
-                    # allow to continue commands execution if agent flow is finished
-                    # return
+            ctx.from_previous()  # append previous result again before save
+            self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
-            # don't change status if only goal update command
-            change_status = True
-            if mode == 'agent':
-                if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
-                    change_status = False
+        # render: end
+        if ctx.sub_calls == 0:  # if no experts called
+            self.window.controller.chat.render.end(stream=stream)
 
-            # plugins
-            if self.window.core.config.get('cmd'):
-                if change_status:
-                    self.log("Executing plugin commands...")
-                    self.window.ui.status(trans('status.cmd.wait'))
-                self.window.controller.plugins.apply_cmds(
-                    ctx,
-                    cmds,
-                )
-            else:
-                self.window.controller.plugins.apply_cmds_inline(
-                    ctx,
-                    cmds,
-                )
+        # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
+        # send btn will be unlocked in agent mode on stop
+        if mode != "assistant" and not self.window.controller.agent.enabled():
+            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant and agent mode
+
+        # handle ctx name (generate title from summary if not initialized)
+        if not reply and not internal:  # don't call if reply or internal mode
+            if self.window.core.config.get('ctx.auto_summary'):
+                self.log("Calling for prepare context name...")
+                self.window.controller.ctx.prepare_name(ctx)  # async
 
     def handle_end(self, ctx: CtxItem, mode: str, has_attachments: bool = False):
         """
@@ -340,23 +191,7 @@ class Output:
         if self.window.state != self.window.STATE_ERROR:
             self.window.stateChanged.emit(self.window.STATE_IDLE)
 
-    def show_response_tokens(self, ctx: CtxItem):
-        """
-        Update response tokens
-
-        :param ctx: CtxItem
-        """
-        extra_data = ""
-        if ctx.is_vision:
-            extra_data = " (VISION)"
-        self.window.ui.status(
-            trans('status.tokens') + ": {} + {} = {}{}".
-            format(
-                ctx.input_tokens,
-                ctx.output_tokens,
-                ctx.total_tokens,
-                extra_data,
-            ))
+        # TODO: call reply here...
 
     def log(self, data: any):
         """

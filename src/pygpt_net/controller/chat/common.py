@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -334,4 +335,22 @@ class Common:
             with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(str(text).strip())
             self.window.ui.status(trans('status.saved') + ": " + os.path.basename(file_name))
+
+    def show_response_tokens(self, ctx: CtxItem):
+        """
+        Update response tokens
+
+        :param ctx: CtxItem
+        """
+        extra_data = ""
+        if ctx.is_vision:
+            extra_data = " (VISION)"
+        self.window.ui.status(
+            trans('status.tokens') + ": {} + {} = {}{}".
+            format(
+                ctx.input_tokens,
+                ctx.output_tokens,
+                ctx.total_tokens,
+                extra_data,
+            ))
 

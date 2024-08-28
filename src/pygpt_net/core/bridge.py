@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 import time
@@ -106,6 +106,7 @@ class Bridge:
         :param extra: extra data  # TODO: object also
         """
         allowed_model_change = ["vision"]
+        is_virtual = False
 
         self.window.stateChanged.emit(self.window.STATE_BUSY)  # set busy
 
@@ -120,32 +121,32 @@ class Bridge:
         ctx = context.ctx
         prompt = context.prompt
         mode = context.mode
-        model = context.model  # model instance
+        model = context.model  # model instance, not ID
         base_mode = mode
-        is_agent = False
+        context.parent_mode = base_mode  # store base mode
 
         # get agent or expert internal sub-mode
-        if mode == "agent" or mode == "expert":
-            is_agent = True
+        if base_mode == "agent" or base_mode == "expert":
+            is_virtual = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
-            if mode == "agent":
+            if base_mode == "agent":
                 sub_mode = self.window.core.agents.get_mode()
-            elif mode == "expert":
+            elif base_mode == "expert":
                 sub_mode = self.window.core.experts.get_mode()
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
 
-        # check if model is supported by selected mode, if not then try to use supported mode
+        # check if model is supported by selected mode - if not, then try to use supported mode
         if model is not None:
             if not model.is_supported(mode):  # check selected mode
-                mode = self.window.core.models.get_supported_mode(model, mode)
+                mode = self.window.core.models.get_supported_mode(model, mode)  # switch
 
         if mode == "llama_index" and base_mode != "llama_index":
             context.idx_mode = "chat"
 
-        if is_agent:
-            if mode == "llama_index":
-                idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
+        if is_virtual:
+            if mode == "llama_index":  # after switch
+                idx = self.window.core.agents.get_idx()  # get index, idx is common for agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
                     self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
@@ -153,15 +154,12 @@ class Bridge:
                     context.idx = None  # don't use index
 
         # inline: internal mode switch if needed
-        context.parent_mode = mode  # store REAL mode
         mode = self.window.controller.mode.switch_inline(mode, ctx, prompt)
         context.mode = mode
-        # context.ctx.mode = mode
 
         # inline: model switch
         if mode in allowed_model_change:
-            model = self.window.controller.model.switch_inline(mode, model)
-            context.model = model
+            context.model = self.window.controller.model.switch_inline(mode, model)
 
         # debug
         self.window.core.debug.info("Bridge call (after inline)...")

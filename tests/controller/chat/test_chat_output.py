@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -38,7 +38,6 @@ def test_handle_complete(mock_window):
     mock_window.core.ctx.post_update = MagicMock()
     mock_window.core.ctx.store = MagicMock()
     mock_window.controller.ctx.update_ctx = MagicMock()
-    mock_window.ui.status = MagicMock()
 
     ctx = CtxItem()
     output.handle_complete(ctx)
@@ -46,66 +45,3 @@ def test_handle_complete(mock_window):
     mock_window.core.ctx.post_update.assert_called_once()
     mock_window.core.ctx.store.assert_called_once()
     mock_window.controller.ctx.update_ctx.assert_called_once()
-    mock_window.ui.status.assert_called_once()
-
-
-def test_handle_cmd(mock_window):
-    """Test handle cmd: all commands"""
-    output = Output(mock_window)
-    mock_window.core.config.data['cmd'] = True  # enable all cmd execution
-    mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
-    mock_window.ui.status = MagicMock()
-    cmds = [
-        {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
-        {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
-    ]
-    mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
-    mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
-
-    ctx = CtxItem()
-    output.handle_cmd(ctx)
-
-    mock_window.controller.plugins.apply_cmds.assert_called_once()
-    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
-    mock_window.ui.status.assert_called_once()
-
-
-def test_handle_cmd_only(mock_window):
-    """Test handle cmd: only inline commands"""
-    output = Output(mock_window)
-    mock_window.core.config.data['cmd'] = False  # disable cmd execution, allow only 'inline' commands
-    mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
-    mock_window.ui.status = MagicMock()
-    cmds = [
-        {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
-        {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
-    ]
-    mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
-    mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
-
-    ctx = CtxItem()
-    output.handle_cmd(ctx)
-
-    mock_window.controller.plugins.apply_cmds_inline.assert_called_once()
-    mock_window.controller.plugins.apply_cmds.assert_not_called()
-
-
-def test_handle_cmd_no_cmds(mock_window):
-    """Test handle cmd: empty commands"""
-    output = Output(mock_window)
-    mock_window.core.config.data['cmd'] = True  # enable all cmd execution
-    mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
-    mock_window.ui.status = MagicMock()
-
-    cmds = []
-    mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
-
-    ctx = CtxItem()
-    output.handle_cmd(ctx)
-
-    mock_window.controller.plugins.apply_cmds.assert_not_called()
-    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
-    mock_window.ui.status.assert_not_called()

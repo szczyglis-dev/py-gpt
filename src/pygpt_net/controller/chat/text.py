@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 19:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -46,27 +46,32 @@ class Text:
         :return: context item
         """
         self.window.ui.status(trans('status.sending'))
-        is_ctx_debug = self.window.core.config.get("log.ctx")
 
-        # event: username prepare
+        # event: prepare username
         event = Event(Event.USER_NAME, {
             'value': self.window.core.config.get('user_name'),
         })
         self.window.core.dispatcher.dispatch(event)
         user_name = event.data['value']
 
-        # event: ai.name
+        # event: prepare ai.name
         event = Event(Event.AI_NAME, {
             'value': self.window.core.config.get('ai_name'),
         })
         self.window.core.dispatcher.dispatch(event)
         ai_name = event.data['value']
 
-        # get mode
+        # prepare mode, model, etc.
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
+        stream_mode = self.window.core.config.get('stream')
+        sys_prompt = self.window.core.config.get('prompt')
+        sys_prompt_raw = sys_prompt  # store raw prompt (without addons)
+        max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
         base_mode = mode  # store parent mode
+        functions = []  # functions to call
+        tools_outputs = []  # tools outputs (assistant only)
 
         # create ctx item
         ctx = CtxItem()
@@ -79,42 +84,32 @@ class Text:
         ctx.set_output(None, ai_name)
         ctx.prev_ctx = prev_ctx  # store previous context item if exists
 
-        # if prev ctx is not empty
+        # if prev ctx is not empty, then copy input name to current ctx
         if prev_ctx is not None and prev_ctx.sub_call is True:  # sub_call = sent from expert
             ctx.input_name = prev_ctx.input_name
 
         # if reply from expert command
         if parent_id is not None:  # parent_id = reply from expert
-            ctx.meta_id = parent_id
+            ctx.meta_id = parent_id  # append to current ctx
             ctx.sub_reply = True  # mark as sub reply
             ctx.input_name = prev_ctx.input_name
             ctx.output_name = prev_ctx.output_name
         else:
             self.window.core.ctx.last_item = ctx  # store last item
 
-        # store thread id, assistant id and pass to gpt wrapper
+        self.window.controller.files.uploaded_ids = []  # clear uploaded files ids at the beginning
+
+        # assistant: create thread, upload attachments
         if mode == 'assistant':
-            self.window.controller.assistant.prepare()  # create new thread if not exists
-            ctx.thread = self.window.core.config.get('assistant_thread')
+            self.window.controller.assistant.begin(ctx)
 
-        # upload assistant attachments (only assistant mode here)
-        attachments = self.window.controller.chat.files.upload(mode)  # current thread is already in global config
-        if len(attachments) > 0:
-            ctx.attachments = attachments
-            self.window.ui.status(trans('status.sending'))
-            self.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
-
-        # store history (input)
+        # store in history (input only)
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "input")        
 
-        # log
-        if is_ctx_debug:
-            self.log("Context: INPUT: {}".format(ctx))
-        else:
-            self.log("Context: INPUT.")
+        self.log_ctx(ctx, "input")  # log
 
-        # agent mode
+        # agent mode: before context
         if mode == 'agent':
             self.window.controller.agent.flow.on_ctx_before(ctx)
 
@@ -123,26 +118,10 @@ class Text:
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
-        # event: prepare prompt (replace system prompt)
-        sys_prompt = self.window.core.config.get('prompt')
-        functions = []
+        # agent or expert mode
+        sys_prompt = self.window.controller.agent.experts.append_prompts(mode, sys_prompt, parent_id)
 
-        # agent mode
-        if self.window.controller.agent.experts.enabled():
-            prev_prompt = sys_prompt
-            sys_prompt = self.window.core.prompt.get("agent.instruction")
-            if prev_prompt is not None and prev_prompt.strip() != "":
-                sys_prompt = sys_prompt + "\n\n" + prev_prompt  # append previous prompt
-
-        # expert or agent mode
-        if self.window.controller.agent.experts.enabled() and parent_id is None:  # master expert has special prompt
-            if self.window.controller.agent.enabled():  # if agent then leave agent prompt
-                sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
-            else:
-                sys_prompt = self.window.core.experts.get_prompt()
-                # mode = "chat"  # change mode to chat for expert
-
-        sys_prompt_raw = sys_prompt  # store raw prompt
+        # on pre prompt event
         event = Event(Event.PRE_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
@@ -150,14 +129,7 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
-        # agent mode
-        if mode == 'agent':
-            sys_prompt = self.window.controller.agent.flow.on_system_prompt(
-                sys_prompt,
-                append_prompt=None,  # sys prompt from preset is used here
-                auto_stop=self.window.core.config.get('agent.auto_stop'),
-            )
-
+        # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
             mode,
             sys_prompt,
@@ -168,19 +140,17 @@ class Text:
 
         self.log("Appending input to chat window...")
 
-        # stream mode
-        stream_mode = self.window.core.config.get('stream')
-
         # render: begin
         self.window.controller.chat.render.begin(stream=stream_mode)
 
         # append text from input to chat window
         self.window.controller.chat.render.append_input(ctx)
         self.window.ui.nodes['output'].update()
+
         QApplication.processEvents()
 
         # add ctx to DB here and only update it after response,
-        # MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)
+        # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
         self.window.core.ctx.add(ctx, parent_id=parent_id)
 
         # update ctx list, but not reload all to prevent focus out on lists
@@ -189,56 +159,47 @@ class Text:
             all=False,
         )
 
-        # process events to update UI
-        # QApplication.processEvents()
-
-        # FUNCTION CALLS: prepare user & plugins functions if native mode is enabled
+        # functions: prepare user and plugins functions (native mode only)
         functions += self.window.core.command.get_functions(parent_id)
 
         # assistant only
-        tools_outputs = []
         if mode == 'assistant':
-            if self.window.controller.assistant.threads.is_running():
-                tools_outputs = self.window.controller.assistant.threads.apply_outputs(ctx)
-                self.window.controller.assistant.threads.reset()  # reset outputs
-                self.log("Appended Assistant tool outputs: {}".format(len(tools_outputs)))
-
-                # clear tool calls to prevent appending cmds to output (otherwise it will call commands again)
-                ctx.tool_calls = []
+            # prepare tool outputs for assistant
+            tools_outputs = self.window.controller.assistant.threads.handle_tool_outputs(ctx)
 
         try:
             # make API call
             try:
-                self.window.controller.chat.common.lock_input()  # lock input
-                max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
-                files = self.window.core.attachments.get_all(mode)  # get attachments
+                # get attachments
+                files = self.window.core.attachments.get_all(mode)
                 num_files = len(files)
                 if num_files > 0:
                     self.log("Attachments ({}): {}".format(mode, num_files))
-                file_ids = self.window.controller.files.uploaded_ids  # uploaded files IDs
-                history = self.window.core.ctx.all(meta_id=parent_id)  # get all history
+
                 self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
 
                 # make call
                 bridge_context = BridgeContext(
                     ctx=ctx,
-                    history=history,
+                    history=self.window.core.ctx.all(meta_id=parent_id),  # get all ctx items
                     mode=mode,
                     parent_mode=base_mode,
                     model=model_data,
                     system_prompt=sys_prompt,
-                    system_prompt_raw=sys_prompt_raw,
-                    prompt=text,
-                    stream=stream_mode,
+                    system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)
+                    prompt=text,  # input text
+                    stream=stream_mode,  # is stream mode
                     attachments=files,
-                    file_ids=file_ids,
+                    file_ids=self.window.controller.files.uploaded_ids,  # uploaded files IDs
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,  # current idx
-                    idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode
+                    idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode (chat or query)
                     external_functions=functions,  # external functions
-                    tools_outputs=tools_outputs,  # if not empty then will submit outputs
+                    tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
                     max_tokens=max_tokens,  # max output tokens
                 )
+
+                self.window.controller.chat.common.lock_input()  # lock input
                 result = self.window.core.bridge.call(
                     context=bridge_context,
                 )
@@ -248,22 +209,18 @@ class Text:
                 self.window.core.ctx.update_item(ctx)
 
                 if result:
-                    if is_ctx_debug:
-                        self.log("Context: OUTPUT: {}".format(ctx.dump()))  # log
-                    else:
-                        self.log("Context: OUTPUT.")
+                    self.log_ctx(ctx, "output")  # log
                 else:
                     self.log("Context: OUTPUT: ERROR")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.ui.status(trans('status.error'))
 
             except Exception as e:
-                self.log("GPT output error: {}".format(e))  # log
+                self.log("Bridge call ERROR: {}".format(e))  # log
                 self.handle_error(e)
-                print("Error when calling API: " + str(e))
+                print("Error when calling bridge: " + str(e))
 
-            # handle response (if no assistant mode)
-            # assistant response is handled in assistant thread
+            # handle response (not assistant mode - assistant response is handled by assistant thread)
             if mode != "assistant":
                 ctx.from_previous()  # append previous result if exists
                 self.window.controller.chat.output.handle(
@@ -277,27 +234,8 @@ class Text:
             self.handle_error(e)
             print("Error in sending text: " + str(e))
 
-        # if commands enabled: post-execute commands (if no assistant mode)
-        if mode != "assistant":
-            ctx.clear_reply()  # reset results
-            self.window.controller.chat.output.handle_cmd(ctx)
-            ctx.from_previous()  # append previous result again before save
-            self.window.core.ctx.update_item(ctx)  # update ctx in DB
-
-        # render: end
-        if ctx.sub_calls == 0:  # if no experts called
-            self.window.controller.chat.render.end(stream=stream_mode)
-
-        # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
-        # send btn will be unlocked in agent mode on stop
-        if mode != "assistant" and not self.window.controller.agent.enabled():
-            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant and agent mode
-
-        # handle ctx name (generate title from summary if not initialized)
-        if not reply and not internal:  # don't call if reply or internal mode
-            if self.window.core.config.get('ctx.auto_summary'):
-                self.log("Calling for prepare context name...")
-                self.window.controller.ctx.prepare_name(ctx)  # async
+        # post-handle, execute cmd, etc.
+        self.window.controller.chat.output.post_handle(ctx, mode, stream_mode, reply, internal)
 
         return ctx
 
@@ -310,13 +248,25 @@ class Text:
         self.window.core.debug.log(e)
         self.window.ui.dialogs.alert(e)
         self.window.ui.status(trans('status.error'))
-        self.window.controller.chat.common.unlock_input()
+        self.window.controller.chat.common.unlock_input()  # always unlock input on error
         self.window.stateChanged.emit(self.window.STATE_ERROR)
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
 
         # stop agent on error
         if self.window.controller.agent.enabled():
             self.window.controller.agent.flow.on_stop()
+
+    def log_ctx(self, ctx: CtxItem, mode: str):
+        """
+        Log context item
+
+        :param ctx: CtxItem
+        :param mode: mode (input/output)
+        """
+        if self.window.core.config.get("log.ctx"):
+            self.log("Context: {}: {}".format(mode.upper(), ctx.dump()))  # log
+        else:
+            self.log("Context: {}.".format(mode.upper()))
 
     def log(self, data: any):
         """

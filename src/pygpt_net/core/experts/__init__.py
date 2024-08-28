@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 17:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -365,7 +365,7 @@ class Experts:
             stream_mode,
         )
         ctx.clear_reply()  # reset results
-        self.window.controller.chat.output.handle_cmd(ctx)  # handle cmds
+        self.window.controller.chat.command.handle(ctx)  # handle cmds
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)  # update ctx in DB
 

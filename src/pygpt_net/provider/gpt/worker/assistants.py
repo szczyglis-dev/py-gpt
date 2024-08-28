@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -378,7 +378,7 @@ class AssistantsWorker:
         :param err: error message
         """
         self.log("STREAM: error: {}".format(err))
-        self.window.controller.assistant.threads.handle_run_error(ctx, err)
+        self.window.controller.assistant.threads.handle_run_error(ctx, err)  # bad filetype error, etc.
 
     @Slot(object, object, bool)
     def handle_run_created(self, ctx: CtxItem, run, stream=False):

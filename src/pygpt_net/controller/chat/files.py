@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -21,6 +22,21 @@ class Files:
         """
         self.window = window
 
+    def send(self, mode: str, ctx: CtxItem):
+        """
+        Send attachments
+
+        :param mode: mode
+        :param ctx: CtxItem instance
+        """
+        # upload assistant attachments (only assistant mode here)
+        attachments = self.upload(mode)  # current thread is already in global config
+        if len(attachments) > 0:
+            ctx.attachments = attachments
+            self.window.ui.status(trans('status.sending'))
+            self.window.controller.chat.text.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
+        return attachments
+
     def upload(self, mode: str) -> dict:
         """
         Upload attachments
@@ -28,7 +44,6 @@ class Files:
         :param mode: mode
         :return: uploaded attachments list
         """
-        self.window.controller.files.uploaded_ids = []  # clear uploaded files ids
         attachments_list = {}
 
         if mode == 'assistant':

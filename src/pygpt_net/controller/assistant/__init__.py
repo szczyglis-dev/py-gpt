@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -21,6 +21,8 @@ from .threads import Threads
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.utils import trans
+from pygpt_net.item.ctx import CtxItem
+
 
 class Assistant:
     def __init__(self, window=None):
@@ -82,16 +84,31 @@ class Assistant:
                 self.window.controller.chat.render.stream_end()
                 self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
+    def begin(self, ctx: CtxItem):
+        """
+        Begin assistants
+
+        :param ctx: CtxItem instance
+        """
+        ctx.thread = self.prepare()  # create new thread if not exists
+        self.window.controller.chat.files.send("assistant", ctx)  # upload attachments
+
     def prepare(self):
-        """Prepare assistants"""
+        """
+        Prepare assistants
+
+        :return: current thread ID
+        """
         # create or get current thread, it is required before conversation start
         if self.window.core.config.get('assistant_thread') is None:
             try:
+                thread_id = self.threads.create_thread()
                 self.window.ui.status(trans('status.sending'))
-                self.window.core.config.set('assistant_thread', self.threads.create_thread())
+                self.window.core.config.set('assistant_thread', thread_id)
             except Exception as e:
                 self.window.core.debug.log(e)
                 self.window.ui.dialogs.alert(e)
+        return self.window.core.config.get('assistant_thread')
 
     def refresh(self):
         """Update assistants"""

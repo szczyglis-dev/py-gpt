@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -59,7 +59,7 @@ class Threads:
             self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
 
         ctx.clear_reply()  # reset results
-        self.window.controller.chat.output.handle_cmd(ctx)
+        self.window.controller.chat.command.handle(ctx)
 
         # update ctx
         ctx.from_previous()  # append previous result again before save
@@ -219,7 +219,7 @@ class Threads:
         ctx.internal = True  # hide in chat input + handle synchronously
 
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
-        self.window.controller.chat.output.handle_cmd(ctx)
+        self.window.controller.chat.command.handle(ctx)
 
         ctx.tool_calls = []  # clear tool calls
 
@@ -241,6 +241,24 @@ class Threads:
                 internal=True,
                 prev_ctx=ctx,
             )
+
+    def handle_tool_outputs(self, ctx: CtxItem) -> list:
+        """
+        Handle tool outputs
+
+        :param ctx: CtxItem
+        :return: list of tool calls outputs
+        """
+        tools_outputs = []
+        if self.window.controller.assistant.threads.is_running():
+            tools_outputs = self.window.controller.assistant.threads.apply_outputs(ctx)
+            self.window.controller.assistant.threads.reset()  # reset outputs
+            self.log("Appended tool outputs: {}".format(len(tools_outputs)))
+
+            # clear tool calls to prevent appending cmds to output (otherwise it will call commands again)
+            ctx.tool_calls = []
+        return tools_outputs
+
 
     def apply_outputs(self, ctx: CtxItem) -> list:
         """
@@ -279,6 +297,7 @@ class Threads:
         self.window.core.ctx.update_item(ctx)
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(err)
+        self.window.ui.status("An error occurred. Please try again.")
         self.window.controller.chat.common.unlock_input()  # unlock input
 
     def handle_run(self, ctx: CtxItem, run, stream: bool = False):
