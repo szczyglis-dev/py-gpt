@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.2.33** | build: **2024.08.28** | Python: **>=3.10, <3.12**
+Release: **2.3.0** | build: **2024.08.28** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3377,6 +3377,19 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.3.0 (2024-08-28)**
+
+- Refactored and optimized the chat engine.
+- Refactored and optimized command execution.
+- Fixed: execution of assistant tool calls.
+- Fixed: flow in the expert plugin.
+- Fixed: flow in the agent plugin.
+- Fixed: console errors in highlight.js.
+- Fixed: logging of the context used in the "Chat with Files" plugin.
+- Improved the stop command.
+- Added a reply stack.
+- Other minor fixes.
+
 **2.2.33 (2024-08-28)**
 
 - Improved model compatibility across different modes.
@@ -3399,77 +3412,6 @@ may consume additional tokens that are not displayed in the main window.
 - Improved chat window auto scroll.
 - Added a new option "Always continue..." to Agent mode (as opposed to the Auto-stop option).
 - Added a new prompt: Config -> Settings -> Prompts -> Agent: continue (always, more steps).
-
-**2.2.30 (2024-08-25)**
-
-- Added link to Discord server in About -> Discord.
-
-**2.2.29 (2024-08-25)**
-
-- Fix: Removed 'Index not prepared' monit when index not created yet.
-
-**2.2.28 (2024-08-25)**
-
-- Fix: Added mechanism to prevent the current index from being deselected when saving settings.
-- Added models: `llama3.1:70b`, `llama3.1:405b`, and `mistral-large`.
-- Added configuration option: Indexes (llama-index) -> Chat -> Chat mode.
-- Split prompt templates context menu into alphabetical submenus.
-
-**2.2.27 (2024-08-22)**
-
-- Added functionality to hide the date suffix if date period separators are enabled.
-- Added a new option: Context -> Show date separators in pinned items on the context list, default: False.
-
-**2.2.26 (2024-08-22)**
-
-- Added separators for date intervals in the context list.
-- Added a new option: Context -> Show context groups on top of the context list, default: False.
-- Added a new option: Context -> Show date separators on the context list, default: True.
-- Added a new option: Context -> Show date separators in groups on the context list, default: True.
-
-**2.2.25 (2024-08-22)**
-
-- Improved native API functions handling.
-- Improved expert prompts.
-- Fixed/improved inline plugin commands handling.
-
-**2.2.24 (2024-08-21)**
-
-- Added a STOP button that allows stopping indexing at any time.
-- Improved conversion of ENUM types when generating a native list of functions for the API.
-- Disabled adding functions to the list when the option to execute commands is unchecked.
-
-**2.2.23 (2024-08-21)**
-
-- Improved context summarization in Llama-index provider.
-
-**2.2.22 (2024-08-20)**
-
-- Added new **API** models for "Chat with Files": `Google Gemini` and `Anthropic Claude` (see the new section in the documentation: Managing models -> [`Using other models (non-GPT)`](https://github.com/szczyglis-dev/py-gpt?tab=readme-ov-file#using-other-models-non-gpt) for more information on how to set API keys)
-- Added new **local** models for "Chat with Files": `Llama 3.1`, `Mistral`, `Codellama`, and `Llama2-Uncensored` (requires `Ollama` installed on the local machine - see the new section in the documentation: Managing models -> [`Using other models (non-GPT)`](https://github.com/szczyglis-dev/py-gpt?tab=readme-ov-file#using-other-models-non-gpt) for more information on how to enable local model support).
-- Added ability for context summarization using Llama-index models (local models can be used to summarize context titles now).
-- Added a new option in Config -> Indexes (llama-index) -> Indexing: `Stop indexing on error`. If enabled, indexing will stop whenever an error occurs.
-
-**2.2.21 (2024-08-20)**
-
-- Added inline execution for external function calls.
-- Added a stop to file indexing if an error occurs.
-
-**2.2.20 (2024-08-20)**
-
-- Llama-index upgraded to `0.10.65`
-- Langchain upgraded to `0.2.14`
-- OpenAI API upgraded to `1.41.0`
-- Code syntax highlight changed from Pygments to highlight.js (better performance)
-- Added new model: `gpt-4o-mini`
-- Added native API function calls by default
-- Added functions importer (from plugins) into assistants
-- Fixed: input message disappear on command response in stream mode
-- Fixed: assistants tool outputs submitting
-
-**2.2.19 (2024-05-16)**
-
-- Added a newest multimodal model: GPT-4 "omni": https://openai.com/index/hello-gpt-4o
 
 
 # Credits and links

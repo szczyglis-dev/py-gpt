@@ -1,5 +1,18 @@
 # CHANGELOG
 
+# 2.3.0 (2024-08-28)
+
+- Refactored and optimized the chat engine.
+- Refactored and optimized command execution.
+- Fixed: execution of assistant tool calls.
+- Fixed: flow in the expert plugin.
+- Fixed: flow in the agent plugin.
+- Fixed: console errors in highlight.js.
+- Fixed: logging of the context used in the "Chat with Files" plugin.
+- Improved the stop command.
+- Added a reply stack.
+- Other minor fixes.
+
 # 2.2.33 (2024-08-28)
 
 - Improved model compatibility across different modes.
