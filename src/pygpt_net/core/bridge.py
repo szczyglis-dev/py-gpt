@@ -121,9 +121,11 @@ class Bridge:
         prompt = context.prompt
         mode = context.mode
         model = context.model  # model instance
+        is_agent = False
 
         # get agent or expert internal sub-mode
         if mode == "agent" or mode == "expert":
+            is_agent = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if mode == "agent":
                 sub_mode = self.window.core.agents.get_mode()
@@ -139,10 +141,15 @@ class Bridge:
 
         if mode == "llama_index":
             context.idx_mode = "chat"
-            idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
-            if idx is not None and idx != "_":
-                context.idx = idx
-                self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
+
+        if is_agent:
+            if mode == "llama_index":
+                idx = self.window.core.agents.get_idx()  # get index to use (if any), idx is common to agent and expert
+                if idx is not None and idx != "_":
+                    context.idx = idx
+                    self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
+                else:
+                    context.idx = None  # don't use index
 
         # inline: internal mode switch if needed
         context.parent_mode = mode  # store REAL mode

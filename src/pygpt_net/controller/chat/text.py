@@ -140,7 +140,7 @@ class Text:
                 sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
             else:
                 sys_prompt = self.window.core.experts.get_prompt()
-                mode = "chat"  # change mode to chat for expert
+                # mode = "chat"  # change mode to chat for expert
 
         sys_prompt_raw = sys_prompt  # store raw prompt
         event = Event(Event.PRE_PROMPT, {
