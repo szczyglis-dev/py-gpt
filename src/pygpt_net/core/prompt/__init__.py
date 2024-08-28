@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.08.28 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -80,7 +80,8 @@ class Prompt:
             sys_prompt: str,
             ctx: CtxItem,
             reply: bool,
-            internal: bool
+            internal: bool,
+            is_expert: bool = False
     ):
         """
         Prepare system prompt
@@ -90,12 +91,14 @@ class Prompt:
         :param ctx: context item
         :param reply: reply from plugins
         :param internal: internal call
+        :param is_expert: called from expert
         :return: system prompt
         """
         # event: system prompt (append to system prompt)
         event = Event(Event.SYSTEM_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
+            'is_expert': is_expert,
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
@@ -106,6 +109,7 @@ class Prompt:
             'reply': reply,
             'internal': internal,
             'value': sys_prompt,
+            'is_expert': is_expert,
         })
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
@@ -121,6 +125,7 @@ class Prompt:
                 'prompt': sys_prompt,
                 'syntax': [],
                 'cmd': [],
+                'is_expert': is_expert,
             }
             # full execute cmd syntax
             if self.window.core.config.get('cmd'):

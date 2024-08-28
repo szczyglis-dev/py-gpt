@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.28 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -74,6 +74,8 @@ class Plugin(BasePlugin):
         name = event.name
         data = event.data
         if name == Event.SYSTEM_PROMPT:
+            if "is_expert" in data and data["is_expert"]:
+                return  # disable if called inside expert
             data['value'] = self.on_system_prompt(data['value'])
 
     def on_system_prompt(self, prompt: str) -> str:
