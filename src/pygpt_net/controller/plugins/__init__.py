@@ -380,6 +380,17 @@ class Plugins:
         event = Event(Event.CMD_EXECUTE, {
             'commands': commands,
         })
+
+        # don't change status if only goal update command
+        self.log("Executing plugin commands...")
+        mode = self.window.core.config.get('mode')
+        change_status = True
+        if mode == 'agent':
+            if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
+                change_status = False
+        if change_status:
+            self.window.ui.status(trans('status.cmd.wait'))
+
         ctx.results = []
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
@@ -399,6 +410,17 @@ class Plugins:
         event = Event(Event.CMD_INLINE, {
             'commands': commands,
         })
+
+        # don't change status if only goal update command
+        self.log("Executing inline plugin commands...")
+        mode = self.window.core.config.get('mode')
+        change_status = True
+        if mode == 'agent':
+            if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
+                change_status = False
+        if change_status:
+            self.window.ui.status(trans('status.cmd.wait'))
+
         ctx.results = []
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
@@ -409,3 +431,11 @@ class Plugins:
         self.setup()
         self.settings.setup()
         self.update()
+
+    def log(self, data: any):
+        """
+        Log data to debug
+
+        :param data: Data to log
+        """
+        self.window.core.debug.info(data)
