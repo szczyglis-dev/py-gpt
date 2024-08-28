@@ -166,6 +166,8 @@ class Text:
         if mode == 'assistant':
             # prepare tool outputs for assistant
             tools_outputs = self.window.controller.assistant.threads.handle_tool_outputs(ctx)
+            if len(tools_outputs) > 0:
+                self.log("Tool outputs sending...")
 
         try:
             # make API call

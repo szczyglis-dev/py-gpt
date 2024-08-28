@@ -9,6 +9,7 @@
 # Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -28,6 +29,9 @@ class Command:
 
         :param ctx: CtxItem
         """
+        if self.window.controller.chat.input.stop:
+            return
+
         mode = self.window.core.config.get('mode')
 
         # extract commands
@@ -35,6 +39,7 @@ class Command:
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
             self.log("Command call received...")
+
             # agent mode
             if mode == 'agent':
                 commands = self.window.core.command.from_commands(cmds)  # pack to execution list
@@ -42,11 +47,6 @@ class Command:
                     ctx,
                     commands,
                 )
-                # check if agent flow is not finished
-                if self.window.controller.agent.flow.finished:
-                    pass
-                    # allow to continue commands execution if agent flow is finished
-                    # return
 
             # don't change status if only goal update command
             change_status = True
@@ -55,19 +55,20 @@ class Command:
                     change_status = False
 
             # plugins
+            self.log("Preparing command reply context...")
+            reply = ReplyContext()
+            reply.ctx = ctx
+            reply.cmds = cmds
             if self.window.core.config.get('cmd'):
                 if change_status:
                     self.log("Executing plugin commands...")
                     self.window.ui.status(trans('status.cmd.wait'))
-                self.window.controller.plugins.apply_cmds(
-                    ctx,
-                    cmds,
-                )
+                reply.type = ReplyContext.CMD_EXECUTE
             else:
-                self.window.controller.plugins.apply_cmds_inline(
-                    ctx,
-                    cmds,
-                )
+                reply.type = ReplyContext.CMD_EXECUTE_INLINE
+
+            self.window.controller.chat.reply.add(reply)  # send command execution to reply stack
+
     def log(self, data: any):
         """
         Log data to debug

@@ -9,6 +9,7 @@
 # Updated Date: 2024.08.28 16:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -62,8 +63,8 @@ class Experts:
         :param sys_prompt: Prompt text
         :param parent_id: Parent ID
         """
-        # if experts enabled
-        if self.window.controller.agent.experts.enabled():
+        # if agent enabled
+        if self.window.controller.agent.enabled():
             prev_prompt = sys_prompt
             sys_prompt = self.window.core.prompt.get("agent.instruction")
             if prev_prompt is not None and prev_prompt.strip() != "":
@@ -116,11 +117,15 @@ class Experts:
                                 continue
                             self.log("Calling: " + expert_id)
                             ctx.sub_calls += 1
-                            self.window.core.experts.call(
-                                ctx,  # master ctx
-                                expert_id,  # expert id
-                                mentions[expert_id],  # query
-                            )
+
+                            # add to reply stack
+                            reply = ReplyContext()
+                            reply.type = ReplyContext.EXPERT_CALL
+                            reply.ctx = ctx
+                            reply.parent_id = expert_id
+                            reply.input = mentions[expert_id]
+                            self.window.controller.chat.reply.add(reply)
+
                             num_calls += 1
                         if num_calls > 0:
                             return num_calls  # abort continue if expert call detected

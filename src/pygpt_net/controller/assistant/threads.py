@@ -59,7 +59,13 @@ class Threads:
             self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
 
         ctx.clear_reply()  # reset results
-        self.window.controller.chat.command.handle(ctx)
+
+        self.log("Handling output message...")
+
+        has_cmd = self.window.core.command.has_cmds(ctx.output)
+        if has_cmd:
+            self.log("Handling message command...")
+            self.window.controller.chat.command.handle(ctx)
 
         # update ctx
         ctx.from_previous()  # append previous result again before save
@@ -70,6 +76,13 @@ class Threads:
 
         # update ctx list
         self.window.controller.ctx.update()
+
+        # if is command execute and not locked yet (not executing)
+        if has_cmd and self.window.controller.chat.reply.waiting():
+            self.log("Replying for message command...")
+            self.window.controller.chat.reply.handle()
+
+        self.log("Handled output message.")
 
     def handle_message_data(self, ctx: CtxItem, msg, stream: bool = False):
         """
@@ -203,7 +216,7 @@ class Threads:
 
     def handle_tool_calls(self, ctx: CtxItem):
         """
-        Handle tool calls
+        Handle tool calls (stream and non-stream)
 
         :param ctx: CtxItem
         """
@@ -213,13 +226,18 @@ class Threads:
         self.run_id = ctx.run_id
         self.tool_calls = ctx.tool_calls
 
+        has_calls = len(ctx.tool_calls) > 0
+
         # update ctx
         self.window.core.ctx.update_item(ctx)
 
         ctx.internal = True  # hide in chat input + handle synchronously
 
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
-        self.window.controller.chat.command.handle(ctx)
+
+        if has_calls:
+            self.log("Handling tool call: {}.".format(ctx.tool_calls))
+            self.window.controller.chat.command.handle(ctx)            
 
         ctx.tool_calls = []  # clear tool calls
 
@@ -229,7 +247,17 @@ class Threads:
         # index ctx (llama-index)
         self.window.controller.idx.on_ctx_end(ctx, mode="assistant")
 
+        if has_calls and self.window.controller.chat.reply.waiting():
+            self.log("Replying for tool call...")
+            self.window.controller.chat.reply.handle()
+            return
+
         # check if there are any response, if not send empty response
+        # TODO: if native then there is no cmd response here and response will be sent as tool call result
+        # string response is only for message command response
+        
+        self.log("Sending response reply...")
+
         if not ctx.reply:
             results = {
                 "response": "",
@@ -293,12 +321,17 @@ class Threads:
         :param ctx: context item
         :param err: error message
         """
+        stream = self.window.core.config.get('stream')
         ctx.current = False  # reset current state
+        ctx.from_previous()
+        self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
         self.window.core.ctx.update_item(ctx)
+        self.window.controller.ctx.update()
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(err)
         self.window.ui.status("An error occurred. Please try again.")
         self.window.controller.chat.common.unlock_input()  # unlock input
+        # self.handle_stream_end(ctx)
 
     def handle_run(self, ctx: CtxItem, run, stream: bool = False):
         """
@@ -360,7 +393,7 @@ class Threads:
         self.window.controller.chat.common.unlock_input()  # unlock input
         self.stop = False
         self.window.statusChanged.emit(trans('assistant.run.completed'))
-        self.window.controller.chat.output.show_response_tokens(ctx)  # update tokens
+        self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens
 
     def handle_status_error(self, ctx: CtxItem):
         """
@@ -406,7 +439,7 @@ class Threads:
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
             self.window.stateChanged.emit(self.window.STATE_IDLE)
-            self.window.controller.chat.output.show_response_tokens(ctx)  # update tokens
+            self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens
 
         # function call
         elif status == "requires_action":

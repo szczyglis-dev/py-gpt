@@ -849,7 +849,7 @@ class Ctx:
                 self.move_to_group(meta_id, id, update=False)
             self.update()
             self.window.update_status(
-                "[INFO] Group '{}' created.".format(name)
+                "Group '{}' created.".format(name)
             )
             self.window.ui.dialog['create'].close()
 

@@ -91,13 +91,8 @@ class Output:
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "output")
 
-        # unlock input if not unlocked before
-        unlock_input = True
-        if (mode == "agent" and
-                (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop)):
-            unlock_input = False
-        if unlock_input:
-            self.window.controller.chat.common.unlock_input()
+        if self.window.controller.chat.common.can_unlock(ctx):
+            self.window.controller.chat.common.unlock_input()  # unlock input
 
     def post_handle(
             self,
@@ -134,8 +129,8 @@ class Output:
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
-        if mode != "assistant" and not self.window.controller.agent.enabled():
-            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant and agent mode
+        if self.window.controller.chat.common.can_unlock(ctx):
+            self.window.controller.chat.common.unlock_input()  # unlock input
 
         # handle ctx name (generate title from summary if not initialized)
         if not reply and not internal:  # don't call if reply or internal mode
@@ -191,7 +186,8 @@ class Output:
         if self.window.state != self.window.STATE_ERROR:
             self.window.stateChanged.emit(self.window.STATE_IDLE)
 
-        # TODO: call reply here...
+        if mode != "assistant":
+            self.window.controller.chat.reply.handle()  # handle reply
 
     def log(self, data: any):
         """

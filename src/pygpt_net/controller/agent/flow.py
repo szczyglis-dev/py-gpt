@@ -9,6 +9,7 @@
 # Updated Date: 2024.08.27 17:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -128,7 +129,6 @@ class Flow:
         """
         if self.stop:
             self.stop = False
-            # self.window.controller.agent.update()  # update status
             self.iteration = 0
             self.prev_output = None
             return
@@ -150,12 +150,15 @@ class Flow:
             self.iteration += 1
             self.window.controller.agent.update()  # update status
             if self.prev_output is not None and self.prev_output != "":
-                self.window.controller.chat.input.send(
-                    text=self.prev_output,
-                    force=True,
-                    internal=True,
-                    prev_ctx=ctx,
-                )
+
+                # always abort if already waiting for reply from expert or command
+                if not self.window.controller.chat.reply.waiting():
+                    reply = ReplyContext()
+                    reply.type = ReplyContext.AGENT_CONTINUE
+                    reply.ctx = ctx
+                    reply.input = self.prev_output
+                    self.window.controller.chat.reply.add(reply)  # add to reply stack
+
         # internal call will not trigger async mode and will hide the message from previous iteration
         elif self.iteration >= int(iterations):
             self.on_stop(auto=True)
@@ -263,6 +266,7 @@ class Flow:
 
         :param auto: auto
         """
+        self.window.controller.chat.reply.lock()
         self.window.controller.chat.common.unlock_input()
         self.iteration = 0
         self.prev_output = None

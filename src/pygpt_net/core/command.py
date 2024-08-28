@@ -106,6 +106,8 @@ class Command:
         :param text: text to check
         :return: True if text has commands
         """
+        if text is None:
+            return False
         regex_cmd = r'~###~\s*{.*}\s*~###~'
         return bool(re.search(regex_cmd, text))
 

@@ -12,7 +12,7 @@
 import os
 
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
@@ -187,12 +187,35 @@ class Common:
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
 
+    def can_unlock(self, ctx: CtxItem) -> bool:
+        """
+        Check if input can be unlocked
+
+        :param ctx: CtxItem
+        :return: True if input can be unlocked
+        """
+        unlock = True
+        mode = self.window.core.config.get('mode')
+        if mode == "assistant":
+            finish = False
+        if (self.window.controller.agent.enabled() and
+                (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop)):
+            unlock = False
+        if (self.window.controller.agent.experts.enabled() and
+                self.window.core.experts.has_calls(ctx)):
+            unlock = False
+        if self.window.controller.chat.reply.waiting():
+            unlock = False
+        return unlock
+
+
     def stop(self, exit: bool = False):
         """
         Stop all
 
         :param exit: True if called on app exit
         """
+        QApplication.processEvents()
         mode = self.window.core.config.get('mode')
         event = Event(Event.FORCE_STOP, {
             "value": True,
@@ -201,6 +224,7 @@ class Common:
         event = Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
         })
+        self.window.controller.chat.reply.clear()  # pause reply stack
         self.window.controller.agent.experts.stop()
         self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True

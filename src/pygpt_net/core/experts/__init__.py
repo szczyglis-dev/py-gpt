@@ -314,6 +314,7 @@ class Experts:
         event = Event(Event.PRE_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
+            'is_expert': True,
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
@@ -323,6 +324,7 @@ class Experts:
             ctx,
             reply,
             internal,
+            is_expert=True,  # mark as expert, blocks expert prompt append in plugin
         )
 
         # call bridge
@@ -366,6 +368,8 @@ class Experts:
         )
         ctx.clear_reply()  # reset results
         self.window.controller.chat.command.handle(ctx)  # handle cmds
+        self.window.controller.chat.reply.handle()  # handle command queue
+
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
@@ -378,6 +382,7 @@ class Experts:
         reply_ctx.from_dict(ctx.to_dict())
         reply_ctx.input_name = expert_name
         reply_ctx.output_name = ""
+        reply_ctx.cmds = []  # clear cmds
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
         # send slave expert response to master expert
@@ -416,3 +421,18 @@ class Experts:
             }
         ]
         return cmds
+
+    def has_calls(self, ctx: CtxItem) -> bool:
+        """
+        Check if context has expert calls
+
+        :param ctx: CtxItem
+        """
+        if not ctx.sub_reply and not ctx.reply:
+            mentions = self.window.core.experts.extract_calls(ctx)
+            if mentions:
+                for expert_id in mentions:
+                    if not self.window.core.experts.exists(expert_id):
+                        continue
+                    return True
+        return False
