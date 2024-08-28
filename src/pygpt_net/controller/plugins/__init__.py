@@ -395,6 +395,11 @@ class Plugins:
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
 
+        # reset status if nothing executed
+        current = self.window.ui.get_status()
+        if current == trans('status.cmd.wait'):
+            self.window.ui.status("")
+
     def apply_cmds_inline(self, ctx: CtxItem, cmds: list):
         """
         Apply inline commands
@@ -424,6 +429,11 @@ class Plugins:
         ctx.results = []
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
+
+        # reset status if nothing executed
+        current = self.window.ui.get_status()
+        if current == trans('status.cmd.wait'):
+            self.window.ui.status("")
 
     def reload(self):
         """Reload plugins"""

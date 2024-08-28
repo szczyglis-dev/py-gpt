@@ -133,6 +133,14 @@ class UI:
         status = msg[:self.STATUS_MAX_CHARS] + '...' if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
         self.nodes['status'].setText(status)
 
+    def get_status(self):
+        """
+        Get status text
+
+        :return: status text
+        """
+        return self.nodes['status'].text()
+
     def setup_font(self):
         """Load and setup UI fonts"""
         extensions = [
