@@ -359,7 +359,7 @@ class Plugin(BasePlugin):
                     metas.append(ctx.index_meta)
                     self.append_meta_to_response(ctx)
 
-                self.log("Using additional context: " + str(ctx.output))
+                self.log("Using additional context")
                 responses.append(ctx.output)
 
             return "\n---\n".join(responses), doc_ids, metas
@@ -382,7 +382,7 @@ class Plugin(BasePlugin):
                 metas.append(ctx.index_meta)
                 self.append_meta_to_response(ctx)
 
-            self.log("Using additional context: " + str(ctx.output))
+            self.log("Using additional context")
             return ctx.output, doc_ids, metas  # tmp ctx, llama doc_ids, meta
 
     def append_meta_to_response(self, ctx: CtxItem):
