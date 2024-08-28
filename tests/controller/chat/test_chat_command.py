@@ -19,6 +19,7 @@ from pygpt_net.item.ctx import CtxItem
 def test_handle_cmd(mock_window):
     """Test handle cmd: all commands"""
     command = Command(mock_window)
+    mock_window.controller.chat.common.stopped = MagicMock(return_value=False)
     mock_window.core.config.data['cmd'] = True  # enable all cmd execution
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_inline = MagicMock()
@@ -33,14 +34,13 @@ def test_handle_cmd(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.plugins.apply_cmds.assert_called_once()
-    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
-    mock_window.ui.status.assert_called_once()
+    mock_window.controller.chat.reply.add.assert_called_once()
 
 
 def test_handle_cmd_only(mock_window):
     """Test handle cmd: only inline commands"""
     command = Command(mock_window)
+    mock_window.controller.chat.common.stopped = MagicMock(return_value=False)
     mock_window.core.config.data['cmd'] = False  # disable cmd execution, allow only 'inline' commands
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_inline = MagicMock()
@@ -55,8 +55,7 @@ def test_handle_cmd_only(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.plugins.apply_cmds_inline.assert_called_once()
-    mock_window.controller.plugins.apply_cmds.assert_not_called()
+    mock_window.controller.chat.reply.add.assert_called_once()
 
 
 def test_handle_cmd_no_cmds(mock_window):
@@ -73,6 +72,4 @@ def test_handle_cmd_no_cmds(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.plugins.apply_cmds.assert_not_called()
-    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
-    mock_window.ui.status.assert_not_called()
+    mock_window.controller.chat.reply.add.assert_not_called()
