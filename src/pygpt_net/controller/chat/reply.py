@@ -91,21 +91,19 @@ class Reply:
         return self.locked
 
     def lock(self):
-        """
-        Lock reply stack
-        """
+        """Lock reply stack"""
         self.locked = True
 
     def unlock(self):
-        """
-        Unlock reply stack
-        """
+        """Unlock reply stack"""
         self.locked = False
 
     def handle(self):
-        """
-        Handle reply stack
-        """
+        """Handle reply stack"""
+        if self.window.controller.chat.common.stopped():
+            self.clear()
+            return
+
         if self.waiting():
             self.lock()
             QApplication.processEvents()

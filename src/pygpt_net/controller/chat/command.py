@@ -29,7 +29,7 @@ class Command:
 
         :param ctx: CtxItem
         """
-        if self.window.controller.chat.input.stop:
+        if self.window.controller.chat.common.stopped():
             return
 
         mode = self.window.core.config.get('mode')
@@ -48,21 +48,12 @@ class Command:
                     commands,
                 )
 
-            # don't change status if only goal update command
-            change_status = True
-            if mode == 'agent':
-                if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
-                    change_status = False
-
             # plugins
             self.log("Preparing command reply context...")
             reply = ReplyContext()
             reply.ctx = ctx
             reply.cmds = cmds
             if self.window.core.config.get('cmd'):
-                if change_status:
-                    self.log("Executing plugin commands...")
-                    self.window.ui.status(trans('status.cmd.wait'))
                 reply.type = ReplyContext.CMD_EXECUTE
             else:
                 reply.type = ReplyContext.CMD_EXECUTE_INLINE

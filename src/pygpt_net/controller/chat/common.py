@@ -248,6 +248,14 @@ class Common:
         if not exit:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
+    def stopped(self) -> bool:
+        """
+        Check if input is stopped
+
+        :return: True if input is stopped
+        """
+        return self.window.controller.chat.input.stop
+
     def check_api_key(self) -> bool:
         """
         Check if API KEY is set
