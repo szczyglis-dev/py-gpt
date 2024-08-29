@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 import json
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from pygpt_net.utils import unpack_var
@@ -32,31 +32,31 @@ def search_by_date_string(search_string: str) -> list:
         start_date_str, sep, end_date_str = match
         if start_date_str and end_date_str:
             # search between dates
-            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
-            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
+            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
+            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
             # Add one day and subtract one second to include the end date entirely
             end_ts += (24 * 60 * 60) - 1
             date_ranges.append((start_ts, end_ts))
         elif start_date_str and sep:
             # search from date to infinity
-            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
+            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
             end_of_day_ts = None
             date_ranges.append((start_ts, end_of_day_ts))
         elif end_date_str and sep:
             # search from beginning of time to date
-            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
+            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
             # Add one day and subtract one second to include the end date entirely
             end_ts += (24 * 60 * 60) - 1
             date_ranges.append((None, end_ts))
         elif start_date_str:
             # search in exact day
-            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
+            start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
             # Add one day and subtract one second to include the entire day
             end_of_day_ts = start_ts + (24 * 60 * 60) - 1
             date_ranges.append((start_ts, end_of_day_ts))
         elif end_date_str:
             # search in exact day
-            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp()
+            end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
             # Add one day and subtract one second to include the entire day
             end_ts += (24 * 60 * 60) - 1
             date_ranges.append((0, end_ts))

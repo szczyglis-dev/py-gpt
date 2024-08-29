@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -15,6 +15,7 @@ import time
 
 from sqlalchemy import text
 
+from pygpt_net.utils import get_tz_offset
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from .utils import \
     search_by_date_string, \
@@ -22,7 +23,8 @@ from .utils import \
     unpack_meta, \
     unpack_item, \
     get_month_start_end_timestamps, \
-    get_year_start_end_timestamps, unpack_group
+    get_year_start_end_timestamps, \
+    unpack_group
 
 
 class Storage:
@@ -869,37 +871,44 @@ class Storage:
         else:
             where_statement = f"AND {where_statement}"
 
+        offset_seconds = get_tz_offset()
+        offset_suffix = ""
+        if offset_seconds > 0:
+            offset_suffix = f" + {offset_seconds}"
+        elif offset_seconds < 0:
+            offset_suffix = f" - {abs(offset_seconds)}"
+
         db = self.window.core.db.get_db()
         with db.connect() as conn:
             # by day
             if year and month and day:
-                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp())
-                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp())
+                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) - 7200
+                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) - 7200
                 stmt_text = f"""
                     SELECT
-                        date(datetime(m.updated_ts, 'unixepoch')) as day,
+                        date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
                         COUNT(m.updated_ts) as count
                     FROM ctx_meta m
                     {join_statement}
-                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY day
                 """
                 stmt = text(stmt_text).bindparams(**bind_params)
                 result = conn.execute(stmt)
                 return {row._mapping['day']: row._mapping['count'] for row in result}
 
-            # by month
+            # by year and month
             elif year and month:
                 start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
                 bind_params['start_ts'] = start_timestamp
                 bind_params['end_ts'] = end_timestamp
                 stmt_text = f"""
                     SELECT
-                        date(datetime(m.updated_ts, 'unixepoch')) as day,
+                        date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
                         COUNT(m.updated_ts) as count
                     FROM ctx_meta m
                     {join_statement}
-                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY day
                 """
                 stmt = text(stmt_text).bindparams(**bind_params)
@@ -909,20 +918,152 @@ class Storage:
             # by year (return months, not days)
             elif year:
                 start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
-                bind_params['start_ts'] = start_timestamp
-                bind_params['end_ts'] = end_timestamp
+                bind_params['start_ts'] = start_timestamp - 7200
+                bind_params['end_ts'] = end_timestamp - 7200
                 stmt_text = f"""
                     SELECT
-                        strftime('%m', datetime(m.updated_ts, 'unixepoch')) as month,
+                        strftime('%m', datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as month,
                         COUNT(m.updated_ts) as count
                     FROM ctx_meta m
                     {join_statement}
-                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY month
                 """
                 stmt = text(stmt_text).bindparams(**bind_params)
                 result = conn.execute(stmt)
                 return {row._mapping['month']: row._mapping['count'] for row in result}
+
+    def get_ctx_labels_count_by_day(
+            self,
+            year: int,
+            month: int = None,
+            day: int = None,
+            search_string: str = None,
+            filters: dict = None,
+            search_content: bool = False,
+    ) -> dict:
+        """
+        Return ctx counters by day for given year and month
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :param search_string: search string
+        :param filters: dict of filters
+        :param search_content: search in content (input, output)
+        :return: dict with day as key and count as value
+        """
+        # prepare query with search filters
+        where_statement, join_statement, bind_params = self.prepare_query(
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+            append_date_ranges=False,  # without date ranges
+        )
+
+        # prepare where statement
+        if where_statement == "1":
+            where_statement = ""
+        else:
+            where_statement = f"AND {where_statement}"
+
+        offset_seconds = get_tz_offset()
+        offset_suffix = ""
+        if offset_seconds > 0:
+            offset_suffix = f" + {offset_seconds}"
+        elif offset_seconds < 0:
+            offset_suffix = f" - {abs(offset_seconds)}"
+
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            # by day
+            if year and month and day:
+                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) - 7200
+                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) - 7200
+                stmt_text = f"""
+                    SELECT
+                        date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
+                        label,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    GROUP BY day, label
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
+                result_dict = {}
+                for row in result:
+                    day = row._mapping['day']
+                    label = row._mapping['label']
+                    count = row._mapping['count']
+
+                    if day not in result_dict:
+                        result_dict[day] = {}
+
+                    result_dict[day][label] = count
+
+                return result_dict
+
+            # by year and month
+            elif year and month:
+                start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
+                bind_params['start_ts'] = start_timestamp
+                bind_params['end_ts'] = end_timestamp
+                stmt_text = f"""
+                    SELECT
+                        date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
+                        label,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    GROUP BY day, label
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
+                result_dict = {}
+                for row in result:
+                    day = row._mapping['day']
+                    label = row._mapping['label']
+                    count = row._mapping['count']
+
+                    if day not in result_dict:
+                        result_dict[day] = {}
+
+                    result_dict[day][label] = count
+
+                return result_dict
+
+            # by year (return months, not days)
+            elif year:
+                start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
+                bind_params['start_ts'] = start_timestamp - 7200
+                bind_params['end_ts'] = end_timestamp - 7200
+                stmt_text = f"""
+                    SELECT
+                        strftime('%m', datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as month,
+                        label,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.parent_id IS NULL AND m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
+                    GROUP BY month, label
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
+                result_dict = {}
+                for row in result:
+                    day = row._mapping['month']
+                    label = row._mapping['label']
+                    count = row._mapping['count']
+
+                    if day not in result_dict:
+                        result_dict[day] = {}
+
+                    result_dict[day][label] = count
+
+                return result_dict
 
     def get_groups(self) -> dict:
         """

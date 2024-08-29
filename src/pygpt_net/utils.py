@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
+from datetime import datetime
 from pygpt_net.core.locale import Locale
 
 locale = None
@@ -207,3 +208,16 @@ def get_image_extensions() -> list:
     :return: list of image extensions
     """
     return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
+
+
+def get_tz_offset() -> int:
+    """
+    Return timezone offset
+
+    :return: timezone offset (seconds)
+    """
+    utc_now = datetime.utcnow()
+    utc_timestamp = int(utc_now.timestamp())
+    now = datetime.now()
+    now_timestamp = int(now.timestamp())
+    return now_timestamp - utc_timestamp
