@@ -246,6 +246,10 @@ class Confirm:
         elif type == 'idx.tool.index':
             self.window.tools.get("indexer").index_data(True)
 
+        # prompt delete
+        elif type == 'prompt.custom.delete':
+            self.window.controller.presets.delete_prompt(id, True)
+
     def dismiss(self, type: str, id: any):
         """
         Confirm dialog dismiss
@@ -294,6 +298,14 @@ class Confirm:
         # plugin presets
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.update_name(id, name)
+
+        # custom prompt templates rename
+        elif type == 'prompt.custom.rename':
+            self.window.controller.presets.rename_prompt(id, name, True)
+
+        # custom prompt templates new
+        elif type == 'prompt.custom.new':
+            self.window.controller.presets.save_prompt(name, True)
 
     def accept_create(self, type: str, id: any, name: str):
         """

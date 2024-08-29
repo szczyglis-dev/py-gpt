@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 20:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
 
+from .custom import Custom
 from .template import Template
 from ...item.ctx import CtxItem
 
@@ -23,6 +24,7 @@ class Prompt:
         :param window: Window instance
         """
         self.window = window
+        self.custom = Custom(window)
         self.template = Template(window)
 
     def get(self, prompt: str) -> str:

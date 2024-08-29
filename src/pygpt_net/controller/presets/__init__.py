@@ -88,6 +88,86 @@ class Presets:
         elif parent == "editor":
             self.paste_to_textarea(self.window.ui.config["preset"]["prompt"], template['prompt'])
 
+    def paste_custom_prompt(self, idx: int, parent: str = "global"):
+        """
+        Paste prompt from custom template
+
+        :param idx: prompt index
+        :param parent: parent name
+        """
+        template = self.window.core.prompt.custom.get_by_id(idx)
+        if template is None:
+            return
+        if parent == "global":
+            self.paste_to_textarea(self.window.ui.nodes['preset.prompt'], template.content)
+        elif parent == "input":
+            self.paste_to_textarea(self.window.ui.nodes['input'], template.content)
+        elif parent == "editor":
+            self.paste_to_textarea(self.window.ui.config["preset"]["prompt"], template.content)
+
+    def save_prompt(self, name: str = "", force: bool = False):
+        """
+        Save prompt to file
+
+        :param name: prompt name
+        :param force: force save
+        """
+        content = self.window.ui.nodes['input'].toPlainText()
+        if content.strip() == "":
+            self.window.ui.status("Prompt is empty!")
+            return
+        if not force:
+            self.window.ui.dialog['rename'].id = 'prompt.custom.new'
+            self.window.ui.dialog['rename'].input.setText(content[:40] + "...")
+            self.window.ui.dialog['rename'].current = ""
+            self.window.ui.dialog['rename'].show()
+            return
+        self.window.ui.dialog['rename'].close()
+        self.window.core.prompt.custom.new(name, content)
+        self.window.ui.status("Prompt saved")
+
+    def rename_prompt(self, uuid: str, name: str = "", force: bool = False):
+        """
+        Rename prompt
+
+        :param uuid: prompt ID
+        :param name: new name
+        :param force: force rename
+        """
+        item = self.window.core.prompt.custom.get_by_id(uuid)
+        if item is None:
+            return
+        if not force:
+            self.window.ui.dialog['rename'].id = 'prompt.custom.rename'
+            self.window.ui.dialog['rename'].input.setText(item.name)
+            self.window.ui.dialog['rename'].current = uuid
+            self.window.ui.dialog['rename'].show()
+            return
+        self.window.ui.dialog['rename'].close()
+        item.name = name
+        self.window.core.prompt.custom.save()
+        self.window.ui.status("Prompt renamed")
+
+    def delete_prompt(self, uuid: str, force: bool = False):
+        """
+        Delete prompt
+
+        :param uuid: prompt ID
+        :param force: force delete
+        """
+        item = self.window.core.prompt.custom.get_by_id(uuid)
+        if item is None:
+            return
+        if not force:
+            self.window.ui.dialog['confirm'].type = 'prompt.custom.delete'
+            self.window.ui.dialog['confirm'].id = uuid
+            self.window.ui.dialog['confirm'].message = "Are you sure you want to delete this prompt?"
+            self.window.ui.dialog['confirm'].show()
+            return
+        self.window.ui.dialog['confirm'].close()
+        self.window.core.prompt.custom.delete(uuid)
+        self.window.ui.status("Prompt deleted")
+
     def paste_to_textarea(self, textarea, text: str):
         """
         Paste text to textarea

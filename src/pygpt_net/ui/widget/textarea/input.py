@@ -104,7 +104,16 @@ class ChatInput(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
-        self.window.core.prompt.template.to_menu_options(menu, "input")
+        try:
+            self.window.core.prompt.template.to_menu_options(menu, "input")
+            self.window.core.prompt.custom.to_menu_options(menu, "input")
+        except Exception as e:
+            self.window.core.debug.log(e)
+
+        # save current prompt
+        action = QAction(QIcon(":/icons/save.svg"), trans('preset.prompt.save_custom'), self)
+        action.triggered.connect(self.window.controller.presets.save_prompt)
+        menu.addAction(action)
 
         menu.exec_(event.globalPos())
 

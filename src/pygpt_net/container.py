@@ -109,3 +109,4 @@ class Container:
         self.patch()
         self.debug.update_logger_path()
         self.config.setup_env()
+        self.prompt.custom.reload()
