@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 import time
@@ -147,6 +147,34 @@ class DbSqliteProvider(BaseProvider):
         :return: dict of ctx counters by day or by month if only year is provided
         """
         return self.storage.get_ctx_count_by_day(
+            year=year,
+            month=month,
+            day=day,
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+        )
+
+    def get_ctx_labels_count_by_day(
+            self, year: int,
+            month: int = None,
+            day: int = None,
+            search_string: str = None,
+            filters: dict = None,
+            search_content: bool = False,
+    ) -> dict:
+        """
+        Get ctx labels count by day or by month if only year is provided
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :param search_string: search string (optional)
+        :param filters: filters (optional)
+        :param search_content: search in content (not only in meta) (optional)
+        :return: dict of ctx counters by day or by month if only year is provided
+        """
+        return self.storage.get_ctx_labels_count_by_day(
             year=year,
             month=month,
             day=day,

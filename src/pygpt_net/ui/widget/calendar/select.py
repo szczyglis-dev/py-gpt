@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 10:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
@@ -29,11 +29,12 @@ class CalendarSelect(QCalendarWidget):
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
         self.currentDay = QDate.currentDate().day()
-        self.font_size = 9
+        self.font_size = 8
         self.counters = {
             'ctx': {},  # num of ctx in date
             'notes': {},  # num of notes in date
         }
+        self.labels = {}
         self.setGridVisible(True)
         self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)  # disable num of weeks display
         self.currentPageChanged.connect(self.page_changed)
@@ -120,6 +121,26 @@ class CalendarSelect(QCalendarWidget):
                 )  # str(count)
                 painter.restore()
 
+        if date in self.labels:
+            # draw little square with color if label exists in date
+            prev_left = rect.left()
+            for label_id in self.labels[date]:
+                colors = self.window.controller.ui.get_colors()
+                color = colors[label_id]['color']
+                painter.save()
+                pen = QPen(QColor(0, 0, 0))
+                pen.setWidth(1)
+                painter.setPen(pen)
+                painter.setBrush(QBrush(color))
+                painter.drawRect(
+                    prev_left + 2,
+                    rect.top() + 2,
+                    5,
+                    5,
+                )
+                painter.restore()
+                prev_left += 7
+
     def get_color_for_status(self, status: int) -> (QColor, QColor):
         """
         Get color for status
@@ -161,14 +182,18 @@ class CalendarSelect(QCalendarWidget):
         self.counters['ctx'][date] = str(num)
         self.updateCell(date)
 
-    def update_ctx(self, counters: dict):
+    def update_ctx(self, counters: dict, labels: dict):
         """
         Update ctx counters
 
         :param counters: counters dict
+        :param labels: labels dict
         """
         self.counters['ctx'] = {
             QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()
+        }
+        self.labels = {
+            QDate.fromString(date_str, 'yyyy-MM-dd'): labels for date_str, labels in labels.items()
         }
         self.updateCells()
 

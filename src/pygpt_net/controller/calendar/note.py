@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 01:00:00                  #
+# Updated Date: 2024.08.29 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -139,6 +139,36 @@ class Note:
         )
         return {**last, **current, **next}  # combine counters
 
+    def get_labels_counts_around_month(self, year: int, month: int) -> dict:
+        """
+        Get counts around month
+
+        :param year: year
+        :param month: month
+        :return: combined counters
+        """
+        current_month_start = datetime.datetime(year, month, 1)
+        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
+
+        if month == 12:
+            next_month_start = datetime.datetime(year + 1, 1, 1)
+        else:
+            next_month_start = datetime.datetime(year, month + 1, 1)
+
+        current = self.get_ctx_labels_counters(
+            year,
+            month,
+        )
+        last = self.get_ctx_labels_counters(
+            last_month_start.year,
+            last_month_start.month,
+        )
+        next = self.get_ctx_labels_counters(
+            next_month_start.year,
+            next_month_start.month,
+        )
+        return {**last, **current, **next}  # combine counters
+
     def get_ctx_counters(self, year: int, month: int) -> dict:
         """
         Get ctx counters
@@ -167,6 +197,34 @@ class Note:
             search_content=search_content,
         )
 
+    def get_ctx_labels_counters(self, year: int, month: int) -> dict:
+        """
+        Get ctx labels counters
+
+        :param year: year
+        :param month: month
+        :return: ctx counters
+        """
+        # default values (no filters)
+        search_string = None
+        search_content = False
+        filters = None
+
+        # + filters
+        if not self.counters_all:
+            search_string = self.window.core.ctx.search_string
+            search_content = self.window.core.ctx.is_search_content()
+            filters = self.window.core.ctx.get_parsed_filters()
+
+        return self.window.core.ctx.provider.get_ctx_labels_count_by_day(
+            year=year,
+            month=month,
+            day=None,
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+        )
+
     def refresh_ctx(self, year: int, month: int):
         """
         Update calendar ctx cells
@@ -175,7 +233,8 @@ class Note:
         :param month: month
         """
         count = self.get_counts_around_month(year, month)
-        self.window.ui.calendar['select'].update_ctx(count)
+        labels = self.get_labels_counts_around_month(year, month)
+        self.window.ui.calendar['select'].update_ctx(count, labels)
 
     def create(self, year: int, month: int, day: int) -> CalendarNoteItem:
         """
