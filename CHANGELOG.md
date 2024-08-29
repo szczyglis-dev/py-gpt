@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.3.2 (2024-08-29)
+
+- Date count fix in SQL query.
+
 # 2.3.1 (2024-08-29)
 
 - Fixed timezone detection and date conversions in calendar and context search.

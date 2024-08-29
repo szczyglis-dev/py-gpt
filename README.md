@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.3.1** | build: **2024.08.29** | Python: **>=3.10, <3.12**
+Release: **2.3.2** | build: **2024.08.29** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3376,6 +3376,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.3.2 (2024-08-29)**
+
+- Date count fix in SQL query.
 
 **2.3.1 (2024-08-29)**
 
