@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.3.0** | build: **2024.08.28** | Python: **>=3.10, <3.12**
+Release: **2.3.1** | build: **2024.08.29** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3376,6 +3376,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.3.1 (2024-08-29)**
+
+- Fixed timezone detection and date conversions in calendar and context search.
+- Added icon indicators showing labels in context items in the calendar (to show if any day has a context with the selected label).
+- Added custom prompt templates in the input context menu (for saving, editing, and deleting custom prompts).
 
 **2.3.0 (2024-08-28)**
 
