@@ -195,7 +195,7 @@ class Custom:
         Delete all prompts
         """
         self.clear()
-        self.provider.truncate(mode)
+        self.provider.truncate()
 
     def clear(self):
         """
