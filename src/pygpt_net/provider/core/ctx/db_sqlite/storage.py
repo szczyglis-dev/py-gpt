@@ -882,8 +882,8 @@ class Storage:
         with db.connect() as conn:
             # by day
             if year and month and day:
-                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) - 7200
-                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) - 7200
+                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) + offset_seconds
+                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) + offset_seconds
                 stmt_text = f"""
                     SELECT
                         date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
@@ -918,8 +918,8 @@ class Storage:
             # by year (return months, not days)
             elif year:
                 start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
-                bind_params['start_ts'] = start_timestamp - 7200
-                bind_params['end_ts'] = end_timestamp - 7200
+                bind_params['start_ts'] = start_timestamp + offset_seconds
+                bind_params['end_ts'] = end_timestamp + offset_seconds
                 stmt_text = f"""
                     SELECT
                         strftime('%m', datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as month,
@@ -978,8 +978,8 @@ class Storage:
         with db.connect() as conn:
             # by day
             if year and month and day:
-                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) - 7200
-                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) - 7200
+                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp()) + offset_seconds
+                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp()) + offset_seconds
                 stmt_text = f"""
                     SELECT
                         date(datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as day,
@@ -1038,8 +1038,8 @@ class Storage:
             # by year (return months, not days)
             elif year:
                 start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
-                bind_params['start_ts'] = start_timestamp - 7200
-                bind_params['end_ts'] = end_timestamp - 7200
+                bind_params['start_ts'] = start_timestamp + offset_seconds
+                bind_params['end_ts'] = end_timestamp + offset_seconds
                 stmt_text = f"""
                     SELECT
                         strftime('%m', datetime(m.updated_ts{offset_suffix}, 'unixepoch')) as month,
