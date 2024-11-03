@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.03 06:00:00                  #
+# Updated Date: 2024.11.03 21:00:00                  #
 # ================================================== #
 
 import json
@@ -96,7 +96,7 @@ class Chat:
                 )
 
         # fix: o1 compatibility
-        if not model.id.startswith("o1"):
+        if model.id is not None and not model.id.startswith("o1"):
             response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
             response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
@@ -110,7 +110,7 @@ class Chat:
             else:
                 response_kwargs['max_completion_tokens'] = max_tokens
 
-        if model.id.startswith("o1"):
+        if model.id is not None and model.id.startswith("o1"):
             stream = False
 
         response = client.chat.completions.create(
@@ -148,7 +148,7 @@ class Chat:
         # tokens config
         mode = "chat"
         allowed_system = True
-        if model.id.startswith("o1"):
+        if model.id is not None and model.id.startswith("o1"):
             allowed_system = False
 
         used_tokens = self.window.core.tokens.from_user(
