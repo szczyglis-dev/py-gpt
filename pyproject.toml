@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.3.3"
-description = "Desktop AI Assistant powered by OpenAI o1, gpt-4, gpt-4o, gpt-4-vision, gpt-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, Langchain LLMs, Llama-index, Whisper with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download, and more."
+version = "2.3.4"
+description = "Desktop AI Assistant powered by models like OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/szczyglis-dev/py-gpt"
 repository = "https://github.com/szczyglis-dev/py-gpt"
 documentation = "https://pygpt.readthedocs.io/"
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt4-o", "gpt4-v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
-    "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "presets", "ui", "qt", "pyside"]
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
+    "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "ollama", "presets", "ui", "qt", "pyside"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
@@ -76,6 +76,7 @@ pyserial = "^3.5"
 PySide6 = "6.4.2"
 PySide6-Addons = "6.4.2"
 PySide6-Essentials = "6.4.2"
+python-markdown-math = "^0.8"
 redis = "^5.0.1"
 qt-material = "^2.14"
 SpeechRecognition = "^3.10.1"

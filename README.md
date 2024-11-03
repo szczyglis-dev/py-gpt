@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.3.3** | build: **2024.11.03** | Python: **>=3.10, <3.12**
+Release: **2.3.4** | build: **2024.11.03** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3377,6 +3377,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.3.4 (2024-11-03)**
+
+- Support for LaTeX: Mathematical formulas can now be displayed in the chat window using `KaTeX`library (https://katex.org/). This enhancement allows for real-time rendering of complex mathematical expressions.
+
 **2.3.3 (2024-11-03)**
 
 - Added support for models: OpenAI `o1` and `o1-mini` and `SpeakLeash/bielik-11b-v2.2` (Polish LLM: https://bielik.ai).
@@ -3487,3 +3491,5 @@ Code of the Llama-index offline loaders integrated into app is taken from LlamaH
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/
 
 Code syntax highlight powered by: https://highlightjs.org
+
+LaTeX support by: https://katex.org and https://github.com/mitya57/python-markdown-math

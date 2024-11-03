@@ -1,3 +1,7 @@
+2.3.4 (2024-11-03)
+
+- Support for LaTeX: Mathematical formulas can now be displayed in the chat window using KaTeX library (https://katex.org/). This enhancement allows for real-time rendering of complex mathematical expressions.
+
 2.3.3 (2024-11-03)
 
 - Added support for models: OpenAI o1 and o1-mini and SpeakLeash/bielik-11b-v2.2 (Polish LLM: https://bielik.ai).

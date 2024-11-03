@@ -1,9 +1,7 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.3.3'
-DESCRIPTION = 'Desktop AI Assistant powered by o1, gpt-4o, gpt-4, gpt-4-vision, gpt-3.5, DALL-E 3, Langchain LLMs, Llama-index, ' \
-              'Whisper and more with chatbot, assistant, text completion, vision and image generation, ' \
-              'internet access, chat with files, commands and code execution, file upload and download and more'
+VERSION = '2.3.4'
+DESCRIPTION = 'Desktop AI Assistant powered by models like OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
                    'access, chat with files and more - using OpenAI API and your own API Key. Includes context ' \
@@ -47,7 +45,7 @@ setup(
         'data/js/highlight/es/languages/*'
     ]},
     url='https://github.com/szczyglis-dev/py-gpt',
-    keywords='py_gpt, py-gpt, pygpt, Pygpt, desktop, app, gpt, gpt-4, gpt-4o, gpt-4v, gpt-3.5, tts, whisper, vision, '
+    keywords='py_gpt, py-gpt, pygpt, Pygpt, desktop, app, gpt, o1, gpt-4, gpt-4o, gpt-4v, gpt-3.5, tts, whisper, vision, '
              'chatgpt, dall-e, chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, '
              'langchain, llama-index, presets, ui, qt, pyside',
     install_requires=[
