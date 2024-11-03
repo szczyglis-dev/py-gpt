@@ -94,22 +94,28 @@ class Chat:
                         }
                     }
                 )
-        if len(tools) > 0:
-            response_kwargs['tools'] = tools
-        if max_tokens > 0:
-            response_kwargs['max_tokens'] = max_tokens
 
-        # disable stream in o2 models
+        # fix: o1 compatibility
+        if not model.id.startswith("o1"):
+            response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
+            response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
+            response_kwargs['temperature'] = self.window.core.config.get('temperature')
+            response_kwargs['top_p'] = self.window.core.config.get('top_p')
+            if len(tools) > 0:
+                response_kwargs['tools'] = tools
+
+        if max_tokens > 0:
+            if not model.id.startswith("o1"):
+                response_kwargs['max_tokens'] = max_tokens
+            else:
+                response_kwargs['max_completion_tokens'] = max_tokens
+
         if model.id.startswith("o1"):
             stream = False
 
         response = client.chat.completions.create(
             messages=messages,
             model=model.id,
-            temperature=self.window.core.config.get('temperature'),
-            top_p=self.window.core.config.get('top_p'),
-            frequency_penalty=self.window.core.config.get('frequency_penalty'),
-            presence_penalty=self.window.core.config.get('presence_penalty'),
             stream=stream,
             **response_kwargs
         )
