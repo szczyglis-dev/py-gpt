@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.03 06:00:00                  #
 # ================================================== #
 
 import json
@@ -99,6 +99,10 @@ class Chat:
         if max_tokens > 0:
             response_kwargs['max_tokens'] = max_tokens
 
+        # disable stream in o2 models
+        if model.id.startswith("o1"):
+            stream = False
+
         response = client.chat.completions.create(
             messages=messages,
             model=model.id,
@@ -137,6 +141,10 @@ class Chat:
 
         # tokens config
         mode = "chat"
+        allowed_system = True
+        if model.id.startswith("o1"):
+            allowed_system = False
+
         used_tokens = self.window.core.tokens.from_user(
             prompt,
             system_prompt,
@@ -157,8 +165,9 @@ class Chat:
             user_name = "user"
 
         # append system prompt
-        if system_prompt is not None and system_prompt != "":
-            messages.append({"role": "system", "content": system_prompt})
+        if allowed_system:
+            if system_prompt is not None and system_prompt != "":
+                messages.append({"role": "system", "content": system_prompt})
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
@@ -171,12 +180,18 @@ class Chat:
             )
             for item in items:
                 # input
+                role_name = "system"
+                if not allowed_system:
+                    role_name = "user"
                 if item.input is not None and item.input != "":
-                    messages.append({"role": "system", "name": self.sanitize_name(user_name), "content": item.input})
+                    messages.append({"role": role_name, "name": self.sanitize_name(user_name), "content": item.input})
 
                 # output
+                role_name = "system"
+                if not allowed_system:
+                    role_name = "assistant"
                 if item.output is not None and item.output != "":
-                    messages.append({"role": "system", "name": self.sanitize_name(ai_name), "content": item.output})
+                    messages.append({"role": role_name, "name": self.sanitize_name(ai_name), "content": item.output})
 
         # use vision if available in current model
         content = str(prompt)

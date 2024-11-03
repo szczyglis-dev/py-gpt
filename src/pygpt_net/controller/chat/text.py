@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.03 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -72,6 +72,10 @@ class Text:
         base_mode = mode  # store parent mode
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
+
+        # o1 models: disable stream mode
+        if model.startswith("o1"):
+            stream_mode = False
 
         # create ctx item
         ctx = CtxItem()

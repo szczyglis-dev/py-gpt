@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.3.2",
-        "app.version": "2.3.2",
-        "updated_at": "2024-08-29T00:00:00"
+        "version": "2.3.3",
+        "app.version": "2.3.3",
+        "updated_at": "2024-11-03T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -1313,6 +1313,162 @@
                 "env": []
             },
             "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "o1-preview": {
+            "id": "o1-preview",
+            "name": "o1-preview",
+            "mode": [
+                "chat",
+                "agent",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "o1-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o1-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "o1-mini": {
+            "id": "o1-mini",
+            "name": "o1-mini",
+            "mode": [
+                "chat",
+                "agent",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "o1-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o1-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "bielik-11b-v2.2-instruct:Q4_K_M": {
+            "id": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+            "name": "bielik-11b-v2.2",
+            "mode": [
+                "llama_index",
+                "agent",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 32768,
             "tokens": 4096,
             "default": false
         }

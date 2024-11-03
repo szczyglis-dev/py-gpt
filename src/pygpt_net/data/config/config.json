@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.3.2",
-    "app.version": "2.3.2",
-    "updated_at": "2024-08-29T00:00:00"
+    "version": "2.3.3",
+    "app.version": "2.3.3",
+    "updated_at": "2024-11-03T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -43,7 +43,7 @@
   ],
   "access.voice_control": false,
   "access.voice_control.blacklist": [],
-  "access.voice_control.model": "gpt-3.5-turbo",
+  "access.voice_control.model": "gpt-4o-mini",
   "agent.auto_stop" : true,
   "agent.continue.always": false,
   "agent.goal.notify": true,
@@ -64,7 +64,7 @@
   "cmd": false,
   "ctx": "",
   "ctx.auto_summary": true,
-  "ctx.auto_summary.model": "gpt-3.5-turbo",
+  "ctx.auto_summary.model": "gpt-4o-mini",
   "ctx.convert_lists": false,
   "ctx.counters.all": false,
   "ctx.edit_icons": false,
@@ -91,15 +91,15 @@
   "ctx.sources": true,
   "ctx.use_extra": true,
   "current_model": {
-    "assistant": "gpt-3.5-turbo",
-    "chat": "gpt-3.5-turbo",
+    "assistant": "gpt-4o-mini",
+    "chat": "gpt-4o-mini",
     "completion": "gpt-3.5-turbo-instruct",
     "img": "dall-e-3",
-    "langchain": "gpt-3.5-turbo",
-    "llama_index": "gpt-3.5-turbo",
-    "vision": "gpt-4-turbo",
-    "agent": "gpt-4-turbo",
-    "expert": "gpt-4-turbo"
+    "langchain": "gpt-4o-mini",
+    "llama_index": "gpt-4o-mini",
+    "vision": "gpt-4o",
+    "agent": "gpt-4o",
+    "expert": "gpt-4o"
   },
   "current_preset": {
     "assistant": "",
@@ -122,7 +122,7 @@
   "func_call.native": true,
   "frequency_penalty": 0.0,
   "img_dialog_open": true,
-  "img_prompt_model": "gpt-4-turbo",
+  "img_prompt_model": "gpt-4o",
   "img_raw": true,
   "img_resolution": "1792x1024",
   "img_quality": "standard",
@@ -209,7 +209,7 @@
   "max_tokens_length": 32000,
   "max_total_tokens": 128000,
   "mode": "chat",
-  "model": "gpt-3.5-turbo",
+  "model": "gpt-4o-mini",
   "notepad.num": 1,
   "organization_key": "",
   "output_timestamp": false,

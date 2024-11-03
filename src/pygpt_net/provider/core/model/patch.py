@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 01:00:00                  #
+# Updated Date: 2024.11.03 06:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -263,6 +263,12 @@ class Patch:
                     data["dall-e-2"].name = "dall-e-2"
                 if "dall-e-3" in data:
                     data["dall-e-3"].name = "dall-e-3"
+                updated = True
+
+            # < 2.3.3  <--- add o1-preview, o1-mini, Bielik v2.2
+            if old < parse_version("2.3.3"):
+                print("Migrating models from < 2.3.3...")
+                # add o1-preview, o1-mini, Bielik v2.2
                 updated = True
 
         # update file

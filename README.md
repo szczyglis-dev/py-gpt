@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.3.2** | build: **2024.08.29** | Python: **>=3.10, <3.12**
+Release: **2.3.3** | build: **2024.11.03** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -14,9 +14,9 @@ Release: **2.3.2** | build: **2024.08.29** | Python: **>=3.10, <3.12**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3` or `Mistral`), `Google Gemini` and `Anthropic Claude`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3` or `Mistral`), `Google Gemini` and `Anthropic Claude`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
 For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, `Google` and `Bing` enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
@@ -39,14 +39,14 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-- Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
+- Supports multiple models: `o1`, `gpt-4`, `gpt-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
 - Real-time video camera capture in Vision mode.
 - Internet access via `Google` and `Microsoft Bing`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper`, `Google`, `Google Cloud` and `Microsoft Bing`.
-- Image analysis via `GPT-4 Vision`.
+- Image analysis via `gpt4-o` and `gpt-4 vision`.
 - Crontab / Task scheduler included.
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
@@ -61,7 +61,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes simple painter / drawing tool.
 - Includes optional Autonomous Mode (Agents).
 - Supports multiple languages.
-- Enables the use of all the powerful features of `GPT-4`, `GPT-4V`, and `GPT-3.5`.
+- Enables the use of all the powerful features of `o1`, `gpt-4`, `gpt-4-vision`, and `gpt-3.5`.
 - Requires no previous knowledge of using AI models.
 - Simplifies image generation using `DALL-E 3` and `DALL-E 2`.
 - Possesses the potential to support future OpenAI models.
@@ -3376,6 +3376,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.3.3 (2024-11-03)**
+
+- Added support for models: OpenAI `o1` and `o1-mini` and `SpeakLeash/bielik-11b-v2.2` (Polish LLM: https://bielik.ai).
 
 **2.3.2 (2024-08-29)**
 

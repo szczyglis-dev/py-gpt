@@ -4,9 +4,9 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. By utilizing ``Langchain`` and ``Llama-index``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models (like ``Llama 3`` or ``Mistral``), ``Google Gemini`` and ``Anthropic Claude``.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``gpt-4``, ``gpt-4 Vision``, and ``gpt-3.5``, through the ``OpenAI API``. By utilizing ``Langchain`` and ``Llama-index``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models (like ``Llama 3`` or ``Mistral``), ``Google Gemini`` and ``Anthropic Claude``.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google`` and ``Microsoft Bing``.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``gpt-4o`` and ``gpt-4-vision`` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google`` and ``Microsoft Bing``.
 
 For audio interactions, **PyGPT** includes speech synthesis using the ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, ``Google`` and ``Bing``, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
@@ -22,14 +22,14 @@ Features
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-* Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain`` and ``Llama-index`` like ``Llama 3``, ``Mistral``, ``Google Gemini``, ``Anthropic Claude``, etc.
+* Supports multiple models: ``o1``, ``gpt-4o``, ``gpt-4``, ``gpt-3.5``, and any model accessible through ``Langchain`` and ``Llama-index`` like ``Llama 3``, ``Mistral``, ``Google Gemini``, ``Anthropic Claude``, etc.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short and long-term memory).
 * Real-time video camera capture in Vision mode.
 * Internet access via ``Google`` and ``Microsoft Bing``.
 * Speech synthesis via ``Microsoft Azure``, ``Google``, ``Eleven Labs`` and ``OpenAI`` Text-To-Speech services.
 * Speech recognition via ``OpenAI Whisper``, ``Google``, ``Google Cloud`` and ``Microsoft Bing``.
-* Image analysis via ``GPT-4 Vision``.
+* Image analysis via ``gpt-4 Vision``.
 * Crontab / Task scheduler included.
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
 * Integrated ``Llama-index`` support: chat with ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to model.
@@ -44,7 +44,7 @@ Features
 * Includes simple painter / drawing tool.
 * Includes optional Autonomous Mode (Agents).
 * Supports multiple languages.
-* Enables the use of all the powerful features of ``GPT-4``, ``GPT-4V``, and ``GPT-3.5``.
+* Enables the use of all the powerful features of ``o1``, ``gpt-4``, ``gpt-4-vision``, and ``gpt-3.5``.
 * Requires no previous knowledge of using AI models.
 * Simplifies image generation using ``DALL-E 3`` and ``DALL-E 2``.
 * Possesses the potential to support future OpenAI models.
