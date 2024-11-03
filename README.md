@@ -6,11 +6,11 @@ Release: **2.3.4** | build: **2024.11.03** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
-> Discord: https://pygpt.net/discord | Donate: https://pygpt.net/#donate
-> 
-> Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
+> Discord: https://pygpt.net/discord | Snap: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 > 
 > Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
+> 
+> ❤️ Donate: https://www.buymeacoffee.com/szczyglis
 
 ## Overview
 
