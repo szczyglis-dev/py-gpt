@@ -35,11 +35,9 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 Pull requests are the best way to propose changes to the codebase. We actively welcome your pull requests:
 
-1. Fork the repo and create your branch from `dev`.
-2. If you've added code that should be tested, add tests.
-3. If it is needed, update the documentation.
-4. Ensure the test suite passes.
-5. Issue that pull request targeting the `dev` branch.
+1. Fork the repository.
+2. Add your code.
+4. Make pull request targeting the `master` branch.
 
 ## Use a Consistent Coding Style
 
