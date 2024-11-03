@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.3.3 (2024-11-03)
+
+- Added support for models: OpenAI `o1` and `o1-mini` and `SpeakLeash/bielik-11b-v2.2` (Polish LLM: https://bielik.ai).
+
 # 2.3.2 (2024-08-29)
 
 - Date count fix in SQL query.
