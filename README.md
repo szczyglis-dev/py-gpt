@@ -14,7 +14,7 @@ Release: **2.3.4** | build: **2024.11.03** | Python: **>=3.10, <3.12**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3` or `Mistral`), `Google Gemini` and `Anthropic Claude`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3`,`Mistral` or `Bielik`), `Google Gemini` and `Anthropic Claude`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -39,7 +39,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
-- Supports multiple models: `o1`, `gpt-4`, `gpt-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, etc.
+- Supports multiple models: `o1`, `gpt-4`, `gpt-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `Bielik`, etc.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
 - Real-time video camera capture in Vision mode.
@@ -3491,5 +3491,8 @@ Code of the Llama-index offline loaders integrated into app is taken from LlamaH
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/
 
 Code syntax highlight powered by: https://highlightjs.org
+<<<<<<< HEAD
 
 LaTeX support by: https://katex.org and https://github.com/mitya57/python-markdown-math
+=======
+>>>>>>> b6c66f65d535e42491a6024d5f1ecb2095a925b0
