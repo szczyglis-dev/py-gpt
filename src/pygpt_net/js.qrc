@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/js">
+        <file alias="auto-render.min.js">/home/marcin/Dev/py-gpt/bin/../src/pygpt_net/data/js/katex/auto-render.min.js</file>
         <file alias="highlight.js">/home/marcin/Dev/py-gpt/bin/../src/pygpt_net/data/js/highlight/highlight.js</file>
-    </qresource>
-    <qresource prefix="/js">
         <file alias="highlight.min.js">/home/marcin/Dev/py-gpt/bin/../src/pygpt_net/data/js/highlight/highlight.min.js</file>
+        <file alias="katex.min.js">/home/marcin/Dev/py-gpt/bin/../src/pygpt_net/data/js/katex/katex.min.js</file>
     </qresource>
 </RCC>

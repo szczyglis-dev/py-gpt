@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/css">
+        <file alias="katex.min.css">/home/marcin/Dev/py-gpt/bin/../src/pygpt_net/data/js/katex/katex.min.css</file>
+    </qresource>
+</RCC>

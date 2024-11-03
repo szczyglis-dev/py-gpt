@@ -1,46 +1,48 @@
 import os
 
-
-def generate_icons_file(source_dir, output_file):
-    svg_files = [f for f in os.listdir(source_dir) if f.endswith('.svg')]
-    svg_files.sort()
+def generate_resource_file(source_dirs, output_file, file_extension, resource_prefix):
+    files = []
+    for source_dir in source_dirs:
+        for f in os.listdir(source_dir):
+            if f.endswith(file_extension) or file_extension == '*':
+                files.append((f, os.path.join(source_dir, f)))
+    files.sort()
 
     qrc_content = '<RCC>\n'
-    for svg_file in svg_files:
-        file_path = os.path.join(source_dir, svg_file)
-        qrc_content += '    <qresource prefix="/icons">\n'
-        qrc_content += f'        <file alias="{svg_file}">{file_path}</file>\n'
-        qrc_content += '    </qresource>\n'
+    qrc_content += f'    <qresource prefix="{resource_prefix}">\n'
+    for file_name, file_path in files:
+        qrc_content += f'        <file alias="{file_name}">{file_path}</file>\n'
+    qrc_content += '    </qresource>\n'
     qrc_content += '</RCC>'
 
     with open(output_file, 'w') as file:
         file.write(qrc_content)
     print(f"Generated: {output_file}")
-
-def generate_js_file(source_dir, output_file):
-    js_files = [f for f in os.listdir(source_dir) if f.endswith('.js')]
-    js_files.sort()
-
-    qrc_content = '<RCC>\n'
-    for js_file in js_files:
-        file_path = os.path.join(source_dir, js_file)
-        qrc_content += '    <qresource prefix="/js">\n'
-        qrc_content += f'        <file alias="{js_file}">{file_path}</file>\n'
-        qrc_content += '    </qresource>\n'
-    qrc_content += '</RCC>'
-
-    with open(output_file, 'w') as file:
-        file.write(qrc_content)
-    print(f"Generated: {output_file}")
-
-
-
 
 if __name__ == '__main__':
-    source_dir = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'icons')
-    output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'icons.qrc')
-    generate_icons_file(source_dir, output_file)
+    # icons
+    icons_source_dir = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'icons')
+    icons_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'icons.qrc')
+    generate_resource_file([icons_source_dir], icons_output_file, '.svg', '/icons')
 
-    source_dir = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'highlight')
-    output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'js.qrc')
-    generate_js_file(source_dir, output_file)
+    # javascript
+    js_source_dirs = [
+        os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'highlight'),
+        os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'katex'),
+    ]
+    js_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'js.qrc')
+    generate_resource_file(js_source_dirs, js_output_file, '.js', '/js')
+
+    # CSS
+    css_source_dirs = [
+        os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'katex'),
+    ]
+    css_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'css.qrc')
+    generate_resource_file(css_source_dirs, css_output_file, '.css', '/css')
+
+    # fonts
+    fonts_source_dirs = [
+        os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'data', 'js', 'katex', 'fonts'),
+    ]
+    fonts_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'fonts.qrc')
+    generate_resource_file(fonts_source_dirs, fonts_output_file, '*', '/fonts')
