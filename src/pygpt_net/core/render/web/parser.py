@@ -6,18 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.11.03 21:00:00                  #
 # ================================================== #
 
 import os
 
 import markdown
+from mdx_math import MathExtension
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
-
 from pygpt_net.utils import trans
 
 
@@ -39,7 +36,10 @@ class Parser:
         Initialize markdown parser
         """
         if self.md is None:
-            self.md = markdown.Markdown(extensions=['fenced_code'])
+            self.md = markdown.Markdown(extensions=[
+                'fenced_code',  # code blocks
+                MathExtension(enable_dollar_delimiter=True)  # math formulas
+            ])
 
     def reset(self):
         """

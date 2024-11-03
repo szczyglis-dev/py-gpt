@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 15:00:00                  #
+# Updated Date: 2024.11.03 21:00:00                  #
 # ================================================== #
 
 import json
@@ -25,7 +25,8 @@ from .parser import Parser
 from .syntax_highlight import SyntaxHighlight
 
 import pygpt_net.js_rc
-
+import pygpt_net.css_rc
+import pygpt_net.fonts_rc
 
 class Renderer(BaseRenderer):
 
@@ -892,8 +893,6 @@ class Renderer(BaseRenderer):
         if classes:
             classes_str = ' class="' + " ".join(classes) + '"'
 
-        js_dir = os.path.join(self.window.core.config.get_app_path(), "data", "js").replace("\\", "/")
-
         content = """
         <!DOCTYPE html>
         <html>
@@ -901,6 +900,7 @@ class Renderer(BaseRenderer):
             <style>
                 """ + self.prepare_styles() + """
             </style>
+            
         </head>
         <body """+classes_str+""">
         <div id="container">
@@ -909,8 +909,11 @@ class Renderer(BaseRenderer):
             <div id="_append_output_" class="append_output"></div>
         </div>
         
+        <link rel="stylesheet" href="qrc:///css/katex.min.css">
         <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <script type='text/javascript' src='qrc:///js/highlight.min.js'></script>
+        <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
+        <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
+        <script type="text/javascript" src="qrc:///js/auto-render.min.js"></script>
         <script>
         
         let scrollTimeout = null;
@@ -931,9 +934,29 @@ class Renderer(BaseRenderer):
             }
         });
         function highlightCode() {
+            console.log("high");
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
             });
+            renderMath();            
+        }
+        function renderMath() {
+             var scripts = document.querySelectorAll('script[type^="math/tex"]');
+              scripts.forEach(function(script) {
+                var displayMode = script.type.indexOf('mode=display') > -1;
+                var mathContent = script.textContent || script.innerText;
+                var element = document.createElement(displayMode ? 'div' : 'span');
+                try {
+                  katex.render(mathContent, element, {
+                    displayMode: displayMode,
+                    throwOnError: false
+                  });
+                } catch (err) {
+                  element.textContent = mathContent;
+                  //console.error(err);
+                }
+                script.parentNode.replaceChild(element, script);
+              });
         }
         function scrollToBottom() {
             getScrollPosition();  // store using bridge
