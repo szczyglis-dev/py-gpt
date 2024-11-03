@@ -3491,8 +3491,5 @@ Code of the Llama-index offline loaders integrated into app is taken from LlamaH
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/
 
 Code syntax highlight powered by: https://highlightjs.org
-<<<<<<< HEAD
 
 LaTeX support by: https://katex.org and https://github.com/mitya57/python-markdown-math
-=======
->>>>>>> b6c66f65d535e42491a6024d5f1ecb2095a925b0
