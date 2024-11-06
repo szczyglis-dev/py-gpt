@@ -25,6 +25,7 @@ class Tabs:
         self.active_idx = 0
         self.prev_idx = 0
         self.initialized = False
+        self.appended = False
         self.current = 0
 
     def setup(self):
@@ -52,14 +53,9 @@ class Tabs:
         :param type: Tab type
         :param idx: Tab index
         """
-        meta = None
+        self.appended = True  # lock reload in previous tab
         self.window.core.tabs.append(type, idx)
-        if type == Tab.TAB_CHAT:
-            meta = self.window.controller.ctx.new()  # new context
         self.switch_tab_by_idx(idx + 1)  # switch to new tab
-        if type == Tab.TAB_CHAT:
-            if meta is not None:
-                self.window.controller.ctx.load(meta.id)  # reload
 
     def reload_titles(self):
         """Reload tab titles"""
@@ -77,7 +73,6 @@ class Tabs:
         self.switch_tab(Tab.TAB_CHAT)
         self.window.controller.ctx.load_first()
 
-
     def on_tab_changed(self, idx: int):
         """
         Output tab changed
@@ -86,7 +81,15 @@ class Tabs:
         """
         tab = self.window.core.tabs.get_tab_by_index(idx)
         if tab is None:
+            self.appended = False
             return
+
+        if self.appended:
+            self.appended = False
+            if tab.type == Tab.TAB_CHAT:
+                meta = self.window.controller.ctx.new()  # new context
+                if meta is not None:
+                    self.window.controller.ctx.load(meta.id)  # reload
 
         prev_tab = self.current
         self.current = idx
@@ -96,23 +99,15 @@ class Tabs:
         # check type
         if tab.type == Tab.TAB_NOTEPAD:
             self.window.controller.notepad.opened_once = True
-        if tab.type == Tab.TAB_CHAT:
-            ctx_meta = self.window.core.ctx.current
+        elif tab.type == Tab.TAB_CHAT:
             pid_meta = self.window.core.ctx.output.get_meta(tab.pid)
-            if ctx_meta != pid_meta and pid_meta is not None:
-                if self.get_type_by_idx(prev_tab) == Tab.TAB_CHAT:
-                    self.window.controller.ctx.load(pid_meta)  # only if switching between chat tabs
-            else:
-                curr_pid = tab.pid
-                meta = self.window.core.ctx.get_meta_by_id(ctx_meta)
-                if meta is not None:
-                    render_pid = self.window.controller.chat.render.get_pid(meta)  # get PID from renderer
-                    self.window.controller.ctx.load(pid_meta)  # reload renderer
-
-           # self.window.controller.notepad.opened_once = True
+            meta = self.window.core.ctx.get_meta_by_id(pid_meta)
+            if meta is not None:
+                self.window.controller.ctx.load(pid_meta)  # reload renderer
         elif tab.type == Tab.TAB_TOOL_DRAW:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
+
         if prev_tab != idx:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
@@ -255,6 +250,14 @@ class Tabs:
         :return: tab name
         """
         return self.window.ui.tabs['output'].tabText(self.current)
+
+    def update_tooltip(self, tooltip: str):
+        """
+        Update tab tooltip
+
+        :param tooltip: tooltip
+        """
+        self.window.ui.tabs['output'].setTabToolTip(self.current, tooltip)
 
     def rename(self, idx: int):
         """
