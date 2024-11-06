@@ -447,7 +447,7 @@ class Tabs:
         """
         # load notepads from db
         next_idx = 4
-        notepads_dict = self.window.controller.notepad.import_from_db()
+        notepads_dict = self.window.core.notepad.import_from_db()
         if notepads_dict is not None:
             for idx in notepads_dict:
                 item = notepads_dict[idx]

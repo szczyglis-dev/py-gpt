@@ -8,10 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
-import uuid
 
-from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.notepad import NotepadItem
@@ -256,25 +254,3 @@ class Notepad:
             self.save(idx)
             return True
         return False
-
-    def import_from_db(self) -> dict or None:
-        """Import notepad tabs from database"""
-        self.window.core.notepad.load_all()
-        items = self.window.core.notepad.get_all()
-        if len(items) == 0:
-            return
-        data = {}
-        for idx in items:
-            item = items[idx]
-            tab = {
-                "uuid": uuid.uuid4(),
-                "pid": 0,
-                "idx": item.idx,
-                "type": Tab.TAB_NOTEPAD,
-                "data_id": item.idx,
-                "title": item.title,
-            }
-            if tab['title'] == "":
-                tab['title'] = trans('output.tab.notepad')
-            data[item.idx] = tab
-        return data

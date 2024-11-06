@@ -10,11 +10,14 @@
 # ================================================== #
 
 import datetime
+import uuid
 
 from packaging.version import Version
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.provider.core.notepad.db_sqlite import DbSqliteProvider
+from pygpt_net.utils import trans
 
 
 class Notepad:
@@ -132,3 +135,25 @@ class Notepad:
     def save_all(self):
         """Save all notepads"""
         self.provider.save_all(self.items)
+
+    def import_from_db(self) -> dict or None:
+        """Import notepad tabs from database"""
+        self.load_all()
+        items = self.get_all()
+        if len(items) == 0:
+            return
+        data = {}
+        for idx in items:
+            item = items[idx]
+            tab = {
+                "uuid": uuid.uuid4(),
+                "pid": 0,
+                "idx": item.idx,
+                "type": Tab.TAB_NOTEPAD,
+                "data_id": item.idx,
+                "title": item.title,
+            }
+            if tab['title'] == "":
+                tab['title'] = trans('output.tab.notepad')
+            data[item.idx] = tab
+        return data
