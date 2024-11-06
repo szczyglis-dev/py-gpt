@@ -232,6 +232,7 @@ class Ctx:
         # reset appended data
         self.window.controller.chat.render.reset(meta)
         self.window.controller.chat.render.clear_output(meta)
+        self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
@@ -326,7 +327,6 @@ class Ctx:
 
         # reset appended data / prepare new ctx
         if meta is not None:
-            #self.window.core.ctx.output.prepare(meta)  # reset current PID
             self.window.controller.chat.render.on_load(meta)
 
         # get current settings stored in ctx

@@ -169,6 +169,7 @@ class Render:
         """
         self.get_renderer().on_load(meta)
         self.update()
+        self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
 
     def reset(self, meta: CtxMeta = None):
         """
