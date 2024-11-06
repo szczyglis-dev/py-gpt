@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -110,7 +110,7 @@ class Experts:
                     if mentions:
                         num_calls = 0
                         self.log("Calling experts...")
-                        self.window.controller.chat.render.end(stream=stream_mode)  # close previous render
+                        self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream_mode)  # close previous render
                         for expert_id in mentions:
                             if not self.window.core.experts.exists(expert_id):
                                 self.log("Expert not found: " + expert_id)

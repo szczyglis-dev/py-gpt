@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -39,6 +39,7 @@ from pygpt_net.core.plugins import Plugins
 from pygpt_net.core.presets import Presets
 from pygpt_net.core.prompt import Prompt
 from pygpt_net.core.settings import Settings
+from pygpt_net.core.tabs import Tabs
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
 from pygpt_net.core.web import Web
@@ -86,6 +87,7 @@ class Container:
         self.presets = Presets(window)
         self.prompt = Prompt(window)
         self.settings = Settings(window)
+        self.tabs = Tabs(window)
         self.tokens = Tokens(window)
         self.updater = Updater(window)
         self.web = Web(window)

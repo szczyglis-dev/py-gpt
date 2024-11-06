@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import os
 
+from pygpt_net.core.tabs.tab import Tab
 from .capture import Capture
 from .common import Common
 
@@ -56,6 +57,8 @@ class Painter:
 
     def save(self):
         """Store current image"""
+        if not hasattr(self.window.ui, 'painter'):
+            return
         path = os.path.join(self.common.get_capture_dir(), '_current.png')
         self.window.ui.painter.image.save(path)
 
@@ -65,6 +68,8 @@ class Painter:
 
     def restore(self):
         """Restore previous image"""
+        if not hasattr(self.window.ui, 'painter'):
+            return
         path = os.path.join(self.common.get_capture_dir(), '_current.png')
         if os.path.exists(path):
             self.window.ui.painter.image.load(path)
@@ -79,7 +84,7 @@ class Painter:
 
         :return: True if painter is current active tab
         """
-        return self.window.controller.ui.current_tab == self.window.controller.ui.tab_idx['draw']
+        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_DRAW
 
     def reload(self):
         """Reload painter"""

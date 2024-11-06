@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 
@@ -32,7 +32,8 @@ class Nodes:
         if type == 'font.toolbox':
             self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.toolbox'))
         elif type == 'font.chat.output':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+            for pid in self.window.ui.nodes[key]:
+                self.window.ui.nodes[key][pid].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         elif type == 'font.chat.input':
             self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.input'))
         elif type == 'font.ctx.list':
@@ -96,38 +97,42 @@ class Nodes:
         # apply to notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
-            for id in range(1, num_notepads + 1):
-                if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+            for id in self.window.ui.notepad:
+                self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
 
         # apply to calendar
-        self.window.ui.calendar['note'].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        if 'note' in self.window.ui.calendar:
+            self.window.ui.calendar['note'].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
 
         # update value
         size = self.window.core.config.get('font_size')
-        self.window.ui.calendar['note'].value = size
+        if 'note' in self.window.ui.calendar:
+            self.window.ui.calendar['note'].value = size
         if num_notepads > 0:
             for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].textarea.value = size
 
         # plain text/markdown
-        self.window.ui.nodes['output_plain'].value = size
-        self.window.ui.nodes['output_plain'].update()
+        for pid in self.window.ui.nodes['output_plain']:
+            self.window.ui.nodes['output_plain'][pid].value = size
+            self.window.ui.nodes['output_plain'][pid].update()
 
         # ------------------------
 
         # zoom, (Chromium, web engine)
         if self.window.controller.chat.render.get_engine() == 'web':
             zoom = self.window.core.config.get('zoom')
-            self.window.ui.nodes['output'].value = zoom
-            self.window.ui.nodes['output'].update_zoom()
+            for pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].value = zoom
+                self.window.ui.nodes['output'][pid].update_zoom()
             self.window.controller.chat.render.on_theme_change()
 
         # font size, legacy (markdown)
         elif self.window.controller.chat.render.get_engine() == 'legacy':
-            self.window.ui.nodes['output'].value = size
-            self.window.ui.nodes['output'].update()
+            for pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].value = size
+                self.window.ui.nodes['output'][pid].update()
 
         # update tools
         self.window.tools.setup_theme()

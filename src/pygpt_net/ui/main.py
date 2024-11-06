@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.21 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import os
@@ -253,6 +253,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.plugins.destroy()
         print("Saving ctx groups...")
         self.controller.ctx.save_all()
+        print("Saving tabs...")
+        self.core.tabs.save()
         print("Saving notepad...")
         self.controller.notepad.save_all()
         print("Saving calendar...")

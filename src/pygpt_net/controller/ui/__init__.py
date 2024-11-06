@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 15:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
 
 from pygpt_net.utils import trans
+
 from .mode import Mode
+from .tabs import Tabs
 from .vision import Vision
-from ...core.access.events import AppEvent
 
 
 class UI:
@@ -26,14 +27,8 @@ class UI:
         """
         self.window = window
         self.mode = Mode(window)
+        self.tabs = Tabs(window)
         self.vision = Vision(window)
-        self.current_tab = 0
-        self.tab_idx = {
-            'chat': 0,
-            'files': 1,
-            'calendar': 2,
-            'draw': 3,
-        }
         self.colors = {
             0: {'label': 'label.color.default', 'color': QColor(100, 100, 100), 'font': QColor(255, 255, 255)},
             1: {'label': 'label.color.red', 'color': QColor(255, 0, 0), 'font': QColor(255, 255, 255)},
@@ -50,6 +45,10 @@ class UI:
         """Setup UI"""
         self.update_font_size()
         self.update()
+
+    def pre_setup(self):
+        """Post setup UI"""
+        self.tabs.setup()
 
     def update(self):
         """Update all elements"""
@@ -156,70 +155,6 @@ class UI:
         if allowed:
             label += ' (+)'
         self.window.ui.nodes['chat.label'].setText(str(label))
-
-    def output_tab_changed(self, idx: int):
-        """
-        Output tab changed
-
-        :param idx: tab index
-        """
-        prev_tab = self.current_tab
-        self.current_tab = idx
-        self.mode.update()
-        self.vision.update()
-
-        if idx == self.tab_idx['calendar']:
-            self.window.controller.notepad.opened_once = True
-        elif idx == self.tab_idx['draw']:
-            if self.window.core.config.get('vision.capture.enabled'):
-                self.window.controller.camera.enable_capture()
-        if prev_tab != idx:
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
-
-    def next_tab(self):
-        """Switch to next tab"""
-        current = self.window.ui.tabs['output'].currentIndex()
-        all = len(self.window.ui.tabs['output'].children())
-        next = current + 1
-        if next >= all:
-            next = 0
-        self.switch_tab_by_idx(next)
-
-    def prev_tab(self):
-        """Switch to previous tab"""
-        current = self.window.ui.tabs['output'].currentIndex()
-        all = len(self.window.ui.tabs['output'].children())
-        prev = current - 1
-        if prev < 0:
-            prev = all - 1
-        self.switch_tab_by_idx(prev)
-
-    def switch_tab(self, tab: str):
-        """
-        Switch tab
-
-        :param tab: tab name
-        """
-        if tab in self.tab_idx:
-            idx = self.tab_idx[tab]
-            self.switch_tab_by_idx(idx)
-
-    def switch_tab_by_idx(self, idx: int):
-        """
-        Switch tab by index
-
-        :param idx: tab index
-        """
-        self.window.ui.tabs['output'].setCurrentIndex(idx)
-        self.output_tab_changed(idx)
-
-    def get_current_tab_name(self) -> str:
-        """
-        Get current tab name
-
-        :return: tab name
-        """
-        return self.window.ui.tabs['output'].tabText(self.current_tab)
 
     def show_global_stop(self):
         """Show global stop button"""

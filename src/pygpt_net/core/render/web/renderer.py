@@ -6,256 +6,296 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.03 21:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import json
-import os
 import re
-import html
 from datetime import datetime
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
 
+from .body import Body
+from .helpers import Helpers
 from .parser import Parser
-from .syntax_highlight import SyntaxHighlight
+from .pid import PidData
 
-import pygpt_net.js_rc
-import pygpt_net.css_rc
-import pygpt_net.fonts_rc
 
 class Renderer(BaseRenderer):
-
     NODE_INPUT = 0
     NODE_OUTPUT = 1
 
     def __init__(self, window=None):
         super(Renderer, self).__init__(window)
         """
-        Web renderer
+        WebEngine renderer
 
         :param window: Window instance
         """
         self.window = window
+        self.body = Body(window)
+        self.helpers = Helpers(window)
         self.parser = Parser(window)
-        self.highlight = SyntaxHighlight(window)
-        self.images_appended = []
-        self.urls_appended = []
-        self.buffer = ""  # stream buffer
-        self.is_cmd = False
-        self.img_width = 400
-        self.html = ""  # html buffer
-        self.document = ""
-        self.initialized = False
-        self.loaded = False  # page loaded
-        self.item = None  # current item
-        self.use_buffer = False  # use html buffer
-        self.name_user = trans("chat.name.user")
-        self.name_bot = trans("chat.name.bot")
-        self.last_time_called = 0
-        self.cooldown = 1 / 6  # max chunks to parse per second
-        self.throttling_min_chars = 5000  # min chunk chars to activate cooldown
+        self.pids = {}  # per node data
 
-    def init(self):
+    def prepare(self):
+        """
+        Prepare renderer
+        """
+        self.pids = {}
+
+
+    def on_load(self, meta: CtxMeta = None):
+        """
+        On load (meta) event
+
+        :param meta: context meta
+        """
+        node = self.get_output_node(meta)
+        node.set_meta(meta)
+        self.reset(meta)
+
+    def on_page_loaded(self, meta: CtxMeta = None):
+        """
+        On page loaded callback from WebEngine widget
+
+        :param meta: context meta
+        """
+        if meta is None:
+            return
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+        self.pids[pid].loaded = True
+        if self.pids[pid].html != "" and not self.pids[pid].use_buffer:
+            self.clear_chunks_input(pid)
+            self.clear_chunks_output(pid)
+            self.clear_nodes(pid)
+            self.append(pid, self.pids[pid].html, flush=True)
+            self.pids[pid].html = ""
+
+    def get_pid(self, meta: CtxMeta):
+        """
+        Get PID for context meta
+        
+        :param meta: context PID
+        """
+        return self.window.core.ctx.output.get_pid(meta)
+
+    def get_or_create_pid(self, meta: CtxMeta):
+        """
+        Get PID for context meta and create PID data (if not exists)
+        
+        :param meta: context PID
+        """
+        if meta is not None:
+            pid = self.get_pid(meta)
+            if pid not in self.pids:
+                self.pid_create(pid, meta)
+            return pid
+
+    def pid_create(self, pid, meta: CtxMeta):
+        """
+        Create PID data
+        
+        :param pid: PID
+        :param meta: context meta
+        """
+        if pid is not None:
+            self.pids[pid] = PidData(pid, meta)
+
+    def init(self, pid):
         """
         Initialize renderer
+
+        :param pid: context PID
         """
-        if not self.initialized:
-            self.flush()
-            self.initialized = True
+        if not self.pids[pid].initialized:
+            self.flush(pid)
+            self.pids[pid].initialized = True
         else:
-            self.clear_chunks()
+            self.clear_chunks(pid)
 
-    def reset_names(self):
-        """Reset names"""
-        self.name_user = trans("chat.name.user")
-        self.name_bot = trans("chat.name.bot")
-
-    def begin(self, stream: bool = False):
+    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render begin
 
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        self.init()
-        self.reset_names()
+        pid = self.get_or_create_pid(meta)
+        self.init(pid)
+        self.reset_names(meta)
 
-    def end(self, stream: bool = False):
+    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end
 
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        if self.item is not None and stream:
-            self.append_context_item(self.item)
-            self.item = None
+        pid = self.get_or_create_pid(meta)
+        if self.pids[pid].item is not None and stream:
+            self.append_context_item(meta, self.pids[pid].item)
+            self.pids[pid].item = None
 
-    def end_extra(self, stream: bool = False):
+    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end extra
-
+        
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        self.to_end()
+        self.to_end(ctx)
 
-    def stream_begin(self):
-        """Render stream begin"""
+    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream begin
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
         pass  # do nothing
 
-    def stream_end(self):
-        """Render stream end"""
+    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream end
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
+        pid = self.get_or_create_pid(meta)
         if self.window.controller.agent.enabled():
-            if self.item is not None:
-                self.append_context_item(self.item)
-                self.item = None
+            if self.pids[pid].item is not None:
+                self.append_context_item(meta, self.pids[pid].item)
+                self.pids[pid].item = None
 
-    def clear_output(self):
-        """Clear output"""
-        self.reset()
-
-    def clear_input(self):
-        """Clear input"""
-        self.get_input_node().clear()
-
-    def reset(self):
-        """Reset"""
-        self.parser.reset()
-        self.item = None
-        self.html = ""
-        self.clear_nodes()
-        self.clear_chunks()
-        self.images_appended = []
-        self.urls_appended = []
-        self.get_output_node().reset_current_content()
-        self.reset_names()
-
-    def reload(self):
-        """Reload output, called externally only on theme change to redraw content"""
-        self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
-
-    def update_names(self, item: CtxItem):
-        """
-        Update names
-
-        :param item: context item
-        """
-        if item.input_name is not None and item.input_name != "":
-            self.name_user = item.input_name
-        if item.output_name is not None and item.output_name != "":
-            self.name_bot = item.output_name
-
-    def append_context(self, items: list, clear: bool = True):
+    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
         """
         Append all context to output
-
-        :param items: Context items
+        
+        :param meta: Context meta
+        :param items: context items
         :param clear: True if clear all output before append
         """
-        self.init()
+        if len(items) == 0:
+            if meta is None:
+                return
+
+        pid = self.get_or_create_pid(meta)
+        self.init(pid)
 
         if clear:
-            self.clear_output()
+            self.reset(meta)
         i = 0
-        self.use_buffer = True
-        self.html = ""
+
+        self.pids[pid].use_buffer = True
+        self.pids[pid].html = ""
         for item in items:
-            self.update_names(item)
+            self.update_names(meta, item)
             item.idx = i
             if i == 0:
                 item.first = True
-            self.append_context_item(item)  # to html buffer
+            self.append_context_item(meta, item)  # to html buffer
             i += 1
-        self.use_buffer = False
+        self.pids[pid].use_buffer = False
 
         # flush
-        if self.html != "":
-            self.append(self.html, flush=True)  # flush buffer if page loaded, otherwise it will be flushed on page load
+        if self.pids[pid].html != "":
+            self.append(pid, self.pids[pid].html,
+                        flush=True)  # flush buffer if page loaded, otherwise it will be flushed on page load
 
-    def append_input(self, item: CtxItem, flush: bool = True, node: bool = False):
+    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
         Append text input to output
 
-        :param item: context item
+        :param meta: context meta
+        :param ctx: context item
         :param flush: flush HTML
-        :param node: True if force append node
+        :param append: True if force append node
         """
+        pid = self.get_or_create_pid(meta)
         if not flush:
-            self.clear_chunks_input()
+            self.clear_chunks_input(pid)
 
-        self.update_names(item)
-
-        if item.input is None or item.input == "":
+        self.update_names(meta, ctx)
+        if ctx.input is None or ctx.input == "":
             return
 
-        text = item.input
-
+        text = ctx.input
         # check if it is a command response
         is_cmd = False
-        if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
+        if ctx.input.strip().startswith("[") and ctx.input.strip().endswith("]"):
             is_cmd = True
 
         # hidden internal call
-        if item.internal \
+        if ctx.internal \
                 and not is_cmd \
-                and not item.first \
-                and not item.input.strip().startswith("user: ")\
-                and not item.input.strip().startswith("@"):  # expert says:
+                and not ctx.first \
+                and not ctx.input.strip().startswith("user: ") \
+                and not ctx.input.strip().startswith("@"):  # expert says:
             if flush:
-                content = self.prepare_node('>>>', self.NODE_INPUT, item)
-                self.append_chunk_input(item, content, True)
+                content = self.prepare_node(meta, ctx, '>>>', self.NODE_INPUT)
+                self.append_chunk_input(meta, ctx, content, True)
             else:
-                self.append_node('>>>', self.NODE_INPUT, item)
+                self.append_node(meta, ctx, '>>>', self.NODE_INPUT)
             return
         else:
             # don't show user prefix if provided in internal call goal update
-            if item.internal and item.input.startswith("user: "):
-                text = re.sub(r'^user: ', '> ', item.input)
+            if ctx.internal and ctx.input.startswith("user: "):
+                text = re.sub(r'^user: ', '> ', ctx.input)
 
         if flush:  # to chunk buffer
-            content = self.prepare_node(text.strip(), self.NODE_INPUT, item)
-            if self.is_stream() and not node:
-                self.append_chunk_input(item, content, False)
+            content = self.prepare_node(meta, ctx, text.strip(), self.NODE_INPUT)
+            if self.is_stream() and not append:
+                self.append_chunk_input(meta, ctx, content, False)
             else:
-                self.append_node(text.strip(), self.NODE_INPUT, item)
+                self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
         else:
-            self.append_node(text.strip(), self.NODE_INPUT, item)
+            self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
 
-    def append_output(self, item: CtxItem, flush: bool = True):
+    def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True):
         """
         Append text output to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param flush: flush HTML
         """
-        if item.output is None or item.output == "":
+        if ctx.output is None or ctx.output == "":
             return
-        self.append_node(item.output.strip(), self.NODE_OUTPUT, item)
+        self.append_node(meta, ctx, ctx.output.strip(), self.NODE_OUTPUT)
 
-    def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output chunk to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
         """
-        self.item = item
+        pid = self.get_or_create_pid(meta)
+        self.pids[pid].item = ctx
         if text_chunk is None or text_chunk == "":
             if begin:
-                self.buffer = ""  # always reset buffer
+                self.pids[pid].buffer = ""  # always reset buffer
             return
 
-        self.update_names(item)
+        self.update_names(meta, ctx)
         raw_chunk = str(text_chunk)
         if begin:
-            self.buffer = ""  # reset buffer
-            self.is_cmd = False  # reset command flag
-            self.clear_chunks_output()
-        self.buffer += raw_chunk
+            self.pids[pid].buffer = ""  # reset buffer
+            self.pids[pid].is_cmd = False  # reset command flag
+            self.clear_chunks_output(pid)
+        self.pids[pid].buffer += raw_chunk
 
         """
         # cooldown (throttling) to prevent high CPU usage on huge text chunks
@@ -268,381 +308,393 @@ class Renderer(BaseRenderer):
         """
 
         # parse chunks
-        to_append = self.buffer
-        if has_unclosed_code_tag(self.buffer):
+        to_append = self.pids[pid].buffer
+        if has_unclosed_code_tag(self.pids[pid].buffer):
             to_append += "\n```"  # fix for code block without closing ```
         html = self.parser.parse(to_append)
         escaped_chunk = json.dumps(html)
         try:
-            self.get_output_node().page().runJavaScript(f"replaceOutput('{self.name_bot}', {escaped_chunk});")
+            self.get_output_node(meta).page().runJavaScript(
+                f"replaceOutput('{self.pids[pid].name_bot}', {escaped_chunk});")
         except Exception as e:
             pass
 
-    def append_chunk_input(self, item: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk_input(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output chunk to output
 
-        :param item: context item
+        :param meta: context meta
+        :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
         """
         if text_chunk is None or text_chunk == "":
             return
-        if item.hidden:
+        if ctx.hidden:
             return
-        self.clear_chunks_input()
-        chunk = self.format_chunk(text_chunk)
+
+        pid = self.get_or_create_pid(meta)
+        self.clear_chunks_input(pid)
+        chunk = self.helpers.format_chunk(text_chunk)
         escaped_chunk = json.dumps(chunk)
         try:
-            self.get_output_node().page().runJavaScript(f"appendToInput({escaped_chunk});")
+            self.get_output_node(meta).page().runJavaScript(f"appendToInput({escaped_chunk});")
         except Exception as e:
             pass
 
-    def append_block(self):
-        """Append block to output"""
-        pass
-
-    def to_end(self):
-        """Move cursor to end of output"""
-        pass
-
-    def prepare_node(self, html: str, type: int = 1, item: CtxItem = None) -> str:
-        """
-        Prepare node HTML
-
-        :param html: html text
-        :param type: type of message
-        :param item: CtxItem instance
-        :return: prepared HTML
-        """
-        if type == self.NODE_OUTPUT:
-            return self.prepare_node_output(html, item)
-        elif type == self.NODE_INPUT:
-            return self.prepare_node_input(html, item)
-
-    def prepare_node_input(self, html: str, item: CtxItem = None) -> str:
-        """
-        Prepare input node
-
-        :param html: html text
-        :param item: CtxItem instance
-        :return: prepared HTML
-        """
-        id = "msg-user-" + str(item.id) if item is not None else ""
-        content = self.append_timestamp(self.format_user_text(html), item, type=self.NODE_INPUT)
-        html = "<p>" + content + "</p>"
-        html = self.post_format_text(html)
-        name = self.name_user
-        if item.internal and item.input.startswith("[{"):
-            name = "System"
-        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(id, name) + html + "</div></div>"
-        return html
-
-    def prepare_node_output(self, html: str, item: CtxItem = None) -> str:
-        """
-        Prepare output node
-
-        :param html: html text
-        :param item: CtxItem instance
-        :return: prepared HTML
-        """
-        id = "msg-bot-" + str(item.id) if item is not None else ""
-        html = self.pre_format_text(html)
-        html = self.append_timestamp(html, item, type=self.NODE_OUTPUT)
-        html = self.parser.parse(html)
-        html = self.post_format_text(html)
-        extra = self.append_extra(item, footer=True, render=False)
-        footer_icons = self.prepare_action_icons(item)
-        html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(id, self.name_bot) + html + '<div class="msg-extra">'+extra+'</div>' +footer_icons+ '</div></div>'
-        return html
-
-    def append_node(self, html: str, type: int = 1, item: CtxItem = None):
+    def append_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1):
         """
         Append and format raw text to output
 
+        :param meta: context meta
         :param html: text to append
         :param type: type of message
-        :param item: CtxItem instance
+        :param ctx: CtxItem instance
         """
-        if item.hidden:
+        if ctx.hidden:
             return
-        self.append(self.prepare_node(html, type, item))
 
-    def clear_chunks_output(self):
-        """Clear chunks from output"""
-        if not self.loaded:
-            js = "var element = document.getElementById('_append_output_');"
-            js += "if (element) { element.innerHTML = ''; }"
-        else:
-            js = "clearOutput();"
-        try:
-            self.get_output_node().page().runJavaScript(js)
-        except Exception as e:
-            pass
+        pid = self.get_or_create_pid(meta)
+        self.append(pid, self.prepare_node(meta, ctx, html, type))
 
-    def clear_chunks_input(self):
-        """Clear chunks from input"""
-        if not self.loaded:
-            js = "var element = document.getElementById('_append_input_');"
-            js += "if (element) { element.innerHTML = ''; }"
-        else:
-            js = "clearInput();"
-        try:
-            self.get_output_node().page().runJavaScript(js)
-        except Exception as e:
-            pass
-
-    def clear_nodes(self):
-        """Clear nodes from output"""
-        if not self.loaded:
-            js = "var element = document.getElementById('_nodes_');"
-            js += "if (element) { element.innerHTML = ''; }"
-        else:
-            js = "clearNodes();"
-        try:
-            self.get_output_node().page().runJavaScript(js)
-        except Exception as e:
-            pass
-
-    def clear_chunks(self):
-        """Clear chunks from output"""
-        self.clear_chunks_input()
-        self.clear_chunks_output()
-
-    def append(self, html: str, flush: bool = False):
+    def append(self, pid, html: str, flush: bool = False):
         """
         Append text to output
-
+        
+        :param pid: ctx pid
         :param html: HTML code
         :param flush: True if flush only
         """
-        if self.loaded and not self.use_buffer:
-            self.clear_chunks()
-            self.flush_output(html)  # render
-            self.html = ""
+        if self.pids[pid].loaded and not self.pids[pid].use_buffer:
+            self.clear_chunks(pid)
+            self.flush_output(pid, html)  # render
+            self.pids[pid].html = ""
         else:
             if not flush:
-                self.html += html  # to buffer
+                self.pids[pid].html += html  # to buffer
 
-    def append_context_item(self, item: CtxItem):
+    def append_context_item(self, meta: CtxMeta, ctx: CtxItem):
         """
         Append context item to output
 
-        :param item: context item
+        :param meta: context meta
+        :param ctx: context item
         """
-        self.append_input(item, flush=False)
-        self.append_output(item, flush=False)  # + extra
+        self.append_input(meta, ctx, flush=False)
+        self.append_output(meta, ctx, flush=False)  # + extra
 
-    def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False, render: bool = True) -> str:
         """
-        Get image HTML
-
-        :param url: URL to image
-        :param num: number of image
-        :param num_all: number of all images
+        Append extra data (images, files, etc.) to output
+        
+        :param meta: context meta
+        :param ctx: context item
+        :param footer: True if it is a footer
+        :param render: True if render, False if only return HTML
         :return: HTML code
         """
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
-        return """<a href="{url}"><img src="{path}" class="image"></a>
-        <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""". \
-            format(prefix=trans('chat.prefix.img'),
-                   url=url,
-                   path=path,
-                   num=num_str)
-
-    def get_url_html(self, url: str, num: int = None, num_all: int = None) -> str:
-        """
-        Get URL HTML
-
-        :param url: external URL
-        :param num: number of URL
-        :param num_all: number of all URLs
-        :return: HTML code
-        """
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
-        return """<b>{prefix}{num}:</b> <a href="{url}">{url}</a>""". \
-            format(prefix=trans('chat.prefix.url'),
-                   url=url,
-                   num=num_str)
-
-    def get_docs_html(self, docs: list) -> str:
-        """
-        Get Llama-index doc metadata HTML
-
-        :param docs: list of document metadata
-        :return: HTML code
-        """
+        pid = self.get_pid(meta)
+        appended = []
         html = ""
-        html_sources = ""
-        num = 1
-        max = 3
-        try:
-            for item in docs:
-                for uuid, doc_json in item.items():
-                    """
-                    Example doc (file metadata):
-                    {'a2c7af6d-3c34-4c28-bf2d-6161e7fb525e': {
-                        'file_path': '/home/user/.config/pygpt-net/data/my_cars.txt',
-                        'file_name': '/home/user/.config/pygpt-net/data/my_cars.txt', 'file_type': 'text/plain',
-                        'file_size': 28, 'creation_date': '2024-03-03', 'last_modified_date': '2024-03-03',
-                        'last_accessed_date': '2024-03-03'}}
-                    """
-                    doc_parts = []
-                    for key in doc_json:
-                        doc_parts.append("<b>{}:</b> {}".format(key, doc_json[key]))
-                    html_sources += "<p><small>[{}] {}: {}</small></p>".format(num, uuid, ", ".join(doc_parts))
-                    num += 1
-                if num >= max:
-                    break
-        except Exception as e:
-            pass
+        # images
+        c = len(ctx.images)
+        if c > 0:
+            n = 1
+            for image in ctx.images:
+                # don't append if it is an external url
+                if image.startswith("http"):
+                    continue
+                if image in appended or image in self.pids[pid].images_appended:
+                    continue
+                try:
+                    appended.append(image)
+                    html += self.body.get_image_html(image, n, c)
+                    self.pids[pid].images_appended.append(image)
+                    n += 1
+                except Exception as e:
+                    pass
 
-        if html_sources != "":
-            html += "<p><small><b>{prefix}:</b></small></p>".format(prefix=trans('chat.prefix.doc'))
-            html += "<div class=\"cmd\">"
-            html += "<p>" + html_sources + "</p>"
-            html += "</div> "
+        # files and attachments, TODO check attachments
+        c = len(ctx.files)
+        if c > 0:
+            n = 1
+            for file in ctx.files:
+                if file in appended:
+                    continue
+                try:
+                    appended.append(file)
+                    html += self.body.get_file_html(file, n, c)
+                    n += 1
+                except Exception as e:
+                    pass
+
+        # urls
+        c = len(ctx.urls)
+        if c > 0:
+            urls_html = []
+            n = 1
+            for url in ctx.urls:
+                if url in appended or url in self.pids[pid].urls_appended:
+                    continue
+                try:
+                    appended.append(url)
+                    urls_html.append(self.body.get_url_html(url, n, c))
+                    self.pids[pid].urls_appended.append(url)
+                    n += 1
+                except Exception as e:
+                    pass
+            if urls_html:
+                html += "<br/>" + "<br/>".join(urls_html)
+
+        # docs json
+        if self.window.core.config.get('ctx.sources'):
+            if ctx.doc_ids is not None and len(ctx.doc_ids) > 0:
+                try:
+                    docs = self.body.get_docs_html(ctx.doc_ids)
+                    html += docs
+                except Exception as e:
+                    pass
+        # flush
+        if render and html != "":
+            if footer:
+                # append to output
+                self.append(pid, html)
+            else:
+                # append to existing message box using JS
+                escaped_html = json.dumps(html)
+                self.get_output_node(meta).page().runJavaScript("appendExtra('{}',{});".format(ctx.id, escaped_html))
+
         return html
 
-    def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:
-        """
-        Get file HTML
-
-        :param url: URL to file
-        :param num: number of file
-        :param num_all: number of all files
-        :return: HTML code
-        """
-        num_str = ""
-        if num is not None and num_all is not None and num_all > 1:
-            num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
-        return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""". \
-            format(prefix=trans('chat.prefix.file'),
-                   url=url,
-                   path=path,
-                   num=num_str)
-
-    def flush_output(self, html: str):
-        """
-        Flush output
-
-        :param html: HTML code
-        """
-        escaped_html = json.dumps(html)
-        try:
-            self.get_output_node().page().runJavaScript(f"appendNode({escaped_html});")
-            self.get_output_node().update_current_content()
-        except Exception as e:
-            pass
-
-    def append_timestamp(self, text: str, item: CtxItem, type: int = None) -> str:
+    def append_timestamp(self, ctx: CtxItem, text: str, type: int = None) -> str:
         """
         Append timestamp to text
 
+        :param ctx: context item
         :param text: Input text
-        :param item: Context item
         :param type: Type of message
         :return: Text with timestamp (if enabled)
         """
-        if item is not None and item.input_timestamp is not None:
+        if ctx is not None and ctx.input_timestamp is not None:
             timestamp = None
             if type == self.NODE_INPUT:
-                timestamp = item.input_timestamp
+                timestamp = ctx.input_timestamp
             elif type == self.NODE_OUTPUT:
-                timestamp = item.output_timestamp
+                timestamp = ctx.output_timestamp
             if timestamp is not None:
                 ts = datetime.fromtimestamp(timestamp)
                 hour = ts.strftime("%H:%M:%S")
                 text = '<span class="ts">{}: </span>{}'.format(hour, text)
         return text
 
-    def replace_code_tags(self, text: str) -> str:
+    def reset(self, meta: CtxMeta = None):
         """
-        Replace cmd code tags
+        Reset
 
-        :param text:
-        :return: replaced text
+        :param meta: Context meta
         """
-        pattern = r"~###~(.*?)~###~"
-        replacement = r'<p class="cmd">\1</p>'
-        return re.sub(pattern, replacement, text)
+        pid = self.get_pid(meta)
+        if pid is not None and pid in self.pids:  # in PIDs only if at least one ctx item is appended
+            self.reset_by_pid(pid)
+        else:
+            # there is no pid here if empty context so check for meta, and clear current
+            if meta is not None:
+                # create new PID using only meta
+                pid = self.get_or_create_pid(meta)
+                self.reset_by_pid(pid)
 
-    def pre_format_text(self, text: str) -> str:
+    def reset_by_pid(self, pid):
         """
-        Pre-format text
+        Reset by PID
 
-        :param text: text to format
-        :return: formatted text
+        :param pid: context PID
         """
-        text = text.strip()
-        text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
-        text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
+        self.parser.reset()
+        self.pids[pid].item = None
+        self.pids[pid].html = ""
+        self.clear_nodes(pid)
+        self.clear_chunks(pid)
+        self.pids[pid].images_appended = []
+        self.pids[pid].urls_appended = []
+        self.get_output_node_by_pid(pid).reset_current_content()
+        self.reset_names_by_pid(pid)
 
-        # replace cmd tags
-        text = self.replace_code_tags(text)
+    def clear_input(self):
+        """Clear input"""
+        self.get_input_node().clear()
 
-        # replace %workdir% with current workdir
-        local_prefix = self.window.core.filesystem.get_workdir_prefix()
-        safe_local_prefix = local_prefix.replace('\\', '\\\\').replace('\\.', '\\\\.')  # windows fix
-        replacement = f'({safe_local_prefix}\\1)'
+    def clear_output(self, meta: CtxMeta = None):
+        """
+        Clear output
+
+        :param meta: Context meta
+        """
+        self.reset(meta)
+
+    def clear_chunks(self, pid):
+        """
+        Clear chunks from output
+
+        :param pid: context PID
+        """
+        self.clear_chunks_input(pid)
+        self.clear_chunks_output(pid)
+
+    def clear_chunks_input(self, pid):
+        """
+        Clear chunks from input
+
+        :pid: context PID
+        """
+        if not self.pids[pid].loaded:
+            js = "var element = document.getElementById('_append_input_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearInput();"
         try:
-            text = re.sub(r'\(%workdir%([^)]+)\)', replacement, text)
+            self.get_output_node_by_pid(pid).page().runJavaScript(js)
         except Exception as e:
             pass
-        return text
 
-    def post_format_text(self, text: str) -> str:
+    def clear_chunks_output(self, pid):
         """
-        Post-format text
+        Clear chunks from output
 
-        :param text: text to format
-        :return: formatted text
+        :pid: context PID
         """
-        return text.strip()
+        if not self.pids[pid].loaded:
+            js = "var element = document.getElementById('_append_output_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearOutput();"
+        try:
+            self.get_output_node_by_pid(pid).page().runJavaScript(js)
+        except Exception as e:
+            pass
 
-    def format_user_text(self, text: str) -> str:
+    def clear_nodes(self, pid):
         """
-        Post-format user text
+        Clear nodes from output
 
-        :param text: text to format
-        :return: formatted text
+        :pid: context PID
         """
-        text = html.escape(text).replace("\n", "<br>")
-        # append cmd tags if response from command detected
-        if (text.strip().startswith("[") or text.strip().startswith("&gt; [")) and text.strip().endswith("]"):
-            text = '<div class="cmd">&gt; {}</div>'.format(text)
-        return text
+        if not self.pids[pid].loaded:
+            js = "var element = document.getElementById('_nodes_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearNodes();"
+        try:
+            self.get_output_node_by_pid(pid).page().runJavaScript(js)
+        except Exception as e:
+            pass
 
-    def format_chunk(self, text: str) -> str:
+    def prepare_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1) -> str:
         """
-        Format chunk
-
-        :param text: text to format
-        :return: formatted text
+        Prepare node HTML
+        
+        :param meta: context meta
+        :param ctx: CtxItem instance
+        :param html: html text
+        :param type: type of message
+        :return: prepared HTML
         """
-        return text.replace("\n", "<br/>")
+        pid = self.get_or_create_pid(meta)
+        if type == self.NODE_OUTPUT:
+            return self.prepare_node_output(meta, ctx, html)
+        elif type == self.NODE_INPUT:
+            return self.prepare_node_input(pid, ctx, html)
 
-    def is_timestamp_enabled(self) -> bool:
+    def prepare_node_input(self, pid, ctx: CtxItem, html: str) -> str:
         """
-        Check if timestamp is enabled
-
-        :return: True if timestamp is enabled
+        Prepare input node
+        
+        :param pid: context PID
+        :param ctx: CtxItem instance
+        :param html: html text
+        :return: prepared HTML
         """
-        return self.window.core.config.get('output_timestamp')
+        msg_id = "msg-user-" + str(ctx.id) if ctx is not None else ""
+        content = self.append_timestamp(ctx, self.helpers.format_user_text(html), type=self.NODE_INPUT)
+        html = "<p>" + content + "</p>"
+        html = self.helpers.post_format_text(html)
+        name = self.pids[pid].name_user
+        if ctx.internal and ctx.input.startswith("[{"):
+            name = "System"
+        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(
+            msg_id, name) + html + "</div></div>"
+        return html
 
-    def get_output_node(self):
+    def prepare_node_output(self, meta: CtxMeta, ctx: CtxItem, html: str) -> str:
+        """
+        Prepare output node
+        
+        :param meta: context meta
+        :param ctx: CtxItem instance
+        :param html: html text
+        :return: prepared HTML
+        """
+        pid = self.get_or_create_pid(meta)
+        msg_id = "msg-bot-" + str(ctx.id) if ctx is not None else ""
+        html = self.helpers.pre_format_text(html)
+        html = self.append_timestamp(ctx, html, type=self.NODE_OUTPUT)
+        html = self.parser.parse(html)
+        html = self.helpers.post_format_text(html)
+        extra = self.append_extra(meta, ctx, footer=True, render=False)
+        footer = self.body.prepare_action_icons(ctx)
+        html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(
+            msg_id, self.pids[
+                pid].name_bot) + html + '<div class="msg-extra">' + extra + '</div>' + footer + '</div></div>'
+        return html
+
+    def flush_output(self, pid, html: str):
+        """
+        Flush output
+
+        :param ctx: context item
+        :param html: HTML code
+        """
+        escaped_html = json.dumps(html)
+        try:
+            node = self.get_output_node_by_pid(pid)
+            node.page().runJavaScript(f"appendNode({escaped_html});")
+            node.update_current_content()
+        except Exception as e:
+            pass
+
+    def reload(self):
+        """Reload output, called externally only on theme change to redraw content"""
+        self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
+
+    def flush(self, pid):
+        """
+        Flush output
+
+        :param pid: context PID
+        """
+        if self.pids[pid].loaded:
+            return  # wait for page load
+
+        html = self.body.get_html()
+        self.pids[pid].document = html
+        self.get_output_node_by_pid(pid).setHtml(html, baseUrl="file://")
+
+    def get_output_node(self, meta: CtxMeta = None):
         """
         Get output node
 
+        :param meta: context meta
         :return: output node
         """
-        return self.window.ui.nodes['output']
+        return self.window.core.ctx.output.get_current(meta)
+
+    def get_output_node_by_pid(self, pid):
+        """
+        Get output node by PID
+
+        :param pid: context pid
+        :return: output node
+        """
+        return self.window.core.ctx.output.get_by_pid(pid)
 
     def get_input_node(self) -> ChatInput:
         """
@@ -652,627 +704,77 @@ class Renderer(BaseRenderer):
         """
         return self.window.ui.nodes['input']
 
-    def append_html(self, html: str):
-        """
-        Append HTML to output
-
-        :param html: HTML code
-        """
-        self.html += html
-
-    def append_extra(self, item: CtxItem, footer: bool = False, render: bool = True) -> str:
-        """
-        Append extra data (images, files, etc.) to output
-
-        :param item: context item
-        :param footer: True if it is a footer
-        :param render: True if render, False if only return HTML
-        :return: HTML code
-        """
-        appended = []
-        html = ""
-        # images
-        c = len(item.images)
-        if c > 0:
-            n = 1
-            for image in item.images:
-                # don't append if it is an external url
-                if image.startswith("http"):
-                    continue
-                if image in appended or image in self.images_appended:
-                    continue
-                try:
-                    appended.append(image)
-                    html += self.get_image_html(image, n, c)
-                    self.images_appended.append(image)
-                    n += 1
-                except Exception as e:
-                    pass
-
-        # files and attachments, TODO check attachments
-        c = len(item.files)
-        if c > 0:
-            n = 1
-            for file in item.files:
-                if file in appended:
-                    continue
-                try:
-                    appended.append(file)
-                    html += self.get_file_html(file, n, c)
-                    n += 1
-                except Exception as e:
-                    pass
-
-        # urls
-        c = len(item.urls)
-        if c > 0:
-            urls_html = []
-            n = 1
-            for url in item.urls:
-                if url in appended or url in self.urls_appended:
-                    continue
-                try:
-                    appended.append(url)
-                    urls_html.append(self.get_url_html(url, n, c))
-                    self.urls_appended.append(url)
-                    n += 1
-                except Exception as e:
-                    pass
-            if urls_html:
-                html += "<br/>" + "<br/>".join(urls_html)
-
-        # docs json
-        if self.window.core.config.get('ctx.sources'):
-            if item.doc_ids is not None and len(item.doc_ids) > 0:
-                try:
-                    docs = self.get_docs_html(item.doc_ids)
-                    html += docs
-                except Exception as e:
-                    pass
-        # flush
-        if render and html != "":
-            if footer:
-                # append to output
-                self.append(html)
-            else:
-                # append to existing message box using JS
-                escaped_html = json.dumps(html)
-                self.get_output_node().page().runJavaScript("appendExtra('{}',{});".format(item.id, escaped_html))
-
-        return html
-
-    def prepare_action_icons(self, item: CtxItem) -> str:
-        """
-        Append action icons
-
-        :param item: context item
-        :return: HTML code
-        """
-        html = ""
-        show_edit = self.window.core.config.get('ctx.edit_icons')
-        icons_html = "".join(self.get_action_icons(item, all=show_edit))
-        if icons_html != "":
-            extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(item.id, icons_html)
-            html += extra
-        return html
-
-    def get_action_icons(self, item: CtxItem, all: bool = False) -> list:
-        """
-        Get action icons for context item
-
-        :param item: context item
-        :param all: True to show all icons
-        :return: list of icons
-        """
-        icons = []
-
-        # audio read
-        if item.output is not None and item.output != "":
-            icons.append(
-                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("audio", trans("ctx.extra.audio"), item)
-                )
-            )
-            # copy item
-            icons.append(
-                '<a href="extra-copy:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("copy", trans("ctx.extra.copy"), item)
-                )
-            )
-            # regen link
-            icons.append(
-                '<a href="extra-replay:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("reload", trans("ctx.extra.reply"), item)
-                )
-            )
-            # edit link
-            icons.append(
-                '<a href="extra-edit:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("edit", trans("ctx.extra.edit"), item)
-                )
-            )
-            # delete link
-            icons.append(
-                '<a href="extra-delete:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                    item.id,
-                    item.id,
-                    self.get_icon("delete", trans("ctx.extra.delete"), item)
-                )
-            )
-
-            # join link
-            if not self.window.core.ctx.is_first_item(item.id):
-                icons.append(
-                    '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
-                        item.id,
-                        item.id,
-                        self.get_icon("join", trans("ctx.extra.join"), item)
-                    )
-                )
-        return icons
-
-    def get_icon(self, icon: str, title: str = None, item: CtxItem = None) -> str:
-        """
-        Get icon
-
-        :param icon: icon name
-        :param title: icon title
-        :param item: context item
-        :return: icon HTML
-        """
-        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
-        return '<img src="file://{}" class="action-img" title="{}" alt="{}" data-id="{}">'.format(
-            icon, title, title, item.id)
-
-    def on_page_loaded(self):
-        """On page loaded"""
-        self.loaded = True
-        if self.html != "" and not self.use_buffer:
-            self.clear_chunks()
-            self.clear_nodes()
-            self.append(self.html, flush=True)
-            self.html = ""
-
-    def scroll_to_bottom(self):
-        """Scroll to bottom"""
-        pass
-
-    def reload_css(self):
-        """Reload CSS"""
-        if self.loaded:
-            to_json = json.dumps(self.prepare_styles())
-            self.get_output_node().page().runJavaScript("updateCSS({});".format(to_json))
-            if self.window.core.config.get('render.blocks'):
-                self.get_output_node().page().runJavaScript("enableBlocks();")
-            else:
-                self.get_output_node().page().runJavaScript("disableBlocks();")
-
-    def prepare_styles(self) -> str:
-        """
-        Prepare CSS styles
-
-        :return: CSS styles
-        """
-        dark_styles = ["dracula", "fruity", "github-dark", "gruvbox-dark", "inkpot", "material", "monokai",
-                       "native", "nord", "nord-darker", "one-dark", "paraiso-dark", "rrt", "solarized-dark",
-                       "stata-dark", "vim", "zenburn"]
-        style = self.window.core.config.get("render.code_syntax")
-        if style is None or style == "":
-            style = "default"
-        fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
-        stylesheet = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
-        if style in dark_styles:
-            stylesheet += "pre { color: #fff; }"
-        else:
-            stylesheet += "pre { color: #000; }"
-        content = stylesheet + """
-        """ + self.highlight.get_style_defs()
-        return content
-
-    def flush(self):
-        """Flush output"""
-        if self.loaded:
-            return  # wait for page load
-
-        classes = []
-        classes_str = ""
-        if self.window.core.config.get('render.blocks'):
-            classes.append("display-blocks")
-        if self.window.core.config.get('ctx.edit_icons'):
-            classes.append("display-edit-icons")
-        if self.is_timestamp_enabled():
-            classes.append("display-timestamp")
-        if classes:
-            classes_str = ' class="' + " ".join(classes) + '"'
-
-        content = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                """ + self.prepare_styles() + """
-            </style>
-            
-        </head>
-        <body """+classes_str+""">
-        <div id="container">
-            <div id="_nodes_" class="nodes empty_list"></div>
-            <div id="_append_input_" class="append_input"></div>
-            <div id="_append_output_" class="append_output"></div>
-        </div>
-        
-        <link rel="stylesheet" href="qrc:///css/katex.min.css">
-        <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
-        <script type="text/javascript" src="qrc:///js/katex.min.js"></script>
-        <script type="text/javascript" src="qrc:///js/auto-render.min.js"></script>
-        <script>
-        
-        let scrollTimeout = null;
-        let prevScroll = 0;
-        let bridge;
-        new QWebChannel(qt.webChannelTransport, function (channel) {
-            bridge = channel.objects.bridge;
-        });
-        history.scrollRestoration = "manual";
-        document.addEventListener('keydown', function(event) {
-            if (event.ctrlKey && event.key === 'f') {
-                window.location.href = 'bridge://open_find'; // send to bridge
-                event.preventDefault();
-            }
-            if (event.key === 'Escape') {
-                window.location.href = 'bridge://escape'; // send to bridge
-                event.preventDefault();
-            }
-        });
-        function highlightCode() {
-            console.log("high");
-            document.querySelectorAll('pre code').forEach(el => {
-                if (!el.classList.contains('hljs')) hljs.highlightElement(el);
-            });
-            renderMath();            
-        }
-        function renderMath() {
-             var scripts = document.querySelectorAll('script[type^="math/tex"]');
-              scripts.forEach(function(script) {
-                var displayMode = script.type.indexOf('mode=display') > -1;
-                var mathContent = script.textContent || script.innerText;
-                var element = document.createElement(displayMode ? 'div' : 'span');
-                try {
-                  katex.render(mathContent, element, {
-                    displayMode: displayMode,
-                    throwOnError: false
-                  });
-                } catch (err) {
-                  element.textContent = mathContent;
-                  //console.error(err);
-                }
-                script.parentNode.replaceChild(element, script);
-              });
-        }
-        function scrollToBottom() {
-            getScrollPosition();  // store using bridge
-            if (scrollTimeout !== null) {
-                return;
-            }
-            if (document.body.scrollHeight > prevScroll) {
-                scrollTimeout = setTimeout(function() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    prevScroll = document.body.scrollHeight;
-                    getScrollPosition();  // store using bridge
-                    scrollTimeout = null;
-                }, 30);
-            }
-        }
-        function appendToInput(content) {
-            var element = document.getElementById('_append_input_');
-            if (element) {
-                element.innerHTML += content;
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function appendToOutput(bot_name, content) {
-            var element = document.getElementById('_append_output_');
-            if (element) {
-                var box = element.querySelector('.msg-box');
-                var msg;
-                if (!box) {
-                    box = document.createElement('div');
-                    box.classList.add('msg-box');
-                    box.classList.add('msg-bot');
-                    var name = document.createElement('div');
-                    name.classList.add('name-header');
-                    name.classList.add('name-bot');
-                    name.textContent = bot_name;
-                    msg = document.createElement('div');
-                    msg.classList.add('msg');
-                    box.appendChild(name);
-                    box.appendChild(msg);
-                    element.appendChild(box);
-                } else {
-                    msg = box.querySelector('.msg');
-                }
-                if (msg) {
-                    msg.innerHTML+= content;
-                }
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function appendNode(content) {
-            prevScroll = 0;
-            var element = document.getElementById('_nodes_');
-            if (element) {
-                element.classList.remove('empty_list');
-                element.innerHTML += content;
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function appendExtra(id, content) {
-            prevScroll = 0;
-            var element = document.getElementById('msg-bot-' + id);
-            if (element) {
-                var extra = element.querySelector('.msg-extra');
-                if (extra) {
-                    extra.innerHTML+= content;
-                }
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function removeNode(id) {
-            prevScroll = 0;
-            var element = document.getElementById('msg-user-' + id);
-            if (element) {
-                element.remove();
-            }
-            var element = document.getElementById('msg-bot-' + id);
-            if (element) {
-                element.remove();
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function removeNodesFromId(id) {
-            prevScroll = 0;
-            var container = document.getElementById('_nodes_');
-            if (container) {
-                var elements = container.querySelectorAll('.msg-box');
-                remove = false;
-                elements.forEach(function(element) {
-                    if (element.id.endsWith('-' + id)) {
-                        remove = true;
-                    }
-                    if (remove) {
-                        element.remove();
-                    }
-                });
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function replaceOutput(bot_name, content) {
-            var element = document.getElementById('_append_output_');
-            if (element) {
-                var box = element.querySelector('.msg-box');
-                var msg;
-                if (!box) {
-                    box = document.createElement('div');
-                    box.classList.add('msg-box');
-                    box.classList.add('msg-bot');
-                    var name = document.createElement('div');
-                    name.classList.add('name-header');
-                    name.classList.add('name-bot');
-                    name.textContent = bot_name;
-                    msg = document.createElement('div');
-                    msg.classList.add('msg');
-                    box.appendChild(name);
-                    box.appendChild(msg);
-                    element.appendChild(box);
-                } else {
-                    msg = box.querySelector('.msg');
-                }
-                if (msg) {
-                    msg.innerHTML = content;
-                }
-            }
-            highlightCode();
-            scrollToBottom();
-        }
-        function clearNodes() {
-            prevScroll = 0;
-            var element = document.getElementById('_nodes_');
-            if (element) {
-                element.textContent = '';
-                element.classList.add('empty_list');
-            }
-        }
-        function clearInput() {
-            var element = document.getElementById('_append_input_');
-            if (element) {
-                element.textContent = '';
-            }
-        }
-        function clearOutput() {
-            var element = document.getElementById('_append_output_');
-            if (element) {
-                element.textContent = '';
-            }
-        }
-        function enableEditIcons() {
-            var container = document.body;
-            if (container) {
-                container.classList.add('display-edit-icons');
-            }
-        }
-        function disableEditIcons() {
-            var container = document.body;
-            if (container) {
-                container.classList.remove('display-edit-icons');
-            }
-        }
-        function enableTimestamp() {
-            var container = document.body;
-            if (container) {
-                container.classList.add('display-timestamp');
-            }
-        }
-        function disableTimestamp() {
-            var container = document.body;
-            if (container) {
-                container.classList.remove('display-timestamp');
-            }
-        }
-        function enableBlocks() {
-            var container = document.body;
-            if (container) {
-                container.classList.add('display-blocks');
-            }
-        }
-        function disableBlocks() {
-            var container = document.body;
-            if (container) {
-                container.classList.remove('display-blocks');
-            }
-        }
-        function updateCSS(styles) {
-            var style = document.createElement('style');
-            style.innerHTML = styles;
-            var oldStyle = document.querySelector('style');
-            if (oldStyle) {
-                oldStyle.remove();
-            }
-            document.head.appendChild(style);
-        }
-        function bridgeCopyCode(text) {
-            if (bridge) {
-                bridge.copy_text(text);
-            }
-        }
-        function bridgeUpdateScrollPosition(pos) {
-            if (bridge) {
-                bridge.update_scroll_position(pos);
-            }
-        }
-        function getScrollPosition() {
-            pos = window.scrollY;
-            bridgeUpdateScrollPosition(pos);
-        }
-        function setScrollPosition(pos) {
-            window.scrollTo(0, pos);
-            prevScroll = parseInt(pos);
-        }  
-        document.addEventListener('DOMContentLoaded', function() {
-            var container = document.getElementById('container');
-            function addClassToMsg(id, className) {
-                var msgElement = document.getElementById('msg-bot-' + id);
-                if (msgElement) {
-                    msgElement.classList.add(className);
-                }
-            }
-            function removeClassFromMsg(id, className) {
-                var msgElement = document.getElementById('msg-bot-' + id);
-                if (msgElement) {
-                    msgElement.classList.remove(className);
-                }
-            }
-            container.addEventListener('mouseover', function(event) {
-                if (event.target.classList.contains('action-img')) {
-                    var id = event.target.getAttribute('data-id');
-                    addClassToMsg(id, 'msg-highlight');
-                }
-            });        
-            container.addEventListener('mouseout', function(event) {
-                if (event.target.classList.contains('action-img')) {
-                    var id = event.target.getAttribute('data-id');
-                    removeClassFromMsg(id, 'msg-highlight');
-                }
-            });
-            container.addEventListener('click', function(event) {
-                if (event.target.classList.contains('code-header-copy')) {
-                    event.preventDefault();
-                    var parent = event.target.closest('.code-wrapper');
-                    var source = parent.querySelector('code');
-                    if (source) {
-                        var text = source.textContent || source.innerText;
-                        bridgeCopyCode(text);
-                    }                        
-                }
-            });
-        });
-        </script>
-        </body>
-        </html>
-        """
-        self.document = content
-        self.get_output_node().setHtml(content, baseUrl="file://")
-
     def get_document(self, plain: bool = False):
         """
-        Get document content
+        Get document content (plain or HTML)
 
-        :param plain: True if plain text
+        :param plain: True to convert to plain text
         :return: document content
         """
+        pid = self.window.core.ctx.container.get_active_pid()
+        if pid is None:
+            return ""
         if plain:
-            return self.parser.to_plain_text(self.document.replace("<br>", "\n"))
-        return self.document
+            return self.parser.to_plain_text(self.pids[pid].document.replace("<br>", "\n"))
+        return self.pids[pid].document
 
-    def clear_all(self):
-        """Clear all"""
-        self.clear_nodes()
-        self.clear_chunks()
-        self.html = ""
-
-    def remove_item(self, id: int):
+    def remove_item(self, ctx: CtxItem):
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
         try:
-            self.get_output_node().page().runJavaScript("removeNode({});".format(id))
+            self.get_output_node(ctx.meta).page().runJavaScript("removeNode({});".format(ctx.id))
         except Exception as e:
             pass
 
-    def remove_items_from(self, id: int):
+    def remove_items_from(self, ctx: CtxItem):
         """
         Remove item from output
 
-        :param id: context item ID
+        :param ctx: context item
         """
         try:
-            self.get_output_node().page().runJavaScript("removeNodesFromId({});".format(id))
+            self.get_output_node(ctx.meta).page().runJavaScript("removeNodesFromId({});".format(ctx.id))
         except Exception as e:
             pass
 
-    def on_reply_submit(self, id: int):
+    def reset_names(self, meta: CtxMeta):
+        """
+        Reset names
+
+       :param meta: context meta
+        """
+        pid = self.get_or_create_pid(meta)
+        self.reset_names_by_pid(pid)
+
+    def reset_names_by_pid(self, pid):
+        """
+        Reset names by PID
+
+        :param pid: context pid
+        """
+        self.pids[pid].name_user = trans("chat.name.user")
+        self.pids[pid].name_bot = trans("chat.name.bot")
+
+    def on_reply_submit(self, ctx: CtxItem):
         """
         On regenerate submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
         # remove all items from ID
-        self.remove_items_from(id)
+        self.remove_items_from(ctx)
 
-    def on_edit_submit(self, id: int):
+    def on_edit_submit(self, ctx: CtxItem):
         """
         On regenerate submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
         # remove all items from ID
-        self.remove_items_from(id)
+        self.remove_items_from(ctx)
 
     def on_enable_edit(self, live: bool = True):
         """
@@ -1283,7 +785,9 @@ class Renderer(BaseRenderer):
         if not live:
             return
         try:
-            self.get_output_node().page().runJavaScript("enableEditIcons();")
+            nodes = self.get_all_nodes()
+            for node in nodes:
+                node.page().runJavaScript("enableEditIcons();")
         except Exception as e:
             pass
 
@@ -1296,7 +800,9 @@ class Renderer(BaseRenderer):
         if not live:
             return
         try:
-            self.get_output_node().page().runJavaScript("disableEditIcons();")
+            nodes = self.get_all_nodes()
+            for node in nodes:
+                node.page().runJavaScript("disableEditIcons();")
         except Exception as e:
             pass
 
@@ -1309,7 +815,9 @@ class Renderer(BaseRenderer):
         if not live:
             return
         try:
-            self.get_output_node().page().runJavaScript("enableTimestamp();")
+            nodes = self.get_all_nodes()
+            for node in nodes:
+                node.page().runJavaScript("enableTimestamp();")
         except Exception as e:
             pass
 
@@ -1322,14 +830,76 @@ class Renderer(BaseRenderer):
         if not live:
             return
         try:
-            self.get_output_node().page().runJavaScript("disableTimestamp();")
+            nodes = self.get_all_nodes()
+            for node in nodes:
+                node.page().runJavaScript("disableTimestamp();")
         except Exception as e:
             pass
 
+    def update_names(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Update names
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
+        pid = self.get_or_create_pid(meta)
+        if ctx.input_name is not None and ctx.input_name != "":
+            self.pids[pid].name_user = ctx.input_name
+        if ctx.output_name is not None and ctx.output_name != "":
+            self.pids[pid].name_bot = ctx.output_name
+
+    def clear_all(self):
+        """Clear all"""
+        for pid in self.pids:
+            self.clear_chunks(pid)
+            self.clear_nodes(pid)
+            self.pids[pid].html = ""
+
+    def scroll_to_bottom(self):
+        """Scroll to bottom"""
+        pass
+
+    def append_block(self):
+        """Append block to output"""
+        pass
+
+    def to_end(self, ctx: CtxItem):
+        """
+        Move cursor to end of output
+
+        :param ctx: context item
+        """
+        pass
+
+    def get_all_nodes(self) -> list:
+        """
+        Return all registered nodes
+
+        :return: list of ChatOutput nodes (tabs)
+        """
+        return self.window.core.ctx.output.get_all()
+
     # TODO: on lang change
+
+    def reload_css(self):
+        """Reload CSS - all, global"""
+        to_json = json.dumps(self.body.prepare_styles())
+        nodes = self.get_all_nodes()
+        for pid in self.pids:
+            if self.pids[pid].loaded:
+                for node in nodes:
+                    node.page().runJavaScript("updateCSS({});".format(to_json))
+                    if self.window.core.config.get('render.blocks'):
+                        node.page().runJavaScript("enableBlocks();")
+                    else:
+                        node.page().runJavaScript("disableBlocks();")  # TODO: ctx!!!!!
+                return
 
     def on_theme_change(self):
         """On theme change"""
         self.window.controller.theme.markdown.load()
-        if self.loaded:
-            self.reload_css()
+        for pid in self.pids:
+            if self.pids[pid].loaded:
+                self.reload_css()
+                return

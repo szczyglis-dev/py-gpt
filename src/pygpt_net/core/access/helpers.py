@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime, timedelta
@@ -35,7 +35,7 @@ class Helpers:
         mode = trans("mode." + self.window.core.config.get("mode"))
         mode += " " + self.get_selected_model()
         mode += " " + self.get_selected_preset()
-        tab = self.window.controller.ui.get_current_tab_name()
+        tab = self.window.controller.ui.tabs.get_current_tab_name()
         last = ""
         msg = ""
         if meta is not None:
@@ -100,7 +100,7 @@ class Helpers:
         :return: text to read
         """
         msg = ""
-        tab = self.window.controller.ui.get_current_tab_name()
+        tab = self.window.controller.ui.tabs.get_current_tab_name()
         try:
             msg = trans("event.audio.tab.switch").format(
                 tab=tab,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -54,10 +54,10 @@ class Mode:
         # if ctx loaded with assistant ID assigned then switch to assistant from ctx
         if mode == "assistant":
             self.window.controller.presets.select_default()
-            if self.window.core.ctx.current is not None \
-                    and self.window.core.ctx.assistant is not None:
+            if self.window.core.ctx.get_current() is not None \
+                    and self.window.core.ctx.get_assistant() is not None:
                 self.window.controller.assistant.select_by_id(
-                    self.window.core.ctx.assistant
+                    self.window.core.ctx.get_assistant()
                 )
             else:
                 self.window.controller.assistant.select_current()

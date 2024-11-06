@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 07:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -28,21 +28,23 @@ class Calendar:
         """
         self.window = window
 
+    def init(self):
+        """
+        Initialize painter
+
+        :return: QWidget
+        """
+        self.window.ui.calendar['select'] = CalendarSelect(self.window)
+        self.window.ui.calendar['note'] = CalendarNote(self.window)
+
     def setup(self) -> QWidget:
         """
         Setup calendar
 
         :return: QWidget
         """
-        # layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.setup_calendar())
-        layout.setContentsMargins(0, 0, 0, 0)
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
+        self.init()
+        return self.window.core.tabs.from_widget(self.setup_calendar())
 
     def setup_filters(self) -> QWidget:
         """
@@ -106,14 +108,11 @@ class Calendar:
         """
         # calendar
         select_layout = QVBoxLayout()
-        self.window.ui.calendar['select'] = CalendarSelect(self.window)
         self.window.ui.calendar['select'].setMinimumHeight(200)
         self.window.ui.calendar['select'].setMinimumWidth(200)
         self.window.ui.calendar['select'].setGridVisible(True)
         select_layout.addWidget(self.window.ui.calendar['select'])
         select_layout.setContentsMargins(5, 0, 5, 0)
-
-        self.window.ui.calendar['note'] = CalendarNote(self.window)
 
         self.window.ui.nodes['tip.output.tab.calendar'] = HelpLabel(trans('tip.output.tab.calendar'), self.window)
 
@@ -144,13 +143,6 @@ class Calendar:
         self.window.ui.splitters['calendar'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.splitters['calendar'])
-        layout.setContentsMargins(0, 0, 0, 0)
-        #layout.addWidget(filters)
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
+        # build tab body
+        return self.window.core.tabs.from_widget(self.window.ui.splitters['calendar'])
 

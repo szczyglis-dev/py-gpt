@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -328,7 +328,7 @@ class Tokens:
         max_to_check = max_current - threshold
 
         # context tokens
-        ctx_len_all = len(self.window.core.ctx.items)
+        ctx_len_all = self.window.core.ctx.count_items()
         ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model_id, mode, used_tokens, max_to_check)
 
         # empty ctx tokens if context is not used

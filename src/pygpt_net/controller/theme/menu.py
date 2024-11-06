@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 02:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
-from pygments.styles import get_all_styles
 from PySide6.QtGui import QAction
 
 
@@ -47,7 +46,7 @@ class Menu:
 
     def setup_syntax(self):
         """Setup syntax menu"""
-        styles = self.window.controller.chat.render.web_renderer.highlight.get_styles()
+        styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
         styles.sort()
         # clear menu
         for style in self.window.ui.menu['theme_syntax']:

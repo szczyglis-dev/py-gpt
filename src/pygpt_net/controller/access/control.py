@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.21 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import re
 
 from PySide6.QtCore import QTimer
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.access.events import ControlEvent
 from pygpt_net.utils import trans
 
@@ -240,19 +241,19 @@ class Control:
 
         # tab change
         elif event.name == ControlEvent.TAB_NEXT:
-            self.window.controller.ui.next_tab()
+            self.window.controller.ui.tabs.next_tab()
         elif event.name == ControlEvent.TAB_PREV:
-            self.window.controller.ui.prev_tab()
+            self.window.controller.ui.tabs.prev_tab()
 
         # tabs: by names
         elif event.name == ControlEvent.TAB_CHAT:
-            self.window.controller.ui.switch_tab("chat")
+            self.window.controller.ui.tabs.switch_tab(Tab.TAB_CHAT)
         elif event.name == ControlEvent.TAB_FILES:
-            self.window.controller.ui.switch_tab("files")
+            self.window.controller.ui.tabs.switch_tab(Tab.TAB_FILES)
         elif event.name == ControlEvent.TAB_CALENDAR:
-            self.window.controller.ui.switch_tab("calendar")
+            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
         elif event.name == ControlEvent.TAB_DRAW:
-            self.window.controller.ui.switch_tab("draw")
+            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_DRAW)
 
         # tabs: notepads
         elif event.name == ControlEvent.TAB_NOTEPAD:

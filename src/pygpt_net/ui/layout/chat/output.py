@@ -6,21 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.21 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy
 
-from pygpt_net.ui.layout.chat.input import Input
-from pygpt_net.ui.layout.chat.calendar import Calendar
-from pygpt_net.ui.layout.chat.painter import Painter
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
-from pygpt_net.ui.widget.textarea.output import ChatOutput
-from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
+
+from .explorer import Explorer
+from .input import Input
+from .calendar import Calendar
+from .painter import Painter
+
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -33,6 +33,7 @@ class Output:
         :param window: Window instance
         """
         self.window = window
+        self.explorer = Explorer(window)
         self.input = Input(window)
         self.calendar = Calendar(window)
         self.painter = Painter(window)
@@ -42,68 +43,38 @@ class Output:
         Setup output
 
         :return: QWidget
-        :rtype: QWidget
         """
-        # chat plain-text output
-        self.window.ui.nodes['output_plain'] = ChatOutput(self.window)
-
-        # chat web output
-        if self.window.core.config.get("render.engine") == "web":
-            from pygpt_net.ui.widget.textarea.web import ChatWebOutput, CustomWebEnginePage
-            self.window.ui.nodes['output'] = ChatWebOutput(self.window)
-            self.window.ui.nodes['output'].setPage(
-                CustomWebEnginePage(self.window, self.window.ui.nodes['output'])
-            )
-        else:
-            # chat legacy output
-            self.window.ui.nodes['output'] = ChatOutput(self.window)
-
-        # disable at start
-        self.window.ui.nodes['output_plain'].setVisible(False)
-        self.window.ui.nodes['output'].setVisible(False)
-
-        # index status data
-        index_data = self.window.core.idx.get_idx_data()  # get all idx data
-
-        # file explorer
-        path = self.window.core.config.get_user_dir('data')
-        self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
-
-        # render engines layout
-        output_layout = QVBoxLayout()
-        output_layout.addWidget(self.window.ui.nodes['output_plain'])
-        output_layout.addWidget(self.window.ui.nodes['output'])
-        output_layout.setContentsMargins(0, 0, 0, 0)
-        output_widget = QWidget()
-        output_widget.setLayout(output_layout)
-
         # tabs
         self.window.ui.tabs['output'] = OutputTabs(self.window)
-        self.window.ui.tabs['output'].addTab(output_widget, trans('output.tab.chat'))
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output_files'], trans('output.tab.files'))
 
-        # calendar
-        calendar = self.calendar.setup()
-        self.window.ui.tabs['output'].addTab(calendar, trans('output.tab.calendar'))
+        # create empty tabs
+        self.window.ui.nodes['output'] = {}
+        self.window.ui.nodes['output_plain'] = {}
 
-        # painter
-        painter = self.painter.setup()
-        self.window.ui.tabs['output'].addTab(painter, trans('output.tab.painter'))
+        # connect signals
+        self.window.ui.tabs['output'].currentChanged.connect(
+            self.window.controller.ui.tabs.on_tab_changed
+        )
+        self.window.ui.tabs['output'].tabBarClicked.connect(
+            self.window.controller.ui.tabs.on_tab_clicked
+        )
+        self.window.ui.tabs['output'].tabBarDoubleClicked.connect(
+            self.window.controller.ui.tabs.on_tab_dbl_clicked
+        )
+        self.window.ui.tabs['output'].tabCloseRequested.connect(
+            self.window.controller.ui.tabs.on_tab_closed
+        )
 
-        self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
-
-        self.window.ui.tabs['output'].setTabIcon(0, QIcon(":/icons/chat.svg"))
-        self.window.ui.tabs['output'].setTabIcon(1, QIcon(":/icons/folder_filled.svg"))
-        self.window.ui.tabs['output'].setTabIcon(2, QIcon(":/icons/schedule.svg"))
-        self.window.ui.tabs['output'].setTabIcon(3, QIcon(":/icons/brush.svg"))
+        # tabbar signals
+        self.window.ui.tabs['output'].tabBar().tabMoved.connect(
+            self.window.controller.ui.tabs.on_tab_moved
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['output'])
         layout.addLayout(self.setup_bottom())
-
         widget = QWidget()
         widget.setLayout(layout)
-
         return widget
 
     def setup_bottom(self) -> QHBoxLayout:
@@ -111,7 +82,6 @@ class Output:
         Setup bottom status bar
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         # video capture icon
         self.window.ui.nodes['icon.video.capture'] = IconLabel(":/icons/webcam.svg")
@@ -236,8 +206,7 @@ class Output:
         self.window.ui.nodes['chat.footer'] = QWidget()
         self.window.ui.nodes['chat.footer'].setLayout(layout)
 
-        final_layout = QVBoxLayout()
-        final_layout.addWidget(self.window.ui.nodes['chat.footer'])
-        final_layout.setContentsMargins(0, 0, 0, 0)
-
-        return final_layout
+        bottom_layout = QVBoxLayout()
+        bottom_layout.addWidget(self.window.ui.nodes['chat.footer'])
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        return bottom_layout

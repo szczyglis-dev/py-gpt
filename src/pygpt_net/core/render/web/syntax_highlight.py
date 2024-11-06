@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import os
@@ -22,7 +22,8 @@ class SyntaxHighlight:
         :param style: Style name
         :return: True if exists
         """
-        return os.path.exists(os.path.join(self.window.core.config.get_app_path(), "data", "js", "highlight", "styles", f"{style}.min.css"))
+        return os.path.exists(os.path.join(self.window.core.config.get_app_path(), "data", "js", "highlight", "styles",
+                                           f"{style}.min.css"))
 
     def get_style(self) -> str:
         """
@@ -40,7 +41,8 @@ class SyntaxHighlight:
         :return: Style definitions
         """
         style = self.get_style()
-        path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "highlight", "styles", f"{style}.min.css")
+        path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "highlight", "styles",
+                            f"{style}.min.css")
         with open(path, "r") as f:
             return f.read()
 

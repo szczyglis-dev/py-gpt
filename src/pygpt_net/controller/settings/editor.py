@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 17:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -186,10 +186,6 @@ class Editor:
         if self.config_changed('llama.idx.storage'):
             self.window.tools.get("indexer").reload()
 
-        # update notepad tabs
-        if self.config_changed('notepad.num'):
-            self.window.controller.notepad.update_tabs()
-
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 
@@ -236,11 +232,6 @@ class Editor:
             value = value / 100
             self.window.core.config.set(key, value)
             self.window.controller.ui.update_font_size()
-
-        # update notepad tabs
-        elif key == "notepad.num" and caller == "slider":
-            self.window.core.config.set(key, value)
-            self.window.controller.notepad.update_tabs()
 
         # update markdown
         elif key == "theme.markdown":

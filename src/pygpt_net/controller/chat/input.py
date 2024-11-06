@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -219,7 +219,7 @@ class Input:
             self.window.controller.chat.render.clear_input()
 
         # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
-        if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.current is None:
+        if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:
             self.window.core.ctx.new()
             self.window.controller.ctx.update()
             self.log("New context created...")  # log

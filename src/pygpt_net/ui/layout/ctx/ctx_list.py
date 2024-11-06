@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 17:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -123,7 +123,7 @@ class CtxList:
             last_dt_str = None
             group = groups[group_id]
             c = self.count_in_group(group.id, data)
-            if c == 0 and self.window.core.ctx.search_string is not None and self.window.core.ctx.search_string != "":
+            if c == 0 and self.window.core.ctx.get_search_string() is not None and self.window.core.ctx.get_search_string() != "":
                 continue  # skip empty groups when searching
 
             suffix = ""

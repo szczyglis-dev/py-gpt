@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -21,6 +21,8 @@ from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
 
 from .idx import Idx
+from .container import Container
+from .output import Output
 
 
 class Ctx:
@@ -32,9 +34,10 @@ class Ctx:
         """
         self.window = window
         self.provider = DbSqliteProvider(window)
+        self.container = Container(window)  # context container
+        self.output = Output(window)  # context render output
         self.idx = Idx(window)  # context indexing core
         self.meta = {}
-        self.items = []
         self.current = None
         self.last_item = None
         self.assistant = None
@@ -66,6 +69,106 @@ class Ctx:
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False
+
+    def get_items(self):
+        # print(self.container.count_items())
+        return self.container.get_items()
+
+    def set_items(self, items):
+        self.container.set_items(items)
+
+    def clear_items(self):
+        self.container.clear_items()
+
+    def count_items(self):
+        return self.container.count_items()
+
+    def get_current(self):
+        return self.current
+
+    def set_current(self, current):
+        self.current = current
+
+    def clear_current(self):
+        self.current = None
+
+    def get_last_item(self):
+        return self.last_item
+
+    def set_last_item(self, last_item):
+        self.last_item = last_item
+
+    def get_assistant(self):
+        return self.assistant
+
+    def set_assistant(self, assistant):
+        self.assistant = assistant
+
+    def get_mode(self):
+        return self.mode
+
+    def set_mode(self, mode):
+        self.mode = mode
+
+    def get_model(self):
+        return self.model
+
+    def set_model(self, model):
+        self.model = model
+
+    def get_preset(self):
+        return self.preset
+
+    def set_preset(self, preset):
+        self.preset = preset
+
+    def get_run(self):
+        return self.run
+
+    def set_status(self, status):
+        self.status = status
+
+    def get_status(self):
+        return self.status
+
+    def set_run(self, run):
+        self.preset = run
+
+    def get_thread(self):
+        return self.thread
+
+    def set_thread(self, thread):
+        self.thread = thread
+
+    def clear_thread(self):
+        self.thread = None
+
+    def get_last_mode(self):
+        return self.last_mode
+
+    def set_last_mode(self, last_mode):
+        self.last_mode = last_mode
+
+    def get_last_model(self):
+        return self.last_model
+
+    def set_last_model(self, last_model):
+        self.last_model = last_model
+
+    def get_tmp_meta(self):
+        return self.tmp_meta
+
+    def set_tmp_meta(self, tmp_meta):
+        self.tmp_meta = tmp_meta
+
+    def get_search_string(self):
+        return self.search_string
+
+    def set_search_string(self, search_string):
+        self.search_string = search_string
+
+    def clear_search_string(self):
+        self.search_string = None
 
     def install(self):
         """Install provider data"""
@@ -122,7 +225,7 @@ class Ctx:
                         and self.window.core.models.has_model(self.mode, ctx.model):
                     self.model = ctx.model
 
-            self.items = self.load(id)
+            self.set_items(self.load(id))
 
     def new(self, group_id: int = None) -> CtxMeta or None:
         """
@@ -143,7 +246,7 @@ class Ctx:
         self.mode = self.window.core.config.get('mode')
         self.model = self.window.core.config.get('model')
         self.preset = self.window.core.config.get('preset')
-        self.items = []
+        self.clear_items()
         self.save(meta.id)
 
         return meta
@@ -191,7 +294,7 @@ class Ctx:
             return
 
         # to current
-        self.items.append(item)  # add CtxItem to context items
+        self.get_items().append(item)  # add CtxItem to context items
 
         # append in provider
         if self.current is not None:
@@ -244,7 +347,7 @@ class Ctx:
         if self.current is None:
             return True
         else:
-            if len(self.items) == 0:
+            if self.count_items() == 0:
                 return True
         return False
 
@@ -339,8 +442,8 @@ class Ctx:
         :param idx: item index
         :return: context item
         """
-        if idx < len(self.items):
-            return self.items[idx]
+        if idx < self.count_items():
+            return self.get_items()[idx]
 
     def get_item_by_id(self, id: int) -> CtxItem:
         """
@@ -349,7 +452,7 @@ class Ctx:
         :param id: item id
         :return: context item
         """
-        for item in self.items:
+        for item in self.get_items():
             if item.id == id:
                 return item
 
@@ -423,8 +526,8 @@ class Ctx:
 
         :return: last ctx item
         """
-        if len(self.items) > 0:
-            return self.items[-1]
+        if self.count_items() > 0:
+            return self.get_items()[-1]
         return None
 
     def is_first_item(self, item_id: int) -> bool:
@@ -434,8 +537,8 @@ class Ctx:
         :param item_id: item id
         :return: True if first
         """
-        if len(self.items) > 0:
-            return self.items[0].id == item_id
+        if self.count_items() > 0:
+            return self.get_items()[0].id == item_id
         return False
 
     def is_last_item(self, item_id: int) -> bool:
@@ -445,8 +548,8 @@ class Ctx:
         :param item_id: item id
         :return: True if last
         """
-        if len(self.items) > 0:
-            return self.items[-1].id == item_id
+        if self.count_items() > 0:
+            return self.get_items()[-1].id == item_id
         return False
 
     def get_previous_item(self, item_id: int) -> CtxItem or None:
@@ -456,10 +559,10 @@ class Ctx:
         :param item_id: item id
         :return: ctx item
         """
-        for i in range(len(self.items)):
-            if self.items[i].id == item_id:
+        for i in range(self.count_items()):
+            if self.get_items()[i].id == item_id:
                 if i > 0:
-                    return self.items[i - 1]
+                    return self.get_items()[i - 1]
         return None
 
     def prepare(self):
@@ -474,7 +577,7 @@ class Ctx:
 
         :return: ctx items count
         """
-        return len(self.items)
+        return self.count_items()
 
     def count_meta(self) -> int:
         """
@@ -503,7 +606,7 @@ class Ctx:
         :return: ctx items
         """
         if meta_id is None:
-            return self.items
+            return self.get_items()
         else:
             return self.load(meta_id)
 
@@ -523,9 +626,9 @@ class Ctx:
 
         :param id: ctx id
         """
-        for item in self.items:
+        for item in self.get_items():
             if item.id == id:
-                self.items.remove(item)
+                self.get_items().remove(item)
                 self.provider.remove_item(id)
                 break
 
@@ -548,7 +651,7 @@ class Ctx:
 
     def clear(self):
         """Clear ctx items"""
-        self.items = []
+        self.clear_items()
 
     def append_thread(self, thread: str):
         """
@@ -601,15 +704,20 @@ class Ctx:
         :param preset_id: preset ID
         :return: slave meta
         """
-        slaves = self.provider.get_meta_by_root_id_and_preset_id(
-            master_ctx.meta_id,
-            preset_id,
-        )
+        slaves = []
+        if master_ctx.meta is not None:
+            slaves = self.provider.get_meta_by_root_id_and_preset_id(
+                master_ctx.meta.id,
+                preset_id,
+            )
         if len(slaves) > 0:
             return list(slaves.values())[0]
         slave = self.build()
-        slave.root_id = master_ctx.meta_id
-        slave.parent_id = master_ctx.meta_id
+
+        if master_ctx.meta is not None:
+            slave.root_id = master_ctx.meta.id
+            slave.parent_id = master_ctx.meta.id
+
         slave.preset = preset_id
         id = self.provider.create(slave)
         slave.id = id
@@ -735,7 +843,7 @@ class Ctx:
         :return: ctx items count, ctx tokens count
         """
         return self.count_history(
-            self.items,
+            self.get_items(),
             model,
             mode,
             used_tokens,
@@ -761,7 +869,7 @@ class Ctx:
         :return: ctx items list
         """
         return self.get_history(
-            self.items,
+            self.get_items(),
             model,
             mode,
             used_tokens,
@@ -778,7 +886,7 @@ class Ctx:
         """
         items = []
         is_first = True
-        for item in reversed(self.items):
+        for item in reversed(self.get_items()):
             if is_first and ignore_first:
                 is_first = False
                 continue
@@ -831,8 +939,8 @@ class Ctx:
 
     def remove_last(self):
         """Remove last item"""
-        if len(self.items) > 0:
-            self.items.pop()
+        if self.count_items() > 0:
+            self.get_items().pop()
 
     def duplicate(self, id: int) -> int:
         """
@@ -853,8 +961,8 @@ class Ctx:
 
     def remove_first(self):
         """Remove first item"""
-        if len(self.items) > 0:
-            self.items.pop(0)
+        if self.count_items() > 0:
+            self.get_items().pop(0)
 
     def set_display_filters(self, filters: dict):
         """
@@ -1018,12 +1126,16 @@ class Ctx:
 
     def load(self, id: int) -> list:
         """
-        Load ctx items from provider
+        Load ctx items from provider and append meta to each item
 
         :param id: ctx id
         :return: ctx items list
         """
-        return self.provider.load(id)
+        items = self.provider.load(id)
+        meta = self.get_meta_by_id(id)
+        for item in items:
+            item.meta = meta  # append meta to each item
+        return items
 
     def load_groups(self):
         """Load groups"""
@@ -1184,7 +1296,7 @@ class Ctx:
         if not self.window.core.config.get('store_history'):
             return
 
-        self.provider.save(id, self.meta[id], self.items)
+        self.provider.save(id, self.meta[id], self.get_items())
 
     def store(self):
         """Store current ctx"""
@@ -1227,7 +1339,7 @@ class Ctx:
     def reset(self):
         """Reset all data"""
         self.meta = {}
-        self.items = []
+        self.clear_items()
         self.current = None
         self.last_item = None
         self.assistant = None

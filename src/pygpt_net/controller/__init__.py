@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -82,6 +82,7 @@ class Controller:
         self.chat.init()
 
         # setup layout
+        self.ui.pre_setup()
         self.layout.setup()
         self.ui.setup()
 
@@ -97,7 +98,6 @@ class Controller:
         self.dialogs.setup()
         self.audio.setup()
         self.attachment.setup()
-        self.notepad.setup()
         self.camera.setup_ui()
         self.access.setup()
 
@@ -136,6 +136,7 @@ class Controller:
         """Reload components"""
         self.reloading = True
         self.window.core.reload()  # db, config, patch, etc.
+        self.ui.tabs.reload()
         self.ctx.reload()
         self.settings.reload()
         self.assistant.reload()
@@ -157,5 +158,8 @@ class Controller:
         # self.layout.reload()
 
         # post-reload
+
         self.ctx.reload_after()
+        self.ui.tabs.reload_after()
+
         self.reloading = False

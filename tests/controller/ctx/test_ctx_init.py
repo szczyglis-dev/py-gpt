@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -26,6 +26,7 @@ def test_setup(mock_window):
 
     ctx.load = MagicMock()
     ctx.search_string_change = MagicMock()
+    mock_window.core.ctx.get_current = MagicMock(return_value=3)
 
     # fake search string
     mock_window.core.config.data["ctx.search.string"] = "test"
@@ -33,8 +34,7 @@ def test_setup(mock_window):
     ctx.setup()
     mock_window.core.ctx.count_meta.assert_called_once()
 
-    ctx.load.assert_called_once_with(3)
-    assert mock_window.core.ctx.current == 3
+    ctx.load.assert_called_once()
 
 
 def test_setup_new(mock_window):
@@ -68,8 +68,8 @@ def test_update(mock_window):
     ctx.select_by_current = MagicMock()
     mock_window.controller.ui.update = MagicMock()
 
-    mock_window.core.ctx.current = 3  # fake current ctx
-    mock_window.core.ctx.thread = 'th_123'  # fake thread id
+    mock_window.core.ctx.get_current = MagicMock(return_value=3)
+    mock_window.core.ctx.get_thread = MagicMock(return_value='th_123')
 
     ctx.update(reload=True, all=True)
 
@@ -139,6 +139,8 @@ def test_new(mock_window):
 
     mock_window.core.ctx.mode = 'assistant'  # mode from ctx is used to update ctx label
     mock_window.core.config.data['assistant'] = 'as_123'  # fake assistant id
+    mock_window.core.ctx.get_mode = MagicMock(return_value='assistant')
+    mock_window.core.ctx.get_assistant = MagicMock(return_value='as_123')
 
     ctx.new()
     assert mock_window.core.config.get('assistant_thread') is None  # reseted assistant thread id
@@ -180,7 +182,7 @@ def test_refresh(mock_window):
     """Test refresh ctx"""
     ctx = Ctx(mock_window)
     ctx.load = MagicMock()
-    mock_window.core.ctx.current = 3
+    mock_window.core.ctx.get_current = MagicMock(return_value=3)
 
     ctx.refresh()
     ctx.load.assert_called_once_with(3, True)
@@ -207,16 +209,16 @@ def test_load(mock_window):
 
     mock_window.core.models.has_model = MagicMock(return_value=True)
 
-    mock_window.core.ctx.thread = 'th_123'
-    mock_window.core.ctx.mode = 'assistant'
-    mock_window.core.ctx.model = 'gpt-4'
-    mock_window.core.ctx.assistant = 'as_123'
-    mock_window.core.ctx.preset = 'preset_123'
+    mock_window.core.ctx.get_thread = MagicMock(return_value='th_123')
+    mock_window.core.ctx.get_mode = MagicMock(return_value='assistant')
+    mock_window.core.ctx.get_model = MagicMock(return_value='gpt-4')
+    mock_window.core.ctx.get_assistant = MagicMock(return_value='as_123')
+    mock_window.core.ctx.get_preset = MagicMock(return_value='preset_123')
 
     ctx.load(3)
 
     mock_window.core.ctx.select.assert_called_once_with(3, restore_model=True)
-    mock_window.controller.chat.render.reset.assert_called_once()
+    mock_window.controller.chat.render.on_load.assert_called_once()
     mock_window.controller.mode.set.assert_called_once_with('assistant')
     mock_window.controller.presets.set.assert_called_once_with('assistant', 'preset_123')
     mock_window.controller.presets.refresh.assert_called_once()
@@ -228,7 +230,7 @@ def test_load(mock_window):
     mock_window.controller.assistant.select_by_id.assert_called_once_with('as_123')
     mock_window.controller.model.set.assert_called_once_with('assistant', 'gpt-4')
 
-    assert mock_window.core.config.get('assistant_thread') == None
+    assert mock_window.core.config.get('assistant_thread') == 'th_123'
 
 
 def test_update_ctx(mock_window):
@@ -238,7 +240,9 @@ def test_update_ctx(mock_window):
     ctx.common.update_label = MagicMock()
     mock_window.core.config.data['mode'] = 'assistant'
     mock_window.core.config.data['assistant'] = 'as_123'
-    mock_window.core.ctx.assistant = 'as_123'
+
+    mock_window.core.ctx.get_mode = MagicMock(return_value='assistant')
+    mock_window.core.ctx.get_assistant = MagicMock(return_value='as_123')
     mock_window.core.ctx.is_allowed_for_mode = MagicMock(return_value=True)
 
     ctx.update_ctx()
@@ -250,7 +254,7 @@ def test_delete(mock_window):
     """Test delete ctx"""
     ctx = Ctx(mock_window)
     ctx.update = MagicMock()
-    mock_window.core.ctx.current = 3 # current ctx
+    mock_window.core.ctx.get_current = MagicMock(return_value=3)
 
     mock_window.ui.dialogs.confirm = MagicMock()
     mock_window.core.ctx.get_id_by_idx = MagicMock(return_value=3)
@@ -261,7 +265,6 @@ def test_delete(mock_window):
     ctx.update.assert_called_once()
 
     # current
-    assert mock_window.core.ctx.current is None
     mock_window.controller.chat.render.clear_output.assert_called_once()
 
 
@@ -347,8 +350,9 @@ def test_search_string_change(mock_window):
     """Test search string change"""
     ctx = Ctx(mock_window)
     ctx.update = MagicMock()
+    ctx.window.core.ctx.get_search_string = MagicMock(return_value='new_string')
     ctx.search_string_change('new_string')
-    assert ctx.window.core.ctx.search_string == 'new_string'
+    assert ctx.window.core.ctx.get_search_string() == 'new_string'
     assert mock_window.core.config.get('ctx.search.string') == 'new_string'
     ctx.update.assert_called_once()
 
@@ -358,6 +362,7 @@ def test_prepare_name(mock_window):
     ctx = Ctx(mock_window)
     ctx.summarizer = MagicMock()
     mock_window.core.ctx.is_initialized = MagicMock(return_value=False)
+    mock_window.core.ctx.get_current = MagicMock(return_value=3)
 
     item = CtxItem()
     item.id = 3

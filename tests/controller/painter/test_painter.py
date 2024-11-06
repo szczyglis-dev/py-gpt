@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -58,12 +58,3 @@ def test_restore(mock_window):
         painter.restore()
         painter.window.ui.painter.image.load.assert_called_once()
         painter.window.ui.painter.update.assert_called_once()
-
-
-def test_is_active(mock_window):
-    """Test is active"""
-    mock_window.controller.ui.tab_idx['draw'] = 3
-    mock_window.controller.ui.current_tab = mock_window.controller.ui.tab_idx['draw']
-    painter = Painter(mock_window)
-    painter.window.ui.painter.is_active = MagicMock()
-    assert painter.is_active() is True

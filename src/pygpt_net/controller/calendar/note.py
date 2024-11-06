@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -184,7 +184,7 @@ class Note:
 
         # + filters
         if not self.counters_all:
-            search_string = self.window.core.ctx.search_string
+            search_string = self.window.core.ctx.get_search_string()
             search_content = self.window.core.ctx.is_search_content()
             filters = self.window.core.ctx.get_parsed_filters()
 
@@ -212,7 +212,7 @@ class Note:
 
         # + filters
         if not self.counters_all:
-            search_string = self.window.core.ctx.search_string
+            search_string = self.window.core.ctx.get_search_string()
             search_content = self.window.core.ctx.is_search_content()
             filters = self.window.core.ctx.get_parsed_filters()
 

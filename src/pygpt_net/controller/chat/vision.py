@@ -82,6 +82,10 @@ class Vision:
     def switch_to_vision(self):
         """Switch to vision mode"""
         mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        model_data = self.window.core.models.get(model)
+        if mode == "chat" and "vision" in model_data.mode:
+            return  # abort if vision is already allowed
         if mode == 'vision':
             return
         # abort if vision is already enabled

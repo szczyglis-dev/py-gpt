@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 from .summarizer import Summarizer
 
@@ -27,7 +28,7 @@ class Common:
 
     def update_label_by_current(self):
         """Update ctx label from current ctx"""
-        mode = self.window.core.ctx.mode
+        mode = self.window.core.ctx.get_mode()
 
         # if no ctx mode then use current mode
         if mode is None:
@@ -37,7 +38,7 @@ class Common:
 
         # append assistant name to ctx name label
         if mode == 'assistant':
-            id = self.window.core.ctx.assistant
+            id = self.window.core.ctx.get_assistant()
             assistant = self.window.core.assistants.get_by_id(id)
             if assistant is not None:
                 # get ctx assistant
@@ -89,8 +90,10 @@ class Common:
 
     def focus_chat(self):
         """Focus chat"""
-        if self.window.controller.ui.current_tab != self.window.controller.ui.tab_idx['chat']:
-            self.window.ui.tabs['output'].setCurrentIndex(self.window.controller.ui.tab_idx['chat'])
+        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
+            idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_CHAT)
+            if idx is not None:
+                self.window.ui.tabs['output'].setCurrentIndex(idx)
 
     def restore_display_filter(self):
         """Restore display filter"""

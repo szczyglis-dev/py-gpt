@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -72,8 +72,8 @@ class Lang:
         self.mapping.apply()  # nodes mapping
         self.custom.apply()  # custom nodes
 
-        # notepad
-        self.window.controller.notepad.reload_tab_names()
+        # tabs
+        self.window.controller.ui.tabs.reload_titles()
 
         # calendar
         self.window.controller.calendar.note.update_current()

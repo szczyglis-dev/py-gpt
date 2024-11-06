@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -23,6 +23,7 @@ from pygpt_net.core.debug.indexes import IndexesDebug
 from pygpt_net.core.debug.models import ModelsDebug
 from pygpt_net.core.debug.plugins import PluginsDebug
 from pygpt_net.core.debug.presets import PresetsDebug
+from pygpt_net.core.debug.tabs import TabsDebug
 from pygpt_net.core.debug.ui import UIDebug
 
 
@@ -50,6 +51,7 @@ class Debug:
         self.workers['models'] = ModelsDebug(self.window)
         self.workers['plugins'] = PluginsDebug(self.window)
         self.workers['presets'] = PresetsDebug(self.window)
+        self.workers['tabs'] = TabsDebug(self.window)
         self.workers['ui'] = UIDebug(self.window)
 
         # prepare debug ids

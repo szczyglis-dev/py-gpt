@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -75,9 +75,9 @@ class Extra:
         :param item_id: Item id
         """
         item = self.window.core.ctx.get_item_by_id(item_id)
-        if item is not None:
+        if item is not None and item.meta is not None:
             input_text = item.input
-            meta_id = item.meta_id
+            meta_id = item.meta.id
 
             # store edit id
             self.window.controller.ctx.edit_meta_id = meta_id
@@ -106,16 +106,16 @@ class Extra:
         """Submit edit"""
         item_id = self.window.controller.ctx.edit_item_id
         meta_id = self.window.controller.ctx.edit_meta_id
-        current_meta_id = self.window.core.ctx.current
+        current_meta_id = self.window.core.ctx.get_current()
         if meta_id != current_meta_id:
             self.window.controller.ctx.select(meta_id)
         item = self.window.core.ctx.get_item_by_id(item_id)
         if item is not None:
-            meta_id = item.meta_id
+            meta_id = item.meta.id
             self.window.core.ctx.remove_items_from(meta_id, item_id)
             model = self.window.core.config.get('model')
-            self.window.core.ctx.model = model
-            self.window.controller.chat.render.on_edit_submit(item_id)
+            self.window.core.ctx.set_model(model)
+            self.window.controller.chat.render.on_edit_submit(item)
             self.window.controller.ctx.edit_item_id = None
             self.window.controller.ctx.edit_meta_id = None
             mode = self.window.core.config.get('mode')
@@ -156,11 +156,11 @@ class Extra:
         item = self.window.core.ctx.get_item_by_id(item_id)
         if item is not None:
             input_text = item.input
-            meta_id = item.meta_id
+            meta_id = item.meta.id
             model = self.window.core.config.get('model')
-            self.window.core.ctx.model = model
+            self.window.core.ctx.set_model(model)
             self.window.core.ctx.remove_items_from(meta_id, item_id)
-            self.window.controller.chat.render.on_reply_submit(item_id)
+            self.window.controller.chat.render.on_reply_submit(item)
             mode = self.window.core.config.get('mode')
             self.window.controller.model.set(mode, model)
             self.window.controller.chat.input.send(input_text)

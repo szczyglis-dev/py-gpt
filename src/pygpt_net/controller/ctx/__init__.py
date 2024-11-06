@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -20,6 +20,7 @@ from .summarizer import Summarizer
 from .extra import Extra
 
 from pygpt_net.utils import trans
+from ...core.tabs import Tab
 
 
 class Ctx:
@@ -55,13 +56,24 @@ class Ctx:
             # get last ctx from config
             id = self.window.core.config.get('ctx')
             if id is not None and self.window.core.ctx.has(id):
-                self.window.core.ctx.current = id
+                self.window.core.ctx.set_current(id)
             else:
                 # if no ctx then get first ctx
-                self.window.core.ctx.current = self.window.core.ctx.get_first()
+                self.window.core.ctx.set_current(self.window.core.ctx.get_first())
 
-        # load selected ctx
-        self.load(self.window.core.ctx.current)
+        # restore previous ctx
+        # 1) try to load from tabs data - if not exists, load from current
+        tab = self.window.core.tabs.get_first_by_type(Tab.TAB_CHAT)
+        loaded = False
+        if tab is not None:
+            meta_id = tab.data_id
+            if meta_id is not None:
+                self.load(meta_id)
+                loaded = True
+
+        # 2) load from current if not loaded yet
+        if not loaded:
+            self.load(self.window.core.ctx.get_current())
 
         # restore search string if exists
         if self.window.core.config.has("ctx.search.string"):
@@ -70,8 +82,8 @@ class Ctx:
                 self.window.ui.nodes['ctx.search'].setText(string)
                 self.search_string_change(string)
                 # check if current selected ctx is still valid
-                if self.window.core.ctx.current is not None:
-                    if not self.window.core.ctx.has(self.window.core.ctx.current):
+                if self.window.core.ctx.get_current() is not None:
+                    if not self.window.core.ctx.has(self.window.core.ctx.get_current()):
                         self.search_string_clear()
                         # ^ clear search and reload ctx list to prevent creating new ctx
 
@@ -99,24 +111,25 @@ class Ctx:
             self.window.controller.ui.update()
 
         # append ctx and thread id (assistants API) to config
-        id = self.window.core.ctx.current
+        id = self.window.core.ctx.get_current()
         if id is not None:
             self.window.core.config.set('ctx', id)
-            self.window.core.config.set('assistant_thread', self.window.core.ctx.thread)
+            self.window.core.config.set('assistant_thread', self.window.core.ctx.get_thread())
             self.window.core.config.save()
 
         # update calendar ctx list
         self.window.controller.calendar.update(all=False)
 
-    def select(self, id: int):
+    def select(self, id: int, force: bool = False):
         """
         Select ctx by id
 
-        :param id: context id
+        :param id: context meta id
+        :param force: force select
         """
-        prev_id = self.window.core.ctx.current
-        self.window.core.ctx.current = id
-        if prev_id != id:
+        prev_id = self.window.core.ctx.get_current()
+        self.window.core.ctx.set_current(id)
+        if prev_id != id or force:
             self.load(id)
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
         else:
@@ -156,7 +169,7 @@ class Ctx:
 
         :param focus: focus chat
         """
-        id = self.window.core.ctx.current
+        id = self.window.core.ctx.get_current()
         meta = self.window.core.ctx.get_meta()
         if id in meta:
             self.select_index_by_id(id)
@@ -212,20 +225,20 @@ class Ctx:
             group_id = None
             self.group_id = None
 
-        self.window.core.ctx.new(group_id)
+        meta = self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
 
         # reset appended data
-        self.window.controller.chat.render.reset()
-        self.window.controller.chat.render.clear_output()
+        self.window.controller.chat.render.reset(meta)
+        self.window.controller.chat.render.clear_output(meta)
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
             self.window.ui.nodes['input'].setFocus()  # set focus to input
 
         # update context label
-        mode = self.window.core.ctx.mode
+        mode = self.window.core.ctx.get_mode()
         assistant_id = None
         if mode == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
@@ -236,6 +249,8 @@ class Ctx:
 
         # app event
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_CREATED))
+
+        return meta
 
     def add(self, ctx: CtxItem):
         """
@@ -282,7 +297,7 @@ class Ctx:
         :param restore_model: restore model
         """
         self.load(
-            self.window.core.ctx.current,
+            self.window.core.ctx.get_current(),
             restore_model,
         )
 
@@ -290,7 +305,8 @@ class Ctx:
         """Refresh output"""
         # append ctx to output
         self.window.controller.chat.render.append_context(
-            self.window.core.ctx.items,
+            self.window.core.ctx.get_current_meta(),
+            self.window.core.ctx.get_items(),
             clear=True,
         )
 
@@ -302,21 +318,23 @@ class Ctx:
         :param restore_model: restore model if defined in ctx
         """
         # select ctx by id
-        self.window.core.ctx.thread = None  # reset thread id
+        self.window.core.ctx.clear_thread()  # reset thread id
         self.window.core.ctx.select(id, restore_model=restore_model)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
             self.set_group(meta.group_id)  # set current group if defined
 
-        # reset appended data
-        self.window.controller.chat.render.reset()
+        # reset appended data / prepare new ctx
+        if meta is not None:
+            #self.window.core.ctx.output.prepare(meta)  # reset current PID
+            self.window.controller.chat.render.on_load(meta)
 
         # get current settings stored in ctx
-        thread = self.window.core.ctx.thread
-        mode = self.window.core.ctx.mode
-        model = self.window.core.ctx.model
-        assistant_id = self.window.core.ctx.assistant
-        preset = self.window.core.ctx.preset
+        thread = self.window.core.ctx.get_thread()
+        mode = self.window.core.ctx.get_mode()
+        model = self.window.core.ctx.get_model()
+        assistant_id = self.window.core.ctx.get_assistant()
+        preset = self.window.core.ctx.get_preset()
 
         # restore thread from ctx
         self.window.core.config.set('assistant_thread', thread)
@@ -364,9 +382,9 @@ class Ctx:
 
             # update current context label
             if mode == 'assistant':
-                if self.window.core.ctx.assistant is not None:
+                if self.window.core.ctx.get_assistant() is not None:
                     # get assistant id from ctx if defined in ctx
-                    id = self.window.core.ctx.assistant
+                    id = self.window.core.ctx.get_assistant()
                 else:
                     # or get assistant id from current selected assistant
                     id = self.window.core.config.get('assistant')
@@ -402,8 +420,8 @@ class Ctx:
         self.window.core.ctx.remove(id)  # remove ctx from db
 
         # reset current if current ctx deleted
-        if self.window.core.ctx.current == id:
-            self.window.core.ctx.current = None
+        if self.window.core.ctx.get_current() == id:
+            self.window.core.ctx.clear_current()
             self.window.controller.chat.render.clear_output()
         self.update()
 
@@ -592,7 +610,7 @@ class Ctx:
 
         :param name: context name
         """
-        self.update_name(self.window.core.ctx.current, name)
+        self.update_name(self.window.core.ctx.get_current(), name)
 
     def handle_allowed(self, mode: str) -> bool:
         """
@@ -623,7 +641,7 @@ class Ctx:
         :param text: search string
         """
         self.window.core.ctx.clear_tmp_meta()
-        self.window.core.ctx.search_string = text
+        self.window.core.ctx.set_search_string(text)
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
 
@@ -661,7 +679,7 @@ class Ctx:
         # if ctx is not initialized yet then summarize
         if not self.window.core.ctx.is_initialized():
             self.summarizer.summarize(
-                self.window.core.ctx.current,
+                self.window.core.ctx.get_current(),
                 ctx,
             )
 
@@ -966,3 +984,8 @@ class Ctx:
     def reload_after(self):
         """After reload"""
         self.new_if_empty()
+
+    def load_first(self):
+        """Load first ctx"""
+        id = self.window.core.ctx.get_first()
+        self.select(id, force=True)

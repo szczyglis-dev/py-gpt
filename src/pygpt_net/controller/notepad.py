@@ -6,12 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
+import uuid
 
 from PySide6.QtGui import QIcon, QTextCursor
+from PySide6.QtWidgets import QVBoxLayout
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.notepad import NotepadItem
+from pygpt_net.ui.widget.tabs.body import TabBody
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -25,54 +29,22 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
-        self.default_num_notepads = 1
-        self.start_tab_idx = 4  # tab idx from notepad starts
         self.opened_once = False
 
-    def setup_tabs(self):
-        """Setup notepad tabs"""
-        # create notepads
-        num_notepads = self.get_num_notepads()
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                self.window.ui.notepad[i] = NotepadWidget(self.window)
-                self.window.ui.notepad[i].id = i
-                self.window.ui.notepad[i].textarea.id = i
+    def create(self) -> (TabBody, int):
+        """
+        Create notepad widget
 
-        # append notepads
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                tab = i + (self.start_tab_idx - 1)
-                title = trans('output.tab.notepad')
-                if num_notepads > 1:
-                    title += " " + str(i)
-                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
-                self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
-
-    def update_tabs(self):
-        """Update notepad tabs"""
-        # backup selected tab
-        selected_tab = self.window.ui.tabs['output'].currentIndex()
-        # remove current tabs and recreate
-        for i in range(1, len(self.window.ui.notepad) + 1):
-            self.window.ui.notepad[i].on_destroy()
-            self.window.ui.notepad[i].close()
-            self.window.ui.notepad[i].deleteLater()
-        self.window.ui.notepad = {}
-
-        # remove only notepad tabs
-        for i in range(self.start_tab_idx, self.window.ui.tabs['output'].count()):
-            self.window.ui.tabs['output'].removeTab(self.start_tab_idx)
-
-        self.setup_tabs()
-        self.load()
-
-        # restore selected tab if notepad tab was selected
-        if selected_tab >= self.start_tab_idx:
-            # if selected tab is out of range, select last tab
-            if selected_tab >= self.window.ui.tabs['output'].count():
-                selected_tab = self.window.ui.tabs['output'].count() - 1
-            self.window.ui.tabs['output'].setCurrentIndex(selected_tab)
+        :return: notepad widget (TabBody)
+        """
+        idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
+        self.window.ui.notepad[idx] = NotepadWidget(self.window)
+        self.window.ui.notepad[idx].id = idx
+        self.window.ui.notepad[idx].textarea.id = idx
+        title = trans('output.tab.notepad')
+        title += " " + str(idx)
+        children = self.window.core.tabs.from_widget(self.window.ui.notepad[idx])
+        return children, idx
 
     def load(self):
         """Load all notepads contents"""
@@ -93,42 +65,7 @@ class Notepad:
                     item.idx = idx
                     items[idx] = item
                 if idx in self.window.ui.notepad:
-                    title = items[idx].title
                     self.window.ui.notepad[idx].setText(items[idx].content)
-                    if items[idx].initialized and title is not None and len(title) > 0:
-                        self.update_name(idx, items[idx].title, False)
-
-    def reload_tab_names(self):
-        """Reload tab names (after lang change)"""
-        num_notepads = self.get_num_notepads()
-        items = self.window.core.notepad.get_all()
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                if i not in items or not items[i].initialized:
-                    tab = i + (self.start_tab_idx - 1)
-                    if num_notepads > 1:
-                        self.window.ui.tabs['output'].setTabText(
-                            tab,
-                            trans('output.tab.notepad') + " " + str(i),
-                        )
-                    else:
-                        self.window.ui.tabs['output'].setTabText(
-                            tab,
-                            trans('output.tab.notepad'),
-                        )
-                    self.window.ui.tabs['output'].setTabIcon(
-                        tab,
-                        QIcon(":/icons/paste.svg"),
-                    )
-
-        for idx in items:
-            title = items[idx].title
-            if items[idx].initialized and title is not None and len(title) > 0:
-                self.update_name(
-                    idx,
-                    items[idx].title,
-                    False,
-                )
 
     def get_notepad_name(self, idx: int):
         """
@@ -148,66 +85,6 @@ class Notepad:
         if item.initialized and item.title is not None and len(item.title) > 0:
             title = item.title
         return title
-
-    def rename(self, idx: int):
-        """
-        Rename tab
-
-        :param idx: notepad index (real, not tab idx)
-        """
-        # get attachment object by ID
-        item = self.window.core.notepad.get_by_id(idx)
-        if item is None:
-            return
-
-        # set dialog and show
-        self.window.ui.dialog['rename'].id = 'notepad'
-        self.window.ui.dialog['rename'].input.setText(item.title)
-        self.window.ui.dialog['rename'].current = idx
-        self.window.ui.dialog['rename'].show()
-        self.update()
-
-    def update_name(self, idx: int, name: str, close: bool = True):
-        """
-        Update notepad title
-
-        :param idx: notepad idx
-        :param name: notepad name
-        :param close: close dialog
-        """
-        num = self.get_num_notepads()
-        item = self.window.core.notepad.get_by_id(idx)
-        if item is None:
-            item = NotepadItem()
-            item.idx = idx
-            self.window.core.notepad.items[idx] = item
-
-        tab_idx = idx + (self.start_tab_idx - 1)  # calculate tab idx
-        if name is None or len(name) == 0:
-            # set default name
-            if num > 1:
-                self.window.ui.tabs['output'].setTabText(
-                    tab_idx,
-                    trans('output.tab.notepad') + " " + str(idx),
-                )
-            else:
-                self.window.ui.tabs['output'].setTabText(
-                    tab_idx,
-                    trans('output.tab.notepad'),
-                )
-            item.title = ""
-            item.initialized = False
-        else:
-            # set custom name
-            self.window.ui.tabs['output'].setTabText(
-                tab_idx,
-                name,
-            )
-            item.title = name
-            item.initialized = True
-        self.window.core.notepad.update(item)
-        if close:
-            self.window.ui.dialog['rename'].close()
 
     def save(self, idx: int):
         """
@@ -233,7 +110,9 @@ class Notepad:
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
-            for idx in range(1, num_notepads + 1):
+            tabs = self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
+            for tab in tabs:
+                idx = tab.data_id
                 if idx in self.window.ui.notepad:
                     prev_content = str(items[idx].content)
                     items[idx].content = self.window.ui.notepad[idx].toPlainText()
@@ -244,7 +123,6 @@ class Notepad:
 
     def setup(self):
         """Setup all notepads"""
-        self.setup_tabs()
         self.load()
 
     def append_text(self, text: str, idx: int):
@@ -276,15 +154,19 @@ class Notepad:
 
         :return: number of notepads
         """
-        return int(self.window.core.config.get('notepad.num') or self.default_num_notepads)
+        return self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD)
 
     def get_current_active(self) -> int:
         """
-        Get current notepad index
+        Get current notepad idx
 
         :return: current notepad index
         """
-        return self.window.ui.tabs['output'].currentIndex() - (self.start_tab_idx - 1)
+        if self.is_active():
+            tab = self.window.ui.tabs.get_current_tab()
+            if tab is not None:
+                return tab.data_id
+        return 1
 
     def is_active(self) -> bool:
         """
@@ -292,32 +174,20 @@ class Notepad:
 
         :return: True if notepad tab is active
         """
-        return self.window.ui.tabs['output'].currentIndex() >= self.start_tab_idx
-
-    def rename_upd(self, idx: int, name: str):
-        """
-        Rename notepad tab
-
-        :param idx: notepad idx
-        :param name: new notepad name
-        """
-        item = self.window.core.notepad.get_by_id(idx)
-        if item is None:
-            item = NotepadItem()
-            item.idx = idx
-            self.window.core.notepad.items[idx] = item
-        item.title = name
-        self.window.core.notepad.update(item)
-        self.update()
+        return self.window.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD
 
     def open(self):
         """Open notepad"""
         # if notepad disabled, do nothing
         if self.get_num_notepads() == 0:
             return
+
         # switch to first notepad tab if current tab is not notepad
-        if self.window.controller.ui.current_tab < self.start_tab_idx:
-            self.window.ui.tabs['output'].setCurrentIndex(self.start_tab_idx)
+        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
+            idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
+            if idx is not None:
+                self.window.ui.tabs['output'].setCurrentIndex(idx)
+
         self.window.activateWindow()  # focus
 
     def update(self):
@@ -328,7 +198,7 @@ class Notepad:
         """Reload notepads"""
         self.window.core.notepad.locked = True
         self.window.core.notepad.reset()
-        self.update_tabs()
+        self.load()
         self.window.core.notepad.locked = False
 
     def switch_to_tab(self, idx: int = None):
@@ -338,12 +208,12 @@ class Notepad:
         :param idx: notepad idx
         """
         if idx is None:
-            idx = 1  # get first notepad idx
-        tab = idx + (self.start_tab_idx - 1)
-        if tab < self.window.ui.tabs['output'].count():
-            self.window.ui.tabs['output'].setCurrentIndex(tab)
+            idx = self.get_first_notepad_tab_idx()
+        tab = self.window.core.tabs.get_tab_by_index(idx)
+        if tab is not None:
+            self.window.ui.tabs['output'].setCurrentIndex(idx)
         else:
-            self.window.ui.tabs['output'].setCurrentIndex(self.window.ui.tabs['output'].count() - 1)
+            self.window.ui.tabs['output'].setCurrentIndex(self.get_first_notepad_tab_idx())
 
     def get_first_notepad_tab_idx(self) -> int:
         """
@@ -351,7 +221,7 @@ class Notepad:
 
         :return: first notepad tab index
         """
-        return self.start_tab_idx
+        return self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
 
     def get_current_notepad_text(self) -> str:
         """
@@ -386,3 +256,25 @@ class Notepad:
             self.save(idx)
             return True
         return False
+
+    def import_from_db(self) -> dict or None:
+        """Import notepad tabs from database"""
+        self.window.core.notepad.load_all()
+        items = self.window.core.notepad.get_all()
+        if len(items) == 0:
+            return
+        data = {}
+        for idx in items:
+            item = items[idx]
+            tab = {
+                "uuid": uuid.uuid4(),
+                "pid": 0,
+                "idx": item.idx,
+                "type": Tab.TAB_NOTEPAD,
+                "data_id": item.idx,
+                "title": item.title,
+            }
+            if tab['title'] == "":
+                tab['title'] = trans('output.tab.notepad')
+            data[item.idx] = tab
+        return data

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.03 06:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -79,7 +79,7 @@ class Text:
 
         # create ctx item
         ctx = CtxItem()
-        ctx.meta_id = self.window.core.ctx.current
+        ctx.meta = self.window.core.ctx.get_current_meta()  # CtxMeta (owner object)
         ctx.internal = internal
         ctx.current = True  # mark as current context item
         ctx.mode = mode  # store current selected mode (not inline changed)
@@ -94,12 +94,12 @@ class Text:
 
         # if reply from expert command
         if parent_id is not None:  # parent_id = reply from expert
-            ctx.meta_id = parent_id  # append to current ctx
+            ctx.meta = self.window.core.ctx.get_meta_by_id(parent_id)  # append to current ctx
             ctx.sub_reply = True  # mark as sub reply
             ctx.input_name = prev_ctx.input_name
             ctx.output_name = prev_ctx.output_name
         else:
-            self.window.core.ctx.last_item = ctx  # store last item
+            self.window.core.ctx.set_last_item(ctx)  # store last item
 
         self.window.controller.files.uploaded_ids = []  # clear uploaded files ids at the beginning
 
@@ -145,10 +145,10 @@ class Text:
         self.log("Appending input to chat window...")
 
         # render: begin
-        self.window.controller.chat.render.begin(stream=stream_mode)
+        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=stream_mode)
 
         # append text from input to chat window
-        self.window.controller.chat.render.append_input(ctx)
+        self.window.controller.chat.render.append_input(ctx.meta, ctx)
         self.window.ui.nodes['output'].update()
 
         QApplication.processEvents()

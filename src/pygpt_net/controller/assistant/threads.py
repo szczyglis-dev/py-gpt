@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import json
@@ -56,7 +56,7 @@ class Threads:
         self.window.controller.chat.output.handle(ctx, 'assistant', stream)
 
         if stream:  # append all output to chat
-            self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
+            self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)  # extra reload for stream markdown needed here
 
         ctx.clear_reply()  # reset results
 
@@ -324,7 +324,7 @@ class Threads:
         stream = self.window.core.config.get('stream')
         ctx.current = False  # reset current state
         ctx.from_previous()
-        self.window.controller.chat.render.end(stream=stream)  # extra reload for stream markdown needed here
+        self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)  # extra reload for stream markdown needed here
         self.window.core.ctx.update_item(ctx)
         self.window.controller.ctx.update()
         self.window.core.debug.log(err)

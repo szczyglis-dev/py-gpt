@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2024.11.05 23:00:00                  #
+# ================================================== #
+
+from pygpt_net.ui.widget.tabs.body import TabBody
+from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
+
+
+class Explorer:
+    def __init__(self, window=None):
+        """
+        Chat output UI
+
+        :param window: Window instance
+        """
+        self.window = window
+
+    def setup(self) -> TabBody:
+        """
+        Setup file explorer
+
+        :return: TabBody
+        """
+        # index status data
+        index_data = self.window.core.idx.get_idx_data()  # get all idx data
+
+        # file explorer
+        path = self.window.core.config.get_user_dir('data')
+        self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
+
+        # build tab body
+        return self.window.core.tabs.from_widget(self.window.ui.nodes['output_files'])

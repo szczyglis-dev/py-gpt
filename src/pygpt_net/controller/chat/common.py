@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import os
@@ -75,11 +75,13 @@ class Common:
         plain = self.window.core.config.get('render.plain')
         self.window.ui.nodes['output.raw'].setChecked(plain)
         if plain:
-            self.window.ui.nodes['output'].setVisible(False)
-            self.window.ui.nodes['output_plain'].setVisible(True)
+            for pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].setVisible(False)
+                self.window.ui.nodes['output_plain'][pid].setVisible(True)
         else:
-            self.window.ui.nodes['output'].setVisible(True)
-            self.window.ui.nodes['output_plain'].setVisible(False)
+            for pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].setVisible(True)
+                self.window.ui.nodes['output_plain'][pid].setVisible(False)
 
         self.window.controller.chat.render.switch(self.initialized)  # switch renderer if needed
 

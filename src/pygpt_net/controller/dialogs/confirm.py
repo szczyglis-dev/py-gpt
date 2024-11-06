@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 00:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -141,6 +141,10 @@ class Confirm:
             self.window.controller.settings.workdir.migrate(id, True)
         elif type == 'workdir.update':
             self.window.controller.settings.workdir.update(id, True)
+
+        # tab close all
+        elif type == 'tab.close_all':
+            self.window.controller.ui.tabs.close_all(id, True)  # by type
 
         # editor
         elif type == 'editor.changed.clear':
@@ -282,6 +286,10 @@ class Confirm:
             self.window.controller.ctx.update_name(id, name)
         elif type == 'ctx.group':
             self.window.controller.ctx.update_group_name(id, name, True)
+
+        # tab
+        elif type == 'tab':
+            self.window.controller.ui.tabs.update_name(id, name, True)
 
         # attachments and files
         elif type == 'attachment':

@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.3.4",
-    "app.version": "2.3.4",
-    "updated_at": "2024-11-03T00:00:00"
+    "version": "2.4.0",
+    "app.version": "2.4.0",
+    "updated_at": "2024-11-06T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -223,18 +223,18 @@
     "audio_input": false,
     "audio_output": false,
     "cmd_api": false,
-    "cmd_code_interpreter": true,
-    "cmd_custom": true,
-    "cmd_files": true,
+    "cmd_code_interpreter": false,
+    "cmd_custom": false,
+    "cmd_files": false,
     "cmd_history": false,
     "cmd_serial": false,
-    "cmd_web": true,
+    "cmd_web": false,
     "crontab": false,
     "experts": false,
     "idx_llama_index": false,
     "openai_dalle": false,
-    "openai_vision": true,
-    "real_time": false,
+    "openai_vision": false,
+    "real_time": true,
     "voice_control": false
   },
   "presence_penalty": 0.0,
@@ -263,6 +263,53 @@
   "store_history": true,
   "store_history_time": true,
   "stream": true,
+  "tabs.data": {
+      "0": {
+          "uuid": "58c017b7-f0a4-4303-af0d-d2d70d8c1b15",
+          "pid": 0,
+          "idx": 0,
+          "type": 0,
+          "data_id": null,
+          "title": "Chat",
+          "custom_name": false
+      },
+      "1": {
+          "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e",
+          "pid": 1,
+          "idx": 1,
+          "type": 2,
+          "data_id": null,
+          "title": "Files",
+          "custom_name": false
+      },
+      "2": {
+          "uuid": "61e1b447-aed7-4678-890c-b44402a019eb",
+          "pid": 2,
+          "idx": 2,
+          "type": 4,
+          "data_id": null,
+          "title": "Calendar",
+          "custom_name": false
+      },
+      "3": {
+          "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506",
+          "pid": 3,
+          "idx": 3,
+          "type": 3,
+          "data_id": null,
+          "title": "Painter",
+          "custom_name": false
+      },
+      "4": {
+          "uuid": "2944f757-2e1c-45b9-8281-2a12e00f3fab",
+          "pid": 4,
+          "idx": 4,
+          "type": 1,
+          "data_id": 1,
+          "title": "Notepad",
+          "custom_name": false
+      }
+  },
   "temperature": 1.0,
   "theme": "dark_cyan",
   "theme.markdown": true,

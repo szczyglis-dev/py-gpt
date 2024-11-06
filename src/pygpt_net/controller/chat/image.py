@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import  QApplication
@@ -66,7 +66,7 @@ class Image:
 
         # add ctx to DB
         self.window.core.ctx.add(ctx)
-        self.window.controller.chat.render.append_input(ctx)
+        self.window.controller.chat.render.append_input(ctx.meta, ctx)
 
         # process events to update UI
         QApplication.processEvents()
@@ -130,7 +130,7 @@ class Image:
         # store last mode (in text mode this is handled in send_text)
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-        self.window.controller.chat.render.append_output(ctx)
+        self.window.controller.chat.render.append_output(ctx.meta, ctx)
         self.window.core.ctx.store()  # save current ctx to DB
         self.window.ui.status(trans('status.img.generated'))
 
@@ -138,8 +138,8 @@ class Image:
         self.window.core.ctx.update_item(ctx)
 
         # append extra output to chat
-        self.window.controller.chat.render.append_extra(ctx)
-        self.window.controller.chat.render.end_extra()
+        self.window.controller.chat.render.append_extra(ctx.meta, ctx)
+        self.window.controller.chat.render.end_extra(ctx.meta, ctx)
 
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
 
@@ -159,6 +159,7 @@ class Image:
 
         local_urls = self.window.core.filesystem.make_local_list(paths)
         ctx.images = local_urls  # save images paths in ctx item here
+        
         self.window.core.ctx.update_item(ctx)  # update in DB
         self.window.ui.status(trans('status.img.generated'))  # update status
 
@@ -177,13 +178,13 @@ class Image:
                 }
             )
             ctx.reply = True
-            self.window.controller.chat.render.append_extra(ctx)  # show image first
-            self.window.controller.chat.render.end_extra()
+            self.window.controller.chat.render.append_extra(ctx.meta, ctx)  # show image first
+            self.window.controller.chat.render.end_extra(ctx.meta, ctx)
             self.window.core.dispatcher.reply(ctx, flush=True)
             return
 
         # NOT internal-mode, user called, so append only img output to chat (show images now)
-        self.window.controller.chat.render.append_extra(ctx)
-        self.window.controller.chat.render.end_extra()
+        self.window.controller.chat.render.append_extra(ctx.meta, ctx)
+        self.window.controller.chat.render.end_extra(ctx.meta, ctx)
 
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle

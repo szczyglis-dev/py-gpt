@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -16,7 +16,7 @@ from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
 from pygpt_net.core.text.utils import output_html2text, output_clean_html
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
 class Render:
@@ -36,14 +36,12 @@ class Render:
     def setup(self):
         """Setup render"""
         self.engine = self.window.core.config.get("render.engine")
-        if self.engine == "web":
-            self.connect_signals()
 
-    def connect_signals(self):
-        """Connect signals"""
-        signals = self.web_renderer.get_output_node().signals
-        signals.save_as.connect(self.handle_save_as)
-        signals.audio_read.connect(self.handle_audio_read)
+    def prepare(self):
+        """Prepare render"""
+        self.markdown_renderer.prepare()
+        self.plaintext_renderer.prepare()
+        self.web_renderer.prepare()
 
     def get_engine(self) -> str:
         """
@@ -70,135 +68,181 @@ class Render:
 
     def switch(self, live: bool = True):
         """
-        Switch renderer (markdown <==> plain text)
+        Switch renderer (markdown <==> plain text) - active, TODO: remove from settings, leave only checkbox
 
         :param live: True if live update
         """
         plain = self.window.core.config.get('render.plain')
         if plain:
             self.window.controller.theme.markdown.clear()
-            if self.window.ui.nodes['output'] is not None:
-                if self.window.ui.nodes['output'].isVisible():
-                    self.window.ui.nodes['output'].setVisible(False)
-                    self.window.ui.nodes['output_plain'].setVisible(True)
+            for pid in self.window.ui.nodes['output_plain']:
+                if self.window.ui.nodes['output'][pid] is not None:
+                    self.window.ui.nodes['output'][pid].setVisible(False)
+                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
         else:
             self.window.controller.ctx.refresh()  # TODO: move to on_switch
             self.window.controller.theme.markdown.update(force=True)
-            if self.window.ui.nodes['output_plain'].isVisible():
-                if self.window.ui.nodes['output'] is not None:
-                    self.window.ui.nodes['output'].setVisible(True)
-                    self.window.ui.nodes['output_plain'].setVisible(False)
+            for pid in self.window.ui.nodes['output']:
+                if self.window.ui.nodes['output'][pid] is not None:
+                    self.window.ui.nodes['output'][pid].setVisible(True)
+                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
 
-    def begin(self, stream: bool = False):
+    def get_pid(self, meta: CtxMeta):
+        """
+        Get PID for context meta
+
+        :param meta: context PID
+        """
+        self.get_renderer().get_pid(meta)
+
+    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render begin
 
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        self.get_renderer().begin(stream)
+        self.get_renderer().begin(meta, ctx, stream)
         self.update()
 
-    def end(self, stream: bool = False):
+    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end
 
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        self.get_renderer().end(stream)
+        self.get_renderer().end(meta, ctx, stream)
         self.update()
 
-    def end_extra(self, stream: bool = False):
+    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
         Render end extra
-
+        
+        :param meta: context meta
+        :param ctx: context item
         :param stream: True if it is a stream
         """
-        self.get_renderer().end_extra(stream)
+        self.get_renderer().end_extra(meta, ctx, stream)
         self.update()
 
-    def stream_begin(self):
-        """Render stream begin"""
-        self.get_renderer().stream_begin()
+    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream begin
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
+        self.get_renderer().stream_begin(meta, ctx)
         self.update()
 
-    def stream_end(self):
-        """Render stream end"""
-        self.get_renderer().stream_end()
+    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream end
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
+        self.get_renderer().stream_end(meta, ctx)
         self.update()
 
-    def clear_output(self):
-        """Clear output"""
-        self.get_renderer().clear_output()
+    def clear_output(self, meta: CtxMeta = None):
+        """
+        Clear current active output
+
+        :param meta: Context meta
+        """
+        self.get_renderer().clear_output(meta) # TODO: get meta id on load
         self.update()
 
     def clear_input(self):
         """Clear input"""
         self.get_renderer().clear_input()
 
-    def reset(self):
-        """Reset"""
-        self.get_renderer().reset()
+    def on_load(self, meta: CtxMeta = None):
+        """
+        On load (meta)
+
+        :param meta: Context meta
+        """
+        self.get_renderer().on_load(meta)
+        self.update()
+
+    def reset(self, meta: CtxMeta = None):
+        """
+        Reset current meta
+
+        :param meta: Context meta
+        """
+        self.get_renderer().reset(meta)  # TODO: get meta id on load
         self.update()
 
     def reload(self):
-        """Reload output"""
-        self.get_renderer().reload()
+        """Reload current output"""
+        self.get_renderer().reload()  # TODO: or all outputs?
         self.update()
 
-    def append_context(self, items: list, clear: bool = True):
+    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
         """
         Append all context to output
 
-        :param items: Context items
+        :param meta: Context meta
+        :param items: context items
         :param clear: True if clear all output before append
         """
-        self.get_renderer().append_context(items, clear)
+        self.get_renderer().append_context(meta, items, clear)
         self.update()
 
-    def append_input(self, item: CtxItem, flush: bool = True, node: bool = False):
+    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
         Append text input to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param flush: True if flush output
-        :param node: True to force append node
+        :param append: True to force append node
         """
-        self.get_renderer().append_input(item, flush=flush, node=node)
+        self.get_renderer().append_input(meta, ctx, flush=flush, append=append)
         self.update()
 
-    def append_output(self, item: CtxItem):
+    def append_output(self, meta: CtxMeta, ctx: CtxItem):
         """
         Append text output to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         """
-        self.get_renderer().append_output(item)
+        self.get_renderer().append_output(meta, ctx)
         self.update()
 
-    def append_extra(self, item: CtxItem, footer: bool = False):
+    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False):
         """
         Append extra data (images, files, etc.) to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param footer: True if it is a footer
         """
-        self.get_renderer().append_extra(item, footer)
+        self.get_renderer().append_extra(meta, ctx, footer)
         self.update()
 
-    def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output stream chunk to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the stream
         """
-        self.get_renderer().append_chunk(item, text_chunk, begin)
+        self.get_renderer().append_chunk(meta, ctx, text_chunk, begin)
         self.update()
 
     def on_enable_edit(self, live: bool = True):
         """
-        On enable edit icons
+        On enable edit icons - global
 
         :param live: True if live update
         """
@@ -207,7 +251,7 @@ class Render:
 
     def on_disable_edit(self, live: bool = True):
         """
-        On disable edit icons
+        On disable edit icons - global
 
         :param live: True if live update
         """
@@ -216,7 +260,7 @@ class Render:
 
     def on_enable_timestamp(self, live: bool = True):
         """
-        On enable timestamp
+        On enable timestamp - global
 
         :param live: True if live update
         """
@@ -225,7 +269,7 @@ class Render:
 
     def on_disable_timestamp(self, live: bool = True):
         """
-        On disable timestamp
+        On disable timestamp - global
 
         :param live: True if live update
         """
@@ -250,40 +294,44 @@ class Render:
         self.get_renderer().remove_items_from(id)
         self.update()
 
-    def on_edit_submit(self, id: int):
+    def on_edit_submit(self, ctx: CtxItem):
         """
         On edit submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
-        self.get_renderer().on_edit_submit(id)
+        self.get_renderer().on_edit_submit(ctx)
         self.update()
 
-    def on_remove_submit(self, id: int):
+    def on_remove_submit(self, ctx: CtxItem):
         """
         On remove submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
-        self.get_renderer().on_remove_submit(id)
+        self.get_renderer().on_remove_submit(ctx)
         self.update()
 
-    def on_reply_submit(self, id: int):
+    def on_reply_submit(self, ctx: CtxItem):
         """
         On regenerate submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
-        self.get_renderer().on_reply_submit(id)
+        self.get_renderer().on_reply_submit(ctx)
         self.update()
 
-    def on_page_loaded(self):
-        """On page loaded callback"""
-        self.get_renderer().on_page_loaded()
+    def on_page_loaded(self, meta: CtxMeta):
+        """
+        On page loaded callback
+
+        :param meta: context item
+        """
+        self.get_renderer().on_page_loaded(meta)  # TODO: send ID with callback
         self.update()
 
     def on_theme_change(self):
-        """On theme change"""
+        """On theme change - global"""
         if self.get_engine() == "web":
             self.web_renderer.on_theme_change()
         elif self.get_engine() == "legacy":
@@ -292,7 +340,7 @@ class Render:
 
     def get_scroll_position(self) -> int:
         """
-        Get scroll position
+        Get scroll position - active
 
         :return: scroll position
         """
@@ -300,7 +348,7 @@ class Render:
 
     def set_scroll_position(self, position: int):
         """
-        Set scroll position
+        Set scroll position - active
 
         :param position: scroll position
         """
@@ -308,8 +356,9 @@ class Render:
         self.update()
 
     def update(self):
-        """On update"""
-        self.window.ui.nodes['output'].on_update()
+        """On update - active"""
+        for pin in self.window.ui.nodes['output']:
+            self.window.ui.nodes['output'][pin].on_update()
 
     def clear_all(self):
         """Clear all"""
@@ -319,7 +368,7 @@ class Render:
     @Slot(str, str)
     def handle_save_as(self, text: str, type: str = 'txt'):
         """
-        Handle save as signal
+        Handle save as signal  # TODO: move to another class
 
         :param text: Data to save
         :param type: File type
@@ -336,6 +385,6 @@ class Render:
         """
         Handle audio read signal
 
-        :param text: Text to read
+        :param text: Text to read  # TODO: move to another class
         """
         self.window.controller.audio.read_text(text)

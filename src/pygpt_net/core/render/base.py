@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 23:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
 class BaseRenderer:
@@ -21,6 +21,20 @@ class BaseRenderer:
         """
         self.window = window
 
+    def prepare(self):
+        """
+        Prepare renderer
+        """
+        pass
+
+    def get_pid(self, meta: CtxMeta):
+        """
+        Get PID for context meta
+        
+        :param meta: context PID
+        """
+        pass
+
     def is_stream(self) -> bool:
         """
         Check if it is a stream
@@ -29,83 +43,124 @@ class BaseRenderer:
         """
         return self.window.core.config.get("stream")
 
-    def begin(self, stream: bool = False):
-        """Render begin"""
+    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+        """
+        Render begin
+        
+        :param meta: context meta
+        :param ctx: context item
+        :param stream: True if stream
+        """
         pass
 
-    def end(self, stream: bool = False):
-        """Render end"""
+    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+        """
+        Render end
+        
+        :param meta: context meta
+        :param ctx: context item
+        :param stream: True if stream
+        """
         pass
 
-    def end_extra(self, stream: bool = False):
-        """Render end extra"""
+    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+        """
+        Render end extra
+        
+        :param meta: context meta
+        :param ctx: context item
+        :param stream: True if stream
+        """
         pass
 
-    def stream_begin(self):
-        """Render stream begin"""
+    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream begin
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
         pass  # do nothing
 
-    def stream_end(self):
-        """Render stream end"""
+    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Render stream end
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
         pass  # do nothing    
 
-    def clear_output(self):
-        """Clear output"""
+    def clear_output(self, meta: CtxMeta = None):
+        """
+        Clear output
+
+        :param meta: context meta
+        """
         pass
 
     def clear_input(self):
         """Clear input"""
         pass
 
-    def reset(self):
-        """Reset"""
+    def reset(self, meta: CtxMeta = None):
+        """
+        Reset
+
+        :param meta: context meta
+        """
         pass
 
     def reload(self):
-        """Reload output, called externally only on theme change to redraw content"""
+        """Reload all outputs, called externally only on theme change to redraw content"""
         pass
 
-    def append_context(self, items: list, clear: bool = True):
+    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
         """
         Append all context to output
-
-        :param items: Context items
+        
+        :param meta: context meta
+        :param items: context items
         :param clear: True if clear all output before append
         """
         pass
 
-    def append_input(self, item: CtxItem, flush: bool = True, node: bool = False):
+    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
         Append text input to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param flush: True if flush
-        :param node: True to force append node
+        :param append: True to force append node
         """
         pass
 
-    def append_output(self, item: CtxItem):
+    def append_output(self, meta: CtxMeta, ctx: CtxItem):
         """
         Append text output to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         """
         pass
 
-    def append_extra(self, item: CtxItem, footer: bool = False):
+    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False):
         """
         Append extra data (images, files, etc.) to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param footer: True if it is a footer
         """
         pass
 
-    def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output chunk to output
-
-        :param item: context item
+        
+        :param meta: context meta
+        :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
         """
@@ -127,27 +182,27 @@ class BaseRenderer:
         """
         pass
 
-    def on_edit_submit(self, id: int):
+    def on_edit_submit(self, ctx: CtxItem):
         """
         On edit submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
         self.window.controller.ctx.refresh(restore_model=False)  # allow model change
 
-    def on_remove_submit(self, id: int):
+    def on_remove_submit(self, ctx: CtxItem):
         """
         On remove submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
         pass
 
-    def on_reply_submit(self, id: int):
+    def on_reply_submit(self, ctx: CtxItem):
         """
         On regenerate submit
 
-        :param id: context item ID
+        :param ctx: context item
         """
         self.window.controller.ctx.refresh(restore_model=False)  # allow model change
 
@@ -155,8 +210,20 @@ class BaseRenderer:
         """Clear all"""
         pass
 
-    def on_page_loaded(self):
-        """On page loaded callback"""
+    def on_load(self, meta: CtxMeta = None):
+        """
+        On load (meta)
+
+        :param meta: context metam
+        """
+        pass
+
+    def on_page_loaded(self, meta: CtxMeta = None):
+        """
+        On page loaded callback
+
+        :param meta: context meta
+        """
         pass
 
     def on_enable_edit(self, live: bool = True):

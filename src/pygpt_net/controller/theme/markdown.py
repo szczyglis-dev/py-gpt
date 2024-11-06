@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 01:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import os
@@ -46,7 +46,9 @@ class Markdown:
 
     def apply(self):
         """Apply CSS to renderers"""
-        self.window.ui.nodes['output_plain'].setStyleSheet(self.css['markdown'])  # plain text, always apply
+        if 'output' in self.window.ui.nodes:
+            for pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
         self.window.controller.chat.render.on_theme_change()  # per current engine
 
     def get_web_css(self) -> str:
@@ -63,10 +65,11 @@ class Markdown:
 
     def clear(self):
         """Clear CSS of markdown formatter"""
+        meta = self.window.core.ctx.get_current_meta()
         self.window.controller.chat.render.clear_all()
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
-        self.window.controller.chat.render.end()
+        self.window.controller.chat.render.end(meta, None)
 
     def load(self):
         """Load markdown styles"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -34,7 +34,7 @@ class Stream:
         begin = True
 
         # chunks: stream begin
-        self.window.controller.chat.render.stream_begin()
+        self.window.controller.chat.render.stream_begin(ctx.meta, ctx)
 
         # read stream
         try:
@@ -111,6 +111,7 @@ class Stream:
                         output += response
                         output_tokens += 1
                         self.window.controller.chat.render.append_chunk(
+                            ctx.meta,
                             ctx,
                             response,
                             begin,
@@ -132,7 +133,7 @@ class Stream:
         ctx.set_tokens(ctx.input_tokens, output_tokens)
 
         # chunks: stream end
-        self.window.controller.chat.render.stream_end()
+        self.window.controller.chat.render.stream_end(ctx.meta, ctx)
 
         # log
         self.log("End of stream.")

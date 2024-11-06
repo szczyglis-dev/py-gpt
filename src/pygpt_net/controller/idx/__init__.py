@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -249,7 +249,7 @@ class Idx:
                 idx = self.window.core.config.get('llama.idx.auto.index')
 
             # index items from previously indexed time only
-            current_ctx = self.window.core.ctx.current
+            current_ctx = self.window.core.ctx.get_current()
             if current_ctx is not None:
                 meta = self.window.core.ctx.get_meta_by_id(current_ctx)
                 if meta is not None:

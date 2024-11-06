@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.3.4** | build: **2024.11.03** | Python: **>=3.10, <3.12**
+Release: **2.4.0** | build: **2024.11.06** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -88,7 +88,9 @@ such as those on HuggingFace. Additional API keys may be required.
 
 You can download compiled versions for `Linux` and `Windows` (10/11). 
 
-Download the `.msi` or `tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application. 64-bit only.
+Download the `.msi` or `zip`/`tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application. 64-bit only.
+
+The Linux version requires `GLIBC` >= `2.35`.
 
 ## Snap Store
 
@@ -238,9 +240,17 @@ sudo apt install libasound2-data
 sudo apt install libasound2-plugins
 ```
 
+**Problems with GLIBC on Linux**
+
+If you encounter error: 
+
+```commandline
+Error loading Python lib libpython3.10.so.1.0: dlopen: /lib/x86_64-linux-gnu/libm.so.6: version GLIBC_2.35 not found (required by libpython3.10.so.1.0)
+```
+when trying to run the compiled version for Linux, try updating GLIBC to version `2.35`, or use a newer operating system that has at least version `2.35` of GLIBC.
+
 **Access to camera in Snap version:**
 
-To use camera in Vision mode in Snap version you must connect the camera with:
 
 ```commandline
 sudo snap connect pygpt:camera
@@ -2940,8 +2950,6 @@ Config -> Settings...
 
 - `API Endpoint`: OpenAI API endpoint URL, default: https://api.openai.com/v1.
 
-- `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
-
 - `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 - `Render engine`: chat output render engine: `WebEngine / Chromium` - for full HTML/CSS and `Legacy (markdown)` for legacy, simple markdown CSS output. Default: WebEngine / Chromium.
@@ -3376,6 +3384,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.0 (2024-11-06)**
+
+- Added the ability to have conversations in multiple tabs (right-click on the tab bar to add new tabs via "Add a new chat", similar to a web browser).
+- Added the option to add notepad tabs using the right-click context menu and selecting "Add a new notepad".
+- Added tab reorganization via drag and drop (you can now arrange tabs freely using the mouse).
+- Added the ability to name tabs.
 
 **2.3.4 (2024-11-03)**
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -62,7 +62,7 @@ class Assistant:
 
     def run_stop(self):
         """Stop assistant run"""
-        ctx = self.window.core.ctx.last_item
+        ctx = self.window.core.ctx.get_last_item()
         if ctx is not None:
             if ctx.run_id is not None and ctx.thread is not None:
                 ctx.stopped = True  # mark as canceled
@@ -81,7 +81,7 @@ class Assistant:
                     print("Run stop failed: ", e)
 
                 # render final output
-                self.window.controller.chat.render.stream_end()
+                self.window.controller.chat.render.stream_end(ctx.meta, ctx)
                 self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     def begin(self, ctx: CtxItem):

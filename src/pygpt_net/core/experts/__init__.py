@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -262,7 +262,7 @@ class Experts:
         if self.stopped():
             return
 
-        # get or create children meta
+        # get or create children (slave) meta
         slave = self.window.core.ctx.get_or_create_slave_meta(master_ctx, expert_id)
         expert = self.get_expert(expert_id)
         reply = True
@@ -295,7 +295,7 @@ class Experts:
 
         # create slave item
         ctx = CtxItem()
-        ctx.meta_id = slave.id
+        ctx.meta = slave.meta
         ctx.internal = internal
         ctx.hidden = hidden
         ctx.current = True  # mark as current context item
@@ -306,7 +306,7 @@ class Experts:
         ctx.sub_call = True  # mark as sub-call
 
         # render: begin
-        self.window.controller.chat.render.begin(stream=stream_mode)
+        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=stream_mode)
         self.window.core.ctx.provider.append_item(slave, ctx)  # to slave meta
 
         # build sys prompt

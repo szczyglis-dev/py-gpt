@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import json
@@ -293,7 +293,9 @@ class Dispatcher:
 
         parent_id = None
         if self.reply_ctx.sub_call:
-            parent_id = self.reply_ctx.meta_id  # slave meta id
+            if self.reply_ctx.meta is not None:
+                parent_id = self.reply_ctx.meta.id  # slave meta id
+                
         self.window.controller.chat.input.send(
             text=data,
             force=True,

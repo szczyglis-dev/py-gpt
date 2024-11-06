@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -23,6 +23,7 @@ class CtxItem:
         :param mode: Mode (completion, chat, img, vision, langchain, assistant, llama_index, agent)
         """
         self.id = None
+        self.meta = None  # CtxMeta object
         self.meta_id = None
         self.external_id = None
         self.stream = None
@@ -116,6 +117,9 @@ class CtxItem:
         self.output_tokens = output_tokens
         self.total_tokens = input_tokens + output_tokens
 
+    def get_pid(self):
+        return 0
+
     def to_dict(self) -> dict:
         """
         Dump context item to dict
@@ -124,6 +128,7 @@ class CtxItem:
         """
         return {
             "id": self.id,
+            "meta": self.meta.to_dict() if self.meta else None,
             "meta_id": self.meta_id,
             "external_id": self.external_id,
             # "stream": self.stream,  #  <-- do not dump stream response object
@@ -171,6 +176,7 @@ class CtxItem:
         :param data: dict
         """
         self.id = data.get("id", None)
+        self.meta = data.get("meta", None)
         self.meta_id = data.get("meta_id", None)
         self.external_id = data.get("external_id", None)
         self.stream = data.get("stream", None)
@@ -334,6 +340,9 @@ class CtxMeta:
         self.root_id = data.get("root_id", None)
         self.parent_id = data.get("parent_id", None)
         self.owner_uuid = data.get("owner_uuid", None)
+
+    def get_pid(self):
+        return 0
 
 class CtxGroup:
     def __init__(self, id=None, name=None):

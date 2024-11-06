@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -30,7 +30,6 @@ def test_post_setup(mock_window):
     layout.text_nodes_restore = MagicMock()
     layout.state_restore = MagicMock()
     layout.splitters_restore = MagicMock()
-    layout.tabs_restore = MagicMock()
     layout.groups_restore = MagicMock()
     layout.scroll_restore = MagicMock()
     layout.window.controller.plugins.set_by_tab = MagicMock()
@@ -40,7 +39,6 @@ def test_post_setup(mock_window):
     layout.text_nodes_restore.assert_called_once()
     layout.state_restore.assert_called_once()
     layout.splitters_restore.assert_called_once()
-    layout.tabs_restore.assert_called_once()
     layout.groups_restore.assert_called_once()
     layout.scroll_restore.assert_called_once()
     layout.window.controller.plugins.set_by_tab.assert_called_once()

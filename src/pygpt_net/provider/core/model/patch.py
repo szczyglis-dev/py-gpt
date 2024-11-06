@@ -271,6 +271,15 @@ class Patch:
                 # add o1-preview, o1-mini, Bielik v2.2
                 updated = True
 
+            # < 2.4.0  <--- add langchain
+            if old < parse_version("2.4.0"):
+                print("Migrating models from < 2.4.0...")
+                if 'bielik-11b-v2.2-instruct:Q4_K_M' in data:
+                    model = data['bielik-11b-v2.2-instruct:Q4_K_M']
+                    if "langchain" not in model.mode:
+                        model.mode.append("langchain")
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

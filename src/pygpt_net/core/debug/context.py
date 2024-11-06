@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 import json
 
@@ -38,22 +38,24 @@ class ContextDebug:
             self.window.core.debug.add(self.id, 'reply (queue)', '---')
         self.window.core.debug.add(self.id, 'reply (locked)', str(self.window.controller.chat.reply.locked))
         self.window.core.debug.add(self.id, 'reply (processed)', str(self.window.controller.chat.reply.processed))
-        self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.current))
+        self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.get_current()))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
-        self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.items))
-        if self.window.core.ctx.tmp_meta is not None:
-            self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.tmp_meta.to_dict()))
+        self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.get_items()))
+
+        if self.window.core.ctx.get_tmp_meta() is not None:
+            self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.get_tmp_meta().to_dict()))
+            
         self.window.core.debug.add(self.id, 'group_id (active)', str(self.window.controller.ctx.group_id))
-        self.window.core.debug.add(self.id, 'assistant', str(self.window.core.ctx.assistant))
-        self.window.core.debug.add(self.id, 'mode', str(self.window.core.ctx.mode))
-        self.window.core.debug.add(self.id, 'model', str(self.window.core.ctx.model))
-        self.window.core.debug.add(self.id, 'preset', str(self.window.core.ctx.preset))
-        self.window.core.debug.add(self.id, 'run', str(self.window.core.ctx.run))
-        self.window.core.debug.add(self.id, 'status', str(self.window.core.ctx.status))
-        self.window.core.debug.add(self.id, 'thread', str(self.window.core.ctx.thread))
-        self.window.core.debug.add(self.id, 'last_mode', str(self.window.core.ctx.last_mode))
-        self.window.core.debug.add(self.id, 'last_model', str(self.window.core.ctx.last_model))
-        self.window.core.debug.add(self.id, 'search_string', str(self.window.core.ctx.search_string))
+        self.window.core.debug.add(self.id, 'assistant', str(self.window.core.ctx.get_assistant()))
+        self.window.core.debug.add(self.id, 'mode', str(self.window.core.ctx.get_mode()))
+        self.window.core.debug.add(self.id, 'model', str(self.window.core.ctx.get_model()))
+        self.window.core.debug.add(self.id, 'preset', str(self.window.core.ctx.get_preset()))
+        self.window.core.debug.add(self.id, 'run', str(self.window.core.ctx.get_run()))
+        self.window.core.debug.add(self.id, 'status', str(self.window.core.ctx.get_status()))
+        self.window.core.debug.add(self.id, 'thread', str(self.window.core.ctx.get_thread()))
+        self.window.core.debug.add(self.id, 'last_mode', str(self.window.core.ctx.get_last_mode()))
+        self.window.core.debug.add(self.id, 'last_model', str(self.window.core.ctx.get_last_model()))
+        self.window.core.debug.add(self.id, 'search_string', str(self.window.core.ctx.get_search_string()))
         self.window.core.debug.add(self.id, 'filters', str(self.window.core.ctx.filters))
         self.window.core.debug.add(self.id, 'filters_labels', str(self.window.core.ctx.filters_labels))
         self.window.core.debug.add(self.id, 'sys_prompt (current)', str(self.window.core.ctx.current_sys_prompt))
@@ -63,16 +65,16 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'FUNCTIONS (current)', str(self.get_functions()))
 
         current = None
-        if self.window.core.ctx.current is not None:
-            if self.window.core.ctx.current in self.window.core.ctx.meta:
-                current = self.window.core.ctx.meta[self.window.core.ctx.current]
+        if self.window.core.ctx.get_current() is not None:
+            if self.window.core.ctx.get_current() in self.window.core.ctx.meta:
+                current = self.window.core.ctx.meta[self.window.core.ctx.get_current()]
             if current is not None:
                 data = current.to_dict()
                 self.window.core.debug.add(self.id, '*** (current)', str(data))
 
         i = 0
         self.window.core.debug.add(self.id, 'items[]', '')
-        for item in self.window.core.ctx.items:
+        for item in self.window.core.ctx.get_items():
             data = item.to_dict()
             self.window.core.debug.add(self.id, str(item.id), str(data))
             i += 1

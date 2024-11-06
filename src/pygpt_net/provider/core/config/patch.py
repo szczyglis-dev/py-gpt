@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.11.06 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -1556,6 +1556,13 @@ class Patch:
                     data["agent.continue.always"] = False
                 if 'prompt.agent.continue.always' not in data:
                     data["prompt.agent.continue.always"] = "Continue reasoning..."
+                updated = True
+
+            # < 2.4.0
+            if old < parse_version("2.4.0"):
+                print("Migrating config from < 2.4.0...")
+                if 'tabs.data' not in data:
+                    data["tabs.data"] = self.window.core.tabs.from_defaults()
                 updated = True
 
         # update file

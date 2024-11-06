@@ -1,3 +1,10 @@
+2.4.0 (2024-11-06)
+
+- Added the ability to have conversations in multiple tabs (right-click on the tab bar to add new tabs via "Add a new chat", similar to a web browser).
+- Added the option to add notepad tabs using the right-click context menu and selecting "Add a new notepad".
+- Added tab reorganization via drag and drop (you can now arrange tabs freely using the mouse).
+- Added the ability to name tabs.
+
 2.3.4 (2024-11-03)
 
 - Support for LaTeX: Mathematical formulas can now be displayed in the chat window using KaTeX library (https://katex.org/). This enhancement allows for real-time rendering of complex mathematical expressions.

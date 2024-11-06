@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.3.4",
-        "app.version": "2.3.4",
-        "updated_at": "2024-11-03T00:00:00"
+        "version": "2.4.0",
+        "app.version": "2.4.0",
+        "updated_at": "2024-11-06T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -1437,6 +1437,7 @@
             "name": "bielik-11b-v2.2",
             "mode": [
                 "llama_index",
+                "langchain",
                 "agent",
                 "expert"
             ],

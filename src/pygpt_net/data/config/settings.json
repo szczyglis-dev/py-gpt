@@ -51,18 +51,6 @@
         "secret": false,
         "advanced": false
     },
-    "notepad.num": {
-        "section": "general",
-        "type": "int",
-        "slider": true,
-        "label": "settings.notepad.num",
-        "value": 5,
-        "min": 1,
-        "max": 10,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
     "app.env": {
         "section": "general",
         "type": "dict",

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.tabs.tab import Tab
 
 from .note import Note
 
@@ -31,6 +33,14 @@ class Calendar:
         self.load()
         self.update()  # update counters and load notes for current month
         self.set_current()  # set to current note at start
+
+    def is_loaded(self) -> bool:
+        """
+        Check if calendar is loaded
+
+        :return: True if calendar is loaded
+        """
+        return hasattr(self.window.ui, 'calendar') and hasattr(self.window.ui.calendar, 'select')
 
     def update(self, all: bool = True):
         """
@@ -115,7 +125,7 @@ class Calendar:
 
         :return: True if calendar tab is active
         """
-        return self.window.ui.tabs['output'].currentIndex() == self.window.controller.ui.tab_idx['calendar']
+        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
 
     def reload(self):
         """Reload calendar"""

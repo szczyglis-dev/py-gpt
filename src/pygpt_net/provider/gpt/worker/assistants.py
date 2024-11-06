@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -148,9 +148,10 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
-        self.window.controller.chat.render.stream_begin()
+        self.window.controller.chat.render.stream_begin(ctx.meta, ctx)
         self.window.controller.assistant.threads.handle_stream_begin(ctx)
         self.window.controller.chat.render.append_chunk(
+            ctx.meta,
             ctx,
             "",
             True,
@@ -181,6 +182,7 @@ class AssistantsWorker:
         if chunk is not None:
             ctx.output += chunk
         self.window.controller.chat.render.append_chunk(
+            ctx.meta,
             ctx,
             chunk,
             False,
@@ -238,7 +240,7 @@ class AssistantsWorker:
         if ctx.stopped:
             return
         self.reset_tool_output()
-        self.window.controller.chat.render.stream_end()
+        self.window.controller.chat.render.stream_end(ctx.meta, ctx)
         self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     @Slot(object, object, bool)

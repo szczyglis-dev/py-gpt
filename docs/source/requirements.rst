@@ -21,6 +21,8 @@ all required dependencies. Just download the archive from the download page and
 extract it. Then run the application by running the ``pygpt`` binary file in the
 root directory.
 
+The Linux version requires ``GLIBC`` >= ``2.35``.
+
 Snap Store
 -----------
 You can install **PyGPT** directly from Snap Store:
@@ -191,6 +193,17 @@ To use microphone in Snap version you must connect the microphone with:
 .. code-block:: console
 
     sudo snap connect pygpt:audio-record :audio-record
+
+
+**Problems with GLIBC on Linux**
+
+If you encounter error: 
+
+.. code-block:: console
+
+    Error loading Python lib libpython3.10.so.1.0: dlopen: /lib/x86_64-linux-gnu/libm.so.6: version GLIBC_2.35 not found (required by libpython3.10.so.1.0)
+
+when trying to run the compiled version for Linux, try updating GLIBC to version `2.35`, or use a newer operating system that has at least version `2.35` of GLIBC.
 
 
 **Windows and VC++ Redistributable**

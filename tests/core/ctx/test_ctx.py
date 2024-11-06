@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -96,6 +96,10 @@ def test_new(mock_window_conf):
     Test new context
     """
     ctx = Ctx(mock_window_conf)
+    container = MagicMock()
+    container.get_items = MagicMock(return_value=[])
+    ctx.container = container
+
     ctx.create_id = MagicMock(return_value='test_id')
     ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 4
@@ -109,7 +113,7 @@ def test_new(mock_window_conf):
     ctx.create = MagicMock(return_value=item)
 
     assert ctx.new() == item
-    assert ctx.current == 4
+    assert ctx.get_current() == 4
     assert ctx.mode == 'test_mode'
     assert ctx.model == 'id_model'
     assert ctx.preset == 'id_preset'
@@ -117,7 +121,7 @@ def test_new(mock_window_conf):
     assert ctx.assistant is None
     assert ctx.meta[4] == item
     assert ctx.meta[4].mode == 'test_mode'
-    assert ctx.items == []
+    assert ctx.get_items() == []
 
     ctx.create.assert_called_once()
     ctx.save.assert_called_once_with(4)
@@ -171,10 +175,15 @@ def test_add():
         }
         ctx.provider = MagicMock()
         ctx.provider.append_item = MagicMock(return_value=False)
+
+        container = MagicMock()        
+
         item = CtxItem()
         item.id = 'test_id'
+        container.get_items = MagicMock(return_value=[item])
+        ctx.container = container        
         ctx.add(item)
-        assert ctx.items == [item]
+        assert ctx.get_items()[0] == item
         mock_store.assert_called_once()
 
 
@@ -199,7 +208,9 @@ def test_is_empty(mock_window_conf):
     assert ctx.is_empty() is True
     ctx.current = 5
     assert ctx.is_empty() is True
-    ctx.items = [1]
+    container = MagicMock()        
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container      
     assert ctx.is_empty() is False
 
 
@@ -316,10 +327,15 @@ def test_get():
     ctx = Ctx()
     item1 = CtxItem()
     item2 = CtxItem()
-    ctx.items = [
+    items = [
         item1,
         item2,
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=2)
+    ctx.container = container      
+
     assert ctx.get(0) == item1
     assert ctx.get(1) == item2
 
@@ -438,14 +454,17 @@ def test_get_last():
     Test get_last
     """
     ctx = Ctx()
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
         CtxItem(),
     ]
-    assert ctx.get_last() == ctx.items[-1]
-    ctx.items = []
-    assert ctx.get_last() is None
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container      
+
+    assert ctx.get_last() == ctx.get_items()[-1]
 
 
 def test_prepare():
@@ -470,14 +489,17 @@ def test_count():
     Test count
     """
     ctx = Ctx()
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
         CtxItem(),
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container      
+
     assert ctx.count() == 3
-    ctx.items = []
-    assert ctx.count() == 0
 
 
 def test_count_meta():
@@ -498,14 +520,17 @@ def test_all():
     Test all
     """
     ctx = Ctx()
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
         CtxItem(),
     ]
-    assert ctx.all() == ctx.items
-    ctx.items = []
-    assert ctx.all() == []
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container
+
+    assert ctx.all() == ctx.get_items()
 
 
 def test_remove():
@@ -549,8 +574,12 @@ def test_clear():
         CtxItem(),
         CtxItem(),
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=[])
+    ctx.container = container
+
     ctx.clear()
-    assert ctx.items == []
+    assert ctx.get_items() == []
 
 
 def test_append_thread(mock_window_conf):
@@ -630,11 +659,16 @@ def test_count_prompt_items():
     ctx.window.core.tokens = MagicMock()
     ctx.window.core.tokens.from_ctx = MagicMock()
 
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
         CtxItem(),
     ]
+
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container
 
     ctx.window.core.tokens.from_ctx.return_value = 10
     assert ctx.count_prompt_items('test_model', 'test_mode', 100, 1000) == (3, 30)
@@ -669,23 +703,28 @@ def test_get_prompt_items():
     item2 = CtxItem()
     item3 = CtxItem()
 
-    ctx.items = [
+    items = [
         item1,
         item2,
         item3,
     ]
 
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container
+
     ctx.window.core.tokens.from_ctx.return_value = 10
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.items[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)) == 2
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[0] == item1
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[1] == item2
 
     ctx.window.core.tokens.from_ctx.return_value = 30
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.items[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
 
     ctx.window.core.tokens.from_ctx.return_value = 100
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.items[:2]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:2]  # -1
 
     ctx.window.core.tokens.from_ctx.return_value = 1000
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == []
@@ -700,7 +739,7 @@ def test_get_prompt_items():
     item5 = CtxItem()
     item6 = CtxItem()
 
-    ctx.items = [
+    items = [
         item1,
         item2,
         item3,
@@ -709,8 +748,13 @@ def test_get_prompt_items():
         item6,
     ]
 
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container
+
     ctx.window.core.tokens.from_ctx.return_value = 10
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.items[:5]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]  # -1
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)) == 5
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[0] == item1
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[1] == item2
@@ -719,7 +763,7 @@ def test_get_prompt_items():
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000)[4] == item5
 
     ctx.window.core.tokens.from_ctx.return_value = 30
-    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.items[:5]  # -1
+    assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == ctx.get_items()[:5]  # -1
 
     ctx.window.core.tokens.from_ctx.return_value = 130
     assert len(ctx.get_prompt_items('test_model', 'test_mode', 1000, 1400)) == 3
@@ -741,10 +785,15 @@ def test_get_all_items(mock_window_conf):
     ctx = Ctx(mock_window_conf)
     item1 = CtxItem()
     item2 = CtxItem()
-    ctx.items = [
+    items = [
         item1,  # should be removed
         item2
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=3)
+    ctx.container = container
+
     assert ctx.get_all_items(False) == [
         item1,
         item2
@@ -808,12 +857,17 @@ def test_remove_last(mock_window_conf):
     Test remove_last
     """
     ctx = Ctx(mock_window_conf)
-    ctx.items = [
+    items = [
         'item1',
         'item2'
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=2)
+    ctx.container = container
+
     ctx.remove_last()
-    assert ctx.items == [
+    assert ctx.get_items() == [
         'item1'
     ]
     ctx.items = []
@@ -826,12 +880,17 @@ def test_remove_first():
     Test remove_first
     """
     ctx = Ctx(mock_window_conf)
-    ctx.items = [
+    items = [
         'item1',
         'item2'
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=2)
+    ctx.container = container
+
     ctx.remove_first()
-    assert ctx.items == [
+    assert ctx.get_items() == [
         'item2'
     ]
     ctx.items = []
@@ -859,10 +918,16 @@ def test_is_allowed_for_mode():
     ctx.meta = {
         3: meta
     }
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
     ]
+
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=2)
+    ctx.container = container
+
     ctx.get_meta_by_id = MagicMock(return_value=meta)
 
     ctx.current = 3
@@ -925,12 +990,16 @@ def test_save():
     ctx.meta = {
         3: CtxMeta()
     }
-    ctx.items = [
+    items = [
         CtxItem(),
         CtxItem(),
     ]
+    container = MagicMock()        
+    container.get_items = MagicMock(return_value=items)
+    container.count_items = MagicMock(return_value=2)
+    ctx.container = container
     ctx.save(3)
-    ctx.provider.save.assert_called_once_with(3, ctx.meta[3], ctx.items)
+    ctx.provider.save.assert_called_once_with(3, ctx.meta[3], ctx.get_items())
 
 
 def test_store(mock_window_conf):

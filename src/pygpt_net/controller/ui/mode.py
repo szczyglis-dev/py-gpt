@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
@@ -179,7 +180,7 @@ class Mode:
 
     def is_chat_tab(self) -> bool:
         """Check if current tab is chat"""
-        return self.window.controller.ui.current_tab == self.window.controller.ui.tab_idx['chat']
+        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
 
     def show_chat_footer(self):
         """Show chat footer"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.05 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -67,9 +67,9 @@ class Output:
         # only append output if not in stream mode, TODO: plugin output add
         if not stream_mode:
             if stream_enabled:  # use global stream settings here to persist previously added input
-                self.window.controller.chat.render.append_input(ctx, flush=True, node=True)
-            self.window.controller.chat.render.append_output(ctx)
-            self.window.controller.chat.render.append_extra(ctx, True)  # + icons
+                self.window.controller.chat.render.append_input(ctx.meta, ctx, flush=True, append=True)
+            self.window.controller.chat.render.append_output(ctx.meta, ctx)
+            self.window.controller.chat.render.append_extra(ctx.meta, ctx, True)  # + icons
 
         self.handle_complete(ctx)
 
@@ -125,7 +125,7 @@ class Output:
 
         # render: end
         if ctx.sub_calls == 0:  # if no experts called
-            self.window.controller.chat.render.end(stream=stream)
+            self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
