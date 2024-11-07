@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -69,9 +69,13 @@ class Tabs:
     def reload_after(self):
         """Reload tabs after"""
         for pid in self.window.ui.nodes['output']:
-            self.window.ui.nodes['output'][pid].setVisible(True)
+            if self.window.core.config.get("render.plain") is True:
+                self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                self.window.ui.nodes['output'][pid].setVisible(False)
+            else:
+                self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                self.window.ui.nodes['output'][pid].setVisible(True)
         self.switch_tab(Tab.TAB_CHAT)
-        self.window.controller.ctx.load_first()
 
     def on_tab_changed(self, idx: int):
         """
@@ -138,6 +142,17 @@ class Tabs:
             return None
         return tab.type
 
+    def get_current_pid(self) -> int or None:
+        """
+        Get current tab PID
+
+        :return: tab PID
+        """
+        tab = self.window.core.tabs.get_tab_by_index(self.current)
+        if tab is None:
+            return None
+        return tab.pid
+
     def get_type_by_idx(self, idx: int) -> int or None:
         """
         Get tab type by index
@@ -149,6 +164,15 @@ class Tabs:
         if tab is None:
             return None
         return tab.type
+
+    def get_first_idx_by_type(self, type: int) -> int or None:
+        """
+        Get first tab index by type
+
+        :param type: tab type
+        :return: tab index
+        """
+        return self.window.core.tabs.get_min_idx_by_type(type)
 
     def on_tab_clicked(self, idx: int):
         """
@@ -286,3 +310,44 @@ class Tabs:
         self.window.core.tabs.update_title(idx, name)
         if close:
             self.window.ui.dialog['rename'].close()
+
+    def update_current_name(self, name: str):
+        """
+        Update current tab title
+
+        :param name: new title
+        """
+        self.update_name(self.current, name)
+
+    def update_title(self, idx: int, title: str):
+        """
+        Update tab title
+
+        :param idx: tab idx
+        :param title: new title
+        """
+        # check if current tab is chat
+        if self.get_current_type() != Tab.TAB_CHAT:
+            return
+        # truncate to max 8 chars
+        if len(title) > 8:
+            title = title[:8] + '...'
+        self.window.core.tabs.update_title(idx, title)
+
+    def update_title_current(self, title: str):
+        """
+        Update current tab title
+
+        :param title: new title
+        """
+        self.update_title(self.current, title)
+
+    def open_by_type(self, type: int):
+        """
+        Open first tab by type
+
+        :param type: tab type
+        """
+        idx = self.window.core.tabs.get_min_idx_by_type(type)
+        if idx is not None:
+            self.switch_tab_by_idx(idx)
