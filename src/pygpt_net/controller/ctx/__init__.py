@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -248,9 +248,12 @@ class Ctx:
         self.common.update_label(mode, assistant_id)
         self.common.focus_chat()
 
+        # update tab title
+        if meta is not None:
+            self.window.controller.ui.tabs.update_title_current(meta.name)
+
         # app event
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_CREATED))
-
         return meta
 
     def add(self, ctx: CtxItem):
@@ -371,6 +374,10 @@ class Ctx:
         # update current ctx label in UI
         self.common.update_label(mode, assistant_id)
 
+        # update tab title
+        if meta is not None:
+            self.window.controller.ui.tabs.update_title_current(meta.name)
+
     def update_ctx(self):
         """Update current ctx mode if allowed"""
         mode = self.window.core.config.get('mode')
@@ -424,6 +431,9 @@ class Ctx:
             self.window.core.ctx.clear_current()
             self.window.controller.chat.render.clear_output()
         self.update()
+
+        # update tab title
+        self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
         """
@@ -603,6 +613,11 @@ class Ctx:
             self.update()
         else:
             self.update(True, False)
+
+        # update tab title
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            self.window.controller.ui.tabs.update_title_current(meta.name)
 
     def update_name_current(self, name: str):
         """
@@ -984,8 +999,3 @@ class Ctx:
     def reload_after(self):
         """After reload"""
         self.new_if_empty()
-
-    def load_first(self):
-        """Load first ctx"""
-        id = self.window.core.ctx.get_first()
-        self.select(id, force=True)
