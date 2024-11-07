@@ -98,7 +98,10 @@ class ContextList(BaseList):
         index = self.indexAt(event.pos())
         item = self.window.ui.models['ctx.list'].itemFromIndex(index)
 
-        if item is not None:
+        if (item is not None
+                and index.isValid()
+                and hasattr(item, 'id')):
+
             idx = item.row()
             id = item.id
 
