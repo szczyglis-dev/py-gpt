@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.0** | build: **2024.11.06** | Python: **>=3.10, <3.12**
+Release: **2.4.1** | build: **2024.11.08** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3384,6 +3384,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.1 (2024-11-08)**
+
+- Added titles for conversations in tabs.
+- Tab tools added to the tools menu.
+- Fix: Reload tabs after changing profile.
+- Other fixes.
 
 **2.4.0 (2024-11-06)**
 

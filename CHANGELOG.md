@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.4.1 (2024-11-08)
+
+- Added titles for conversations in tabs.
+- Tab tools added to the tools menu.
+- Fix: Reload tabs after changing profile.
+- Other fixes.
+
 # 2.4.0 (2024-11-06)
 
 - Added the ability to have conversations in multiple tabs (right-click on the tab bar to add new tabs via "Add a new chat", similar to a web browser).
