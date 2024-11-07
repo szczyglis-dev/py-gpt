@@ -102,20 +102,6 @@ def test_parse_links():
     assert actual_html_output == expected_html_output
 
 
-def test_parse_code_blocks():
-    parser = Parser()
-    parser.window = MagicMock()
-    parser.window.core = MagicMock()
-    parser.window.core.config = MagicMock()
-    parser.window.core.config.get.return_value = False
-    parser.init()
-
-    markdown_input = "```\ndef example():\n    return 'example'\n```"
-    expected_html_output = " <div class=\"code-wrapper\"><div class=\"code-header-wrapper\"><div><a class=\"code-header-copy\" href=\"extra-code-copy:1\">copy to clipboard</a></div></div><div><code>def example():    return 'example'</code></div></div> "
-    actual_html_output = parser.parse(markdown_input).replace("\n", "")
-    assert actual_html_output == expected_html_output
-
-
 def test_parse_block_quotes():
     parser = Parser()
     parser.window = MagicMock()

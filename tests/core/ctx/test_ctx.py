@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -58,6 +58,7 @@ def test_select(mock_window_conf):
     """
     Test select
     """
+    mock_window_conf.controller = MagicMock()
     ctx = Ctx(mock_window_conf)
     ctx.current = 2
 
@@ -204,6 +205,7 @@ def test_is_empty(mock_window_conf):
     """
     Test is_empty
     """
+    mock_window_conf.controller = MagicMock()
     ctx = Ctx(mock_window_conf)
     assert ctx.is_empty() is True
     ctx.current = 5
