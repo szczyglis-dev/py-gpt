@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+
+from PySide6.QtWidgets import QVBoxLayout
 
 from .bag import Bag
-from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
-from ...utils import trans
 
 
 class Container:
@@ -24,9 +22,15 @@ class Container:
         """
         self.window = window
         self.bags = {}
-        self.bags[0] = Bag(window)
+        self.bags[0] = Bag(window)  # always create initial bag
 
     def register_output(self, id: int = 0):
+        """
+        Register output
+
+        :param id: ID
+        :return: Widget
+        """
         # plain output
         output_plain = ChatOutput(self.window)
 
@@ -60,46 +64,68 @@ class Container:
             output_plain.setVisible(False)
             output_html.setVisible(True)
 
-        # layout
+        # build layout
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['output_plain'][id])
         layout.addWidget(self.window.ui.nodes['output'][id])
         layout.setContentsMargins(0, 0, 0, 0)
         widget = self.window.core.tabs.from_layout(layout)
-
-        # TODO: init here
-
-        """
-        idx = self.window.ui.tabs['output'].addTab(output_widget, trans('output.tab.chat'))
-
-        self.window.ui.tabs['output'].setTabIcon(3, QIcon(":/icons/chat.svg"))
-        self.window.ui.tabs['output'].setTabIcon(0, QIcon(":/icons/folder_filled.svg"))
-        self.window.ui.tabs['output'].setTabIcon(1, QIcon(":/icons/schedule.svg"))
-        self.window.ui.tabs['output'].setTabIcon(2, QIcon(":/icons/brush.svg"))
-        """
-
         return widget
 
-    def get_active_pid(self):
-        return 0
+    def get_active_pid(self) -> int:
+        """
+        Get active PID
 
-    def get_active_tab_id(self):
-        return 0
+        :return: PID
+        """
+        pid = self.window.controller.ui.tabs.get_current_pid()
+        if pid is not None:
+            return pid
+        return 0  # default bag
 
-    def get_active_bag(self):
+    def get_active_tab_id(self) -> int:
+        """
+        Get active tab ID
+
+        :return: Tab ID
+        """
+        return self.get_active_pid()
+
+    def get_active_bag(self) -> Bag:
+        """
+        Get active bag
+
+        :return: Bag
+        """
         tab_id = self.get_active_tab_id()
         if tab_id not in self.bags:
             self.bags[tab_id] = Bag(self.window)  # crate new empty bag if not exists
         return self.bags[tab_id]
 
-    def get_items(self):
+    def get_items(self) -> list:
+        """
+        Get items
+
+        :return: Items
+        """
         return self.get_active_bag().get_items()
 
-    def set_items(self, items):
+    def set_items(self, items: list):
+        """
+        Set items
+
+        :param items: Items
+        """
         self.get_active_bag().set_items(items)
 
     def clear_items(self):
+        """Clear items"""
         self.get_active_bag().clear_items()
 
-    def count_items(self):
+    def count_items(self) -> int:
+        """
+        Count items
+
+        :return: Items count
+        """
         return self.get_active_bag().count_items()
