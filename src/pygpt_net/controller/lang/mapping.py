@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -63,6 +63,11 @@ class Mapping:
         for k in self.mapping['placeholder']:
             if k in self.window.ui.nodes:
                 self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
+
+        # menu tab tools
+        for k in self.window.controller.tools.get_tab_tools():
+            if k in self.window.ui.menu:
+                self.window.ui.menu[k].setText(trans("output.tab." + self.window.controller.tools.get_tab_tools()[k][0]))
 
     def get_mapping(self) -> dict:
         """
@@ -292,7 +297,6 @@ class Mapping:
         nodes['tool.indexer.ctx.header.tip'] = 'tool.indexer.tab.ctx.tip'
         nodes['tool.indexer.browse.header.tip'] = 'tool.indexer.tab.browse.tip'
 
-
         # menu title
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
@@ -425,6 +429,7 @@ class Mapping:
         mapping['tooltip'] = tooltips
         mapping['placeholder'] = placeholders
 
+        # tools
         tool_mappings = self.window.tools.get_lang_mappings()
         for type in tool_mappings:
             for k in tool_mappings[type]:

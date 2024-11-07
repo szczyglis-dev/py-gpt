@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,10 +26,10 @@ class Custom:
     def apply(self):
         """Apply custom mappings"""
         # output: tabs
-        self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
-        self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
-        self.window.ui.tabs['output'].setTabText(2, trans('output.tab.calendar'))
-        self.window.ui.tabs['output'].setTabText(3, trans('output.tab.painter'))
+        # self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
+        # self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
+        # self.window.ui.tabs['output'].setTabText(2, trans('output.tab.calendar'))
+        # self.window.ui.tabs['output'].setTabText(3, trans('output.tab.painter'))
 
         # tool: indexer
         self.window.ui.tabs['tool.indexer'].setTabText(0, trans('tool.indexer.tab.files'))

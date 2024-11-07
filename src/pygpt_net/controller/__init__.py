@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -36,6 +36,7 @@ from pygpt_net.controller.plugins import Plugins
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
 from pygpt_net.controller.theme import Theme
+from pygpt_net.controller.tools import Tools
 from pygpt_net.controller.ui import UI
 
 class Controller:
@@ -73,6 +74,7 @@ class Controller:
         self.presets = Presets(window)
         self.settings = Settings(window)
         self.theme = Theme(window)
+        self.tools = Tools(window)
         self.ui = UI(window)
         self.reloading = False
 
@@ -100,6 +102,7 @@ class Controller:
         self.attachment.setup()
         self.camera.setup_ui()
         self.access.setup()
+        self.tools.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
@@ -155,11 +158,11 @@ class Controller:
         self.chat.reload()
         self.window.tools.on_reload()
         self.access.reload()
+        self.tools.reload()
         # self.layout.reload()
 
         # post-reload
-
-        self.ctx.reload_after()
         self.ui.tabs.reload_after()
+        self.ctx.reload_after()
 
         self.reloading = False
