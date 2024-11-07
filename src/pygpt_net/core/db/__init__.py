@@ -243,7 +243,7 @@ class Database:
             'idx_ctx': {
                 'columns': columns["idx_ctx"],
                 'sort_by': columns["idx_ctx"],
-                'search_fields': ['id', 'doc_id', 'meta_id', 'item_id', 'store', 'idx'],
+                'search_fields': ['id', 'doc_id', 'meta_id', 'store', 'idx'],
                 'timestamp_columns': ['created_ts', 'updated_ts'],
                 'json_columns': [],
                 'default_sort': 'id',
