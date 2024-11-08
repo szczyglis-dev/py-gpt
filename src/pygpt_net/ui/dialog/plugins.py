@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -416,8 +416,10 @@ class Plugins:
                 txt_tooltip = txt_desc
 
 
+        """
         if option['type'] not in no_desc_types:
             widget.setToolTip(txt_tooltip)
+        """
 
         if option['type'] not in no_label_types:
             self.window.ui.nodes[label_key] = QLabel(txt_title)
@@ -440,7 +442,7 @@ class Plugins:
             self.window.ui.nodes[desc_key].setWordWrap(True)
             self.window.ui.nodes[desc_key].setMaximumHeight(40)
             self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
-            self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
+            # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
             layout = QVBoxLayout()
             layout.addWidget(cols_widget)
@@ -451,8 +453,8 @@ class Plugins:
 
             if option['type'] not in no_label_types:
                 layout.addWidget(self.window.ui.nodes[label_key])
-            elif option['type'] == 'bool':
-                widget.box.setText(txt_title)  # set checkbox label
+            # elif option['type'] == 'bool':
+                # widget.box.setText(txt_title)  # set checkbox label
 
             layout.addWidget(widget)
 
@@ -461,7 +463,7 @@ class Plugins:
                 self.window.ui.nodes[desc_key].setWordWrap(True)
                 self.window.ui.nodes[desc_key].setMaximumHeight(40)
                 self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
-                self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
+                # self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
                 layout.addWidget(self.window.ui.nodes[desc_key])
 
         # append URLs
