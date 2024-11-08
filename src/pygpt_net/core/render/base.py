@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -280,4 +280,42 @@ class BaseRenderer:
 
         :param position: scroll position
         """
+        pass
+
+    def tool_output_append(self, meta: CtxMeta, content: str):
+        """
+        Add tool output (append)
+
+        :param meta: context meta
+        :param content: content
+        """
+        pass
+
+    def tool_output_update(self, meta: CtxMeta, content: str):
+        """
+        Replace tool output
+
+        :param meta: context meta
+        :param content: content
+        """
+        pass
+
+    def tool_output_clear(self, meta: CtxMeta):
+        """
+        Clear tool output
+
+        :param meta: context meta
+        """
+        pass
+
+    def tool_output_begin(self, meta: CtxMeta):
+        """
+        Begin tool output
+
+        :param meta: context meta
+        """
+        pass
+
+    def tool_output_end(self):
+        """End tool output"""
         pass

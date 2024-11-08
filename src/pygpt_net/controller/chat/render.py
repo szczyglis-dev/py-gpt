@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -373,6 +373,53 @@ class Render:
     def clear_all(self):
         """Clear all"""
         self.get_renderer().clear_all()
+        self.update()
+
+    def tool_output_append(self, meta: CtxMeta, content: str):
+        """
+        Add tool output (append)
+
+        :param meta: context meta
+        :param content: content
+        """
+        self.get_renderer().tool_output_append(meta, content)
+        self.update()
+
+    def tool_output_update(self, meta: CtxMeta, content: str):
+        """
+        Replace tool output
+
+        :param meta: context meta
+        :param content: content
+        """
+        self.get_renderer().tool_output_update(meta, content)
+        self.update()
+
+    def tool_output_clear(self, meta: CtxMeta):
+        """
+        Clear tool output
+
+        :param meta: context meta
+        """
+        self.get_renderer().tool_output_clear(meta)
+        self.update()
+
+    def tool_output_begin(self, meta: CtxMeta):
+        """
+        Begin tool output
+
+        :param meta: context meta
+        """
+        self.get_renderer().tool_output_begin(meta)
+        self.update()
+
+    def tool_output_end(self):
+        """
+        End tool output
+
+        :param meta: context meta
+        """
+        self.get_renderer().tool_output_end()
         self.update()
 
     @Slot(str, str)

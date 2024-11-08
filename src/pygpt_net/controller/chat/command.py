@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -58,6 +58,7 @@ class Command:
             else:
                 reply.type = ReplyContext.CMD_EXECUTE_INLINE
 
+            self.window.controller.chat.render.tool_output_begin(ctx.meta)  # show waiting
             self.window.controller.chat.reply.add(reply)  # send command execution to reply stack
 
     def log(self, data: any):

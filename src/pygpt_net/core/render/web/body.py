@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 import os
@@ -59,7 +59,7 @@ class Body:
         else:
             stylesheet += "pre { color: #000; }"
         content = stylesheet + """
-        """ + self.highlight.get_style_defs()
+        """ + self.highlight.get_style_defs() + self.prepare_styles_extra()
         return content
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
@@ -248,6 +248,36 @@ class Body:
                    path=path,
                    num=num_str)
 
+    def prepare_styles_extra(self):
+        return """
+        .tool-output .content {
+            padding-top: 10px;
+            color: gray !important;
+        }
+        .spinner {
+          display: inline-block;
+          animation: spin 2s linear infinite;
+          margin: auto !important;
+          padding: 0 !important;
+          width:30px !important;
+          height:30px !important;
+        }   
+        .spinner .img {
+          margin: auto;
+          display: block;
+          width: 100% !important;
+          height: 100% !important;
+        }             
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        """
+
     def get_html(self) -> str:
         """
         Build webview HTML code
@@ -279,6 +309,7 @@ class Body:
             <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
+            <div id="_footer_" class="footer"></div>
         </div>
         
         <link rel="stylesheet" href="qrc:///css/katex.min.css">
@@ -459,6 +490,62 @@ class Body:
             }
             highlightCode();
             scrollToBottom();
+        }
+        function appendToolOutput(content) {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                const contentEl = last.querySelector('.content');
+                if (contentEl) {
+                    contentEl.innerHTML += content;
+                }
+            }
+        }
+        function updateToolOutput(content) {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                const contentEl = last.querySelector('.content');
+                if (contentEl) {
+                    contentEl.innerHTML = content;
+                }
+            }
+        }
+        function clearToolOutput(content) {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                const contentEl = last.querySelector('.content');
+                if (contentEl) {
+                    contentEl.innerHTML = '';
+                }
+            }
+        }
+        function beginToolOutput() {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                const contentEl = last.querySelector('.loading');
+                if (contentEl) {
+                    contentEl.style.display = 'inline-block';
+                }
+            }
+        }
+        function endToolOutput() {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                const contentEl = last.querySelector('.loading');
+                if (contentEl) {
+                    contentEl.style.display = 'none';
+                }
+            }
+        }
+        function updateFooter(content) {
+            var element = document.getElementById('_footer_');
+            if (element) {
+                element.innerHTML = content;
+            }
         }
         function clearNodes() {
             prevScroll = 0;

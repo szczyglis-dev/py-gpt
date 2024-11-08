@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.07 23:00:00                  #
 # ================================================== #
 
 import json
+import os
 import re
 from datetime import datetime
 
@@ -131,6 +132,7 @@ class Renderer(BaseRenderer):
         pid = self.get_or_create_pid(meta)
         self.init(pid)
         self.reset_names(meta)
+        self.tool_output_end()  # reset tools
 
     def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
         """
@@ -203,7 +205,8 @@ class Renderer(BaseRenderer):
             item.idx = i
             if i == 0:
                 item.first = True
-            self.append_context_item(meta, item)  # to html buffer
+            next_item = items[i + 1] if i + 1 < len(items) else None   # append next item if exists
+            self.append_context_item(meta, item, next_item)  # to html buffer
             i += 1
         self.pids[pid].use_buffer = False
 
@@ -237,15 +240,9 @@ class Renderer(BaseRenderer):
 
         # hidden internal call
         if ctx.internal \
-                and not is_cmd \
                 and not ctx.first \
                 and not ctx.input.strip().startswith("user: ") \
                 and not ctx.input.strip().startswith("@"):  # expert says:
-            if flush:
-                content = self.prepare_node(meta, ctx, '>>>', self.NODE_INPUT)
-                self.append_chunk_input(meta, ctx, content, True)
-            else:
-                self.append_node(meta, ctx, '>>>', self.NODE_INPUT)
             return
         else:
             # don't show user prefix if provided in internal call goal update
@@ -261,17 +258,18 @@ class Renderer(BaseRenderer):
         else:
             self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
 
-    def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True):
+    def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, next_ctx: CtxItem = None):
         """
         Append text output to output
         
         :param meta: context meta
         :param ctx: context item
         :param flush: flush HTML
+        :param next_ctx: next context
         """
         if ctx.output is None or ctx.output == "":
             return
-        self.append_node(meta, ctx, ctx.output.strip(), self.NODE_OUTPUT)
+        self.append_node(meta, ctx, ctx.output.strip(), self.NODE_OUTPUT, next_ctx)
 
     def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -342,7 +340,7 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1):
+    def append_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1, next_ctx: CtxItem = None):
         """
         Append and format raw text to output
 
@@ -350,12 +348,13 @@ class Renderer(BaseRenderer):
         :param html: text to append
         :param type: type of message
         :param ctx: CtxItem instance
+        :param next_ctx: next context item
         """
         if ctx.hidden:
             return
 
         pid = self.get_or_create_pid(meta)
-        self.append(pid, self.prepare_node(meta, ctx, html, type))
+        self.append(pid, self.prepare_node(meta, ctx, html, type, next_ctx))
 
     def append(self, pid, html: str, flush: bool = False):
         """
@@ -373,15 +372,16 @@ class Renderer(BaseRenderer):
             if not flush:
                 self.pids[pid].html += html  # to buffer
 
-    def append_context_item(self, meta: CtxMeta, ctx: CtxItem):
+    def append_context_item(self, meta: CtxMeta, ctx: CtxItem, next_ctx: CtxItem = None):
         """
         Append context item to output
 
         :param meta: context meta
         :param ctx: context item
+        :param next_ctx: next context item
         """
         self.append_input(meta, ctx, flush=False)
-        self.append_output(meta, ctx, flush=False)  # + extra
+        self.append_output(meta, ctx, flush=False, next_ctx=next_ctx)  # + extra
 
     def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False, render: bool = True) -> str:
         """
@@ -588,7 +588,7 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def prepare_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1) -> str:
+    def prepare_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1, next_ctx: CtxItem = None) -> str:
         """
         Prepare node HTML
         
@@ -596,11 +596,12 @@ class Renderer(BaseRenderer):
         :param ctx: CtxItem instance
         :param html: html text
         :param type: type of message
+        :param next_ctx: next context item
         :return: prepared HTML
         """
         pid = self.get_or_create_pid(meta)
         if type == self.NODE_OUTPUT:
-            return self.prepare_node_output(meta, ctx, html)
+            return self.prepare_node_output(meta, ctx, html, next_ctx)
         elif type == self.NODE_INPUT:
             return self.prepare_node_input(pid, ctx, html)
 
@@ -624,13 +625,14 @@ class Renderer(BaseRenderer):
             msg_id, name) + html + "</div></div>"
         return html
 
-    def prepare_node_output(self, meta: CtxMeta, ctx: CtxItem, html: str) -> str:
+    def prepare_node_output(self, meta: CtxMeta, ctx: CtxItem, html: str, next_ctx: CtxItem = None) -> str:
         """
         Prepare output node
         
         :param meta: context meta
         :param ctx: CtxItem instance
         :param html: html text
+        :param next_ctx: previous context item
         :return: prepared HTML
         """
         pid = self.get_or_create_pid(meta)
@@ -641,9 +643,22 @@ class Renderer(BaseRenderer):
         html = self.helpers.post_format_text(html)
         extra = self.append_extra(meta, ctx, footer=True, render=False)
         footer = self.body.prepare_action_icons(ctx)
+
+        # append tool output if exists
+        tool_output = ""
+        if next_ctx is not None and next_ctx.internal and (len(ctx.cmds) > 0 or len(ctx.extra_ctx) > 0):
+            tool_output = next_ctx.input
+        else:
+            # loading spinner
+            if next_ctx is None and ctx.output.startswith("~###~{\"cmd\""):
+                icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "sync.svg")
+                tool_output = '<span class="spinner"><img src="file://{}" width="30" height="30" class="loading" style="display:none"></span>'.format(icon)
+
+        html_tools = '<div class="tool-output"><div class="content">'+str(tool_output)+'</div></div>'
         html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(
             msg_id, self.pids[
-                pid].name_bot) + html + '<div class="msg-extra">' + extra + '</div>' + footer + '</div></div>'
+                pid].name_bot) + html + html_tools + '<div class="msg-extra">' + extra + '</div>' + footer + '</div></div>'
+
         return html
 
     def flush_output(self, pid, html: str):
@@ -903,3 +918,58 @@ class Renderer(BaseRenderer):
             if self.pids[pid].loaded:
                 self.reload_css()
                 return
+
+    def tool_output_append(self, meta: CtxMeta, content: str):
+        """
+        Add tool output (append)
+
+        :param meta: context meta
+        :param content: content
+        """
+        escaped_content = json.dumps(content)
+        try:
+            self.get_output_node(meta).page().runJavaScript(f"appendToolOutput({escaped_content});")
+        except Exception as e:
+            pass
+
+    def tool_output_update(self, meta: CtxMeta, content: str):
+        """
+        Replace tool output
+
+        :param meta: context meta
+        :param content: content
+        """
+        escaped_content = json.dumps(content)
+        try:
+            self.get_output_node(meta).page().runJavaScript(f"updateToolOutput({escaped_content});")
+        except Exception as e:
+            pass
+
+    def tool_output_clear(self, meta: CtxMeta):
+        """
+        Clear tool output
+
+        :param meta: context meta
+        """
+        try:
+            self.get_output_node(meta).page().runJavaScript(f"clearToolOutput();")
+        except Exception as e:
+            pass
+
+    def tool_output_begin(self, meta: CtxMeta):
+        """
+        Begin tool output
+
+        :param meta: context meta
+        """
+        try:
+            self.get_output_node(meta).page().runJavaScript(f"beginToolOutput();")
+        except Exception as e:
+            pass
+
+    def tool_output_end(self):
+        """End tool output"""
+        try:
+            self.get_output_node().page().runJavaScript(f"endToolOutput();")
+        except Exception as e:
+            pass

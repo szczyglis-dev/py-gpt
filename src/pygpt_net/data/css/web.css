@@ -59,7 +59,7 @@ p {{
 }}
 .msg-box .msg {{
     margin: 0;
-    padding: 5px;
+    padding: 15px;
 }}
 .msg-box:first-child {{
     margin-top: 0px;
