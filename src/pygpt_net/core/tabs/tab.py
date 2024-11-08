@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -32,6 +32,7 @@ class Tab:
         self.type = 0
         self.title = ""
         self.icon = None
+        self.tooltip = None
         self.data_id = None
         self.reference = None
         self.new_idx = None
@@ -49,6 +50,7 @@ class Tab:
             "type": self.type,
             "title": self.title,
             "icon": self.icon,
+            "tooltip": self.tooltip,
             "data_id": self.data_id,
             "reference": str(self.reference),
             "custom_name": self.custom_name,
