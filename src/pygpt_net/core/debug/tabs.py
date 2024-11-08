@@ -34,7 +34,7 @@ class TabsDebug:
         for pid in list(self.window.core.tabs.pids):
             tab = self.window.core.tabs.pids[pid]
             data = tab.to_dict()
-            self.window.core.debug.add(self.id, "["+str(pid)+"]" + " " + str(tab.title), str(data))
+            self.window.core.debug.add(self.id, "PID ["+str(pid)+"]", str(data))
 
         # mapping PID => meta.id
         self.window.core.debug.add(self.id, 'PID => meta.id', str(self.window.core.ctx.output.mapping))
