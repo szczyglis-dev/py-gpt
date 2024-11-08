@@ -6,14 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 
 import tiktoken
 
 from pygpt_net.item.ctx import CtxItem
 
-CHAT_MODES = ["chat", "vision", "langchain", "assistant", "llama_index", "agent", "expert"]
+CHAT_MODES = [
+    "chat",
+    "vision",
+    "langchain",
+    "assistant",
+    "llama_index",
+    "agent",
+    "expert",
+]
 
 
 class Tokens:
@@ -311,7 +319,7 @@ class Tokens:
                 input_tokens = self.from_text(message, model_id)
                 extra_tokens = 0  # no extra tokens in completion mode
 
-        # tmp system prompt
+        # TMP system prompt (for debug purposes)
         self.window.core.ctx.current_sys_prompt = system_prompt
 
         # used tokens

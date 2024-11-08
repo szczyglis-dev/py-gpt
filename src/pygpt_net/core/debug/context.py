@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 import json
 
@@ -41,6 +41,18 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.get_current()))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
         self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.get_items()))
+        self.window.core.debug.add(self.id, 'SYS PROMPT (current)', str(self.window.core.ctx.current_sys_prompt))
+        self.window.core.debug.add(self.id, 'CMD (current)', str(self.window.core.ctx.current_cmd))
+        self.window.core.debug.add(self.id, 'CMD schema (current)', str(self.window.core.ctx.current_cmd_schema))
+        self.window.core.debug.add(self.id, 'FUNCTIONS (current)', str(self.get_functions()))
+
+        current = None
+        if self.window.core.ctx.get_current() is not None:
+            if self.window.core.ctx.get_current() in self.window.core.ctx.meta:
+                current = self.window.core.ctx.meta[self.window.core.ctx.get_current()]
+            if current is not None:
+                data = current.to_dict()
+                self.window.core.debug.add(self.id, '*** (current)', str(data))
 
         if self.window.core.ctx.get_tmp_meta() is not None:
             self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.get_tmp_meta().to_dict()))
@@ -58,19 +70,7 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'search_string', str(self.window.core.ctx.get_search_string()))
         self.window.core.debug.add(self.id, 'filters', str(self.window.core.ctx.filters))
         self.window.core.debug.add(self.id, 'filters_labels', str(self.window.core.ctx.filters_labels))
-        self.window.core.debug.add(self.id, 'sys_prompt (current)', str(self.window.core.ctx.current_sys_prompt))
         self.window.core.debug.add(self.id, 'allowed_modes', str(self.window.core.ctx.allowed_modes))
-        self.window.core.debug.add(self.id, 'CMD (current)', str(self.window.core.ctx.current_cmd))
-        self.window.core.debug.add(self.id, 'CMD schema (current)', str(self.window.core.ctx.current_cmd_schema))
-        self.window.core.debug.add(self.id, 'FUNCTIONS (current)', str(self.get_functions()))
-
-        current = None
-        if self.window.core.ctx.get_current() is not None:
-            if self.window.core.ctx.get_current() in self.window.core.ctx.meta:
-                current = self.window.core.ctx.meta[self.window.core.ctx.get_current()]
-            if current is not None:
-                data = current.to_dict()
-                self.window.core.debug.add(self.id, '*** (current)', str(data))
 
         i = 0
         self.window.core.debug.add(self.id, 'items[]', '')
