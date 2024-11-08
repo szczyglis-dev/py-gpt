@@ -274,6 +274,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving presets...")
         self.core.presets.save_all()
         print("Exiting...")
+        print("")
+        print("Have a nice day! :)")
         event.accept()
 
     def changeEvent(self, event):
