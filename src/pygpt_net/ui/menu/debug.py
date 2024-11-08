@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -73,6 +73,10 @@ class Debug:
             lambda: self.window.controller.debug.toggle('db'))
 
         self.window.ui.menu['menu.debug'] = self.window.menuBar().addMenu(trans("menu.debug"))
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.db'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.app.log'])
+        self.window.ui.menu['menu.debug'].addSeparator()
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.agent'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.assistants'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.attachments'])
@@ -85,6 +89,5 @@ class Debug:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.presets'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.tabs'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.ui'])
-        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.db'])
-        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
-        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.app.log'])
+
+

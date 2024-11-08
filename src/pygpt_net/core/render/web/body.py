@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.08 18:00:00                  #
 # ================================================== #
 
 import os
@@ -90,7 +90,7 @@ class Body:
         # audio read
         if ctx.output is not None and ctx.output != "":
             icons.append(
-                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-audio-read:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
                     self.get_icon("audio", trans("ctx.extra.audio"), ctx)
@@ -98,7 +98,7 @@ class Body:
             )
             # copy ctx
             icons.append(
-                '<a href="extra-copy:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-copy:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
                     self.get_icon("copy", trans("ctx.extra.copy"), ctx)
@@ -106,7 +106,7 @@ class Body:
             )
             # regen link
             icons.append(
-                '<a href="extra-replay:{}" class="action-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-replay:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
                     self.get_icon("reload", trans("ctx.extra.reply"), ctx)
@@ -114,7 +114,7 @@ class Body:
             )
             # edit link
             icons.append(
-                '<a href="extra-edit:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-edit:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
                     self.get_icon("edit", trans("ctx.extra.edit"), ctx)
@@ -122,7 +122,7 @@ class Body:
             )
             # delete link
             icons.append(
-                '<a href="extra-delete:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                '<a href="extra-delete:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
                     self.get_icon("delete", trans("ctx.extra.delete"), ctx)
@@ -132,7 +132,7 @@ class Body:
             # join link
             if not self.window.core.ctx.is_first_item(ctx.id):
                 icons.append(
-                    '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}"><span class="cmd">{}</span></a>'.format(
+                    '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                         ctx.id,
                         ctx.id,
                         self.get_icon("join", trans("ctx.extra.join"), ctx)
@@ -254,11 +254,21 @@ class Body:
             padding-top: 10px;
             color: gray !important;
         }
+        .tool-output .toggle-cmd-output {
+            cursor: pointer;
+            padding-top: 10px;
+            display: block;
+            color: gray;
+        }
+        .toggle-expanded {
+            transform: rotateX(180deg);
+        }
         .spinner {
           display: inline-block;
           animation: spin 2s linear infinite;
           margin: auto !important;
           padding: 0 !important;
+          margin-top: 8px !important;
           width:30px !important;
           height:30px !important;
         }   
@@ -343,11 +353,11 @@ class Body:
             renderMath();            
         }
         function renderMath() {
-             var scripts = document.querySelectorAll('script[type^="math/tex"]');
+              const scripts = document.querySelectorAll('script[type^="math/tex"]');
               scripts.forEach(function(script) {
-                var displayMode = script.type.indexOf('mode=display') > -1;
-                var mathContent = script.textContent || script.innerText;
-                var element = document.createElement(displayMode ? 'div' : 'span');
+                const displayMode = script.type.indexOf('mode=display') > -1;
+                const mathContent = script.textContent || script.innerText;
+                const element = document.createElement(displayMode ? 'div' : 'span');
                 try {
                   katex.render(mathContent, element, {
                     displayMode: displayMode,
@@ -375,7 +385,7 @@ class Body:
             }
         }
         function appendToInput(content) {
-            var element = document.getElementById('_append_input_');
+            const element = document.getElementById('_append_input_');
             if (element) {
                 element.innerHTML += content;
             }
@@ -383,10 +393,10 @@ class Body:
             scrollToBottom();
         }
         function appendToOutput(bot_name, content) {
-            var element = document.getElementById('_append_output_');
+            const element = document.getElementById('_append_output_');
             if (element) {
-                var box = element.querySelector('.msg-box');
-                var msg;
+                let box = element.querySelector('.msg-box');
+                let msg;
                 if (!box) {
                     box = document.createElement('div');
                     box.classList.add('msg-box');
@@ -412,7 +422,7 @@ class Body:
         }
         function appendNode(content) {
             prevScroll = 0;
-            var element = document.getElementById('_nodes_');
+            const element = document.getElementById('_nodes_');
             if (element) {
                 element.classList.remove('empty_list');
                 element.innerHTML += content;
@@ -422,9 +432,9 @@ class Body:
         }
         function appendExtra(id, content) {
             prevScroll = 0;
-            var element = document.getElementById('msg-bot-' + id);
+            const element = document.getElementById('msg-bot-' + id);
             if (element) {
-                var extra = element.querySelector('.msg-extra');
+                const extra = element.querySelector('.msg-extra');
                 if (extra) {
                     extra.innerHTML+= content;
                 }
@@ -434,11 +444,11 @@ class Body:
         }
         function removeNode(id) {
             prevScroll = 0;
-            var element = document.getElementById('msg-user-' + id);
+            let element = document.getElementById('msg-user-' + id);
             if (element) {
                 element.remove();
             }
-            var element = document.getElementById('msg-bot-' + id);
+            element = document.getElementById('msg-bot-' + id);
             if (element) {
                 element.remove();
             }
@@ -447,9 +457,9 @@ class Body:
         }
         function removeNodesFromId(id) {
             prevScroll = 0;
-            var container = document.getElementById('_nodes_');
+            const container = document.getElementById('_nodes_');
             if (container) {
-                var elements = container.querySelectorAll('.msg-box');
+                const elements = container.querySelectorAll('.msg-box');
                 remove = false;
                 elements.forEach(function(element) {
                     if (element.id.endsWith('-' + id)) {
@@ -464,15 +474,15 @@ class Body:
             scrollToBottom();
         }
         function replaceOutput(bot_name, content) {
-            var element = document.getElementById('_append_output_');
+            const element = document.getElementById('_append_output_');
             if (element) {
-                var box = element.querySelector('.msg-box');
-                var msg;
+                let box = element.querySelector('.msg-box');
+                let msg;
                 if (!box) {
                     box = document.createElement('div');
                     box.classList.add('msg-box');
                     box.classList.add('msg-bot');
-                    var name = document.createElement('div');
+                    const name = document.createElement('div');
                     name.classList.add('name-header');
                     name.classList.add('name-bot');
                     name.textContent = bot_name;
@@ -492,6 +502,8 @@ class Body:
             scrollToBottom();
         }
         function appendToolOutput(content) {
+            hideToolOutputLoader();
+            enableToolOutput();
             const elements = document.querySelectorAll('.tool-output');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
@@ -502,6 +514,8 @@ class Body:
             }
         }
         function updateToolOutput(content) {
+            hideToolOutputLoader();
+            enableToolOutput();
             const elements = document.querySelectorAll('.tool-output');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
@@ -512,6 +526,8 @@ class Body:
             }
         }
         function clearToolOutput(content) {
+            hideToolOutputLoader();
+            enableToolOutput();
             const elements = document.querySelectorAll('.tool-output');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
@@ -521,92 +537,132 @@ class Body:
                 }
             }
         }
-        function beginToolOutput() {
-            const elements = document.querySelectorAll('.tool-output');
+        function showToolOutputLoader() {
+            const elements = document.querySelectorAll('.msg-bot');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
-                const contentEl = last.querySelector('.loading');
+                const contentEl = last.querySelector('.spinner');
                 if (contentEl) {
                     contentEl.style.display = 'inline-block';
                 }
             }
         }
+        function hideToolOutputLoader() {
+            const elements = document.querySelectorAll('.msg-bot');
+            // hide all loaders
+            if (elements.length > 0) {
+                elements.forEach(function(element) {
+                    const contentEl = element.querySelector('.spinner');
+                    if (contentEl) {
+                        contentEl.style.display = 'none';
+                    }
+                });
+            }
+        }
+        function beginToolOutput() {
+            showToolOutputLoader();
+        }
         function endToolOutput() {
+            hideToolOutputLoader();
+        }
+        function enableToolOutput() {
             const elements = document.querySelectorAll('.tool-output');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
-                const contentEl = last.querySelector('.loading');
-                if (contentEl) {
-                    contentEl.style.display = 'none';
+                last.style.display = 'block';
+            }
+        }
+        function disableToolOutput() {
+            const elements = document.querySelectorAll('.tool-output');
+            if (elements.length > 0) {
+                const last = elements[elements.length - 1];
+                last.style.display = 'hide';
+            }
+        }
+        function toggleToolOutput(id) {
+            const element = document.getElementById('msg-bot-' + id);
+            if (element) {
+                const outputEl = element.querySelector('.tool-output');
+                if (outputEl) {
+                    const contentEl = outputEl.querySelector('.content');
+                    if (contentEl.style.display === 'none') {
+                        contentEl.style.display = 'block';
+                    } else {
+                        contentEl.style.display = 'none';
+                    }
+                    const toggleEl = outputEl.querySelector('.toggle-cmd-output img');
+                    if (toggleEl) {
+                        toggleEl.classList.toggle('toggle-expanded');
+                    }
                 }
             }
         }
         function updateFooter(content) {
-            var element = document.getElementById('_footer_');
+            const element = document.getElementById('_footer_');
             if (element) {
                 element.innerHTML = content;
             }
         }
         function clearNodes() {
             prevScroll = 0;
-            var element = document.getElementById('_nodes_');
+            const element = document.getElementById('_nodes_');
             if (element) {
                 element.textContent = '';
                 element.classList.add('empty_list');
             }
         }
         function clearInput() {
-            var element = document.getElementById('_append_input_');
+            const element = document.getElementById('_append_input_');
             if (element) {
                 element.textContent = '';
             }
         }
         function clearOutput() {
-            var element = document.getElementById('_append_output_');
+            const element = document.getElementById('_append_output_');
             if (element) {
                 element.textContent = '';
             }
         }
         function enableEditIcons() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.add('display-edit-icons');
             }
         }
         function disableEditIcons() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.remove('display-edit-icons');
             }
         }
         function enableTimestamp() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.add('display-timestamp');
             }
         }
         function disableTimestamp() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.remove('display-timestamp');
             }
         }
         function enableBlocks() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.add('display-blocks');
             }
         }
         function disableBlocks() {
-            var container = document.body;
+            const container = document.body;
             if (container) {
                 container.classList.remove('display-blocks');
             }
         }
         function updateCSS(styles) {
-            var style = document.createElement('style');
+            const style = document.createElement('style');
             style.innerHTML = styles;
-            var oldStyle = document.querySelector('style');
+            const oldStyle = document.querySelector('style');
             if (oldStyle) {
                 oldStyle.remove();
             }
@@ -631,38 +687,38 @@ class Body:
             prevScroll = parseInt(pos);
         }  
         document.addEventListener('DOMContentLoaded', function() {
-            var container = document.getElementById('container');
+            const container = document.getElementById('container');
             function addClassToMsg(id, className) {
-                var msgElement = document.getElementById('msg-bot-' + id);
+                const msgElement = document.getElementById('msg-bot-' + id);
                 if (msgElement) {
                     msgElement.classList.add(className);
                 }
             }
             function removeClassFromMsg(id, className) {
-                var msgElement = document.getElementById('msg-bot-' + id);
+                const msgElement = document.getElementById('msg-bot-' + id);
                 if (msgElement) {
                     msgElement.classList.remove(className);
                 }
             }
             container.addEventListener('mouseover', function(event) {
                 if (event.target.classList.contains('action-img')) {
-                    var id = event.target.getAttribute('data-id');
+                    const id = event.target.getAttribute('data-id');
                     addClassToMsg(id, 'msg-highlight');
                 }
             });        
             container.addEventListener('mouseout', function(event) {
                 if (event.target.classList.contains('action-img')) {
-                    var id = event.target.getAttribute('data-id');
+                    const id = event.target.getAttribute('data-id');
                     removeClassFromMsg(id, 'msg-highlight');
                 }
             });
             container.addEventListener('click', function(event) {
                 if (event.target.classList.contains('code-header-copy')) {
                     event.preventDefault();
-                    var parent = event.target.closest('.code-wrapper');
-                    var source = parent.querySelector('code');
+                    const parent = event.target.closest('.code-wrapper');
+                    const source = parent.querySelector('code');
                     if (source) {
-                        var text = source.textContent || source.innerText;
+                        const text = source.textContent || source.innerText;
                         bridgeCopyCode(text);
                     }                        
                 }

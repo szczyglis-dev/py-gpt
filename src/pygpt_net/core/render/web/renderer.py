@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.08 18:00:00                  #
 # ================================================== #
 
 import json
@@ -650,15 +650,21 @@ class Renderer(BaseRenderer):
 
         # append tool output if exists
         tool_output = ""
+        spinner = ""
+        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "expand.svg")
+        cmd_hide = "display:none"
+        cmd_icon = '<img src="file://{}" width="25" height="25" valign="middle">'.format(icon)
+        expand = "<span class='toggle-cmd-output' onclick='toggleToolOutput("+str(ctx.id)+");' role='button'>"+cmd_icon+" "+trans('action.cmd.expand')+"</span>"
         if next_ctx is not None and next_ctx.internal and (len(ctx.cmds) > 0 or len(ctx.extra_ctx) > 0):
             tool_output = next_ctx.input
+            cmd_hide = ""
         else:
             # loading spinner
             if next_ctx is None and ctx.output.startswith("~###~{\"cmd\""):
                 icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "sync.svg")
-                tool_output = '<span class="spinner"><img src="file://{}" width="30" height="30" class="loading" style="display:none"></span>'.format(icon)
+                spinner = '<span class="spinner" style="display:none"><img src="file://{}" width="30" height="30" class="loading"></span>'.format(icon)
 
-        html_tools = '<div class="tool-output"><div class="content">'+str(tool_output)+'</div></div>'
+        html_tools = str(spinner)+'<div class="tool-output" style="'+cmd_hide+'">'+expand+'<div class="content" style="display:none">'+str(tool_output)+'</div></div>'
         html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(
             msg_id, self.pids[
                 pid].name_bot) + html + html_tools + '<div class="msg-extra">' + extra + '</div>' + footer + '</div></div>'
