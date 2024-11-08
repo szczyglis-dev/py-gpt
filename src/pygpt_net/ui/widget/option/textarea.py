@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.11.08 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
@@ -60,8 +60,9 @@ class OptionTextarea(QTextEdit):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        if "prompt.template.paste" in self.context_options:
+        if "prompt.template.paste" in self.context_options:  # tpl options
             self.window.core.prompt.template.to_menu_options(menu, "editor")
+            self.window.core.prompt.custom.to_menu_options(menu, "editor")
         menu.exec_(event.globalPos())
 
     def keyPressEvent(self, event):

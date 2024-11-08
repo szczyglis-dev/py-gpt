@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.22 23:00:00                  #
+# Updated Date: 2024.11.08 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
@@ -64,7 +64,11 @@ class PromptTextarea(QTextEdit):
         :param event: Event
         """
         menu = self.createStandardContextMenu()
-        self.window.core.prompt.template.to_menu_options(menu, "global")
+        try:
+            self.window.core.prompt.template.to_menu_options(menu, "global")
+            self.window.core.prompt.custom.to_menu_options(menu, "global")
+        except Exception as e:
+            self.window.core.debug.log(e)
         menu.exec_(event.globalPos())
 
     def on_prompt_changed(self):
