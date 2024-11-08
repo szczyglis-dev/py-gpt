@@ -61,7 +61,7 @@ def test_reply(mock_window):
         text=json.dumps(['test']),
         force=True,
         reply=True,
-        internal=False,
+        internal=True,
         prev_ctx=prev_ctx,
         parent_id=None,
     )

@@ -147,8 +147,7 @@ def test_new(mock_window):
     mock_window.core.ctx.new.assert_called_once()
     ctx.update.assert_called_once()
 
-    mock_window.controller.chat.render.reset.assert_called_once()
-    mock_window.controller.chat.render.clear_output.assert_called_once()
+    mock_window.controller.chat.render.clear.assert_called_once()
     mock_window.controller.chat.common.unlock_input.assert_called_once()
 
     ctx.common.update_label.assert_called_once_with('assistant', 'as_123')

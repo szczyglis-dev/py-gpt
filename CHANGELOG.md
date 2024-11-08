@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.4.2 (2024-11-08)
+
+- Improved commands and tools handling.
+- Improved autonomous mode.
+
 # 2.4.1 (2024-11-08)
 
 - Added titles for conversations in tabs.
