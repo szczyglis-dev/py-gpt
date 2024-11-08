@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 01:00:00                  #
+# Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -122,8 +122,12 @@ class Presets:
                 if num_experts > 0:
                     name = name + " (" + str(num_experts) + " experts)"
 
+            prompt = str(data[n].prompt)
+            if len(prompt) > 80:
+                prompt = prompt[:80] + '...'  # truncate to max 8 chars
+            tooltip = prompt
             index = self.window.ui.models[self.id].index(i, 0)
-            self.window.ui.models[self.id].setData(index, n, QtCore.Qt.ToolTipRole)
+            self.window.ui.models[self.id].setData(index, tooltip, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
             i += 1
 
