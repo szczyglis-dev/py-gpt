@@ -224,6 +224,7 @@ class Renderer(BaseRenderer):
         :param flush: flush HTML
         :param append: True if force append node
         """
+        self.tool_output_end()  # reset tools
         pid = self.get_or_create_pid(meta)
         if not flush:
             self.clear_chunks_input(pid)
@@ -267,6 +268,7 @@ class Renderer(BaseRenderer):
         :param flush: flush HTML
         :param next_ctx: next context
         """
+        self.tool_output_end()  # reset tools
         if ctx.output is None or ctx.output == "":
             return
         self.append_node(meta, ctx, ctx.output.strip(), self.NODE_OUTPUT, next_ctx)
@@ -393,6 +395,8 @@ class Renderer(BaseRenderer):
         :param render: True if render, False if only return HTML
         :return: HTML code
         """
+        self.tool_output_end()  # reset tools
+
         pid = self.get_pid(meta)
         appended = []
         html = ""
