@@ -330,6 +330,7 @@ class Tabs:
         if self.get_current_type() != Tab.TAB_CHAT:
             return
         # truncate to max 8 chars
+        self.window.ui.tabs['output'].setTabToolTip(idx, title)
         if len(title) > 8:
             title = title[:8] + '...'
         self.window.core.tabs.update_title(idx, title)

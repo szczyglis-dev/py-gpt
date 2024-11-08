@@ -20,7 +20,7 @@ from .summarizer import Summarizer
 from .extra import Extra
 
 from pygpt_net.utils import trans
-from ...core.tabs import Tab
+from pygpt_net.core.tabs import Tab
 
 
 class Ctx:
@@ -229,14 +229,12 @@ class Ctx:
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
 
-        # reset appended data
-        self.window.controller.chat.render.reset(meta)
-        self.window.controller.chat.render.clear_output(meta)
-        self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
+        # render reset
+        self.window.controller.chat.render.clear(meta)
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
-            self.window.ui.nodes['input'].setFocus()  # set focus to input
+            self.window.controller.chat.common.focus_input()
 
         # update context label
         mode = self.window.core.ctx.get_mode()
