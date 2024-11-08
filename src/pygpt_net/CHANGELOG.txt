@@ -1,3 +1,12 @@
+2.4.3 (2024-11-08)
+
+- Added button to hide output from tools/plugins.
+- Added tooltips on the preset list showing the system prompt of the preset.
+- Added restoration of tooltips for chat tabs.
+- Removed disruptive tooltips from the plugin settings window.
+- Improved reading of current tab information in event reading with speech synthesis.
+- Minor improvements.
+
 2.4.2 (2024-11-08)
 
 - Improved commands and tools handling.

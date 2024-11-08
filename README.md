@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.2** | build: **2024.11.08** | Python: **>=3.10, <3.12**
+Release: **2.4.3** | build: **2024.11.08** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3385,6 +3385,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.3 (2024-11-08)**
+
+- Added button to hide output from tools/plugins.
+- Added tooltips on the preset list showing the system prompt of the preset.
+- Added restoration of tooltips for chat tabs.
+- Removed disruptive tooltips from the plugin settings window.
+- Improved reading of current tab information in event reading with speech synthesis.
+- Minor improvements.
+
 **2.4.2 (2024-11-08)**
 
 - Improved commands and tools handling.
@@ -3411,52 +3420,6 @@ may consume additional tokens that are not displayed in the main window.
 **2.3.3 (2024-11-03)**
 
 - Added support for models: OpenAI `o1` and `o1-mini` and `SpeakLeash/bielik-11b-v2.2` (Polish LLM: https://bielik.ai).
-
-**2.3.2 (2024-08-29)**
-
-- Date count fix in SQL query.
-
-**2.3.1 (2024-08-29)**
-
-- Fixed timezone detection and date conversions in calendar and context search.
-- Added icon indicators showing labels in context items in the calendar (to show if any day has a context with the selected label).
-- Added custom prompt templates in the input context menu (for saving, editing, and deleting custom prompts).
-
-**2.3.0 (2024-08-28)**
-
-- Refactored and optimized the chat engine.
-- Refactored and optimized command execution.
-- Fixed: execution of assistant tool calls.
-- Fixed: flow in the expert plugin.
-- Fixed: flow in the agent plugin.
-- Fixed: console errors in highlight.js.
-- Fixed: logging of the context used in the "Chat with Files" plugin.
-- Improved the stop command.
-- Added a reply stack.
-- Other minor fixes.
-
-**2.2.33 (2024-08-28)**
-
-- Improved model compatibility across different modes.
-- Enhanced appending of Llama-index response metadata (sources) to context.
-- Added scrolling to the selected item when choosing the current context from the File -> Select current menu.
-- Hidden clear preset button.
-- Fixed duplicated UUIDs in expert presets.
-- Extended context and events debugging.
-- Added non-GPT models to Agent and Expert modes.
-
-**2.2.32 (2024-08-27)**
-
-- Fixed the selection of the chosen index for use in Agent mode if the internal mode for Agent is Llama-index.
-- Added the ability to select an index for use by experts.
-- Added automatic, in background mode switching if the given mode is not supported by the selected model in Agent mode and for experts (this allows the use of models available only through Llama-index or Langchain in modes such as Agent or Experts).
-
-**2.2.31 (2024-08-27)**
-
-- Improved behavior of agent and expert calls.
-- Improved chat window auto scroll.
-- Added a new option "Always continue..." to Agent mode (as opposed to the Auto-stop option).
-- Added a new prompt: Config -> Settings -> Prompts -> Agent: continue (always, more steps).
 
 
 # Credits and links
