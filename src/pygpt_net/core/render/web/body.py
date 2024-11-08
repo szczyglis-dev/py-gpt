@@ -272,7 +272,6 @@ class Body:
             <style>
                 """ + self.prepare_styles() + """
             </style>
-            
         </head>
         <body """ + classes_str + """>
         <div id="container">
@@ -325,7 +324,6 @@ class Body:
                   });
                 } catch (err) {
                   element.textContent = mathContent;
-                  // console.error(err);
                 }
                 script.parentNode.replaceChild(element, script);
               });
@@ -536,7 +534,7 @@ class Body:
             const elements = document.querySelectorAll('.tool-output');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];
-                last.style.display = 'hide';
+                last.style.display = 'none';
             }
         }
         function toggleToolOutput(id) {
@@ -639,8 +637,7 @@ class Body:
             }
         }
         function getScrollPosition() {
-            pos = window.scrollY;
-            bridgeUpdateScrollPosition(pos);
+            bridgeUpdateScrollPosition(window.scrollY);
         }
         function setScrollPosition(pos) {
             window.scrollTo(0, pos);
