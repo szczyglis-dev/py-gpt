@@ -295,6 +295,8 @@ class Tabs:
             order = self.window.core.tabs.get_order_by_idx_and_type(tab.idx, tab.type)
             if order != -1:
                 title += " #" + str(order)
+        if tab.tooltip is not None and tab.tooltip != "":
+            title += " - " + tab.tooltip
         return title
 
     def update_tooltip(self, tooltip: str):
