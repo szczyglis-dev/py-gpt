@@ -49,7 +49,6 @@ class Renderer(BaseRenderer):
         """
         self.pids = {}
 
-
     def on_load(self, meta: CtxMeta = None):
         """
         On load (meta) event
@@ -234,10 +233,6 @@ class Renderer(BaseRenderer):
             return
 
         text = ctx.input
-        # check if it is a command response
-        is_cmd = False
-        if ctx.input.strip().startswith("[") and ctx.input.strip().endswith("]"):
-            is_cmd = True
 
         # hidden internal call
         if ctx.internal \
