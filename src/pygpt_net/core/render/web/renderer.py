@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 18:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 
 import json
@@ -609,30 +609,58 @@ class Renderer(BaseRenderer):
         elif type == self.NODE_INPUT:
             return self.prepare_node_input(pid, ctx, html)
 
-    def prepare_node_input(self, pid, ctx: CtxItem, html: str) -> str:
+    def prepare_node_input(
+            self,
+            pid,
+            ctx: CtxItem,
+            html: str
+    ) -> str:
         """
         Prepare input node
-        
+
         :param pid: context PID
         :param ctx: CtxItem instance
         :param html: html text
         :return: prepared HTML
         """
         msg_id = "msg-user-" + str(ctx.id) if ctx is not None else ""
-        content = self.append_timestamp(ctx, self.helpers.format_user_text(html), type=self.NODE_INPUT)
+        content = self.append_timestamp(
+            ctx,
+            self.helpers.format_user_text(html),
+            type=self.NODE_INPUT
+        )
         html = "<p>" + content + "</p>"
         html = self.helpers.post_format_text(html)
         name = self.pids[pid].name_user
+
         if ctx.internal and ctx.input.startswith("[{"):
             name = "System"
-        html = '<div class="msg-box msg-user" id="{}"><div class="name-header name-user">{}</div><div class="msg">'.format(
-            msg_id, name) + html + "</div></div>"
+
+        html = (
+            '<div class="msg-box msg-user" id="{msg_id}">'
+            '<div class="name-header name-user">{name}</div>'
+            '<div class="msg">'
+            '{html}'
+            '</div>'
+            '</div>'
+        ).format(
+            msg_id=msg_id,
+            name=name,
+            html=html
+        )
+
         return html
 
-    def prepare_node_output(self, meta: CtxMeta, ctx: CtxItem, html: str, next_ctx: CtxItem = None) -> str:
+    def prepare_node_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            html: str,
+            next_ctx: CtxItem = None
+    ) -> str:
         """
         Prepare output node
-        
+
         :param meta: context meta
         :param ctx: CtxItem instance
         :param html: html text
@@ -648,26 +676,84 @@ class Renderer(BaseRenderer):
         extra = self.append_extra(meta, ctx, footer=True, render=False)
         footer = self.body.prepare_action_icons(ctx)
 
-        # append tool output if exists
+        # append tool output
         tool_output = ""
         spinner = ""
-        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "expand.svg")
-        cmd_hide = "display:none"
-        cmd_icon = '<img src="file://{}" width="25" height="25" valign="middle">'.format(icon)
-        expand = "<span class='toggle-cmd-output' onclick='toggleToolOutput("+str(ctx.id)+");' role='button'>"+cmd_icon+" "+trans('action.cmd.expand')+"</span>"
-        if next_ctx is not None and next_ctx.internal and (len(ctx.cmds) > 0 or len(ctx.extra_ctx) > 0):
-            tool_output = next_ctx.input
-            cmd_hide = ""
+        icon = os.path.join(
+            self.window.core.config.get_app_path(),
+            "data", "icons", "expand.svg"
+        )
+        output_class = "display:none"
+        cmd_icon = (
+            '<img src="file://{}" width="25" height="25" valign="middle">'
+            .format(icon)
+        )
+        expand_btn = (
+            "<span class='toggle-cmd-output' onclick='toggleToolOutput({});' "
+            "role='button'>{} {}</span>"
+            .format(str(ctx.id), cmd_icon, trans('action.cmd.expand'))
+        )
+
+        # check if next ctx is internal and current ctx has commands
+        if (
+                next_ctx is not None and
+                next_ctx.internal and
+                (len(ctx.cmds) > 0 or len(ctx.extra_ctx) > 0)
+        ):
+            # get output from next input (JSON response)
+            tool_output = str(next_ctx.input)
+            output_class = ""  # show tool output
         else:
             # loading spinner
-            if next_ctx is None and ctx.output.startswith("~###~{\"cmd\""):
-                icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "sync.svg")
-                spinner = '<span class="spinner" style="display:none"><img src="file://{}" width="30" height="30" class="loading"></span>'.format(icon)
+            if (
+                    next_ctx is None and
+                    (
+                            ctx.output.startswith("~###~{\"cmd\"") or
+                            ctx.output.strip().endswith("}~###~") or
+                            len(ctx.cmds) > 0
+                    )
+            ):
+                spinner_class = "display:none"  # hide by default
+                if ctx.live:
+                    spinner_class = ""  # show spinner only if commands and active run
+                icon = os.path.join(
+                    self.window.core.config.get_app_path(),
+                    "data", "icons", "sync.svg"
+                )
+                spinner = (
+                    '<span class="spinner" style="{}">'
+                    '<img src="file://{}" width="30" height="30" '
+                    'class="loading"></span>'
+                    .format(spinner_class, icon)
+                )
 
-        html_tools = str(spinner)+'<div class="tool-output" style="'+cmd_hide+'">'+expand+'<div class="content" style="display:none">'+str(tool_output)+'</div></div>'
-        html = '<div class="msg-box msg-bot" id="{}"><div class="name-header name-bot">{}</div><div class="msg">'.format(
-            msg_id, self.pids[
-                pid].name_bot) + html + html_tools + '<div class="msg-extra">' + extra + '</div>' + footer + '</div></div>'
+        html_tools = (
+                spinner +
+                '<div class="tool-output" style="{}">'.format(output_class) +
+                expand_btn +
+                '<div class="content" style="display:none">' +
+                tool_output +
+                '</div></div>'
+        )
+
+        html = (
+            '<div class="msg-box msg-bot" id="{msg_id}">'
+            '<div class="name-header name-bot">{name_bot}</div>'
+            '<div class="msg">'
+            '{html}'
+            '{html_tools}'
+            '<div class="msg-extra">{extra}</div>'
+            '{footer}'
+            '</div>'
+            '</div>'
+        ).format(
+            msg_id=msg_id,
+            name_bot=self.pids[pid].name_bot,
+            html=html,
+            html_tools=html_tools,
+            extra=extra,
+            footer=footer
+        )
 
         return html
 
@@ -675,7 +761,7 @@ class Renderer(BaseRenderer):
         """
         Flush output
 
-        :param ctx: context item
+        :param pid: context PID
         :param html: HTML code
         """
         escaped_html = json.dumps(html)

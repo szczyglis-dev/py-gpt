@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -55,6 +55,7 @@ class CtxItem:
         self.is_vision = False
         self.idx = 0
         self.first = False
+        self.live = False
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
@@ -167,6 +168,7 @@ class CtxItem:
             "sub_call": False,
             "sub_reply": False,
             "hidden": False,
+            "live": self.live,
         }
 
     def from_dict(self, data: dict):

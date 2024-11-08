@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import  QApplication
@@ -58,6 +58,7 @@ class Image:
         ctx = CtxItem()
         ctx.set_input(text, self.window.core.config.get('user_name'))
         ctx.prev_ctx = prev_ctx  # store previous context item
+        ctx.live = True
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
