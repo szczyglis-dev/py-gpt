@@ -108,7 +108,7 @@ class Tabs:
             meta = self.window.core.ctx.get_meta_by_id(pid_meta)
             if meta is not None:
                 self.window.controller.ctx.load(pid_meta)  # reload renderer
-        elif tab.type == Tab.TAB_TOOL_DRAW:
+        elif tab.type == Tab.TAB_TOOL_PAINTER:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
 

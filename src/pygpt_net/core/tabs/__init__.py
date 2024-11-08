@@ -27,7 +27,7 @@ class Tabs:
     TAB_CHAT = 0
     TAB_NOTEPAD = 1
     TAB_FILES = 2
-    TAB_TOOL_DRAW = 3
+    TAB_TOOL_PAINTER = 3
     TAB_TOOL_CALENDAR = 4
 
     def __init__(self, window=None):
@@ -43,14 +43,14 @@ class Tabs:
             self.TAB_CHAT: ":/icons/chat.svg",
             self.TAB_NOTEPAD: ":/icons/paste.svg",
             self.TAB_FILES: ":/icons/folder_filled.svg",
-            self.TAB_TOOL_DRAW: ":/icons/brush.svg",
+            self.TAB_TOOL_PAINTER: ":/icons/brush.svg",
             self.TAB_TOOL_CALENDAR: ":/icons/calendar.svg",
         }
         self.titles = {
             self.TAB_CHAT: "output.tab.chat",
             self.TAB_NOTEPAD: "output.tab.notepad",
             self.TAB_FILES: "output.tab.files",
-            self.TAB_TOOL_DRAW: "output.tab.painter",
+            self.TAB_TOOL_PAINTER: "output.tab.painter",
             self.TAB_TOOL_CALENDAR: "output.tab.calendar",
         }
 
@@ -127,7 +127,7 @@ class Tabs:
             self.add_notepad(tab)
         elif type == Tab.TAB_FILES:
             self.add_tool_explorer(tab)
-        elif type == Tab.TAB_TOOL_DRAW:
+        elif type == Tab.TAB_TOOL_PAINTER:
             self.add_tool_painter(tab)
         elif type == Tab.TAB_TOOL_CALENDAR:
             self.add_tool_calendar(tab)
@@ -191,7 +191,7 @@ class Tabs:
             self.add_notepad(tab)
         elif tab.type == Tab.TAB_FILES:
             self.add_tool_explorer(tab)
-        elif tab.type == Tab.TAB_TOOL_DRAW:
+        elif tab.type == Tab.TAB_TOOL_PAINTER:
             self.add_tool_painter(tab)
         elif tab.type == Tab.TAB_TOOL_CALENDAR:
             self.add_tool_calendar(tab)
@@ -431,7 +431,7 @@ class Tabs:
             "uuid": uuid.uuid4(),
             "pid": 3,
             "idx": 3,
-            "type": self.TAB_TOOL_DRAW,
+            "type": self.TAB_TOOL_PAINTER,
             "data_id": None,
             "title": "Painter",
         }
@@ -470,7 +470,7 @@ class Tabs:
 
         # check for required tabs
         tmp_pid = -1  # tmp PID only for loading
-        required = [Tab.TAB_CHAT, Tab.TAB_FILES, Tab.TAB_TOOL_CALENDAR, Tab.TAB_TOOL_DRAW]
+        required = [Tab.TAB_CHAT, Tab.TAB_FILES, Tab.TAB_TOOL_CALENDAR, Tab.TAB_TOOL_PAINTER]
         for type in required:
             found = False
             for pid in data:
@@ -537,7 +537,7 @@ class Tabs:
             self.TAB_CHAT: 1,
             self.TAB_NOTEPAD: 1,
             self.TAB_FILES: 1,
-            self.TAB_TOOL_DRAW: 1,
+            self.TAB_TOOL_PAINTER: 1,
             self.TAB_TOOL_CALENDAR: 1,
         }
         for pid in self.pids:

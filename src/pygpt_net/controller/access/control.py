@@ -253,7 +253,7 @@ class Control:
         elif event.name == ControlEvent.TAB_CALENDAR:
             self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
         elif event.name == ControlEvent.TAB_DRAW:
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_DRAW)
+            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_PAINTER)
 
         # tabs: notepads
         elif event.name == ControlEvent.TAB_NOTEPAD:

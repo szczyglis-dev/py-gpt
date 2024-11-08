@@ -84,7 +84,7 @@ class Painter:
 
         :return: True if painter is current active tab
         """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_DRAW
+        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_PAINTER
 
     def reload(self):
         """Reload painter"""

@@ -19,7 +19,7 @@ class Tab:
     TAB_CHAT = 0
     TAB_NOTEPAD = 1
     TAB_FILES = 2
-    TAB_TOOL_DRAW = 3
+    TAB_TOOL_PAINTER = 3
     TAB_TOOL_CALENDAR = 4
 
     def __init__(self):
