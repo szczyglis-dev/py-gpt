@@ -361,6 +361,15 @@ class Render:
         for pin in self.window.ui.nodes['output']:
             self.window.ui.nodes['output'][pin].on_update()
 
+    def clear(self, meta: CtxMeta):
+        """
+        Clear renderer
+
+        :param meta: ctx meta instance
+        """
+        self.window.controller.chat.render.reset(meta)
+        self.window.controller.chat.render.clear_output(meta)
+
     def clear_all(self):
         """Clear all"""
         self.get_renderer().clear_all()
