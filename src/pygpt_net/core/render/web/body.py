@@ -59,7 +59,7 @@ class Body:
         else:
             stylesheet += "pre { color: #000; }"
         content = stylesheet + """
-        """ + self.highlight.get_style_defs() + self.prepare_styles_extra()
+        """ + self.highlight.get_style_defs()
         return content
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
@@ -247,46 +247,6 @@ class Body:
                    url=url,
                    path=path,
                    num=num_str)
-
-    def prepare_styles_extra(self):
-        return """
-        .tool-output .content {
-            padding-top: 10px;
-            color: gray !important;
-        }
-        .tool-output .toggle-cmd-output {
-            cursor: pointer;
-            padding-top: 10px;
-            display: block;
-            color: gray;
-        }
-        .toggle-expanded {
-            transform: rotateX(180deg);
-        }
-        .spinner {
-          display: inline-block;
-          animation: spin 2s linear infinite;
-          margin: auto !important;
-          padding: 0 !important;
-          margin-top: 8px !important;
-          width:30px !important;
-          height:30px !important;
-        }   
-        .spinner .img {
-          margin: auto;
-          display: block;
-          width: 100% !important;
-          height: 100% !important;
-        }             
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        """
 
     def get_html(self) -> str:
         """

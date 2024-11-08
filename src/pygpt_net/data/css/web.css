@@ -192,3 +192,39 @@ code {{
 }}
 .empty_list {{
 }}
+.tool-output .content {{
+    padding: 10px;
+    color: gray !important;
+}}
+.tool-output .toggle-cmd-output {{
+    cursor: pointer;
+    padding-top: 10px;
+    display: block;
+    color: gray;
+}}
+.toggle-expanded {{
+    transform: rotateX(180deg);
+}}
+.spinner {{
+  display: inline-block;
+  animation: spin 2s linear infinite;
+  margin: auto !important;
+  padding: 0 !important;
+  margin-top: 8px !important;
+  width:30px !important;
+  height:30px !important;
+}}
+.spinner .img {{
+  margin: auto;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}}
+@keyframes spin {{
+  from {{
+    transform: rotate(0deg);
+  }}
+  to {{
+    transform: rotate(360deg);
+  }}
+}}
