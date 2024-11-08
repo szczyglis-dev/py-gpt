@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -275,6 +275,28 @@ class Tabs:
         """
         return self.window.ui.tabs['output'].tabText(self.current)
 
+    def get_current_tab_name_for_audio(self) -> str:
+        """
+        Get current tab name for audio description
+
+        :return: tab name
+        """
+        tab = self.get_current_tab()
+        if tab is None:
+            return ""
+
+        title = ""
+        if tab.type in self.window.core.tabs.titles:
+            title = trans(self.window.core.tabs.titles[tab.type])
+
+        # if more than 1 with this type then attach position info
+        num = self.window.core.tabs.count_by_type(tab.type)
+        if num > 1:
+            order = self.window.core.tabs.get_order_by_idx_and_type(tab.idx, tab.type)
+            if order != -1:
+                title += " #" + str(order)
+        return title
+
     def update_tooltip(self, tooltip: str):
         """
         Update tab tooltip
@@ -329,11 +351,11 @@ class Tabs:
         # check if current tab is chat
         if self.get_current_type() != Tab.TAB_CHAT:
             return
-        # truncate to max 8 chars
-        self.window.ui.tabs['output'].setTabToolTip(idx, title)
+        tooltip = title
+        self.window.ui.tabs['output'].setTabToolTip(idx, tooltip)
         if len(title) > 8:
-            title = title[:8] + '...'
-        self.window.core.tabs.update_title(idx, title)
+            title = title[:8] + '...'  # truncate to max 8 chars
+        self.window.core.tabs.update_title(idx, title, tooltip)
 
     def update_title_current(self, title: str):
         """

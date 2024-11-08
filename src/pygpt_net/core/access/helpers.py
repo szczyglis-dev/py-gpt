@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime, timedelta
@@ -100,7 +100,7 @@ class Helpers:
         :return: text to read
         """
         msg = ""
-        tab = self.window.controller.ui.tabs.get_current_tab_name()
+        tab = self.window.controller.ui.tabs.get_current_tab_name_for_audio()
         try:
             msg = trans("event.audio.tab.switch").format(
                 tab=tab,
