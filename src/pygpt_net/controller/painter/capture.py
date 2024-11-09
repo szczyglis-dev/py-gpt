@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.11.08 19:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+import mss
+import mss.tools
 
-from PySide6.QtGui import QImage
+from PySide6.QtGui import QImage, QGuiApplication, QCursor, QPainter
 
 from pygpt_net.utils import trans
 
@@ -39,8 +41,12 @@ class Capture:
         image = QImage(frame.data, width, height, bytes, QImage.Format_RGB888)
         self.window.ui.painter.set_image(image)
 
-    def screenshot(self):
-        """Make screenshot and append to attachments"""
+    def screenshot(self, attach_cursor: bool = True):
+        """
+        Make screenshot and append to attachments
+
+        :param attach_cursor: True to with cursor
+        """
         # switch to vision mode if needed
         self.window.controller.chat.vision.switch_to_vision()
 
@@ -56,9 +62,12 @@ class Capture:
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
             # capture screenshot
-            screen = self.window.app.primaryScreen()
-            screenshot = screen.grabWindow(0)
-            screenshot.save(path, 'png')
+            # screen = self.window.app.primaryScreen()
+            with mss.mss(with_cursor=attach_cursor) as sct:
+                monitor = sct.monitors[1]
+                sct_img = sct.grab(monitor)
+                mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
+
             self.attach(name, path, 'screenshot')
             self.window.controller.painter.open(path)
 
