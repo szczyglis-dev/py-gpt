@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.11.08 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -39,7 +39,9 @@ class Url:
 
         # JS bridge
         if url.toString() == 'bridge://open_find':
-            self.window.ui.nodes['output'].find_open()
+            pid = self.window.controller.ui.tabs.get_current_pid()
+            if pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].find_open()
             return
         elif url.toString() == 'bridge://escape':
             self.window.controller.access.on_escape()
