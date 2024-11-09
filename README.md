@@ -8,7 +8,7 @@ Release: **2.4.4** | build: **2024.11.09** | Python: **>=3.10, <3.12**
 > 
 > Discord: https://pygpt.net/discord | Snap: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 > 
-> Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
+> Compiled version for Linux (`zip`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
 > 
 > ❤️ Donate: https://www.buymeacoffee.com/szczyglis
 
