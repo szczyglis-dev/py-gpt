@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.4.6 (2024-11-10)
+
+- Fixed notepad tab titles in Copy To menu.
+
 # 2.4.5 (2024-11-09)
 
 - Added a new [+] tab button to the right of the tabs.

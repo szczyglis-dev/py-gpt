@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.4.5",
-        "app.version": "2.4.5",
-        "updated_at": "2024-11-09T00:00:00"
+        "version": "2.4.6",
+        "app.version": "2.4.6",
+        "updated_at": "2024-11-10T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
