@@ -402,8 +402,8 @@ class Worker(BaseWorker):
         mouse = MouseController()
         mouse_pos_x, mouse_pos_y = mouse.position
         return {
-            'screen_resolution_x': screen_x,
-            'screen_resolution_y': screen_y,
+            'screen_width': screen_x,
+            'screen_height': screen_y,
             'mouse_pos_x': mouse_pos_x, 
             'mouse_pos_y': mouse_pos_y,
         }
