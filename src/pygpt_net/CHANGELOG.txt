@@ -1,3 +1,7 @@
+2.4.4 (2024-11-09)
+
+- Added a new plugin: Command: Mouse And Keyboard. The plugin allows the model to control the mouse and keyboard, control the cursor position, click mouse buttons, use scroll, type text, and press keys on the keyboard.
+
 2.4.3 (2024-11-08)
 
 - Added button to hide output from tools/plugins.

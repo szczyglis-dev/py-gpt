@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.09 02:00:00                  #
 # ================================================== #
+import time
 
 from PySide6.QtCore import Slot
 
@@ -178,13 +179,13 @@ class Plugin(BasePlugin):
                 {
                     "name": "dx",
                     "type": "int",
-                    "description": "delta X",
+                    "description": "steps to scroll horizontally, positive to the left, negative to the right",
                     "required": True,
                 },
                 {
                     "name": "dy",
                     "type": "int",
-                    "description": "delta Y",
+                    "description": "steps to scroll vertically, positive to scroll down, negative to scroll up",
                     "required": True,
                 },
             ],
@@ -339,6 +340,7 @@ class Plugin(BasePlugin):
             ctx.results.append(response)
             ctx.reply = True
             if self.get_option_value("allow_screenshot"):
+                time.sleep(1)  # wait for a second
                 self.window.controller.painter.capture.screenshot(attach_cursor=True)  # attach screenshot
             self.window.core.dispatcher.reply(ctx)
 
