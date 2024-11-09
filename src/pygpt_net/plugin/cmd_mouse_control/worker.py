@@ -12,7 +12,6 @@
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KeyboardController
 from PySide6.QtCore import Slot, Signal
-
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
