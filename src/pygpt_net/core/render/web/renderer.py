@@ -693,7 +693,7 @@ class Renderer(BaseRenderer):
         if (
                 next_ctx is not None and
                 next_ctx.internal and
-                (len(ctx.cmds) > 0 or len(ctx.extra_ctx) > 0)
+                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
         ):
             # get output from next input (JSON response)
             tool_output = str(next_ctx.input)
