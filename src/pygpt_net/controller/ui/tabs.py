@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.08 17:00:00                  #
 # ================================================== #
+from PySide6.QtCore import QTimer
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.tabs.tab import Tab
@@ -91,9 +92,11 @@ class Tabs:
         if self.appended:
             self.appended = False
             if tab.type == Tab.TAB_CHAT:
+                self.current = idx
                 meta = self.window.controller.ctx.new()  # new context
                 if meta is not None:
                     self.window.controller.ctx.load(meta.id)  # reload
+
 
         prev_tab = self.current
         self.current = idx
@@ -376,3 +379,8 @@ class Tabs:
         idx = self.window.core.tabs.get_min_idx_by_type(type)
         if idx is not None:
             self.switch_tab_by_idx(idx)
+
+    def new_tab(self):
+        """Handle [+} button"""
+        idx = self.get_current_idx()
+        self.append(Tab.TAB_CHAT, idx)
