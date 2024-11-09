@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.4** | build: **2024.11.09** | Python: **>=3.10, <3.12**
+Release: **2.4.5** | build: **2024.11.09** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3464,6 +3464,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.5 (2024-11-09)**
+
+- Added a new [+] tab button to the right of the tabs.
+- Fixed the issue where the tab name disappeared when creating a new tab.
+- Fixed the broken find option (CTRL+F) in the chat window.
 
 **2.4.4 (2024-11-09)**
 

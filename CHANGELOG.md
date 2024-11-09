@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.4.5 (2024-11-09)
+
+- Added a new [+] tab button to the right of the tabs.
+- Fixed the issue where the tab name disappeared when creating a new tab.
+- Fixed the broken find option (CTRL+F) in the chat window.
+
 # 2.4.4 (2024-11-09)
 
 - Added a new plugin: Command: Mouse And Keyboard. The plugin allows the model to control the mouse and keyboard, control the cursor position, click mouse buttons, use scroll, type text, and press keys on the keyboard.
