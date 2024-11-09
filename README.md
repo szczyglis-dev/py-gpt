@@ -2156,6 +2156,86 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
 
 
+## Command: Mouse And Keyboard
+
+Introduced in version: `2.4.4` (2024-11-09)
+
+**WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
+
+The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
+
+Plugin capabilities include:
+
+- Get mouse cursor position
+- Control mouse cursor position
+- Control mouse clicks
+- Control mouse scroll
+- Control the keyboard (pressing keys, typing text)
+- Making screenshots
+
+The `Execute commands` option must be enabled to use this plugin.
+
+**Options:**
+
+**General**
+
+- `Prompt` *prompt*
+
+Prompt used to instruct how to control the mouse and keyboard.
+
+- `Enable: Allow mouse movement` *allow_mouse_move*
+
+Allows mouse movement. *Default:* `True`
+
+- `Enable: Allow mouse click` *allow_mouse_click*
+
+Allows mouse click. *Default:* `True`
+
+- `Enable: Allow mouse scroll` *allow_mouse_scroll*
+
+Allows mouse scroll. *Default:* `True`
+
+- `Enable: Allow keyboard key press` *allow_keyboard*
+
+Allows keyboard typing. *Default:* `True`
+
+- `Enable: Allow making screenshots` *allow_screenshot*
+
+Allows making screenshots. *Default:* `True`
+
+- `Enable: mouse_get_pos` *cmd.mouse_get_pos*
+
+Allows `mouse_get_pos` command execution. *Default:* `True`
+
+- `Enable: mouse_set_pos` *cmd.mouse_set_pos*
+
+Allows `mouse_set_pos` command execution. *Default:* `True`
+
+- `Enable: make_screenshot` *cmd.make_screenshot*
+
+Allows `make_screenshot` command execution. *Default:* `True`
+
+- `Enable: mouse_click` *cmd.mouse_click*
+
+Allows `mouse_click` command execution. *Default:* `True`
+
+- `Enable: mouse_move` *cmd.mouse_move*
+
+Allows `mouse_move` command execution. *Default:* `True`
+
+- `Enable: mouse_scroll` *cmd.mouse_scroll*
+
+Allows `mouse_scroll` command execution. *Default:* `True`
+
+- `Enable: keyboard_key` *cmd.keyboard_key*
+
+Allows `keyboard_key` command execution. *Default:* `True`
+
+- `Enable: keyboard_type` *cmd.keyboard_type*
+
+Allows `keyboard_type` command execution. *Default:* `True`
+
+
 ## Command: Web Search
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.11.08 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -20,6 +20,7 @@ from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPl
 from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
 from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
 from pygpt_net.plugin.cmd_history import Plugin as CtxHistoryPlugin
+from pygpt_net.plugin.cmd_mouse_control import Plugin as CmdMousePlugin
 from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
 from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
@@ -296,6 +297,7 @@ def run(**kwargs):
     launcher.add_plugin(CmdCustomCommandPlugin())
     launcher.add_plugin(CmdApiPlugin())
     launcher.add_plugin(CmdSerialPlugin())
+    launcher.add_plugin(CmdMousePlugin())
     launcher.add_plugin(CtxHistoryPlugin())
     launcher.add_plugin(OpenAIDallePlugin())
     launcher.add_plugin(OpenAIVisionPlugin())
