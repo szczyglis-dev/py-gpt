@@ -86,7 +86,7 @@
   "ctx.records.separators": true,
   "ctx.records.groups.separators": true,
   "ctx.records.pinned.separators": false,
-  "ctx.search_content": false,
+  "ctx.search_content": true,
   "ctx.search.string": "",
   "ctx.sources": true,
   "ctx.use_extra": true,
