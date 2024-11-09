@@ -12,6 +12,7 @@
 from PySide6.QtWidgets import QMenu
 from PySide6.QtGui import QAction, QIcon
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -54,16 +55,12 @@ class ContextMenu:
 
         # notepad
         if 'notepad' not in excluded:
-            num_notepads = self.window.controller.notepad.get_num_notepads()
-            if num_notepads > 0:
-                for i in range(1, num_notepads + 1):
-                    excluded_id = "notepad_id_{}".format(i)
-                    if excluded_id in excluded:
-                        continue
-                    name = self.window.controller.notepad.get_notepad_name(i)
-                    action = QAction(QIcon(":/icons/paste.svg"), name, parent)
-                    action.triggered.connect(lambda checked=False, i=i:
-                                             self.window.controller.notepad.append_text(selected_text, i))
+            tabs = self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
+            if len(tabs) > 0:
+                for tab in tabs:
+                    action = QAction(QIcon(":/icons/paste.svg"), tab.title, parent)
+                    action.triggered.connect(lambda checked=False, tab=tab:
+                                             self.window.controller.notepad.append_text(selected_text, tab.idx))
                     menu.addAction(action)
 
         # python interpreter
