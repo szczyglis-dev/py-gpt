@@ -10,8 +10,9 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
@@ -46,6 +47,15 @@ class Output:
         """
         # tabs
         self.window.ui.tabs['output'] = OutputTabs(self.window)
+
+        # Create the [+] button
+        plus_button = QPushButton("+")
+        plus_button.setFixedSize(30, 25)
+        plus_button.setFlat(True)
+        plus_button.clicked.connect(self.window.controller.ui.tabs.new_tab)
+
+        # Add the button to the top right corner of the tab bar
+        self.window.ui.tabs['output'].setCornerWidget(plus_button, corner=Qt.TopRightCorner)
 
         # create empty tabs
         self.window.ui.nodes['output'] = {}
