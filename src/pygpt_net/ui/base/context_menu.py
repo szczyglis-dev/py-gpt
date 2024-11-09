@@ -60,7 +60,7 @@ class ContextMenu:
                 for tab in tabs:
                     action = QAction(QIcon(":/icons/paste.svg"), tab.title, parent)
                     action.triggered.connect(lambda checked=False, tab=tab:
-                                             self.window.controller.notepad.append_text(selected_text, tab.idx))
+                                             self.window.controller.notepad.append_text(selected_text, tab.data_id))
                     menu.addAction(action)
 
         # python interpreter
