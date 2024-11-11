@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.20 06:00:00                  #
+# Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -16,6 +16,7 @@ from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 class WorkerSignals(BaseSignals):
     output = Signal(object, str)
+    html_output = Signal(object)
     clear = Signal()
 
 
@@ -61,6 +62,12 @@ class Worker(BaseWorker):
 
                     elif item["cmd"] == "clear_python_output":
                         response = self.cmd_clear_python_output(item)
+
+                    elif item["cmd"] == "render_html_output":
+                        response = self.cmd_render_html_output(item)
+
+                    elif item["cmd"] == "get_html_output":
+                        response = self.cmd_get_html_output(item)
 
                     if response:
                         responses.append(response)
@@ -263,6 +270,53 @@ class Worker(BaseWorker):
             response = {
                 "request": request,
                 "result": "OK",
+            }
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_render_html_output(self, item: dict) -> dict:
+        """
+        Show output in HTML canvas
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            if "params" in item and "html" in item["params"]:
+                self.plugin.runner.send_html_output(item["params"]["html"])  # handle in main thread
+            response = {
+                "request": request,
+                "result": "OK",
+            }
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_get_html_output(self, item: dict) -> dict:
+        """
+        Get HTML canvas output
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            response = {
+                "request": request,
+                "result":  self.plugin.window.tools.get("html_canvas").get_output(),
+                # "context": self.plugin.window.tools.get("html_canvas").get_output(),
             }
         except Exception as e:
             response = {

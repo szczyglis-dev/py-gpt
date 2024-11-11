@@ -15,6 +15,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 * ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.
 * ``Command: Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
+* ``Command: Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
 * ``Command: Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
 * ``Command: Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Context history (calendar, inline)`` - provides access to context history database.
@@ -675,6 +676,14 @@ Allows `get_python_output` command execution. If enabled, it allows retrieval of
 - ``Enable: clear_python_output`` *cmd.clear_python_output*
 
 Allows `clear_python_output` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* `True`
+
+- ``Enable: render_html_output`` *cmd.render_html_output*
+
+Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-it HTML/JS browser (HTML Canvas). *Default:* ``True``
+
+- ``Enable: get_html_output`` *cmd.get_html_output*
+
+Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* `True`
 
 - ``Sandbox (docker container)`` *sandbox_docker*
 

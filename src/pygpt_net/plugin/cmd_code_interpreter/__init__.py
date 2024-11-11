@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
         self.name = "Command: Code Interpreter"
-        self.description = "Provides Python code execution"
+        self.description = "Provides Python/HTML/JS code execution"
         self.type = [
             'interpreter',
         ]
@@ -37,6 +37,8 @@ class Plugin(BasePlugin):
             "get_python_output",
             "get_python_input",
             "clear_python_output",
+            "render_html_output",
+            "get_html_output",
         ]
         self.use_locale = True
         self.init_options()
@@ -118,7 +120,6 @@ class Plugin(BasePlugin):
             enabled=True,
             description="Allows Python code execution from existing file",
         )
-        # commands
         self.add_cmd(
             "code_execute_all",
             instruction="run all Python code from my interpreter",
@@ -167,6 +168,27 @@ class Plugin(BasePlugin):
             params=[],
             enabled=True,
             description="Allows to clear output from last executed code",
+        )
+        self.add_cmd(
+            "render_html_output",
+            instruction="send HTML/JS code to HTML built-in browser (HTML Canvas) and render it",
+            params=[
+                {
+                    "name": "html",
+                    "type": "str",
+                    "description": "HTML/JS code",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Allows to render HTML/JS code in HTML Canvas",
+        )
+        self.add_cmd(
+            "get_html_output",
+            instruction="get current output from HTML Canvas",
+            params=[],
+            enabled=True,
+            description="Allows to get current output from HTML Canvas",
         )
 
     def setup(self) -> dict:
@@ -242,6 +264,16 @@ class Plugin(BasePlugin):
         """Handle interpreter clear"""
         self.window.tools.get("interpreter").clear_all()
 
+    @Slot(object)
+    def handle_html_output(self, data):
+        """
+        Handle HTML/JS canvas output
+
+        :param data: HTML/JS code
+        """
+        self.window.tools.get("html_canvas").set_output(data)
+        self.window.tools.get("html_canvas").open()
+
     def cmd(self, ctx: CtxItem, cmds: list):
         """
         Event: CMD_EXECUTE
@@ -274,6 +306,7 @@ class Plugin(BasePlugin):
             worker.signals.error.connect(self.handle_error)
             worker.signals.output.connect(self.handle_interpreter_output)
             worker.signals.clear.connect(self.handle_interpreter_clear)
+            worker.signals.html_output.connect(self.handle_html_output)
 
             # connect signals
             self.runner.signals = worker.signals
