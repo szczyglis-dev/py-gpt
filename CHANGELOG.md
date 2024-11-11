@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.4.7 (2024-11-11)
+
+- Added a new tool: `HTML/JS Canvas`, connected to the `Code Interpreter` plugin. This feature enables real-time rendering of HTML/JS code in a Chromium-based output by using two new `Code Interpreter` commands: `render_html_output` and `get_html_output`.
+- Added an SVG icon to the New Tab button.
+- Improved the system prompt and execution flow in the `Command: Mouse And Keyboard` plugin and introduced a new option Auto-focus to the plugin settings (default: False).
+
 # 2.4.6 (2024-11-10)
 
 - Fixed notepad tab titles in Copy To menu.

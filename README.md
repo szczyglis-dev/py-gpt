@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.6** | build: **2024.11.09** | Python: **>=3.10, <3.12**
+Release: **2.4.7** | build: **2024.11.11** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3480,6 +3480,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.7 (2024-11-11)**
+
+- Added a new tool: `HTML/JS Canvas`, connected to the `Code Interpreter` plugin. This feature enables real-time rendering of HTML/JS code in a Chromium-based output by using two new `Code Interpreter` commands: `render_html_output` and `get_html_output`.
+- Added an SVG icon to the New Tab button.
+- Improved the system prompt and execution flow in the `Command: Mouse And Keyboard` plugin and introduced a new option Auto-focus to the plugin settings (default: False).
 
 **2.4.6 (2024-11-10)**
 
