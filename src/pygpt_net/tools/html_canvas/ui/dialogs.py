@@ -50,6 +50,10 @@ class Canvas:
             lambda: self.window.ui.nodes['html_canvas.output'].signals.save_as.emit(
                 re.sub(r'\n{2,}', '\n\n', self.window.ui.nodes['html_canvas.output'].html_content), 'html')
         )
+        self.actions["file.reload"] = QAction(QIcon(":/icons/reload.svg"), trans("tool.html_canvas.menu.file.reload"))
+        self.actions["file.reload"].triggered.connect(
+            lambda: self.window.tools.get("html_canvas").reload_output()
+        )
         self.actions["file.clear"] = QAction(QIcon(":/icons/close.svg"), trans("tool.html_canvas.menu.file.clear"))
         self.actions["file.clear"].triggered.connect(
             lambda: self.window.tools.get("html_canvas").clear()
@@ -58,6 +62,7 @@ class Canvas:
         # add actions
         self.menu["file"].addAction(self.actions["file.open"])
         self.menu["file"].addAction(self.actions["file.save_as"])
+        self.menu["file"].addAction(self.actions["file.reload"])
         self.menu["file"].addAction(self.actions["file.clear"])
         return self.menu_bar
 

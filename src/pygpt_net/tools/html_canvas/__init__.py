@@ -76,9 +76,16 @@ class HtmlCanvas(BaseTool):
 
         :param output: Output HTML code
         """
-        self.window.ui.nodes['html_canvas.output'].set_html_content(output)
+        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(output)
+        self.window.ui.nodes['html_canvas.output'].setUrl("file:///" + path)
         self.window.ui.nodes['html_canvas.edit'].setPlainText(output)
-        self.save_output()
+
+    def reload_output(self):
+        """Reload output data"""
+        self.load_output()
+        self.update()
 
     def get_output(self) -> str:
         """
