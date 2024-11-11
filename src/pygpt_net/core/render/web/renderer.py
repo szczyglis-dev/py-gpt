@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 23:00:00                  #
+# Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
 
 import json
@@ -662,8 +662,17 @@ class Renderer(BaseRenderer):
         :param next_ctx: previous context item
         :return: prepared HTML
         """
+        is_cmd = False
+        if (
+                next_ctx is not None and
+                next_ctx.internal and
+                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
+        ):
+            is_cmd = True
         pid = self.get_or_create_pid(meta)
         msg_id = "msg-bot-" + str(ctx.id) if ctx is not None else ""
+        #if is_cmd:
+            #html = self.helpers.format_cmd_text(html)
         html = self.helpers.pre_format_text(html)
         html = self.append_timestamp(ctx, html, type=self.NODE_OUTPUT)
         html = self.parser.parse(html)
@@ -690,13 +699,9 @@ class Renderer(BaseRenderer):
         )
 
         # check if next ctx is internal and current ctx has commands
-        if (
-                next_ctx is not None and
-                next_ctx.internal and
-                (len(ctx.cmds) > 0 or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0))
-        ):
+        if is_cmd:
             # get output from next input (JSON response)
-            tool_output = str(next_ctx.input)
+            tool_output = self.helpers.format_cmd_text(str(next_ctx.input))
             output_class = ""  # show tool output
         else:
             # loading spinner

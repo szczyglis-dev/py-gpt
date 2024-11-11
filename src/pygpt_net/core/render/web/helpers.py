@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
 
 import re
@@ -31,8 +31,11 @@ class Helpers:
         :return: replaced text
         """
         pattern = r"~###~(.*?)~###~"
-        replacement = r'<p class="cmd">\1</p>'
-        return re.sub(pattern, replacement, text)
+        def repl(match):
+            code = match.group(1)
+            escaped_code = html.escape(code)
+            return f'<p class="cmd">{escaped_code}</p>'
+        return re.sub(pattern, repl, text, flags=re.DOTALL)
 
     def pre_format_text(self, text: str) -> str:
         """
@@ -79,6 +82,15 @@ class Helpers:
         if (text.strip().startswith("[") or text.strip().startswith("&gt; [")) and text.strip().endswith("]"):
             text = '<div class="cmd">&gt; {}</div>'.format(text)
         return text
+
+    def format_cmd_text(self, text: str) -> str:
+        """
+        Post-format cmd text
+
+        :param text: text to format
+        :return: formatted text
+        """
+        return html.escape(text)
 
     def format_chunk(self, text: str) -> str:
         """
