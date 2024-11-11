@@ -8,14 +8,16 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
+
 import re
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QCheckBox, QMenuBar
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QMenuBar
 
 from pygpt_net.tools.html_canvas.ui.widgets import CanvasOutput, CanvasEdit
 from pygpt_net.ui.widget.dialog.base import BaseDialog
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.html import CustomWebEnginePage
 from pygpt_net.utils import trans
 
@@ -78,14 +80,20 @@ class Canvas:
             lambda: self.window.tools.get("html_canvas").save_output()
         )
 
-        # checkbox, not button:
+        # edit checkbox
         self.window.ui.nodes['html_canvas.btn.edit'] = QCheckBox(trans("html_canvas.btn.edit"))
         self.window.ui.nodes['html_canvas.btn.edit'].stateChanged.connect(
             lambda: self.window.tools.get("html_canvas").toggle_edit()
         )
 
+        path = self.window.tools.get("html_canvas").get_current_path()
+        path_label = HelpLabel(path)
+        path_label.setMaximumHeight(30)
+        path_label.setAlignment(Qt.AlignRight)
+
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['html_canvas.btn.edit'])
+        bottom_layout.addWidget(path_label)
 
         output_layout = QVBoxLayout()
         output_layout.addWidget(self.window.ui.nodes['html_canvas.output'])

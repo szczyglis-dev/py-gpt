@@ -70,6 +70,14 @@ class HtmlCanvas(BaseTool):
             self.window.ui.menu['tools.html_canvas'].setChecked(False)
         """
 
+    def get_current_path(self) -> str:
+        """
+        Get current output path
+
+        :return: Output path
+        """
+        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+
     def set_output(self, output: str):
         """
         Set output HTML
