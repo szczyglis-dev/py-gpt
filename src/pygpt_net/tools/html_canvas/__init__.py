@@ -13,6 +13,7 @@ import os
 
 from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool
@@ -136,6 +137,21 @@ class HtmlCanvas(BaseTool):
             self.load_output()
             self.window.ui.dialogs.open('html_canvas', width=800, height=600)
             self.update()
+
+    def open_file(self):
+        """Open file dialog"""
+        last_dir = self.window.core.config.get_last_used_dir()
+        dialog = QFileDialog(self.window)
+        dialog.setDirectory(last_dir)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.setNameFilter("HTML files (*.html)")
+        dialog.setAcceptMode(QFileDialog.AcceptOpen)
+        if dialog.exec():
+            path = dialog.selectedFiles()[0]
+            with open(path, "r", encoding="utf-8") as f:
+                data = f.read()
+                self.set_output(data)
+            self.open()
 
     def close(self):
         """Close HTML canvas dialog"""

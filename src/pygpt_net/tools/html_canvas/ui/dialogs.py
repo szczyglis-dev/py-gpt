@@ -8,9 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
+import re
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QCheckBox
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QCheckBox, QMenuBar
 
 from pygpt_net.tools.html_canvas.ui.widgets import CanvasOutput, CanvasEdit
 from pygpt_net.ui.widget.dialog.base import BaseDialog
@@ -25,6 +27,39 @@ class Canvas:
         :param window: Window instance
         """
         self.window = window
+        self.menu_bar = None
+        self.menu = {}
+        self.actions = {}  # menu actions
+
+    def setup_menu(self) -> QMenuBar:
+        """
+        Setup dialog menu
+
+        :return: QMenuBar
+        """
+        # create menu bar
+        self.menu_bar = QMenuBar()
+        self.menu["file"] = self.menu_bar.addMenu(trans("menu.file"))
+
+        self.actions["file.open"] = QAction(QIcon(":/icons/folder.svg"), trans("tool.html_canvas.menu.file.open"))
+        self.actions["file.open"].triggered.connect(
+            lambda: self.window.tools.get("html_canvas").open_file()
+        )
+        self.actions["file.save_as"] = QAction(QIcon(":/icons/save.svg"), trans("tool.html_canvas.menu.file.save_as"))
+        self.actions["file.save_as"].triggered.connect(
+            lambda: self.window.ui.nodes['html_canvas.output'].signals.save_as.emit(
+                re.sub(r'\n{2,}', '\n\n', self.window.ui.nodes['html_canvas.output'].html_content), 'html')
+        )
+        self.actions["file.clear"] = QAction(QIcon(":/icons/close.svg"), trans("tool.html_canvas.menu.file.clear"))
+        self.actions["file.clear"].triggered.connect(
+            lambda: self.window.tools.get("html_canvas").clear()
+        )
+
+        # add actions
+        self.menu["file"].addAction(self.actions["file.open"])
+        self.menu["file"].addAction(self.actions["file.save_as"])
+        self.menu["file"].addAction(self.actions["file.clear"])
+        return self.menu_bar
 
     def setup(self):
         """Setup canvas dialog"""
@@ -38,12 +73,6 @@ class Canvas:
             lambda: self.window.tools.get("html_canvas").save_output()
         )
 
-        # btn: clear
-        self.window.ui.nodes['html_canvas.btn.clear'] = QPushButton(trans("html_canvas.btn.clear"))
-        self.window.ui.nodes['html_canvas.btn.clear'].clicked.connect(
-            lambda: self.window.tools.get("html_canvas").clear()
-        )
-
         # checkbox, not button:
         self.window.ui.nodes['html_canvas.btn.edit'] = QCheckBox(trans("html_canvas.btn.edit"))
         self.window.ui.nodes['html_canvas.btn.edit'].stateChanged.connect(
@@ -52,7 +81,6 @@ class Canvas:
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['html_canvas.btn.edit'])
-        bottom_layout.addWidget(self.window.ui.nodes['html_canvas.btn.clear'])
 
         output_layout = QVBoxLayout()
         output_layout.addWidget(self.window.ui.nodes['html_canvas.output'])
@@ -64,6 +92,7 @@ class Canvas:
         self.window.ui.nodes['html_canvas.output'].signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
         layout = QVBoxLayout()
+        layout.setMenuBar(self.setup_menu())  # add menu bar
         layout.addLayout(output_layout)
         layout.addLayout(bottom_layout)
 
