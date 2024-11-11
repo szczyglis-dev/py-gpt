@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.09 02:00:00                  #
+# Updated Date: 2024.11.11 19:00:00                  #
 # ================================================== #
 import time
 
 from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -50,9 +51,11 @@ class Plugin(BasePlugin):
                   "If you need to type something on the keyboard, use the appropriate commands - "
                   "keys will be pressed (or text will be typed) and you'll receive the result in a "
                   "screenshot. Always start your work by getting the current mouse position and screenshot. "
-                  "Complete the assigned task by yourself using the available commands, without asking "
-                  "the user to perform any actions. Finally, always check with the last screenshot if the "
-                  "command has been executed correctly.\n")
+                  "The next step is to focus on the external window where you will perform the action by "
+                  "clicking on it. Complete the assigned task by yourself using the available commands, "
+                  "without asking the user to perform any actions. Finally, always check with the last screenshot "
+                  "if the command has been executed correctly. Always use only one command per single response and "
+                  "wait for the result before next command.\n")
         self.add_option(
             "allow_mouse_move",
             type="bool",
@@ -87,6 +90,13 @@ class Plugin(BasePlugin):
             value=True,
             label="Allow making screenshot",
             description="Allow making screenshot",
+        )
+        self.add_option(
+            "auto_focus",
+            type="bool",
+            value=False,
+            label="Auto-focus on the window",
+            description="Auto-focus on the window (mouse click) before keyboard typing",
         )
         self.add_option(
             "prompt",
@@ -308,7 +318,7 @@ class Plugin(BasePlugin):
             worker.ctx = ctx
 
             # signals (base handlers)
-            worker.signals.finished.connect(self.handle_finished)
+            worker.signals.finished_more.connect(self.handle_finished)
             worker.signals.log.connect(self.handle_log)
             worker.signals.debug.connect(self.handle_debug)
             worker.signals.status.connect(self.handle_status)
@@ -326,23 +336,25 @@ class Plugin(BasePlugin):
         except Exception as e:
             self.error(e)
 
-    @Slot(object, object, dict)
-    def handle_finished(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
+    @Slot(list, object, dict)
+    def handle_finished(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):
         """
-        Handle finished response signal
+        Handle finished responses signal
 
-        :param response: response
+        :param responses: responses list
         :param ctx: context (CtxItem)
         :param extra_data: extra data
         """
-        # dispatch response (reply)
-        if ctx is not None:
-            ctx.results.append(response)
-            ctx.reply = True
-            if self.get_option_value("allow_screenshot"):
-                time.sleep(1)  # wait for a second
-                self.window.controller.painter.capture.screenshot(attach_cursor=True)  # attach screenshot
-            self.window.core.dispatcher.reply(ctx)
+        # dispatch response (reply) - collect all responses and make screenshot only once at the end
+        for response in responses:
+            if ctx is not None:
+                ctx.results.append(response)
+                ctx.reply = True
+        if self.get_option_value("allow_screenshot"):
+            QApplication.processEvents()
+            time.sleep(1)  # wait for a second
+            self.window.controller.painter.capture.screenshot(attach_cursor=True)  # attach screenshot
+        self.window.core.dispatcher.reply(ctx)
 
     @Slot(dict, object)
     def handle_screenshot(self, response: dict, ctx: CtxItem = None):

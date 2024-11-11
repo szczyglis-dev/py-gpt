@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 19:00:00                  #
+# Updated Date: 2024.11.11 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -1565,11 +1565,12 @@ class Patch:
                     data["tabs.data"] = self.window.core.tabs.from_defaults()
                 updated = True
 
-            # < 2.4.3
-            if old < parse_version("2.4.3"):
-                print("Migrating config from < 2.4.3...")
-                # css upgrade
-                self.window.core.updater.patch_css('web.css', True)  # force update
+            # < 2.4.7
+            if old < parse_version("2.4.7"):
+                print("Migrating config from < 2.4.7...")
+                self.window.core.plugins.reset_options("cmd_mouse_control", [
+                    "prompt",
+                ])
                 updated = True
 
         # update file

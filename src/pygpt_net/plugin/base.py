@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.11.11 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -357,7 +357,8 @@ class BasePlugin:
 
 
 class BaseSignals(QObject):
-    finished = Signal(object, object, dict)  # response, ctx, extra_data
+    finished = Signal(object, object, dict)  # response dict, ctx, extra_data
+    finished_more = Signal(list, object, dict)  # responses list, ctx, extra_data
     debug = Signal(object)
     destroyed = Signal()
     error = Signal(object)
@@ -430,6 +431,16 @@ class BaseWorker(QRunnable):
         """
         if self.signals is not None and hasattr(self.signals, "finished"):
             self.signals.finished.emit(response, self.ctx, extra_data)
+
+    def reply_more(self, responses: list, extra_data: dict = None):
+        """
+        Emit finished_more signal (on reply from command output, multiple responses)
+
+        :param responses: responses
+        :param extra_data: extra data
+        """
+        if self.signals is not None and hasattr(self.signals, "finished_more"):
+            self.signals.finished_more.emit(responses, self.ctx, extra_data)
 
     def started(self):
         """Emit started signal"""

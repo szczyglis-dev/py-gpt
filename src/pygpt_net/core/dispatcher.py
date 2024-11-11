@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.11 19:00:00                  #
 # ================================================== #
 
 import json
@@ -298,7 +298,9 @@ class Dispatcher:
 
         # tool output append
         self.window.controller.chat.render.tool_output_update(self.reply_ctx.meta, data)
-                
+
+        # send reply
+        self.clear_reply_stack()
         self.window.controller.chat.input.send(
             text=data,
             force=True,
@@ -307,7 +309,6 @@ class Dispatcher:
             prev_ctx=prev_ctx,
             parent_id=parent_id,
         )
-        self.clear_reply_stack()
 
     def clear_reply_stack(self):
         """Clear reply stack"""

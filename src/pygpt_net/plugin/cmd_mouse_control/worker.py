@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.09 02:00:00                  #
+# Updated Date: 2024.11.11 19:00:00                  #
 # ================================================== #
+
+import time
 
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KeyboardController
@@ -66,9 +68,7 @@ class Worker(BaseWorker):
                     # screenshot
                     elif item["cmd"] == "make_screenshot":
                         if self.plugin.get_option_value("allow_screenshot"):
-                            self.cmd_make_screenshot(item)
-                        # return here - this will be handled by main thread
-                        return
+                            response = self.cmd_make_screenshot(item)
 
                     # keyboard key
                     elif item["cmd"] == "keyboard_key":
@@ -98,10 +98,7 @@ class Worker(BaseWorker):
 
         # send response
         if len(responses) > 0:
-            # return only first response
-            for response in responses:
-                self.reply(response)
-                break
+            self.reply_more(responses)
 
     def cmd_mouse_get_pos(self, item: dict) -> dict:
         """
@@ -295,6 +292,12 @@ class Worker(BaseWorker):
                         modifier = Key.shift
                     elif tmp_modifier == "cmd":
                         modifier = Key.cmd
+
+                # autofocus on the window
+                if self.plugin.get_option_value("auto_focus"):
+                    self.set_focus()
+                    time.sleep(1)  # wait for a second
+
                 if modifier:
                     with keyboard.pressed(modifier):
                         keyboard.press(key)
@@ -342,6 +345,12 @@ class Worker(BaseWorker):
                         modifier = Key.shift
                     elif tmp_modifier == "cmd":
                         modifier = Key.cmd
+
+                # autofocus on the window
+                if self.plugin.get_option_value("auto_focus"):
+                    self.set_focus()
+                    time.sleep(1)  # wait for a second
+
                 if modifier:
                     with keyboard.pressed(modifier):
                         keyboard.type(text)
@@ -387,7 +396,15 @@ class Worker(BaseWorker):
             self.error(e)
             self.log("Error: {}".format(e))
 
-        self.signals.screenshot.emit(response, self.ctx)  # use signal - this will be handled by main thread
+        # make screenshot will be handled in the main thread (in response)
+        return response
+
+    def set_focus(self):
+        """
+        Set focus to the current mouse position
+        """
+        mouse = MouseController()
+        mouse.click(Button.left, 1)
 
     def get_current(self) -> dict:
         """
