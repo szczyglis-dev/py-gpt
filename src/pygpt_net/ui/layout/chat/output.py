@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.11 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton
 
-from pygpt_net.core.tabs import Tab
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
@@ -49,10 +49,13 @@ class Output:
         self.window.ui.tabs['output'] = OutputTabs(self.window)
 
         # Create the [+] button
-        plus_button = QPushButton("+")
+        plus_button = QPushButton(QIcon(":/icons/add.svg"), "")
         plus_button.setFixedSize(30, 25)
         plus_button.setFlat(True)
         plus_button.clicked.connect(self.window.controller.ui.tabs.new_tab)
+        plus_button.setObjectName('tab-add')
+        plus_button.setProperty('tabAdd', True)
+        plus_button.setToolTip(trans('action.tab.add.chat'))
 
         # Add the button to the top right corner of the tab bar
         self.window.ui.tabs['output'].setCornerWidget(plus_button, corner=Qt.TopRightCorner)
@@ -75,7 +78,7 @@ class Output:
             self.window.controller.ui.tabs.on_tab_closed
         )
 
-        # tabbar signals
+        # tab bar signals
         self.window.ui.tabs['output'].tabBar().tabMoved.connect(
             self.window.controller.ui.tabs.on_tab_moved
         )
