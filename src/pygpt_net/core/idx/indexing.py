@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.11.12 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -235,6 +235,7 @@ class Indexing:
             os.path.join(data_dir, ".interpreter.output.py"),
             os.path.join(data_dir, ".interpreter.input.py"),
             os.path.join(data_dir, ".interpreter.current.py"),
+            os.path.join(data_dir, ".canvas.html"),
         ]
         if path in excluded:
             return True
