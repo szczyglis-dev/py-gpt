@@ -99,6 +99,7 @@ class Bridge:
         self.last_call = None  # last API call time, for throttling
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
+        self.sync_modes = ["assistant"]
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
@@ -184,6 +185,11 @@ class Bridge:
         worker.signals.success.connect(self.window.controller.chat.text.handle_bridge_success)
         worker.signals.error.connect(self.window.controller.chat.text.handle_bridge_failed)
 
+        # some modes must be called synchronously
+        if mode in self.sync_modes:
+            worker.run()
+            return True
+
         # async call
         self.window.threadpool.start(worker)
         return True
@@ -265,11 +271,13 @@ class Bridge:
 
 
 class BridgeSignals(QObject):
+    """Bridge signals"""
     success = Signal(bool, object, dict)  # status, BridgeContext, extra
     error = Signal(object)  # exception
 
 
 class BridgeWorker(QRunnable):
+    """Bridge worker"""
     def __init__(self, *args, **kwargs):
         super(BridgeWorker, self).__init__()
         self.signals = BridgeSignals()
