@@ -1,3 +1,8 @@
+2.4.8 (2024-11-12)
+
+- Fix: restoring order of notepads.
+- Fix: mouse move offset in Mouse and Keyboard plugin.
+
 2.4.7 (2024-11-11)
 
 - Added a new tool: HTML/JS Canvas, connected to the Code Interpreter plugin. This feature enables real-time rendering of HTML/JS code in a Chromium-based output by using two new Code Interpreter commands: render_html_output and get_html_output.
