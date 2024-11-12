@@ -11,7 +11,7 @@
 
 import os
 
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer, Slot, QUrl
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
@@ -87,7 +87,8 @@ class HtmlCanvas(BaseTool):
         path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
         with open(path, "w", encoding="utf-8") as f:
             f.write(output)
-        self.window.ui.nodes['html_canvas.output'].setUrl("file:///" + path)
+        if os.path.exists(path):
+            self.window.ui.nodes['html_canvas.output'].setUrl(QUrl().fromLocalFile(path))
         self.window.ui.nodes['html_canvas.edit'].setPlainText(output)
 
     def reload_output(self):
@@ -248,8 +249,7 @@ class HtmlCanvas(BaseTool):
 
     def setup_theme(self):
         """Setup theme"""
-        size = self.window.core.config.get('font_size')
-        #self.window.ui.nodes['html_canvas.output'].value = size
+        pass
 
     def get_lang_mappings(self) -> dict:
         """
