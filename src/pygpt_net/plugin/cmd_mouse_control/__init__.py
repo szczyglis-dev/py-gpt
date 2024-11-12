@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 19:00:00                  #
+# Updated Date: 2024.11.12 05:00:00                  #
 # ================================================== #
-import time
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QTimer
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -324,13 +323,7 @@ class Plugin(BasePlugin):
             worker.signals.error.connect(self.handle_error)
             worker.signals.screenshot.connect(self.handle_screenshot)
 
-            # check if async allowed
-            if not self.window.core.dispatcher.async_allowed(ctx):
-                worker.run()
-                return
-
-            # start
-            self.window.threadpool.start(worker)
+            worker.run()  # run synchronously
 
         except Exception as e:
             self.error(e)
@@ -349,10 +342,20 @@ class Plugin(BasePlugin):
             if ctx is not None:
                 ctx.results.append(response)
                 ctx.reply = True
+
+        # delay the screenshot
+        QTimer.singleShot(1500, lambda: self.handle_delayed(ctx))
+
+    @Slot(object)
+    def handle_delayed(self, ctx: CtxItem):
+        """
+        Handle delayed screenshot
+
+        :param ctx: context (CtxItem)
+        """
         if self.get_option_value("allow_screenshot"):
-            time.sleep(1)  # wait for a second
             self.window.controller.painter.capture.screenshot(attach_cursor=True)  # attach screenshot
-        self.window.core.dispatcher.reply(ctx)
+        self.window.core.dispatcher.reply(ctx, flush=True)
 
     @Slot(dict, object)
     def handle_screenshot(self, response: dict, ctx: CtxItem = None):

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 19:00:00                  #
+# Updated Date: 2024.11.12 05:00:00                  #
 # ================================================== #
 
 import time
 
+import pyautogui
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KeyboardController
 from PySide6.QtCore import Slot, Signal
@@ -134,7 +135,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         request = self.prepare_request(item)
-
+        error = None
         x = 0
         y = 0
         if "params" in item:
@@ -142,11 +143,15 @@ class Worker(BaseWorker):
                 x = item["params"]["x"]
             if "y" in item["params"]:
                 y = item["params"]["y"]
-        mouse = MouseController()
-        mouse.position = (x, y)
-
+        try:
+            pyautogui.moveTo(x, y, duration=0.5)
+        except Exception as e:
+            error = str(e)
+            self.log("Error: {}".format(e))
         try:
             data = self.get_current()
+            if error:
+                data["error"] = error
             self.log("Response: {}".format(data))
             response = {
                 "request": request,
@@ -169,7 +174,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         request = self.prepare_request(item)
-
+        error = None
         x = 0
         y = 0
         if "params" in item:
@@ -177,11 +182,16 @@ class Worker(BaseWorker):
                 x = item["params"]["offset_x"]
             if "offset_y" in item["params"]:
                 y = item["params"]["offset_y"]
-        mouse = MouseController()
-        mouse.move(x, y)
 
         try:
+            pyautogui.moveRel(x, y, duration=0.5)
+        except Exception as e:
+            error = str(e)
+            self.log("Error: {}".format(e))
+        try:
             data = self.get_current()
+            if error:
+                data["error"] = error
             self.log("Response: {}".format(data))
             response = {
                 "request": request,
@@ -204,7 +214,6 @@ class Worker(BaseWorker):
         :return: response item
         """
         request = self.prepare_request(item)
-
         button = Button.left
         num = 1
         if "params" in item:
@@ -243,7 +252,6 @@ class Worker(BaseWorker):
         :return: response item
         """
         request = self.prepare_request(item)
-
         x = 0
         y = 0
         if "params" in item:
@@ -278,6 +286,7 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         keyboard = KeyboardController()
+        error = None
         if "params" in item:
             if "key" in item["params"]:
                 key = item["params"]["key"]
@@ -298,16 +307,25 @@ class Worker(BaseWorker):
                     self.set_focus()
                     time.sleep(1)  # wait for a second
 
-                if modifier:
-                    with keyboard.pressed(modifier):
+                if key == "super" or key == "start":
+                    key = Key.cmd
+
+                try:
+                    if modifier:
+                        with keyboard.pressed(modifier):
+                            keyboard.press(key)
+                            keyboard.release(key)
+                    else:
                         keyboard.press(key)
                         keyboard.release(key)
-                else:
-                    keyboard.press(key)
-                    keyboard.release(key)
+                except Exception as e:
+                    error = str(e)
+                    self.log("Error: {}".format(e))
 
         try:
             data = self.get_current()
+            if error:
+                data["error"] = error
             self.log("Response: {}".format(data))
             response = {
                 "request": request,
