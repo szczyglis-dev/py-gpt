@@ -44,7 +44,7 @@ class Capture:
         image = QImage(frame.data, width, height, bytes, QImage.Format_RGB888)
         self.window.ui.painter.set_image(image)
 
-    def capture_screen_with_custom_cursor(self, save_path: str, size: int = 15, rotation_angle: int = -30, opacity: float = 0.2) -> bool:
+    def capture_screen_with_custom_cursor(self, save_path: str, size: int = 8, rotation_angle: int = -30, opacity: float = 0.2) -> bool:
         """
         Capture screen with custom cursor
 
