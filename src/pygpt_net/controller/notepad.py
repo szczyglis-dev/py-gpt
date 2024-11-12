@@ -29,13 +29,15 @@ class Notepad:
         self.window = window
         self.opened_once = False
 
-    def create(self) -> (TabBody, int):
+    def create(self, idx: int = None) -> (TabBody, int):
         """
         Create notepad widget
 
+        :param idx: notepad idx
         :return: notepad widget (TabBody)
         """
-        idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
+        if idx is None:
+            idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
         self.window.ui.notepad[idx] = NotepadWidget(self.window)
         self.window.ui.notepad[idx].id = idx
         self.window.ui.notepad[idx].textarea.id = idx

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 17:00:00                  #
+# Updated Date: 2024.11.11 04:00:00                  #
 # ================================================== #
 
 import uuid
@@ -373,7 +373,10 @@ class Tabs:
 
         :param tab: Tab instance
         """
-        tab.reference, idx = self.window.controller.notepad.create()
+        idx = None
+        if tab.data_id is not None:
+            idx = tab.data_id  # restore prev idx
+        tab.reference, idx = self.window.controller.notepad.create(idx)
         tab.data_id = idx  # notepad idx in db, enumerated from 1
         if tab.new_idx is not None:
             tab.idx = self.window.ui.tabs['output'].insertTab(tab.new_idx, tab.reference, tab.title)
