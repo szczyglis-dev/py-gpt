@@ -178,7 +178,7 @@ class Worker(BaseWorker):
             if "offset_y" in item["params"]:
                 y = item["params"]["offset_y"]
         mouse = MouseController()
-        mouse.move = (x, y)
+        mouse.move(x, y)
 
         try:
             data = self.get_current()

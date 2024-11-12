@@ -11,7 +11,6 @@
 import time
 
 from PySide6.QtCore import Slot
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -351,7 +350,6 @@ class Plugin(BasePlugin):
                 ctx.results.append(response)
                 ctx.reply = True
         if self.get_option_value("allow_screenshot"):
-            QApplication.processEvents()
             time.sleep(1)  # wait for a second
             self.window.controller.painter.capture.screenshot(attach_cursor=True)  # attach screenshot
         self.window.core.dispatcher.reply(ctx)
