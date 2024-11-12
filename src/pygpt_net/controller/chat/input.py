@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 12:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -148,7 +148,6 @@ class Input:
         self.generating = True  # set generating flag
 
         mode = self.window.core.config.get('mode')
-
         if mode == 'assistant':
             # check if assistant is selected
             if self.window.core.config.get('assistant') is None \
@@ -225,13 +224,12 @@ class Input:
             self.window.controller.ctx.handle_allowed(mode)
 
         # send input to API, return ctx
-        if self.window.core.config.get('mode') == 'img':
-            ctx = self.window.controller.chat.image.send(
+        if mode == 'img':
+            self.window.controller.chat.image.send(
                 text=text,
                 prev_ctx=prev_ctx,
                 parent_id=parent_id,
             )  # image mode
-            self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
         else:
             # async
             self.window.controller.chat.text.send(

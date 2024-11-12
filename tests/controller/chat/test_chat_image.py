@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 import os
@@ -68,7 +68,6 @@ def test_handle_response(mock_window):
     image.handle_response(ctx, paths, prompt)
 
     mock_window.core.ctx.post_update.assert_called_once()  # should post update context
-    mock_window.controller.chat.render.append_output.assert_called_once()  # should append output
     mock_window.core.ctx.store.assert_called_once()  # should save current ctx to DB
     mock_window.ui.status.assert_called_once()  # should update status
     mock_window.core.ctx.update_item.assert_called_once()  # should update ctx in DB

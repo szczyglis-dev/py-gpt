@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 import os
@@ -47,7 +47,6 @@ def test_handle_cmd_execute(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.core.bridge.call.assert_called_once()
 
 
 def test_handle_cmd_inline(mock_window):
@@ -71,7 +70,6 @@ def test_handle_cmd_inline(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.core.bridge.call.assert_called_once()
 
 
 def test_handle_sys_prompt(mock_window):

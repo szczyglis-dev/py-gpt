@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 12:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 import time
@@ -180,7 +180,7 @@ class Bridge:
         worker.extra = extra
         worker.mode = mode
 
-        # signals
+        # connect signals
         worker.signals.success.connect(self.window.controller.chat.text.handle_bridge_success)
         worker.signals.error.connect(self.window.controller.chat.text.handle_bridge_failed)
 

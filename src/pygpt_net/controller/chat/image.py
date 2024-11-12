@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 23:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import  QApplication
+from PySide6.QtCore import Slot
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -56,6 +56,8 @@ class Image:
 
         # create ctx item
         ctx = CtxItem()
+        ctx.current = True  # mark as current context item
+        ctx.meta = self.window.core.ctx.get_current_meta()  # CtxMeta (owner object)
         ctx.set_input(text, self.window.core.config.get('user_name'))
         ctx.prev_ctx = prev_ctx  # store previous context item
         ctx.live = True
@@ -67,10 +69,10 @@ class Image:
 
         # add ctx to DB
         self.window.core.ctx.add(ctx)
-        self.window.controller.chat.render.append_input(ctx.meta, ctx)
 
-        # process events to update UI
-        QApplication.processEvents()
+        # render: begin
+        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=False)
+        self.window.controller.chat.render.append_input(ctx.meta, ctx)
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
@@ -98,6 +100,7 @@ class Image:
 
         return ctx
 
+    @Slot(object, list, str)
     def handle_response(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle response
@@ -131,19 +134,15 @@ class Image:
         # store last mode (in text mode this is handled in send_text)
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-        self.window.controller.chat.render.append_output(ctx.meta, ctx)
         self.window.core.ctx.store()  # save current ctx to DB
         self.window.ui.status(trans('status.img.generated'))
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
 
-        # append extra output to chat
-        self.window.controller.chat.render.append_extra(ctx.meta, ctx)
-        self.window.controller.chat.render.end_extra(ctx.meta, ctx)
-
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
 
+    @Slot(object, list, str)
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle inline response
@@ -178,7 +177,7 @@ class Image:
                     "paths": paths,
                 }
             )
-            ctx.reply = True
+            ctx.reply = False
             self.window.controller.chat.render.append_extra(ctx.meta, ctx)  # show image first
             self.window.controller.chat.render.end_extra(ctx.meta, ctx)
             self.window.core.dispatcher.reply(ctx, flush=True)

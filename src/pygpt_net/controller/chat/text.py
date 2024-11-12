@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 12:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -230,7 +230,7 @@ class Text:
         """
         ctx = bridge_context.ctx
         if not status:
-            self.log("Context: OUTPUT: ERROR")
+            self.log("Bridge response: ERROR")
             self.window.ui.dialogs.alert(trans('status.error'))
             self.window.ui.status(trans('status.error'))
         else:

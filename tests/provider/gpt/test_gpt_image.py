@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 import os
@@ -39,5 +39,4 @@ def test_generate(mock_window):
         context=bridge_context,
         extra=extra,
     )
-    image.window.threadpool.start.assert_called_once()
     image.window.core.gpt.get_client.assert_called_once()

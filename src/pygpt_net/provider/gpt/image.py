@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.12 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -28,12 +28,13 @@ class Image:
         """
         self.window = window
 
-    def generate(self, context: BridgeContext, extra: dict = None):
+    def generate(self, context: BridgeContext, extra: dict = None, sync: bool = True):
         """
         Call images API
 
         :param context: Bridge context
         :param extra: Extra arguments
+        :param sync: Synchronous mode
         """
         prompt = context.prompt
         ctx = context.ctx
@@ -74,13 +75,19 @@ class Image:
         worker.signals.status.connect(self.window.core.image.handle_status)
         worker.signals.error.connect(self.window.core.image.handle_error)
 
+        # sync
+        if sync:
+            worker.run()
+            return True
+
         # check if async allowed
         if not self.window.core.dispatcher.async_allowed(ctx):
             worker.run()
-            return
+            return True
 
         # start
         self.window.threadpool.start(worker)
+        return True
 
 
 class ImageSignals(QObject):
@@ -152,7 +159,6 @@ class ImageWorker(QRunnable):
         self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
 
         paths = []  # downloaded images paths
-
         try:
             # check if number of images is supported
             if self.model in self.allowed_max_num:
