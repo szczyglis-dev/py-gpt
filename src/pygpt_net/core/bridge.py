@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.12 12:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
+
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -171,26 +173,20 @@ class Bridge:
         self.apply_rate_limit()  # apply RPM limit
         self.last_context = context  # store last context for call (debug)
 
-        # Langchain
-        if mode == "langchain":
-            return self.window.core.chain.call(
-                context=context,
-                extra=extra,
-            )
+        # async worker
+        worker = BridgeWorker()
+        worker.window = self.window
+        worker.context = context
+        worker.extra = extra
+        worker.mode = mode
 
-        # Llama-index
-        elif mode == "llama_index":
-            return self.window.core.idx.chat.call(
-                context=context,
-                extra=extra,
-            )
+        # signals
+        worker.signals.success.connect(self.window.controller.chat.text.handle_bridge_success)
+        worker.signals.error.connect(self.window.controller.chat.text.handle_bridge_failed)
 
-        # OpenAI API: chat, completion, vision, image, assistants, etc.
-        else:
-            return self.window.core.gpt.call(
-                context=context,
-                extra=extra,
-            )
+        # async call
+        self.window.threadpool.start(worker)
+        return True
 
     def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
         """
@@ -266,3 +262,51 @@ class Bridge:
                 self.window.core.debug.debug("RPM limit: sleep for {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
         self.last_call = now
+
+
+class BridgeSignals(QObject):
+    success = Signal(bool, object, dict)  # status, BridgeContext, extra
+    error = Signal(object)  # exception
+
+
+class BridgeWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(BridgeWorker, self).__init__()
+        self.signals = BridgeSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.window = None
+        self.context = None
+        self.extra = None
+        self.mode = None
+
+    @Slot()
+    def run(self):
+        """Run bridge worker"""
+        result = False
+        try:
+            # Langchain
+            if self.mode == "langchain":
+                result = self.window.core.chain.call(
+                    context=self.context,
+                    extra=self.extra,
+                )
+
+            # Llama-index
+            elif self.mode == "llama_index":
+                result = self.window.core.idx.chat.call(
+                    context=self.context,
+                    extra=self.extra,
+                )
+
+            # OpenAI API: chat, completion, vision, image, assistants, etc.
+            else:
+                result = self.window.core.gpt.call(
+                    context=self.context,
+                    extra=self.extra,
+                )
+        except Exception as e:
+            self.signals.error.emit(e)
+
+        # back to main thread
+        self.signals.success.emit(result, self.context, self.extra)

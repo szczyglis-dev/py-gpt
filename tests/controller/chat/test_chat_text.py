@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.12 12:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -56,14 +56,6 @@ def test_send(mock_window):
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
         mock_window.core.bridge.call.assert_called_once()  # should call bridge
-        mock_window.core.ctx.update_item.assert_called()  # should update ctx item
-        mock_window.controller.chat.output.handle.assert_called_once()  # should handle output
-        mock_window.controller.chat.output.post_handle.assert_called_once()  # should handle cmds
-        mock_window.controller.chat.render.reload.assert_not_called()  # should not reload output (if not stream)
-
-        assert ctx.input_name == 'User'  # should have input name
-        assert ctx.output_name == 'AI'  # should have output name
-        assert ctx.input == 'message'  # should have input text
 
 
 def test_send_stream(mock_window):
@@ -98,13 +90,6 @@ def test_send_stream(mock_window):
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
         mock_window.core.bridge.call.assert_called_once()  # should call bridge
-        mock_window.core.ctx.update_item.assert_called()  # should update ctx item
-        mock_window.controller.chat.output.handle.assert_called_once()  # should handle output
-        mock_window.controller.chat.output.post_handle.assert_called_once()  # should handle cmds
-
-        assert ctx.input_name == 'User'  # should have input name
-        assert ctx.output_name == 'AI'  # should have output name
-        assert ctx.input == 'message'  # should have input text
 
 
 def test_send_assistant(mock_window):
@@ -139,17 +124,6 @@ def test_send_assistant(mock_window):
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
         mock_window.core.bridge.call.assert_called_once()  # should call bridge
-
-        mock_window.core.ctx.update_item.assert_called()  # should update ctx item
-
-        mock_window.controller.chat.output.handle.assert_not_called()  # should NOT handle output (if assistant)
-        mock_window.controller.chat.output.post_handle.assert_called()
-
-        mock_window.controller.chat.render.reload.assert_not_called()  # should not reload output (if not stream)
-
-        assert ctx.input_name == 'User'  # should have input name
-        assert ctx.output_name == 'AI'  # should have output name
-        assert ctx.input == 'message'  # should have input text
 
 
 def test_log(mock_window):

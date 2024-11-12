@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 05:00:00                  #
+# Updated Date: 2024.11.12 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -323,7 +323,13 @@ class Plugin(BasePlugin):
             worker.signals.error.connect(self.handle_error)
             worker.signals.screenshot.connect(self.handle_screenshot)
 
-            worker.run()  # run synchronously
+            # check if async allowed
+            if not self.window.core.dispatcher.async_allowed(ctx):
+                worker.run()
+                return
+
+            # start
+            self.window.threadpool.start(worker)
 
         except Exception as e:
             self.error(e)

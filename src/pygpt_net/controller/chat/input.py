@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.12 12:00:00                  #
 # ================================================== #
-
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.dispatcher import Event
@@ -147,7 +145,6 @@ class Input:
             return
 
         self.log("Begin.")
-
         self.generating = True  # set generating flag
 
         mode = self.window.core.config.get('mode')
@@ -227,9 +224,6 @@ class Input:
             # check if current ctx is allowed for this mode - if not, then create new ctx
             self.window.controller.ctx.handle_allowed(mode)
 
-        # update UI
-        QApplication.processEvents()
-
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(
@@ -237,16 +231,16 @@ class Input:
                 prev_ctx=prev_ctx,
                 parent_id=parent_id,
             )  # image mode
+            self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
         else:
-            ctx = self.window.controller.chat.text.send(
+            # async
+            self.window.controller.chat.text.send(
                 text=text,
                 reply=reply,
                 internal=internal,
                 prev_ctx=prev_ctx,
                 parent_id=parent_id,
             )  # text mode: OpenAI, Langchain, Llama, etc.
-
-        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
 
     def log(self, data: any):
         """

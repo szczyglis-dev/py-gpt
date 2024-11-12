@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 23:00:00                  #
+# Updated Date: 2024.11.12 12:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Slot
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -152,8 +152,6 @@ class Text:
         self.window.controller.chat.render.append_input(ctx.meta, ctx)
         self.window.ui.nodes['output'].update()
 
-        QApplication.processEvents()
-
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
         self.window.core.ctx.add(ctx, parent_id=parent_id)
@@ -174,77 +172,105 @@ class Text:
             if len(tools_outputs) > 0:
                 self.log("Tool outputs sending...")
 
+        # make API call
         try:
-            # make API call
-            try:
-                # get attachments
-                files = self.window.core.attachments.get_all(mode)
-                num_files = len(files)
-                if num_files > 0:
-                    self.log("Attachments ({}): {}".format(mode, num_files))
+            # get attachments
+            files = self.window.core.attachments.get_all(mode)
+            num_files = len(files)
+            if num_files > 0:
+                self.log("Attachments ({}): {}".format(mode, num_files))
 
-                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
+            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
+            bridge_context = BridgeContext(
+                ctx=ctx,
+                history=self.window.core.ctx.all(meta_id=parent_id),  # get all ctx items
+                mode=mode,
+                parent_mode=base_mode,
+                model=model_data,
+                system_prompt=sys_prompt,
+                system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)
+                prompt=text,  # input text
+                stream=stream_mode,  # is stream mode
+                attachments=files,
+                file_ids=self.window.controller.files.uploaded_ids,  # uploaded files IDs
+                assistant_id=self.window.core.config.get('assistant'),
+                idx=self.window.controller.idx.current_idx,  # current idx
+                idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode (chat or query)
+                external_functions=functions,  # external functions
+                tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
+                max_tokens=max_tokens,  # max output tokens
+            )
+            extra = {
+                'mode': mode,
+                'reply': reply,
+                'internal': internal,
+                'has_attachments': num_files > 0,
+            }
+            self.window.controller.chat.common.lock_input()  # lock input
+            self.window.core.bridge.call(
+                context=bridge_context,
+                extra=extra,
+            )  # async handled via handle_bridge_*
 
-                # make call
-                bridge_context = BridgeContext(
-                    ctx=ctx,
-                    history=self.window.core.ctx.all(meta_id=parent_id),  # get all ctx items
-                    mode=mode,
-                    parent_mode=base_mode,
-                    model=model_data,
-                    system_prompt=sys_prompt,
-                    system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)
-                    prompt=text,  # input text
-                    stream=stream_mode,  # is stream mode
-                    attachments=files,
-                    file_ids=self.window.controller.files.uploaded_ids,  # uploaded files IDs
-                    assistant_id=self.window.core.config.get('assistant'),
-                    idx=self.window.controller.idx.current_idx,  # current idx
-                    idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode (chat or query)
-                    external_functions=functions,  # external functions
-                    tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
-                    max_tokens=max_tokens,  # max output tokens
-                )
+        except Exception as e:
+            self.log("Bridge call ERROR: {}".format(e))  # log
+            self.handle_error(e)
+            print("Error when calling bridge: " + str(e))
 
-                self.window.controller.chat.common.lock_input()  # lock input
-                result = self.window.core.bridge.call(
-                    context=bridge_context,
-                )
+        return ctx
 
-                # update context in DB
-                ctx.current = False  # reset current state
-                self.window.core.ctx.update_item(ctx)
+    @Slot(bool, object, dict)
+    def handle_bridge_success(self, status: bool, bridge_context: BridgeContext, extra: dict):
+        """
+        Handle Bridge success
 
-                if result:
-                    self.log_ctx(ctx, "output")  # log
-                else:
-                    self.log("Context: OUTPUT: ERROR")
-                    self.window.ui.dialogs.alert(trans('status.error'))
-                    self.window.ui.status(trans('status.error'))
+        :param status: Result status
+        :param bridge_context: BridgeContext
+        :param extra: Extra data
+        """
+        ctx = bridge_context.ctx
+        if not status:
+            self.log("Context: OUTPUT: ERROR")
+            self.window.ui.dialogs.alert(trans('status.error'))
+            self.window.ui.status(trans('status.error'))
+        else:
+            self.log_ctx(ctx, "output")  # log
 
-            except Exception as e:
-                self.log("Bridge call ERROR: {}".format(e))  # log
-                self.handle_error(e)
-                print("Error when calling bridge: " + str(e))
+        ctx.current = False  # reset current state
+        stream = bridge_context.stream
+        mode = extra.get('mode', 'chat')
+        reply = extra.get('reply', False)
+        internal = extra.get('internal', False)
+        has_attachments = extra.get('has_attachments', False)
+        self.window.core.ctx.update_item(ctx)
 
-            # handle response (not assistant mode - assistant response is handled by assistant thread)
+        try:
             if mode != "assistant":
                 ctx.from_previous()  # append previous result if exists
                 self.window.controller.chat.output.handle(
                     ctx,
                     mode,
-                    stream_mode,
+                    stream,
                 )
-
         except Exception as e:
             self.log("Output ERROR: {}".format(e))  # log
             self.handle_error(e)
             print("Error in sending text: " + str(e))
 
         # post-handle, execute cmd, etc.
-        self.window.controller.chat.output.post_handle(ctx, mode, stream_mode, reply, internal)
+        self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
+        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
 
-        return ctx
+    @Slot(object)
+    def handle_bridge_failed(self, err: any):
+        """
+        Handle Bridge failed
+
+        :param err: Exception
+        """
+        self.log("Output ERROR: {}".format(err))  # log
+        self.handle_error(err)
+        print("Error in sending text: " + str(err))
 
     def handle_error(self, e: any):
         """
