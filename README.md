@@ -3483,7 +3483,10 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.9 (2024-11-12)**
 
-- Mouse movement moved to library PyAutoGUI, for seamless mouse movement.
+- Mouse movement has been moved to the PyAutoGUI library for seamless operation.
+- Bridge calls have been moved to an asynchronous thread.
+- Fixed the DALL-E call in Image mode.
+- Speed improvements and optimizations.
 
 **2.4.8 (2024-11-12)**
 
