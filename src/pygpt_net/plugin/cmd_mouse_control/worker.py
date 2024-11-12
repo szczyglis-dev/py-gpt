@@ -144,7 +144,7 @@ class Worker(BaseWorker):
             if "y" in item["params"]:
                 y = item["params"]["y"]
         try:
-            pyautogui.moveTo(x, y, duration=0.5)
+            pyautogui.moveTo(x, y, duration=0.2)
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -184,7 +184,7 @@ class Worker(BaseWorker):
                 y = item["params"]["offset_y"]
 
         try:
-            pyautogui.moveRel(x, y, duration=0.5)
+            pyautogui.moveRel(x, y, duration=0.2)
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -434,13 +434,12 @@ class Worker(BaseWorker):
         size = screen.size()
         screen_x = size.width()
         screen_y = size.height()
-        mouse = MouseController()
-        mouse_pos_x, mouse_pos_y = mouse.position
+        mouse_pos_x, mouse_pos_y = pyautogui.position()
         return {
             'screen_width': screen_x,
             'screen_height': screen_y,
-            'mouse_pos_x': mouse_pos_x, 
-            'mouse_pos_y': mouse_pos_y,
+            'current_mouse_x': mouse_pos_x,
+            'current_mouse_y': mouse_pos_y,
         }
 
     def prepare_request(self, item) -> dict:

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.4.9 (2024-11-12)
+
+- Mouse movement moved to library PyAutoGUI, for seamless mouse movement.
+
 # 2.4.8 (2024-11-12)
 
 - Fix: restoring order of notepads.
