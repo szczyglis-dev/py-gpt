@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from packaging.version import Version
 
 from pygpt_net.provider.core.model.base import BaseProvider
 from pygpt_net.item.model import ModelItem
+
 from .patch import Patch
 
 
@@ -162,6 +163,7 @@ class JsonFileProvider(BaseProvider):
             'ctx': item.ctx,
             'tokens': item.tokens,
             'default': item.default,
+            'multimodal': item.multimodal,
         }
 
     @staticmethod
@@ -188,6 +190,8 @@ class JsonFileProvider(BaseProvider):
             item.tokens = data['tokens']
         if 'default' in data:
             item.default = data['default']
+        if 'multimodal' in data:
+            item.multimodal = data['multimodal']
 
     def dump(self, item: ModelItem) -> str:
         """

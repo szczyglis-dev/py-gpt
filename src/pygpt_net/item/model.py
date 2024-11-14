@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import json
@@ -24,6 +24,7 @@ class ModelItem:
         self.mode = []
         self.langchain = {}
         self.llama_index = {}
+        self.multimodal = []  # multimodal support: vision, audio, etc.
         self.ctx = 0
         self.tokens = 0
         self.default = False
@@ -47,6 +48,11 @@ class ModelItem:
             self.tokens = data['tokens']
         if 'default' in data:
             self.default = data['default']
+
+        # multimodal
+        if 'multimodal' in data:
+            options = data['multimodal'].replace(' ', '')
+            self.multimodal = options.split(',')
 
         # langchain
         if 'langchain.provider' in data:
@@ -90,6 +96,7 @@ class ModelItem:
         data['ctx'] = self.ctx
         data['tokens'] = self.tokens
         data['default'] = self.default
+        data['multimodal'] = ','.join(self.multimodal)
 
         data['langchain.provider'] = None
         data['langchain.mode'] = ""
@@ -165,6 +172,14 @@ class ModelItem:
         """
         return mode in self.mode
 
+    def is_multimodal(self) -> bool:
+        """
+        Check if model is multimodal
+
+        :return: True if multimodal
+        """
+        return len(self.multimodal) > 0
+
     def has_mode(self, mode: str) -> bool:
         """
         Check if model has mode
@@ -204,6 +219,10 @@ class ModelItem:
             pass
         return ""
 
-    def __str__(self):
-        """To string"""
+    def __str__(self) -> str:
+        """
+        To string
+
+        :return: Dumped JSON string
+        """
         return self.dump()

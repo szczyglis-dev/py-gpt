@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import os.path
@@ -32,18 +32,18 @@ class Llm:
         self.default_embed = "openai"
         self.initialized = False
 
-
     def init(self):
         """Init base ENV vars"""
         os.environ['OPENAI_API_KEY'] = str(self.window.core.config.get('api_key'))
         os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
         os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
 
-    def get(self, model: ModelItem = None) -> BaseLLM or MultiModalLLM:
+    def get(self, model: ModelItem = None, multimodal: bool = False) -> BaseLLM or MultiModalLLM:
         """
         Get LLM provider
 
         :param model: Model item
+        :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -67,23 +67,21 @@ class Llm:
                         sub_mode="",
                     )
                     # get llama LLM instance
-                    """
-                    # TODO: multimodal support
-                    is_multimodal = False
-                    if "vision" in model.mode:
-                        is_multimodal = True
-                        # at first, try to get multimodal instance
+                    if multimodal and model.is_multimodal():
+                        # at first, try to get multimodal provider
                         llm = self.window.core.llm.llms[provider].llama_multimodal(
                             window=self.window,
                             model=model,
                         )
                         if llm is not None:
-                            print("Returned multimodal")
-                    """
-                    llm = self.window.core.llm.llms[provider].llama(
-                        window=self.window,
-                        model=model,
-                    )
+                            print("Using multimodal.")
+
+                    if llm is None:
+                        # if no multimodal, get default llama provider
+                        llm = self.window.core.llm.llms[provider].llama(
+                            window=self.window,
+                            model=model,
+                        )
 
         # default model
         if llm is None:
