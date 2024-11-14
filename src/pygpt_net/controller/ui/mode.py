@@ -203,7 +203,7 @@ class Mode:
         if mode in ["vision", "assistant"]:
             return True
 
-        if mode == "img":
+        if mode in ["img", "llama_index", "langchain", "agent_llama"]:
             return False
 
         if self.window.controller.ui.vision.is_vision_model():
