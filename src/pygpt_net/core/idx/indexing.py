@@ -888,7 +888,8 @@ class Indexing:
         self.apply_rate_limit()  # apply RPM limit
         try:
             # display embedding model info
-            self.window.core.idx.log("Embedding model: {}".format(index.service_context.embed_model.model_name))
+            if index.service_context is not None:
+                self.window.core.idx.log("Embedding model: {}".format(index.service_context.embed_model.model_name))
         except Exception as e:
             self.window.core.debug.log(e)
         index.insert(document=doc)
