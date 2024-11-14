@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.11 01:00:00                  #
+# Updated Date: 2024.11.14 05:00:00                  #
 # ================================================== #
 
 import os.path
@@ -83,7 +83,7 @@ class ChromaProvider(BaseStore):
         storage_context = StorageContext.from_defaults(
             persist_dir=path,
         )
-        self.indexes[id] = self.index_from_store(vector_store, storage_context)
+        self.indexes[id] = self.index_from_store(vector_store, storage_context, service_context)
         return self.indexes[id]
 
     def store(self, id: str, index: BaseIndex = None):

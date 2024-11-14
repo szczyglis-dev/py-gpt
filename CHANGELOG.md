@@ -5,6 +5,7 @@
 - Added support for Llama Index agents. (beta)
 - Introduced a new working mode: Agent (Llama Index).
 - Added 3 Llama Index agents: OpenAI Agent, ReAct Agent, and Structured Planner Agent.
+- Fixed: passing an embed model to vector stores on indexing.
 
 # 2.4.9 (2024-11-12)
 
