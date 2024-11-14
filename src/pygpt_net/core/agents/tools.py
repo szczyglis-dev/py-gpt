@@ -26,10 +26,7 @@ class Tools:
         :param window: Window instance
         """
         self.window = window
-        self.cmd_blacklist = [
-            'web_index',
-            'web_index_query',
-        ]
+        self.cmd_blacklist = []
         self.verbose = False
 
     def prepare(self, context: BridgeContext, extra: dict, verbose: bool = False) -> list[BaseTool]:
