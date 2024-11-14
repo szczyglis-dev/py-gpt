@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import os
@@ -186,6 +186,7 @@ class Common:
     def unlock_input(self):
         """Unlock input"""
         self.window.controller.chat.input.locked = False
+        self.window.controller.chat.input.generating = False  # unlock
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
 
