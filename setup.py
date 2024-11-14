@@ -70,6 +70,7 @@ setup(
         'llama-index-llms-azure-openai>=0.1.10, <0.2.0',
         'llama-index-llms-gemini>=0.2.0, <0.3.0',
         'llama-index-llms-ollama>=0.2.2, <0.3.0',
+        'llama-index-multi-modal-llms-openai>=0.1.9, <0.2.0',
         'llama-index-vector-stores-chroma>=0.1.4, <0.2.0',
         'llama-index-vector-stores-elasticsearch>=0.1.4, <0.2.0',
         'llama-index-vector-stores-pinecone>=0.1.3, <0.2.0',
