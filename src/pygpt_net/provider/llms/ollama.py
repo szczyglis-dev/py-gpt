@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
+import os
 
 from langchain_community.chat_models import ChatOllama
 
@@ -76,3 +77,18 @@ class OllamaLLM(BaseLLM):
                 "args": config,
             })
         return OllamaEmbedding(**args)
+
+    def init_embeddings(self, window, env: list):
+        """
+        Initialize embeddings provider
+
+        :param window: window instance
+        :param env: ENV configuration list
+        """
+        super(OllamaLLM, self).init_embeddings(window, env)
+
+        # === FIX FOR LOCAL EMBEDDINGS ===
+        # if there is no OpenAI api key then set fake key to prevent empty key Llama-index error
+        if ('OPENAI_API_KEY' not in os.environ
+                and (window.core.config.get('api_key') is None or window.core.config.get('api_key') == "")):
+            os.environ['OPENAI_API_KEY'] = "_"
