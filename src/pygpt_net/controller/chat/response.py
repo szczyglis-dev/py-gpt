@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QObject
@@ -136,6 +136,18 @@ class Response(QObject):
             all=False,
         )
         self.window.core.ctx.update_item(ctx)
+
+        # update ctx meta
+        if mode == "agent_llama" and ctx.meta is not None:
+            self.window.core.ctx.replace(ctx.meta)
+            self.window.core.ctx.save(ctx.meta.id)
+            # update preset if exists
+            preset = self.window.controller.presets.get_current()
+            if preset is not None:
+                if ctx.meta.assistant is not None:
+                    preset.assistant_id = ctx.meta.assistant
+                    self.window.core.presets.update_and_save(preset)
+
         try:
             self.window.controller.chat.output.handle(ctx, mode, stream)
         except Exception as e:
