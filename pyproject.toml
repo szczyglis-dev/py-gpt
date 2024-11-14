@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.4.9"
+version = "2.4.10"
 description = "Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
@@ -38,6 +38,7 @@ langchain-community = "^0.2.12"
 langchain-experimental = "^0.0.64"
 langchain-openai = "^0.1.22"
 llama-index = "^0.10.65"
+llama-index-agent-openai = "^0.2.9"
 llama-index-core = "0.10.67"
 llama-index-embeddings-azure-openai = "^0.1.6"
 llama-index-embeddings-openai = "^0.1.0"

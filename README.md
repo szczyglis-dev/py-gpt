@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.9** | build: **2024.11.12** | Python: **>=3.10, <3.12**
+Release: **2.4.10** | build: **2024.11.14** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3506,6 +3506,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.10 (2024-11-14)**
+
+- Added support for Llama Index agents. (beta)
+- Introduced a new working mode: Agent (Llama Index).
+- Added 3 Llama Index agents: OpenAI Agent, ReAct Agent, and Structured Planner Agent.
 
 **2.4.9 (2024-11-12)**
 

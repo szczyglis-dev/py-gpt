@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.4.10 (2024-11-14)
+
+- Added support for Llama Index agents. (beta)
+- Introduced a new working mode: Agent (Llama Index).
+- Added 3 Llama Index agents: OpenAI Agent, ReAct Agent, and Structured Planner Agent.
+
 # 2.4.9 (2024-11-12)
 
 - Mouse movement has been moved to the PyAutoGUI library for seamless operation.

@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.4.9'
+VERSION = '2.4.10'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
@@ -60,6 +60,7 @@ setup(
         'langchain-experimental>=0.0.64, <0.1.0',
         'langchain-openai>=0.1.22, <0.2.0',
         'llama-index-core==0.10.67',
+        'llama-index-agent-openai==0.2.9',
         'llama-index>=0.10.65, <0.11.0',
         'llama-index-embeddings-azure-openai>=0.1.6, <0.2.0',
         'llama-index-embeddings-openai>=0.1.6, <0.2.0',
@@ -91,6 +92,7 @@ setup(
         'pillow>=10.2.0, <11.0.0',
         'pinecone-client>=3.1.0, <3.2.0',
         'PyAudio>=0.2.14, <0.3.0',
+        'PyAutoGUI>=0.9.54, <1.0.0',
         'Pygments>=2.18.0, <3.0.0',
         'pydub>=0.25.1, <0.3.0',
         'pygame>=2.5.2, <3.0.0',
