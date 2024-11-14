@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -114,6 +114,11 @@ class Editor:
                 "label": "preset.agent_provider",
                 "description": "preset.agent_provider.desc",
                 "use": "agent_provider",
+            },
+            "assistant_id": {
+                "type": "text",
+                "label": "preset.assistant_id",
+                "description": "preset.assistant_id.desc",
             },
             "tool.function": {
                 "type": "dict",

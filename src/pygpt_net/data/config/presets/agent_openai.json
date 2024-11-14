@@ -23,6 +23,7 @@
     "experts": [],
     "idx": "base",
     "agent_provider": "openai",
+    "assistant_id": "",
     "enabled": true,
     "__meta__": {
         "version": "2.4.10",

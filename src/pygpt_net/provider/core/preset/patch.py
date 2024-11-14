@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import os
@@ -30,6 +30,8 @@ class Patch:
         is_llama = False
         is_expert = False
         is_agent_llama = False
+        is_agent_assistant = False
+
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
             updated = False
@@ -106,6 +108,23 @@ class Patch:
 
                         updated = True
                         is_agent_llama = True  # prevent multiple copies
+
+                # < 2.4.11
+                if old < parse_version("2.4.11"):
+                    if 'agent_openai_assistant' not in self.window.core.presets.items and not is_agent_assistant:
+                        print("Migrating preset file from < 2.4.11...")
+                        files = [
+                            'agent_openai_assistant.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+
+                        updated = True
+                        is_agent_assistant = True  # prevent multiple copies
 
             # update file
             if updated:
