@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 15:00:00                  #
+# Updated Date: 2024.11.15 01:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
@@ -22,6 +23,9 @@ class Plugin(BasePlugin):
         self.name = "Real Time"
         self.type = ["time"]
         self.description = "Appends current time and date to every system prompt."
+        self.allowed_cmds = [
+            "get_time",
+        ]
         self.order = 2
         self.use_locale = True
         self.init_options()
@@ -58,6 +62,14 @@ class Plugin(BasePlugin):
             description=desc,
             tooltip=tooltip,
         )
+        # commands
+        self.add_cmd(
+            "get_time",
+            instruction="get current time and date",
+            params=[],
+            enabled=True,
+            description="Enable: Get current time and date.",
+        )
 
     def setup(self) -> dict:
         """
@@ -85,6 +97,7 @@ class Plugin(BasePlugin):
         """
         name = event.name
         data = event.data
+        ctx = event.ctx
 
         if name == Event.SYSTEM_PROMPT:
             silent = False
@@ -94,6 +107,61 @@ class Plugin(BasePlugin):
                 data['value'],
                 silent,
             )
+
+        elif name == Event.CMD_SYNTAX:
+            self.cmd_syntax(data)
+
+        elif name == Event.CMD_EXECUTE:
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
+
+    def cmd_syntax(self, data: dict):
+        """
+        Event: CMD_SYNTAX
+
+        :param data: event data dict
+        """
+        for option in self.allowed_cmds:
+            if self.has_cmd(option):
+                data['cmd'].append(self.get_cmd(option))  # append command
+
+    def cmd(self, ctx: CtxItem, cmds: list):
+        """
+        Event: CMD_EXECUTE
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        is_cmd = False
+        my_commands = []
+        for item in cmds:
+            if item["cmd"] in self.allowed_cmds:
+                my_commands.append(item)
+                is_cmd = True
+
+        if not is_cmd:
+            return
+
+        response = None
+        for item in my_commands:
+            try:
+                if item["cmd"] in self.allowed_cmds and self.has_cmd(item["cmd"]):
+                    # get time
+                    if item["cmd"] == "get_time":
+                        time = datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')
+                        response = {
+                            "request": {
+                                "cmd": item["cmd"]
+                            },
+                            "result": time,
+                        }
+            except Exception as e:
+                self.error(e)
+
+        if response:
+            self.reply(response, ctx)
 
     def on_system_prompt(self, prompt: str, silent: bool = False) -> str:
         """
