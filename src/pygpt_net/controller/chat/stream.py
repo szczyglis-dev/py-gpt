@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -63,6 +63,9 @@ class Stream:
                     elif (hasattr(chunk, 'content')
                           and chunk.content is not None):
                         chunk_type = "langchain_chat"
+                    elif (hasattr(chunk, 'delta')
+                          and chunk.delta is not None):
+                        chunk_type = "llama_chat"
 
                     # OpenAI chat completion
                     if chunk_type == "api_chat":
@@ -98,14 +101,19 @@ class Stream:
                     # langchain chat
                     elif chunk_type == "langchain_chat":
                         if chunk.content is not None:
-                            response = chunk.content
+                            response = str(chunk.content)
+
+                    # llama chat
+                    elif chunk_type == "llama_chat":
+                        if chunk.delta is not None:
+                            response = str(chunk.delta)
 
                     # raw text: llama-index and langchain completion
                     else:
                         if chunk is not None:
-                            response = chunk
+                            response = str(chunk)
 
-                    if response is not None:
+                    if response is not None and response != "":
                         if begin and response == "":  # prevent empty beginning
                             continue
                         output += response
