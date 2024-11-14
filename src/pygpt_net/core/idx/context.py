@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -25,7 +25,8 @@ class Context:
             self,
             input_prompt: str,
             system_prompt: str,
-            history: list = None
+            history: list = None,
+            multimodal: bool = False
     ):
         """
         Get messages from db
@@ -33,6 +34,7 @@ class Context:
         :param input_prompt: input prompt
         :param system_prompt: system prompt
         :param history: history
+        :param multimodal: multimodal flag
         :return: Messages
         """
         messages = []
@@ -73,3 +75,25 @@ class Context:
                     ))
 
         return messages
+
+    def add_user(self, query: str) -> ChatMessage:
+        """
+        Add user message
+
+        :param query: input query
+        """
+        return ChatMessage(
+            role=MessageRole.USER,
+            content=query,
+        )
+
+    def add_system(self, prompt: str) -> ChatMessage:
+        """
+        Add system message to db
+
+        :param prompt: system prompt
+        """
+        return ChatMessage(
+            role=MessageRole.SYSTEM,
+            content=prompt,
+        )
