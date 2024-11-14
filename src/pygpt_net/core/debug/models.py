@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import os
@@ -44,6 +44,7 @@ class ModelsDebug:
                 'id': model.id,
                 'name': model.name,
                 'mode': model.mode,
+                'multimodal': model.multimodal,
                 'langchain': model.langchain,
                 'llama_index': model.llama_index,
                 'tokens': model.tokens,
