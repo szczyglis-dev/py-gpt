@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -181,6 +181,12 @@ class Mapping:
         nodes['preset.user_name.label'] = 'preset.user_name'
         nodes['preset.temperature.label'] = 'preset.temperature'
         nodes['preset.prompt.label'] = 'preset.prompt'
+        nodes['preset.idx.label'] = 'preset.idx'
+        nodes['preset.agent_provider.label'] = 'preset.agent_provider'
+        nodes['preset.assistant_id.label'] = 'preset.assistant_id'
+        nodes['preset.tool.function.label.all'] = 'preset.tool.function.tip.all'
+        nodes['preset.tool.function.label.assistant'] = 'preset.tool.function.tip.assistant'
+        nodes['preset.tool.function.label.agent_llama'] = 'preset.tool.function.tip.agent_llama'
         nodes['preset.btn.current'] = 'dialog.preset.btn.current'
         nodes['preset.btn.save'] = 'dialog.preset.btn.save'
 

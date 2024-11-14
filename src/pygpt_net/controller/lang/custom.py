@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -46,6 +46,13 @@ class Custom:
         self.window.ui.config['preset']['chat'].box.setText(trans("preset.chat"))
         self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
         self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
+        self.window.ui.config['preset']['vision'].box.setText(trans("preset.vision"))
+        self.window.ui.config['preset']['langchain'].box.setText(trans("preset.langchain"))
+        self.window.ui.config['preset']['llama_index'].box.setText(trans("preset.llama_index"))
+        self.window.ui.config['preset']['agent'].box.setText(trans("preset.agent"))
+        self.window.ui.config['preset']['agent_llama'].box.setText(trans("preset.agent_llama"))
+        self.window.ui.config['preset']['expert'].box.setText(trans("preset.expert"))
+
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 
         # camera capture
