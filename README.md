@@ -3513,6 +3513,7 @@ may consume additional tokens that are not displayed in the main window.
 - Introduced a new working mode: Agent (Llama Index).
 - Added 3 Llama Index agents: OpenAI Agent, ReAct Agent, and Structured Planner Agent.
 - Fixed: passing an embed model to vector stores on indexing.
+- Fixed: python3-tk error in snap version.
 
 **2.4.9 (2024-11-12)**
 

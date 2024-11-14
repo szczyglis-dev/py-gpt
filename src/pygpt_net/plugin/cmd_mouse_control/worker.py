@@ -11,7 +11,6 @@
 
 import time
 
-import pyautogui
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KeyboardController
 from PySide6.QtCore import Slot, Signal
@@ -144,7 +143,12 @@ class Worker(BaseWorker):
             if "y" in item["params"]:
                 y = item["params"]["y"]
         try:
-            pyautogui.moveTo(x, y, duration=0.2)
+            if self.window.core.platforms.is_snap():
+                mouse = MouseController()
+                mouse.position = (x, y)
+            else:
+                import pyautogui
+                pyautogui.moveTo(x, y, duration=0.2)
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -184,7 +188,12 @@ class Worker(BaseWorker):
                 y = item["params"]["offset_y"]
 
         try:
-            pyautogui.moveRel(x, y, duration=0.2)
+            if self.window.core.platforms.is_snap():
+                mouse = MouseController()
+                mouse.move(x, y)
+            else:
+                import pyautogui
+                pyautogui.moveRel(x, y, duration=0.2)
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -434,7 +443,12 @@ class Worker(BaseWorker):
         size = screen.size()
         screen_x = size.width()
         screen_y = size.height()
-        mouse_pos_x, mouse_pos_y = pyautogui.position()
+        if self.window.core.platforms.is_snap():
+            mouse = MouseController()
+            mouse_pos_x, mouse_pos_y = mouse.position
+        else:
+            import pyautogui
+            mouse_pos_x, mouse_pos_y = pyautogui.position()
         return {
             'screen_width': screen_x,
             'screen_height': screen_y,
