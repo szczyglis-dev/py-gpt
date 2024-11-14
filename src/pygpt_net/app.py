@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -34,6 +34,7 @@ from pygpt_net.plugin.agent import Plugin as AgentPlugin
 
 # agents (Llama-index)
 from pygpt_net.provider.agents.openai import OpenAIAgent
+from pygpt_net.provider.agents.openai_assistant import OpenAIAssistantAgent
 from pygpt_net.provider.agents.planner import PlannerAgent
 from pygpt_net.provider.agents.react import ReactAgent
 
@@ -352,6 +353,7 @@ def run(**kwargs):
 
     # register base llama-index agents
     launcher.add_agent(OpenAIAgent())
+    launcher.add_agent(OpenAIAssistantAgent())
     launcher.add_agent(PlannerAgent())
     launcher.add_agent(ReactAgent())
 

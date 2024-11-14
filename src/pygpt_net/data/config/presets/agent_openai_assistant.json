@@ -1,0 +1,33 @@
+{
+    "uuid": "467e5547-11ea-47fc-905f-0064d1619e5a",
+    "name": "OpenAI Assistant",
+    "ai_name": "Assistant",
+    "user_name": "",
+    "prompt": "You are a helpful assistant",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "langchain": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": true,
+    "expert": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_assistant",
+    "model": "gpt-4o-mini",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "base",
+    "agent_provider": "openai_assistant",
+    "assistant_id": "",
+    "enabled": true,
+    "__meta__": {
+        "version": "2.4.11",
+        "app.version": "2.4.11",
+        "updated_at": "2024-11-15T00:04:18"
+    }
+}
