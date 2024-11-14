@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import json
@@ -91,6 +91,7 @@ class Chat:
         stream = context.stream
         ctx = context.ctx
         query = ctx.input  # user input
+        verbose = self.window.core.config.get("log.llama", False)
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
@@ -117,11 +118,13 @@ class Chat:
                 llm=llm,
                 streaming=stream,
                 text_qa_template=tpl,
+                verbose=verbose,
             ).query(query)  # query with custom sys prompt
         else:
             response = index.as_query_engine(
                 llm=llm,
                 streaming=stream,
+                verbose=verbose,
             ).query(query)  # query with default prompt
 
         if response:
@@ -156,8 +159,12 @@ class Chat:
         ctx = context.ctx
         query = ctx.input  # user input
         chat_mode = self.window.core.config.get("llama.idx.chat.mode")
-        if idx is None:
+        use_index = True
+        verbose = self.window.core.config.get("log.llama", False)
+
+        if idx is None or idx == "_":
             chat_mode = "simple"  # do not use query engine if no index
+            use_index = False
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
@@ -170,8 +177,17 @@ class Chat:
             model.id,
         ))
 
-        index, service_context = self.get_index(idx, model)
-        llm = service_context.llm
+        # use index only if idx is not empty, otherwise use only LLM
+        index = None
+        if use_index:
+            index, service_context = self.get_index(idx, model)
+            llm = service_context.llm  # no multimodal LLM in service context
+        else:
+            llm = self.window.core.idx.llm.get(model)
+
+        # if multimodal support, try to get multimodal provider
+        # if model.is_multimodal():
+            # llm = self.window.core.idx.llm.get(model, multimodal=True)  # get multimodal LLM model
 
         # append context from DB
         history = self.context.get_messages(
@@ -179,38 +195,71 @@ class Chat:
             system_prompt,
             context.history,
         )
-        memory = self.get_memory_buffer(history, service_context.llm)
+        memory = self.get_memory_buffer(history, llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             history,
             model.id,
         )
-        chat_engine = index.as_chat_engine(
-            llm=llm,
-            chat_mode=chat_mode,
-            memory=memory,
-            system_prompt=system_prompt,
-        )
-        if stream:
-            response = chat_engine.stream_chat(query)
-        else:
-            response = chat_engine.chat(query)
 
-        if response:
+        if use_index:
+            # index as query engine
+            chat_engine = index.as_chat_engine(
+                llm=llm,
+                chat_mode=chat_mode,
+                memory=memory,
+                verbose=verbose,
+                system_prompt=system_prompt,
+            )
             if stream:
-                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                ctx.stream = response.response_gen
-                ctx.input_tokens = input_tokens
-                ctx.set_output("", "")
+                response = chat_engine.stream_chat(query)
             else:
-                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                ctx.input_tokens = input_tokens
-                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                    response.response,
-                    [],
-                    model.id,
-                )  # calc from response
-                ctx.set_output(str(response.response), "")
+                response = chat_engine.chat(query)
+        else:
+            # without index, use LLM as chat engine
+            history.insert(0, self.context.add_system(system_prompt))
+            history.append(self.context.add_user(query))
+            if stream:
+                response = llm.stream_chat(
+                    messages=history,
+                )
+            else:
+                response = llm.chat(
+                    messages=history,
+                )
+
+        # handle response
+        if response:
+            if use_index:
+                # from index as query engine
+                if stream:
+                    ctx.stream = response.response_gen
+                    ctx.input_tokens = input_tokens
+                    ctx.set_output("", "")
+                    ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
+                else:
+                    ctx.input_tokens = input_tokens
+                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                        response.response,
+                        [],
+                        model.id,
+                    )  # calc from response
+                    ctx.set_output(str(response.response), "")
+                    ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
+            else:
+                # from LLM
+                if stream:
+                    ctx.stream = response  # chunk is in response.delta
+                    ctx.input_tokens = input_tokens
+                    ctx.set_output("", "")
+                else:
+                    ctx.set_output(str(response.message.content), "")
+                    ctx.input_tokens = input_tokens
+                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                        response.message.content,
+                        [],
+                        model.id,
+                    ) # calc from response
             return True
         return False
 
