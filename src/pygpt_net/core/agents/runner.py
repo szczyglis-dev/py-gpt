@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.14 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext, BridgeSignals
@@ -22,6 +22,7 @@ class Runner:
         """
         self.window = window
         self.signals = None  # BridgeSignals
+        self.error = None
 
     def call(
             self,
@@ -45,10 +46,15 @@ class Runner:
             "signals": signals,
             "verbose": verbose,
         }
-        if id == "planner":
-            return self.run_plan(**kwargs)
-        else:
-            return self.run_steps(**kwargs)
+        try:
+            if id == "planner":
+                return self.run_plan(**kwargs)
+            else:
+                return self.run_steps(**kwargs)
+        except Exception as err:
+            self.window.core.debug.error(err)
+            self.error = err
+            return False
 
     def run_steps(
             self,
@@ -107,7 +113,6 @@ class Runner:
             is_last = step_output.is_last
             # append each step to chat output, last step = final response, so we skip it
             tools_output = self.window.core.agents.tools.export_sources(step_output.output)
-            print(task, step_output)
             if not is_last:
                 step_ctx = self.add_ctx(ctx)
                 step_ctx.set_input(str(tools_output))
@@ -256,3 +261,11 @@ class Runner:
         ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
         ctx.live = True
         return ctx
+
+    def get_error(self):
+        """
+        Get last error
+
+        :return: last error
+        """
+        return self.error

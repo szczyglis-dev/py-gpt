@@ -15,6 +15,7 @@ from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
+
 class Response(QObject):
     def __init__(self, window=None):
         """
@@ -36,9 +37,16 @@ class Response(QObject):
         """
         ctx = bridge_context.ctx
         if not status:
+            error = None
+            if "error" in extra:
+                error = extra.get("error")
             self.window.controller.chat.log("Bridge response: ERROR")
-            self.window.ui.dialogs.alert(trans('status.error'))
-            self.window.ui.status(trans('status.error'))
+            if error is not None:
+                self.window.ui.dialogs.alert(error)
+                self.window.ui.status(error)
+            else:
+                self.window.ui.dialogs.alert(trans('status.error'))
+                self.window.ui.status(trans('status.error'))
         else:
             self.window.controller.chat.log_ctx(ctx, "output")  # log
 
@@ -50,6 +58,12 @@ class Response(QObject):
         has_attachments = extra.get('has_attachments', False)
         self.window.core.ctx.update_item(ctx)
 
+        # fix frozen chat
+        if not status:
+            self.window.controller.chat.render.tool_output_clear(ctx.meta)  # hide cmd waiting
+            self.window.controller.chat.common.unlock_input()  # unlock input
+            return
+
         try:
             if mode != "assistant":
                 ctx.from_previous()  # append previous result if exists
@@ -59,9 +73,7 @@ class Response(QObject):
                     stream,
                 )
         except Exception as e:
-            self.window.controller.chat.log("Output ERROR: {}".format(e))  # log
-            self.window.controller.chat.handle_error(e)
-            print("Error in sending text: " + str(e))
+            self.handle_failed(e)
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)

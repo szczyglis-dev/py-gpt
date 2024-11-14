@@ -68,8 +68,8 @@ class Chat:
         :param err: Exception
         """
         self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert(err)
-        self.window.ui.status(trans('status.error'))
+        self.window.ui.dialogs.alert(str(err))
+        self.window.ui.status(str(err))
         self.window.controller.chat.common.unlock_input()  # always unlock input on error
         self.window.stateChanged.emit(self.window.STATE_ERROR)
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event

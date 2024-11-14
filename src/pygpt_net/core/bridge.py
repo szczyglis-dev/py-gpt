@@ -319,17 +319,21 @@ class BridgeWorker(QObject, QRunnable):
                     extra=self.extra,
                     signals=self.signals,
                 )
-                return result  # don't emit any signals (handled in agent runner, step by step)
+                if result:
+                    return  # don't emit any signals (handled in agent runner, step by step)
+                else:
+                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
 
             # API OpenAI: chat, completion, vision, image, assistants
             else:
                 result = self.window.core.gpt.call(
                     context=self.context,
-                    extra=self.extra
+                    extra=self.extra,
                 )
         except Exception as e:
             if self.signals is not None:
                 self.signals.error.emit(e)
+                return
 
         # send success to main thread
         if self.signals is not None:
