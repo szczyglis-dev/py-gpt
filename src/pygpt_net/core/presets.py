@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -362,6 +362,23 @@ class Presets:
                 key=lambda item: item[1].name
             )
         )
+
+    def update(self, preset: PresetItem):
+        """
+        Update preset
+
+        :param preset: preset item
+        """
+        self.items[preset.filename] = preset
+
+    def update_and_save(self, preset: PresetItem):
+        """
+        Update preset
+
+        :param preset: preset item
+        """
+        self.items[preset.filename] = preset
+        self.save(preset.filename)
 
     def get_all(self) -> dict:
         """

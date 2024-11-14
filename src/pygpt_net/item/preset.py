@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 import json
@@ -37,6 +37,7 @@ class PresetItem:
         self.experts = []  # agent mode
         self.idx = None
         self.agent_provider = None
+        self.assistant_id = ""
         self.enabled = True
         self.tools = {
             "function": [],
@@ -69,6 +70,7 @@ class PresetItem:
             "experts": self.experts,
             "idx": self.idx,
             "agent_provider": self.agent_provider,
+            "assistant_id": self.assistant_id,
             "enabled": self.enabled,
         }
 
@@ -117,6 +119,8 @@ class PresetItem:
             self.idx = data["idx"]
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
+        if "assistant_id" in data:
+            self.assistant_id = data["assistant_id"]
         if "enabled" in data:
             self.enabled = data["enabled"]
         return self

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -83,85 +83,120 @@ class Preset(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
-        ignore_keys = [
+        for key in options:
+            options[key].setContentsMargins(0, 0, 0, 0)
+
+        # modes
+        mode_keys = [
             "chat",
             "completion",
             "img",
             "vision",
-            "llama_index",
             "langchain",
+            "llama_index",
             "agent",
             "agent_llama",
             "expert",
-            "prompt",
-            "tool.function",
         ]
-
-        options["chat"].setContentsMargins(0, 0, 0, 0)
-        options["completion"].setContentsMargins(0, 0, 0, 0)
-        options["img"].setContentsMargins(0, 0, 0, 0)
-        options["vision"].setContentsMargins(0, 0, 0, 0)
-        options["langchain"].setContentsMargins(0, 0, 0, 0)
-        options["llama_index"].setContentsMargins(0, 0, 0, 0)
-        options["agent"].setContentsMargins(0, 0, 0, 0)
-        options["agent_llama"].setContentsMargins(0, 0, 0, 0)
-        options["expert"].setContentsMargins(0, 0, 0, 0)
-        options["prompt"].setContentsMargins(0, 0, 0, 0)
-        options["tool.function"].setContentsMargins(0, 0, 0, 0)
-
         rows_mode = QVBoxLayout()
-        rows_mode.addLayout(options["chat"])
-        rows_mode.addLayout(options["completion"])
-        rows_mode.addLayout(options["img"])
-        rows_mode.addLayout(options["vision"])
-        # rows_mode.addLayout(options["assistant"])
-        rows_mode.addLayout(options["langchain"])
-        rows_mode.addLayout(options["llama_index"])
-        rows_mode.addLayout(options["agent_llama"])
-        rows_mode.addLayout(options["agent"])
-        rows_mode.addLayout(options["expert"])
-
-
         rows_mode.addStretch()
         rows_mode.setContentsMargins(0, 0, 0, 0)
+        for key in mode_keys:
+            rows_mode.addLayout(options[key])
 
+        # modes
         self.window.ui.nodes['preset.editor.modes'] = QWidget()
         self.window.ui.nodes['preset.editor.modes'].setLayout(rows_mode)
         self.window.ui.nodes['preset.editor.modes'].setContentsMargins(0, 0, 0, 0)
         self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
 
+        # functions label
+        self.window.ui.nodes['preset.tool.function.label.all'] = QLabel(
+            trans("preset.tool.function.tip.all"))
+        self.window.ui.nodes['preset.tool.function.label.all'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['preset.tool.function.label.assistant'] = QLabel(
+            trans("preset.tool.function.tip.assistant"))
+        self.window.ui.nodes['preset.tool.function.label.assistant'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['preset.tool.function.label.agent_llama'] = QLabel(
+            trans("preset.tool.function.tip.agent_llama"))
+        self.window.ui.nodes['preset.tool.function.label.agent_llama'].setAlignment(Qt.AlignCenter)
+
+        # functions
         self.window.ui.nodes['preset.editor.functions'] = QWidget()
         self.window.ui.nodes['preset.editor.functions'].setLayout(options["tool.function"])
-        self.window.ui.nodes['preset.editor.functions'].setMinimumWidth(400)
 
+        # experts
         self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
+        # agents - llama index
+        agent_keys = [
+            "agent_provider",
+            "idx",
+            "assistant_id",
+        ]
+        agent_layout = QVBoxLayout()
+        agent_layout.setContentsMargins(0, 0, 0, 0)
+        for key in agent_keys:
+            widget = QWidget()
+            widget.setLayout(options[key])
+            agent_layout.addWidget(widget)
+        agent_layout.addStretch()
+        self.window.ui.nodes['preset.editor.agent_llama'] = QWidget()
+        self.window.ui.nodes['preset.editor.agent_llama'].setLayout(agent_layout)
+        self.window.ui.nodes['preset.editor.agent_llama'].setContentsMargins(20, 0, 0, 30)
+
+        # prompt
         widget_prompt = QWidget()
         widget_prompt.setLayout(options["prompt"])
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # append widgets options layouts to rows
-        for key in options:
-            if key in ignore_keys:
-                continue
-            options[key].setContentsMargins(0, 0, 0, 0)
-            rows.addLayout(options[key])
+        # left column
+        left_keys = [
+            "filename",
+            "name",
+            "ai_name",
+            "user_name",
+            "model",
+            "temperature",
+        ]
+        for key in left_keys:
+            self.window.ui.nodes['preset.editor.' + key] = QWidget()
+            self.window.ui.nodes['preset.editor.' + key].setLayout(options[key])
+            self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
+            rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
 
         rows.setContentsMargins(0, 0, 0, 0)
-
         rows.addStretch()
+
         widget_base = QWidget()
         widget_base.setLayout(rows)
 
-        # set max width to options
-        widget_base.setMinimumWidth(400)
-        widget_base.setMaximumWidth(450)
+        func_tip_layout = QVBoxLayout()
+        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.all'])
+        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.assistant'])
+        func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.agent_llama'])
+        func_tip_layout.setContentsMargins(0, 0, 0, 0)
+        func_tip_widget = QWidget()
+        func_tip_widget.setLayout(func_tip_layout)
+
+        func_rows = QVBoxLayout()
+        func_rows.addWidget(self.window.ui.nodes['preset.editor.functions'])
+        func_rows.addWidget(self.window.ui.nodes['preset.editor.experts'])
+        func_rows.addWidget(self.window.ui.nodes['preset.editor.agent_llama'])
+        #func_rows.addStretch()
+        func_rows.addWidget(func_tip_widget)
+
+        func_rows.setContentsMargins(0, 0, 0, 0)
+        func_widget = QWidget()
+        func_widget.setLayout(func_rows)
+        func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main = QHBoxLayout()
         main.addWidget(widget_base)
-        main.addWidget(self.window.ui.nodes['preset.editor.functions'])
+        main.addWidget(func_widget)
         main.addWidget(self.window.ui.nodes['preset.editor.modes'])
-        main.addWidget(self.window.ui.nodes['preset.editor.experts'])
         main.setContentsMargins(0, 0, 0, 0)
 
         widget_main = QWidget()

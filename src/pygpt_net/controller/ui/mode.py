@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -39,6 +39,10 @@ class Mode:
             self.window.ui.nodes['preset.agents.label'].setVisible(True)
             self.window.ui.nodes['preset.experts.label'].setVisible(False)
             self.window.ui.nodes['preset.presets.label'].setVisible(False)
+        elif mode == "agent_llama":
+            self.window.ui.nodes['preset.agents.label'].setVisible(True)
+            self.window.ui.nodes['preset.experts.label'].setVisible(False)
+            self.window.ui.nodes['preset.presets.label'].setVisible(False)
         elif mode == "expert":
             self.window.ui.nodes['preset.agents.label'].setVisible(False)
             self.window.ui.nodes['preset.experts.label'].setVisible(True)
@@ -50,15 +54,43 @@ class Mode:
 
         # presets: editor
         if mode == "agent":
+            self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
+            self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
+            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.nodes['preset.editor.experts'].setVisible(True)
             self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent"))
+            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
+        elif mode == "agent_llama":
+            self.window.ui.nodes['preset.editor.user_name'].setVisible(False)
+            self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
+            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
+            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
+            self.window.ui.nodes['preset.editor.modes'].setVisible(False)
+            self.window.ui.nodes['preset.editor.experts'].setVisible(False)
+            self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
+            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(True)
         else:
+            self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
+            self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
+            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(True)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
             self.window.ui.nodes['preset.editor.experts'].setVisible(False)
             self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
+            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
+            if mode == "assistant":
+                self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(True)
+                self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
+            else:
+                self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
+                self.window.ui.nodes['preset.tool.function.label.all'].setVisible(True)
 
         # presets: clear
         self.window.ui.nodes['preset.clear'].setVisible(False)
