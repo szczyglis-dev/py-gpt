@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -179,6 +179,13 @@ class Text:
             if num_files > 0:
                 self.window.controller.chat.log("Attachments ({}): {}".format(mode, num_files))
 
+            # assistant
+            assistant_id = self.window.core.config.get('assistant')
+            if mode == "agent_llama":
+                preset = self.window.controller.presets.get_current()
+                if preset is not None:
+                    assistant_id = preset.assistant_id
+
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
             bridge_context = BridgeContext(
                 ctx=ctx,
@@ -192,7 +199,7 @@ class Text:
                 stream=stream_mode,  # is stream mode
                 attachments=files,
                 file_ids=self.window.controller.files.uploaded_ids,  # uploaded files IDs
-                assistant_id=self.window.core.config.get('assistant'),
+                assistant_id=assistant_id,
                 idx=self.window.controller.idx.current_idx,  # current idx
                 idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode (chat or query)
                 external_functions=functions,  # external functions
