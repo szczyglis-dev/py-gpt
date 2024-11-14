@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -287,6 +287,23 @@ class Patch:
                 for id in data:
                     model = data[id]
                     if model.id.startswith("gpt-") and model.id not in exclude:
+                        if "agent_llama" not in model.mode:
+                            model.mode.append("agent_llama")
+                updated = True
+
+            # < 2.4.11  <--- add agent_llama mode to rest of models
+            if old < parse_version("2.4.11"):
+                print("Migrating models from < 2.4.11...")
+                exclude = [
+                    "gpt-3.5-turbo-instruct",
+                    "dall-e-2",
+                    "dall-e-3",
+                    "o1-preview",
+                    "o1-mini",
+                ]
+                for id in data:
+                    model = data[id]
+                    if model.id not in exclude:
                         if "agent_llama" not in model.mode:
                             model.mode.append("agent_llama")
                 updated = True
