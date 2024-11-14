@@ -31,17 +31,19 @@ class BaseStore:
         self.prefix = ""  # prefix for index directory
         self.indexes = {}
 
-    def index_from_store(self, vector_store, storage_context: StorageContext):
+    def index_from_store(self, vector_store, storage_context: StorageContext, service_context: ServiceContext = None):
         """
         Get index instance
 
         :param vector_store: vector store instance
         :param storage_context: StorageContext instance
+        :param service_context: ServiceContext instance
         :return: index instance
         """
         return VectorStoreIndex.from_vector_store(
             vector_store,
             storage_context=storage_context,
+            service_context=service_context,
         )
 
     def index_from_empty(self):
