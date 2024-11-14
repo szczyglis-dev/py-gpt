@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Agent (autonomous).
+- 10 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts, Agent (Llama-index), and Agent (legacy, autonomous).
 - Supports multiple models: `o1`, `gpt-4`, `gpt-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `Bielik`, etc.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
@@ -90,7 +90,7 @@ You can download compiled versions for `Linux` and `Windows` (10/11).
 
 Download the `.msi` or `zip`/`tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application. 64-bit only.
 
-The Linux version requires `GLIBC` >= `2.35`.
+Linux version requires `GLIBC` >= `2.35`.
 
 ## Snap Store
 
@@ -806,9 +806,35 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 - `bearer_token` - str, default: `None`
 - `num_tweets` - int, default: `100`
 
-##  Agent (autonomous) 
+##  Agent (Llama-index) 
 
-**This mode is experimental.**
+**Currently in beta version** -- introduced in `2.4.10` (2024-11-14)
+
+Mode that allows the use of agents offered by `Llama-index`.
+
+Includes built-in agents:
+
+- OpenAI
+- ReAct
+- Structured Planner (sub-tasks)
+
+In the future, the list of built-in agents will be expanded.
+
+You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
+
+At the moment, only OpenAI models are available in this mode - support for more models coming soon!
+
+**Tools / Plugins**  
+In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
+
+**RAG / Using indexes**  
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
+
+Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
+
+##  Agent (legacy, autonomous) 
+
+This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: `Agent (Llama-index)`.
 
 **WARNING: Please use this mode with caution** - autonomous mode, when connected with other plugins, may produce unexpected results!
 

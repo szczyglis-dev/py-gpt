@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -19,8 +19,9 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class BasePlugin:
+class BasePlugin(QObject):
     def __init__(self, *args, **kwargs):
+        super(BasePlugin, self).__init__()
         self.window = kwargs.get('window', None)
         self.id = ""
         self.name = ""
@@ -287,6 +288,8 @@ class BasePlugin:
         :param msg: message to log
         """
         self.debug(msg)
+        if self.is_threaded():
+            return
         self.window.ui.status(msg)
         if self.is_log():
             print(msg)
@@ -302,10 +305,11 @@ class BasePlugin:
         """
         # handle post-finishing operations
         if isinstance(extra_data, dict):
-            if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
-                if "file_explorer" in extra_data["post_update"]:
-                    # update file explorer view
-                    self.window.controller.files.update_explorer()
+            if (ctx is None or not ctx.agent_call) or not self.is_threaded():
+                if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
+                    if "file_explorer" in extra_data["post_update"]:
+                        # update file explorer view
+                        self.window.controller.files.update_explorer()
 
         # dispatch response (reply)
         if ctx is not None:
@@ -317,6 +321,7 @@ class BasePlugin:
                     response["result"] = "OK"
                 else:
                     del response["context"]
+
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object)
@@ -326,6 +331,8 @@ class BasePlugin:
 
         :param data: status message
         """
+        if self.is_threaded():
+            return
         self.window.ui.status(str(data))
 
     @Slot(object)
@@ -353,7 +360,19 @@ class BasePlugin:
 
         :param msg: log message
         """
+        if self.is_threaded():
+            return
         self.log(msg)
+
+    def is_threaded(self) -> bool:
+        """
+        Check if plugin is threaded
+
+        :return: True if threaded
+        """
+        if self.window.core.config.get("mode") == "agent_llama":
+            return True
+        return False
 
 
 class BaseSignals(QObject):
@@ -368,9 +387,10 @@ class BaseSignals(QObject):
     stopped = Signal()
 
 
-class BaseWorker(QRunnable):
+class BaseWorker(QObject, QRunnable):
     def __init__(self, *args, **kwargs):
-        super(BaseWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = BaseSignals()
         self.args = args
         self.kwargs = kwargs
@@ -407,6 +427,8 @@ class BaseWorker(QRunnable):
 
         :param msg: log message
         """
+        if self.is_threaded():
+            return
         if self.signals is not None and hasattr(self.signals, "log"):
             self.signals.log.emit(msg)
 
@@ -429,6 +451,11 @@ class BaseWorker(QRunnable):
         :param response: response (dict)
         :param extra_data: extra data
         """
+        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
+        if self.ctx.agent_call and self.plugin is not None:
+            self.plugin.handle_finished(response, self.ctx, extra_data)
+            return
+
         if self.signals is not None and hasattr(self.signals, "finished"):
             self.signals.finished.emit(response, self.ctx, extra_data)
 
@@ -439,6 +466,11 @@ class BaseWorker(QRunnable):
         :param responses: responses
         :param extra_data: extra data
         """
+        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
+        if self.ctx.agent_call and self.plugin is not None:
+            self.plugin.handle_finished(responses, self.ctx, extra_data)
+            return
+
         if self.signals is not None and hasattr(self.signals, "finished_more"):
             self.signals.finished_more.emit(responses, self.ctx, extra_data)
 
@@ -453,6 +485,8 @@ class BaseWorker(QRunnable):
 
         :param msg: status message
         """
+        if self.is_threaded():
+            return
         if self.signals is not None and hasattr(self.signals, "status"):
             self.signals.status.emit(msg)
 
@@ -460,4 +494,14 @@ class BaseWorker(QRunnable):
         """Emit stopped signal"""
         if self.signals is not None and hasattr(self.signals, "stopped"):
             self.signals.stopped.emit()
+
+    def is_threaded(self) -> bool:
+        """
+        Check if plugin is threaded
+
+        :return: True if threaded
+        """
+        if self.plugin is not None:
+            return self.plugin.is_threaded()
+        return False
             

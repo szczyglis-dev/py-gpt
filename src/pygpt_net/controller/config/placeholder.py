@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygments.styles import get_all_styles
@@ -79,6 +79,8 @@ class Placeholder:
             return self.get_var_types()
         elif id == "agent_modes":
             return self.get_agent_modes()
+        elif id == "agent_provider":
+            return self.get_agent_providers()
         elif id == "syntax_styles":
             return self.get_syntax_styles()
         elif id == "idx":
@@ -98,7 +100,7 @@ class Placeholder:
 
     def get_langchain_providers(self) -> list:
         """
-        Get langchain placeholders list
+        Get Langchain LLM provider placeholders list
 
         :return: placeholders list
         """
@@ -111,13 +113,25 @@ class Placeholder:
 
     def get_llama_index_providers(self) -> list:
         """
-        Get llama placeholders list
+        Get Llama-index LLM provider placeholders list
 
         :return: placeholders list
         """
         ids = self.window.core.llm.get_ids("llama_index")
         data = []
         data.append({'_': '---'})
+        for id in ids:
+            data.append({id: id})
+        return data
+
+    def get_agent_providers(self) -> list:
+        """
+        Get Llama-index agent provider placeholders list
+
+        :return: placeholders list
+        """
+        ids = self.window.core.agents.provider.get_providers()
+        data = []
         for id in ids:
             data.append({id: id})
         return data
@@ -229,7 +243,7 @@ class Placeholder:
 
         :return: Models placeholders list
         """
-        modes = self.window.core.agents.get_allowed_modes()
+        modes = self.window.core.agents.legacy.get_allowed_modes()
         data = []
         for id in modes:
             data.append({id: id})  # TODO: name

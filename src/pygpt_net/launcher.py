@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import sys
@@ -21,6 +21,7 @@ from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.access.shortcuts import GlobalShortcutFilter
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
+from pygpt_net.provider.agents.base import BaseAgent
 from pygpt_net.tools import BaseTool
 from pygpt_net.ui.main import MainWindow
 from pygpt_net.plugin.base import BasePlugin
@@ -221,6 +222,21 @@ class Launcher:
         self.window.add_tool(tool)
         if self.debug:
             print("Loaded tool: {} ({})".format(tool.id, tool.__class__.__name__))
+
+    def add_agent(self, agent: BaseAgent):
+        """
+        Register agent (Llama-index agent)
+
+        :param agent: Agent instance
+        """
+        if not isinstance(agent, BaseAgent):
+            raise TypeError(
+                "Agent must be instance of: "
+                "pygpt_net.provider.agents.base.BaseAgent"
+            )
+        self.window.add_agent(agent)
+        if self.debug:
+            print("Loaded agent: {} ({})".format(agent.id, agent.__class__.__name__))
 
     def run(self):
         """Run app"""

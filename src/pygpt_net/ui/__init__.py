@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import os
+import threading
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase, QIcon
@@ -128,6 +129,10 @@ class UI:
 
         :param text: status text
         """
+        # do not call from not-main threads (prevent race condition and crash)
+        if threading.current_thread() is not threading.main_thread():
+            # print("FAIL-SAFE: Attempt to update status from not-main thread. Aborting...")
+            return
         msg = str(text)
         msg = msg.replace("\n", " ")
         status = msg[:self.STATUS_MAX_CHARS] + '...' if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
@@ -169,6 +174,10 @@ class UI:
 
         :param msg: Message
         """
+        # do not call from not-main threads (prevent race condition and crash)
+        if threading.current_thread() is not threading.main_thread():
+            # print("FAIL-SAFE: Attempt to show message box from not-main thread. Aborting...")
+            return
         msg_box = QMessageBox()
         msg_box.setText(msg)
         msg_box.setStandardButtons(QMessageBox.Ok)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 03:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -399,6 +399,7 @@ class Worker(BaseWorker):
             }
             self.error(e)
             self.log("Error: {}".format(e))
+        print(response)
         return response
 
     def cmd_tree(self, item: dict) -> dict:
@@ -917,6 +918,14 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
+            if "path" not in item["params"]:
+                response = {
+                    "request": request,
+                    "result": "Path not provided",
+                }
+                self.log("Path not provided")
+                return response
+
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Indexing path: {}".format(path)
             self.log(self.msg)
@@ -1042,6 +1051,9 @@ class Worker(BaseWorker):
         :param path: path to prepare
         :return: prepared path
         """
+        if path in [".", "./"]:
+            return self.plugin.window.core.config.get_user_dir('data')
+
         if self.is_absolute_path(path):
             return path
         else:

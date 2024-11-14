@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -66,6 +66,7 @@ class Ctx:
             'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
             'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
             'expert': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
+            'agent_llama': ["agent_llama"],
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False

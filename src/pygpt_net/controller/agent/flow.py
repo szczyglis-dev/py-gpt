@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 17:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -22,7 +22,8 @@ class Flow:
         :param window: Window instance
         """
         self.window = window
-        self.iteration = 0
+        self.iteration = 0  # legacy
+        self.iteration_llama = 0  # llama-index
         self.prev_output = None
         self.is_user = True
         self.stop = False

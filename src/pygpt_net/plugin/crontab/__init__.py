@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -244,6 +244,8 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
+        if self.is_threaded():
+            return
         full_msg = '[CRON] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)

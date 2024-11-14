@@ -727,6 +727,19 @@
         "step": 1,
         "advanced": false
     },
+    "prompt.agent.continue.llama": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.agent.continue.llama",
+        "description": "settings.prompt.agent.continue.llama.desc",
+        "value": "Continue run if current task not finished yet...",
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "prompt.agent.goal": {
         "section": "prompts",
         "type": "textarea",
@@ -1173,6 +1186,33 @@
         "advanced": false,
         "tab": "update"
     },
+    "agent.llama.steps": {
+        "section": "agent",
+        "description": "settings.agent.llama.steps.desc",
+        "type": "int",
+        "slider": true,
+        "label": "settings.agent.llama.steps",
+        "value": 5,
+        "min": 0,
+        "max": 100,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "llama"
+    },
+    "agent.llama.verbose": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.llama.verbose",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "llama"
+    },
     "agent.mode": {
         "section": "agent",
         "type": "combo",
@@ -1185,7 +1225,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "legacy"
     },
     "experts.mode": {
         "section": "agent",
@@ -1199,7 +1240,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "legacy"
     },
     "agent.idx": {
         "section": "agent",
@@ -1213,7 +1255,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "legacy"
     },
     "llama.idx.chat.mode": {
         "section": "llama-index",
@@ -1243,7 +1286,8 @@
         "max": 0,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "updater.check.launch": {
         "section": "updates",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -27,6 +27,7 @@ class Image:
         :param window: Window instance
         """
         self.window = window
+        self.worker = None
 
     def generate(self, context: BridgeContext, extra: dict = None, sync: bool = True):
         """
@@ -51,55 +52,56 @@ class Image:
             prompt_model = self.window.core.models.get(tmp_model)
 
         # worker
-        worker = ImageWorker()
-        worker.window = self.window
-        worker.client = self.window.core.gpt.get_client()
-        worker.ctx = ctx
-        worker.raw = self.window.core.config.get('img_raw')
-        worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
-        worker.model_prompt = prompt_model  # model for generate prompt, not image!
-        worker.input_prompt = prompt
-        worker.system_prompt = self.window.core.prompt.get('img')
-        worker.num = num
-        worker.inline = inline
+        self.worker = ImageWorker()
+        self.worker.window = self.window
+        self.worker.client = self.window.core.gpt.get_client()
+        self.worker.ctx = ctx
+        self.worker.raw = self.window.core.config.get('img_raw')
+        self.worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
+        self.worker.model_prompt = prompt_model  # model for generate prompt, not image!
+        self.worker.input_prompt = prompt
+        self.worker.system_prompt = self.window.core.prompt.get('img')
+        self.worker.num = num
+        self.worker.inline = inline
 
         # config
         if self.window.core.config.has('img_quality'):
-            worker.quality = self.window.core.config.get('img_quality')
+            self.worker.quality = self.window.core.config.get('img_quality')
         if self.window.core.config.has('img_resolution'):
-            worker.resolution = self.window.core.config.get('img_resolution')
+            self.worker.resolution = self.window.core.config.get('img_resolution')
 
         # signals
-        worker.signals.finished.connect(self.window.core.image.handle_finished)
-        worker.signals.finished_inline.connect(self.window.core.image.handle_finished_inline)
-        worker.signals.status.connect(self.window.core.image.handle_status)
-        worker.signals.error.connect(self.window.core.image.handle_error)
+        self.worker.signals.finished.connect(self.window.core.image.handle_finished)
+        self.worker.signals.finished_inline.connect(self.window.core.image.handle_finished_inline)
+        self.worker.signals.status.connect(self.window.core.image.handle_status)
+        self.worker.signals.error.connect(self.window.core.image.handle_error)
 
         # sync
         if sync:
-            worker.run()
+            self.worker.run()
             return True
 
         # check if async allowed
         if not self.window.core.dispatcher.async_allowed(ctx):
-            worker.run()
+            self.worker.run()
             return True
 
         # start
-        self.window.threadpool.start(worker)
+        self.window.threadpool.start(self.worker)
         return True
 
 
 class ImageSignals(QObject):
-    finished = Signal(object, object, object)  # ctx, paths, prompt
-    finished_inline = Signal(object, object, object)  # ctx, paths, prompt
+    finished = Signal(object, list, str)  # ctx, paths, prompt
+    finished_inline = Signal(object, list, str)  # ctx, paths, prompt
     status = Signal(object)  # status message
     error = Signal(object)  # error message
 
 
-class ImageWorker(QRunnable):
+class ImageWorker(QObject, QRunnable):
     def __init__(self, *args, **kwargs):
-        super(ImageWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = ImageSignals()
         self.args = args
         self.kwargs = kwargs

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import re
@@ -276,6 +276,8 @@ class Presets:
         self.window.core.config.set('prompt', preset.prompt)
         self.window.core.config.set('ai_name', preset.ai_name)
         self.window.core.config.set('user_name', preset.user_name)
+        self.window.core.config.set('agent.llama.provider', preset.agent_provider)
+        self.window.core.config.set('agent.llama.idx', preset.idx)
 
     def update_current(self):
         """Update current mode, model and preset"""
@@ -290,6 +292,8 @@ class Presets:
                 self.window.core.config.set('ai_name', preset.ai_name)
                 self.window.core.config.set('prompt', preset.prompt)
                 self.window.core.config.set('temperature', preset.temperature)
+                self.window.core.config.set('agent.llama.provider', preset.agent_provider)
+                self.window.core.config.set('agent.llama.idx', preset.idx)
                 return
 
         self.window.core.config.set('user_name', None)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -56,6 +56,7 @@ class CtxItem:
         self.idx = 0
         self.first = False
         self.live = False
+        self.agent_call = False
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
@@ -129,7 +130,7 @@ class CtxItem:
         """
         return {
             "id": self.id,
-            "meta": self.meta.to_dict() if self.meta else None,
+            "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
             "meta_id": self.meta_id,
             "external_id": self.external_id,
             # "stream": self.stream,  #  <-- do not dump stream response object
@@ -161,6 +162,7 @@ class CtxItem:
             "is_vision": self.is_vision,
             "idx": self.idx,
             "first": self.first,
+            "agent_call": self.agent_call,
             "tool_calls": self.tool_calls,
             "index_meta": self.index_meta,
             "doc_ids": self.doc_ids,
@@ -210,6 +212,7 @@ class CtxItem:
         self.is_vision = data.get("is_vision", False)
         self.idx = data.get("idx", 0)
         self.first = data.get("first", False)
+        self.agent_call = data.get("agent_call", False)
         self.tool_calls = data.get("tool_calls", [])
         self.index_meta = data.get("index_meta", {})
         self.doc_ids = data.get("doc_ids", [])

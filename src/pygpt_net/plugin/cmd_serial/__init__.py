@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -29,6 +29,7 @@ class Plugin(BasePlugin):
             "serial_read",
         ]
         self.use_locale = True
+        self.worker = None
         self.init_options()
 
     def init_options(self):
@@ -180,25 +181,25 @@ class Plugin(BasePlugin):
 
         try:
             # worker
-            worker = Worker()
-            worker.plugin = self
-            worker.cmds = my_commands
-            worker.ctx = ctx
+            self.worker = Worker()
+            self.worker.plugin = self
+            self.worker.cmds = my_commands
+            self.worker.ctx = ctx
 
             # signals (base handlers)
-            worker.signals.finished.connect(self.handle_finished)
-            worker.signals.log.connect(self.handle_log)
-            worker.signals.debug.connect(self.handle_debug)
-            worker.signals.status.connect(self.handle_status)
-            worker.signals.error.connect(self.handle_error)
+            self.worker.signals.finished.connect(self.handle_finished)
+            self.worker.signals.log.connect(self.handle_log)
+            self.worker.signals.debug.connect(self.handle_debug)
+            self.worker.signals.status.connect(self.handle_status)
+            self.worker.signals.error.connect(self.handle_error)
 
             # check if async allowed
             if not self.window.core.dispatcher.async_allowed(ctx):
-                worker.run()
+                self.worker.run()
                 return
 
             # start
-            self.window.threadpool.start(worker)
+            self.window.threadpool.start(self.worker)
 
         except Exception as e:
             self.error(e)
@@ -209,6 +210,8 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
+        if self.is_threaded():
+            return
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)

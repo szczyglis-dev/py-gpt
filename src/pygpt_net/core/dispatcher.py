@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import json
-
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.ctx import CtxItem
 
@@ -136,6 +134,7 @@ class Dispatcher:
         self.nolog_events = ["system.prompt"]
         self.reply_stack = []
         self.reply_ctx = None
+        self.last_result = None
 
     def is_log(self, event: BaseEvent) -> bool:
         """
@@ -152,6 +151,16 @@ class Dispatcher:
         if data is not None and "silent" in data and data["silent"]:
             return False
         return True
+
+    def is_threaded(self) -> bool:
+        """
+        Check if plugin is threaded
+
+        :return: True if threaded
+        """
+        if self.window.core.config.get("mode") == "agent_llama":
+            return True
+        return False
 
     def is_log_display(self) -> bool:
         """
@@ -172,7 +181,7 @@ class Dispatcher:
         :param ctx: context item
         :return: True if async commands are allowed
         """
-        disallowed_modes = ["assistant", "agent", "expert"]
+        disallowed_modes = ["assistant", "agent", "expert", "agent_llama"]
         if ctx.internal:
             return False
         if self.window.core.config.get("mode") in disallowed_modes:
@@ -238,14 +247,26 @@ class Dispatcher:
             except AttributeError:
                 pass
 
-    def reply(self, ctx: CtxItem, flush: bool = False):
+    def get_last_result(self) -> list:
+        """
+        Get last result
+
+        :return: list of results
+        """
+        return self.last_result
+
+    def reply(self, ctx: CtxItem, flush: bool = False) -> list:
         """
         Send reply from plugins to model
 
         :param ctx: context object
         :param flush: True to flush reply stack
+        :return: list of results
         """
         if ctx is not None:
+            self.last_result = ctx.results
+            if ctx.agent_call:
+                return ctx.results # abort if called in agent and return here
             self.window.core.debug.info("Reply...")
             if self.window.core.debug.enabled() and self.is_log_display():
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
@@ -253,6 +274,8 @@ class Dispatcher:
                 self.add_reply(ctx)
             if flush or self.window.core.dispatcher.async_allowed(ctx):
                 self.flush_reply_stack()
+            return ctx.results
+        return []
 
     def add_reply(self, ctx: CtxItem):
         """
@@ -280,7 +303,6 @@ class Dispatcher:
             if self.window.controller.agent.enabled():
                 self.window.controller.agent.add_run()
                 self.window.controller.agent.update()
-                QApplication.processEvents()
 
         # prepare data to send as reply
         data = json.dumps(results)

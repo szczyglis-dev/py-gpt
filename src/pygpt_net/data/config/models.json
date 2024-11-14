@@ -258,6 +258,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -318,6 +319,7 @@
                 "assistant",
                 "langchain",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -362,6 +364,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -423,6 +426,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -484,6 +488,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -545,6 +550,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -606,6 +612,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -668,6 +675,7 @@
                 "llama_index",
                 "vision",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -730,6 +738,7 @@
                 "llama_index",
                 "vision",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -792,6 +801,7 @@
                 "llama_index",
                 "vision",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -854,6 +864,7 @@
                 "llama_index",
                 "vision",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -915,6 +926,7 @@
                 "langchain",
                 "llama_index",
                 "agent",
+                "agent_llama",
                 "expert"
             ],
             "langchain": {
@@ -971,7 +983,10 @@
             "id": "gpt-4-vision-preview",
             "name": "gpt-4-vision-preview",
             "mode": [
-                "vision"
+                "chat",
+                "vision",
+                "agent",
+                "agent_llama"
             ],
             "langchain": {
                 "provider": null,

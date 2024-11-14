@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -203,7 +203,10 @@ class Plugin(BasePlugin):
                         "num": 1,  # force 1 image if dall-e-3 model is used
                         "inline": True, # force inline mode
                     }
-                    self.window.core.gpt.image.generate(bridge_context, extra, sync=False)  # force inline mode, async call
+                    sync = False
+                    if self.window.core.config.get("mode") == "agent_llama":
+                        sync = True
+                    self.window.core.gpt.image.generate(bridge_context, extra, sync)  # force inline mode, async call
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
@@ -214,6 +217,8 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
+        if self.is_threaded():
+            return
         full_msg = '[DALL-E] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)

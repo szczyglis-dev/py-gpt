@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import json
@@ -244,11 +244,17 @@ class Worker(BaseWorker):
         if "args" in item["params"]:
             args = item["params"]["args"]
 
-        url = type
+        url = ""
         if "url" in item["params"]:
             url = item["params"]["url"]  # from default param
         if "url" in args:
             url = args["url"]  # override from args
+
+        if not url:
+            return {
+                "request": request,
+                "result": "No URL provided",
+            }
 
         self.msg = "Indexing URL: '{}'".format(url)
         idx_name = self.plugin.get_option_value("idx")
@@ -288,11 +294,17 @@ class Worker(BaseWorker):
         if "args" in item["params"]:
             args = item["params"]["args"]
 
-        url = type
+        url = ""
         if "url" in item["params"]:
             url = item["params"]["url"]  # from default param
         if "url" in args:
             url = args["url"]  # override from args
+
+        if not url:
+            return {
+                "request": request,
+                "result": "No URL provided",
+            }
 
         if "query" in item["params"] and item["params"]["query"]:
             query = item["params"]["query"]

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
+
+import threading
 
 from pygpt_net.ui.dialog.about import About
 from pygpt_net.ui.dialog.applog import AppLog
@@ -131,6 +133,9 @@ class Dialogs:
 
         :param msg: message to show
         """
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to open dialog from not-main thread. Aborting...")
+            return
         msg = self.window.core.debug.parse_alert(msg)
         self.window.ui.dialog['alert'].message.setPlainText(msg)
         self.window.ui.dialog['alert'].show()
@@ -254,6 +259,9 @@ class Dialogs:
 
         :param id: dialog id
         """
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to close dialog from not-main thread. Aborting...")
+            return
         if id not in self.window.ui.dialog:
             return
         self.window.ui.dialog[id].close()

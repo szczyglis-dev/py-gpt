@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 class Common:
@@ -71,7 +71,7 @@ class Common:
     def toggle_status(self):
         """Toggle agent status"""
         mode = self.window.core.config.get('mode')
-        if mode == 'agent' or self.window.controller.agent.is_inline():
+        if mode in ['agent'] or self.window.controller.agent.is_inline():
             self.show_status()
         else:
             self.hide_status()

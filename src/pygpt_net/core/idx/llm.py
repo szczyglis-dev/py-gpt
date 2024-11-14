@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import os.path
 
 from llama_index.core.llms.llm import BaseLLM
+from llama_index.core.multi_modal_llms import MultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.indices.service_context import ServiceContext
 from llama_index.llms.openai import OpenAI
@@ -38,7 +39,7 @@ class Llm:
         os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
         os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
 
-    def get(self, model: ModelItem = None) -> BaseLLM:
+    def get(self, model: ModelItem = None) -> BaseLLM or MultiModalLLM:
         """
         Get LLM provider
 
@@ -66,6 +67,19 @@ class Llm:
                         sub_mode="",
                     )
                     # get llama LLM instance
+                    """
+                    # TODO: multimodal support
+                    is_multimodal = False
+                    if "vision" in model.mode:
+                        is_multimodal = True
+                        # at first, try to get multimodal instance
+                        llm = self.window.core.llm.llms[provider].llama_multimodal(
+                            window=self.window,
+                            model=model,
+                        )
+                        if llm is not None:
+                            print("Returned multimodal")
+                    """
                     llm = self.window.core.llm.llms[provider].llama(
                         window=self.window,
                         model=model,

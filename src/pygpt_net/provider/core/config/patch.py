@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -1571,6 +1571,22 @@ class Patch:
                 self.window.core.plugins.reset_options("cmd_mouse_control", [
                     "prompt",
                 ])
+                updated = True
+
+            # < 2.4.10
+            if old < parse_version("2.4.10"):
+                print("Migrating config from < 2.4.10...")
+                if 'prompt.agent.continue.llama' not in data:
+                    data["prompt.agent.continue.llama"] = self.window.core.config.get_base('prompt.agent.continue.llama')
+                if 'agent.llama.idx' not in data:
+                    data["agent.llama.idx"] = self.window.core.config.get_base('agent.llama.idx')
+                if 'agent.llama.steps' not in data:
+                    data["agent.llama.steps"] = self.window.core.config.get_base('agent.llama.steps')
+                if 'agent.llama.provider' not in data:
+                    data["agent.llama.provider"] = self.window.core.config.get_base('agent.llama.provider')
+                if 'agent.llama.verbose' not in data:
+                    data["agent.llama.verbose"] = self.window.core.config.get_base('agent.llama.verbose')
+                data["agent.goal.notify"] = False  # disable by default
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -82,10 +82,18 @@ class Mode:
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
         # agent options
-        if mode == "agent":
+        if mode in ["agent"]:
             self.window.ui.nodes['agent.options'].setVisible(True)
         else:
             self.window.ui.nodes['agent.options'].setVisible(False)
+
+        """
+        # agent llama sys prompt
+        if mode in ["agent_llama"]:
+            self.window.ui.nodes['preset.prompt'].setVisible(False)
+        else:
+            self.window.ui.nodes['preset.prompt'].setVisible(True)
+        """
 
         # assistants list
         if mode == "assistant":

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import json
@@ -178,12 +178,15 @@ class JsonFileProvider(BaseProvider):
             'assistant': item.assistant,
             "llama_index": item.llama_index,
             "agent": item.agent,
+            "agent_llama": item.agent_llama,
             "expert": item.expert,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
             'tools': item.tools,
             'experts': item.experts,
+            'idx': item.idx,
+            'agent_provider': item.agent_provider,
             'enabled': item.enabled,
         }
 
@@ -221,6 +224,8 @@ class JsonFileProvider(BaseProvider):
             item.llama_index = data['llama_index']
         if 'agent' in data:
             item.agent = data['agent']
+        if 'agent_llama' in data:
+            item.agent_llama = data['agent_llama']
         if 'expert' in data:
             item.expert = data['expert']
         if 'temperature' in data:
@@ -233,6 +238,10 @@ class JsonFileProvider(BaseProvider):
             item.tools = data['tools']
         if 'experts' in data:
             item.experts = data['experts']
+        if 'idx' in data:
+            item.idx = data['idx']
+        if 'agent_provider' in data:
+            item.agent_provider = data['agent_provider']
         if 'enabled' in data:
             item.enabled = data['enabled']
 

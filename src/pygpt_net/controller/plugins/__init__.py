@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -400,6 +400,8 @@ class Plugins:
         if current == trans('status.cmd.wait'):
             self.window.ui.status("")
 
+        return ctx.results
+
     def apply_cmds_inline(self, ctx: CtxItem, cmds: list):
         """
         Apply inline commands
@@ -434,6 +436,8 @@ class Plugins:
         current = self.window.ui.get_status()
         if current == trans('status.cmd.wait'):
             self.window.ui.status("")
+
+        return ctx.results
 
     def reload(self):
         """Reload plugins"""

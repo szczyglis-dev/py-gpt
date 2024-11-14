@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.03 06:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -278,6 +278,17 @@ class Patch:
                     model = data['bielik-11b-v2.2-instruct:Q4_K_M']
                     if "langchain" not in model.mode:
                         model.mode.append("langchain")
+                updated = True
+
+            # < 2.4.10  <--- add agent_llama mode
+            if old < parse_version("2.4.10"):
+                print("Migrating models from < 2.4.10...")
+                exclude = ["gpt-3.5-turbo-instruct"]
+                for id in data:
+                    model = data[id]
+                    if model.id.startswith("gpt-") and model.id not in exclude:
+                        if "agent_llama" not in model.mode:
+                            model.mode.append("agent_llama")
                 updated = True
 
         # update file

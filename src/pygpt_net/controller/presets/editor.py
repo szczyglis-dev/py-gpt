@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -67,6 +67,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.expert",
             },
+            "agent_llama": {
+                "type": "bool",
+                "label": "preset.agent_llama",
+            },
             "agent": {
                 "type": "bool",
                 "label": "preset.agent",
@@ -99,6 +103,18 @@ class Editor:
                 "label": "preset.prompt",
                 "context_options": ["prompt.template.paste"],
             },
+            "idx": {
+                "type": "combo",
+                "label": "preset.idx",
+                "description": "preset.idx.desc",
+                "use": "idx",
+            },
+            "agent_provider": {
+                "type": "combo",
+                "label": "preset.agent_provider",
+                "description": "preset.agent_provider.desc",
+                "use": "agent_provider",
+            },
             "tool.function": {
                 "type": "dict",
                 "label": "preset.tool.function",
@@ -113,6 +129,10 @@ class Editor:
                     },
                 },
             },
+        }
+        self.hidden_by_mode = {  # hidden fields by mode
+            "chat": ["idx"],
+            "agent_llama": ["temperature"],
         }
         self.id = "preset"
         self.current = None
@@ -134,13 +154,32 @@ class Editor:
         """
         return self.options[id]
 
+    def show_hide_by_mode(self):
+        """Show or hide fields by mode"""
+        # TODO: implement this!
+        return
+        mode = self.window.core.config.get('mode')
+        for key in self.options:
+            if mode in self.hidden_by_mode:
+                if key in self.hidden_by_mode[mode]:
+                    self.window.ui.config[self.id][key].setVisible(False)
+                    label = 'preset.' + key + '.label'
+                    if label in self.window.ui.nodes:
+                        self.window.ui.nodes[label].setVisible(False)
+                else:
+                    self.window.ui.config[self.id][key].setVisible(True)
+                    label = 'preset.' + key + '.label'
+                    if label in self.window.ui.nodes:
+                        self.window.ui.nodes[label].setVisible(True)
+
     def setup(self):
-        """
-        Setup preset editor
-        """
+        """Setup preset editor"""
+        # update after agents register
+        self.window.ui.config[self.id]['agent_provider'].set_keys(
+            self.window.controller.config.placeholder.apply_by_id('agent_provider')
+        )
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
-
         # register functions dictionary
         parent = "preset"
         key = "tool.function"
@@ -153,6 +192,12 @@ class Editor:
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
         Hook: on settings update in real-time (prompt)
+
+        :param key: setting key
+        :param value: setting value
+        :param caller: caller id
+        :param args: additional arguments
+        :param kwargs: additional keyword arguments
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
@@ -161,7 +206,6 @@ class Editor:
                 self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
-
 
     def edit(self, idx: int = None):
         """
@@ -224,6 +268,8 @@ class Editor:
                 data.expert = True
             elif mode == "agent":
                 data.agent = True
+            elif mode == "agent_llama":
+                data.agent_llama = True
 
         options = {}
         data_dict = data.to_dict()
@@ -260,6 +306,7 @@ class Editor:
 
         # set focus to name field
         self.window.ui.config[self.id]['name'].setFocus()
+        self.show_hide_by_mode()
 
     def save(self, force: bool = False, close: bool = True):
         """
@@ -274,7 +321,7 @@ class Editor:
             option=self.options["filename"],
         )
         mode = self.window.core.config.get("mode")
-        modes = ["chat", "completion", "img", "vision", "langchain", "llama_index", "expert"]
+        modes = ["chat", "completion", "img", "vision", "langchain", "llama_index", "expert", "agent_llama"]
 
         # disallow editing default preset
         if id == "current." + mode:

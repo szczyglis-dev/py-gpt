@@ -21,7 +21,7 @@ all required dependencies. Just download the archive from the download page and
 extract it. Then run the application by running the ``pygpt`` binary file in the
 root directory.
 
-The Linux version requires ``GLIBC`` >= ``2.35``.
+Linux version requires ``GLIBC`` >= ``2.35``.
 
 Snap Store
 -----------

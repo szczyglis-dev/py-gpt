@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import json
@@ -28,12 +28,15 @@ class PresetItem:
         self.assistant = False
         self.llama_index = False
         self.agent = False
+        self.agent_llama = False
         self.expert = False
         self.temperature = 1.0
         self.filename = None
         self.model = None
         self.version = None
         self.experts = []  # agent mode
+        self.idx = None
+        self.agent_provider = None
         self.enabled = True
         self.tools = {
             "function": [],
@@ -57,12 +60,15 @@ class PresetItem:
             "assistant": self.assistant,
             "llama_index": self.llama_index,
             "agent": self.agent,
+            "agent_llama": self.agent_llama,
             "expert": self.expert,
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
             "tool.function": self.tools["function"],
             "experts": self.experts,
+            "idx": self.idx,
+            "agent_provider": self.agent_provider,
             "enabled": self.enabled,
         }
 
@@ -93,6 +99,8 @@ class PresetItem:
             self.llama_index = data["llama_index"]
         if "agent" in data:
             self.agent = data["agent"]
+        if "agent_llama" in data:
+            self.agent_llama = data["agent_llama"]
         if "expert" in data:
             self.expert = data["expert"]
         if "temperature" in data:
@@ -105,6 +113,10 @@ class PresetItem:
             self.tools["function"] = data["tool.function"]
         if "experts" in data:
             self.experts = data["experts"]
+        if "idx" in data:
+            self.idx = data["idx"]
+        if "agent_provider" in data:
+            self.agent_provider = data["agent_provider"]
         if "enabled" in data:
             self.enabled = data["enabled"]
         return self

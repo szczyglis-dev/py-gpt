@@ -6,26 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
-from pygpt_net.controller.chat.command import Command
-from pygpt_net.controller.chat.common import Common
-from pygpt_net.controller.chat.files import Files
-from pygpt_net.controller.chat.image import Image
-from pygpt_net.controller.chat.input import Input
-from pygpt_net.controller.chat.output import Output
-from pygpt_net.controller.chat.render import Render
-from pygpt_net.controller.chat.reply import Reply
-from pygpt_net.controller.chat.stream import Stream
-from pygpt_net.controller.chat.text import Text
-from pygpt_net.controller.chat.vision import Vision
+from pygpt_net.core.access.events import AppEvent
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
+
+from .command import Command
+from .common import Common
+from .files import Files
+from .image import Image
+from .input import Input
+from .output import Output
+from .render import Render
+from .reply import Reply
+from .response import Response
+from .stream import Stream
+from .text import Text
+from .vision import Vision
 
 
 class Chat:
     def __init__(self, window=None):
         """
-        Chat engine controller
+        Chat controller
 
         :param window: Window instance
         """
@@ -38,6 +43,7 @@ class Chat:
         self.output = Output(window)
         self.render = Render(window)
         self.reply = Reply(window)
+        self.response = Response(window)
         self.stream = Stream(window)
         self.text = Text(window)
         self.vision = Vision(window)
@@ -54,3 +60,40 @@ class Chat:
         """Reload"""
         self.common.setup()
         self.render.reload()
+
+    def handle_error(self, err: any):
+        """
+        Handle error
+
+        :param err: Exception
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert(err)
+        self.window.ui.status(trans('status.error'))
+        self.window.controller.chat.common.unlock_input()  # always unlock input on error
+        self.window.stateChanged.emit(self.window.STATE_ERROR)
+        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+
+        # stop agent on error
+        if self.window.controller.agent.enabled():
+            self.window.controller.agent.flow.on_stop()
+
+    def log_ctx(self, ctx: CtxItem, mode: str):
+        """
+        Log context item
+
+        :param ctx: CtxItem
+        :param mode: mode (input/output)
+        """
+        if self.window.core.config.get("log.ctx"):
+            self.log("Context: {}: {}".format(mode.upper(), ctx.dump()))  # log
+        else:
+            self.log("Context: {}.".format(mode.upper()))
+
+    def log(self, data: any):
+        """
+        Log data to debug
+
+        :param data: Data to log
+        """
+        self.window.core.debug.info(data)

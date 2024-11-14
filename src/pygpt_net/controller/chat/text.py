@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
-
-from PySide6.QtCore import Slot
 
 from pygpt_net.core.access.events import AppEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -66,6 +64,8 @@ class Text:
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
         stream_mode = self.window.core.config.get('stream')
+        agent_provider = self.window.core.config.get('agent.llama.provider')
+        agent_idx = self.window.core.config.get('agent.llama.idx')
         sys_prompt = self.window.core.config.get('prompt')
         sys_prompt_raw = sys_prompt  # store raw prompt (without addons)
         max_tokens = self.window.core.config.get('max_output_tokens')  # max output tokens
@@ -74,7 +74,7 @@ class Text:
         tools_outputs = []  # tools outputs (assistant only)
 
         # o1 models: disable stream mode
-        if model.startswith("o1"):
+        if model.startswith("o1") or mode == "agent_llama":
             stream_mode = False
 
         # create ctx item
@@ -112,7 +112,7 @@ class Text:
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "input")        
 
-        self.log_ctx(ctx, "input")  # log
+        self.window.controller.chat.log_ctx(ctx, "input")  # log
 
         # agent mode: before context
         if mode == 'agent':
@@ -129,7 +129,7 @@ class Text:
         # on pre prompt event
         event = Event(Event.PRE_PROMPT, {
             'mode': mode,
-            'value': sys_prompt,
+            'value': str(sys_prompt),
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
@@ -143,14 +143,13 @@ class Text:
             internal,
         )
 
-        self.log("Appending input to chat window...")
+        self.window.controller.chat.log("Appending input to chat window...")
 
         # render: begin
         self.window.controller.chat.render.begin(ctx.meta, ctx, stream=stream_mode)
 
         # append text from input to chat window
         self.window.controller.chat.render.append_input(ctx.meta, ctx)
-        self.window.ui.nodes['output'].update()
 
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
@@ -170,7 +169,7 @@ class Text:
             # prepare tool outputs for assistant
             tools_outputs = self.window.controller.assistant.threads.handle_tool_outputs(ctx)
             if len(tools_outputs) > 0:
-                self.log("Tool outputs sending...")
+                self.window.controller.chat.log("Tool outputs sending...")
 
         # make API call
         try:
@@ -178,7 +177,7 @@ class Text:
             files = self.window.core.attachments.get_all(mode)
             num_files = len(files)
             if num_files > 0:
-                self.log("Attachments ({}): {}".format(mode, num_files))
+                self.window.controller.chat.log("Attachments ({}): {}".format(mode, num_files))
 
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
             bridge_context = BridgeContext(
@@ -206,6 +205,10 @@ class Text:
                 'internal': internal,
                 'has_attachments': num_files > 0,
             }
+            if mode == "agent_llama":
+                extra['agent_idx'] = agent_idx
+                extra['agent_provider'] = agent_provider
+
             self.window.controller.chat.common.lock_input()  # lock input
             self.window.core.bridge.call(
                 context=bridge_context,
@@ -213,98 +216,8 @@ class Text:
             )  # async handled via handle_bridge_*
 
         except Exception as e:
-            self.log("Bridge call ERROR: {}".format(e))  # log
-            self.handle_error(e)
+            self.window.controller.chat.log("Bridge call ERROR: {}".format(e))  # log
+            self.window.controller.chat.handle_error(e)
             print("Error when calling bridge: " + str(e))
 
         return ctx
-
-    @Slot(bool, object, dict)
-    def handle_bridge_success(self, status: bool, bridge_context: BridgeContext, extra: dict):
-        """
-        Handle Bridge success
-
-        :param status: Result status
-        :param bridge_context: BridgeContext
-        :param extra: Extra data
-        """
-        ctx = bridge_context.ctx
-        if not status:
-            self.log("Bridge response: ERROR")
-            self.window.ui.dialogs.alert(trans('status.error'))
-            self.window.ui.status(trans('status.error'))
-        else:
-            self.log_ctx(ctx, "output")  # log
-
-        ctx.current = False  # reset current state
-        stream = bridge_context.stream
-        mode = extra.get('mode', 'chat')
-        reply = extra.get('reply', False)
-        internal = extra.get('internal', False)
-        has_attachments = extra.get('has_attachments', False)
-        self.window.core.ctx.update_item(ctx)
-
-        try:
-            if mode != "assistant":
-                ctx.from_previous()  # append previous result if exists
-                self.window.controller.chat.output.handle(
-                    ctx,
-                    mode,
-                    stream,
-                )
-        except Exception as e:
-            self.log("Output ERROR: {}".format(e))  # log
-            self.handle_error(e)
-            print("Error in sending text: " + str(e))
-
-        # post-handle, execute cmd, etc.
-        self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
-        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
-
-    @Slot(object)
-    def handle_bridge_failed(self, err: any):
-        """
-        Handle Bridge failed
-
-        :param err: Exception
-        """
-        self.log("Output ERROR: {}".format(err))  # log
-        self.handle_error(err)
-        print("Error in sending text: " + str(err))
-
-    def handle_error(self, e: any):
-        """
-        Handle error
-
-        :param e: Exception
-        """
-        self.window.core.debug.log(e)
-        self.window.ui.dialogs.alert(e)
-        self.window.ui.status(trans('status.error'))
-        self.window.controller.chat.common.unlock_input()  # always unlock input on error
-        self.window.stateChanged.emit(self.window.STATE_ERROR)
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
-
-        # stop agent on error
-        if self.window.controller.agent.enabled():
-            self.window.controller.agent.flow.on_stop()
-
-    def log_ctx(self, ctx: CtxItem, mode: str):
-        """
-        Log context item
-
-        :param ctx: CtxItem
-        :param mode: mode (input/output)
-        """
-        if self.window.core.config.get("log.ctx"):
-            self.log("Context: {}: {}".format(mode.upper(), ctx.dump()))  # log
-        else:
-            self.log("Context: {}.".format(mode.upper()))
-
-    def log(self, data: any):
-        """
-        Log data to debug
-
-        :param data: Data to log
-        """
-        self.window.core.debug.info(data)

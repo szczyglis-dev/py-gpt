@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -35,9 +35,11 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
         self.window.ui.nodes['preset.btn.current'].clicked.connect(
-            lambda: self.window.controller.presets.editor.from_current())
+            lambda: self.window.controller.presets.editor.from_current()
+        )
         self.window.ui.nodes['preset.btn.save'].clicked.connect(
-            lambda: self.window.controller.presets.editor.save())
+            lambda: self.window.controller.presets.editor.save()
+        )
 
         self.window.ui.nodes['preset.btn.current'].setAutoDefault(False)
         self.window.ui.nodes['preset.btn.save'].setAutoDefault(True)
@@ -65,7 +67,7 @@ class Preset(BaseConfigDialog):
         # apply widgets to layouts
         options = {}
         for key in widgets:
-            if fields[key]["type"] == 'text' or fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
+            if fields[key]["type"] in ['text', 'int', 'float']:
                 options[key] = self.add_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'textarea':
                 options[key] = self.add_row_option(widgets[key], fields[key])
@@ -84,10 +86,12 @@ class Preset(BaseConfigDialog):
         ignore_keys = [
             "chat",
             "completion",
-            "img", "vision",
+            "img",
+            "vision",
             "llama_index",
             "langchain",
             "agent",
+            "agent_llama",
             "expert",
             "prompt",
             "tool.function",
@@ -100,6 +104,7 @@ class Preset(BaseConfigDialog):
         options["langchain"].setContentsMargins(0, 0, 0, 0)
         options["llama_index"].setContentsMargins(0, 0, 0, 0)
         options["agent"].setContentsMargins(0, 0, 0, 0)
+        options["agent_llama"].setContentsMargins(0, 0, 0, 0)
         options["expert"].setContentsMargins(0, 0, 0, 0)
         options["prompt"].setContentsMargins(0, 0, 0, 0)
         options["tool.function"].setContentsMargins(0, 0, 0, 0)
@@ -112,6 +117,7 @@ class Preset(BaseConfigDialog):
         # rows_mode.addLayout(options["assistant"])
         rows_mode.addLayout(options["langchain"])
         rows_mode.addLayout(options["llama_index"])
+        rows_mode.addLayout(options["agent_llama"])
         rows_mode.addLayout(options["agent"])
         rows_mode.addLayout(options["expert"])
 

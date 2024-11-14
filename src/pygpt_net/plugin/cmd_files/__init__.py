@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.25 03:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
+import os
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -48,6 +49,7 @@ class Plugin(BasePlugin):
             "file_index",
         ]
         self.use_locale = True
+        self.worker = None
         self.init_options()
 
     def init_options(self):
@@ -551,11 +553,14 @@ class Plugin(BasePlugin):
         :param use_loaders: use Llama-index loader to read file
         :return: text content
         """
+        # use_loaders = False
         if use_loaders:
             return str(self.window.core.idx.indexing.read_text_content(path))
         else:
-            with open(path, 'r', encoding="utf-8") as file:
-                data = file.read()
+            data = ""
+            if os.path.isfile(path):
+                with open(path, 'r', encoding="utf-8") as file:
+                    data = file.read()
             return data
 
     def log(self, msg: str):
@@ -564,6 +569,8 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
+        if self.is_threaded():
+            return
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)

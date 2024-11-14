@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -30,6 +30,7 @@ class Input:
             "langchain",
             "llama_index",
             "agent",
+            "agent_llama",
             "expert",
         ]
         self.no_ctx_idx_modes = [
@@ -79,9 +80,11 @@ class Input:
             self.window.controller.chat.render.clear_input()
             return
 
-        # agent mode
+        # agent modes
         if mode == 'agent':
-            self.window.controller.agent.flow.on_user_send(text)
+            self.window.controller.agent.flow.on_user_send(text)  # begin legacy agent flow
+        elif mode == "agent_llama":
+            self.window.controller.agent.llama.flow_begin()  # begin llama agent flow
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {

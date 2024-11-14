@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import time
@@ -100,6 +100,7 @@ class Bridge:
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
         self.sync_modes = ["assistant"]
+        self.worker = None
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
@@ -133,7 +134,7 @@ class Bridge:
             is_virtual = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if base_mode == "agent":
-                sub_mode = self.window.core.agents.get_mode()
+                sub_mode = self.window.core.agents.legacy.get_mode()
             elif base_mode == "expert":
                 sub_mode = self.window.core.experts.get_mode()
             if sub_mode is not None and sub_mode != "_":
@@ -149,7 +150,7 @@ class Bridge:
 
         if is_virtual:
             if mode == "llama_index":  # after switch
-                idx = self.window.core.agents.get_idx()  # get index, idx is common for agent and expert
+                idx = self.window.core.agents.legacy.get_idx()  # get index, idx is common for agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
                     self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
@@ -175,23 +176,24 @@ class Bridge:
         self.last_context = context  # store last context for call (debug)
 
         # async worker
-        worker = BridgeWorker()
-        worker.window = self.window
-        worker.context = context
-        worker.extra = extra
-        worker.mode = mode
+        self.worker = BridgeWorker()
+        self.worker.window = self.window
+        self.worker.context = context
+        self.worker.extra = extra
+        self.worker.mode = mode
 
-        # connect signals
-        worker.signals.success.connect(self.window.controller.chat.text.handle_bridge_success)
-        worker.signals.error.connect(self.window.controller.chat.text.handle_bridge_failed)
+        # response signals
+        self.worker.signals.on_step.connect(self.window.controller.chat.response.handle_append)
+        self.worker.signals.success.connect(self.window.controller.chat.response.handle_success)
+        self.worker.signals.error.connect(self.window.controller.chat.response.handle_failed)
 
         # some modes must be called synchronously
         if mode in self.sync_modes:
-            worker.run()
+            self.worker.run()
             return True
 
         # async call
-        self.window.threadpool.start(worker)
+        self.window.threadpool.start(self.worker)
         return True
 
     def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
@@ -272,14 +274,17 @@ class Bridge:
 
 class BridgeSignals(QObject):
     """Bridge signals"""
+    on_step = Signal(object)  # CtxItem
+    on_cmd = Signal(str, object, object)  # plugin_name, CtxItem, request params
     success = Signal(bool, object, dict)  # status, BridgeContext, extra
     error = Signal(object)  # exception
 
 
-class BridgeWorker(QRunnable):
+class BridgeWorker(QObject, QRunnable):
     """Bridge worker"""
     def __init__(self, *args, **kwargs):
-        super(BridgeWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = BridgeSignals()
         self.args = args
         self.kwargs = kwargs
@@ -300,21 +305,32 @@ class BridgeWorker(QRunnable):
                     extra=self.extra,
                 )
 
-            # Llama-index
+            # Llama-index: chat with files
             elif self.mode == "llama_index":
                 result = self.window.core.idx.chat.call(
                     context=self.context,
                     extra=self.extra,
                 )
 
-            # OpenAI API: chat, completion, vision, image, assistants, etc.
+            # Llama-index: agents
+            elif self.mode == "agent_llama":
+                result = self.window.core.agents.runner.call(
+                    context=self.context,
+                    extra=self.extra,
+                    signals=self.signals,
+                )
+                return result  # don't emit any signals (handled in agent runner, step by step)
+
+            # API OpenAI: chat, completion, vision, image, assistants
             else:
                 result = self.window.core.gpt.call(
                     context=self.context,
-                    extra=self.extra,
+                    extra=self.extra
                 )
         except Exception as e:
-            self.signals.error.emit(e)
+            if self.signals is not None:
+                self.signals.error.emit(e)
 
-        # back to main thread
-        self.signals.success.emit(result, self.context, self.extra)
+        # send success to main thread
+        if self.signals is not None:
+            self.signals.success.emit(result, self.context, self.extra)

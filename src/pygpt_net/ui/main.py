@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import os
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_plugin(self, plugin):
         """
-        Add plugin to app
+        Add a plugin to the app
 
         :param plugin: plugin instance
         """
@@ -127,7 +127,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_llm(self, llm):
         """
-        Add Langchain LLM wrapper to app
+        Add a Langchain LLM wrapper to the app
 
         :param llm: LLM wrapper instance
         """
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_vector_store(self, store):
         """
-        Add vector store provider to app
+        Add a vector store provider to the app
 
         :param store: Vector store provider instance
         """
@@ -143,15 +143,23 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_loader(self, loader):
         """
-        Add data loader to app
+        Add a data loader to the app
 
         :param loader: data loader instance
         """
         self.core.idx.indexing.register_loader(loader)
 
+    def add_agent(self, agent):
+        """
+        Add an agent to the app
+
+        :param agent: agent instance
+        """
+        self.core.agents.provider.register(agent.id, agent)
+
     def add_audio_input(self, provider):
         """
-        Add audio input provider to app
+        Add an audio input provider to the app
 
         :param provider: audio input provider instance
         """
@@ -159,7 +167,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_audio_output(self, provider):
         """
-        Add audio output provider to app
+        Add an audio output provider to the app
 
         :param provider: audio output provider instance
         """
@@ -167,7 +175,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_web(self, provider):
         """
-        Add web provider to app
+        Add a web provider to the app
 
         :param provider: web provider instance
         """
@@ -175,7 +183,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_tool(self, tool):
         """
-        Add tool to app
+        Add a tool to the app
 
         :param tool: tool instance
         """

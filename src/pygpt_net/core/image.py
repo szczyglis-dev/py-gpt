@@ -6,24 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import os
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QObject
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class Image:
+class Image(QObject):
     def __init__(self, window=None):
         """
         Image generation core
 
         :param window: Window instance
         """
+        super().__init__()
         self.window = window
 
     def install(self):
@@ -32,7 +33,7 @@ class Image:
         if not os.path.exists(img_dir):
             os.makedirs(img_dir, exist_ok=True)
 
-    @Slot(str, object)
+    @Slot(object, list, str)
     def handle_finished(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle finished image generation
@@ -43,7 +44,7 @@ class Image:
         """
         self.window.controller.chat.image.handle_response(ctx, paths, prompt)
 
-    @Slot(str, object)
+    @Slot(object, list, str)
     def handle_finished_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle finished image generation

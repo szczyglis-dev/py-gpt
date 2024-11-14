@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 10:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import os
 
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
@@ -107,6 +108,17 @@ class BaseLLM:
         :param model: model instance
         :param stream: stream mode
         :return: provider instance
+        """
+        pass
+
+    def llama_multimodal(self, window, model: ModelItem, stream: bool = False) -> LlamaMultiModalLLM:
+        """
+        Return multimodal LLM provider instance for llama
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LLM provider instance
         """
         pass
 

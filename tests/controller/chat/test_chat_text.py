@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 12:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -124,10 +124,3 @@ def test_send_assistant(mock_window):
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
         mock_window.core.bridge.call.assert_called_once()  # should call bridge
-
-
-def test_log(mock_window):
-    """Test log"""
-    text = Text(mock_window)
-    text.log('msg')
-    mock_window.core.debug.info.assert_called_once_with('msg')

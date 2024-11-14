@@ -499,10 +499,37 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 * ``num_tweets`` - int, default: `100`
 
 
-Agent (autonomous)
+Agent (Llama-index) 
 -------------------
 
-This mode is experimental.
+**Currently in beta version** -- introduced in ``2.4.10`` (2024-11-14)
+
+Mode that allows the use of agents offered by ``Llama-index``.
+
+Includes built-in agents:
+
+* OpenAI
+* ReAct
+* Structured Planner (sub-tasks)
+
+In the future, the list of built-in agents will be expanded.
+
+You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
+
+At the moment, only OpenAI models are available in this mode - support for more models coming soon!
+
+**Tools / Plugins**  
+In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
+
+**RAG / Using indexes**  
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
+
+Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
+
+Agent (legacy, autonomous)
+--------------------------
+
+This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: ``Agent (Llama-index)``.
 
 **WARNING: Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
 

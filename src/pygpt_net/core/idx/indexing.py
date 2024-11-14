@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 04:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -260,15 +260,17 @@ class Indexing:
             return False
         return True
 
-    def get_documents(self, path: str, force: bool = False) -> list[Document]:
+    def get_documents(self, path: str, force: bool = False, silent: bool = False) -> list[Document]:
         """
         Get documents from path
 
         :param path: path to data
         :param force: force reading
+        :param silent: disable logging
         :return: list of documents
         """
-        self.window.core.idx.log("Reading documents from path: {}".format(path))
+        if not silent:
+            self.window.core.idx.log("Reading documents from path: {}".format(path))
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
@@ -282,20 +284,24 @@ class Indexing:
 
             # check if not excluded extension
             if self.is_excluded(ext) and not force:
-                self.window.core.idx.log("Ignoring excluded extension: {}".format(ext))
+                if not silent:
+                    self.window.core.idx.log("Ignoring excluded extension: {}".format(ext))
                 return []
 
             # check if not excluded path
             if self.is_excluded_path(path) and not force:
-                self.window.core.idx.log("Ignoring excluded path: {}".format(path))
+                if not silent:
+                    self.window.core.idx.log("Ignoring excluded path: {}".format(path))
                 return []
 
             if ext in self.loaders["file"]:
-                self.window.core.idx.log("Using loader for: {}".format(ext))
+                if not silent:
+                    self.window.core.idx.log("Using loader for: {}".format(ext))
                 reader = self.loaders["file"][ext]
                 documents = reader.load_data(file=Path(path))
             else:
-                self.window.core.idx.log("Using default SimpleDirectoryReader for: {}".format(ext))
+                if not silent:
+                    self.window.core.idx.log("Using default SimpleDirectoryReader for: {}".format(ext))
                 reader = SimpleDirectoryReader(input_files=[path])
                 documents = reader.load_data()
 
@@ -310,7 +316,7 @@ class Indexing:
         :param path: path to file
         :return: file content
         """
-        docs = self.get_documents(path, force=True)
+        docs = self.get_documents(path, force=True, silent=True)
         data = []
         for doc in docs:
             data.append(doc.text)

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 19:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from .common import Common
 from .experts import Experts
+from .llama import Llama
 from .flow import Flow
 
 
@@ -24,6 +25,7 @@ class Agent:
         self.window = window
         self.common = Common(window)
         self.experts = Experts(window)
+        self.llama = Llama(window)
         self.flow = Flow(window)
         self.options = {
             "agent.iterations": {
@@ -52,7 +54,7 @@ class Agent:
         mode = self.window.core.config.get('mode')
 
         # get iterations from plugin or from agent mode
-        if mode == "agent":
+        if mode in ["agent", "agent_llama"]:
             iterations = int(self.window.core.config.get("agent.iterations"))
         elif self.is_inline():
             if self.window.controller.plugins.is_enabled("agent"):

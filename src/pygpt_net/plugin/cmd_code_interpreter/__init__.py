@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -41,8 +41,9 @@ class Plugin(BasePlugin):
             "get_html_output",
         ]
         self.use_locale = True
-        self.init_options()
+        self.worker = None
         self.runner = Runner(self)
+        self.init_options()
 
     def init_options(self):
         """Initialize options"""
@@ -293,31 +294,31 @@ class Plugin(BasePlugin):
 
         try:
             # worker
-            worker = Worker()
-            worker.plugin = self
-            worker.cmds = my_commands
-            worker.ctx = ctx
+            self.worker = Worker()
+            self.worker.plugin = self
+            self.worker.cmds = my_commands
+            self.worker.ctx = ctx
 
             # signals (base handlers)
-            worker.signals.finished.connect(self.handle_finished)
-            worker.signals.log.connect(self.handle_log)
-            worker.signals.debug.connect(self.handle_debug)
-            worker.signals.status.connect(self.handle_status)
-            worker.signals.error.connect(self.handle_error)
-            worker.signals.output.connect(self.handle_interpreter_output)
-            worker.signals.clear.connect(self.handle_interpreter_clear)
-            worker.signals.html_output.connect(self.handle_html_output)
+            self.worker.signals.finished.connect(self.handle_finished)
+            self.worker.signals.log.connect(self.handle_log)
+            self.worker.signals.debug.connect(self.handle_debug)
+            self.worker.signals.status.connect(self.handle_status)
+            self.worker.signals.error.connect(self.handle_error)
+            self.worker.signals.output.connect(self.handle_interpreter_output)
+            self.worker.signals.clear.connect(self.handle_interpreter_clear)
+            self.worker.signals.html_output.connect(self.handle_html_output)
 
             # connect signals
-            self.runner.signals = worker.signals
+            self.runner.signals = self.worker.signals
 
             # check if async allowed
             if not self.window.core.dispatcher.async_allowed(ctx):
-                worker.run()
+                self.worker.run()
                 return
 
             # start
-            self.window.threadpool.start(worker)
+            self.window.threadpool.start(self.worker)
 
         except Exception as e:
             self.error(e)
@@ -328,6 +329,8 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
+        if self.is_threaded():
+            return
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)

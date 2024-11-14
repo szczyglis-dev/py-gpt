@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -31,6 +31,11 @@ from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.agent import Plugin as AgentPlugin
+
+# agents (Llama-index)
+from pygpt_net.provider.agents.openai import OpenAIAgent
+from pygpt_net.provider.agents.planner import PlannerAgent
+from pygpt_net.provider.agents.react import ReactAgent
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -152,6 +157,10 @@ def run(**kwargs):
 
     - Pass a list with the web provider instances as the 'web' keyword argument.
 
+    To register a custom agent:
+
+    - Pass a list with the agent instances as the 'agents' keyword argument.
+
     To register a custom tool:
 
     - Pass a list with the tool instances as the 'tools' keyword argument.
@@ -194,6 +203,9 @@ def run(**kwargs):
         web = [
             CustomWebSearch(),
         ]
+        agents = [
+            CustomAgent(),
+        ]
         tools = [
             CustomTool(),
         ]
@@ -206,6 +218,7 @@ def run(**kwargs):
             audio_input=audio_input,
             audio_output=audio_output,
             web=web,
+            agents=agents,
             tools=tools,
         )
 
@@ -336,6 +349,17 @@ def run(**kwargs):
     if isinstance(vector_stores, list):
         for store in vector_stores:
             launcher.add_vector_store(store)
+
+    # register base llama-index agents
+    launcher.add_agent(OpenAIAgent())
+    launcher.add_agent(PlannerAgent())
+    launcher.add_agent(ReactAgent())
+
+    # register custom agents
+    agents = kwargs.get('agents', None)
+    if isinstance(agents, list):
+        for agent in agents:
+            launcher.add_agent(agent)
 
     # register base tools
     launcher.add_tool(IndexerTool())

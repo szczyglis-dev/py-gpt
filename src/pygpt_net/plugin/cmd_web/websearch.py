@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import re
@@ -412,3 +412,15 @@ class WebSearch:
         """
         if self.signals is not None:
             self.signals.log.emit(msg)
+
+    def is_threaded(self) -> bool:
+        """
+        Check if plugin is threaded
+
+        :return: True if threaded
+        """
+        if (self.plugin is not None
+                and self.plugin.window is not None
+                and self.plugin.window.core.config.get("mode") == "agent_llama"):
+            return True
+        return False

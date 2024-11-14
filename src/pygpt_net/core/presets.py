@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 22:00:00                  #
+# Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -58,6 +58,7 @@ class Presets:
         curr_assistant = self.build()
         curr_llama = self.build()
         curr_agent = self.build()
+        curr_agent_llama = self.build()
         curr_expert = self.build()
 
         # prepare ids
@@ -69,6 +70,7 @@ class Presets:
         id_assistant = 'current.assistant'
         id_llama = 'current.llama_index'
         id_agent = 'current.agent'
+        id_agent_llama = 'current.agent_llama'
         id_expert = 'current.expert'
 
         # set default initial prompt for chat mode
@@ -91,6 +93,8 @@ class Presets:
             curr_llama = self.items[id_llama]
         if id_agent in self.items:
             curr_agent = self.items[id_agent]
+        if id_agent_llama in self.items:
+            curr_agent_llama = self.items[id_agent_llama]
         if id_expert in self.items:
             curr_expert = self.items[id_expert]
 
@@ -103,6 +107,7 @@ class Presets:
         curr_assistant.assistant = True
         curr_llama.llama_index = True
         curr_agent.agent = True
+        curr_agent_llama.agent_llama = True
         curr_expert.expert = True
 
         # always apply default name
@@ -114,6 +119,7 @@ class Presets:
         curr_assistant.name = '*'
         curr_llama.name = '*'
         curr_agent.name = '*'
+        curr_agent_llama.name = '*'
         curr_expert.name = '*'
 
         # append at first position
@@ -126,6 +132,7 @@ class Presets:
             id_assistant: curr_assistant,
             id_llama: curr_llama,
             id_agent: curr_agent,
+            id_agent_llama: curr_agent_llama,
             id_expert: curr_expert,
             **self.items
         }
@@ -194,6 +201,8 @@ class Presets:
             return 'llama_index'
         if preset.agent:
             return 'agent'
+        if preset.agent_llama:
+            return 'agent_llama'
         if preset.expert:
             return 'expert'
         return None
@@ -264,6 +273,7 @@ class Presets:
                     or (mode == 'assistant' and self.items[id].assistant) \
                     or (mode == 'llama_index' and self.items[id].llama_index) \
                     or (mode == 'agent' and self.items[id].agent) \
+                    or (mode == 'agent_llama' and self.items[id].agent_llama) \
                     or (mode == 'expert' and self.items[id].expert):
                 presets[id] = self.items[id]
         return presets
