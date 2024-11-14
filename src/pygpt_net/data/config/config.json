@@ -50,7 +50,7 @@
   "agent.idx": "base",
   "agent.iterations": 3,
   "agent.llama.idx": "base",
-  "agent.llama.steps": 5,
+  "agent.llama.steps": 10,
   "agent.llama.provider": "openai",
   "agent.llama.verbose": false,
   "agent.mode": "chat",
