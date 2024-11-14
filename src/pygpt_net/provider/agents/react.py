@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from llama_index.core.agent import ReActAgent as Agent
@@ -20,6 +20,7 @@ class ReactAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(ReactAgent, self).__init__(*args, **kwargs)
         self.id = "react"
+        self.mode = "step"  # step|plan
 
     def get_agent(self, window, kwargs: dict):
         """
@@ -33,7 +34,7 @@ class ReactAgent(BaseAgent):
         verbose = kwargs.get("verbose", False)
         llm = kwargs.get("llm", None)
         chat_history = kwargs.get("chat_history", [])
-        max_iterations = kwargs.get("max_iterations", 5)
+        max_iterations = kwargs.get("max_iterations", 10)
 
         """
         # TODO: multimodal support

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from llama_index.core.agent import (
@@ -21,6 +21,7 @@ class PlannerAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(PlannerAgent, self).__init__(*args, **kwargs)
         self.id = "planner"
+        self.mode = "plan"  # step|plan
 
     def get_agent(self, window, kwargs: dict):
         """
@@ -34,7 +35,7 @@ class PlannerAgent(BaseAgent):
         verbose = kwargs.get("verbose", False)
         llm = kwargs.get("llm", None)
         chat_history = kwargs.get("chat_history", [])
-        max_iterations = kwargs.get("max_iterations", 5)
+        max_iterations = kwargs.get("max_iterations", 10)
         worker = FunctionCallingAgentWorker.from_tools(
             tools=tools,
             llm=llm,

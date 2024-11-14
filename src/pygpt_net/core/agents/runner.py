@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 05:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext, BridgeSignals
@@ -22,7 +22,7 @@ class Runner:
         """
         self.window = window
         self.signals = None  # BridgeSignals
-        self.error = None
+        self.error = None  # last exception
 
     def call(
             self,
@@ -38,19 +38,57 @@ class Runner:
         :param signals: BridgeSignals
         :return: True if success
         """
-        verbose = self.window.core.config.get("agent.llama.verbose", False)
         id = extra.get("agent_provider", "openai")
-        kwargs = {
-            "context": context,
-            "extra": extra,
-            "signals": signals,
-            "verbose": verbose,
-        }
+        verbose = self.window.core.config.get("agent.llama.verbose", False)
         try:
-            if id == "planner":
+            # prepare input context
+            ctx = context.ctx
+            ctx.extra = {
+                "agent_input": True,  # mark as user input
+            }
+            ctx.agent_call = True  # disables reply from plugin commands
+
+            # prepare agent
+            model = context.model
+            max_steps = self.window.core.config.get("agent.llama.steps", 10)
+            tools = self.window.core.agents.tools.prepare(context, extra)
+            history = self.window.core.agents.memory.prepare(context)
+            llm = self.window.core.idx.llm.get(model)
+
+            provider = None
+            agent = None
+            if self.window.core.agents.provider.has(id):
+                kwargs = {
+                    "context": context,
+                    "tools": tools,
+                    "llm": llm,
+                    "chat_history": history,
+                    "max_iterations": max_steps,
+                    "verbose": verbose,
+                }
+                provider = self.window.core.agents.provider.get(id)
+                agent = provider.get_agent(self.window, kwargs)
+                if verbose:
+                    print("Using Agent: " + id + ", model: " + model.id)
+
+            if agent is None:
+                raise Exception("Agent not found: " + id)
+
+            # run agent
+            mode = provider.get_mode()
+            kwargs = {
+                "agent": agent,
+                "ctx": ctx,
+                "signals": signals,
+                "verbose": verbose,
+            }
+            if mode == "plan":
                 return self.run_plan(**kwargs)
-            else:
+            elif mode == "step":
                 return self.run_steps(**kwargs)
+            elif mode == "assistant":
+                return self.run_assistant(**kwargs)
+
         except Exception as err:
             self.window.core.debug.error(err)
             self.error = err
@@ -58,48 +96,20 @@ class Runner:
 
     def run_steps(
             self,
-            context: BridgeContext,
-            extra: dict,
+            agent,
+            ctx: CtxItem,
             signals: BridgeSignals,
             verbose: bool = False
     ) -> bool:
         """
         Run agent steps
 
-        :param context: BridgeContext
-        :param extra: extra data
+        :param agent: Agent instance
+        :param ctx: Input context
         :param signals: BridgeSignals
         :param verbose: verbose mode
         :return: True if success
         """
-        id = extra.get("agent_provider", "openai")
-        ctx = context.ctx
-        ctx.extra = {
-            "agent_input": True,  # mark as user input
-        }
-        ctx.agent_call = True  # disable reply from plugin commands
-        model = context.model
-        max_steps = self.window.core.config.get("agent.llama.steps", 5)
-        tools = self.window.core.agents.tools.prepare(context, extra)
-        history = self.window.core.agents.memory.prepare(context)
-        llm = self.window.core.idx.llm.get(model)
-        agent = None
-        if self.window.core.agents.provider.has(id):
-            kwargs = {
-                "tools": tools,
-                "llm": llm,
-                "chat_history": history,
-                "max_iterations": max_steps,
-                "verbose": verbose,
-                "model": model,
-            }
-            agent = self.window.core.agents.provider.get(id, kwargs)
-            if verbose:
-                print("Using Agent: " + id + ", model: " + model.id)
-        if agent is None:
-            print("Agent not found: " + id)
-            return False
-
         is_last = False
         task = agent.create_task(ctx.input)
         tools_output = None
@@ -136,50 +146,62 @@ class Runner:
         signals.on_step.emit(response_ctx)
         return True
 
-    def run_plan(
+    def run_assistant(
             self,
-            context: BridgeContext,
-            extra: dict,
+            agent,
+            ctx: CtxItem,
             signals: BridgeSignals,
             verbose: bool = False
     ) -> bool:
         """
         Run agent steps
 
-        :param context: BridgeContext
-        :param extra: extra data
+        :param agent: Agent instance
+        :param ctx: Input context
         :param signals: BridgeSignals
         :param verbose: verbose mode
         :return: True if success
         """
-        id = extra.get("agent_provider", "openai")
-        ctx = context.ctx
-        ctx.extra = {
-            "agent_input": True,  # mark as user input
-        }
-        ctx.agent_call = True  # disable reply from plugin commands
-        model = context.model
-        max_steps = self.window.core.config.get("agent.llama.steps", 5)
-        tools = self.window.core.agents.tools.prepare(context, extra)
-        history = self.window.core.agents.memory.prepare(context)
-        llm = self.window.core.idx.llm.get(model)
-        agent = None
-        if self.window.core.agents.provider.has(id):
-            kwargs = {
-                "tools": tools,
-                "llm": llm,
-                "chat_history": history,
-                "max_iterations": max_steps,
-                "verbose": verbose,
-                "model": model,
-            }
-            agent = self.window.core.agents.provider.get(id, kwargs)
-            if verbose:
-                print("Using Agent: " + id + ", model: " + model.id)
-        if agent is None:
-            print("Agent not found: " + id)
-            return False
+        if verbose:
+            print("Running OpenAI Assistant...")
+            print("Assistant: " + str(agent.assistant.id))
+            print("Thread: " + str(agent.thread_id))
+            print("Model: " + str(agent.assistant.model))
+            print("Input: " + str(ctx.input))
 
+        thread_id = agent.thread_id
+        ctx.meta.thread = thread_id
+        ctx.meta.assistant = agent.assistant.id
+
+        # final response
+        response = agent.chat(ctx.input)
+        response_ctx = self.add_ctx(ctx)
+        response_ctx.thread = thread_id
+        response_ctx.set_input("Assistant")
+        response_ctx.set_output(str(response))
+        response_ctx.extra = {
+            "agent_output": True,  # mark as output response
+            "agent_finish": True,  # mark as finished
+        }
+        signals.on_step.emit(response_ctx)
+        return True
+
+    def run_plan(
+            self,
+            agent,
+            ctx: CtxItem,
+            signals: BridgeSignals,
+            verbose: bool = False
+    ) -> bool:
+        """
+        Run agent sub tasks
+
+        :param agent: Agent instance
+        :param ctx: Input context
+        :param signals: BridgeSignals
+        :param verbose: verbose mode
+        :return: True if success
+        """
         plan_id = agent.create_plan(
             ctx.input
         )
@@ -195,6 +217,10 @@ class Runner:
             plan_desc += "\nExpected output: " + str(sub_task.expected_output)
             plan_desc += "\nDependencies: " + str(sub_task.dependencies)
             i += 1
+
+        if verbose:
+            print(plan_desc)
+
         step_ctx = self.add_ctx(ctx)
         step_ctx.set_input("Num of subtasks: " + str(c) + ", Plan: " + plan_id)
         step_ctx.set_output(plan_desc)
@@ -212,6 +238,9 @@ class Runner:
             task_header += "\n**===== Sub Task: " + sub_task.name + " =====**"
             task_header += "\nExpected output: " +  str(sub_task.expected_output)
             task_header += "\nDependencies: " + str(sub_task.dependencies)
+
+            if verbose:
+                print(task_header)
 
             # loop until the last step is reached
             while not step_output.is_last:
@@ -262,10 +291,10 @@ class Runner:
         ctx.live = True
         return ctx
 
-    def get_error(self):
+    def get_error(self) -> Exception or None:
         """
         Get last error
 
-        :return: last error
+        :return: last exception or None if no error
         """
         return self.error

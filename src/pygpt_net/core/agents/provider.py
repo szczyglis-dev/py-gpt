@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.15 00:00:00                  #
 # ================================================== #
 
 class Provider:
@@ -36,15 +36,14 @@ class Provider:
         """
         return id in self.agents
 
-    def get(self, id: str, kwargs: dict):
+    def get(self, id: str):
         """
         Get agent provider
 
         :param id: agent id
-        :param kwargs: arguments
         :return: agent provider
         """
-        return self.agents[id].get_agent(self.window, kwargs)
+        return self.agents[id]
 
     def register(self, id: str, agent):
         """
