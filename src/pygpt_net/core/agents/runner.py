@@ -172,6 +172,7 @@ class Runner:
         thread_id = agent.thread_id
         ctx.meta.thread = thread_id
         ctx.meta.assistant = agent.assistant.id
+        ctx.thread = thread_id
 
         # final response
         response = agent.chat(ctx.input)
@@ -194,7 +195,7 @@ class Runner:
             verbose: bool = False
     ) -> bool:
         """
-        Run agent sub tasks
+        Run agent sub-tasks
 
         :param agent: Agent instance
         :param ctx: Input context
