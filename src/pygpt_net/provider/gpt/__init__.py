@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.15 03:00:00                  #
 # ================================================== #
 
-import httpx
+from httpx_socks import SyncProxyTransport
+
 from openai import OpenAI, DefaultHttpxClient
 
 from pygpt_net.core.bridge import BridgeContext
@@ -58,9 +59,9 @@ class Gpt:
         if self.window.core.config.has('api_proxy'):
             proxy = self.window.core.config.get('api_proxy')
             if proxy:
+                transport = SyncProxyTransport.from_url(proxy)
                 args["http_client"] = DefaultHttpxClient(
-                    proxies=proxy,
-                    transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+                    transport=transport,
                 )
         return OpenAI(**args)
 
