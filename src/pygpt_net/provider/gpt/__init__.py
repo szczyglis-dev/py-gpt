@@ -9,7 +9,8 @@
 # Updated Date: 2024.05.01 17:00:00                  #
 # ================================================== #
 
-from openai import OpenAI
+import httpx
+from openai import OpenAI, DefaultHttpxClient
 
 from pygpt_net.core.bridge import BridgeContext
 
@@ -48,10 +49,19 @@ class Gpt:
             "api_key": self.window.core.config.get('api_key'),
             "organization": self.window.core.config.get('organization_key'),
         }
+        # api endpoint
         if self.window.core.config.has('api_endpoint'):
             endpoint = self.window.core.config.get('api_endpoint')
             if endpoint:
                 args["base_url"] = endpoint
+        # proxy
+        if self.window.core.config.has('api_proxy'):
+            proxy = self.window.core.config.get('api_proxy')
+            if proxy:
+                args["http_client"] = DefaultHttpxClient(
+                    proxies=proxy,
+                    transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+                )
         return OpenAI(**args)
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:

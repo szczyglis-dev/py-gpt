@@ -51,6 +51,20 @@
         "secret": false,
         "advanced": false
     },
+    "api_proxy": {
+        "section": "general",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_proxy",
+        "description": "settings.api_proxy.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false
+    },
     "app.env": {
         "section": "general",
         "type": "dict",

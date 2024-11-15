@@ -57,6 +57,7 @@
   "ai_name": "",
   "api_endpoint": "https://api.openai.com/v1",
   "api_key": "",
+  "api_proxy": "",
   "app.env": [],
   "assistant": "",
   "assistant_thread": "",

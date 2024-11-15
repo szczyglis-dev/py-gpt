@@ -1589,6 +1589,13 @@ class Patch:
                 data["agent.goal.notify"] = False  # disable by default
                 updated = True
 
+            # < 2.4.11
+            if old < parse_version("2.4.11"):
+                print("Migrating config from < 2.4.11...")
+                if 'api_proxy' not in data:
+                    data["api_proxy"] =""
+                updated = True
+
         # update file
         migrated = False
         if updated:
