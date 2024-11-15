@@ -55,6 +55,8 @@ setup(
         'docker>=7.0.0, <8.0.0',
         'docx2txt>=0.8, <1.0',
         'EbookLib>=0.18, <1.0',
+        'httpx>=0.27.2, <1.0.0',
+        'httpx-socks>=0.9.2, <1.0.0',
         'langchain>=0.2.14, <0.3.0',
         'langchain-community>=0.2.12, <0.3.0',
         'langchain-experimental>=0.0.64, <0.1.0',

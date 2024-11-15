@@ -1758,6 +1758,26 @@ socks = ["socksio (==1.*)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
+name = "httpx-socks"
+version = "0.9.2"
+description = "Proxy (HTTP, SOCKS) transports for httpx"
+optional = false
+python-versions = "*"
+files = [
+    {file = "httpx_socks-0.9.2-py3-none-any.whl", hash = "sha256:b71537978c50813fb097da8d47e608c82e7bad2c5b4fc7148f36048f6efbd7f0"},
+    {file = "httpx_socks-0.9.2.tar.gz", hash = "sha256:cd00570ff81cce99b337ef0baf017bd61df887e9d33d4abeb9a48275386ee1e5"},
+]
+
+[package.dependencies]
+httpcore = ">=0.17.3,<2.0"
+httpx = ">=0.21.0,<0.28.0"
+python-socks = ">=2.0.0"
+
+[package.extras]
+asyncio = ["async-timeout (>=3.0.1)"]
+trio = ["trio (>=0.16.0)"]
+
+[[package]]
 name = "huggingface-hub"
 version = "0.26.2"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
@@ -5400,6 +5420,23 @@ files = [
 Markdown = ">=3.0"
 
 [[package]]
+name = "python-socks"
+version = "2.5.3"
+description = "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python_socks-2.5.3-py3-none-any.whl", hash = "sha256:6bc428d0e19f8043e7b8fbc8af33417e690238bd8c9c1e9215871ac18c6136ad"},
+    {file = "python_socks-2.5.3.tar.gz", hash = "sha256:4414b2a24777e439758a5f4644f81509ee634e6893115fe7fd1ec482b4b5c979"},
+]
+
+[package.extras]
+anyio = ["anyio (>=3.3.4,<5.0.0)"]
+asyncio = ["async-timeout (>=3.0.1)"]
+curio = ["curio (>=1.4)"]
+trio = ["trio (>=0.16.0)"]
+
+[[package]]
 name = "python-xlib"
 version = "0.33"
 description = "Python X Library"
@@ -7337,4 +7374,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "2f971c92d7562165727f6067692267ec1b3f7043e349e0439b5758bdb03b358a"
+content-hash = "d74f690a7cdcc95c9207d39e75a4a177284e99ed70b70dee13f4d090eb95e8a0"
