@@ -1,3 +1,7 @@
+2.4.12 (2024-11-15)
+
+- Added httpx-socks to the dependencies, enabling the use of SOCKS proxies.
+
 2.4.11 (2024-11-15)
 
 - Added a new Llama-index agent: OpenAI Assistant.
