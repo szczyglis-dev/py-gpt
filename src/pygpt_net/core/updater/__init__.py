@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.16 02:00:00                  #
+# Updated Date: 2024.11.15 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -21,7 +21,7 @@ from urllib.request import urlopen, Request
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable, QTimer
 from packaging.version import parse as parse_version, Version
 
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, natsort
 
 
 class Updater:
@@ -32,9 +32,7 @@ class Updater:
         :param window: Window instance
         """
         self.window = window
-        self.contributors = None  # cache
-        self.donates = None  # cache
-        self.sponsors = None  # cache
+        self.thanks = None  # cache
 
     def patch(self):
         """Patch config data to current version"""
@@ -214,16 +212,14 @@ class Updater:
         """
         return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
 
-    def get_support(self) -> (str, str, str):
+    def get_thanks(self) -> (str, str, str):
         """
         Get contributors, donates and sponsors
 
-        :return: (contributors, donates, sponsors)
+        :return: people list
         """
         url = self.get_updater_url()
-        self.contributors = ""
-        self.donates = ""
-        self.sponsors = ""
+        self.thanks = ""
         try:
             ctx = ssl.create_default_context()
             ctx.check_hostname = True
@@ -233,27 +229,23 @@ class Updater:
             )
             response = urlopen(req, context=ctx, timeout=5)
             data_json = json.loads(response.read())
-            if "contributors" in data_json:
-                self.contributors = data_json["contributors"]
-            if "sponsors" in data_json:
-                self.sponsors = data_json["sponsors"]
-            if "donates" in data_json:
-                self.donates = data_json["donates"]
+            if "thanks" in data_json:
+                self.thanks = self.parse_thanks(data_json["thanks"])
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to fetch data")
 
-        return self.contributors, self.donates, self.sponsors
+        return self.thanks
 
-    def get_or_fetch_support(self) -> (str, str, str):
+    def get_fetch_thanks(self) -> (str, str, str):
         """
         Get contributors, donates and sponsors
 
         :return: (contributors, donates, sponsors)
         """
-        if self.contributors is None or self.donates is None or self.sponsors is None:
-            return self.get_support()
-        return self.contributors, self.donates, self.sponsors
+        if self.thanks is None:
+            return self.get_thanks()
+        return self.thanks
 
     def check_silent(self) -> (bool, str, str, str, str, str):
         """
@@ -291,12 +283,8 @@ class Updater:
                 download_windows = data_json["download_windows"]
             if "download_linux" in data_json:
                 download_linux = data_json["download_linux"]
-            if "contributors" in data_json:
-                self.contributors = data_json["contributors"]
-            if "sponsors" in data_json:
-                self.sponsors = data_json["sponsors"]
-            if "donates" in data_json:
-                self.donates = data_json["donates"]
+            if "thanks" in data_json:
+                self.thanks = self.parse_thanks(data_json["thanks"])
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.meta['version'])
@@ -312,6 +300,16 @@ class Updater:
             print("Failed to check for updates")
 
         return is_new, newest_version, newest_build, changelog, download_windows, download_linux
+
+    def parse_thanks(self, people: str) -> str:
+        """
+        Parse people list
+
+        :param people: people list
+        :return: parsed people list
+        """
+        # split by ",", trim, add to list, sort and return joined
+        return ", ".join(natsort([x.strip() for x in people.split(",")]))
 
     def check(self, force: bool = False) -> bool:
         """

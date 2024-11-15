@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2024.11.15 02:00:00                  #
 # ================================================== #
 
 import json
@@ -221,3 +221,13 @@ def get_tz_offset() -> int:
     now = datetime.now()
     now_timestamp = int(now.timestamp())
     return now_timestamp - utc_timestamp
+
+def natsort(l: list) -> list:
+    """
+    Sort the given list in natural order
+
+    :param l: list to sort
+    """
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)

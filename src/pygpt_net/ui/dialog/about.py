@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.16 02:00:00                  #
+# Updated Date: 2024.11.15 02:00:00                  #
 # ================================================== #
 
 import os
@@ -26,36 +26,15 @@ class About:
         :param window: Window instance
         """
         self.window = window
-        self.contributors = None
-        self.supporters = None
-        self.sponsors = None
+        self.thanks = None
 
-    def get_contributors(self) -> str:
+    def get_thanks(self) -> str:
         """
-        Get contributors list
+        Get people list
 
-        :return: contributors list
+        :return: contributors and supporters list
         """
-        contributors, donates, sponsors = self.window.core.updater.get_or_fetch_support()
-        return contributors
-
-    def get_supporters(self) -> str:
-        """
-        Get supporters list
-
-        :return: supporters list
-        """
-        contributors, donates, sponsors = self.window.core.updater.get_or_fetch_support()
-        return donates
-
-    def get_sponsors(self) -> str:
-        """
-        Get sponsors list
-
-        :return: sponsors list
-        """
-        contributors, donates, sponsors = self.window.core.updater.get_or_fetch_support()
-        return sponsors
+        return self.window.core.updater.get_fetch_thanks()
 
     def prepare_content(self) -> str:
         """
@@ -157,14 +136,7 @@ class About:
         self.window.ui.nodes['dialog.about.content'] = QLabel(string)
         self.window.ui.nodes['dialog.about.content'].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes['dialog.about.thanks'] = QLabel(trans('about.thanks'))
-        self.window.ui.nodes['dialog.about.thanks.contributors'] = QLabel(trans('about.thanks.contributors'))
-        self.window.ui.nodes['dialog.about.thanks.supporters'] = QLabel(trans('about.thanks.supporters'))
-        self.window.ui.nodes['dialog.about.thanks.sponsors'] = QLabel(trans('about.thanks.sponsors'))
-        self.window.ui.nodes['dialog.about.thanks.sponsors'].setStyleSheet("font-weight: bold;")
         self.window.ui.nodes['dialog.about.thanks'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['dialog.about.thanks.sponsors'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['dialog.about.thanks.contributors'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['dialog.about.thanks.supporters'].setAlignment(Qt.AlignCenter)
 
         title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
@@ -178,33 +150,18 @@ class About:
         )
         title.setAlignment(Qt.AlignCenter)
 
-        self.contributors = QPlainTextEdit()
-        self.contributors.setReadOnly(True)
-        self.contributors.setPlainText("")
-        self.contributors.setStyleSheet("font-size: 11px;")
-
-        self.supporters = QPlainTextEdit()
-        self.supporters.setReadOnly(True)
-        self.supporters.setPlainText("")
-        self.supporters.setStyleSheet("font-size: 11px;")
-
-        self.sponsors = QPlainTextEdit()
-        self.sponsors.setReadOnly(True)
-        self.sponsors.setPlainText("")
-        self.sponsors.setStyleSheet("font-weight: bold; font-size: 11px;")
+        self.window.ui.nodes['dialog.about.thanks.content'] = QPlainTextEdit()
+        self.window.ui.nodes['dialog.about.thanks.content'].setReadOnly(True)
+        self.window.ui.nodes['dialog.about.thanks.content'].setPlainText("")
+        self.window.ui.nodes['dialog.about.thanks.content'].setStyleSheet("font-size: 11px;")
 
         layout = QVBoxLayout()
         layout.addWidget(logo_label)
         layout.addWidget(title)
         layout.addWidget(self.window.ui.nodes['dialog.about.content'])
-
         layout.addWidget(self.window.ui.nodes['dialog.about.thanks'])
-        layout.addWidget(self.window.ui.nodes['dialog.about.thanks.sponsors'])
-        layout.addWidget(self.sponsors)
-        layout.addWidget(self.window.ui.nodes['dialog.about.thanks.contributors'])
-        layout.addWidget(self.contributors)
-        layout.addWidget(self.window.ui.nodes['dialog.about.thanks.supporters'])
-        layout.addWidget(self.supporters)
+        layout.addWidget(self.window.ui.nodes['dialog.about.thanks.content'])
+        layout.addStretch(1)
         layout.addLayout(buttons_layout)
 
         self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
@@ -213,30 +170,11 @@ class About:
 
     def prepare(self):
         """Update dialog content"""
-        contributors = self.get_contributors()
-        supporters = self.get_supporters()
-        sponsors = self.get_sponsors()
-        self.contributors.setPlainText(contributors)
-        self.supporters.setPlainText(supporters)
-        self.sponsors.setPlainText(sponsors)
-
-        if contributors == "":
-            self.window.ui.nodes['dialog.about.thanks.contributors'].hide()
-            self.contributors.hide()
+        people = str(self.get_thanks())
+        self.window.ui.nodes['dialog.about.thanks.content'].setPlainText(people)
+        if people == "":
+            self.window.ui.nodes['dialog.about.thanks'].hide()
+            self.window.ui.nodes['dialog.about.thanks.content'].hide()
         else:
-            self.window.ui.nodes['dialog.about.thanks.contributors'].show()
-            self.contributors.show()
-
-        if supporters == "":
-            self.window.ui.nodes['dialog.about.thanks.supporters'].hide()
-            self.supporters.hide()
-        else:
-            self.window.ui.nodes['dialog.about.thanks.supporters'].show()
-            self.supporters.show()
-
-        if sponsors == "":
-            self.window.ui.nodes['dialog.about.thanks.sponsors'].hide()
-            self.sponsors.hide()
-        else:
-            self.window.ui.nodes['dialog.about.thanks.sponsors'].show()
-            self.sponsors.show()
+            self.window.ui.nodes['dialog.about.thanks'].show()
+            self.window.ui.nodes['dialog.about.thanks.content'].show()
