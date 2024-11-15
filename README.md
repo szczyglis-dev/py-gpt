@@ -822,8 +822,6 @@ In the future, the list of built-in agents will be expanded.
 
 You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
 
-At the moment, only OpenAI models are available in this mode - support for more models coming soon!
-
 **Tools / Plugins**  
 In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
 
