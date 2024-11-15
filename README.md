@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.10** | build: **2024.11.14** | Python: **>=3.10, <3.12**
+Release: **2.4.11** | build: **2024.11.15** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3506,6 +3506,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.11 (2024-11-15)**
+
+- Added a new Llama-index agent: OpenAI Assistant.
+- Added proxy settings to the configuration dialog.
+- Added more models to the Agent (Llama-index) mode.
+- Improved the agents/presets dialog window.
+- Disabled the "OpenAI API KEY is not set" Llama-index error when using a local model in Chat with Files mode. You can now use local embeddings, such as Llama3 via Ollama, and use local models without any warnings.
 
 **2.4.10 (2024-11-14)**
 
