@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -279,7 +279,8 @@ class Plugin(BasePlugin):
                 data['commands'],
             )
         elif name == Event.SYSTEM_PROMPT:
-            data['value'] = self.on_system_prompt(data['value'])
+            if self.cmd_exe():
+                data['value'] = self.on_system_prompt(data['value'])
 
     def cmd_syntax(self, data: dict):
         """

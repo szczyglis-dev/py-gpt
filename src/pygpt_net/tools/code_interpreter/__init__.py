@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 import os
@@ -31,8 +31,9 @@ class CodeInterpreter(BaseTool):
         self.id = "interpreter"
         self.opened = False
         self.is_edit = False
-        self.auto_clear = True
+        self.auto_clear = False
         self.dialog = None
+        self.ipython = True
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -52,6 +53,18 @@ class CodeInterpreter(BaseTool):
             self.window.ui.nodes['interpreter.all'].setChecked(self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
             self.window.ui.nodes['interpreter.auto_clear'].setChecked(self.window.core.config.get("interpreter.auto_clear"))
+        if self.window.core.config.has("interpreter.ipython"):
+            self.window.ui.nodes['interpreter.ipython'].setChecked(self.window.core.config.get("interpreter.ipython"))
+        if self.ipython:
+            self.window.ui.nodes['interpreter.all'].setVisible(False)
+
+    def handle_ipython_output(self, line: str):
+        """
+        Handle ipython output
+
+        :param line: Output line
+        """
+        self.append_output(line)
 
     def on_reload(self):
         """On app profile reload"""
@@ -190,6 +203,23 @@ class CodeInterpreter(BaseTool):
         self.clear_output()
         self.clear_history()
 
+    def restart_kernel(self):
+        """Restart kernel"""
+        commands = [
+            {
+                "cmd": "ipython_kernel_restart",
+                "params": {},
+                "silent": True,
+                "force": True,
+            }
+        ]
+        event = Event(Event.CMD_EXECUTE, {
+            'commands': commands,
+        })
+        event.ctx = CtxItem()  # tmp
+        self.window.controller.command.dispatch_only(event)
+        self.window.ui.nodes['interpreter.input'].setFocus()
+
     def send_input(self):
         """Send input to interpreter"""
         self.store_history()
@@ -204,6 +234,9 @@ class CodeInterpreter(BaseTool):
                 return
             cmd = "code_execute"
 
+        if self.ipython:
+            cmd = "ipython_execute"
+
         commands = [
             {
                 "cmd": cmd,
@@ -212,6 +245,7 @@ class CodeInterpreter(BaseTool):
                     "path": self.file_current,
                 },
                 "silent": True,
+                "force": True,
             }
         ]
         event = Event(Event.CMD_EXECUTE, {
@@ -303,6 +337,15 @@ class CodeInterpreter(BaseTool):
         """Toggle auto clear"""
         self.auto_clear = self.window.ui.nodes['interpreter.auto_clear'].isChecked()
         self.window.core.config.set("interpreter.auto_clear", self.auto_clear)
+
+    def toggle_ipython(self):
+        """Toggle ipython"""
+        self.ipython = self.window.ui.nodes['interpreter.ipython'].isChecked()
+        self.window.core.config.set("interpreter.ipython", self.ipython)
+        if self.ipython:
+            self.window.ui.nodes['interpreter.all'].setVisible(False)
+        else:
+            self.window.ui.nodes['interpreter.all'].setVisible(True)
 
     def toggle_all(self):
         """Toggle execute all"""

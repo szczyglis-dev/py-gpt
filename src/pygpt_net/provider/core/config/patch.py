@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 import copy
@@ -1594,6 +1594,17 @@ class Patch:
                 print("Migrating config from < 2.4.11...")
                 if 'api_proxy' not in data:
                     data["api_proxy"] =""
+                updated = True
+
+            # < 2.4.13
+            if old < parse_version("2.4.13"):
+                print("Migrating config from < 2.4.13...")
+                data["interpreter.auto_clear"] = False
+                self.window.core.plugins.reset_options("cmd_code_interpreter", [
+                    "code_execute",
+                    "code_execute_all",
+                    "code_execute_file",
+                ])
                 updated = True
 
         # update file

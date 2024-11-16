@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -17,6 +17,8 @@ from pygpt_net.plugin.base import BaseWorker, BaseSignals
 class WorkerSignals(BaseSignals):
     output = Signal(object, str)
     html_output = Signal(object)
+    ipython_output = Signal(object)
+    build_finished = Signal()
     clear = Signal()
 
 
@@ -33,21 +35,38 @@ class Worker(BaseWorker):
     @Slot()
     def run(self):
         responses = []
+        print("exe")
         for item in self.cmds:
             try:
                 response = None
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+                if item["cmd"] in self.plugin.allowed_cmds and (self.plugin.has_cmd(item["cmd"]) or 'force' in item):
 
                     if item["cmd"] == "code_execute_file":
                         response = self.cmd_code_execute_file(item)
 
                     elif item["cmd"] == "code_execute":
+
                         response = self.cmd_code_execute(item)
                         if "silent" in item:
                             response = None
 
                     elif item["cmd"] == "code_execute_all":
                         response = self.cmd_code_execute_all(item)
+                        if "silent" in item:
+                            response = None
+
+                    elif item["cmd"] == "ipython_execute_new":
+                        response = self.cmd_ipython_execute_new(item)
+                        if "silent" in item:
+                            response = None
+
+                    elif item["cmd"] == "ipython_execute":
+                        response = self.cmd_ipython_execute(item)
+                        if "silent" in item:
+                            response = None
+
+                    elif item["cmd"] == "ipython_kernel_restart":
+                        response = self.cmd_ipython_kernel_restart(item)
                         if "silent" in item:
                             response = None
 
@@ -86,6 +105,75 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             for response in responses:
                 self.reply(response)
+
+    def cmd_ipython_execute_new(self, item: dict) -> dict:
+        """
+        Execute code in IPython interpreter (new kernel)
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            response = self.plugin.runner.ipython_execute_new(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_ipython_execute(self, item: dict) -> dict:
+        """
+        Execute code in IPython interpreter (current kernel)
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            response = self.plugin.runner.ipython_execute(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
+
+    def cmd_ipython_kernel_restart(self, item: dict) -> dict:
+        """
+        Restart current IPython kernel
+
+        :param item: command item
+        :return: response item
+        """
+        request = self.prepare_request(item)
+        try:
+            response = self.plugin.runner.ipython_kernel_restart(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        return response
 
     def cmd_code_execute_file(self, item: dict) -> dict:
         """

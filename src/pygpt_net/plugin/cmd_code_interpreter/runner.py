@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 import os.path
@@ -25,6 +25,14 @@ class Runner:
         """
         self.plugin = plugin
         self.signals = None
+
+    def attach_signals(self, signals):
+        """
+        Attach signals
+
+        :param signals: signals
+        """
+        self.signals = signals
 
     def send_interpreter_input(self, data: str):
         """
@@ -86,6 +94,21 @@ class Runner:
         result = None
         if response:
             result = response.decode('utf-8')
+        self.send_interpreter_output(result, "stdout")
+        self.log(
+            "Result: {}".format(result),
+            sandbox=True,
+        )
+        return result
+
+    def handle_result_ipython(self, response) -> str:
+        """
+        Handle result from ipython container
+
+        :param response: response
+        :return: result
+        """
+        result = response
         self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),
@@ -381,6 +404,124 @@ class Runner:
             "request": request,
             "result": str(result),
             "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+        }
+
+    def ipython_execute_new(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
+        """
+        Execute code in IPython interpreter (new kernel)
+
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :param all: execute all
+        :return: response dict
+        """
+        data = item["params"]['code']
+        if not all:
+            path = self.plugin.window.tools.get("interpreter").file_current
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            msg = "Saving Python file: {}".format(path)
+            self.log(msg, sandbox=True)
+            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+                file.write(data)
+        else:
+            path = self.plugin.window.tools.get("interpreter").file_input
+
+        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+            data = file.read()
+
+        self.append_input(data)
+        self.send_interpreter_input(data)  # send input to interpreter tool
+
+        # run code in IPython interpreter
+        msg = "Executing Python code: {}".format(item["params"]['code'])
+        self.log(msg, sandbox=True)
+        self.log("Connecting to IPython interpreter...", sandbox=True)
+        try:
+            result = self.plugin.ipython.execute(data, current=False)
+            # self.handle_result_ipython(result)  # handle result -> to output
+        except Exception as e:
+            self.error(e)
+            result = str(e)
+        return {
+            "request": request,
+            "result": str(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+        }
+
+    def ipython_execute(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
+        """
+        Execute code in IPython interpreter (current kernel)
+
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :param all: execute all
+        :return: response dict
+        """
+        data = item["params"]['code']
+        if not all:
+            path = self.plugin.window.tools.get("interpreter").file_current
+            if "path" in item["params"]:
+                path = item["params"]['path']
+            msg = "Saving Python file: {}".format(path)
+            self.log(msg, sandbox=True)
+            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+                file.write(data)
+        else:
+            path = self.plugin.window.tools.get("interpreter").file_input
+
+        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+            data = file.read()
+
+        self.append_input(data)
+        self.send_interpreter_input(data)  # send input to interpreter tool
+
+        # run code in IPython interpreter
+        msg = "Executing Python code: {}".format(item["params"]['code'])
+        self.log(msg, sandbox=True)
+        self.log("Connecting to IPython interpreter...", sandbox=True)
+        try:
+            result = self.plugin.ipython.execute(data, current=True)
+            # self.handle_result_ipython(result)  # handle result -> to output
+        except Exception as e:
+            self.error(e)
+            result = str(e)
+        return {
+            "request": request,
+            "result": str(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+        }
+
+    def ipython_kernel_restart(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
+        """
+        Execute code in IPython interpreter (current kernel)
+
+        :param ctx: CtxItem
+        :param item: command item
+        :param request: request item
+        :param all: execute all
+        :return: response dict
+        """
+        self.append_input("")
+        self.send_interpreter_input("")  # send input to interpreter tool
+
+        # restart IPython interpreter
+        self.log("Connecting to IPython interpreter...", sandbox=True)
+        try:
+            response = self.plugin.ipython.restart_kernel()
+        except Exception as e:
+            self.error(e)
+            response = False
+        if response:
+            result = "Restarted"
+        else:
+            result = "Not restarted"
+        return {
+            "request": request,
+            "result": str(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def parse_result(self, result):

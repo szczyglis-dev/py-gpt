@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QSplitter, QCheckBox, QLabel, QWidget
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QSplitter, QCheckBox, QLabel, QWidget, QMenuBar
 
 from pygpt_net.tools.code_interpreter.ui.widgets import PythonInput, PythonOutput
 from pygpt_net.ui.widget.dialog.base import BaseDialog
@@ -24,6 +25,28 @@ class Interpreter:
         :param window: Window instance
         """
         self.window = window
+        self.menu_bar = None
+        self.menu = {}
+        self.actions = {}  # menu actions
+
+    def setup_menu(self) -> QMenuBar:
+        """
+        Setup dialog menu
+
+        :return: QMenuBar
+        """
+        # create menu bar
+        self.menu_bar = QMenuBar()
+        self.menu["file"] = self.menu_bar.addMenu(trans("menu.file"))
+
+        self.actions["file.restart_kernel"] = QAction(QIcon(":/icons/reload.svg"), "IPython: restart kernel")
+        self.actions["file.restart_kernel"].triggered.connect(
+            lambda: self.window.tools.get("interpreter").restart_kernel()
+        )
+
+        # add actions
+        self.menu["file"].addAction(self.actions["file.restart_kernel"])
+        return self.menu_bar
 
     def setup(self):
         """Setup interpreter dialog"""
@@ -47,9 +70,15 @@ class Interpreter:
         )
 
         self.window.ui.nodes['interpreter.auto_clear'] = QCheckBox(trans("interpreter.auto_clear"))
-        self.window.ui.nodes['interpreter.auto_clear'].setChecked(True)
+        self.window.ui.nodes['interpreter.auto_clear'].setChecked(False)
         self.window.ui.nodes['interpreter.auto_clear'].clicked.connect(
             lambda: self.window.tools.get("interpreter").toggle_auto_clear()
+        )
+
+        self.window.ui.nodes['interpreter.ipython'] = QCheckBox("IPython")
+        self.window.ui.nodes['interpreter.ipython'].setChecked(True)
+        self.window.ui.nodes['interpreter.ipython'].clicked.connect(
+            lambda: self.window.tools.get("interpreter").toggle_ipython()
         )
 
         self.window.ui.nodes['interpreter.btn.clear'] = QPushButton(trans("interpreter.btn.clear"))
@@ -86,6 +115,7 @@ class Interpreter:
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.btn.clear'])
+        bottom_layout.addWidget(self.window.ui.nodes['interpreter.ipython'])
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.auto_clear'])
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.window.ui.nodes['interpreter.all'])
@@ -105,6 +135,7 @@ class Interpreter:
         self.window.ui.splitters['interpreter'].setStretchFactor(1, 1)
 
         layout = QVBoxLayout()
+        layout.setMenuBar(self.setup_menu())  # add menu bar
         layout.addWidget(self.window.ui.splitters['interpreter'])
         layout.addLayout(bottom_layout)
 
