@@ -439,6 +439,7 @@ class Runner:
         self.log(msg, sandbox=True)
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
+            self.log("Please wait...", sandbox=True)
             result = self.plugin.ipython.execute(data, current=False)
             # self.handle_result_ipython(result)  # handle result -> to output
         except Exception as e:
@@ -483,6 +484,7 @@ class Runner:
         self.log(msg, sandbox=True)
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
+            self.log("Please wait...", sandbox=True)
             result = self.plugin.ipython.execute(data, current=True)
             # self.handle_result_ipython(result)  # handle result -> to output
         except Exception as e:
@@ -510,14 +512,16 @@ class Runner:
         # restart IPython interpreter
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
+            self.log("Restarting IPython kernel...", sandbox=True)
             response = self.plugin.ipython.restart_kernel()
         except Exception as e:
             self.error(e)
             response = False
         if response:
-            result = "Restarted"
+            result = "Kernel restarted"
         else:
-            result = "Not restarted"
+            result = "Kernel not restarted"
+        self.log(result)
         return {
             "request": request,
             "result": str(result),

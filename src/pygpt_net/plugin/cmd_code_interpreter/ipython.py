@@ -365,8 +365,7 @@ class IPythonInterpreter:
             chunk = str(self.process_message(msg))
             if chunk.strip() != "":
                 output += chunk
-                if self.signals is not None:
-                    self.signals.ipython_output.emit(chunk)
+                self.send_output(chunk)
 
             if (msg['msg_type'] == 'status' and
                     msg['content']['execution_state'] == 'idle'):
@@ -380,6 +379,7 @@ class IPythonInterpreter:
 
         :return: True if the kernel was restarted successfully, False otherwise.
         """
+        self.send_output("Restarting...")
         self.restart_container(self.get_container_name())
         if self.client is not None:
             self.client.stop_channels()
@@ -388,7 +388,18 @@ class IPythonInterpreter:
         self.client.start_channels()
         self.client.wait_for_ready()
         self.log("Connected to IPython kernel.")
+        self.send_output("Restarted.")
         return True
+
+    def send_output(self, output: str):
+        """
+        Send the output to the output.
+
+        :param output: Output.
+        :return: Output.
+        """
+        if self.signals is not None:
+            self.signals.ipython_output.emit(output)
 
     def is_docker_installed(self) -> bool:
         """
