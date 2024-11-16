@@ -63,7 +63,7 @@ class Plugin(BasePlugin):
         dockerfile += '\n\n'
         dockerfile += '# You can customize the packages installed by default here:'
         dockerfile += '\n# ========================================================'
-        dockerfile += '\nRUN pip install jupyter ipykernel2'
+        dockerfile += '\nRUN pip install jupyter ipykernel'
         dockerfile += '\n# ========================================================'
         dockerfile += '\n\n'
         dockerfile += 'RUN mkdir /data'
@@ -472,8 +472,14 @@ class Plugin(BasePlugin):
         if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
             # check for Docker installed
             if not self.ipython.is_docker_installed():
-                self.error(trans('ipython.docker.install'))
-                self.window.ui.status(trans('ipython.docker.install'))
+                # snap version
+                if self.window.core.platforms.is_snap():
+                    self.error(trans('ipython.docker.install.snap'))
+                    self.window.ui.status(trans('ipython.docker.install.snap'))
+                # other versions
+                else:
+                    self.error(trans('ipython.docker.install'))
+                    self.window.ui.status(trans('ipython.docker.install'))
                 return
             # check if image exists
             if not self.ipython.is_image():

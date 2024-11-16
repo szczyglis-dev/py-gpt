@@ -24,7 +24,6 @@ parts:
       - portaudio19-dev
       - ffmpeg
       - gstreamer1.0-libav
-      - docker
       - libxcb-cursor0
       - libxkbfile1
       - ubuntu-restricted-extras
@@ -59,6 +58,16 @@ layout:
   /usr/share/qt5:
     bind: $SNAP/usr/share/qt5
 
+plugs:
+  docker:
+    interface: docker
+    label: Access to the docker communication socket
+  docker-executables:
+    interface: content
+    content: docker-executables
+    target: $SNAP_COMMON/docker-executables
+    default-provider: docker
+
 apps:
   pygpt:
     command: snaprun.sh
@@ -71,12 +80,14 @@ apps:
       "QTWEBENGINEPROCESS_PATH": "$SNAP/lib/python3.10/site-packages/PySide6/Qt/libexec/QtWebEngineProcess"
       "QML_IMPORT_PATH": "$SNAP/qml"
       "QML2_IMPORT_PATH": "$SNAP/qml"
+      PATH: $SNAP_COMMON/docker-executables/bin:$PATH
     plugs:
     - alsa
     - audio-playback
     - audio-record
     - browser-support
     - network
+    - network-bind
     - home
     - gsettings
     - desktop
@@ -87,3 +98,5 @@ apps:
     - unity7
     - camera
     - serial-port
+    - docker
+    - docker-executables

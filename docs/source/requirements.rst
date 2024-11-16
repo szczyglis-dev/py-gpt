@@ -53,6 +53,20 @@ To manage future updates just use:
     sudo snap connect pygpt:audio-record :audio-record
 
 
+**Connecting IPython in Docker in Snap version**:
+
+To use IPython in the Snap version, you must connect PyGPT to the Docker daemon (built into the Snap package):
+
+.. code-block:: console
+
+    sudo snap connect pygpt:docker-executables docker:docker-executables
+
+.. code-block:: console
+
+    sudo snap connect pygpt:docker docker:docker-daemon
+
+
+
 **Snap Store:** https://snapcraft.io/pygpt
 
 Python version
