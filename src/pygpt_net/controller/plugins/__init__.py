@@ -201,7 +201,7 @@ class Plugins:
                 if plugin_idx == idx:
                     self.settings.current_plugin = id
                     break
-                plugin_idx += 1
+            plugin_idx += 1
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
