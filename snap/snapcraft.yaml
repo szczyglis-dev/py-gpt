@@ -61,7 +61,6 @@ layout:
 plugs:
   docker:
     interface: docker
-    label: Access to the docker communication socket
   docker-executables:
     interface: content
     content: docker-executables
