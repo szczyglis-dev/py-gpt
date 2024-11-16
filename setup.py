@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.4.12'
+VERSION = '2.4.13'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
@@ -57,6 +57,7 @@ setup(
         'EbookLib>=0.18, <1.0',
         'httpx>=0.27.2, <1.0.0',
         'httpx-socks>=0.9.2, <1.0.0',
+        'jupyter_client>=8.6.3, <9.0.0',
         'langchain>=0.2.14, <0.3.0',
         'langchain-community>=0.2.12, <0.3.0',
         'langchain-experimental>=0.0.64, <0.1.0',

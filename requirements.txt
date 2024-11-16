@@ -166,7 +166,7 @@ cachetools==5.5.0 ; python_version >= "3.10" and python_version < "3.12" \
 certifi==2024.8.30 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8 \
     --hash=sha256:bec941d2aa8195e248a60b31ff9f0558284cf01a52591ceda73ea9afffd69fd9
-cffi==1.17.1 ; python_version >= "3.10" and python_version < "3.12" and (platform_python_implementation != "PyPy" or os_name == "nt" or implementation_name == "pypy") \
+cffi==1.17.1 ; python_version >= "3.10" and python_version < "3.12" and (implementation_name == "pypy" or platform_python_implementation != "PyPy" or os_name == "nt") \
     --hash=sha256:045d61c734659cc045141be4bae381a41d89b741f795af1dd018bfb532fd0df8 \
     --hash=sha256:0984a4925a435b1da406122d4d7968dd861c1385afe3b45ba82b750f229811e2 \
     --hash=sha256:0e2b1fac190ae3ebfe37b979cc1ce69c81f4e4fe5746bb401dca63a9062cdaf1 \
@@ -1966,7 +1966,7 @@ pyaudio==0.2.14 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:f745109634a7c19fa4d6b8b7d6967c3123d988c9ade0cd35d4295ee1acdb53e9
 pyautogui==0.9.54 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:dd1d29e8fd118941cb193f74df57e5c6ff8e9253b99c7b04f39cfc69f3ae04b2
-pycparser==2.22 ; python_version >= "3.10" and python_version < "3.12" and (platform_python_implementation != "PyPy" or os_name == "nt" or implementation_name == "pypy") \
+pycparser==2.22 ; python_version >= "3.10" and python_version < "3.12" and (implementation_name == "pypy" or platform_python_implementation != "PyPy" or os_name == "nt") \
     --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
     --hash=sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc
 pycryptodomex==3.21.0 ; python_version >= "3.10" and python_version < "3.12" \
