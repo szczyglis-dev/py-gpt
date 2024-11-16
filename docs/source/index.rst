@@ -6,12 +6,12 @@
 PyGPT - pygpt.net
 ====================
 
-| **Last update:** 2024-11-15 02:00
+| **Last update:** 2024-11-16 02:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.4.12 (2024-11-15)
+| **Release:** 2.4.13 (2024-11-16)
 
 .. toctree::
    :maxdepth: 3

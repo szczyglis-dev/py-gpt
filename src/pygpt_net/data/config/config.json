@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.4.12",
-    "app.version": "2.4.12",
-    "updated_at": "2024-11-15T00:00:00"
+    "version": "2.4.13",
+    "app.version": "2.4.13",
+    "updated_at": "2024-11-16T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -132,10 +132,11 @@
   "img_resolution": "1792x1024",
   "img_quality": "standard",
   "img_variants": 1,
-  "interpreter.auto_clear": true,
-  "interpreter.execute_all": true,
+  "interpreter.auto_clear": false,
+  "interpreter.execute_all": false,
   "interpreter.edit": false,
   "interpreter.input": "",
+  "interpreter.ipython": true,
   "lang": "en",
   "layout.density": -1,
   "layout.dialog.geometry.store": true,

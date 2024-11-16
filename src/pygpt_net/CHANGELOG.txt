@@ -1,3 +1,7 @@
+2.4.13 (2024-11-16)
+
+- Introduced Code Interpreter (v2) with IPython: Enables session state retention on a kernel and building on previous computations, allowing for a Jupyter-like workflow, which is useful for iterative development and data analysis. Supports magic commands like !pip install <package_name> for package installation within the session. (currently in beta)
+
 2.4.12 (2024-11-15)
 
 - Added httpx-socks to the dependencies, enabling the use of SOCKS proxies.

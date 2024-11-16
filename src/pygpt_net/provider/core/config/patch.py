@@ -1600,11 +1600,18 @@ class Patch:
             if old < parse_version("2.4.13"):
                 print("Migrating config from < 2.4.13...")
                 data["interpreter.auto_clear"] = False
-                self.window.core.plugins.reset_options("cmd_code_interpreter", [
-                    "code_execute",
-                    "code_execute_all",
-                    "code_execute_file",
-                ])
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.code_execute' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.code_execute']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.code_execute_all' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.code_execute_all']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.code_execute_file' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.code_execute_file']
                 updated = True
 
         # update file
