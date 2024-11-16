@@ -26,6 +26,7 @@ class Builder(QObject):
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.signals.build_finished.connect(self.handle_build_finished)
+            self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
         except Exception as e:
             self.plugin.window.ui.dialogs.alert(e)
@@ -35,6 +36,12 @@ class Builder(QObject):
         """Handle build finished"""
         self.plugin.window.ui.dialogs.alert(trans('ipython.docker.build.finish'))
         self.plugin.window.ui.status(trans('ipython.docker.build.finish'))
+
+    @Slot(object)
+    def handle_build_failed(self, error):
+        """Handle build failed"""
+        self.plugin.window.ui.dialogs.alert(str(error))
+        self.plugin.window.ui.status(str(error))
 
 class WorkerSignals(BaseSignals):
     build_finished = Signal()
@@ -49,5 +56,8 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        self.plugin.ipython.build_image()
-        self.signals.build_finished.emit()
+        try:
+            self.plugin.ipython.build_image()
+            self.signals.build_finished.emit()
+        except Exception as e:
+            self.signals.error.emit(e)
