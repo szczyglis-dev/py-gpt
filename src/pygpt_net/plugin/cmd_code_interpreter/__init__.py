@@ -534,6 +534,7 @@ class Plugin(BasePlugin):
         # print(data)
         cleaned_data = self.ipython.remove_ansi(data)
         self.window.tools.get("interpreter").append_output(cleaned_data)
+        self.window.ui.status("")
 
     def log(self, msg):
         """
