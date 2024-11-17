@@ -34,7 +34,6 @@ class Mode:
         # check if mode change is not locked
         if self.change_locked() or mode is None:
             return
-        print(mode)
         self.set(mode)
 
         event = Event(Event.MODE_SELECT, {
@@ -77,6 +76,7 @@ class Mode:
 
         # update model list
         self.window.controller.model.init_list()
+        self.window.controller.model.select_current()
 
         # set status: ready
         self.window.ui.status(trans('status.started'))
@@ -188,19 +188,15 @@ class Mode:
 
     def next(self):
         """Select next mode"""
-        idx = self.window.ui.nodes['prompt.mode'].currentIndex().row()
-        idx += 1
-        if idx >= self.window.ui.models['prompt.mode'].rowCount():
-            idx = 0
-        self.select(idx)
+        mode = self.window.core.config.get('mode')
+        next = self.window.core.modes.get_next(mode)
+        self.select(next)
 
     def prev(self):
         """Select previous mode"""
-        idx = self.window.ui.nodes['prompt.mode'].currentIndex().row()
-        idx -= 1
-        if idx < 0:
-            idx = self.window.ui.models['prompt.mode'].rowCount() - 1
-        self.select(idx)
+        mode = self.window.core.config.get('mode')
+        prev = self.window.core.modes.get_prev(mode)
+        self.select(prev)
 
     def change_locked(self) -> bool:
         """

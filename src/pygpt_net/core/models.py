@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -156,6 +156,36 @@ class Models:
             if mode in self.items[key].mode:
                 items[key] = self.items[key]
         return items
+
+    def get_next(self, model: str, mode: str) -> str:
+        """
+        Return next model
+
+        :param model: current model
+        :param mode: mode name
+        :return: next model
+        """
+        items = self.get_by_mode(mode)
+        keys = list(items.keys())
+        idx = keys.index(model)
+        if idx + 1 < len(keys):
+            return keys[idx + 1]
+        return keys[0]
+
+    def get_prev(self, model: str, mode: str) -> str:
+        """
+        Return previous model
+
+        :param model: current model
+        :param mode: mode name
+        :return: previous model
+        """
+        items = self.get_by_mode(mode)
+        keys = list(items.keys())
+        idx = keys.index(model)
+        if idx - 1 >= 0:
+            return keys[idx - 1]
+        return keys[-1]
 
     def create_id(self):
         """

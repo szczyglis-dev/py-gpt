@@ -48,6 +48,7 @@ class Presets:
 
         # update all layout
         self.window.controller.ui.update()
+        self.window.controller.model.select_current()
         self.window.core.dispatcher.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
 
     def get_current(self) -> PresetItem or None:

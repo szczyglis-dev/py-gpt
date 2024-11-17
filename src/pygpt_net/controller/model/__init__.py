@@ -52,19 +52,17 @@ class Model:
 
     def next(self):
         """Select next model"""
-        idx = self.window.ui.nodes['prompt.model'].currentIndex().row()
-        idx += 1
-        if idx >= self.window.ui.models['prompt.model'].rowCount():
-            idx = 0
-        self.select(idx)
+        mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        next = self.window.core.models.get_next(model, mode)
+        self.select(next)
 
     def prev(self):
         """Select previous model"""
-        idx = self.window.ui.nodes['prompt.model'].currentIndex().row()
-        idx -= 1
-        if idx < 0:
-            idx = self.window.ui.models['prompt.model'].rowCount() - 1
-        self.select(idx)
+        mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        prev = self.window.core.models.get_prev(model, mode)
+        self.select(prev)
 
     def set(self, mode: str, model: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.provider.core.mode.json_file import JsonFileProvider
@@ -31,7 +31,6 @@ class Modes:
 
         :param idx: index of mode
         :return: mode name
-        :rtype: str
         """
         modes = self.get_all()
         return list(modes.keys())[idx]
@@ -42,7 +41,6 @@ class Modes:
 
         :param name: mode name
         :return: mode index
-        :rtype: int
         """
         modes = self.get_all()
         return list(modes.keys()).index(name)
@@ -52,7 +50,6 @@ class Modes:
         Return modes
 
         :return: Dict with modes
-        :rtype: dict
         """
         return self.items
 
@@ -61,11 +58,38 @@ class Modes:
         Return default mode name
 
         :return: default mode name
-        :rtype: str
         """
         for id in self.items:
             if self.items[id].default:
                 return id
+
+    def get_next(self, mode: str):
+        """
+        Return next mode
+
+        :param mode: current mode
+        :return: next mode
+        """
+        modes = self.get_all()
+        keys = list(modes.keys())
+        idx = keys.index(mode)
+        if idx + 1 < len(keys):
+            return keys[idx + 1]
+        return keys[0]
+
+    def get_prev(self, mode: str):
+        """
+        Return previous mode
+
+        :param mode: current mode
+        :return: previous mode
+        """
+        modes = self.get_all()
+        keys = list(modes.keys())
+        idx = keys.index(mode)
+        if idx - 1 >= 0:
+            return keys[idx - 1]
+        return keys[-1]
 
     def load(self):
         """
