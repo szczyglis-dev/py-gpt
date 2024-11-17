@@ -14,21 +14,19 @@ from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
 
-class BaseCombo(QWidget):
-    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
+class BaseListCombo(QWidget):
+    def __init__(self, window=None, id: str = None):
         """
-        Llama index mode select combobox
+        Base list combo
 
         :param window: main window
         :param id: option id
         :param parent_id: parent option id
         :param option: option data
         """
-        super(BaseCombo, self).__init__(window)
+        super(BaseListCombo, self).__init__(window)
         self.window = window
         self.id = id
-        self.parent_id = parent_id
-        self.option = option
         self.value = None
         self.keys = []
         self.title = ""
@@ -37,31 +35,20 @@ class BaseCombo(QWidget):
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.current_id = None
         self.initialized = False
+        self.locked = False
 
         # add items
         self.update()
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.combo)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.fit_to_content()
         self.initialized = True
 
     def update(self):
         """Prepare items"""
-        # init from option data
-        if self.option is not None:
-            if "label" in self.option and self.option["label"] is not None and self.option["label"] != "":
-                self.title = trans(self.option["label"])
-            if "keys" in self.option:
-                self.keys = self.option["keys"]
-            if "value" in self.option:
-                self.value = self.option["value"]
-                self.current_id = self.value
-            if "real_time" in self.option:
-                self.real_time = self.option["real_time"]
-
-        # add items
         if type(self.keys) is list:
             for item in self.keys:
                 if type(item) is dict:
@@ -69,6 +56,9 @@ class BaseCombo(QWidget):
                         self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item, item)
+        elif type(self.keys) is dict:
+            for key, value in self.keys.items():
+                self.combo.addItem(value, key)
 
     def set_value(self, value):
         """
@@ -76,9 +66,11 @@ class BaseCombo(QWidget):
 
         :param value: value
         """
+        self.locked = True
         index = self.combo.findData(value)
         if index != -1:
             self.combo.setCurrentIndex(index)
+        self.locked = False
 
     def get_value(self):
         """
@@ -102,6 +94,9 @@ class BaseCombo(QWidget):
                         return True
                 elif name == key:
                     return True
+        elif isinstance(self.keys, dict):
+            if name in self.keys:
+                return True
         return False
 
     def set_keys(self, keys):
@@ -110,10 +105,11 @@ class BaseCombo(QWidget):
 
         :param keys: keys
         """
+        self.locked = True
         self.keys = keys
-        self.option["keys"] = keys
         self.combo.clear()
         self.update()
+        self.locked = False
 
     def on_combo_change(self, index):
         """
@@ -121,7 +117,7 @@ class BaseCombo(QWidget):
 
         :param index: combo index
         """
-        if not self.initialized:
+        if not self.initialized or self.locked:
             return
         self.current_id = self.combo.itemData(index)
 

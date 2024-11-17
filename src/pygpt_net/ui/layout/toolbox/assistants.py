@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -38,7 +38,7 @@ class Assistants:
 
         self.window.ui.nodes['assistants.widget'] = QWidget()
         self.window.ui.nodes['assistants.widget'].setLayout(layout)
-        self.window.ui.nodes['assistants.widget'].setMinimumHeight(150)
+        self.window.ui.nodes['assistants.widget'].setMinimumHeight(180)
 
         return self.window.ui.nodes['assistants.widget']
 

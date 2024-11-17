@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
 import threading
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QSplitter, QMessageBox
 
@@ -89,9 +89,10 @@ class UI:
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
 
-        self.splitters['main'].setStretchFactor(0, 3)
-        self.splitters['main'].setStretchFactor(1, 5)
-        self.splitters['main'].setStretchFactor(2, 1)
+        # FIRST RUN: initial sizes if not set yet
+        if not self.window.core.config.has("layout.splitters") \
+            or self.window.core.config.get("layout.splitters") == {}:
+            self.set_initial_size()
 
         # menus
         self.menus.setup()
@@ -105,14 +106,37 @@ class UI:
         # set window title
         self.update_title()
 
+    def set_initial_size(self):
+        """Set default sizes"""
+        def set_initial_splitter_height():
+            total_height = self.window.ui.splitters['main.output'].size().height()
+            if total_height > 0:
+                size_output = int(total_height * 0.8)
+                size_input = total_height - size_output
+                self.window.ui.splitters['main.output'].setSizes([size_output, size_input])
+            else:
+                QTimer.singleShot(0, set_initial_splitter_height)
+        QTimer.singleShot(0, set_initial_splitter_height)
+
+        def set_initial_splitter_width():
+            total_width = self.window.ui.splitters['main'].size().width()
+            if total_width > 0:
+                size_output = int(total_width * 0.7)
+                size_ctx = (total_width - size_output) / 2
+                size_toolbox = (total_width - size_output) / 2
+                self.window.ui.splitters['main'].setSizes([size_ctx, size_output, size_toolbox])
+            else:
+                QTimer.singleShot(0, set_initial_splitter_width)
+        QTimer.singleShot(0, set_initial_splitter_width)
+
     def update_title(self):
         """Update window title"""
         suffix = self.window.core.platforms.get_env_suffix()
         profile_name = self.window.core.config.profile.get_current_name()
         self.window.setWindowTitle(
-            'PyGPT - Desktop AI Assistant v{} | build {}{} ({})'.format(
+            'PyGPT - Desktop AI Assistant {} | build {}{} ({})'.format(
                 self.window.meta['version'],
-                self.window.meta['build'],
+                self.window.meta['build'].replace('.', '-'),
                 suffix,
                 profile_name,
             )

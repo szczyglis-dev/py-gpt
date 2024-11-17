@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -25,19 +25,26 @@ class Model:
         self.window = window
         self.editor = Editor(window)
 
-    def select(self, idx: int):
+    def select(self, model: str):
         """
         Select model
 
-        :param idx: value of the list (row idx)
+        :param model: model ID
         """
         # check if model change is not locked
         if self.change_locked():
             return
-        self.set_by_idx(
-            self.window.core.config.get('mode'),
-            idx,
-        )
+
+        mode = self.window.core.config.get('mode')
+        self.window.core.config.set('model', model)
+        if 'current_model' not in self.window.core.config.data:
+            self.window.core.config.data['current_model'] = {}
+        self.window.core.config.data['current_model'][mode] = model
+
+        event = Event(Event.MODEL_SELECT, {
+            'value': model,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
         # update all layout
         self.window.controller.ui.update()
@@ -89,15 +96,16 @@ class Model:
         })
         self.window.core.dispatcher.dispatch(event)
 
+    def select_on_list(self, model):
+        self.window.ui.nodes["prompt.model"].set_value(model)
+
     def select_current(self):
         """Select current model on list"""
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         items = self.window.core.models.get_by_mode(mode)
         if model in items:
-            idx = list(items.keys()).index(model)
-            current = self.window.ui.models['prompt.model'].index(idx, 0)
-            self.window.ui.nodes['prompt.model'].setCurrentIndex(current)
+            self.select_on_list(model)
 
     def select_default(self):
         """Set default model"""
@@ -134,17 +142,18 @@ class Model:
             model = tmp_model
         return model
 
-    def update_list(self):
-        """Update models list"""
+    def init_list(self):
+        """Init models list"""
         mode = self.window.core.config.get('mode')
-        self.window.ui.toolbox.model.update(
-            self.window.core.models.get_by_mode(mode)
-        )
+        items = {}
+        data = self.window.core.models.get_by_mode(mode)
+        for k in data:
+            items[k] = data[k].name
+        self.window.ui.nodes["prompt.model"].set_keys(items)
 
     def update(self):
         """Update models"""
         self.select_default()
-        self.update_list()
         self.select_current()
 
     def change_locked(self) -> bool:

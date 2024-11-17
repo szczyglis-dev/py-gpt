@@ -9,21 +9,26 @@
 # Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.ui.widget.lists.base import BaseList
+from pygpt_net.ui.widget.lists.base_list_combo import BaseListCombo
 
 
-class ModeList(BaseList):
+class ModeCombo(BaseListCombo):
     def __init__(self, window=None, id=None):
         """
-        Presets select menu
+        Mode select menu
 
         :param window: main window
         :param id: input id
         """
-        super(ModeList, self).__init__(window)
-        self.window = window
-        self.id = id
+        super(ModeCombo, self).__init__(window, id)
 
-    def click(self, val):
-        #self.window.controller.mode.select(val.row())
-        self.selection = self.selectionModel().selection()
+    def on_combo_change(self, index):
+        """
+        On combo change
+
+        :param index: combo index
+        """
+        if not self.initialized or self.locked:
+            return
+        self.current_id = self.combo.itemData(index)
+        self.window.controller.mode.select(self.current_id)

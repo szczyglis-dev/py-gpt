@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import re
@@ -358,7 +358,7 @@ class Presets:
                                 and self.window.core.models.is_allowed(preset.model, mode):
                             self.window.core.config.set('model', preset.model)
                             self.window.controller.model.set(mode, preset.model)
-                            self.window.controller.model.update_list()
+                            self.window.controller.model.init_list()
                             self.window.controller.model.select_current()
 
     def refresh(self):

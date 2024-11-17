@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 17:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSplitter, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSplitter, QWidget, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
@@ -43,7 +43,8 @@ class Presets:
 
         self.window.ui.nodes['presets.widget'] = QWidget()
         self.window.ui.nodes['presets.widget'].setLayout(presets)
-        self.window.ui.nodes['presets.widget'].setMinimumHeight(150)
+        self.window.ui.nodes['presets.widget'].setMinimumHeight(180)
+        self.window.ui.nodes['presets.widget'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return self.window.ui.nodes['presets.widget']
 
@@ -77,12 +78,14 @@ class Presets:
 
         self.window.ui.nodes[self.id] = PresetList(self.window, self.id)
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
+        self.window.ui.nodes[self.id].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.window.ui.nodes['tip.toolbox.presets'] = HelpLabel(trans('tip.toolbox.presets'), self.window)
 
         layout = QVBoxLayout()
+        layout.addStretch()
         layout.addWidget(header_widget)
-        layout.addWidget(self.window.ui.nodes[self.id])
+        layout.addWidget(self.window.ui.nodes[self.id], 1)
         layout.addWidget(self.window.ui.nodes['tip.toolbox.presets'])
 
         self.window.ui.models[self.id] = self.create_model(self.window)

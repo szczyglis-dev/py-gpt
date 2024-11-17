@@ -524,6 +524,16 @@ If an index is selected in the agent preset, a tool for reading data from the in
 
 Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
 
+**Loop / Evaluate Mode**
+
+You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the ``Loop / Evaluate`` checkbox, after the final response is given, the quality of the answer will be rated on a scale of ``1 to 10`` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen), a prompt will be sent to the agent requesting improvements and enhancements to the response.
+
+Setting the expected score to ``0`` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
+
+You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> Llama-index agents -> Max evaluation steps``. The default value is ``3``, meaning the agent will only make three attempts to better its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+
+You can change the prompt used for evaluating the response in ``Settings -> Prompts -> Agent: evaluation prompt in loop``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
+
 Agent (legacy, autonomous)
 --------------------------
 

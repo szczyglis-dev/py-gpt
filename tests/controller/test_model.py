@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -30,7 +30,7 @@ def test_select(mock_window):
     model.change_locked = MagicMock()
     model.change_locked.return_value = False
 
-    model.select(1)  # idx on list
+    model.select('gpt-4')  # idx on list
     mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: model.select
 
     # must update rest of elements
@@ -72,6 +72,7 @@ def test_set_by_idx(mock_window):
 def test_select_current(mock_window):
     """Select current mode on the list"""
     model = Model(mock_window)
+    model.select_on_list = MagicMock()
     mock_window.core.config.data['mode'] = 'chat'
     mock_window.core.config.data['model'] = 'gpt-4'
 
@@ -85,7 +86,7 @@ def test_select_current(mock_window):
     mock_window.ui.models['prompt.model'].index.return_value = 0
 
     model.select_current()
-    mock_window.ui.nodes['prompt.model'].setCurrentIndex.assert_called_once_with(0)  # select idx = 0 on list
+    model.select_on_list.assert_called_once()
 
 
 def test_select_default_from_current(mock_window):
@@ -123,22 +124,10 @@ def test_select_default_from_default(mock_window):
     assert mock_window.core.config.get('model') == 'gpt-4'
 
 
-def test_update_list(mock_window):
-    """Update models list"""
-    model = Model(mock_window)
-    items = {
-        'gpt-4': ModelItem(),
-        'gpt-5': ModelItem(),
-    }
-    mock_window.core.models.get_by_mode = MagicMock(return_value=items)
-
-    model.update_list()
-    mock_window.ui.toolbox.model.update.assert_called_once_with(items)
-
-
 def test_update(mock_window):
     """Update models list"""
     model = Model(mock_window)
+    model.select_current = MagicMock()
     mock_window.core.config.data['model'] = None
     mock_window.core.config.data['mode'] = 'chat'
     current = {
@@ -151,8 +140,7 @@ def test_update(mock_window):
     }
     mock_window.core.models.get_by_mode = MagicMock(return_value=items)
     model.update()
-    mock_window.ui.nodes['prompt.model'].setCurrentIndex.assert_called_once()  # select idx = 0 on list
-    mock_window.ui.toolbox.model.update.assert_called_once_with(items)
+    model.select_current.assert_called_once()
 
 
 def test_change_locked(mock_window):

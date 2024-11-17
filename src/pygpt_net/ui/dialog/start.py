@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
@@ -34,7 +34,9 @@ class Start:
         id = 'start'
 
         self.window.ui.nodes['start.btn'] = QPushButton(trans('dialog.start.btn'))
-        self.window.ui.nodes['start.btn'].clicked.connect(lambda: self.window.controller.settings.welcome_settings())
+        self.window.ui.nodes['start.btn'].clicked.connect(
+            lambda: self.window.controller.settings.welcome_settings()
+        )
 
         logo_label = QLabel()
         path = os.path.abspath(
@@ -48,6 +50,7 @@ class Start:
         self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
 
         self.window.ui.nodes['start.title'].setAlignment(Qt.AlignCenter)
+
         layout = QVBoxLayout()
         layout.addWidget(logo_label, alignment=Qt.AlignCenter)
         layout.addWidget(self.window.ui.nodes['start.title'], alignment=Qt.AlignCenter)

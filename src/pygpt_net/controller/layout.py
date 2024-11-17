@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
@@ -112,7 +112,8 @@ class Layout:
             # do not save main splitter state if notepad was not opened yet
             if splitter == "calendar" and not self.window.controller.notepad.opened_once:
                 continue
-            data[splitter] = self.window.ui.splitters[splitter].sizes()
+            if splitter in self.window.ui.splitters:
+                data[splitter] = self.window.ui.splitters[splitter].sizes()
         self.window.core.config.set('layout.splitters', data)
 
     def splitters_restore(self):
@@ -123,7 +124,8 @@ class Layout:
         for splitter in self.splitters:
             if splitter in data:
                 try:
-                    self.window.ui.splitters[splitter].setSizes(data[splitter])
+                    if splitter in self.window.ui.splitters:
+                        self.window.ui.splitters[splitter].setSizes(data[splitter])
                 except Exception as e:
                     print("Error while restoring splitter state: " + str(e))
                     self.window.core.debug.log(e)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -210,7 +210,7 @@ class Config:
                 os = self.window.core.platforms.get_os()
                 architecture = self.window.core.platforms.get_architecture()
                 print("===================================================")
-                print(" PyGPT    {} build {} ({}, {})".format(v, build, os, architecture))
+                print(" PyGPT    {} build {} ({}, {})".format(v, build.replace('.', '-'), os, architecture))
                 print(" Author:  Marcin Szczyglinski")
                 print(" GitHub:  https://github.com/szczyglis-dev/py-gpt")
                 print(" Website: https://pygpt.net")

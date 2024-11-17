@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.27 14:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget, QSizePolicy
 
 from pygpt_net.ui.layout.toolbox.assistants import Assistants
 from pygpt_net.ui.layout.toolbox.indexes import Indexes
@@ -47,15 +47,21 @@ class ToolboxMain:
         :rtype: QSplitter
         """
         # mode / model
-        self.window.ui.splitters['toolbox.mode'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['toolbox.mode'].addWidget(self.mode.setup())  # modes
-        self.window.ui.splitters['toolbox.mode'].addWidget(self.model.setup())  # models
+        self.window.ui.nodes['tip.toolbox.mode'] = HelpLabel(trans('tip.toolbox.mode'), self.window)
+        self.window.ui.nodes['tip.toolbox.mode'].setAlignment(Qt.AlignCenter)
 
         # presets / assistants
-        self.window.ui.splitters['toolbox.presets'] = QSplitter(Qt.Horizontal)
-        # self.window.ui.splitters['toolbox.presets'].addWidget(self.indexes.setup())  # indexes
-        self.window.ui.splitters['toolbox.presets'].addWidget(self.presets.setup())  # prompts
-        self.window.ui.splitters['toolbox.presets'].addWidget(self.assistants.setup())  # assistants
+        self.window.ui.nodes['toolbox.mode.layout'] = QVBoxLayout()
+        self.window.ui.nodes['toolbox.mode.layout'].addWidget(self.mode.setup())  # modes
+        self.window.ui.nodes['toolbox.mode.layout'].addWidget(self.model.setup())  # models
+        self.window.ui.nodes['toolbox.mode.layout'].addWidget(self.window.ui.nodes['tip.toolbox.mode'])
+        self.window.ui.nodes['toolbox.mode.layout'].addWidget(self.presets.setup(), 1)  # presets / agents
+        self.window.ui.nodes['toolbox.mode.layout'].addWidget(self.assistants.setup(), 1)  # assistants
+        self.window.ui.nodes['toolbox.mode.layout'].setContentsMargins(0, 0, 0, 0)
+
+        self.window.ui.nodes['toolbox.mode'] = QWidget()
+        self.window.ui.nodes['toolbox.mode'].setLayout(self.window.ui.nodes['toolbox.mode.layout'])
+        self.window.ui.nodes['toolbox.mode'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         bottom = QVBoxLayout()
         bottom.addWidget(self.prompt.setup())
@@ -64,22 +70,9 @@ class ToolboxMain:
         bottom_widget = QWidget()
         bottom_widget.setLayout(bottom)
 
-        self.window.ui.nodes['tip.toolbox.mode'] = HelpLabel(trans('tip.toolbox.mode'), self.window)
-        self.window.ui.nodes['tip.toolbox.mode'].setAlignment(Qt.AlignCenter)
-
-        layout_top = QVBoxLayout()
-        layout_top.addWidget(self.window.ui.splitters['toolbox.mode'])
-        layout_top.addWidget(self.window.ui.nodes['tip.toolbox.mode'])
-        layout_top.setContentsMargins(0, 0, 0, 0)
-        layout_top.setStretch(0, 1)
-
-        widget_top = QWidget()
-        widget_top.setLayout(layout_top)
-
         # rows
         self.window.ui.splitters['toolbox'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['toolbox'].addWidget(widget_top)  # mode/model
-        self.window.ui.splitters['toolbox'].addWidget(self.window.ui.splitters['toolbox.presets'])  # presets/assists.
+        self.window.ui.splitters['toolbox'].addWidget(self.window.ui.nodes['toolbox.mode'])  # mode/model
         self.window.ui.splitters['toolbox'].addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
 
         return self.window.ui.splitters['toolbox']

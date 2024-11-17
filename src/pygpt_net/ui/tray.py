@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 20:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -72,9 +72,9 @@ class Tray:
             self.window.ui.get_tray_icon(self.window.STATE_IDLE),
             app,
         )
-        self.icon.setToolTip("PyGPT v{} ({})".format(
+        self.icon.setToolTip("PyGPT {} ({})".format(
             self.window.meta['version'],
-            self.window.meta['build']),
+            self.window.meta['build'].replace('.', '-')),
         )
 
         # restore

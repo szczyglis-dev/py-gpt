@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -41,7 +41,7 @@ class ChatMain:
         self.window.ui.splitters['main.output'] = QSplitter(Qt.Vertical)
         self.window.ui.splitters['main.output'].addWidget(output)
         self.window.ui.splitters['main.output'].addWidget(input)
-        self.window.ui.splitters['main.output'].setStretchFactor(0, 4)
-        self.window.ui.splitters['main.output'].setStretchFactor(1, 1)
+        self.window.ui.splitters['main.output'].setStretchFactor(0, 9)  # Output widget stretch factor
+        self.window.ui.splitters['main.output'].setStretchFactor(1, 1)  # Input widget stretch factor
 
         return self.window.ui.splitters['main.output']

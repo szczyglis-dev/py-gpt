@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -25,16 +25,16 @@ class Mode:
         self.window = window
         self.locked = False
 
-    def select(self, idx: int):
+    def select(self, mode: str):
         """
-        Select mode by idx
+        Select mode by id
 
-        :param idx: value of the list (row idx)
+        :param mode
         """
         # check if mode change is not locked
-        if self.change_locked():
+        if self.change_locked() or mode is None:
             return
-        mode = self.window.core.modes.get_by_idx(idx)
+        print(mode)
         self.set(mode)
 
         event = Event(Event.MODE_SELECT, {
@@ -75,6 +75,9 @@ class Mode:
         # update toolbox, mode, presets, model, assistant and rest of the UI
         self.window.controller.ui.update()
 
+        # update model list
+        self.window.controller.model.init_list()
+
         # set status: ready
         self.window.ui.status(trans('status.started'))
 
@@ -83,13 +86,27 @@ class Mode:
             self.window.controller.ctx.common.update_label_by_current()
         self.locked = False
 
+    def select_on_list(self, mode):
+        """
+        Select mode on the list
+
+        :param mode: mode name
+        """
+        self.window.ui.nodes["prompt.mode"].set_value(mode)
+
+    def init_list(self):
+        """Init modes list"""
+        items = {}
+        data = self.window.core.modes.get_all()
+        for k in data:
+            items[k] = trans(data[k].label)
+        self.window.ui.nodes["prompt.mode"].set_keys(items)
+
     def select_current(self):
         """Select current mode on the list"""
         mode = self.window.core.config.get('mode')
         if mode:
-            idx = self.window.core.modes.get_idx_by_name(mode)
-            current = self.window.ui.models['prompt.mode'].index(idx, 0)
-            self.window.ui.nodes['prompt.mode'].setCurrentIndex(current)
+            self.select_on_list(mode)
 
     def select_default(self):
         """Set default mode"""
@@ -103,10 +120,6 @@ class Mode:
         self.window.controller.model.select_default()
         self.window.controller.presets.select_default()
         self.window.controller.assistant.select_default()
-
-    def update_list(self):
-        """Update modes list"""
-        self.window.ui.toolbox.mode.update(self.window.core.modes.get_all())
 
     def update_temperature(self, temperature: float = None):
         """
@@ -164,7 +177,6 @@ class Mode:
     def update_mode(self):
         """Update mode"""
         self.select_default()  # set default mode
-        self.update_list()  # update modes list
         self.select_current()  # select current mode on the list
         self.window.controller.chat.vision.update()
 
