@@ -1,3 +1,8 @@
+2.4.14 (2024-11-17)
+
+- Added a 'Loop / evaluate' mode for Llama-index agents, allowing them to work autonomously in a loop and evaluates the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below expected value.
+- Updated layout: mode and model lists replaced with comboboxes.
+
 2.4.13 (2024-11-16)
 
 - Introduced Code Interpreter (v2) with IPython: Enables session state retention on a kernel and building on previous computations, allowing for a Jupyter-like workflow, which is useful for iterative development and data analysis. Supports magic commands like !pip install <package_name> for package installation within the session. (currently in beta)

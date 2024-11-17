@@ -3633,9 +3633,8 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.14 (2024-11-17)**
 
-- Added a `Loop / evaluate` mode for Llama-index agents, allowing them to work autonomously in a loop and assess the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below a set value.
-
-- Updated layout: mode and model lists changed to comboboxes.
+- Added a `Loop / evaluate` mode for Llama-index agents, allowing them to work autonomously in a loop and evaluates the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below expected value.
+- Updated layout: mode and model lists replaced with comboboxes.
 
 **2.4.13 (2024-11-16)**
 
