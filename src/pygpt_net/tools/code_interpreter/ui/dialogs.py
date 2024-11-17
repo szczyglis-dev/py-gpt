@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -37,15 +37,36 @@ class Interpreter:
         """
         # create menu bar
         self.menu_bar = QMenuBar()
-        self.menu["file"] = self.menu_bar.addMenu(trans("menu.file"))
+        self.menu["file"] = self.menu_bar.addMenu(trans("interpreter.menu.file"))
+        self.menu["kernel"] = self.menu_bar.addMenu(trans("interpreter.menu.kernel"))
 
-        self.actions["file.restart_kernel"] = QAction(QIcon(":/icons/reload.svg"), "IPython: restart kernel")
-        self.actions["file.restart_kernel"].triggered.connect(
+        self.actions["file.clear_output"] = QAction(QIcon(":/icons/close.svg"),
+                                                    trans("interpreter.menu.file.clear_output"))
+        self.actions["file.clear_output"].triggered.connect(
+            lambda: self.window.tools.get("interpreter").clear_output()
+        )
+        self.actions["file.clear_history"] = QAction(QIcon(":/icons/close.svg"),
+                                                    trans("interpreter.menu.file.clear_history"))
+        self.actions["file.clear_history"].triggered.connect(
+            lambda: self.window.tools.get("interpreter").clear_history()
+        )
+        self.actions["file.clear_all"] = QAction(QIcon(":/icons/close.svg"),
+                                                   trans("interpreter.menu.file.clear_all"))
+        self.actions["file.clear_all"].triggered.connect(
+            lambda: self.window.tools.get("interpreter").clear_all()
+        )
+
+        self.actions["kernel.restart"] = QAction(QIcon(":/icons/reload.svg"),
+                                                      trans("interpreter.menu.kernel.restart"))
+        self.actions["kernel.restart"].triggered.connect(
             lambda: self.window.tools.get("interpreter").restart_kernel()
         )
 
         # add actions
-        self.menu["file"].addAction(self.actions["file.restart_kernel"])
+        self.menu["file"].addAction(self.actions["file.clear_output"])
+        self.menu["file"].addAction(self.actions["file.clear_history"])
+        self.menu["file"].addAction(self.actions["file.clear_all"])
+        self.menu["kernel"].addAction(self.actions["kernel.restart"])
         return self.menu_bar
 
     def setup(self):
