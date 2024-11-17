@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -108,6 +108,15 @@ class Plugin(BasePlugin):
                 silent,
             )
 
+        if name == Event.AGENT_PROMPT:
+            silent = False
+            if 'silent' in data and data['silent']:
+                silent = True
+            data['value'] = self.on_agent_prompt(
+                data['value'],
+                silent,
+            )
+
         elif name == Event.CMD_SYNTAX:
             self.cmd_syntax(data)
 
@@ -184,3 +193,25 @@ class Plugin(BasePlugin):
                 prompt += self.get_option_value("tpl").\
                     format(time=datetime.now().strftime('%A, %Y-%m-%d'))
         return prompt
+
+    def on_agent_prompt(self, prompt: str, silent: bool = False) -> str:
+        """
+        Event: AGENT_PROMPT
+
+        :param prompt: prompt
+        :param silent: silent mode (no logs)
+        :return: updated prompt
+        """
+        if self.get_option_value("hour") or self.get_option_value("date"):
+            if self.get_option_value("hour") and self.get_option_value("date"):
+                prompt = self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')) + "\n\n" + prompt
+            elif self.get_option_value("hour"):
+                prompt = self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%H:%M:%S') + "\n\n" + prompt)
+            elif self.get_option_value("date"):
+                prompt = self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%A, %Y-%m-%d')) + "\n\n" + prompt
+        return prompt
+
+

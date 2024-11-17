@@ -10,6 +10,7 @@
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext, BridgeSignals
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -123,7 +124,7 @@ class Runner:
             return True  # abort if stopped
 
         is_last = False
-        task = agent.create_task(ctx.input)
+        task = agent.create_task(self.prepare_input(ctx.input))
         tools_output = None
 
         # run steps
@@ -200,7 +201,7 @@ class Runner:
             return True  # abort if stopped
 
         # final response
-        response = agent.chat(ctx.input)
+        response = agent.chat(self.prepare_input(ctx.input))
         response_ctx = self.add_ctx(ctx)
         response_ctx.thread = thread_id
         response_ctx.set_input("Assistant")
@@ -232,7 +233,7 @@ class Runner:
             return True  # abort if stopped
 
         plan_id = agent.create_plan(
-            ctx.input
+            self.prepare_input(ctx.input)
         )
         plan = agent.state.plan_dict[plan_id]
         c = len(plan.sub_tasks)
@@ -365,7 +366,7 @@ class Runner:
         }
         provider = self.window.core.agents.provider.get("react")
         agent = provider.get_agent(self.window, kwargs)
-        return agent.chat(input)
+        return agent.chat(self.prepare_input(input))
 
     def run_next(self, context: BridgeContext, extra: dict, signals: BridgeSignals) -> bool:
         """
@@ -470,6 +471,18 @@ class Runner:
         ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
         ctx.live = True
         return ctx
+
+    def prepare_input(self, prompt: str) -> str:
+        """
+        Prepare input context
+
+        :param prompt: input text
+        """
+        event = Event(Event.AGENT_PROMPT, {
+            'value': prompt,
+        })
+        self.window.core.dispatcher.dispatch(event)
+        return event.data['value']
 
     def is_stopped(self) -> bool:
         """
