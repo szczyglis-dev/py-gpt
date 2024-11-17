@@ -844,11 +844,11 @@ Multimodality is currently unavailable, only text is supported. Vision support w
 
 **Loop / Evaluate Mode**
 
-You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the `Loop / Evaluate` checkbox, after the final response is given, the quality of the answer will be rated on a scale of `1 to 10` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen), a prompt will be sent to the agent requesting improvements and enhancements to the response.
+You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the `Loop / Evaluate` checkbox, after the final response is given, the quality of the answer will be rated on a percentage scale of `0% to 100%` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen, with a default value `75%`), a prompt will be sent to the agent requesting improvements and enhancements to the response.
 
-Setting the expected score to `0` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
+Setting the expected (required) score to `0%` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
 
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Llama-index agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to better its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Llama-index agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompt used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
@@ -3178,6 +3178,8 @@ Config -> Settings...
 
 - `API Endpoint`: OpenAI API endpoint URL, default: https://api.openai.com/v1.
 
+- `Proxy address`: Proxy address to be used for connection; supports HTTP/SOCKS.
+
 - `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 - `Render engine`: chat output render engine: `WebEngine / Chromium` - for full HTML/CSS and `Legacy (markdown)` for legacy, simple markdown CSS output. Default: WebEngine / Chromium.
@@ -3288,13 +3290,15 @@ Config -> Settings...
 
 - `Context: auto-summary (user message)`: User message for context auto-summary. Placeholders: {input}, {output}
 
-- `Agent: system instruction`: Prompt to instruct how to handle autonomous mode.
+- `Agent: evaluation prompt in loop (Llama-index)`: Prompt used for evaluating the response in Agents (Llama-index) mode.
 
-- `Agent: continue`: Prompt sent to automatically continue the conversation.
+- `Agent: system instruction (Legacy)`: Prompt to instruct how to handle autonomous mode.
 
-- `Agent: continue (always, more steps)`: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
+- `Agent: continue (Legacy)`: Prompt sent to automatically continue the conversation.
 
-- `Agent: goal update`: Prompt to instruct how to update current goal status.
+- `Agent: continue (always, more steps) (Legacy)`: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
+
+- `Agent: goal update (Legacy)`: Prompt to instruct how to update current goal status.
 
 - `Experts: Master prompt`: Prompt to instruct how to handle experts.
 
@@ -3366,13 +3370,25 @@ Config -> Settings...
 
 **Agent and experts**
 
+**General**
+
+- `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
+
+**Llama-index Agents**
+
+- `Max steps (per iteration)` - Max steps is one iteration before goal achieved
+
+- `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
+
+- `Verbose` - enables verbose mode.
+
+**Legacy**
+
 - `Sub-mode for agents`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 - `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 - `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
-
-- `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
 **Accessibility**
 

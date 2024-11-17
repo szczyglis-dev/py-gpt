@@ -21,7 +21,7 @@ The following basic options can be modified directly within the application:
 
 * ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
 
-* ``Number of notepads``: Number of notepad tabs. Restart of the application is required for this option to take effect.
+* ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
 
 * ``Show tray icon``: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
@@ -135,13 +135,15 @@ The following basic options can be modified directly within the application:
 
 * ``Context: auto-summary (user message)``: User message for context auto-summary. Placeholders: {input}, {output}
 
-* ``Agent: system instruction``: Prompt to instruct how to handle autonomous mode.
+* ``Agent: evaluation prompt in loop (Llama-index)``: Prompt used for evaluating the response in Agents (Llama-index) mode.
 
-* ``Agent: continue``: Prompt sent to automatically continue the conversation.
+* ``Agent: system instruction (Legacy)``: Prompt to instruct how to handle autonomous mode.
 
-* ``Agent: continue (always, more steps)``: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
+* ``Agent: continue (Legacy)``: Prompt sent to automatically continue the conversation.
 
-* ``Agent: goal update``: Prompt to instruct how to update current goal status.
+* ``Agent: continue (always, more steps) (Legacy)``: Prompt sent to always automatically continue the conversation (more reasoning - "Always continue..." option).
+
+* ``Agent: goal update (Legacy)``: Prompt to instruct how to update current goal status.
 
 * ``Experts: Master prompt``: Prompt to instruct how to handle experts.
 
@@ -213,13 +215,25 @@ The following basic options can be modified directly within the application:
 
 **Agent and experts**
 
+**General**
+
+* ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
+
+**Llama-index Agents**
+
+* ``Max steps (per iteration)`` - Max steps is one iteration before goal achieved
+
+* ``Max evaluation steps in loop`` - Maximum evaluation steps to achieve the final result, set 0 to infinity
+
+* ``Verbose`` - enables verbose mode.
+
+**Legacy**
+
 * ``Sub-mode for agents``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 * ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
-* ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes mode.
-
-* ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
+* ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
 **Accessibility**
 

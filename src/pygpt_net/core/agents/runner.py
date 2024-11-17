@@ -404,7 +404,7 @@ class Runner:
             return True  # abort if stopped
 
         score = int(score)
-        signals.on_evaluate.emit("{score_label}: {score}/10".format(
+        signals.on_evaluate.emit("{score_label}: {score}%".format(
             score_label=trans('eval.score'),
             score=str(score)
         ))
@@ -412,9 +412,9 @@ class Runner:
         if score < 0:
             signals.on_end.emit(ctx)
             return True
-        good_score = self.window.core.config.get("agent.llama.loop.score", 6)
+        good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if score >= good_score != 0:
-            signals.on_end.emit(ctx, "{status_finished}. {score_label}: {score}/10".format(
+            signals.on_end.emit(ctx, "{status_finished}. {score_label}: {score}%".format(
                 status_finished=trans('status.finished'),
                 score_label=trans('eval.score'),
                 score=str(score)
@@ -435,7 +435,7 @@ class Runner:
         step_ctx.extra = {
             "agent_input": True,
             "agent_evaluate": True,
-            "footer": "Score: " + str(score) + "/10",
+            "footer": "Score: " + str(score) + "%",
         }
         step_ctx.internal = False  # input
         signals.on_step.emit(step_ctx)

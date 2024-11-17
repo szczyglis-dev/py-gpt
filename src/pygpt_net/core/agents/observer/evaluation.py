@@ -18,7 +18,7 @@ class Evaluation:
         self.prompt = """
         Please review the result below to determine if the agent's response is satisfactory and if the assigned 
         task was completed correctly. Evaluate the quality and accuracy of the response, as well as the successful 
-        completion of the task, using a scale from 1 to 10. Use the tool provided to send feedback to the agent, 
+        completion of the task, using a percentage scale from 0% to 100%. Use the tool provided to send feedback to the agent, 
         including instructions addressed directly to him on how to improve the previous result, along with a 
         numerical rating. The instructions should be prepared in the language used by the user.
         
@@ -132,9 +132,9 @@ class Evaluation:
 
         :return: list of tools
         """
-        def send_feedback(instructions: str, rating: int) -> str:
+        def send_feedback(instructions: str, rating_percent: int) -> str:
             """Send feedback with evaluation result"""
-            self.handle_evaluation(instructions, rating)
+            self.handle_evaluation(instructions, rating_percent)
             return "OK. Feedback has been sent."
 
         tool = FunctionTool.from_defaults(fn=send_feedback)

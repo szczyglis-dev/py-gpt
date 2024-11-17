@@ -43,9 +43,9 @@ class Agent:
                 "slider": True,
                 "label": "agent.llama.loop.score",
                 "min": 0,
-                "max": 10,
+                "max": 100,
                 "step": 1,
-                "value": 6,
+                "value": 75,
                 "multiplier": 1,
             },
         }
