@@ -82,8 +82,8 @@ class Llama:
         """End of run"""
         # self.update()  # update status
         self.iteration = 0  # reset iteration
+        self.eval_step = 0  # reset evaluation step
         self.window.controller.agent.flow.stop = False  # reset stop flag
-        self.window.ui.status(trans('status.finished'))  # show info
         if self.window.core.config.get("agent.goal.notify"):
             self.window.ui.tray.show_msg(
                 trans("notify.agent.goal.title"),
@@ -97,15 +97,18 @@ class Llama:
         :param ctx: CtxItem
         """
         if not self.window.core.config.get("agent.llama.loop.enabled"):
+            self.flow_end()
             return  # abort if loop is disabled
 
         # check if not stopped
         if self.is_stopped():
+            self.flow_end()
             return
 
         # check max steps
         max_steps = int(self.window.core.config.get("agent.llama.max_eval"))
         if max_steps != 0 and self.get_eval_step() >= max_steps:
+            self.flow_end()
             return  # abort if max steps reached
 
         # eval step++
@@ -116,16 +119,6 @@ class Llama:
         context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
         self.window.ui.status(trans('status.evaluating'))  # show info
         self.window.core.bridge.loop_next(context)
-
-    def on_evaluate(self, instruction: str, score: int):
-        """
-        On evaluate callback
-
-        :param instruction: instruction
-        :param score: score
-        """
-        context = BridgeContext()
-        print(instruction, score)
 
     def update(self):
         """Update agent status"""

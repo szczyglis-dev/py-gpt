@@ -106,6 +106,7 @@ class Response(QObject):
         if msg:
             status = msg
         self.window.ui.status(status)
+        self.window.controller.agent.llama.flow_end()
         self.window.controller.chat.common.unlock_input()  # unlock input
 
     @Slot(object)
@@ -207,10 +208,6 @@ class Response(QObject):
         if ctx.extra is None or (type(ctx.extra) == dict and "agent_finish" not in ctx.extra):
             self.window.ui.status(trans("status.agent.reasoning"))
             self.window.controller.chat.common.lock_input()  # lock input, re-enable stop button
-
-        # agent auto-continue, TODO: implement continue mode in future (?) - not used now
-        if self.window.core.config.get("mode") == "agent_llama":
-            self.window.controller.agent.llama.flow_continue(ctx)  # continue llama flow
 
         if ctx.extra is not None and (type(ctx.extra) == dict and "agent_finish" in ctx.extra):
             self.window.controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
