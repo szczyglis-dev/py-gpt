@@ -1228,6 +1228,20 @@
         "advanced": false,
         "tab": "llama"
     },
+    "agent.llama.append_eval": {
+        "section": "agent",
+        "description": "settings.agent.llama.append_eval.desc",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.llama.append_eval",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "llama"
+    },
     "agent.llama.verbose": {
         "section": "agent",
         "type": "bool",

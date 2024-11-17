@@ -1617,8 +1617,10 @@ class Patch:
             # < 2.4.14
             if old < parse_version("2.4.14"):
                 print("Migrating config from < 2.4.14...")
-                if 'prompt.agent.llama.eval' not in data:
-                    data["prompt.agent.llama.eval"] = self.window.core.config.get_base('prompt.agent.llama.eval')
+                if 'prompt.agent.llama.max_eval' not in data:
+                    data["prompt.agent.llama.max_eval"] = self.window.core.config.get_base('prompt.agent.llama.max_eval')
+                if 'prompt.agent.llama.append_eval' not in data:
+                    data["prompt.agent.llama.append_eval"] = self.window.core.config.get_base('prompt.agent.llama.append_eval')
                 if 'agent.llama.loop.enabled' not in data:
                     data["agent.llama.loop.enabled"] = self.window.core.config.get_base('agent.llama.loop.enabled')
                 if 'agent.llama.loop.score' not in data:

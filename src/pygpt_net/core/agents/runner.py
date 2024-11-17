@@ -414,7 +414,7 @@ class Runner:
             return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if score >= good_score != 0:
-            signals.on_end.emit(ctx, "{status_finished}. {score_label}: {score}%".format(
+            signals.on_end.emit(ctx, "{status_finished} {score_label}: {score}%".format(
                 status_finished=trans('status.finished'),
                 score_label=trans('eval.score'),
                 score=str(score)

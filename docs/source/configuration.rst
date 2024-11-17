@@ -225,6 +225,8 @@ The following basic options can be modified directly within the application:
 
 * ``Max evaluation steps in loop`` - Maximum evaluation steps to achieve the final result, set 0 to infinity
 
+* ``Append and compare previous evaluation prompt in next evaluation`` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
+
 * ``Verbose`` - enables verbose mode.
 
 **Legacy**

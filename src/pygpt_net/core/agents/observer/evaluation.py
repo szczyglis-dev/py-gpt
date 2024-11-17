@@ -75,9 +75,11 @@ class Evaluation:
         :return: last user input
         """
         input = ""
+        use_prev = self.window.core.config.get("agent.llama.append_eval", False)
         for ctx in history:
-            if (ctx.extra is not None
-                    and ("agent_input" in ctx.extra and not "agent_evaluate" in ctx.extra)):  # include also evaluation inputs
+            if ctx.extra is not None and "agent_input" in ctx.extra:
+                if not use_prev and "agent_evaluate" in ctx.extra:  # exclude evaluation inputs
+                        continue
                 if ctx.input:
                     input = ctx.input
         return input
