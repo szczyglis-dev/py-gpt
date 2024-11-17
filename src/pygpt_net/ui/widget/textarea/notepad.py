@@ -31,12 +31,17 @@ class NotepadWidget(QWidget):
         self.id = 1  # assigned in setup
         self.textarea = NotepadOutput(self.window)
         self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
+        self.opened = False
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea)
         layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+
+    def scroll_to_bottom(self):
+        """Scroll down"""
+        self.textarea.verticalScrollBar().setValue(self.textarea.verticalScrollBar().maximum())
 
     def setText(self, text: str):
         """

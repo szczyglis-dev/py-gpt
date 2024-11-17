@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
@@ -163,7 +163,7 @@ class Notepad:
         :return: current notepad index
         """
         if self.is_active():
-            tab = self.window.ui.tabs.get_current_tab()
+            tab = self.window.controller.ui.tabs.get_current_tab()
             if tab is not None:
                 return tab.data_id
         return 1
@@ -174,7 +174,7 @@ class Notepad:
 
         :return: True if notepad tab is active
         """
-        return self.window.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD
+        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD
 
     def open(self):
         """Open notepad"""
@@ -256,3 +256,19 @@ class Notepad:
             self.save(idx)
             return True
         return False
+
+    def on_open(self, tab_idx: int):
+        """
+        On open notepad tab
+
+        :param tab_idx: current tab idx
+        """
+        tab = self.window.controller.ui.tabs.get_current_tab()
+        if tab is None:
+            return
+        if tab.type == Tab.TAB_NOTEPAD:
+            idx = tab.data_id
+            if idx in self.window.ui.notepad:
+                if not self.window.ui.notepad[idx].opened:
+                    self.window.ui.notepad[idx].scroll_to_bottom()
+                    self.window.ui.notepad[idx].opened = True

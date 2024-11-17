@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 17:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 from PySide6.QtCore import QTimer
 
@@ -106,6 +106,7 @@ class Tabs:
         # check type
         if tab.type == Tab.TAB_NOTEPAD:
             self.window.controller.notepad.opened_once = True
+            self.window.controller.notepad.on_open(idx)
         elif tab.type == Tab.TAB_CHAT:
             pid_meta = self.window.core.ctx.output.get_meta(tab.pid)
             meta = self.window.core.ctx.get_meta_by_id(pid_meta)
