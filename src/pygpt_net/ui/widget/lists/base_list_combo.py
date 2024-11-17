@@ -11,9 +11,6 @@
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 
-from pygpt_net.ui.widget.option.combo import NoScrollCombo
-from pygpt_net.utils import trans
-
 class BaseListCombo(QWidget):
     def __init__(self, window=None, id: str = None):
         """
@@ -21,8 +18,6 @@ class BaseListCombo(QWidget):
 
         :param window: main window
         :param id: option id
-        :param parent_id: parent option id
-        :param option: option data
         """
         super(BaseListCombo, self).__init__(window)
         self.window = window
@@ -31,7 +26,7 @@ class BaseListCombo(QWidget):
         self.keys = []
         self.title = ""
         self.real_time = False
-        self.combo = NoScrollCombo()
+        self.combo = QComboBox()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.current_id = None
         self.initialized = False
