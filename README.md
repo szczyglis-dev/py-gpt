@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.13** | build: **2024.11.16** | Python: **>=3.10, <3.12**
+Release: **2.4.14** | build: **2024.11.17** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3630,6 +3630,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.14 (2024-11-17)**
+
+- Added a `Loop / evaluate` mode for Llama-index agents, allowing them to work autonomously in a loop and assess the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below a set value.
+
+- Updated layout: mode and model lists changed to comboboxes.
 
 **2.4.13 (2024-11-16)**
 
