@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 
 import os
@@ -22,13 +22,13 @@ from docker.errors import DockerException
 class IPythonInterpreter:
     def __init__(self, plugin = None):
         self.plugin = plugin
-        self.kernel_file = "pygpt_kernel.json"
+        self.kernel_file = ".interpreter.kernel.json"
         self.client = None
         self.container_name = "pygpt_ipython_kernel_container"
         self.image_name = "pygpt_ipython_kernel"
         self.initialized = False
         self.key = "19749810-8febfa748186a01da2f7b28c"
-        self.bind_address = "127.0.0.1"
+        self.bind_address = "0.0.0.0"
         self.conn_address = "127.0.0.1"
         self.ports = {
             "shell": 5555,
@@ -327,7 +327,7 @@ class IPythonInterpreter:
 
         :return: Kernel file path.
         """
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), "ipython", self.kernel_file)
+        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), self.kernel_file)
 
     def get_local_data_dir(self) -> str:
         """
