@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -104,6 +104,8 @@ class Mapping:
         nodes['prompt.mode.label'] = 'toolbox.mode.label'
         nodes['prompt.model.label'] = 'toolbox.model.label'
         nodes['preset.presets.label'] = 'toolbox.presets.label'
+        nodes['preset.agents.label'] = 'toolbox.agents.label'
+        nodes['preset.experts.label'] = 'toolbox.experts.label'
         # nodes['preset.presets.new'] = 'preset.new'
         # nodes['preset.clear'] = 'preset.clear'
         nodes['preset.use'] = 'preset.use'
@@ -111,6 +113,12 @@ class Mapping:
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
         nodes["indexes.label"] = "toolbox.indexes.label"
         nodes["llama_index.mode.label"] = "toolbox.llama_index.mode.label"
+        nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
+        nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"
+        nodes["agent.llama.loop.enabled"] = "toolbox.agent.llama.loop.enabled.label"
+        nodes["agent.iterations.label"] = "toolbox.agent.iterations.label"
+        nodes["agent.auto_stop"] = "toolbox.agent.auto_stop.label"
+        nodes["agent.continue"] = "toolbox.agent.continue.label"
         # nodes["indexes.new"] = "idx.new"
 
         # input
@@ -414,6 +422,7 @@ class Mapping:
         tooltips['icon.audio.input'] = 'icon.audio.input'
         tooltips['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
+        tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
 
         # menu tooltips
         menu_tooltips = {}

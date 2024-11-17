@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.ctx.reply import ReplyContext
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -23,6 +23,23 @@ class Llama:
         """
         self.window = window
         self.iteration = 0
+        self.eval_step = 0
+
+    def reset_eval_step(self):
+        """Reset evaluation step"""
+        self.eval_step = 0
+
+    def eval_step_next(self):
+        """Next evaluation step"""
+        self.eval_step += 1
+
+    def get_eval_step(self) -> int:
+        """
+        Get evaluation step
+
+        :return: evaluation step
+        """
+        return self.eval_step
 
     def flow_begin(self):
         """Run begin"""
@@ -72,6 +89,43 @@ class Llama:
                 trans("notify.agent.goal.title"),
                 trans("notify.agent.goal.content"),
             )
+
+    def on_finish(self, ctx: CtxItem):
+        """
+        Finish agent run
+
+        :param ctx: CtxItem
+        """
+        if not self.window.core.config.get("agent.llama.loop.enabled"):
+            return  # abort if loop is disabled
+
+        # check if not stopped
+        if self.is_stopped():
+            return
+
+        # check max steps
+        max_steps = int(self.window.core.config.get("agent.llama.max_eval"))
+        if max_steps != 0 and self.get_eval_step() >= max_steps:
+            return  # abort if max steps reached
+
+        # eval step++
+        self.eval_step_next()
+
+        context = BridgeContext()
+        context.ctx = ctx
+        context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
+        self.window.ui.status(trans('status.evaluating'))  # show info
+        self.window.core.bridge.loop_next(context)
+
+    def on_evaluate(self, instruction: str, score: int):
+        """
+        On evaluate callback
+
+        :param instruction: instruction
+        :param score: score
+        """
+        context = BridgeContext()
+        print(instruction, score)
 
     def update(self):
         """Update agent status"""

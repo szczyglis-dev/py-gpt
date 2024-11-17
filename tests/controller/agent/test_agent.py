@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
@@ -21,7 +21,7 @@ def test_setup(mock_window):
     agent = Agent(mock_window)
     mock_window.ui.add_hook = MagicMock()
     agent.setup()
-    mock_window.ui.add_hook.assert_called_once()
+    mock_window.ui.add_hook.assert_called()
 
 
 def test_hook_update(mock_window):

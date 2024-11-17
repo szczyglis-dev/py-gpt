@@ -7,7 +7,7 @@ sort_ini_file_script='
 sort_ini_file() {
     local ini_file="$1"
     first_line=$(sed -n "1p" "$ini_file")
-    (echo "$first_line"; sed "1d" "$ini_file" | sort) > "${ini_file}.sorted"
+    (echo "$first_line"; sed "1d;/^$/d" "$ini_file" | sort) > "${ini_file}.sorted"
     mv "${ini_file}.sorted" "$ini_file"
 }
 sort_ini_file "$0"

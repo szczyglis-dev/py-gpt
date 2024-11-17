@@ -53,6 +53,10 @@ p {{
     margin-top: 10px;
     margin-bottom: 0px;
 }}
+.msg-user .msg-extra {{
+    font-weight: bold;
+    padding-top: 5px;
+}}
 .msg-box {{
     padding: 5px;
     max-width: 100%;

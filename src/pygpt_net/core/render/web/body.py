@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 18:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
@@ -185,7 +185,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        return """<b>{prefix}{num}:</b> <a href="{url}">{url}</a>""". \
+        return """<b>{prefix}{num}:</b> <a href="{url}" title="{url}">{url}</a>""". \
             format(prefix=trans('chat.prefix.url'),
                    url=url,
                    num=num_str)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from .common import Common
@@ -38,12 +38,23 @@ class Agent:
                 "value": 3,
                 "multiplier": 1,
             },
+            "agent.llama.loop.score": {
+                "type": "int",
+                "slider": True,
+                "label": "agent.llama.loop.score",
+                "min": 0,
+                "max": 10,
+                "step": 1,
+                "value": 6,
+                "multiplier": 1,
+            },
         }
 
     def setup(self):
         """Setup agent controller"""
         # register hooks
         self.window.ui.add_hook("update.global.agent.iterations", self.hook_update)
+        self.window.ui.add_hook("update.global.agent.llama.loop.score", self.hook_update)
 
         # restore config
         self.reload()
@@ -70,6 +81,8 @@ class Agent:
 
     def reload(self):
         """Reload agent toolbox options"""
+        # ------- Agents (legacy) ------- #
+
         # auto-stop
         if self.window.core.config.get('agent.auto_stop'):
             self.window.ui.config['global']['agent.auto_stop'].setChecked(True)
@@ -90,6 +103,22 @@ class Agent:
             value=self.window.core.config.get('agent.iterations'),
         )
 
+        # ------- Llama agents ------- #
+
+        # loop
+        if self.window.core.config.get('agent.llama.loop.enabled'):
+            self.window.ui.config['global']['agent.llama.loop.enabled'].setChecked(True)
+        else:
+            self.window.ui.config['global']['agent.llama.loop.enabled'].setChecked(False)
+
+        # loop score
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="agent.llama.loop.score",
+            option=self.options["agent.llama.loop.score"],
+            value=self.window.core.config.get('agent.llama.loop.score'),
+        )
+
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
         Hook: on option update
@@ -105,6 +134,10 @@ class Agent:
 
         if key == 'agent.iterations':
             self.window.core.config.set(key, int(value))  # cast to int, if from text input
+            self.window.core.config.save()
+            self.update()
+        elif key == 'agent.llama.loop.score':
+            self.window.core.config.set(key, int(value))
             self.window.core.config.save()
             self.update()
 

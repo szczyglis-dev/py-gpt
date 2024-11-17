@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -92,7 +92,8 @@ class Output:
             self.window.core.history.append(ctx, "output")
 
         if self.window.controller.chat.common.can_unlock(ctx):
-            self.window.controller.chat.common.unlock_input()  # unlock input
+            if not self.window.controller.chat.common.stopped():
+                self.window.controller.chat.common.unlock_input()  # unlock input
 
     def post_handle(
             self,
@@ -130,7 +131,8 @@ class Output:
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
         if self.window.controller.chat.common.can_unlock(ctx):
-            self.window.controller.chat.common.unlock_input()  # unlock input
+            if not self.window.controller.chat.common.stopped():
+                self.window.controller.chat.common.unlock_input()  # unlock input
 
         # handle ctx name (generate title from summary if not initialized)
         if not reply and not internal:  # don't call if reply or internal mode

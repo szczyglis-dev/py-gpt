@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -1612,6 +1612,17 @@ class Patch:
                         and 'cmd.code_execute_file' in data['plugins']['cmd_code_interpreter']:
                     # remove
                     del data['plugins']['cmd_code_interpreter']['cmd.code_execute_file']
+                updated = True
+
+            # < 2.4.14
+            if old < parse_version("2.4.14"):
+                print("Migrating config from < 2.4.14...")
+                if 'prompt.agent.llama.eval' not in data:
+                    data["prompt.agent.llama.eval"] = self.window.core.config.get_base('prompt.agent.llama.eval')
+                if 'agent.llama.loop.enabled' not in data:
+                    data["agent.llama.loop.enabled"] = self.window.core.config.get_base('agent.llama.loop.enabled')
+                if 'agent.llama.loop.score' not in data:
+                    data["agent.llama.loop.score"] = self.window.core.config.get_base('agent.llama.loop.score')
                 updated = True
 
         # update file

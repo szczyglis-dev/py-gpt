@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import os
@@ -21,6 +21,7 @@ from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
 from pygpt_net.utils import trans
 
 from .agent import Agent
+from .agent_llama import AgentLlama
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
@@ -35,6 +36,7 @@ class Footer:
         """
         self.window = window
         self.agent = Agent(window)
+        self.agent_llama = AgentLlama(window)
         self.image = Image(window)
         self.indexes = Indexes(window)
         self.vision = Vision(window)
@@ -66,6 +68,7 @@ class Footer:
         # rows.addWidget(self.window.ui.nodes['temperature.label'])
         # rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.agent.setup())
+        rows.addWidget(self.agent_llama.setup())
         rows.addWidget(self.image.setup())
         # rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())

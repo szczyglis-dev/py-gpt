@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -47,6 +47,7 @@ class Input:
         :param force: force send
         """
         self.window.controller.agent.experts.unlock()  # unlock experts
+        self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
         if not force:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
 

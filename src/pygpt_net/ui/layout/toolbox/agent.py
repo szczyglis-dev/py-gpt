@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -30,35 +30,35 @@ class Agent:
 
         :return: QWidget
         """
-        # img variants
+        # iterations
         option = self.window.controller.agent.options["agent.iterations"]
         self.window.ui.nodes['agent.iterations.label'] = QLabel(trans("toolbox.agent.iterations.label"))
-        self.window.ui.config['global']['agent.iterations'] = \
+        self.window.ui.nodes['agent.iterations'] = \
             OptionSlider(
                 self.window,
                 'global',
                 'agent.iterations',
                 option,
             )
+        self.window.ui.config['global']['agent.iterations'] = self.window.ui.nodes['agent.iterations']
 
         # auto stop
-        self.window.ui.config['global']['agent.auto_stop'] = QCheckBox(trans("toolbox.agent.auto_stop.label"))
-        self.window.ui.config['global']['agent.auto_stop'].stateChanged.connect(
+        self.window.ui.nodes['agent.auto_stop'] = QCheckBox(trans("toolbox.agent.auto_stop.label"))
+        self.window.ui.nodes['agent.auto_stop'].stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_auto_stop(
                 self.window.ui.config['global']['agent.auto_stop'].isChecked())
         )
+        self.window.ui.config['global']['agent.auto_stop'] = self.window.ui.nodes['agent.auto_stop']
 
         # continue more
-        self.window.ui.config['global']['agent.continue'] = QCheckBox(trans("toolbox.agent.continue.label"))
-        self.window.ui.config['global']['agent.continue'].stateChanged.connect(
+        self.window.ui.nodes['agent.continue'] = QCheckBox(trans("toolbox.agent.continue.label"))
+        self.window.ui.nodes['agent.continue'].stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_continue(
                 self.window.ui.config['global']['agent.continue'].isChecked())
         )
-
-        # label
-        label = QLabel(trans("toolbox.agent.iterations.label"))
+        self.window.ui.config['global']['agent.continue'] = self.window.ui.nodes['agent.continue']
 
         # options
         cols = QHBoxLayout()
@@ -67,7 +67,7 @@ class Agent:
 
         # rows
         rows = QVBoxLayout()
-        rows.addWidget(label)
+        rows.addWidget(self.window.ui.nodes['agent.iterations.label'])
         rows.addWidget(self.window.ui.config['global']['agent.iterations'])
         rows.addLayout(cols)
 

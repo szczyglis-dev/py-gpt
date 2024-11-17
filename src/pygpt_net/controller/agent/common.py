@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 class Common:
@@ -59,6 +59,27 @@ class Common:
             self.disable_continue()
         else:
             self.enable_continue()
+
+    def enable_loop(self):
+        """Enable loop"""
+        self.window.core.config.set('agent.llama.loop.enabled', True)
+        self.window.core.config.save()
+
+    def disable_loop(self):
+        """Disable loop"""
+        self.window.core.config.set('agent.llama.loop.enabled', False)
+        self.window.core.config.save()
+
+    def toggle_loop(self, state: bool):
+        """
+        Toggle loop
+
+        :param state: state of checkbox
+        """
+        if not state:
+            self.disable_loop()
+        else:
+            self.enable_loop()
 
     def show_status(self):
         """Show agent status"""

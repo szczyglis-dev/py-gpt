@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import json
@@ -629,19 +629,26 @@ class Renderer(BaseRenderer):
         name = self.pids[pid].name_user
 
         if ctx.internal and ctx.input.startswith("[{"):
-            name = "System"
+            name = trans("msg.name.system")
+        if type(ctx.extra) is dict and "agent_evaluate" in ctx.extra:
+            name = trans("msg.name.evaluation")
 
+        extra = ""
+        if ctx.extra is not None and "footer" in ctx.extra:
+            extra = ctx.extra["footer"]
         html = (
             '<div class="msg-box msg-user" id="{msg_id}">'
             '<div class="name-header name-user">{name}</div>'
             '<div class="msg">'
             '{html}'
+            '<div class="msg-extra">{extra}</div>'
             '</div>'
             '</div>'
         ).format(
             msg_id=msg_id,
             name=name,
-            html=html
+            html=html,
+            extra=extra,
         )
 
         return html

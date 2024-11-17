@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 import time
@@ -107,8 +107,11 @@ class Bridge:
         Make call to provider
 
         :param context: Bridge context
-        :param extra: extra data  # TODO: object also
+        :param extra: extra data
         """
+        if self.window.controller.chat.common.stopped():
+            return False
+
         allowed_model_change = ["vision"]
         is_virtual = False
 
@@ -175,22 +178,41 @@ class Bridge:
         self.apply_rate_limit()  # apply RPM limit
         self.last_context = context  # store last context for call (debug)
 
+        if extra is None:
+            extra = {}
         # async worker
-        self.worker = BridgeWorker()
-        self.worker.window = self.window
+        self.worker = self.get_worker()
         self.worker.context = context
         self.worker.extra = extra
         self.worker.mode = mode
-
-        # response signals
-        self.worker.signals.on_step.connect(self.window.controller.chat.response.handle_append)
-        self.worker.signals.success.connect(self.window.controller.chat.response.handle_success)
-        self.worker.signals.error.connect(self.window.controller.chat.response.handle_failed)
 
         # some modes must be called synchronously
         if mode in self.sync_modes:
             self.worker.run()
             return True
+
+        # async call
+        self.window.threadpool.start(self.worker)
+        return True
+
+    def loop_next(self, context: BridgeContext, extra: dict = None) -> bool:
+        """
+        Make call to provider (loop next step)
+
+        :param context: Bridge context
+        :param extra: extra data
+        """
+        if self.window.controller.chat.common.stopped():
+            return False
+
+        if extra is None:
+            extra = {}
+
+        # async worker
+        self.worker = self.get_worker()
+        self.worker.context = context
+        self.worker.extra = extra
+        self.worker.mode = "loop_next"
 
         # async call
         self.window.threadpool.start(self.worker)
@@ -204,6 +226,9 @@ class Bridge:
         :param extra: extra data
         :return: response content
         """
+        if self.window.controller.chat.common.stopped():
+            return ""
+
         self.window.core.debug.info("Bridge quick call...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
@@ -215,6 +240,7 @@ class Bridge:
         if context.model is not None:
             # check if model is supported by chat API, if not then try to use llama-index or langchain call
             if not context.model.is_supported("chat"):
+
                 # tmp switch to: llama-index
                 if context.model.is_supported("llama_index"):
                     context.stream = False  # force disable stream
@@ -231,6 +257,7 @@ class Bridge:
                         self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
                         self.window.core.debug.error(e)
                     return ""
+
                 # tmp switch to: langchain
                 elif context.model.is_supported("langchain"):
                     context.stream = False
@@ -254,6 +281,22 @@ class Bridge:
             extra=extra,
         )
 
+    def get_worker(self):
+        """
+        Prepare worker
+
+        :return: BridgeWorker
+        """
+        worker = BridgeWorker()
+        worker.window = self.window
+        worker.signals.on_begin.connect(self.window.controller.chat.response.handle_begin)
+        worker.signals.on_step.connect(self.window.controller.chat.response.handle_append)
+        worker.signals.on_end.connect(self.window.controller.chat.response.handle_end)
+        worker.signals.on_evaluate.connect(self.window.controller.chat.response.handle_evaluate)
+        worker.signals.success.connect(self.window.controller.chat.response.handle_success)
+        worker.signals.error.connect(self.window.controller.chat.response.handle_failed)
+        return worker
+
     def apply_rate_limit(self):
         """Apply API calls RPM limit"""
         max_per_minute = 60
@@ -276,6 +319,9 @@ class BridgeSignals(QObject):
     """Bridge signals"""
     on_step = Signal(object)  # CtxItem
     on_cmd = Signal(str, object, object)  # plugin_name, CtxItem, request params
+    on_end = Signal(object, str)  # CtxItem, message
+    on_evaluate = Signal(str)  # message
+    on_begin = Signal(object, str)  # CtxItem, message
     success = Signal(bool, object, dict)  # status, BridgeContext, extra
     error = Signal(object)  # exception
 
@@ -315,6 +361,18 @@ class BridgeWorker(QObject, QRunnable):
             # Llama-index: agents
             elif self.mode == "agent_llama":
                 result = self.window.core.agents.runner.call(
+                    context=self.context,
+                    extra=self.extra,
+                    signals=self.signals,
+                )
+                if result:
+                    return  # don't emit any signals (handled in agent runner, step by step)
+                else:
+                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
+
+            # Loop: next step
+            elif self.mode == "loop_next":
+                result = self.window.core.agents.runner.run_next(
                     context=self.context,
                     extra=self.extra,
                     signals=self.signals,

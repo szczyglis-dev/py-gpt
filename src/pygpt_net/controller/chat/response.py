@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.17 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QObject
@@ -49,6 +49,8 @@ class Response(QObject):
                 self.window.ui.status(trans('status.error'))
         else:
             self.window.controller.chat.log_ctx(ctx, "output")  # log
+            if self.window.controller.chat.common.stopped():
+                return
 
         ctx.current = False  # reset current state
         stream = bridge_context.stream
@@ -61,7 +63,8 @@ class Response(QObject):
         # fix frozen chat
         if not status:
             self.window.controller.chat.render.tool_output_clear(ctx.meta)  # hide cmd waiting
-            self.window.controller.chat.common.unlock_input()  # unlock input
+            if not self.window.controller.chat.common.stopped():
+                self.window.controller.chat.common.unlock_input()  # unlock input
             return
 
         try:
@@ -88,7 +91,43 @@ class Response(QObject):
         """
         self.window.controller.chat.log("Output ERROR: {}".format(err))  # log
         self.window.controller.chat.handle_error(err)
+        self.window.controller.chat.common.unlock_input()  # unlock input
         print("Error in sending text: " + str(err))
+
+    @Slot(object)
+    def handle_end(self, ctx: CtxItem, msg: str = ""):
+        """
+        Handle Bridge end
+
+        :param ctx: CtxItem
+        :param msg: Message
+        """
+        status = trans("status.finished")
+        if msg:
+            status = msg
+        self.window.ui.status(status)
+        self.window.controller.chat.common.unlock_input()  # unlock input
+
+    @Slot(object)
+    def handle_begin(self, ctx: CtxItem, msg: str = ""):
+        """
+        Handle Bridge begin
+
+        :param ctx: CtxItem
+        :param msg: Message
+        """
+        self.window.controller.chat.common.lock_input()  # lock input
+        if msg:
+            self.window.ui.status(msg)
+
+    @Slot(str)
+    def handle_evaluate(self, msg: str):
+        """
+        Handle Bridge evaluate
+
+        :param msg: Message
+        """
+        self.window.ui.status(msg)
 
     @Slot(object)
     def handle_append(self, ctx: CtxItem):
@@ -97,6 +136,9 @@ class Response(QObject):
 
         :param ctx: CtxItem
         """
+        if self.window.controller.chat.common.stopped():
+            return
+
         # at first, handle previous context (user input) if not handled yet
         prev_ctx = ctx.prev_ctx
         stream = False
@@ -153,7 +195,7 @@ class Response(QObject):
         except Exception as e:
             self.window.controller.chat.log("Output ERROR: {}".format(e))  # log
             self.window.controller.chat.handle_error(e)
-            print("Error in sending text: " + str(e))
+            print("Error in append text: " + str(e))
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
@@ -169,3 +211,6 @@ class Response(QObject):
         # agent auto-continue, TODO: implement continue mode in future (?) - not used now
         if self.window.core.config.get("mode") == "agent_llama":
             self.window.controller.agent.llama.flow_continue(ctx)  # continue llama flow
+
+        if ctx.extra is not None and (type(ctx.extra) == dict and "agent_finish" in ctx.extra):
+            self.window.controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
