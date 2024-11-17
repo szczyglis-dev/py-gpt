@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSp
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.experts import ExpertsEditor
 from pygpt_net.utils import trans
 
@@ -94,8 +95,8 @@ class Preset(BaseConfigDialog):
             "vision",
             "langchain",
             "llama_index",
-            "agent",
             "agent_llama",
+            "agent",
             "expert",
         ]
         rows_mode = QVBoxLayout()
@@ -111,13 +112,13 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
 
         # functions label
-        self.window.ui.nodes['preset.tool.function.label.all'] = QLabel(
+        self.window.ui.nodes['preset.tool.function.label.all'] = HelpLabel(
             trans("preset.tool.function.tip.all"))
         self.window.ui.nodes['preset.tool.function.label.all'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['preset.tool.function.label.assistant'] = QLabel(
+        self.window.ui.nodes['preset.tool.function.label.assistant'] = HelpLabel(
             trans("preset.tool.function.tip.assistant"))
         self.window.ui.nodes['preset.tool.function.label.assistant'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['preset.tool.function.label.agent_llama'] = QLabel(
+        self.window.ui.nodes['preset.tool.function.label.agent_llama'] = HelpLabel(
             trans("preset.tool.function.tip.agent_llama"))
         self.window.ui.nodes['preset.tool.function.label.agent_llama'].setAlignment(Qt.AlignCenter)
 
