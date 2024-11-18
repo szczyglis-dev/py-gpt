@@ -573,7 +573,7 @@ class Plugin(BasePlugin):
             self.worker.websearch = self.websearch
 
             # signals (base handlers)
-            self.worker.signals.finished.connect(self.handle_finished)
+            self.worker.signals.finished_more.connect(self.handle_finished_more)
             self.worker.signals.log.connect(self.handle_log)
             self.worker.signals.debug.connect(self.handle_debug)
             self.worker.signals.status.connect(self.handle_status)

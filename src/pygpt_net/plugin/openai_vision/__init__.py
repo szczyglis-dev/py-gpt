@@ -85,7 +85,7 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "analyze_image_attachment",
-            instruction="analyze the attached image using vision model (image has been already sent as an attachment)",
+            instruction="the function sends the user's image to the vision model and requests an image analysis. Use this function whenever the user asks for an analysis of a given image. The image will be automatically uploaded during the execution of the function.",
             params=[
                 {
                     "name": "prompt",
@@ -343,6 +343,7 @@ class Plugin(BasePlugin):
         # append vision prompt only if vision is provided or enabled
         if not self.is_vision_provided():
             return prompt
+        return prompt
 
         # append vision prompt
         if not self.get_option_value("replace_prompt"):

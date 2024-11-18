@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.11.18 05:00:00                  #
 # ================================================== #
 
 import serial
@@ -67,8 +67,7 @@ class Worker(BaseWorker):
 
         # send response
         if len(responses) > 0:
-            for response in responses:
-                self.reply(response)
+            self.reply_more(responses)
 
         if self.msg is not None:
             self.status(self.msg)

@@ -1627,6 +1627,24 @@ class Patch:
                     data["agent.llama.loop.score"] = self.window.core.config.get_base('agent.llama.loop.score')
                 updated = True
 
+            # < 2.4.15
+            if old < parse_version("2.4.15"):
+                print("Migrating config from < 2.4.15...")
+                data["interpreter.auto_clear"] = False
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.ipython_execute_new' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute_new']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.sys_exec' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.sys_exec']
+                updated = True
+
         # update file
         migrated = False
         if updated:

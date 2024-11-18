@@ -528,7 +528,7 @@ class Command:
         :return: True if enabled
         """
         disabled_modes = [
-            # "llama_index",
+            "llama_index",
             "langchain",
             "completion",
         ]

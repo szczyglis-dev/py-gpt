@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 05:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -147,8 +147,7 @@ class Worker(BaseWorker):
 
         # send response
         if len(responses) > 0:
-            for response in responses:
-                self.reply(response, self.get_extra_data())
+            self.reply_more(responses)
 
         if self.msg is not None:
             self.status(self.msg)

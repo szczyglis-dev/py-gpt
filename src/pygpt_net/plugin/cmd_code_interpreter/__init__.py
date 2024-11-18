@@ -418,7 +418,7 @@ class Plugin(BasePlugin):
                     cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
                                           "ANY command to \"command\" param, current workdir is: {}".format(cwd)
                 if item == "ipython_execute" or item == "ipython_execute_new":
-                    cmd["instruction"] += ("\nIPython works in Docker container: /data is the container's workdir - "
+                    cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
                                            "directory is bound in host machine to: {}").format(ipython_data)
                 data['cmd'].append(cmd)  # append command
 
