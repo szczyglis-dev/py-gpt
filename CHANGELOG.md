@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.15 (2024-11-18)
+
+- Vision analysis added to all modes.
+- Added commands for the Vision plugin: image analysis from an attachment, screenshot analysis, camera image analysis - performed in the background in every mode, without switching to vision mode.
+- Improved execution of multiple commands at once..
+- Improved integration with IPython and extended instructions for the model.
+- Other fixes and improvements.
+
 ## 2.4.14 (2024-11-17)
 
 - Added a `Loop / evaluate` mode for Llama-index agents, allowing them to work autonomously in a loop and evaluates the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below expected value.

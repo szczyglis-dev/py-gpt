@@ -71,7 +71,7 @@ class Stream:
                     if chunk_type == "api_chat":
                         if chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
                             response = chunk.choices[0].delta.content
-                        elif chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
+                        if chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
                             tool_chunks = chunk.choices[0].delta.tool_calls
                             for tool_chunk in tool_chunks:
                                 if len(tool_calls) <= tool_chunk.index:
