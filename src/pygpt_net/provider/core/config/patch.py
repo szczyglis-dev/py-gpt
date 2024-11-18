@@ -1643,8 +1643,8 @@ class Patch:
                         and 'cmd.sys_exec' in data['plugins']['cmd_code_interpreter']:
                     # remove
                     del data['plugins']['cmd_code_interpreter']['cmd.sys_exec']
-                if 'cmd_mouse_position' in data['plugins']:
-                    del data['plugins']['cmd_mouse_position']
+                if 'cmd_mouse_control' in data['plugins']:
+                    del data['plugins']['cmd_mouse_control']
                 updated = True
 
         # update file
