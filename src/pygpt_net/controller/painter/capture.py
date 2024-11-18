@@ -118,15 +118,6 @@ class Capture:
                 y_out = dy
             x_rot, y_rot = rotate_point(x_out, y_out, rotation_angle)
             outline_arrow_points.append((x_rot + tip_x, y_rot + tip_y))
-
-        halo_radius = size * 2
-        halo_bbox = (
-            int(tip_x - halo_radius),
-            int(tip_y - halo_radius),
-            int(tip_x + halo_radius),
-            int(tip_y + halo_radius)
-        )
-        draw_cursor.ellipse(halo_bbox, fill=halo_color)
         draw_cursor.polygon(outline_arrow_points, fill=outline_color)
         draw_cursor.polygon(rotated_arrow_points, fill=cursor_color)
 
@@ -169,7 +160,7 @@ class Capture:
                     sct_img = sct.grab(monitor)
                     mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
 
-            self.attach(name, path, 'screenshot')
+            self.attach(name, path, 'screenshot', silent=silent)
 
             if not silent:
                 self.window.controller.painter.open(path)
@@ -211,13 +202,14 @@ class Capture:
             print("Image capture exception", e)
             self.window.core.debug.log(e)
 
-    def attach(self, name: str, path: str, type: str = 'drawing'):
+    def attach(self, name: str, path: str, type: str = 'drawing', silent: bool = False):
         """
         Attach image to attachments
 
         :param name: image name
         :param path: image path
         :param type: capture type (drawing, screenshot)
+        :param silent: silent mode
         """
         mode = self.window.core.config.get('mode')
         if type == 'drawing':
@@ -231,4 +223,6 @@ class Capture:
         # make attachment
         self.window.core.attachments.new(mode, title, path, False)
         self.window.core.attachments.save()
-        self.window.controller.attachment.update()
+
+        if not silent:
+            self.window.controller.attachment.update()
