@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.16 05:00:00                  #
 # ================================================== #
+import os
 
 from PySide6.QtCore import Slot
 
@@ -126,7 +127,7 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "ipython_execute",
-            instruction="execute Python code in IPython interpreter (in current kernel) and get output",
+            instruction="execute Python code in IPython interpreter (in current kernel) and get output.",
             params=[
                 {
                     "name": "code",
@@ -141,7 +142,7 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "ipython_execute_new",
-            instruction="execute Python code in IPython interpreter (in new kernel) and get output",
+            instruction="execute Python code in IPython interpreter (in new kernel) and get output.",
             params=[
                 {
                     "name": "code",
@@ -300,7 +301,7 @@ class Plugin(BasePlugin):
         )
         self.add_cmd(
             "sys_exec",
-            instruction="execute ANY system command, bash script or app in user's environment",
+            instruction="execute ANY system command, script or app in user's environment. Do not use this command to install Python libraries, use IPython environment and IPython commands instead.",
             params=[
                 {
                     "name": "command",
@@ -406,6 +407,7 @@ class Plugin(BasePlugin):
         """
         # get current working directory
         cwd = self.window.core.config.get_user_dir('data')
+        ipython_data = os.path.join(cwd, 'ipython')
         if self.get_option_value("sandbox_docker"):
             cwd = "/data (in docker sandbox)"
 
@@ -414,7 +416,10 @@ class Plugin(BasePlugin):
                 cmd = self.get_cmd(item)
                 if self.get_option_value("auto_cwd") and item == "sys_exec":
                     cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                          "ANY command to \"command\" param, current working directory: {}".format(cwd)
+                                          "ANY command to \"command\" param, current workdir is: {}".format(cwd)
+                if item == "ipython_execute" or item == "ipython_execute_new":
+                    cmd["instruction"] += ("\nIPython works in Docker container: /data is the container's workdir - "
+                                           "directory is bound in host machine to: {}").format(ipython_data)
                 data['cmd'].append(cmd)  # append command
 
     @Slot(object, str)
@@ -496,7 +501,7 @@ class Plugin(BasePlugin):
             self.worker.ctx = ctx
 
             # signals (base handlers)
-            self.worker.signals.finished.connect(self.handle_finished)
+            self.worker.signals.finished_more.connect(self.handle_finished_more)
             self.worker.signals.log.connect(self.handle_log)
             self.worker.signals.debug.connect(self.handle_debug)
             self.worker.signals.status.connect(self.handle_status)
