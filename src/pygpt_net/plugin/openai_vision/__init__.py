@@ -343,11 +343,7 @@ class Plugin(BasePlugin):
         # append vision prompt only if vision is provided or enabled
         if not self.is_vision_provided():
             return prompt
-        return prompt
-
-        # append vision prompt
-        if not self.get_option_value("replace_prompt"):
-            prompt += "\n" + self.get_option_value("prompt")
+        prompt = "Image attachment has been already sent.\n\n" + prompt
         return prompt
 
     def on_pre_prompt(self, prompt: str) -> str:
