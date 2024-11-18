@@ -6,18 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 import json
 import ssl
+
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
+from .config import Config
 from .worker import Worker
 
 
@@ -27,95 +29,16 @@ class Plugin(BasePlugin):
         self.id = "cmd_api"
         self.name = "Command: API calls"
         self.description = "Provides the ability to make external API calls"
+        self.prefix = "API"
         self.order = 100
         self.use_locale = True
         self.worker = None
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """Initialize options"""
-        keys = {
-            "enabled": "bool",
-            "name": "text",
-            "instruction": "textarea",
-            "get_params": "textarea",
-            "post_params": "textarea",
-            "post_json": "textarea",
-            "headers": "textarea",
-            "type": {
-                "type": "combo",
-                "keys": [
-                    {"GET": "GET"},
-                    {"POST": "POST"},
-                    {"POST_JSON": "POST_JSON"},
-                ],
-            },
-            "endpoint": "textarea",
-        }
-        items = [
-            {
-                "enabled": True,
-                "name": "search_wiki",
-                "instruction": "send API call to Wikipedia to search pages by query",
-                "get_params": "query, limit",
-                "post_params": "",
-                "post_json": "",
-                "headers": "",
-                "type": "GET",
-                "endpoint": 'https://en.wikipedia.org/w/api.php?action=opensearch&limit={limit}&format=json&search={query}',
-            },
-        ]
-        desc = "Add your custom API calls here"
-        tooltip = "See the documentation for more details about examples, usage and list of predefined placeholders"
-        self.add_option(
-            "cmds",
-            type="dict",
-            value=items,
-            label="Your custom API calls",
-            description=desc,
-            tooltip=tooltip,
-            keys=keys,
-        )
-        self.add_option(
-            "disable_ssl",
-            type="bool",
-            value=False,
-            label="Disable SSL verify",
-            description="Disables SSL verification when making calls to API",
-            tooltip="Disable SSL verify",
-        )
-        self.add_option(
-            "timeout",
-            type="int",
-            value=5,
-            label="Timeout",
-            description="Connection timeout (seconds)",
-            tooltip="Connection timeout (seconds)",
-        )
-        self.add_option(
-            "user_agent",
-            type="text",
-            value="Mozilla/5.0",
-            label="User agent",
-            description="User agent to use when making requests, default: Mozilla/5.0",
-            tooltip="User agent to use when making requests",
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """
@@ -188,26 +111,15 @@ class Plugin(BasePlugin):
             return
 
         try:
-            # worker
-            self.worker = Worker()
-            self.worker.plugin = self
-            self.worker.cmds = my_commands
-            self.worker.ctx = ctx
+            worker = Worker()
+            worker.from_defaults(self)
+            worker.cmds = my_commands
+            worker.ctx = ctx
 
-            # signals (base handlers)
-            self.worker.signals.finished.connect(self.handle_finished)
-            self.worker.signals.log.connect(self.handle_log)
-            self.worker.signals.debug.connect(self.handle_debug)
-            self.worker.signals.status.connect(self.handle_status)
-            self.worker.signals.error.connect(self.handle_error)
-
-            # check if async allowed
-            if not self.window.core.dispatcher.async_allowed(ctx):
-                self.worker.run()
+            if not self.is_async(ctx):
+                worker.run()
                 return
-
-            # start
-            self.window.threadpool.start(self.worker)
+            worker.run_async()
 
         except Exception as e:
             self.error(e)
@@ -388,17 +300,3 @@ class Plugin(BasePlugin):
                 timeout=self.get_option_value('timeout'),
             ).read()
         return data
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        if self.is_threaded():
-            return
-        full_msg = '[API] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        if self.is_log():
-            print(full_msg)

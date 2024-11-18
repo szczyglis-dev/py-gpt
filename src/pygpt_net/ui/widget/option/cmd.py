@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.dictionary import OptionDict

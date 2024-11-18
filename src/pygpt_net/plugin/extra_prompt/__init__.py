@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
+
+from .config import Config
 
 
 class Plugin(BasePlugin):
@@ -19,52 +21,18 @@ class Plugin(BasePlugin):
         self.id = "extra_prompt"
         self.name = "System Prompt Extra (append)"
         self.description = "Appends extra system prompt from list to every system prompt."
+        self.prefix = "Prompt"
         self.iteration = 0
         self.prev_output = None
         self.order = 9998
         self.use_locale = True
         self.stop = False
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
-        # extra prompts
-        keys = {
-            "enabled": "bool",
-            "name": "text",
-            "prompt": "textarea",
-        }
-        items = []
-        desc = "Prompt that will be appended to every system prompt. " \
-               "All active prompts will be appended to the system prompt in the order they are listed here."
-        tooltip = desc
-        self.add_option(
-            "prompts",
-            type="dict",
-            value=items,
-            label="Prompts",
-            description=desc,
-            tooltip=tooltip,
-            keys=keys,
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        """Initialize options"""
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """

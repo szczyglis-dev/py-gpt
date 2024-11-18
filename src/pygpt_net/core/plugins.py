@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.28 07:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,7 @@ import io
 import os
 
 from pygpt_net.provider.core.plugin_preset.json_file import JsonFileProvider
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.utils import trans
 
 

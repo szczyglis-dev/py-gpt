@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
-# ================================================== #
-
 import copy
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QTimer
@@ -28,6 +17,7 @@ class BasePlugin(QObject):
         self.type = []  # Types:
         # audio.input, audio.output, image.input, image.output, schedule, text.input, text.output, vision
         self.description = ""
+        self.prefix = "Plugin"
         self.urls = {}
         self.options = {}
         self.initial_options = {}
@@ -289,16 +279,26 @@ class BasePlugin(QObject):
             return True
         return False
 
+    def is_async(self, ctx: CtxItem) -> bool:
+        """
+        Check if async execution is allowed
+
+        :param ctx: context (CtxItem)
+        :return: True if async execution is allowed
+        """
+        return self.window.core.dispatcher.async_allowed(ctx)
+
     def log(self, msg: str):
         """
         Log message to logger and console
 
         :param msg: message to log
         """
+        msg = "[{}] {}".format(self.prefix, msg)
         self.debug(msg)
         if self.is_threaded():
             return
-        self.window.ui.status(msg)
+        self.window.ui.status(msg.replace("\n", " "))
         if self.is_log():
             print(msg)
 
@@ -413,135 +413,3 @@ class BasePlugin(QObject):
         if self.window.core.config.get("mode") == "agent_llama":
             return True
         return False
-
-
-class BaseSignals(QObject):
-    finished = Signal(object, object, dict)  # response dict, ctx, extra_data
-    finished_more = Signal(list, object, dict)  # responses list, ctx, extra_data
-    debug = Signal(object)
-    destroyed = Signal()
-    error = Signal(object)
-    log = Signal(object)
-    started = Signal()
-    status = Signal(object)
-    stopped = Signal()
-
-
-class BaseWorker(QObject, QRunnable):
-    def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
-        self.signals = BaseSignals()
-        self.args = args
-        self.kwargs = kwargs
-        self.plugin = None
-        self.cmds = None
-        self.ctx = None
-
-    def debug(self, msg: str):
-        """
-        Emit debug signal
-
-        :param msg: debug message
-        """
-        if self.signals is not None and hasattr(self.signals, "debug"):
-            self.signals.debug.emit(msg)
-
-    def destroyed(self):
-        """Emit destroyed signal"""
-        if self.signals is not None and hasattr(self.signals, "destroyed"):
-            self.signals.destroyed.emit()
-
-    def error(self, err: any):
-        """
-        Emit error signal
-
-        :param err: error message
-        """
-        if self.signals is not None and hasattr(self.signals, "error"):
-            self.signals.error.emit(err)
-
-    def log(self, msg: str):
-        """
-        Emit log signal
-
-        :param msg: log message
-        """
-        if self.is_threaded():
-            return
-        if self.signals is not None and hasattr(self.signals, "log"):
-            self.signals.log.emit(msg)
-
-    @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
-    def response(self, response: dict, extra_data: dict = None):
-        """
-        Emit finished signal (deprecated)
-
-        :param response: response (dict)
-        :param extra_data: extra data
-        """
-        # show warning
-        self.debug("BaseWorker.response is deprecated from 2.1.29, use BaseWorker.reply instead")
-        self.reply(response, extra_data)
-
-    def reply(self, response: dict, extra_data: dict = None):
-        """
-        Emit finished signal (on reply from command output)
-
-        :param response: response (dict)
-        :param extra_data: extra data
-        """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
-        if self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished(response, self.ctx, extra_data)
-            return
-
-        if self.signals is not None and hasattr(self.signals, "finished"):
-            self.signals.finished.emit(response, self.ctx, extra_data)
-
-    def reply_more(self, responses: list, extra_data: dict = None):
-        """
-        Emit finished_more signal (on reply from command output, multiple responses)
-
-        :param responses: responses
-        :param extra_data: extra data
-        """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
-        if self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished(responses, self.ctx, extra_data)
-            return
-
-        if self.signals is not None and hasattr(self.signals, "finished_more"):
-            self.signals.finished_more.emit(responses, self.ctx, extra_data)
-
-    def started(self):
-        """Emit started signal"""
-        if self.signals is not None and hasattr(self.signals, "started"):
-            self.signals.started.emit()
-
-    def status(self, msg: str):
-        """
-        Emit status signal
-
-        :param msg: status message
-        """
-        if self.is_threaded():
-            return
-        if self.signals is not None and hasattr(self.signals, "status"):
-            self.signals.status.emit(msg)
-
-    def stopped(self):
-        """Emit stopped signal"""
-        if self.signals is not None and hasattr(self.signals, "stopped"):
-            self.signals.stopped.emit()
-
-    def is_threaded(self) -> bool:
-        """
-        Check if plugin is threaded
-
-        :return: True if threaded
-        """
-        if self.plugin is not None:
-            return self.plugin.is_threaded()
-        return False
-            

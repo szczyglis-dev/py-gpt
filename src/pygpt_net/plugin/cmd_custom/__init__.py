@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 05:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
+from .config import Config
 from .worker import Worker
 
 
@@ -22,58 +23,16 @@ class Plugin(BasePlugin):
         self.id = "cmd_custom"
         self.name = "Command: Custom Commands"
         self.description = "Provides availability to create and execute custom commands"
+        self.prefix = "Custom"
         self.order = 100
         self.use_locale = True
         self.worker = None
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """Initialize options"""
-        keys = {
-            "enabled": "bool",
-            "name": "text",
-            "instruction": "textarea",
-            "params": "textarea",
-            "cmd": "textarea",
-        }
-        items = [
-            {
-                "enabled": True,
-                "name": "example_cmd",
-                "instruction": "execute tutorial test command by replacing 'hello' and 'world' params with some funny "
-                               "words",
-                "params": "hello, world",
-                "cmd": 'echo "Response from {hello} and {world} at {_time}"',
-            },
-        ]
-        desc = "Add your custom commands here, use {placeholders} to receive params, you can also use predefined " \
-               "placeholders: {_time}, {_date}, {_datetime}, {_file}, {_home) "
-        tooltip = "See the documentation for more details about examples, usage and list of predefined placeholders"
-        self.add_option(
-            "cmds",
-            type="dict",
-            value=items,
-            label="Your custom commands",
-            description=desc,
-            tooltip=tooltip,
-            keys=keys,
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """
@@ -138,26 +97,15 @@ class Plugin(BasePlugin):
             return
 
         try:
-            # worker
-            self.worker = Worker()
-            self.worker.plugin = self
-            self.worker.cmds = my_commands
-            self.worker.ctx = ctx
+            worker = Worker()
+            worker.from_defaults(self)
+            worker.cmds = my_commands
+            worker.ctx = ctx
 
-            # signals (base handlers)
-            self.worker.signals.finished_more.connect(self.handle_finished_more)
-            self.worker.signals.log.connect(self.handle_log)
-            self.worker.signals.debug.connect(self.handle_debug)
-            self.worker.signals.status.connect(self.handle_status)
-            self.worker.signals.error.connect(self.handle_error)
-
-            # check if async allowed
-            if not self.window.core.dispatcher.async_allowed(ctx):
-                self.worker.run()
+            if not self.is_async(ctx):
+                worker.run()
                 return
-
-            # start
-            self.window.threadpool.start(self.worker)
+            worker.run_async()
 
         except Exception as e:
             self.error(e)
@@ -183,17 +131,3 @@ class Plugin(BasePlugin):
                 "description": param,
             })
         return params
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        if self.is_threaded():
-            return
-        full_msg = '[CMD] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        if self.is_log():
-            print(full_msg)

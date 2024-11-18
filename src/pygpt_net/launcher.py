@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 import sys
@@ -24,7 +24,7 @@ from pygpt_net.core.platforms import Platforms
 from pygpt_net.provider.agents.base import BaseAgent
 from pygpt_net.tools import BaseTool
 from pygpt_net.ui.main import MainWindow
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.provider.vector_stores.base import BaseStore

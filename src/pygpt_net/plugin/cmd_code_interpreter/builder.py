@@ -11,7 +11,7 @@
 
 from PySide6.QtCore import Slot, Signal, QObject
 
-from pygpt_net.plugin.base import BaseWorker, BaseSignals
+from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 from pygpt_net.utils import trans
 
 class Builder(QObject):

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
+from .config import Config
 from .worker import Worker
 
 class Plugin(BasePlugin):
@@ -25,6 +26,7 @@ class Plugin(BasePlugin):
             "cmd.inline",
         ]
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
+        self.prefix = "Vision"
         self.order = 100
         self.use_locale = True
         self.prompt = ""
@@ -44,118 +46,12 @@ class Plugin(BasePlugin):
         ]
         self.disabled_mode_switch = ["vision", "agent", "agent_llama", "llama_index", "langchain"]
         self.worker = None
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
-        prompt = "IMAGE ANALYSIS: You are an expert in analyzing photos. Each time I send you a photo, you will " \
-                 "analyze it as accurately as you can, answer all my questions, and offer any help on the subject " \
-                 "related to the photo.  Remember to always describe in great detail all the aspects related to the " \
-                 "photo, try to place them in the context of the conversation, and make a full analysis of what you " \
-                 "see. "
-        self.add_option(
-            "model",
-            type="combo",
-            use="models",
-            value="gpt-4o",
-            label="Model",
-            description="Model used to temporarily providing vision abilities, "
-                        "default: gpt-4o",
-            tooltip="Model",
-        )
-        self.add_option(
-            "prompt",
-            type="textarea",
-            value=prompt,
-            label="Prompt",
-            description="Prompt used for vision mode. It will append or replace current system prompt "
-                        "when using vision model",
-            tooltip="Prompt",
-            advanced=True,
-        )
-        self.add_option(
-            "replace_prompt",
-            type="bool",
-            value=False,
-            label="Replace prompt",
-            description="Replace whole system prompt with vision prompt against appending "
-                        "it to the current prompt",
-            tooltip="Replace whole system prompt with vision prompt against appending it to the "
-                    "current prompt",
-            advanced=True,
-        )
-        self.add_cmd(
-            "analyze_image_attachment",
-            instruction="the function sends the user's image to the vision model and requests an image analysis. Use this function whenever the user asks for an analysis of a given image. The image will be automatically uploaded during the execution of the function.",
-            params=[
-                {
-                    "name": "prompt",
-                    "type": "str",
-                    "description": "prompt with instructions for image analysis",
-                    "required": True,
-                },
-                {
-                    "name": "path",
-                    "type": "str",
-                    "description": "path to image, if not provided then current image will be used",
-                    "required": False,
-                },
-            ],
-            enabled=True,
-        )
-        self.add_cmd(
-            "analyze_screenshot",
-            instruction="make a screenshot and send it to analyze to vision model",
-            params=[
-                {
-                    "name": "prompt",
-                    "type": "str",
-                    "description": "prompt with instructions for image analysis",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-        )
-        self.add_cmd(
-            "analyze_camera_capture",
-            instruction="capture image from camera and send it to analyze to vision model",
-            params=[
-                {
-                    "name": "prompt",
-                    "type": "str",
-                    "description": "prompt with instructions for image analysis",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-        )
-        self.add_cmd(
-            "camera_capture",
-            instruction="capture image from webcam",
-            params=[],
-            enabled=True,
-        )
-        self.add_cmd(
-            "make_screenshot",
-            instruction="make desktop screenshot",
-            params=[],
-            enabled=True,
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        """Initialize options"""
+        self.config.from_defaults(self)
 
     def is_allowed(self, mode: str) -> bool:
         """
@@ -290,27 +186,14 @@ class Plugin(BasePlugin):
             self.window.controller.attachment.unlock()
 
         try:
-            # worker
             worker = Worker()
-            worker.plugin = self
-            worker.window = self.window
+            worker.from_defaults(self)
             worker.cmds = my_commands
             worker.ctx = ctx
-
-            # signals (base handlers)
-            worker.signals.finished_more.connect(self.handle_finished)
-            worker.signals.log.connect(self.handle_log)
-            worker.signals.debug.connect(self.handle_debug)
-            worker.signals.status.connect(self.handle_status)
-            worker.signals.error.connect(self.handle_error)
-
-            # check if async allowed
-            if not self.window.core.dispatcher.async_allowed(ctx):
+            if not self.is_async(ctx):
                 worker.run()
                 return
-
-            # start
-            self.window.threadpool.start(worker)
+            worker.run_async()
 
         except Exception as e:
             self.error(e)
@@ -428,17 +311,3 @@ class Plugin(BasePlugin):
 
         prompt = "Image attachment has been already sent.\n\n" + prompt
         return prompt
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        if self.is_threaded():
-            return
-        full_msg = '[Vision] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        if self.is_log():
-            print(full_msg)

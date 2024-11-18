@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+
+from .config import Config
 
 
 class Plugin(BasePlugin):
@@ -25,42 +26,19 @@ class Plugin(BasePlugin):
             "audio.control",
         ]
         self.description = "Provide voice control command execution within a conversation."
+        self.prefix = "Voice"
         self.input_text = None
         self.allowed_cmds = [
             "voice_cmd",
         ]
         self.order = 100
         self.use_locale = True
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """Initialize options"""
-        self.add_option(
-            "cmd_prefix",
-            type="textarea",
-            value="Execute voice command",
-            label="Magic prefix for voice commands",
-            description="Optional magic prefix required for voice commands, e.g. 'OK PyGPT', 'Execute voice command', etc.",
-            urls={
-                "Help": "https://pygpt.readthedocs.io/en/latest/accessibility.html",
-            },
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """

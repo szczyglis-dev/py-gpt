@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.16 12:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 import json
@@ -14,7 +14,7 @@ from urllib.parse import quote
 
 from PySide6.QtCore import Slot
 
-from pygpt_net.plugin.base import BaseWorker, BaseSignals
+from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
 class WorkerSignals(BaseSignals):

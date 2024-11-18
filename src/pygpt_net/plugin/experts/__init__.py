@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 05:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
+from .config import Config
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
@@ -19,6 +20,7 @@ class Plugin(BasePlugin):
         self.id = "experts"
         self.name = "Experts (inline)"
         self.description = "Enables inline experts in current mode."
+        self.prefix = "Experts"
         self.type = [
             "expert",
         ]
@@ -28,29 +30,14 @@ class Plugin(BasePlugin):
         self.order = 9998
         self.use_locale = True
         self.disallowed_modes = ["agent", "expert"]
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """
         Initialize options
         """
-        pass  # no options
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def is_allowed(self) -> bool:
         """

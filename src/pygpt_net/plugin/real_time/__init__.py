@@ -6,14 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
+
+from .config import Config
 
 
 class Plugin(BasePlugin):
@@ -23,69 +25,18 @@ class Plugin(BasePlugin):
         self.name = "Real Time"
         self.type = ["time"]
         self.description = "Appends current time and date to every system prompt."
+        self.prefix = "Time"
         self.allowed_cmds = [
             "get_time",
         ]
         self.order = 2
         self.use_locale = True
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
-        self.add_option(
-            "hour",
-            type="bool",
-            value=True,
-            label="Append time",
-            description="If enabled, current time will be appended to system prompt.",
-            tooltip="Hour will be appended to system prompt.",
-        )
-        self.add_option(
-            "date",
-            type="bool",
-            value=True,
-            label="Append date",
-            description="If enabled, current date will be appended to system prompt.",
-            tooltip="Date will be appended to system prompt.",
-        )
-
-        desc = "Template to append to system prompt.\n" \
-               "Placeholder {time} will be replaced with current date and time in real-time. "
-        tooltip = "Text to append to system prompt."
-        self.add_option(
-            "tpl",
-            type="textarea",
-            value="Current time is {time}.",
-            label="Template",
-            description=desc,
-            tooltip=tooltip,
-        )
-        # commands
-        self.add_cmd(
-            "get_time",
-            instruction="get current time and date",
-            params=[],
-            enabled=True,
-            description="Enable: Get current time and date.",
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        """Initialize options"""
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 import json
@@ -15,11 +15,12 @@ from datetime import datetime
 
 from PySide6.QtCore import Slot
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
+from .config import Config
 from .worker import Worker
 
 
@@ -30,6 +31,7 @@ class Plugin(BasePlugin):
         self.name = "Context history (calendar, inline)"
         self.type = ["cmd.inline"]
         self.description = "Provides real-time access to context history database"
+        self.prefix = "History"
         self.input_text = None
         self.allowed_cmds = [
             "get_ctx_list_in_date_range",
@@ -43,271 +45,12 @@ class Plugin(BasePlugin):
         self.order = 100
         self.use_locale = True
         self.worker = None
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """Initialize options"""
-        self.add_option(
-            "use_tags",
-            type="bool",
-            value=False,
-            label="Enable: using context @ ID tags",
-            description="When enabled, it allows to automatically retrieve context history using @ tags, "
-                        "e.g. use @123 in question to retrieve summary of context with ID 123",
-        )
-        self.add_option(
-            "model_summarize",
-            type="combo",
-            value="gpt-3.5-turbo",
-            label="Model",
-            description="Model used for summarize, default: gpt-3.5-turbo",
-            tooltip="Summarize model",
-            use="models",
-        )
-        self.add_option(
-            "summary_max_tokens",
-            type="int",
-            value=1500,
-            label="Max summary tokens",
-            description="Max tokens in output when generating summary",
-            min=0,
-            max=None,
-        )
-        self.add_option(
-            "ctx_items_limit",
-            type="int",
-            value=30,
-            label="Max contexts to retrieve",
-            description="Max items in context history list to retrieve in one query. 0 = no limit",
-            min=0,
-            max=None,
-        )
-        self.add_option(
-            "chunk_size",
-            type="int",
-            value=100000,
-            label="Per-context items content chunk size",
-            description="Per-context content chunk size (max characters per chunk)",
-            min=1,
-            max=None,
-        )
-        self.add_option(
-            "prompt_tag_system",
-            type="textarea",
-            value="ADDITIONAL CONTEXT: Use the following JSON summary of previous discussions as additional context, "
-                  "instead of using commands for retrieve content: {context}",
-            label="Prompt: tag_system",
-            description="Prompt for use @ tag (system)",
-            advanced=True,
-        )
-        self.add_option(
-            "prompt_tag_summary",
-            type="textarea",
-            value="You are an expert in context summarization. "
-                  "Please summarize the given discussion (ID: {id}) by addressing the query and preparing it to serve "
-                  "as additional context for a new discussion or to continue the current one: {query}",
-            label="Prompt: tag_summary",
-            description="Prompt for use @ tag (summary)",
-            advanced=True,
-        )
-
-        # commands
-        self.add_cmd(
-            "get_ctx_list_in_date_range",
-            instruction="get list of context history (previous conversations between you and me), using date-range "
-                        "syntax: \"@date(YYYY-MM-DD)\" for single day, \"@date(YYYY-MM-DD,)\" for date FROM, "
-                        "\"@date(,YYYY-MM-DD)\" for date TO, and \"@date(YYYY-MM-DD,YYYY-MM-DD)\" for date FROM-TO",
-            params=[
-                {
-                    "name": "range_query",
-                    "type": "str",
-                    "description": "range query",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows getting the list of context history (previous conversations)",
-        )
-        self.add_cmd(
-            "get_ctx_content_by_id",
-            instruction="get summarized content of context by its ID, use summary query to ask another "
-                        "model to summarize content, e.g. \"Summarize following discussion answering the query: (query)\"",
-            params=[
-                {
-                    "name": "id",
-                    "type": "int",
-                    "description": "context ID",
-                    "required": True,
-                },
-                {
-                    "name": "summary_query",
-                    "type": "str",
-                    "description": "query",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows getting summarized content of context with defined ID",
-        )
-        self.add_cmd(
-            "count_ctx_in_date",
-            instruction="count items of context history (previous conversations between us), by providing year, "
-                        "month, day or combination of them",
-            params=[
-                {
-                    "name": "year",
-                    "type": "int",
-                    "description": "year",
-                    "required": True,
-                },
-                {
-                    "name": "month",
-                    "type": "int",
-                    "description": "month",
-                    "required": True,
-                },
-                {
-                    "name": "day",
-                    "type": "int",
-                    "description": "day",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows counting contexts in date range",
-        )
-        self.add_cmd(
-            "get_day_note",
-            instruction="get day notes for date",
-            params=[
-                {
-                    "name": "year",
-                    "type": "int",
-                    "description": "year",
-                    "required": True,
-                },
-                {
-                    "name": "month",
-                    "type": "int",
-                    "description": "month",
-                    "required": True,
-                },
-                {
-                    "name": "day",
-                    "type": "int",
-                    "description": "day",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows retrieving day note for specific date",
-        )
-        self.add_cmd(
-            "add_day_note",
-            instruction="add day note",
-            params=[
-                {
-                    "name": "note",
-                    "type": "str",
-                    "description": "content",
-                    "required": True,
-                },
-                {
-                    "name": "year",
-                    "type": "int",
-                    "description": "year",
-                    "required": True,
-                },
-                {
-                    "name": "month",
-                    "type": "int",
-                    "description": "month",
-                    "required": True,
-                },
-                {
-                    "name": "day",
-                    "type": "int",
-                    "description": "day",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows adding day note for specific date",
-        )
-        self.add_cmd(
-            "update_day_note",
-            instruction="update day note",
-            params=[
-                {
-                    "name": "note",
-                    "type": "str",
-                    "description": "content",
-                    "required": True,
-                },
-                {
-                    "name": "year",
-                    "type": "int",
-                    "description": "year",
-                    "required": True,
-                },
-                {
-                    "name": "month",
-                    "type": "int",
-                    "description": "month",
-                    "required": True,
-                },
-                {
-                    "name": "day",
-                    "type": "int",
-                    "description": "day",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows updating day note for specific date",
-        )
-        self.add_cmd(
-            "remove_day_note",
-            instruction="remove day note",
-            params=[
-                {
-                    "name": "year",
-                    "type": "int",
-                    "description": "year",
-                    "required": True,
-                },
-                {
-                    "name": "month",
-                    "type": "int",
-                    "description": "month",
-                    "required": True,
-                },
-                {
-                    "name": "day",
-                    "type": "int",
-                    "description": "day",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="When enabled, it allows removing day note for specific date",
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def handle(self, event: Event, *args, **kwargs):
         """
@@ -464,27 +207,17 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        # worker
-        self.worker = Worker()
-        self.worker.plugin = self
-        self.worker.cmds = my_commands
-        self.worker.ctx = ctx
+        worker = Worker()
+        worker.from_defaults(self)
+        worker.cmds = my_commands
+        worker.ctx = ctx
 
-        # signals (base handlers)
-        self.worker.signals.updated.connect(self.handle_updated)
-        self.worker.signals.finished_more.connect(self.handle_finished_more)
-        self.worker.signals.log.connect(self.handle_log)
-        self.worker.signals.debug.connect(self.handle_debug)
-        self.worker.signals.status.connect(self.handle_status)
-        self.worker.signals.error.connect(self.handle_error)
+        worker.signals.updated.connect(self.handle_updated)
 
-        # check if async allowed
-        if not self.window.core.dispatcher.async_allowed(ctx):
-            self.worker.run()
+        if not self.is_async(ctx):
+            worker.run()
             return
-
-        # start
-        self.window.threadpool.start(self.worker)
+        worker.run_async()
 
     def get_day_note(self, year: int, month: int, day: int) -> str:
         """
@@ -637,17 +370,3 @@ class Plugin(BasePlugin):
                 self.error(e)
 
         return "".join(summary)
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        if self.is_threaded():
-            return
-        full_msg = '[History] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        if self.is_log():
-            print(full_msg)

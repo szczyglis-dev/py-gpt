@@ -6,16 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
 from datetime import datetime
 from croniter import croniter
 
 from pygpt_net.utils import trans
+
+from .config import Config
 
 
 class Plugin(BasePlugin):
@@ -28,77 +30,16 @@ class Plugin(BasePlugin):
         ]
         self.description = "Plugin provides cron-based job scheduling - " \
                            "you can schedule prompts to be sent at any time using cron-based syntax for task setup."
+        self.prefix = "Cron"
         self.order = 100
         self.use_locale = True
         self.timers = []
+        self.config = Config(self)
         self.init_options()
 
     def init_options(self):
         """Initialize options"""
-        keys = {
-            "enabled": "bool",
-            "crontab": "text",
-            "prompt": "textarea",
-            "preset": {
-                "type": "combo",
-                "use": "presets",
-                "keys": [],
-            },
-        }
-        items = [
-            {
-                "enabled": False,
-                "crontab": "30 9 * * *",
-                "prompt": "Hi! This prompt should be sent at 9:30 every day. What time is it?",
-                "preset": "_",
-            },
-        ]
-        desc = "Add your cron-style tasks here. They will be executed automatically at the times you specify in " \
-               "the cron-based job format. If you are unfamiliar with Cron, consider visiting the Cron Guru " \
-               "page for assistance."
-        tooltip = "Check out the tutorials about Cron or visit the Crontab Guru for help on how to use Cron syntax."
-        self.add_option(
-            "crontab",
-            type="dict",
-            value=items,
-            label="Your tasks",
-            description=desc,
-            tooltip=tooltip,
-            keys=keys,
-            urls={
-                "Crontab Guru": "https://crontab.guru",
-            },
-        )
-        self.add_option(
-            "new_ctx",
-            type="bool",
-            value=True,
-            label="Create a new context on job run",
-            description="If enabled, then a new context will be created on every run of the job",
-        )
-        self.add_option(
-            "show_notify",
-            type="bool",
-            value=True,
-            label="Show notification on job run",
-            description="If enabled, then a tray notification will be shown on every run of the job",
-        )
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
-
-    def attach(self, window):
-        """
-        Attach window
-
-        :param window: Window instance
-        """
-        self.window = window
+        self.config.from_defaults(self)
 
     def on_update(self):
         pass
@@ -237,17 +178,3 @@ class Plugin(BasePlugin):
         else:
             self.window.ui.plugin_addon['schedule'].setVisible(False)
             self.window.ui.plugin_addon['schedule'].setText("")
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        if self.is_threaded():
-            return
-        full_msg = '[CRON] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        if self.is_log():
-            print(full_msg)

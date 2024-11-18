@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
+
 import time
 
 from PySide6.QtCore import Slot, Signal
-from pygpt_net.plugin.base import BaseWorker, BaseSignals
+from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
 class WorkerSignals(BaseSignals):

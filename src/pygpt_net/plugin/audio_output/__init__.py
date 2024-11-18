@@ -6,16 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
 
-from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.audio_output.base import BaseProvider
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
+from .config import Config
 from .worker import Worker
 
 
@@ -26,24 +27,17 @@ class Plugin(BasePlugin):
         self.name = "Audio Output"
         self.type = ['audio.output']
         self.description = "Enables audio/voice output (speech synthesis)"
+        self.prefix = "Audio Output"
         self.input_text = None
         self.playback = None
         self.order = 1
         self.use_locale = True
         self.output_file = "output.mp3"
+        self.config = Config(self)
 
     def init_options(self):
         """Initialize options"""
-        self.add_option(
-            "provider",
-            type="combo",
-            value="openai_tts",
-            label="Provider",
-            description="Select audio output provider, default: OpenAI TTS",
-            tooltip="Select audio output provider",
-            keys=self.get_provider_options(),
-        )
-        # register provider options
+        self.config.from_defaults(self)
         self.init_provider()
 
     def init_provider(self):
@@ -80,14 +74,6 @@ class Plugin(BasePlugin):
         for id in providers:
             tabs[id] = providers[id].name
         return tabs
-
-    def setup(self) -> dict:
-        """
-        Return available config options
-
-        :return: config options
-        """
-        return self.options
 
     def setup_ui(self):
         """
@@ -174,9 +160,9 @@ class Plugin(BasePlugin):
         
         try:
             if text is not None and len(text) > 0:
-                # worker
                 worker = Worker()
-                worker.plugin = self
+                worker.from_defaults(self)
+                worker.ctx = ctx
                 worker.event = name
                 worker.cache_file = cache_file
                 worker.text = self.window.core.audio.clean_text(text)
@@ -184,11 +170,8 @@ class Plugin(BasePlugin):
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
                 worker.signals.stop.connect(self.handle_stop)
-                worker.signals.status.connect(self.handle_status)  # base handler
-                worker.signals.error.connect(self.handle_error)  # base handler
 
-                # start
-                self.window.threadpool.start(worker)
+                worker.run_async()
 
                 # only for manual reading
                 if name == Event.AUDIO_READ_TEXT:

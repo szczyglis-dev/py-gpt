@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 06:00:00                  #
+# Updated Date: 2024.11.18 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base import BasePlugin  # <-- every plugin must inherit from BasePlugin
+from pygpt_net.plugin.base.plugin import BasePlugin  # <-- every plugin must inherit from BasePlugin
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
 

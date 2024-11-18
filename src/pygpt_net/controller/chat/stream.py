@@ -107,7 +107,6 @@ class Stream:
                     elif chunk_type == "llama_chat":
                         if chunk.delta is not None:
                             response = str(chunk.delta)
-                        """
                         tool_chunks = chunk.message.additional_kwargs.get("tool_calls", [])
                         if tool_chunks:
                             for tool_chunk in tool_chunks:
@@ -122,9 +121,8 @@ class Stream:
                                             "arguments": args
                                         }
                                     }
-                            tool_calls.clear()
-                            tool_calls.append(tool_call)
-                            """
+                                tool_calls.clear()
+                                tool_calls.append(tool_call)
 
                     # raw text: llama-index and langchain completion
                     else:
