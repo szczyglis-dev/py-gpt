@@ -371,7 +371,7 @@ class IPythonInterpreter:
                     msg['content']['execution_state'] == 'idle'):
                 break
 
-        return self.remove_ansi(output)
+        return self.remove_ansi(output).strip()
 
     def restart_kernel(self) -> bool:
         """
@@ -460,28 +460,44 @@ class IPythonInterpreter:
             if self.initialized:
                 self.end()  # stop the client
 
-    def remove_ansi(self, text) -> str:
+    def remove_ansi(self, text):
         """
-        Clean the text from ANSI escape sequences.
+        Clean the text from ANSI escape sequences, carriage returns, and progress bars.
 
         :param text: Text to clean.
         :return: Cleaned text.
         """
-        ansi_escape = re.compile(
-            r'''
-            \x1B   # ESC
-            (?:    # 7-bit C1 Fe
-                [@-Z\\-_]
-            |      # or 8-bit C1 Fe
-                \[
-                [0-?]*   # Parameter bytes
-                [ -/]*   # Intermediate bytes
-                [@-~]    # Final byte
+        # Remove ANSI escape sequences
+        ansi_escape = re.compile(r'''
+            \x1B  # ESC
+            (?:   # Start of sequence
+                [@-Z\\-_]  # ESC [@ to ESC _ (7-bit C1 Control codes)
+            |     # or
+                \[  # ESC[
+                [0-?]*  # Parameter bytes
+                [ -/]*  # Intermediate bytes
+                [@-~]   # Final byte
             )
-            ''',
-            re.VERBOSE
-        )
-        return ansi_escape.sub('', text)
+        ''', re.VERBOSE)
+        text = ansi_escape.sub('', text)
+
+        # Split text into lines
+        lines = text.split('\n')
+
+        cleaned_lines = []
+        for line in lines:
+            # Handle carriage returns - keep only the text after the last '\r'
+            if '\r' in line:
+                line = line.split('\r')[-1]
+            # Optionally, remove progress bar lines by detecting lines containing box-drawing characters
+            # Skip the line if it contains box-drawing characters
+            if re.search(r'[\u2500-\u257F]', line):
+                continue  # Skip this line
+            # Append the cleaned line
+            cleaned_lines.append(line)
+        # Reconstruct the text
+        text = '\n'.join(cleaned_lines)
+        return text
 
     def attach_signals(self, signals):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -137,18 +137,20 @@ class Capture:
         img.save(save_path)
         return True
 
-    def screenshot(self, attach_cursor: bool = False):
+    def screenshot(self, attach_cursor: bool = False, silent: bool = False) -> str:
         """
         Make screenshot and append to attachments
 
         :param attach_cursor: True to with custom cursor
+        :param silent: Silent mode
         """
-        # switch to vision mode if needed
-        self.window.controller.chat.vision.switch_to_vision()
+        if not silent:
+            # switch to vision mode if needed
+            self.window.controller.chat.vision.switch_to_vision()
 
-        # clear attachments before capture if needed
-        if self.window.controller.attachment.is_capture_clear():
-            self.window.controller.attachment.clear(True, auto=True)
+            # clear attachments before capture if needed
+            if self.window.controller.attachment.is_capture_clear():
+                self.window.controller.attachment.clear(True, auto=True)
 
         try:
             # prepare filename
@@ -168,12 +170,13 @@ class Capture:
                     mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
 
             self.attach(name, path, 'screenshot')
-            self.window.controller.painter.open(path)
 
-            # show last capture time in status
-            dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
-            self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
-            return True
+            if not silent:
+                self.window.controller.painter.open(path)
+                # show last capture time in status
+                dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
+                self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
+            return path
 
         except Exception as e:
             print("Screenshot capture exception", e)

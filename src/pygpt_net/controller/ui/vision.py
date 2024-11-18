@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 class Vision:
@@ -18,31 +18,36 @@ class Vision:
         """
         self.window = window
 
+    def has_vision(self):
+        """
+        Check if vision is available
+
+        :return: True if vision is available
+        """
+        mode = self.window.core.config.get("mode")
+        if mode == 'img':
+            return False
+        if mode == 'vision':
+            return True
+        if self.window.controller.plugins.is_type_enabled('vision'):
+            return True
+        if self.is_vision_model() and mode in ["chat"]:
+            return True
+        return False
+
     def update(self):
         """Update vision options"""
-        mode = self.window.core.config.data['mode']
         if self.window.controller.painter.is_active():
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
         else:
-            # plugin: vision or vision model
-            if self.window.controller.plugins.is_type_enabled('vision'):
-                if mode == 'vision' or mode in self.window.controller.chat.vision.allowed_modes:
-                    self.window.controller.camera.setup()
-                    self.window.controller.camera.show_camera()
-                    if mode != 'vision':
-                        self.window.controller.chat.vision.show_inline()
-                else:
-                    self.window.controller.camera.hide_camera()
-                    self.window.controller.chat.vision.hide_inline()
-            # no-plugin
+            if self.has_vision():
+                self.window.controller.camera.setup()
+                self.window.controller.camera.show_camera()
+                self.window.controller.chat.vision.show_inline()
             else:
-                if mode != 'vision':
-                    self.window.controller.camera.hide_camera()
-                    self.window.controller.chat.vision.hide_inline()
-                else:
-                    self.window.controller.camera.setup()
-                    self.window.controller.camera.show_camera()
+                self.window.controller.camera.hide_camera()
+                self.window.controller.chat.vision.hide_inline()
 
     def is_vision_model(self) -> bool:
         """

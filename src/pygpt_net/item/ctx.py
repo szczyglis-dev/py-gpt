@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -28,9 +28,11 @@ class CtxItem:
         self.external_id = None
         self.stream = None
         self.cmds = []
+        self.cmds_before = []
         self.results = []
         self.urls = []
         self.images = []
+        self.images_before = []
         self.files = []
         self.attachments = []
         self.reply = False
@@ -55,8 +57,8 @@ class CtxItem:
         self.is_vision = False
         self.idx = 0
         self.first = False
-        self.live = False
-        self.agent_call = False
+        self.live = False  # True if is current flow (not loaded from DB)
+        self.agent_call = False # prevents plugin reply if True
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
@@ -66,6 +68,7 @@ class CtxItem:
         self.sub_call = False  # is sub call
         self.sub_reply = False  # sub call reply
         self.hidden = False  # hidden context
+        self.pid = 0
 
     def clear_reply(self):
         """Clear current reply output"""
@@ -76,6 +79,8 @@ class CtxItem:
         """Copy data from previous context reply to current context"""
         if self.prev_ctx is not None:
             self.urls = copy.deepcopy(self.prev_ctx.urls)
+            self.images = copy.deepcopy(self.prev_ctx.images_before)
+
 
     def add_doc_meta(self, meta: dict):
         """
@@ -138,6 +143,7 @@ class CtxItem:
             "results": self.results,
             "urls": self.urls,
             "images": self.images,
+            "images_before": self.images_before,
             "files": self.files,
             "attachments": self.attachments,
             "reply": self.reply,
@@ -188,6 +194,7 @@ class CtxItem:
         self.results = data.get("results", [])
         self.urls = data.get("urls", [])
         self.images = data.get("images", [])
+        self.images_before = data.get("images_before", [])
         self.files = data.get("files", [])
         self.attachments = data.get("attachments", [])
         self.reply = data.get("reply", False)

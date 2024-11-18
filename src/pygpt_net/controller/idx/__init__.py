@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -323,6 +323,14 @@ class Idx:
         """Force stop indexing"""
         print("Force stop indexing...")
         self.stop = True
+
+    def index_selected(self) -> bool:
+        """
+        Check if any index is selected
+
+        :return: True if selected
+        """
+        return self.current_idx is not None and self.current_idx != "_"
 
     def is_stopped(self) -> bool:
         """

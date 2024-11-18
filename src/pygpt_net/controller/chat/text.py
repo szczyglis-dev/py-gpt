@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.access.events import AppEvent
@@ -24,6 +24,7 @@ class Text:
         :param window: Window instance
         """
         self.window = window
+        self.ctx_pid = 0
 
     def send(
             self,
@@ -88,6 +89,8 @@ class Text:
         ctx.set_output(None, ai_name)
         ctx.prev_ctx = prev_ctx  # store previous context item if exists
         ctx.live = True
+        ctx.pid = self.ctx_pid  # store PID
+        self.ctx_pid += 1  # increment PID
 
         # if prev ctx is not empty, then copy input name to current ctx
         if prev_ctx is not None and prev_ctx.sub_call is True:  # sub_call = sent from expert
@@ -134,13 +137,21 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
+        # tool calls
+        disable_native_func_calls = False
+        if mode == "llama_index":
+            # check if index is selected
+            if self.window.controller.idx.index_selected():
+                disable_native_func_calls = True  # native func calls allowed only for LLM call, not the query engine
+
         # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
-            mode,
-            sys_prompt,
-            ctx,
-            reply,
-            internal,
+            mode=mode,
+            sys_prompt=sys_prompt,
+            ctx=ctx,
+            reply=reply,
+            internal=internal,
+            disable_native_tool_calls=disable_native_func_calls,
         )
 
         self.window.controller.chat.log("Appending input to chat window...")

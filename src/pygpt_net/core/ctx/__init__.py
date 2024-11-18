@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -1325,6 +1325,7 @@ class Ctx:
         prev_ctx = CtxItem()
         prev_ctx.urls = copy.deepcopy(ctx.urls)
         prev_ctx.images = copy.deepcopy(ctx.images)
+        prev_ctx.images_before = copy.deepcopy(ctx.images_before)
         prev_ctx.files = copy.deepcopy(ctx.files)
         prev_ctx.attachments = copy.deepcopy(ctx.attachments)
         prev_ctx.results = copy.deepcopy(ctx.results)

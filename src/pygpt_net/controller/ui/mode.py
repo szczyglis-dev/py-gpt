@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -209,10 +209,10 @@ class Mode:
         if mode in ["vision", "assistant"]:
             return True
 
-        if mode in ["img", "llama_index", "langchain", "agent_llama"]:
+        if mode in ["img"]:
             return False
 
-        if self.window.controller.ui.vision.is_vision_model():
+        if self.window.controller.ui.vision.has_vision():
             return True
 
         # event: UI: attachments
@@ -225,7 +225,11 @@ class Mode:
         return event.data['value']
 
     def is_chat_tab(self) -> bool:
-        """Check if current tab is chat"""
+        """
+        Check if current tab is chat
+
+        :return: True if chat tab
+        """
         return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
 
     def show_chat_footer(self):

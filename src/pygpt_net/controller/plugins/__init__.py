@@ -365,6 +365,19 @@ class Plugins:
         self.window.ui.nodes['chat.plugins'].setText(count_str)
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
+    def apply_cmds_all(self, ctx: CtxItem, cmds: list):
+        """
+        Apply all commands (inline or not)
+
+        :param ctx: context
+        :param cmds: commands
+        :return: results
+        """
+        if self.window.core.config.get("cmd"):
+            return self.apply_cmds(ctx, cmds)
+        else:
+            return self.apply_cmds_inline(ctx, cmds)
+
     def apply_cmds(self, ctx: CtxItem, cmds: list):
         """
         Apply commands

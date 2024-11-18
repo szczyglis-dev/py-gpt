@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import json
@@ -18,6 +18,7 @@ from llama_index.core.memory import ChatMemoryBuffer
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
+
 from .context import Context
 
 
@@ -216,15 +217,20 @@ class Chat:
             else:
                 response = chat_engine.chat(query)
         else:
+            # prepare tools (native calls if enabled)
+            tools = self.window.core.agents.tools.prepare(context, extra)
+
             # without index, use LLM as chat engine
             history.insert(0, self.context.add_system(system_prompt))
             history.append(self.context.add_user(query))
             if stream:
-                response = llm.stream_chat(
+                response = llm.stream_chat_with_tools(
+                    tools=tools,
                     messages=history,
                 )
             else:
-                response = llm.chat(
+                response = llm.chat_with_tools(
+                    tools=tools,
                     messages=history,
                 )
 
@@ -244,19 +250,32 @@ class Chat:
                         [],
                         model.id,
                     )  # calc from response
-                    ctx.set_output(str(response.response), "")
+                    output = response.response
+                    if output is None:
+                        output = ""
+                    ctx.set_output(output, "")
+                    print("output", output)
                     ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
                 # from LLM
                 if stream:
+                    # tools handled in stream output controller
                     ctx.stream = response  # chunk is in response.delta
                     ctx.input_tokens = input_tokens
                     ctx.set_output("", "")
                 else:
-                    ctx.set_output(str(response.message.content), "")
+                    # unpack tool calls
+                    tool_calls = llm.get_tool_calls_from_response(
+                        response, error_on_no_tool_call=False
+                    )
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
+                    output = response.message.content
+                    if output is None:
+                        output = ""
+                    ctx.set_output(output, "")
                     ctx.input_tokens = input_tokens
                     ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                        response.message.content,
+                        output,
                         [],
                         model.id,
                     ) # calc from response

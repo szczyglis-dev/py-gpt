@@ -178,7 +178,6 @@ class Mode:
         """Update mode"""
         self.select_default()  # set default mode
         self.select_current()  # select current mode on the list
-        self.window.controller.chat.vision.update()
 
     def reset_current(self):
         """Reset current setup"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import os
@@ -16,8 +16,8 @@ from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.access.events import AppEvent
-from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -29,6 +29,7 @@ class Attachment:
         :param window: Window instance
         """
         self.window = window
+        self.is_lock = False
 
     def setup(self):
         """Setup attachments"""
@@ -493,6 +494,36 @@ class Attachment:
             if os.path.exists(text):
                 return True
         return False
+
+    def lock(self):
+        """Lock attachment (disable clear)"""
+        self.is_lock = True
+
+    def unlock(self):
+        """Unlock attachment (enable clear)"""
+        self.is_lock = False
+
+    def is_locked(self) -> bool:
+        """
+        Return True if attachment is locked
+
+        :return: True if attachment is locked
+        """
+        return self.is_lock
+
+    def clear_allowed(self, ctx: CtxItem) -> bool:
+        """
+        Check if clear is allowed
+
+        :param ctx: context item
+        :return: True if clear is allowed
+        """
+        if not ctx.cmds:
+            return True
+        for item in ctx.cmds:
+            if item["cmd"] in ["analyze_image_attachment"]:
+                return False
+        return True
 
     def reload(self):
         """Reload attachments"""

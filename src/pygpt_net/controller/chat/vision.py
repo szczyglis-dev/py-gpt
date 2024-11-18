@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 22:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 class Vision:
@@ -25,25 +25,12 @@ class Vision:
             "langchain",
             "llama_index",
             "agent",
+            "agent_llama",
         ]
 
     def setup(self):
         """Set up UI"""
         pass
-
-    def toggle(self, value: bool, clear: bool = True):
-        """
-        Toggle inline vision
-
-        :param value: value of the checkbox
-        :param clear: clear attachments
-        """
-        if not value:
-            self.disable()  # disable vision
-        else:
-            self.enable()  # enable vision keep
-
-        self.window.controller.ui.update_tokens()  # update tokens
 
     def show_inline(self):
         """Show inline vision checkbox"""
@@ -52,24 +39,6 @@ class Vision:
     def hide_inline(self):
         """Hide inline vision checkbox"""
         self.window.ui.nodes['inline.vision'].setVisible(False)  # hide vision checkbox
-
-    def enable(self):
-        """Enable inline vision"""
-        self.is_enabled = True
-        self.window.ui.nodes['inline.vision'].setChecked(True)
-
-    def enabled(self) -> bool:
-        """
-        Check if inline vision is enabled
-
-        :return: True if enabled
-        """
-        return self.is_enabled
-
-    def disable(self):
-        """Disable inline vision"""
-        self.is_enabled = False
-        self.window.ui.nodes['inline.vision'].setChecked(False)
 
     def available(self):
         """Set vision content available"""
@@ -84,6 +53,8 @@ class Vision:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
+        if mode in ["agent", "agent_llama"]:
+            return  # disallow change in agent modes
         if mode == "chat" and "vision" in model_data.mode:
             return  # abort if vision is already allowed
         if mode == 'vision':
@@ -105,10 +76,3 @@ class Vision:
             return True
         return False
 
-    def update(self):
-        """Update vision content on mode change"""
-        mode = self.window.core.config.get('mode')
-        if mode in self.allowed_modes:
-            self.show_inline()
-        else:
-            self.hide_inline()

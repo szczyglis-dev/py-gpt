@@ -11,7 +11,7 @@
 
 import copy
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QTimer
 from typing_extensions import deprecated
 
 from pygpt_net.core.dispatcher import Event
@@ -329,6 +329,38 @@ class BasePlugin(QObject):
                     response["result"] = "OK"
                 else:
                     del response["context"]
+
+            self.window.core.dispatcher.reply(ctx)
+
+    @Slot(object, object, dict)
+    def handle_finished_more(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):
+        """
+        Handle finished response signal
+
+        :param responses: responses
+        :param ctx: context (CtxItem)
+        :param extra_data: extra data
+        """
+        # handle post-finishing operations
+        if isinstance(extra_data, dict):
+            if (ctx is None or not ctx.agent_call) or not self.is_threaded():
+                if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
+                    if "file_explorer" in extra_data["post_update"]:
+                        # update file explorer view
+                        self.window.controller.files.update_explorer()
+
+        # dispatch responses (reply)
+        for response in responses:
+            if ctx is not None:
+                ctx.results.append(response)
+                ctx.reply = True
+                if "context" in response:
+                    if self.window.core.config.get("ctx.use_extra"):
+                        ctx.extra_ctx = response["context"]
+                        response["result"] = "OK"
+                    else:
+                        del response["context"]
+
 
             self.window.core.dispatcher.reply(ctx)
 

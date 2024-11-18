@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
+from .worker import Worker
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
@@ -37,7 +38,12 @@ class Plugin(BasePlugin):
         self.allowed_cmds = [
             "camera_capture",
             "make_screenshot",
+            "analyze_image_attachment",
+            "analyze_screenshot",
+            "analyze_camera_capture",
         ]
+        self.disabled_mode_switch = ["vision", "agent", "agent_llama", "llama_index", "langchain"]
+        self.worker = None
         self.init_options()
 
     def init_options(self):
@@ -76,6 +82,51 @@ class Plugin(BasePlugin):
             tooltip="Replace whole system prompt with vision prompt against appending it to the "
                     "current prompt",
             advanced=True,
+        )
+        self.add_cmd(
+            "analyze_image_attachment",
+            instruction="analyze the attached image using vision model (image has been already sent as an attachment)",
+            params=[
+                {
+                    "name": "prompt",
+                    "type": "str",
+                    "description": "prompt with instructions for image analysis",
+                    "required": True,
+                },
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path to image, if not provided then current image will be used",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+        )
+        self.add_cmd(
+            "analyze_screenshot",
+            instruction="make a screenshot and send it to analyze to vision model",
+            params=[
+                {
+                    "name": "prompt",
+                    "type": "str",
+                    "description": "prompt with instructions for image analysis",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+        )
+        self.add_cmd(
+            "analyze_camera_capture",
+            instruction="capture image from camera and send it to analyze to vision model",
+            params=[
+                {
+                    "name": "prompt",
+                    "type": "str",
+                    "description": "prompt with instructions for image analysis",
+                    "required": True,
+                },
+            ],
+            enabled=True,
         )
         self.add_cmd(
             "camera_capture",
@@ -152,7 +203,11 @@ class Plugin(BasePlugin):
                 data['value'] = self.on_system_prompt(data['value'])
 
         elif name == Event.UI_ATTACHMENTS:
-            data['value'] = True  # allow render attachments UI elements
+            mode = data["mode"]
+            if mode in ["agent", "agent_llama"] and not self.window.core.config.get("cmd"):
+                pass
+            else:
+                data['value'] = True  # allow render attachments UI elements
 
         elif name == Event.UI_VISION:
             if self.is_allowed(data['mode']):
@@ -171,10 +226,22 @@ class Plugin(BasePlugin):
         ]:
             self.cmd_syntax(data)
 
-        elif name == Event.CMD_EXECUTE:
+        elif name in [
+            Event.CMD_INLINE,  # inline is allowed
+            Event.CMD_EXECUTE,
+        ]:
             self.cmd(
                 ctx,
                 data['commands'],
+            )
+
+        if name == Event.AGENT_PROMPT:
+            silent = False
+            if 'silent' in data and data['silent']:
+                silent = True
+            data['value'] = self.on_agent_prompt(
+                data['value'],
+                silent,
             )
 
     def cmd_syntax(self, data: dict):
@@ -183,12 +250,18 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
-        if not self.has_cmd("camera_capture") and not self.has_cmd("make_screenshot"):
-            return
         if self.has_cmd("camera_capture"):
-            data['cmd'].append(self.get_cmd("camera_capture"))  # append command
+            data['cmd'].append(self.get_cmd("camera_capture"))
+        """
         if self.has_cmd("make_screenshot"):
-            data['cmd'].append(self.get_cmd("make_screenshot"))  # append command
+            data['cmd'].append(self.get_cmd("make_screenshot"))
+        """
+        if self.has_cmd("analyze_image_attachment"):
+            data['cmd'].append(self.get_cmd("analyze_image_attachment"))
+        if self.has_cmd("analyze_screenshot"):
+            data['cmd'].append(self.get_cmd("analyze_screenshot"))
+        if self.has_cmd("analyze_camera_capture"):
+            data['cmd'].append(self.get_cmd("analyze_camera_capture"))
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -198,62 +271,49 @@ class Plugin(BasePlugin):
         :param cmds: commands dict
         """
         is_cmd = False
+        needed_lock = False
         my_commands = []
         for item in cmds:
             if item["cmd"] in self.allowed_cmds:
+                if item["cmd"] == "analyze_image_attachment":
+                    needed_lock = True
                 my_commands.append(item)
                 is_cmd = True
 
         if not is_cmd:
             return
 
-        responses = []
-        for item in my_commands:
-            response = None
+        # don't allow to clear attachments list
+        if needed_lock:
+            self.window.controller.attachment.lock()
+        else:
+            self.window.controller.attachment.unlock()
 
-            if item["cmd"] == "camera_capture" and self.has_cmd(item["cmd"]):
-                response = self.cmd_camera_capture(item)
+        try:
+            # worker
+            worker = Worker()
+            worker.plugin = self
+            worker.window = self.window
+            worker.cmds = my_commands
+            worker.ctx = ctx
 
-            elif item["cmd"] == "make_screenshot" and self.has_cmd(item["cmd"]):
-                response = self.cmd_make_screenshot(item)
+            # signals (base handlers)
+            worker.signals.finished_more.connect(self.handle_finished)
+            worker.signals.log.connect(self.handle_log)
+            worker.signals.debug.connect(self.handle_debug)
+            worker.signals.status.connect(self.handle_status)
+            worker.signals.error.connect(self.handle_error)
 
-            if response:
-                responses.append(response)
+            # check if async allowed
+            if not self.window.core.dispatcher.async_allowed(ctx):
+                worker.run()
+                return
 
-        # send response
-        if len(responses) > 0:
-            for response in responses:
-                self.reply(response, ctx)
+            # start
+            self.window.threadpool.start(worker)
 
-    def cmd_camera_capture(self, item: dict) -> dict:
-        """
-        Capture image from camera
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.prepare_request(item)
-        self.window.controller.camera.manual_capture(force=True)
-        response = {
-            "request": request,
-            "result": "OK",
-        }
-        return response
-
-    def cmd_make_screenshot(self, item: dict) -> dict:
-        """
-        Make desktop screenshot
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.prepare_request(item)
-        self.window.controller.painter.capture.screenshot()
-        response = {
-            "request": request,
-            "result": "OK",
-        }
-        return response
+        except Exception as e:
+            self.error(e)
 
     def prepare_request(self, item) -> dict:
         """
@@ -281,8 +341,7 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         # append vision prompt only if vision is provided or enabled
-        if not self.is_vision_provided() \
-                and not self.window.controller.chat.vision.enabled():
+        if not self.is_vision_provided():
             return prompt
 
         # append vision prompt
@@ -298,9 +357,11 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         # append vision prompt only if vision is provided or enabled
-        if not self.is_vision_provided() \
-                and not self.window.controller.chat.vision.enabled():
+        if not self.is_vision_provided():
             return prompt
+
+        if self.window.core.config.get("cmd"):
+            return prompt  # vision handled by command
 
         # replace vision prompt
         if self.get_option_value("replace_prompt"):
@@ -346,21 +407,30 @@ class Plugin(BasePlugin):
         :param mode: current mode
         :return: updated mode
         """
-        # abort if already in vision mode
-        if mode == 'vision':
+        # abort if already in vision mode or command enabled
+        if mode == "vision" or mode in self.disabled_mode_switch:
             return mode  # keep current mode
 
         # if already used in this ctx then keep vision mode
-        if self.window.controller.chat.vision.enabled():
+        if self.is_vision_provided():
             ctx.is_vision = True
             return 'vision'
 
-        if self.is_vision_provided():
-            self.window.controller.chat.vision.enable()
-            ctx.is_vision = True
-            return 'vision'  # jump to vision mode (only for this call)
-
         return mode  # keep current mode
+
+    def on_agent_prompt(self, prompt: str, silent: bool = False) -> str:
+        """
+        Event: AGENT_PROMPT
+
+        :param prompt: prompt
+        :param silent: silent mode (no logs)
+        :return: updated prompt
+        """
+        if not self.is_vision_provided():
+            return prompt
+
+        prompt = "Image attachment has been already sent.\n\n" + prompt
+        return prompt
 
     def log(self, msg: str):
         """

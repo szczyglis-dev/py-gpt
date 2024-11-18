@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -233,10 +233,6 @@ class Camera:
                 trans("vision.capture.manual.captured.success") + ' ' + dt_info
             )
 
-            # switch to attachments tab if needed (tmp: disabled)
-            if switch:
-                pass
-                # self.window.ui.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
             return True
 
         except Exception as e:
@@ -244,6 +240,40 @@ class Camera:
             self.window.core.debug.log(e)
             self.window.statusChanged.emit(trans('vision.capture.error'))
         return False
+
+    def capture_frame_save(self) -> str:
+        """
+        Capture frame and save 
+
+        :return: True if success
+        """
+        # capture frame
+        if not self.thread_started:
+            self.start()
+
+        path = ""
+        try:
+            # prepare filename
+            now = datetime.datetime.now()
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            name = 'cap-' + dt
+            path = os.path.join(
+                self.window.core.config.get_user_dir('capture'),
+                name + '.jpg'
+            )
+            # capture frame
+            compression_params = [
+                cv2.IMWRITE_JPEG_QUALITY,
+                int(self.window.core.config.get('vision.capture.quality'))
+            ]
+            frame = self.get_current_frame()
+            cv2.imwrite(path, frame, compression_params)
+            return path
+
+        except Exception as e:
+            print("Frame capture exception", e)
+            self.window.core.debug.log(e)
+        return path
 
     def show_camera(self):
         """Show camera"""

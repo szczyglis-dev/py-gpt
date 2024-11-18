@@ -102,8 +102,8 @@ class Worker(BaseWorker):
 
         # send response
         if len(responses) > 0:
-            for response in responses:
-                self.reply(response)
+            self.reply_more(responses)
+
 
     def cmd_ipython_execute_new(self, item: dict) -> dict:
         """

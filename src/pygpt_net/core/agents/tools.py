@@ -92,7 +92,7 @@ class Tools:
                             "cmd": name,
                             "params": kwargs,
                         }
-                        return self.window.controller.plugins.apply_cmds(
+                        return self.window.controller.plugins.apply_cmds_all(
                             ctx,  # current ctx
                             [cmd],  # commands
                         )

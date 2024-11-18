@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 03:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from httpx_socks import SyncProxyTransport
@@ -172,7 +172,7 @@ class Gpt:
         output = ""
         if mode == "completion":
             output = response.choices[0].text.strip()
-        elif mode == "chat" or mode == "vision":
+        elif mode in ["chat", "vision"]:
             if response.choices[0]:
                 if response.choices[0].message.content:
                     output = response.choices[0].message.content.strip()

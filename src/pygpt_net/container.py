@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -42,6 +42,7 @@ from pygpt_net.core.settings import Settings
 from pygpt_net.core.tabs import Tabs
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
+from pygpt_net.core.vision import Vision
 from pygpt_net.core.web import Web
 from pygpt_net.provider.gpt import Gpt
 
@@ -90,6 +91,7 @@ class Container:
         self.tabs = Tabs(window)
         self.tokens = Tokens(window)
         self.updater = Updater(window)
+        self.vision = Vision(window)
         self.web = Web(window)
 
     def init(self):

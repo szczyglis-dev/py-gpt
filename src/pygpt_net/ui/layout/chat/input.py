@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.09 21:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -134,12 +134,20 @@ class Input:
         self.window.ui.nodes['input.counter'] = QLabel("")
         self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
 
+        # inline vision
+        self.window.ui.nodes['inline.vision'] = HelpLabel(trans('inline.vision'))
+        self.window.ui.nodes['inline.vision'].setVisible(False)
+        self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
+
         # plugin audio input addon
         self.window.ui.plugin_addon['audio.input'] = AudioInput(self.window)
         self.window.ui.plugin_addon['audio.input.btn'] = AudioInputButton(self.window)
 
         header = QHBoxLayout()
         header.addWidget(self.window.ui.nodes['input.label'])
+        header.addWidget(self.window.ui.nodes['inline.vision'])
+        header.addStretch(1)
         header.addWidget(self.window.ui.plugin_addon['audio.input'])
         header.addWidget(self.window.ui.plugin_addon['audio.input.btn'])
         header.addWidget(self.window.ui.nodes['input.counter'], alignment=Qt.AlignRight)

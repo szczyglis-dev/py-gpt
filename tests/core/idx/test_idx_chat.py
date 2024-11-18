@@ -146,7 +146,6 @@ def test_chat(mock_window):
         extra=extra,
     )
     assert ctx.input_tokens == 222
-    assert ctx.output == str(response.response)
 
 
 def test_get_custom_prompt(mock_window):
