@@ -52,7 +52,6 @@ class Analyzer:
 
         # re-allow clearing attachments
         self.window.controller.attachment.unlock()
-        print(output)
         return output
 
     def from_screenshot(self, ctx: CtxItem, prompt: str) -> str:
@@ -126,12 +125,3 @@ class Analyzer:
             self.window.controller.attachment.clear(True, auto=True)
 
         return result
-
-    def analyze(self, text: str) -> str:
-        """
-        Analyze text
-
-        :param text: text to analyze
-        :return: analyzed text
-        """
-        return text

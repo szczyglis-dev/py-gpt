@@ -51,8 +51,10 @@ def test_reply(mock_window):
     ctx.prev_ctx = None
     ctx.sub_call = False
     ctx.agent_call = False
+    ctx.pid = 0
 
     prev_ctx = MagicMock()
+    dispatcher.reply_idx = 0
     dispatcher.window.core.ctx.as_previous = MagicMock(return_value=prev_ctx)
     dispatcher.window.core.ctx.update_item = MagicMock()
     dispatcher.window.controller.chat.input.send = MagicMock()

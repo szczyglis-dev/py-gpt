@@ -42,15 +42,10 @@ class Worker(BaseWorker):
                 if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
 
                     # get mouse position
-                    if item["cmd"] == "mouse_get_pos":
+                    if item["cmd"] == "get_mouse_position":
                         response = self.cmd_mouse_get_pos(item)
 
                     # set mouse position
-                    elif item["cmd"] == "mouse_set_pos":
-                        if self.plugin.get_option_value("allow_mouse_move"):
-                            response = self.cmd_mouse_set_pos(item)
-
-                    # move mouse position
                     elif item["cmd"] == "mouse_move":
                         if self.plugin.get_option_value("allow_mouse_move"):
                             response = self.cmd_mouse_move(item)
@@ -66,7 +61,7 @@ class Worker(BaseWorker):
                             response = self.cmd_mouse_scroll(item)
 
                     # screenshot
-                    elif item["cmd"] == "make_screenshot":
+                    elif item["cmd"] == "get_screenshot":
                         if self.plugin.get_option_value("allow_screenshot"):
                             response = self.cmd_make_screenshot(item)
 
@@ -92,9 +87,6 @@ class Worker(BaseWorker):
                 })
                 self.error(e)
                 self.log("Error: {}".format(e))
-
-        if self.msg is not None:
-            self.status(self.msg)
 
         # send response
         if len(responses) > 0:
@@ -126,7 +118,7 @@ class Worker(BaseWorker):
             self.log("Error: {}".format(e))
         return response
 
-    def cmd_mouse_set_pos(self, item: dict) -> dict:
+    def cmd_mouse_move(self, item: dict) -> dict:
         """
         Set mouse position
 
@@ -140,60 +132,15 @@ class Worker(BaseWorker):
         if "params" in item:
             if "x" in item["params"]:
                 x = item["params"]["x"]
+            elif "mouse_x" in item["params"]:
+                x = item["params"]["mouse_x"]
             if "y" in item["params"]:
                 y = item["params"]["y"]
+            elif "mouse_y" in item["params"]:
+                y = item["params"]["mouse_y"]
         try:
-            if self.window.core.platforms.is_snap():
-                mouse = MouseController()
-                mouse.position = (x, y)
-            else:
-                import pyautogui
-                pyautogui.moveTo(x, y, duration=0.2)
-        except Exception as e:
-            error = str(e)
-            self.log("Error: {}".format(e))
-        try:
-            data = self.get_current()
-            if error:
-                data["error"] = error
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
-        except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
-
-    def cmd_mouse_move(self, item: dict) -> dict:
-        """
-        Move mouse position
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.prepare_request(item)
-        error = None
-        x = 0
-        y = 0
-        if "params" in item:
-            if "offset_x" in item["params"]:
-                x = item["params"]["offset_x"]
-            if "offset_y" in item["params"]:
-                y = item["params"]["offset_y"]
-
-        try:
-            if self.window.core.platforms.is_snap():
-                mouse = MouseController()
-                mouse.move(x, y)
-            else:
-                import pyautogui
-                pyautogui.moveRel(x, y, duration=0.2)
+            mouse = MouseController()
+            mouse.position = (x, y)
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -433,27 +380,29 @@ class Worker(BaseWorker):
         mouse = MouseController()
         mouse.click(Button.left, 1)
 
-    def get_current(self) -> dict:
+    def get_current(self, item: dict = None) -> dict:
         """
         Get current mouse position and screen resolution
 
         :return: coordinates and screen resolution
         """
+        current_step = ""
+        if item is not None:
+            if "params" in item:
+                if "current_step" in item["params"]:
+                    current_step = item["params"]["current_step"]
         screen = self.window.app.primaryScreen()
         size = screen.size()
         screen_x = size.width()
         screen_y = size.height()
-        if self.window.core.platforms.is_snap():
-            mouse = MouseController()
-            mouse_pos_x, mouse_pos_y = mouse.position
-        else:
-            import pyautogui
-            mouse_pos_x, mouse_pos_y = pyautogui.position()
+        mouse = MouseController()
+        mouse_pos_x, mouse_pos_y = mouse.position
         return {
-            'screen_width': screen_x,
-            'screen_height': screen_y,
-            'current_mouse_x': mouse_pos_x,
-            'current_mouse_y': mouse_pos_y,
+            'current_step': current_step,
+            'screen_w': screen_x,
+            'screen_h': screen_y,
+            'mouse_x': mouse_pos_x,
+            'mouse_y': mouse_pos_y,
         }
 
     def prepare_request(self, item) -> dict:

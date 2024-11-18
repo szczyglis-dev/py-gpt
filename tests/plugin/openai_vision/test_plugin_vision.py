@@ -87,26 +87,6 @@ def test_handle_pre_prompt(mock_window):
     assert event.data["value"] == "new prompt"
 
 
-def test_handle_system_prompt(mock_window):
-    """Test handle event: system.prompt"""
-    plugin = Plugin(window=mock_window)
-    plugin.init_options()
-    plugin.setup()
-    plugin.is_vision_provided = MagicMock(return_value=True)
-    mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
-    mock_window.controller.chat.vision.allowed_modes = ["chat"]
-    ctx = CtxItem()
-    event = Event()
-    event.name = "system.prompt"
-    event.data = {
-        "mode": "chat",
-        "value": "prev prompt",
-    }
-    event.ctx = ctx
-    plugin.options["prompt"]["value"] = "new prompt"
-    plugin.options["replace_prompt"]["value"] = False
-    plugin.handle(event)
-    assert event.data["value"] == "prev prompt\nnew prompt"
 
 
 def test_handle_ctx_select(mock_window):

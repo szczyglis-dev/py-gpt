@@ -186,6 +186,8 @@ class Dispatcher:
         disallowed_modes = ["assistant", "agent", "expert", "agent_llama"]
         if self.window.core.config.get("mode") in disallowed_modes:
             return False
+        if ctx.agent_call:
+            return False
         if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
             return False
         return True
@@ -324,7 +326,6 @@ class Dispatcher:
         self.window.controller.chat.render.tool_output_update(self.reply_ctx.meta, data)
 
         # send reply
-
         self.clear_reply_stack()
         self.window.controller.chat.input.send(
             text=data,
@@ -334,7 +335,6 @@ class Dispatcher:
             prev_ctx=prev_ctx,
             parent_id=parent_id,
         )
-
 
     def clear_reply_stack(self):
         """Clear reply stack"""

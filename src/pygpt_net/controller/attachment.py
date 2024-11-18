@@ -225,6 +225,17 @@ class Attachment:
         if not auto:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
 
+    def clear_silent(self):
+        """
+        Clear attachments list
+        """
+        # delete all from attachments for current mode
+        mode = self.window.core.config.get('mode')
+        self.window.core.attachments.delete_all(
+            mode=mode,
+            remove_local=False,
+        )
+
     def open_add(self):
         """Open add attachment file dialog"""
         last_dir = self.window.core.config.get_last_used_dir()
