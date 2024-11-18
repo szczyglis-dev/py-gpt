@@ -400,6 +400,8 @@ class Renderer(BaseRenderer):
         if c > 0:
             n = 1
             for image in ctx.images:
+                if image is None:
+                    continue
                 # don't append if it is an external url
                 if image.startswith("http"):
                     continue
