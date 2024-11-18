@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -34,11 +34,10 @@ class Command:
 
         mode = self.window.core.config.get('mode')
 
-        if ctx.internal and mode != 'agent':
-            return  # skip response to commands response to avoid loops
-
         # extract commands
-        cmds = self.window.core.command.extract_cmds(ctx.output)
+        cmds = ctx.cmds_before  # from llama index tool calls pre-handler
+        if not cmds:  # if no commands in context (from llama index tool calls)
+            cmds = self.window.core.command.extract_cmds(ctx.output)
         if len(cmds) > 0:
             ctx.cmds = cmds  # append commands to ctx
             self.log("Command call received...")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 00:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -224,6 +224,31 @@ class Command:
                 self.window.core.debug.log(e)
                 print("Error parsing tool call JSON arguments: ", tool_call["function"]["arguments"])
         ctx.tool_calls = tmp_calls
+
+    def unpack_tool_calls_from_llama(self, tool_calls: list) -> list:
+        """
+        Unpack tool calls from Llama-index response
+
+        :param tool_calls: tool calls list
+        :return: parsed tool calls list
+        """
+        parsed = []
+        for tool_call in tool_calls:
+            try:
+                parsed.append(
+                    {
+                        "id": tool_call.tool_id,
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.tool_name,
+                            "arguments": tool_call.tool_kwargs,
+                        }
+                    }
+                )
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error parsing tool call: " + str(e))
+        return parsed
 
     def tool_call_to_cmd(self, tool_call: dict) -> dict:
         """
@@ -503,7 +528,7 @@ class Command:
         :return: True if enabled
         """
         disabled_modes = [
-            "llama_index",
+            # "llama_index",
             "langchain",
             "completion",
         ]

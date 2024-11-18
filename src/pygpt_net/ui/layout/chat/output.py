@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,7 +14,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton
 
 from pygpt_net.ui.widget.audio.output import AudioOutput
-from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel
+from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel, HelpLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 
 from .explorer import Explorer
@@ -166,16 +166,6 @@ class Output:
                 self.window.ui.nodes['output.edit'].isChecked())
         )
 
-        # inline vision
-        self.window.ui.nodes['inline.vision'] = QCheckBox(trans('inline.vision'))
-        self.window.ui.nodes['inline.vision'].clicked.connect(
-            lambda: self.window.controller.chat.vision.toggle(
-                self.window.ui.nodes['inline.vision'].isChecked())
-        )
-        self.window.ui.nodes['inline.vision'].setVisible(False)
-        self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
-        self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
-
         # tokens
         self.window.ui.nodes['prompt.context'] = ChatStatusLabel("")
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
@@ -193,7 +183,6 @@ class Output:
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         opts_layout.addWidget(self.window.ui.nodes['output.edit'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
-        opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.setAlignment(Qt.AlignLeft)
 
         layout = QHBoxLayout()

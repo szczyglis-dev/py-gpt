@@ -136,6 +136,7 @@ class Dispatcher:
         self.reply_stack = []
         self.reply_ctx = None
         self.last_result = None
+        self.reply_idx = -1
 
     def is_log(self, event: BaseEvent) -> bool:
         """
@@ -183,13 +184,9 @@ class Dispatcher:
         :return: True if async commands are allowed
         """
         disallowed_modes = ["assistant", "agent", "expert", "agent_llama"]
-        if ctx.internal:
-            return False
         if self.window.core.config.get("mode") in disallowed_modes:
             return False
         if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
-            return False
-        if len(ctx.cmds) > 1:  # if multiple commands then run synchronously
             return False
         return True
 
@@ -272,6 +269,9 @@ class Dispatcher:
             if self.window.core.debug.enabled() and self.is_log_display():
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
             if ctx.reply:
+                if self.reply_idx >= ctx.pid:  # skip if reply already sent for this context
+                    return []
+                self.reply_idx = ctx.pid
                 self.add_reply(ctx)
             if flush or self.window.core.dispatcher.async_allowed(ctx):
                 self.flush_reply_stack()
@@ -286,6 +286,7 @@ class Dispatcher:
         """
         self.window.core.debug.info("Reply stack (add)...")
         self.reply_stack.append(ctx.results)
+        ctx.cmds = []  # clear commands
         ctx.results = []  # clear results
         self.reply_ctx = ctx
 
@@ -323,6 +324,7 @@ class Dispatcher:
         self.window.controller.chat.render.tool_output_update(self.reply_ctx.meta, data)
 
         # send reply
+
         self.clear_reply_stack()
         self.window.controller.chat.input.send(
             text=data,
@@ -332,6 +334,7 @@ class Dispatcher:
             prev_ctx=prev_ctx,
             parent_id=parent_id,
         )
+
 
     def clear_reply_stack(self):
         """Clear reply stack"""

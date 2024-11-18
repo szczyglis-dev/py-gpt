@@ -155,7 +155,7 @@ class Common:
         else:
             self.window.controller.command.stop = False
 
-        self.window.controller.ui.update_tokens()  # update tokens counters
+        self.window.controller.ui.update()  # update tokens counters
 
     def toggle_send_clear(self, value: bool):
         """
