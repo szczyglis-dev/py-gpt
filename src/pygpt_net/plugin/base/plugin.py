@@ -312,24 +312,11 @@ class BasePlugin(QObject):
         :param extra_data: extra data
         """
         # handle post-finishing operations
-        if isinstance(extra_data, dict):
-            if (ctx is None or not ctx.agent_call) or not self.is_threaded():
-                if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
-                    if "file_explorer" in extra_data["post_update"]:
-                        # update file explorer view
-                        self.window.controller.files.update_explorer()
+        self.run_post_response(ctx, extra_data)
 
         # dispatch response (reply)
         if ctx is not None:
-            ctx.results.append(response)
-            ctx.reply = True
-            if "context" in response:
-                if self.window.core.config.get("ctx.use_extra"):
-                    ctx.extra_ctx = response["context"]
-                    response["result"] = "OK"
-                else:
-                    del response["context"]
-
+            self.prepare_reply_ctx(response, ctx)
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object, object, dict)
@@ -342,6 +329,21 @@ class BasePlugin(QObject):
         :param extra_data: extra data
         """
         # handle post-finishing operations
+        self.run_post_response(ctx, extra_data)
+
+        # dispatch responses (reply)
+        for response in responses:
+            if ctx is not None:
+                self.prepare_reply_ctx(response, ctx)
+            self.window.core.dispatcher.reply(ctx)
+
+    def run_post_response(self, ctx: CtxItem, extra_data: dict = None):
+        """
+        Run post-response operations
+
+        :param ctx: context (CtxItem)
+        :param extra_data: extra data
+        """
         if isinstance(extra_data, dict):
             if (ctx is None or not ctx.agent_call) or not self.is_threaded():
                 if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
@@ -349,20 +351,36 @@ class BasePlugin(QObject):
                         # update file explorer view
                         self.window.controller.files.update_explorer()
 
-        # dispatch responses (reply)
-        for response in responses:
-            if ctx is not None:
-                ctx.results.append(response)
-                ctx.reply = True
-                if "context" in response:
-                    if self.window.core.config.get("ctx.use_extra"):
-                        ctx.extra_ctx = response["context"]
-                        response["result"] = "OK"
-                    else:
-                        del response["context"]
+    def prepare_reply_ctx(self, response: dict, ctx: CtxItem = None) -> dict:
+        """
+        Prepare reply context
 
+        :param response: response
+        :param ctx: context (CtxItem)
+        :return: response dict
+        """
+        ignore_extra = ["request", "result", "context"]
+        allow_output = ["request", "result", "context"]
+        clean_response = {}
+        for key in response:
+            if key in allow_output:
+                clean_response[key] = response[key]
 
-            self.window.core.dispatcher.reply(ctx)
+        ctx.results.append(clean_response)
+        ctx.reply = True
+
+        for key in response:
+            if key not in ignore_extra:
+                ctx.extra[key] = response[key]
+
+        if "context" in response:
+            if self.window.core.config.get("ctx.use_extra"):
+                ctx.extra_ctx = response["context"]
+                response["result"] = "OK"
+            else:
+                del response["context"]
+
+        return response
 
     @Slot(object)
     def handle_status(self, data: str):
