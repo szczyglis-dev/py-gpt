@@ -1647,6 +1647,20 @@ class Patch:
                     del data['plugins']['cmd_mouse_control']
                 updated = True
 
+            # < 2.4.16
+            if old < parse_version("2.4.16"):
+                print("Migrating config from < 2.4.16...")
+                data["interpreter.auto_clear"] = False
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.ipython_execute_new' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute_new']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute']
+                updated = True
+
         # update file
         migrated = False
         if updated:
