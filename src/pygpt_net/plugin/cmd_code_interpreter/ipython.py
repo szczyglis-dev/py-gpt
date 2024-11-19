@@ -460,7 +460,7 @@ class IPythonInterpreter:
             if self.initialized:
                 self.end()  # stop the client
 
-    def remove_ansi(self, text):
+    def remove_ansi_more(self, text):
         """
         Clean the text from ANSI escape sequences, carriage returns, and progress bars.
 
@@ -498,6 +498,29 @@ class IPythonInterpreter:
         # Reconstruct the text
         text = '\n'.join(cleaned_lines)
         return text
+
+    def remove_ansi(self, text) -> str:
+        """
+        Clean the text from ANSI escape sequences.
+
+        :param text: Text to clean.
+        :return: Cleaned text.
+        """
+        ansi_escape = re.compile(
+            r'''
+            \x1B   # ESC
+            (?:    # 7-bit C1 Fe
+                [@-Z\\-_]
+            |      # or 8-bit C1 Fe
+                \[
+                [0-?]*   # Parameter bytes
+                [ -/]*   # Intermediate bytes
+                [@-~]    # Final byte
+            )
+            ''',
+            re.VERBOSE
+        )
+        return ansi_escape.sub('', text)
 
     def attach_signals(self, signals):
         """
