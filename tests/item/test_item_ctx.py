@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.11.18 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem
@@ -41,7 +41,7 @@ def test_integrity_ctx_item():
     assert item.input_tokens == 0
     assert item.output_tokens == 0
     assert item.total_tokens == 0
-    assert item.extra is None
+    assert item.extra == {}
     assert item.current is False
     assert item.internal is False
     assert item.is_vision is False
