@@ -79,14 +79,12 @@ class Worker(BaseWorker):
                         responses.append(response)
 
             except Exception as e:
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log("Error: {}".format(e))
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -99,24 +97,14 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             self.msg = "Mouse get position"
             self.log(self.msg)
-            data = self.get_current()
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            result = self.get_current()
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_mouse_move(self, item: dict) -> dict:
         """
@@ -125,19 +113,17 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         error = None
         x = 0
         y = 0
-        if "params" in item:
-            if "x" in item["params"]:
-                x = item["params"]["x"]
-            elif "mouse_x" in item["params"]:
-                x = item["params"]["mouse_x"]
-            if "y" in item["params"]:
-                y = item["params"]["y"]
-            elif "mouse_y" in item["params"]:
-                y = item["params"]["mouse_y"]
+        if self.has_param(item, "x"):
+            x = self.get_param(item, "x")
+        elif self.has_param(item, "mouse_x"):
+            x = self.get_param(item, "mouse_x")
+        if self.has_param(item, "y"):
+            y = self.get_param(item, "y")
+        elif self.has_param(item, "mouse_y"):
+            y = self.get_param(item, "mouse_y")
         try:
             mouse = MouseController()
             mouse.position = (x, y)
@@ -145,22 +131,13 @@ class Worker(BaseWorker):
             error = str(e)
             self.log("Error: {}".format(e))
         try:
-            data = self.get_current()
+            result = self.get_current()
             if error:
-                data["error"] = error
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+                result["error"] = error
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_mouse_click(self, item: dict) -> dict:
         """
@@ -169,36 +146,24 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         button = Button.left
         num = 1
-        if "params" in item:
-            if "button" in item["params"]:
-                btn_name = item["params"]["button"]
-                if btn_name == "middle":
-                    button = Button.middle
-                elif btn_name == "right":
-                    button = Button.right
-            if "num_clicks" in item["params"]:
-                num = item["params"]["num_clicks"]
-        mouse = MouseController()
-        mouse.click(button, num)
-
+        if self.has_param("button"):
+            btn_name = self.get_param(item, "button")
+            if btn_name == "middle":
+                button = Button.middle
+            elif btn_name == "right":
+                button = Button.right
+        if self.has_param(item, "num_clicks"):
+            num = int(self.get_param(item, "num_clicks"))
         try:
-            data = self.get_current()
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            mouse = MouseController()
+            mouse.click(button, num)
+            result = self.get_current()
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_mouse_scroll(self, item: dict) -> dict:
         """
@@ -207,31 +172,20 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         x = 0
         y = 0
-        if "params" in item:
-            if "dx" in item["params"]:
-                x = item["params"]["dx"]
-            if "dy" in item["params"]:
-                y = item["params"]["dy"]
-        mouse = MouseController()
-        mouse.scroll(x, y)
+        if self.has_param(item, "dx"):
+            x = self.get_param(item, "dx")
+        if self.has_param(item, "dy"):
+            y = self.get_param(item, "dy")
         try:
-            data = self.get_current()
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            mouse = MouseController()
+            mouse.scroll(x, y)
+            result = self.get_current()
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_keyboard_key(self, item: dict) -> dict:
         """
@@ -240,61 +194,50 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         keyboard = KeyboardController()
         error = None
-        if "params" in item:
-            if "key" in item["params"]:
-                key = item["params"]["key"]
-                modifier = None
-                if "modifier" in item["params"]:
-                    tmp_modifier = item["params"]["modifier"]
-                    if tmp_modifier == "ctrl":
-                        modifier = Key.ctrl
-                    elif tmp_modifier == "alt":
-                        modifier = Key.alt
-                    elif tmp_modifier == "shift":
-                        modifier = Key.shift
-                    elif tmp_modifier == "cmd":
-                        modifier = Key.cmd
+        if self.has_param(item, "key"):
+            key = self.get_param(item, "key")
+            modifier = None
+            if self.has_param(item, "modifier"):
+                tmp_modifier = self.get_param(item, "modifier")
+                if tmp_modifier == "ctrl":
+                    modifier = Key.ctrl
+                elif tmp_modifier == "alt":
+                    modifier = Key.alt
+                elif tmp_modifier == "shift":
+                    modifier = Key.shift
+                elif tmp_modifier == "cmd":
+                    modifier = Key.cmd
 
-                # autofocus on the window
-                if self.plugin.get_option_value("auto_focus"):
-                    self.set_focus()
-                    time.sleep(1)  # wait for a second
+            # autofocus on the window
+            if self.plugin.get_option_value("auto_focus"):
+                self.set_focus()
+                time.sleep(1)  # wait for a second
 
-                if key == "super" or key == "start":
-                    key = Key.cmd
+            if key == "super" or key == "start":
+                key = Key.cmd
 
-                try:
-                    if modifier:
-                        with keyboard.pressed(modifier):
-                            keyboard.press(key)
-                            keyboard.release(key)
-                    else:
+            try:
+                if modifier:
+                    with keyboard.pressed(modifier):
                         keyboard.press(key)
                         keyboard.release(key)
-                except Exception as e:
-                    error = str(e)
-                    self.log("Error: {}".format(e))
+                else:
+                    keyboard.press(key)
+                    keyboard.release(key)
+            except Exception as e:
+                error = str(e)
+                self.log("Error: {}".format(e))
 
         try:
-            data = self.get_current()
+            result = self.get_current()
             if error:
-                data["error"] = error
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+                result["error"] = error
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_keyboard_type(self, item: dict) -> dict:
         """
@@ -303,49 +246,38 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         keyboard = KeyboardController()
-        if "params" in item:
-            if "text" in item["params"]:
-                text = item["params"]["text"]
-                modifier = None
-                if "modifier" in item["params"]:
-                    tmp_modifier = item["params"]["modifier"]
-                    if tmp_modifier == "ctrl":
-                        modifier = Key.ctrl
-                    elif tmp_modifier == "alt":
-                        modifier = Key.alt
-                    elif tmp_modifier == "shift":
-                        modifier = Key.shift
-                    elif tmp_modifier == "cmd":
-                        modifier = Key.cmd
+        if self.has_param(item, "text"):
+            text = self.get_param(item, "text")
+            modifier = None
+            if self.has_param(item, "modifier"):
+                tmp_modifier = self.get_param(item, "modifier")
+                if tmp_modifier == "ctrl":
+                    modifier = Key.ctrl
+                elif tmp_modifier == "alt":
+                    modifier = Key.alt
+                elif tmp_modifier == "shift":
+                    modifier = Key.shift
+                elif tmp_modifier == "cmd":
+                    modifier = Key.cmd
 
-                # autofocus on the window
-                if self.plugin.get_option_value("auto_focus"):
-                    self.set_focus()
-                    time.sleep(1)  # wait for a second
+            # autofocus on the window
+            if self.plugin.get_option_value("auto_focus"):
+                self.set_focus()
+                time.sleep(1)  # wait for a second
 
-                if modifier:
-                    with keyboard.pressed(modifier):
-                        keyboard.type(text)
-                else:
+            if modifier:
+                with keyboard.pressed(modifier):
                     keyboard.type(text)
+            else:
+                keyboard.type(text)
 
         try:
-            data = self.get_current()
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            result = self.get_current()
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_make_screenshot(self, item: dict):
         """
@@ -354,43 +286,30 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            data = self.get_current()
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            result = self.get_current()
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-
+            result = self.throw_error(e)
         # make screenshot will be handled in the main thread (in response)
-        return response
+        return self.make_response(item, result)
 
     def set_focus(self):
-        """
-        Set focus to the current mouse position
-        """
-        mouse = MouseController()
-        mouse.click(Button.left, 1)
+        """Set focus to the current mouse position"""
+        try:
+            mouse = MouseController()
+            mouse.click(Button.left, 1)
+        except Exception as e:
+            pass
 
     def get_current(self, item: dict = None) -> dict:
         """
         Get current mouse position and screen resolution
 
+        :param item: command item
         :return: coordinates and screen resolution
         """
-        current_step = ""
-        if item is not None:
-            if "params" in item:
-                if "current_step" in item["params"]:
-                    current_step = item["params"]["current_step"]
+        current_step = self.get_param(item, "current_step", "")
         screen = self.window.app.primaryScreen()
         size = screen.size()
         screen_x = size.width()
@@ -404,12 +323,3 @@ class Worker(BaseWorker):
             'mouse_x': mouse_pos_x,
             'mouse_y': mouse_pos_y,
         }
-
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        return {"cmd": item["cmd"]}

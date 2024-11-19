@@ -47,15 +47,12 @@ class Worker(BaseWorker):
                         responses.append(response)
 
                     except Exception as e:
-                        msg = "Error: {}".format(e)
-                        responses.append({
-                            "request": {
-                                "cmd": item["cmd"],
-                            },
-                            "result": "Error {}".format(e),
-                        })
-                        self.error(e)
-                        self.log(msg)
+                        responses.append(
+                            self.make_response(
+                                item,
+                                self.throw_error(e)
+                            )
+                        )
 
         # send response
         if len(responses) > 0:
@@ -73,8 +70,6 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-
         # prepare cmd
         cmd = command["cmd"]
 
@@ -127,18 +122,4 @@ class Worker(BaseWorker):
             result = "No result (STDOUT/STDERR empty)"
             self.log(result)
 
-        # prepare response
-        response = {
-            "request": request,
-            "result": result,
-        }
-        return response
-
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        return {"cmd": item["cmd"]}
+        return self.make_response(item, result)

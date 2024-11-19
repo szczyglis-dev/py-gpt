@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.19 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -38,13 +38,13 @@ class Worker(BaseWorker):
         for item in self.cmds:
             try:
                 response = None
-                if item["cmd"] in self.plugin.allowed_cmds and (self.plugin.has_cmd(item["cmd"]) or 'force' in item):
+                if (item["cmd"] in self.plugin.allowed_cmds
+                        and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
 
                     if item["cmd"] == "code_execute_file":
                         response = self.cmd_code_execute_file(item)
 
                     elif item["cmd"] == "code_execute":
-
                         response = self.cmd_code_execute(item)
                         if "silent" in item:
                             response = None
@@ -91,19 +91,16 @@ class Worker(BaseWorker):
                         responses.append(response)
 
             except Exception as e:
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log("Error: {}".format(e))
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
             self.reply_more(responses)
-
 
     def cmd_ipython_execute_new(self, item: dict) -> dict:
         """
@@ -112,21 +109,17 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            response = self.plugin.runner.ipython_execute_new(
+            result = self.plugin.runner.ipython_execute_new(
                 ctx=self.ctx,
                 item=item,
-                request=request,
+                request=self.from_request(item),
             )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_ipython_execute(self, item: dict) -> dict:
         """
@@ -135,21 +128,17 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            response = self.plugin.runner.ipython_execute(
+            result = self.plugin.runner.ipython_execute(
                 ctx=self.ctx,
                 item=item,
-                request=request,
+                request=self.from_request(item),
             )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_ipython_kernel_restart(self, item: dict) -> dict:
         """
@@ -158,21 +147,19 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            response = self.plugin.runner.ipython_kernel_restart(
+            result = self.plugin.runner.ipython_kernel_restart(
                 ctx=self.ctx,
                 item=item,
-                request=request,
+                request=self.from_request(item),
             )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = {
+            'plugin': "cmd_code_interpreter",
+        }
+        return self.make_response(item, result, extra=extra)
 
     def cmd_code_execute_file(self, item: dict) -> dict:
         """
@@ -181,28 +168,25 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
+        request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                response = self.plugin.runner.code_execute_file_host(
+                result = self.plugin.runner.code_execute_file_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
             else:
-                response = self.plugin.runner.code_execute_file_sandbox(
+                result = self.plugin.runner.code_execute_file_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_code_execute(self, item: dict) -> dict:
         """
@@ -211,28 +195,25 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
+        request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                response = self.plugin.runner.code_execute_host(
+                result = self.plugin.runner.code_execute_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
             else:
-                response = self.plugin.runner.code_execute_sandbox(
+                result = self.plugin.runner.code_execute_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_code_execute_all(self, item: dict) -> dict:
         """
@@ -241,30 +222,27 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
+        request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                response = self.plugin.runner.code_execute_host(
+                result = self.plugin.runner.code_execute_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                     all=True,
                 )
             else:
-                response = self.plugin.runner.code_execute_sandbox(
+                result = self.plugin.runner.code_execute_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                     all=True,
                 )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_sys_exec(self, item: dict) -> dict:
         """
@@ -273,28 +251,25 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
+        request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                response = self.plugin.runner.sys_exec_host(
+                result = self.plugin.runner.sys_exec_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
             else:
-                response = self.plugin.runner.sys_exec_sandbox(
+                result = self.plugin.runner.sys_exec_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_get_python_output(self, item: dict) -> dict:
         """
@@ -303,22 +278,13 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            output = self.plugin.window.tools.get("interpreter").get_current_output()
-            response = {
-                "request": request,
-                "result": output,
-                "context": output,
-            }
+            result = self.plugin.window.tools.get("interpreter").get_current_output()
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_get_python_input(self, item: dict) -> dict:
         """
@@ -327,22 +293,13 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            input = self.plugin.window.tools.get("interpreter").get_current_history()
-            response = {
-                "request": request,
-                "result": input,
-                "context": input,
-            }
+            result = self.plugin.window.tools.get("interpreter").get_current_history()
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_clear_python_output(self, item: dict) -> dict:
         """
@@ -351,21 +308,12 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             self.signals.clear.emit()
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_render_html_output(self, item: dict) -> dict:
         """
@@ -374,22 +322,13 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            if "params" in item and "html" in item["params"]:
-                self.plugin.runner.send_html_output(item["params"]["html"])  # handle in main thread
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            if self.has_param(item, "html"):
+                self.plugin.runner.send_html_output(self.get_param(item, "html")) # handle in main thread
+            result = "OK"
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_get_html_output(self, item: dict) -> dict:
         """
@@ -398,27 +337,43 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
-            response = {
-                "request": request,
-                "result":  self.plugin.window.tools.get("html_canvas").get_output(),
-                # "context": self.plugin.window.tools.get("html_canvas").get_output(),
-            }
+            result = self.plugin.window.tools.get("html_canvas").get_output()
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
 
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
-        :param item: item with parameters
-        :return: request item
+    def prepare_extra(self, item: dict, result: dict) -> dict:
         """
-        return {"cmd": item["cmd"]}
+        Prepare extra data for response
+
+        :param item: command item
+        :param result: response data
+        :return: extra data
+        """
+        cmd = item["cmd"]
+        extra = {
+            'plugin': "cmd_code_interpreter",
+            'cmd': cmd,
+            'code': {}
+        }
+        lang = "python"
+        if cmd in ["render_html_output", "get_html_output"]:
+            lang = "html"
+        elif cmd in ["sys_exec"]:
+            lang = "bash"
+        if "params" in item and "code" in item["params"]:
+            extra["code"]["input"] = {}
+            extra["code"]["input"]["lang"] = lang
+            extra["code"]["input"]["content"] = str(item["params"]["code"])
+        if "result" in result:
+            extra["code"]["output"] = {}
+            extra["code"]["output"]["lang"] = lang
+            extra["code"]["output"]["content"] = str(result["result"])
+        if "context" in result:
+            extra["context"] = str(result["context"])
+        return extra
+
+

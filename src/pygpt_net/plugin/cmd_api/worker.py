@@ -46,19 +46,16 @@ class Worker(BaseWorker):
 
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        responses.append({
-                            "request": {
-                                "cmd": item["cmd"],
-                            },
-                            "result": "Error {}".format(e),
-                        })
-                        self.error(e)
-                        self.log(msg)
+                        responses.append(
+                            self.make_response(
+                                item,
+                                self.throw_error(e)
+                            )
+                        )
 
         # send response
         if len(responses) > 0:
-            for response in responses:
-                self.reply(response)
+            self.reply_more(responses)
 
         # update status
         if msg is not None:
@@ -72,11 +69,6 @@ class Worker(BaseWorker):
         :param item: requested item
         :return: response or False
         """
-        request = {
-            "cmd": command["name"],
-            "type": command["type"],
-            "url": command["endpoint"],
-        }
         post_params = {}
         post_json_tpl = ""
         headers = {}  # HTTP headers, if any, Auth, API key, etc.
@@ -94,7 +86,7 @@ class Worker(BaseWorker):
             except json.JSONDecodeError as e:
                 msg = "Error decoding headers JSON: {}".format(e)
                 self.log(msg)
-                return False # abort
+                return False  # abort
 
         # append GET params to endpoint URL placeholders
         if 'get_params' in command and command["get_params"].strip() != "":
@@ -131,7 +123,7 @@ class Worker(BaseWorker):
         if endpoint is None or endpoint == "":
             msg = "Endpoint URL is empty!"
             self.log(msg)
-            return False # abort
+            return False  # abort
 
         # check if type is not empty
         if command["type"] not in ["POST", "POST_JSON", "GET"]:
@@ -170,10 +162,8 @@ class Worker(BaseWorker):
             # encode bytes result to utf-8
             result = result.decode("utf-8")
 
-        # prepare response
-        request["url"] = endpoint
-        response = {
-            "request": request,
-            "result": result,
+        extra = {
+            'url': endpoint,
+            'type': command["type"],
         }
-        return response
+        return self.make_response(item, result, extra=extra)

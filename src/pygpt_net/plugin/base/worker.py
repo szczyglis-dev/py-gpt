@@ -151,6 +151,67 @@ class BaseWorker(QObject, QRunnable):
         self.signals.status.connect(parent.handle_status)
         self.signals.error.connect(parent.handle_error)
 
+    def from_request(self, item: dict) -> dict:
+        """
+        Prepare request item for result
+
+        :param item: item with parameters
+        :return: request item
+        """
+        return {"cmd": item["cmd"]}
+
+    def make_response(self, item: dict, result: any, extra: dict = None) -> dict:
+        """
+        Prepare response item
+
+        :param item: item with parameters
+        :param result: result
+        :param extra: extra data
+        :return: response item
+        """
+        request = self.from_request(item)
+        response = {
+            "request": request,
+            "result": result,
+        }
+        if extra:
+            response.update(extra)
+        return response
+
+    def throw_error(self, e: Exception) -> str:
+        """
+        Handle error
+
+        :param e: exception
+        """
+        msg = "Error: {}".format(e)
+        self.error(e)
+        self.log(msg)
+        return msg
+
+    def has_param(self, item: dict, param: str) -> bool:
+        """
+        Check if item has parameter
+
+        :param item: item with parameters
+        :param param: parameter name
+        :return: True if item has parameter
+        """
+        return "params" in item and param in item["params"]
+
+    def get_param(self, item: dict, param: str, default: any = None) -> any:
+        """
+        Get parameter value from item
+
+        :param item: item with parameters
+        :param param: parameter name
+        :param default: default value
+        :return: parameter value
+        """
+        if self.has_param(item, param):
+            return item["params"][param]
+        return default
+
     def run_sync(self):
         """Run synchronous"""
         self.run()

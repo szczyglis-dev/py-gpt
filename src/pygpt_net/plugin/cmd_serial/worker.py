@@ -56,14 +56,12 @@ class Worker(BaseWorker):
                         responses.append(response)
 
             except Exception as e:
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log("Error: {}".format(e))
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -79,7 +77,6 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
         timeout = self.plugin.get_option_value("timeout")
@@ -87,29 +84,20 @@ class Worker(BaseWorker):
         self.log("Using serial port: {} @ {} bps".format(port, speed))
         try:
             self.msg = "Sending command to USB port: {}".format(
-                item["params"]['command'],
+                self.get_param(item, "command"),
             )
             self.log(self.msg)
-            data = self.send_command(
+            result = self.send_command(
                 port,
                 speed,
-                item["params"]['command'],
+                self.get_param(item, "command"),
                 timeout=timeout,
                 sleep=sleep,
             )
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_serial_send_bytes(self, item: dict) -> dict:
         """
@@ -118,7 +106,6 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
         timeout = self.plugin.get_option_value("timeout")
@@ -126,29 +113,20 @@ class Worker(BaseWorker):
         self.log("Using serial port: {} @ {} bps".format(port, speed))
         try:
             self.msg = "Sending binary data to USB port: {}".format(
-                item["params"]['bytes'],
+                self.get_param(item, "bytes"),
             )
             self.log(self.msg)
-            data = self.send_binary_data(
+            result = self.send_binary_data(
                 port,
                 speed,
-                int(item["params"]['bytes']),
+                int(self.get_param(item, "bytes")),
                 timeout=timeout,
                 sleep=sleep,
             )
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_serial_read(self, item: dict) -> dict:
         """
@@ -157,35 +135,25 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
         timeout = self.plugin.get_option_value("timeout")
         duration = int(item["params"]['duration']) \
-            if "duration" in item["params"] else 3
+            if self.has_param(item, "duration") else 3
         self.log("Using serial port: {} @ {} bps".format(port, speed))
         try:
             self.msg = "Reading data from USB port..."
             self.log(self.msg)
-            data = self.read_data(
+            result = self.read_data(
                 port,
                 speed,
                 timeout=timeout,
                 duration=duration,
             )
-            self.log("Response: {}".format(data))
-            response = {
-                "request": request,
-                "result": data,
-            }
+            self.log("Response: {}".format(result))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def send_command(
             self,

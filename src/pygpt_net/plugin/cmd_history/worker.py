@@ -25,8 +25,6 @@ class Worker(BaseWorker):
         self.args = args
         self.kwargs = kwargs
         self.plugin = None
-        self.cmds = None
-        self.ctx = None
 
     @Slot()
     def run(self):
@@ -61,14 +59,12 @@ class Worker(BaseWorker):
 
             except Exception as e:
                 msg = "Error: {}".format(e)
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log(msg)
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -85,13 +81,9 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        range = item["params"]["range_query"]
-        response = {
-            "request": request,
-            "result":  self.plugin.get_list(range)
-        }
-        return response
+        range = self.get_param(item, "range_query", "")
+        result = self.plugin.get_list(range)
+        return self.make_response(item, result)
 
     def cmd_get_ctx_content_by_id(self, item: dict) -> dict:
         """
@@ -100,16 +92,12 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        id = int(item["params"]["id"])
+        id = int(self.get_param(item, "id", 0))
         prompt = "Summary this conversation"
-        if "summary_query" in item["params"]:
-            prompt = item["params"]["summary_query"]
-        response = {
-            "request": request,
-            "result": self.plugin.get_summary(id, prompt),
-        }
-        return response
+        if self.has_param(item, "summary_query"):
+            prompt = self.get_param(item, "summary_query")
+        result = self.plugin.get_summary(id, prompt)
+        return self.make_response(item, result)
 
     def cmd_get_day_note(self, item: dict) -> dict:
         """
@@ -118,15 +106,11 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        year = int(item["params"]["year"])
-        month = int(item["params"]["month"])
-        day = int(item["params"]["day"])
-        response = {
-            "request": request,
-            "result": self.plugin.get_day_note(year, month, day),
-        }
-        return response
+        year = int(self.get_param(item, "year", 0))
+        month = int(self.get_param(item, "month", 0))
+        day = int(self.get_param(item, "day", 0))
+        result = self.plugin.get_day_note(year, month, day)
+        return self.make_response(item, result)
 
     def cmd_add_day_note(self, item: dict) -> dict:
         """
@@ -135,17 +119,13 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        year = int(item["params"]["year"])
-        month = int(item["params"]["month"])
-        day = int(item["params"]["day"])
-        note = item["params"]["note"]
-        response = {
-            "request": request,
-            "result": self.plugin.add_day_note(year, month, day, note),
-        }
+        year = int(self.get_param(item, "year", 0))
+        month = int(self.get_param(item, "month", 0))
+        day = int(self.get_param(item, "day", 0))
+        note = self.get_param(item, "note", "")
         self.signals.updated.emit()
-        return response
+        result = self.plugin.add_day_note(year, month, day, note)
+        return self.make_response(item, result)
 
     def cmd_update_day_note(self, item: dict) -> dict:
         """
@@ -154,17 +134,13 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        year = int(item["params"]["year"])
-        month = int(item["params"]["month"])
-        day = int(item["params"]["day"])
-        note = item["params"]["content"]
-        response = {
-            "request": request,
-            "result": self.plugin.update_day_note(year, month, day, note),
-        }
+        year = int(self.get_param(item, "year", 0))
+        month = int(self.get_param(item, "month", 0))
+        day = int(self.get_param(item, "day", 0))
+        note = self.get_param(item, "content", "")
         self.signals.updated.emit()
-        return response
+        result = self.plugin.update_day_note(year, month, day, note)
+        return self.make_response(item, result)
 
     def cmd_remove_day_note(self, item: dict) -> dict:
         """
@@ -173,16 +149,12 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        year = int(item["params"]["year"])
-        month = int(item["params"]["month"])
-        day = int(item["params"]["day"])
-        response = {
-            "request": request,
-            "result": self.plugin.remove_day_note(year, month, day),
-        }
+        year = int(self.get_param(item, "year", 0))
+        month = int(self.get_param(item, "month", 0))
+        day = int(self.get_param(item, "day", 0))
         self.signals.updated.emit()
-        return response
+        result = self.plugin.remove_day_note(year, month, day)
+        return self.make_response(item, result)
 
     def cmd_count_ctx_in_date(self, item: dict) -> dict:
         """
@@ -191,27 +163,20 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         year = None
         month = None
         day = None
-        if "year" in item["params"] and item["params"]["year"] != "":
-            year = int(item["params"]["year"])
-        if "month" in item["params"] and item["params"]["month"] != "":
-            month = int(item["params"]["month"])
-        if "day" in item["params"] and item["params"]["day"] != "":
-            day = int(item["params"]["day"])
-        response = {
-            "request": request,
-            "result": self.plugin.count_ctx_in_date(year, month, day),
-        }
-        return response
-
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        return {"cmd": item["cmd"]}
+        if self.has_param(item, "year"):
+            tmp_year = self.get_param(item, "year", "")
+            if tmp_year != "":
+                year = int(tmp_year)
+        if self.has_param(item, "month"):
+            tmp_month = self.get_param(item, "month", "")
+            if tmp_month != "":
+                month = int(tmp_month)
+        if self.has_param(item, "day"):
+            tmp_day = self.get_param(item, "day", "")
+            if tmp_day != "":
+                day = int(tmp_day)
+        result = self.plugin.count_ctx_in_date(year, month, day)
+        return self.make_response(item, result)

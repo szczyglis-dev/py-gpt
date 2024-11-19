@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.19 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext, BridgeSignals
@@ -50,12 +50,7 @@ class Runner:
         try:
             # prepare input context
             ctx = context.ctx
-            if type(ctx.extra) == dict:
-                ctx.extra["agent_input"] = True  # only append, do not overwrite
-            else:
-                ctx.extra = {
-                    "agent_input": True,  # mark as user input
-                }
+            ctx.extra["agent_input"] = True  # mark as user input
             ctx.agent_call = True  # disables reply from plugin commands
 
             # prepare agent
@@ -145,9 +140,19 @@ class Runner:
                     i=str(i)
                 ))
                 step_ctx.cmds = tools_output
-                step_ctx.extra = {
-                    "agent_step": True,
-                }
+
+                # copy extra data (output from plugins)
+                if tools_output:
+                    for k in ctx.extra:
+                        if not k.startswith("agent_"):
+                            step_ctx.extra[k] = ctx.extra[k]
+
+                # reset input ctx
+                for k in list(ctx.extra.keys()):
+                    if k != "agent_input":
+                        del ctx.extra[k]
+
+                step_ctx.extra["agent_step"] = True
                 signals.on_step.emit(step_ctx)
             i += 1
 
@@ -159,10 +164,8 @@ class Runner:
             response_ctx = self.add_ctx(ctx)
             response_ctx.set_input(str(tools_output))
             response_ctx.set_output(str(response))
-            response_ctx.extra = {
-                "agent_output": True,  # mark as output response
-                "agent_finish": True,  # mark as finished
-            }
+            response_ctx.extra["agent_output"] = True  # mark as output response
+            response_ctx.extra["agent_finish"] = True  # mark as finished
             signals.on_step.emit(response_ctx)
         return True
 
@@ -206,10 +209,8 @@ class Runner:
         response_ctx.thread = thread_id
         response_ctx.set_input("Assistant")
         response_ctx.set_output(str(response))
-        response_ctx.extra = {
-            "agent_output": True,  # mark as output response
-            "agent_finish": True,  # mark as finished
-        }
+        response_ctx.extra["agent_output"] = True  # mark as output response
+        response_ctx.extra["agent_finish"] = True  # mark as finished
         signals.on_step.emit(response_ctx)
         return True
 
@@ -246,7 +247,7 @@ class Runner:
         for sub_task in plan.sub_tasks:
             plan_desc += "\n\n"
             plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
-                sub_task_label=trans('msg.agent.plan.sub_task'),
+                sub_task_label=trans('msg.agent.plan.subtask'),
                 sub_task_name=sub_task.name,
             )
             plan_desc += "\n{expected_label}: {expected_output}".format(
@@ -306,7 +307,7 @@ class Runner:
                 step_ctx = self.add_ctx(ctx)
                 step_ctx.set_input(str(tools_output))
                 step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
-                    sub_task_label=trans('msg.agent.plan.sub_task'),
+                    sub_task_label=trans('msg.agent.plan.subtask'),
                     i=str(i),
                     c=str(c),
                     step_label=trans('msg.agent.step'),
@@ -314,16 +315,26 @@ class Runner:
                     task_header=task_header
                 ))
                 step_ctx.cmds = tools_output
-                step_ctx.extra = {
-                    "agent_step": True,
-                }
+
+                # copy extra data (output from plugins)
+                if tools_output:
+                    for k in ctx.extra:
+                        if not k.startswith("agent_"):
+                            step_ctx.extra[k] = ctx.extra[k]
+
+                # reset input ctx
+                for k in list(ctx.extra.keys()):
+                    if k != "agent_input":
+                        del ctx.extra[k]
+
+                step_ctx.extra["agent_step"] = True
                 signals.on_step.emit(step_ctx)
                 j += 1
 
             # finalize the response and commit to memory
-            extra = {
-                "agent_output": True,  # mark as output response
-            }
+            extra = {}
+            extra["agent_output"] = True,  # mark as output response
+
             if i == c:  # if last subtask
                 extra["agent_finish"] = True
 
@@ -335,7 +346,7 @@ class Runner:
                 response_ctx = self.add_ctx(ctx)
                 response_ctx.set_input(str(tools_output))
                 response_ctx.set_output(str(response))
-                response_ctx.extra = extra
+                response_ctx.extra.update(extra)
                 signals.on_step.emit(response_ctx)
             i += 1
 

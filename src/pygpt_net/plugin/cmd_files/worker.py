@@ -131,19 +131,17 @@ class Worker(BaseWorker):
                     elif item["cmd"] == "find":
                         response = self.cmd_find(item)
 
-                    # send response
+                    # store response
                     if response:
                         responses.append(response)
 
             except Exception as e:
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log("Error: {}".format(e))
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -152,26 +150,6 @@ class Worker(BaseWorker):
         if self.msg is not None:
             self.status(self.msg)
 
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        request = {"cmd": item["cmd"]}  # prepare request item for result
-        return request
-
-    def get_extra_data(self) -> dict:
-        """
-        Return extra data for response
-
-        :return: extra data
-        """
-        return {
-            "post_update": ["file_explorer"],  # update file explorer after processing
-        }
-
     def cmd_save_file(self, item: dict) -> dict:
         """
         Save file
@@ -179,27 +157,18 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
+            data = item["params"]['data']
             self.msg = "Saving file: {}".format(path)
             self.log(self.msg)
-            data = item["params"]['data']
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("File saved: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_append_file(self, item: dict) -> dict:
         """
@@ -208,27 +177,18 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
+            data = item["params"]['data']
             self.msg = "Appending file: {}".format(path)
             self.log(self.msg)
-            data = item["params"]['data']
             with open(path, 'a', encoding="utf-8") as file:
                 file.write(data)
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("File appended: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_read_file(self, item: dict) -> dict:
         """
@@ -237,7 +197,7 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
+        context_result = ""
         try:
             self.msg = "Reading file: {}".format(item["params"]['path'])
             self.log(self.msg)
@@ -251,20 +211,13 @@ class Worker(BaseWorker):
             context_str = None
             if context:
                 context_str = "\n\n".join(context)
-            response = {
-                "request": request,
-                "result": data,
-            }
+            result = data
             if context_str:
-                response["context"] = context_str
+                context_result = context_str
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        extra = self.prepare_extra(item, context_result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_query_file(self, item: dict) -> dict:
         """
@@ -273,8 +226,8 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
-        response = {}
+        result = None
+        context = None
         query = None
         try:
             path = self.prepare_path(item["params"]['path'])
@@ -288,13 +241,11 @@ class Worker(BaseWorker):
                 if query is not None:
                     # query file using temp index (created on the fly)
                     self.log("Querying file: {}".format(path))
-
                     # get tmp query model
                     model = self.plugin.window.core.models.from_defaults()
                     tmp_model = self.plugin.get_option_value("model_tmp_query")
                     if self.plugin.window.core.models.has(tmp_model):
                         model = self.plugin.window.core.models.get(tmp_model)
-
                     answer = self.plugin.window.core.idx.chat.query_file(
                         ctx=self.ctx,
                         path=path,
@@ -303,12 +254,8 @@ class Worker(BaseWorker):
                     )
                     self.log("Response from temporary in-memory index: {}".format(answer))
                     if answer:
-                        response = {
-                            "request": request,
-                            "result": answer,
-                            "context": "From: " + os.path.basename(path) + ":\n--------------------------------\n" + answer,
-                            # add additional context
-                        }
+                        result = answer
+                        context = "From: " + os.path.basename(path) + ":\n--------------------------------\n" + answer
 
                 # + auto-index file to main index using Llama-index
                 if self.plugin.get_option_value("auto_index"):
@@ -318,19 +265,13 @@ class Worker(BaseWorker):
                         path,
                     )
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
+                result = "File not found"
                 self.log("File not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, context)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_delete_file(self,item: dict) -> dict:
         """
@@ -339,29 +280,20 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Deleting file: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):
                 os.remove(path)
-                response = {"request": request, "result": "OK"}
+                result = "OK"
                 self.log("File deleted: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
+                result = "File not found"
                 self.log("File not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_list_dir(self, item: dict) -> dict:
         """
@@ -370,7 +302,6 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.plugin.window.core.config.get_user_dir('data')
             if "path" in item["params"]:
@@ -379,27 +310,16 @@ class Worker(BaseWorker):
             self.log(self.msg)
             if os.path.exists(path):
                 files = os.listdir(path)
-                response = {
-                    "request": request,
-                    "result": files,
-                }
+                result = files
                 self.log("Files listed: {}".format(path))
                 self.log("Result: {}".format(files))
             else:
-                response = {
-                    "request": request,
-                    "result": "Directory not found",
-                }
+                result = "Directory not found"
                 self.log("Directory not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        print(response)
-        return response
+            result = self.throw_error(e)
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_tree(self, item: dict) -> dict:
         """
@@ -408,7 +328,7 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
+        context = None
         try:
             path = self.plugin.window.core.config.get_user_dir('data')
             if "path" in item["params"]:
@@ -429,27 +349,18 @@ class Worker(BaseWorker):
                     for f in files:
                         tree_str += '{}{}\n'.format(sub_indent, f)
                     tree[os.path.basename(root)] = files
-                response = {
-                    "request": request,
-                    "result": tree,
-                    "context": path + "\n--------------------------------\n" + tree_str ,
-                }
+                result = tree
+                context = path + "\n--------------------------------\n" + tree_str
                 self.log("Directory tree: {}".format(path))
                 self.log("Result: {}".format(tree_str))
             else:
-                response = {
-                    "request": request,
-                    "result": "Directory not found",
-                }
+                result = "Directory not found"
                 self.log("Directory not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_mkdir(self, item: dict) -> dict:
         """
@@ -458,32 +369,20 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Creating directory: {}".format(path)
             self.log(self.msg)
             if not os.path.exists(path):
                 os.makedirs(path)
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("Directory created: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "Directory already exists",
-                }
-                self.log("Directory already exists: {}".format(path))
+                result = "Directory already exists"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_rmdir(self, item: dict) -> dict:
         """
@@ -492,32 +391,20 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Deleting directory: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):
                 shutil.rmtree(path)
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("Directory deleted: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "Directory not found",
-                }
-                self.log("Directory not found: {}".format(path))
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_download_file(self, item: dict) -> dict:
         """
@@ -526,7 +413,6 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
@@ -556,30 +442,21 @@ class Worker(BaseWorker):
                     self.plugin.window.core.config.get_user_dir('data'),
                     item["params"]['src'],
                 )
-
                 # Copy local file
                 with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
                     shutil.copyfileobj(in_file, out_file)
                 size = os.path.getsize(dst)
 
             # handle result
-            response = {
-                "request": request,
-                "result": {
-                    "result": "OK",
-                    "size_bytes": size,
-                    "size_human": self.get_human_readable_size(size),
-                }
+            result = {
+                "result": "OK",
+                "size_bytes": size,
+                "size_human": self.get_human_readable_size(size),
             }
             self.log("File downloaded: {} into {}".format(src, dst))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_copy_file(self, item: dict) -> dict:
         """
@@ -588,26 +465,17 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Copying file: {} into {}".format(src, dst)
             self.log(self.msg)
             shutil.copyfile(src, dst)
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
             self.log("File copied: {} into {}".format(src, dst))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_copy_dir(self, item: dict) -> dict:
         """
@@ -616,26 +484,17 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Copying directory: {} into {}".format(src, dst)
             self.log(self.msg)
             shutil.copytree(src, dst)
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
             self.log("Directory copied: {} into {}".format(src, dst))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_move(self, item: dict) -> dict:
         """
@@ -644,26 +503,17 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Moving: {} into {}".format(src, dst)
             self.log(self.msg)
             shutil.move(src, dst)
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
             self.log("Moved: {} into {}".format(src, dst))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_is_dir(self, item: dict) -> dict:
         """
@@ -672,28 +522,19 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if directory exists: {}".format(path)
             self.log(self.msg)
             if os.path.isdir(path):
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("Directory exists: {}".format(path))
             else:
-                response = {"request": request, "result": "Directory not found"}
-                self.log("Directory not found: {}".format(path))
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_is_file(self, item: dict) -> dict:
         """
@@ -702,31 +543,19 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if file exists: {}".format(path)
             self.log(self.msg)
             if os.path.isfile(path):
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("File exists: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
-                self.log("File not found: {}".format(path))
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_file_exists(self, item: dict) -> dict:
         """
@@ -735,31 +564,19 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if path exists: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):
-                response = {
-                    "request": request,
-                    "result": "OK",
-                }
+                result = "OK"
                 self.log("Path exists: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "File or directory not found",
-                }
+                result = "File or directory not found"
                 self.log("Path not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_file_size(self, item: dict) -> dict:
         """
@@ -768,35 +585,23 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking file size: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):
                 size = os.path.getsize(path)
-                response = {
-                    "request": request,
-                    "result": {
-                        'size_bytes': size,
-                        'size_human': self.plugin.human_readable_size(size),
-                    },
+                result = {
+                    'size_bytes': size,
+                    'size_human': self.plugin.human_readable_size(size),
                 }
                 self.log("File size: {}".format(size))
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
-                self.log("File not found: {}".format(path))
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_file_info(self, item: dict) -> dict:
         """
@@ -805,14 +610,13 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking file info: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):
                 size = os.path.getsize(path)
-                data = {
+                result = {
                     "size": size,
                     "size_human": self.get_human_readable_size(size),
                     'mime_type': mimetypes.guess_type(path)[0] or 'application/octet-stream',
@@ -825,25 +629,15 @@ class Worker(BaseWorker):
                     "is_mount": os.path.ismount(path),
                     'stat': os.stat(path),
                 }
-                response = {
-                    "request": request,
-                    "result": data,
-                }
-                self.log("File info: {}".format(data))
+                self.log("File info: {}".format(result))
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
-                self.log("File not found: {}".format(path))
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_cwd(self, item: dict) -> dict:
         """
@@ -852,22 +646,15 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             self.msg = "Getting CWD: {}".format(self.plugin.window.core.config.get_user_dir('data'))
             self.log(self.msg)
-            response = {
-                "request": request,
-                "result": self.plugin.window.core.config.get_user_dir('data'),
-            }
+            result = self.plugin.window.core.config.get_user_dir('data')
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def cmd_send_file(self, item: dict) -> dict:
         """
@@ -876,7 +663,6 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Adding attachment: {}".format(path)
@@ -888,25 +674,14 @@ class Worker(BaseWorker):
                 self.plugin.window.core.attachments.new(mode, title, path, False)
                 self.plugin.window.core.attachments.save()
                 self.plugin.window.controller.attachment.update()
-                response = {
-                    "request": request,
-                    "result": "Sending attachment: {}".format(title),
-                }
+                result = "Sending attachment: {}".format(title)
                 self.log("Added attachment: {}".format(path))
             else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
-                self.log("File not found: {}".format(path))
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_file_index(self, item: dict) -> dict:
         """
@@ -915,15 +690,10 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             if "path" not in item["params"]:
-                response = {
-                    "request": request,
-                    "result": "Path not provided",
-                }
                 self.log("Path not provided")
-                return response
+                return self.make_response(item, "Path not provided")
 
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Indexing path: {}".format(path)
@@ -935,30 +705,18 @@ class Worker(BaseWorker):
                     idx_name,
                     path,
                 )
-                data = {
+                result = {
                     'num_indexed': len(files),
                     'index_name': idx_name,
                     'errors': errors,
                     'path': path,
                 }
-                response = {
-                    "request": request,
-                    "result": data,
-                }
             else:
-                response = {
-                    "request": request,
-                    "result": "File or directory not found",
-                }
+                result = "File or directory not found"
                 self.log("File not found: {}".format(path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_find(self, item: dict) -> dict:
         """
@@ -967,7 +725,6 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             recursive = True
             path = self.plugin.window.core.config.get_user_dir('data')
@@ -980,25 +737,16 @@ class Worker(BaseWorker):
             self.log(self.msg)
             if os.path.exists(path):
                 files = self.find_files(path, pattern, recursive)
-                response = {
-                    "request": request,
-                    "result": files,
-                }
+                result = files
                 self.log("Result: {}".format(files))
             else:
-                response = {
-                    "request": request,
-                    "result": "Directory not found",
-                }
-                self.log("Directory not found: {}".format(path))
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
 
     def find_files(self, directory: str, pattern: str, recursive: bool = True) -> list:
         """
@@ -1111,3 +859,35 @@ class Worker(BaseWorker):
                 })
 
         return data, context
+
+    def prepare_extra(self, item: dict, context: str) -> dict:
+        """
+        Prepare extra data for response
+
+        :param item: command item
+        :param context: context data
+        :return: extra data
+        """
+        cmd = item["cmd"]
+        extra = {
+            'plugin': "cmd_files",
+            'cmd': cmd,
+            'code': {
+                'output': {
+                    'lang': "bash",
+                    'content': str(context),
+                }
+            }
+        }
+        extra["context"] = str(context)
+        return extra
+
+    def get_extra_data(self) -> dict:
+        """
+        Return extra data for response
+
+        :return: extra data
+        """
+        return {
+            "post_update": ["file_explorer"],  # update file explorer after processing
+        }

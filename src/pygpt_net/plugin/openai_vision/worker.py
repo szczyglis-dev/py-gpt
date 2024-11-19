@@ -42,29 +42,24 @@ class Worker(BaseWorker):
                         response = self.cmd_make_screenshot(item)
 
                     elif item["cmd"] == "analyze_image_attachment":
-                        print("Analyze image attachment")
                         response = self.cmd_analyze_image_attachment(item)
 
                     elif item["cmd"] == "analyze_screenshot":
-                        print("Analyze screenshot")
                         response = self.cmd_analyze_screenshot(item)
 
                     elif item["cmd"] == "analyze_camera_capture":
-                        print("Analyze camera capture")
                         response = self.cmd_analyze_camera_capture(item)
 
                     if response:
                         responses.append(response)
 
             except Exception as e:
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log("Error: {}".format(e))
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -77,21 +72,12 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             self.window.controller.camera.manual_capture(force=True)
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_make_screenshot(self, item: dict) -> dict:
         """
@@ -100,21 +86,12 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             self.window.controller.painter.capture.screenshot()
-            response = {
-                "request": request,
-                "result": "OK",
-            }
+            result = "OK"
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_analyze_image_attachment(self, item: dict) -> dict:
         """
@@ -123,31 +100,21 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             prompt = ""
-            if "params" in item and "prompt" in item["params"]:
-                prompt = item["params"]["prompt"]
+            if self.has_param(item, "prompt"):
+                prompt = self.get_param(item, "prompt")
             path = ""
-            if "params" in item and "path" in item["params"]:
-                path = item["params"]["path"]
+            if self.has_param(item, "path"):
+                path = self.get_param(item, "path")
             result = self.window.core.vision.analyzer.from_path(
                 ctx=self.ctx,
                 prompt=prompt,
                 path=path,
             )
-            response = {
-                "request": request,
-                "result": result,
-            }
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_analyze_screenshot(self, item: dict) -> dict:
         """
@@ -156,27 +123,17 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             prompt = ""
-            if "params" in item and "prompt" in item["params"]:
-                prompt = item["params"]["prompt"]
+            if self.has_param(item, "prompt"):
+                prompt = self.get_param(item, "prompt")
             result = self.window.core.vision.analyzer.from_screenshot(
                 ctx=self.ctx,
                 prompt=prompt,
             )
-            response = {
-                "request": request,
-                "result": result,
-            }
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
+            result = self.throw_error(e)
+        return self.make_response(item, result)
 
     def cmd_analyze_camera_capture(self, item: dict) -> dict:
         """
@@ -185,33 +142,14 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
         try:
             prompt = ""
-            if "params" in item and "prompt" in item["params"]:
-                prompt = item["params"]["prompt"]
+            if self.has_param(item, "prompt"):
+                prompt = self.get_param(item, "prompt")
             result = self.window.core.vision.analyzer.from_camera(
                 ctx=self.ctx,
                 prompt=prompt,
             )
-            response = {
-                "request": request,
-                "result": result,
-            }
         except Exception as e:
-            response = {
-                "request": request,
-                "result": "Error: {}".format(e),
-            }
-            self.error(e)
-            self.log("Error: {}".format(e))
-        return response
-
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        return {"cmd": item["cmd"]}
+            result = self.throw_error(e)
+        return self.make_response(item, result)

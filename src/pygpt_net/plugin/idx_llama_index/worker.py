@@ -43,14 +43,12 @@ class Worker(BaseWorker):
 
             except Exception as e:
                 msg = "Error: {}".format(e)
-                responses.append({
-                    "request": {
-                        "cmd": item["cmd"],
-                    },
-                    "result": "Error {}".format(e),
-                })
-                self.error(e)
-                self.log(msg)
+                responses.append(
+                    self.make_response(
+                        item,
+                        self.throw_error(e)
+                    )
+                )
 
         # send response
         if len(responses) > 0:
@@ -67,26 +65,17 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        request = self.prepare_request(item)
-        question = item["params"]["query"]
+        question = self.get_param(item, "query")
         self.status("Please wait... querying: {}...".format(question))
-        answer, doc_ids, metas = self.plugin.query(question)  # send question to Llama-index
-        response = {
-            "request": request,
-            "result": answer,
-            "doc_ids": doc_ids,
-            "metas": metas,
-            "context": "ADDITIONAL CONTEXT (response from DB):\n--------------------------------\n" + answer,
-        }
+        content, doc_ids, metas = self.plugin.query(question)  # send question to Llama-index
+        result = content
+        context = "ADDITIONAL CONTEXT (response from DB):\n--------------------------------\n" + content
         if doc_ids:
             self.ctx.doc_ids = doc_ids  # store doc_ids in context
-        return response
 
-    def prepare_request(self, item) -> dict:
-        """
-        Prepare request item for result
-
-        :param item: item with parameters
-        :return: request item
-        """
-        return {"cmd": item["cmd"]}
+        extra = {
+            "doc_ids": doc_ids,
+            "metas": metas,
+            "context": context,
+        }
+        return self.make_response(item, result, extra=extra)
