@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.15** | build: **2024.11.18** | Python: **>=3.10, <3.12**
+Release: **2.4.16** | build: **2024.11.19** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3630,6 +3630,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.16 (2024-11-19)**
+
+- Code Interpreter and Files I/O input/output is now displayed in chat window, using syntax highlight.
+- Refactored plugins structure.
+- Fix: command execution in Chat in Files mode when no index is selected.
+- Fix: missing translations in Agent mode.
+
 
 **2.4.15 (2024-11-18)**
 

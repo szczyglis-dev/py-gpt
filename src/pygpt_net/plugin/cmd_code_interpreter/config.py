@@ -108,7 +108,7 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "ipython_execute_new",
-            instruction="execute Python code in IPython interpreter (in new kernel) and get output.",
+            instruction="execute Python code in the IPython interpreter in a new kernel and get the output. Use this option only if a kernel restart is required; otherwise, use `ipython_execute` to run the code in the current session",
             params=[
                 {
                     "name": "code",
