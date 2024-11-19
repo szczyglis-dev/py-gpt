@@ -16,6 +16,7 @@ from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
+from .output import Output
 from .worker import Worker
 
 
@@ -53,6 +54,7 @@ class Plugin(BasePlugin):
         ]
         self.use_locale = True
         self.worker = None
+        self.output = Output(self)
         self.config = Config(self)
         self.init_options()
 
@@ -80,6 +82,10 @@ class Plugin(BasePlugin):
                 ctx,
                 data['commands'],
             )
+
+        elif name == Event.TOOL_OUTPUT_RENDER:
+            if data['tool'] == self.id:
+                data['html'] = self.output.handle(ctx)
 
     def cmd_syntax(self, data: dict):
         """

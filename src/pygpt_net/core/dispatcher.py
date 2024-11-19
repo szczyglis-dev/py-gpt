@@ -71,6 +71,7 @@ class Event(BaseEvent):
     POST_PROMPT = "post.prompt"
     PRE_PROMPT = "pre.prompt"
     SYSTEM_PROMPT = "system.prompt"
+    TOOL_OUTPUT_RENDER = "tool.output.render"
     UI_ATTACHMENTS = "ui.attachments"
     UI_VISION = "ui.vision"
     USER_NAME = "user.name"
@@ -288,7 +289,7 @@ class Dispatcher:
         """
         self.window.core.debug.info("Reply stack (add)...")
         self.reply_stack.append(ctx.results)
-        ctx.cmds = []  # clear commands
+        # ctx.cmds = []  # clear commands  (disables expand output in render)
         ctx.results = []  # clear results
         self.reply_ctx = ctx
 

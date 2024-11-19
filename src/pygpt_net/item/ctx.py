@@ -50,7 +50,7 @@ class CtxItem:
         self.input_tokens = 0
         self.output_tokens = 0
         self.total_tokens = 0
-        self.extra = None
+        self.extra = {}
         self.extra_ctx = None
         self.current = False
         self.internal = False

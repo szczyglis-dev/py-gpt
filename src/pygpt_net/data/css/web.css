@@ -85,6 +85,12 @@ p {{
 .ts {{
     display: none;
 }}
+.tool-output-header {{
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: gray;
+}}
 ul, ol, .list {{
     margin-top: 0px;
     margin-bottom: 0px;

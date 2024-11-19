@@ -19,6 +19,7 @@ from .syntax_highlight import SyntaxHighlight
 import pygpt_net.js_rc
 import pygpt_net.css_rc
 import pygpt_net.fonts_rc
+from ...dispatcher import Event
 
 
 class Body:
@@ -247,6 +248,27 @@ class Body:
                    url=url,
                    path=path,
                    num=num_str)
+
+    def prepare_tool_extra(self, ctx: CtxItem) -> str:
+        """
+        Prepare footer extra
+
+        :param ctx: context item
+        :return: HTML code
+        """
+        html = ""
+        if ctx.extra is not None and ctx.extra != "":
+            html += "<div class=\"msg-extra\">"
+            if "plugin" in ctx.extra:
+                event = Event(Event.TOOL_OUTPUT_RENDER, {
+                    'tool': ctx.extra["plugin"],
+                    'html': '',
+                })
+                event.ctx = ctx
+                self.window.core.dispatcher.dispatch(event, all=True)  # handle by plugins
+                html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
+            html += "</div>"
+        return html
 
     def get_html(self) -> str:
         """

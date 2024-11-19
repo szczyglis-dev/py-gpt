@@ -77,6 +77,24 @@ class Parser:
             pass
         return text
 
+    def parse_code(self, text: str) -> str:
+        """
+        Parse code markdown text
+
+        :param text: markdown text
+        :return: html formatted text
+        """
+        self.init()
+        try:
+            soup = BeautifulSoup(self.md.convert(text.strip()), 'html.parser')
+            self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
+            self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
+            self.highlight_code_blocks(soup)  # parse code blocks
+            return str(soup)
+        except Exception as e:
+            pass
+        return text
+
     def to_plain_text(self, html: str) -> str:
         """
         Convert markdown to plain text

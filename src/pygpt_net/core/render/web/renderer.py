@@ -744,6 +744,7 @@ class Renderer(BaseRenderer):
                 tool_output +
                 '</div></div>'
         )
+        tool_extra = self.body.prepare_tool_extra(ctx)
 
         html = (
             '<div class="msg-box msg-bot" id="{msg_id}">'
@@ -751,6 +752,7 @@ class Renderer(BaseRenderer):
             '<div class="msg">'
             '{html}'
             '{html_tools}'
+            '<div class="msg-tool-extra">{tool_extra}</div>'
             '<div class="msg-extra">{extra}</div>'
             '{footer}'
             '</div>'
@@ -761,7 +763,8 @@ class Renderer(BaseRenderer):
             html=html,
             html_tools=html_tools,
             extra=extra,
-            footer=footer
+            footer=footer,
+            tool_extra=tool_extra,
         )
 
         return html

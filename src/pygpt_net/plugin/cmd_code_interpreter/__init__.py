@@ -20,6 +20,7 @@ from pygpt_net.item.ctx import CtxItem
 from .config import Config
 from .builder import Builder
 from .ipython import IPythonInterpreter
+from .output import Output
 from .runner import Runner
 from .worker import Worker
 
@@ -55,6 +56,7 @@ class Plugin(BasePlugin):
         self.runner = Runner(self)
         self.ipython = IPythonInterpreter(self)
         self.builder = Builder(self)
+        self.output = Output(self)
         self.worker = None
         self.config = Config(self)
         self.init_options()
@@ -83,6 +85,10 @@ class Plugin(BasePlugin):
                 ctx,
                 data['commands'],
             )
+
+        elif name == Event.TOOL_OUTPUT_RENDER:
+            if data['tool'] == self.id:
+                data['html'] = self.output.handle(ctx)
 
     def cmd_syntax(self, data: dict):
         """
@@ -189,8 +195,8 @@ class Plugin(BasePlugin):
             worker.signals.clear.connect(self.handle_interpreter_clear)
             worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
-            ipython.attach_signals(worker.signals)
-            runner.attach_signals(worker.signals)
+            self.ipython.attach_signals(worker.signals)
+            self.runner.attach_signals(worker.signals)
 
             if not self.is_async(ctx) and not force:
                 worker.run()
