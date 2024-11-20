@@ -327,6 +327,7 @@ class CodeInterpreter(BaseTool):
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.window.ui.nodes['interpreter.input'].setFocus()
         self.cursor_to_end()
+        self.scroll_to_bottom()
         self.update()
 
     def close(self):
@@ -334,6 +335,15 @@ class CodeInterpreter(BaseTool):
         self.opened = False
         self.window.ui.dialogs.close('interpreter')
         self.update()
+
+    def scroll_to_bottom(self):
+        """Scroll down"""
+        self.window.ui.nodes['interpreter.code'].verticalScrollBar().setValue(
+            self.window.ui.nodes['interpreter.code'].verticalScrollBar().maximum()
+        )
+        self.window.interpreter.verticalScrollBar().setValue(
+            self.window.interpreter.verticalScrollBar().maximum()
+        )
 
     def toggle(self):
         """Toggle interpreter dialog open/close"""
