@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -35,6 +35,7 @@ class Files:
             ctx.attachments = attachments
             self.window.ui.status(trans('status.sending'))
             self.window.controller.chat.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
+            self.window.controller.attachment.set_consumed()  # mark as consumed
         return attachments
 
     def upload(self, mode: str) -> dict:

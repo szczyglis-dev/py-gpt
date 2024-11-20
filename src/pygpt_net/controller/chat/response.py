@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -54,7 +54,6 @@ class Response:
         mode = extra.get('mode', 'chat')
         reply = extra.get('reply', False)
         internal = extra.get('internal', False)
-        has_attachments = extra.get('has_attachments', False)
         self.window.core.ctx.update_item(ctx)
 
         # fix frozen chat
@@ -81,7 +80,7 @@ class Response:
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
-        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
+        self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
     def begin(self, context: BridgeContext, extra: dict):
         """
@@ -125,15 +124,13 @@ class Response:
                                                            internal=False)
 
             self.window.controller.chat.output.handle_end(ctx=prev_ctx,
-                                                          mode=prev_ctx.mode,
-                                                          has_attachments=False)  # end previous context
+                                                          mode=prev_ctx.mode)  # end previous context
 
         # handle current step
         ctx.current = False  # reset current state
         mode = ctx.mode
         reply = ctx.reply
         internal = ctx.internal
-        has_attachments = False
 
         self.window.core.ctx.set_last_item(ctx)
         data = {
@@ -184,7 +181,7 @@ class Response:
         }
         event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
         self.window.core.dispatcher.dispatch(event)  # show cmd waiting
-        self.window.controller.chat.output.handle_end(ctx, mode, has_attachments)  # handle end.
+        self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
         event = RenderEvent(RenderEvent.RELOAD)
         self.window.core.dispatcher.dispatch(event)

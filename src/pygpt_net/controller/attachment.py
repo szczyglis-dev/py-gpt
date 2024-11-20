@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 import os
@@ -30,6 +30,7 @@ class Attachment:
         """
         self.window = window
         self.is_lock = False
+        self.is_consumed = False
 
     def setup(self):
         """Setup attachments"""
@@ -195,6 +196,7 @@ class Attachment:
             mode=mode,
             item=attachment,
         )
+        self.is_consumed = False  # reset consumed flag
         self.update()
 
     def clear(self, force: bool = False, remove_local=False, auto: bool = False):
@@ -235,6 +237,22 @@ class Attachment:
             mode=mode,
             remove_local=False,
         )
+
+    def set_consumed(self, value: bool = True):
+        """
+        Mark as consumed
+
+        :param value: value
+        """
+        self.is_consumed = value
+
+    def consumed(self) -> bool:
+        """
+        Return True if attachment is consumed
+
+        :return: True if attachment is consumed
+        """
+        return self.is_consumed
 
     def open_add(self):
         """Open add attachment file dialog"""

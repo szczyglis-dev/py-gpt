@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 import json
@@ -203,6 +203,9 @@ class Chat:
         content = str(prompt)
         if "vision" in model.mode:
             content = self.window.core.gpt.vision.build_content(prompt, attachments)
+            # mark attachments as consumed
+            if len(self.window.core.gpt.vision.attachments) > 0:
+                self.window.controller.attachment.set_consumed(True)
 
         # append current prompt
         messages.append({"role": "user", "content": content})

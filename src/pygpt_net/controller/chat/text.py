@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
@@ -231,7 +231,6 @@ class Text:
                 'mode': mode,
                 'reply': reply,
                 'internal': internal,
-                'has_attachments': num_files > 0,
             }
             if mode == "agent_llama":
                 extra['agent_idx'] = agent_idx

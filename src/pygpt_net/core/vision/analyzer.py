@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -122,6 +122,8 @@ class Analyzer:
 
         # clear if capture clear
         if self.window.controller.attachment.is_capture_clear():
-            self.window.controller.attachment.clear(True, auto=True)
+            # clear only if really consumed
+            if self.window.controller.attachment.consumed():
+                self.window.controller.attachment.clear(True, auto=True)
 
         return result
