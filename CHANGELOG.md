@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.4.17 (2024-11-20)
+
+- Refactored kernel and render events.
+- Added multiple formatted extra outputs from plugins.
+- Added a 'Reset (clear)' option in the context list for clearing the current context.
+- Fixed the audio button.
+- Improved the stop event.
+- Other small fixes.
+
 ## 2.4.16 (2024-11-19)
 
 - Code Interpreter and Files I/O input/output is now displayed in chat window, using syntax highlight.

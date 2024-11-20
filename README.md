@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.16** | build: **2024.11.19** | Python: **>=3.10, <3.12**
+Release: **2.4.17** | build: **2024.11.20** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3631,6 +3631,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.17 (2024-11-20)**
+
+- Refactored kernel and render events.
+- Added multiple formatted extra outputs from plugins.
+- Added a 'Reset (clear)' option in the context list for clearing the current context.
+- Fixed the audio button.
+- Improved the stop event.
+- Other small fixes.
+
 **2.4.16 (2024-11-19)**
 
 - Code Interpreter and Files I/O input/output is now displayed in chat window, using syntax highlight.
@@ -3661,88 +3670,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added httpx-socks to the dependencies, enabling the use of SOCKS proxies.
 
 **2.4.11 (2024-11-15)**
-
-- Added a new Llama-index agent: OpenAI Assistant.
-- Added proxy settings to the configuration dialog.
-- Added more models to the Agent (Llama-index) mode.
-- Improved the agents/presets dialog window.
-- Disabled the "OpenAI API KEY is not set" Llama-index error when using a local model in Chat with Files mode. You can now use local embeddings, such as Llama3 via Ollama, and use local models without any warnings.
-
-**2.4.10 (2024-11-14)**
-
-- Added support for Llama Index agents. (beta)
-- Introduced a new working mode: Agent (Llama Index).
-- Added 3 Llama Index agents: OpenAI Agent, ReAct Agent, and Structured Planner Agent.
-- Fixed: passing an embed model to vector stores on indexing.
-- Fixed: python3-tk error in snap version.
-
-**2.4.9 (2024-11-12)**
-
-- Mouse movement has been moved to the PyAutoGUI library for seamless operation.
-- Bridge calls have been moved to an asynchronous thread.
-- Fixed the DALL-E call in Image mode.
-- Speed improvements and optimizations.
-
-**2.4.8 (2024-11-12)**
-
-- Fix: restoring order of notepads.
-- Fix: mouse move offset in Mouse and Keyboard plugin.
-
-**2.4.7 (2024-11-11)**
-
-- Added a new tool: `HTML/JS Canvas`, connected to the `Code Interpreter` plugin. This feature enables real-time rendering of HTML/JS code in a Chromium-based output by using two new `Code Interpreter` commands: `render_html_output` and `get_html_output`.
-- Added an SVG icon to the New Tab button.
-- Improved the system prompt and execution flow in the `Command: Mouse And Keyboard` plugin and introduced a new option Auto-focus to the plugin settings (default: False).
-
-**2.4.6 (2024-11-10)**
-
-- Fixed notepad tab titles in Copy To menu.
-
-**2.4.5 (2024-11-09)**
-
-- Added a new [+] tab button to the right of the tabs.
-- Fixed the issue where the tab name disappeared when creating a new tab.
-- Fixed the broken find option (CTRL+F) in the chat window.
-
-**2.4.4 (2024-11-09)**
-
-- Added a new plugin: Command: Mouse And Keyboard. The plugin allows the model to control the mouse and keyboard, control the cursor position, click mouse buttons, use scroll, type text, and press keys on the keyboard.
-
-**2.4.3 (2024-11-08)**
-
-- Added button to hide output from tools/plugins.
-- Added tooltips on the preset list showing the system prompt of the preset.
-- Added restoration of tooltips for chat tabs.
-- Removed disruptive tooltips from the plugin settings window.
-- Improved reading of current tab information in event reading with speech synthesis.
-- Minor improvements.
-
-**2.4.2 (2024-11-08)**
-
-- Improved commands and tools handling.
-- Improved autonomous mode.
-
-**2.4.1 (2024-11-08)**
-
-- Added titles for conversations in tabs.
-- Tab tools added to the tools menu.
-- Fix: Reload tabs after changing profile.
-- Other fixes.
-
-**2.4.0 (2024-11-06)**
-
-- Added the ability to have conversations in multiple tabs (right-click on the tab bar to add new tabs via "Add a new chat", similar to a web browser).
-- Added the option to add notepad tabs using the right-click context menu and selecting "Add a new notepad".
-- Added tab reorganization via drag and drop (you can now arrange tabs freely using the mouse).
-- Added the ability to name tabs.
-
-**2.3.4 (2024-11-03)**
-
-- Support for LaTeX: Mathematical formulas can now be displayed in the chat window using `KaTeX`library (https://katex.org/). This enhancement allows for real-time rendering of complex mathematical expressions.
-
-**2.3.3 (2024-11-03)**
-
-- Added support for models: OpenAI `o1` and `o1-mini` and `SpeakLeash/bielik-11b-v2.2` (Polish LLM: https://bielik.ai).
 
 
 # Credits and links
