@@ -128,6 +128,7 @@ def test_update_list(mock_window):
 def test_on_ctx_end(mock_window):
     """Test on ctx end"""
     idx = Idx(mock_window)
+    mock_window.controller.kernel.stopped = MagicMock(return_value=False)
     mock_window.core.config.set("llama.idx.auto", True)
     mock_window.core.config.set("llama.idx.auto.index", "base")
     mock_window.controller.chat.input.stop = False

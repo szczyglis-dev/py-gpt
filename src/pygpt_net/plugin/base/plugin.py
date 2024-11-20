@@ -1,9 +1,20 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2024.11.20 03:00:00                  #
+# ================================================== #
+
 import copy
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QTimer
-from typing_extensions import deprecated
+from PySide6.QtCore import QObject, Slot
 
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -286,7 +297,7 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :return: True if async execution is allowed
         """
-        return self.window.core.dispatcher.async_allowed(ctx)
+        return self.window.controller.kernel.async_allowed(ctx)
 
     def log(self, msg: str):
         """
@@ -311,13 +322,21 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :param extra_data: extra data
         """
-        # handle post-finishing operations
-        self.run_post_response(ctx, extra_data)
-
-        # dispatch response (reply)
+        # send response (reply)
         if ctx is not None:
             self.prepare_reply_ctx(response, ctx)
-            self.window.core.dispatcher.reply(ctx)
+            
+            context = BridgeContext()
+            context.ctx = ctx
+            extra = {}
+            if extra_data:
+                extra = extra_data
+            extra["response_type"] = "single"
+            event = KernelEvent(KernelEvent.REPLY_ADD, {
+                'context': context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     @Slot(object, object, dict)
     def handle_finished_more(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):
@@ -328,28 +347,22 @@ class BasePlugin(QObject):
         :param ctx: context (CtxItem)
         :param extra_data: extra data
         """
-        # handle post-finishing operations
-        self.run_post_response(ctx, extra_data)
-
-        # dispatch responses (reply)
+        # send multiple responses (reply)
         for response in responses:
             if ctx is not None:
                 self.prepare_reply_ctx(response, ctx)
-            self.window.core.dispatcher.reply(ctx)
 
-    def run_post_response(self, ctx: CtxItem, extra_data: dict = None):
-        """
-        Run post-response operations
-
-        :param ctx: context (CtxItem)
-        :param extra_data: extra data
-        """
-        if isinstance(extra_data, dict):
-            if (ctx is None or not ctx.agent_call) or not self.is_threaded():
-                if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
-                    if "file_explorer" in extra_data["post_update"]:
-                        # update file explorer view
-                        self.window.controller.files.update_explorer()
+        context = BridgeContext()
+        context.ctx = ctx
+        extra = {}
+        if extra_data:
+            extra = extra_data
+        extra["response_type"] = "multiple"
+        event = KernelEvent(KernelEvent.REPLY_ADD, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def prepare_reply_ctx(self, response: dict, ctx: CtxItem = None) -> dict:
         """
@@ -369,13 +382,25 @@ class BasePlugin(QObject):
         ctx.results.append(clean_response)
         ctx.reply = True
 
+        extras = {}
         for key in response:
             if key not in ignore_extra:
-                ctx.extra[key] = response[key]
+                extras[key] = response[key]
+
+        # add extra data to context, into `tool_output` list
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        if "tool_output" not in ctx.extra:
+            ctx.extra["tool_output"] = []
+        ctx.extra["tool_output"].append(extras)  # allow more extra data
 
         if "context" in response:
             if self.window.core.config.get("ctx.use_extra"):
-                ctx.extra_ctx = response["context"]
+                if ctx.extra_ctx is None:
+                    ctx.extra_ctx = ""
+                if ctx.extra_ctx == "":
+                    ctx.extra_ctx += "\n"
+                ctx.extra_ctx += response["context"]  # allow more context data
                 response["result"] = "OK"
             else:
                 del response["context"]

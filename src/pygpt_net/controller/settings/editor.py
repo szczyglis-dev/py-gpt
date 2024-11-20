@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import copy
 
+from pygpt_net.core.events import RenderEvent
 from pygpt_net.utils import trans
 
 
@@ -279,7 +280,8 @@ class Editor:
                 self.window.ui.nodes['output.raw'].setChecked(False)
             else:
                 self.window.ui.nodes['output.raw'].setChecked(True)
-            self.window.controller.chat.render.switch()
+            event = RenderEvent(RenderEvent.ON_SWITCH)
+            self.window.core.dispatcher.dispatch(event)
             self.window.controller.ui.update_font_size()
 
         # call vision checkboxes events

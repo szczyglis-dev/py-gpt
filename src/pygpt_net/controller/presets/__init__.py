@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import re
@@ -14,7 +14,7 @@ import re
 from PySide6.QtGui import QTextCursor
 
 from pygpt_net.controller.presets.editor import Editor
-from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.events import AppEvent
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 

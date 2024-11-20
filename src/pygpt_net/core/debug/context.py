@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 import json
 
@@ -32,12 +32,12 @@ class ContextDebug:
             self.window.core.debug.add(self.id, 'bridge (last quick call)', str(self.window.core.bridge.last_context_quick.to_dict()))
         else:
             self.window.core.debug.add(self.id, 'bridge (last quick call)', '---')
-        if self.window.controller.chat.reply.current is not None:
-            self.window.core.debug.add(self.id, 'reply (queue)', str(self.window.controller.chat.reply.current.to_dict()))
+        if self.window.controller.kernel.stack.current is not None:
+            self.window.core.debug.add(self.id, 'reply (queue)', str(self.window.controller.kernel.stack.current.to_dict()))
         else:
             self.window.core.debug.add(self.id, 'reply (queue)', '---')
-        self.window.core.debug.add(self.id, 'reply (locked)', str(self.window.controller.chat.reply.locked))
-        self.window.core.debug.add(self.id, 'reply (processed)', str(self.window.controller.chat.reply.processed))
+        self.window.core.debug.add(self.id, 'reply (locked)', str(self.window.controller.kernel.stack.locked))
+        self.window.core.debug.add(self.id, 'reply (processed)', str(self.window.controller.kernel.stack.processed))
         self.window.core.debug.add(self.id, 'current (id)', str(self.window.core.ctx.get_current()))
         self.window.core.debug.add(self.id, 'len(meta)', len(self.window.core.ctx.meta))
         self.window.core.debug.add(self.id, 'len(items)', len(self.window.core.ctx.get_items()))

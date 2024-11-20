@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -150,6 +150,7 @@ class Input:
         header.addStretch(1)
         header.addWidget(self.window.ui.plugin_addon['audio.input'])
         header.addWidget(self.window.ui.plugin_addon['audio.input.btn'])
+        header.addStretch(1)
         header.addWidget(self.window.ui.nodes['input.counter'], alignment=Qt.AlignRight)
 
         return header
@@ -210,7 +211,7 @@ class Input:
         self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
         self.window.ui.nodes['input.stop_btn'].clicked.connect(
-            lambda: self.window.controller.chat.common.stop())
+            lambda: self.window.controller.kernel.stop())
 
         # update button
         self.window.ui.nodes['input.update_btn'] = QPushButton(trans("input.btn.update"))

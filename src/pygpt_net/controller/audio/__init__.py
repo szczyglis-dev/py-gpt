@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
 
-from pygpt_net.core.dispatcher import Event, BaseEvent
+from pygpt_net.core.events import Event, BaseEvent
 from pygpt_net.plugin.audio_output.worker import PlayWorker
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans

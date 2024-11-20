@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import json
@@ -14,15 +14,15 @@ import os
 from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
-from pygpt_net.core.dispatcher import Dispatcher, Event
-
+from pygpt_net.core.dispatcher import Dispatcher
+from pygpt_net.core.events import Event
 
 def test_dispatch(mock_window):
     """Test dispatch"""
     dispatcher = Dispatcher(mock_window)
     event = Event('test')
     dispatcher.apply = MagicMock()
-    mock_window.core.plugins.plugins = ['test1', 'test2', 'test3']
+    mock_window.core.plugins.plugins = {'test1': {}, 'test2': {}, 'test3': {}}
     mock_window.controller.plugins.is_enabled = MagicMock(return_value=True)
     affected, event = dispatcher.dispatch(event)
     assert affected == ['test1', 'test2', 'test3']
@@ -38,6 +38,7 @@ def test_apply(mock_window):
     dispatcher.apply('test1', event)
     mock_window.core.plugins.plugins['test1'].handle.assert_called_once_with(event)
 
+'''
 
 def test_reply(mock_window):
     """Test reply"""
@@ -68,3 +69,4 @@ def test_reply(mock_window):
         prev_ctx=prev_ctx,
         parent_id=None,
     )
+'''

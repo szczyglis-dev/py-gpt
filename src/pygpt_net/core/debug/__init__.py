@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 15:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
 import sys
+import threading
 import traceback
 import logging
 
@@ -218,7 +219,11 @@ class Debug:
         try:
             # send to logger window
             if self.window is not None:
-                self.window.logger_message.emit(message)
+                # append thread ID
+                thread_suffix = ""
+                if not threading.current_thread() is threading.main_thread():
+                    thread_suffix = " [THREAD: {}]".format(threading.current_thread().ident)
+                self.window.logger_message.emit(str(message) + thread_suffix)
         except Exception as e:
             pass
 

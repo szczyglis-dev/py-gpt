@@ -51,11 +51,10 @@ def test_send(mock_window):
 
         mock_window.core.prompt.prepare_sys_prompt.assert_called_once()  # should append cmd syntax
 
-        mock_window.controller.chat.render.append_input.assert_called_once()  # should append input
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.bridge.call.assert_called_once()  # should call bridge
+        mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_send_stream(mock_window):
@@ -85,11 +84,10 @@ def test_send_stream(mock_window):
         ctx = text.send('message')
 
         mock_window.core.history.append.assert_called_once()  # should append to history
-        mock_window.controller.chat.render.append_input.assert_called_once()  # should append input
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.bridge.call.assert_called_once()  # should call bridge
+        mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_send_assistant(mock_window):
@@ -119,8 +117,7 @@ def test_send_assistant(mock_window):
 
         mock_window.controller.assistant.begin.assert_called_once()  # should upload files
         mock_window.core.history.append.assert_called_once()  # should append to history
-        mock_window.controller.chat.render.append_input.assert_called_once()  # should append input
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.bridge.call.assert_called_once()  # should call bridge
+        mock_window.core.dispatcher.dispatch.assert_called()

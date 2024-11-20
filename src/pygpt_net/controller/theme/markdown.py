@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
+
+from pygpt_net.core.events import RenderEvent
 
 
 class Markdown:
@@ -49,7 +51,8 @@ class Markdown:
         if 'output' in self.window.ui.nodes:
             for pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
-        self.window.controller.chat.render.on_theme_change()  # per current engine
+        event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
+        self.window.core.dispatcher.dispatch(event)  # per current engine
 
     def get_web_css(self) -> str:
         """
@@ -66,10 +69,15 @@ class Markdown:
     def clear(self):
         """Clear CSS of markdown formatter"""
         meta = self.window.core.ctx.get_current_meta()
-        self.window.controller.chat.render.clear_all()
+        event = RenderEvent(RenderEvent.CLEAR_ALL)
+        self.window.core.dispatcher.dispatch(event)  # per current engine
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
-        self.window.controller.chat.render.end(meta, None)
+        data = {
+            "meta": meta,
+        }
+        event = RenderEvent(RenderEvent.END, data)
+        self.window.core.dispatcher.dispatch(event)
 
     def load(self):
         """Load markdown styles"""

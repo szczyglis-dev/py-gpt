@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -14,7 +14,8 @@ from openai import AssistantEventHandler
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from typing_extensions import override
 
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.events import RenderEvent
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
 class AssistantsWorker:
@@ -148,14 +149,9 @@ class AssistantsWorker:
 
         :param ctx: context item
         """
-        self.window.controller.chat.render.stream_begin(ctx.meta, ctx)
+        self.render_output(RenderEvent.STREAM_BEGIN, ctx.meta, ctx)
         self.window.controller.assistant.threads.handle_stream_begin(ctx)
-        self.window.controller.chat.render.append_chunk(
-            ctx.meta,
-            ctx,
-            "",
-            True,
-        )  # only begin chunks
+        self.render_output(RenderEvent.STREAM_APPEND, ctx.meta, ctx, chunk="", begin=True)
 
     def reset_tool_output(self):
         """Reset tool output"""
@@ -181,12 +177,24 @@ class AssistantsWorker:
             ctx.output = ""
         if chunk is not None:
             ctx.output += chunk
-        self.window.controller.chat.render.append_chunk(
-            ctx.meta,
-            ctx,
-            chunk,
-            False,
-        )
+        self.render_output(RenderEvent.STREAM_APPEND, ctx.meta, ctx, chunk=chunk, begin=False)
+
+    def render_output(self, event_name: str, meta: CtxMeta, ctx: CtxItem, **kwargs):
+        """
+        Send render output event to window
+
+        :param event_name: event name
+        :param meta: context meta
+        :param ctx: context item
+        :param kwargs: additional data
+        """
+        data = {
+            "meta": meta,
+            "ctx": ctx,
+        }
+        data.update(kwargs)
+        event = RenderEvent(event_name, data)
+        self.window.core.dispatcher.dispatch(event)
 
     def log(self, message: str):
         """
@@ -240,7 +248,7 @@ class AssistantsWorker:
         if ctx.stopped:
             return
         self.reset_tool_output()
-        self.window.controller.chat.render.stream_end(ctx.meta, ctx)
+        self.render_output(RenderEvent.STREAM_END, ctx.meta, ctx)
         self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     @Slot(object, object, bool)

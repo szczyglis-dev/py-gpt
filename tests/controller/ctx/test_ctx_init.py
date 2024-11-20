@@ -147,7 +147,6 @@ def test_new(mock_window):
     mock_window.core.ctx.new.assert_called_once()
     ctx.update.assert_called_once()
 
-    mock_window.controller.chat.render.clear.assert_called_once()
     mock_window.controller.chat.common.unlock_input.assert_called_once()
 
     ctx.common.update_label.assert_called_once_with('assistant', 'as_123')
@@ -194,7 +193,7 @@ def test_refresh_output(mock_window):
 
     ctx.refresh_output()
 
-    mock_window.controller.chat.render.append_context.assert_called_once()
+    mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_load(mock_window):
@@ -217,7 +216,6 @@ def test_load(mock_window):
     ctx.load(3)
 
     mock_window.core.ctx.select.assert_called_once_with(3, restore_model=True)
-    mock_window.controller.chat.render.on_load.assert_called_once()
     mock_window.controller.mode.set.assert_called_once_with('assistant')
     mock_window.controller.presets.set.assert_called_once_with('assistant', 'preset_123')
     mock_window.controller.presets.refresh.assert_called_once()
@@ -264,7 +262,7 @@ def test_delete(mock_window):
     ctx.update.assert_called_once()
 
     # current
-    mock_window.controller.chat.render.clear_output.assert_called_once()
+    mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_delete_history(mock_window):

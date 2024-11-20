@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.bridge import BridgeContext
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
 
@@ -238,13 +238,20 @@ class Experts:
             response = reply_ctx.output
         else:
             response = reply_ctx.input
-        self.window.controller.chat.input.send(
-            "Result from expert:\n\n" + str(response),
-            force=True,
-            reply=True,
-            internal=internal,
-            prev_ctx=reply_ctx,
-        )
+
+        context = BridgeContext()
+        context.ctx = reply_ctx
+        context.prompt = "Result from expert:\n\n" + str(response)
+        extra = {
+            "force": True,
+            "reply": True,
+            "internal": internal,
+        }
+        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def call(
             self,
@@ -306,7 +313,12 @@ class Experts:
         ctx.sub_call = True  # mark as sub-call
 
         # render: begin
-        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=stream_mode)
+        event = RenderEvent(RenderEvent.BEGIN, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": stream_mode,
+        })
+        self.window.core.dispatcher.dispatch(event)
         self.window.core.ctx.provider.append_item(slave, ctx)  # to slave meta
 
         # build sys prompt
@@ -351,9 +363,12 @@ class Experts:
             max_tokens=max_tokens,
         )
         self.window.controller.chat.common.lock_input()  # lock input
-        result = self.window.core.bridge.call(
-            context=bridge_context,
-        )
+        event = KernelEvent(KernelEvent.REQUEST, {
+            'context': bridge_context,
+            'extra': {},
+        })
+        self.window.core.dispatcher.dispatch(event)
+        result = event.data.get("response")
         if not result:  # abort if bridge call failed
             return
 
@@ -368,7 +383,7 @@ class Experts:
         )
         ctx.clear_reply()  # reset results
         self.window.controller.chat.command.handle(ctx)  # handle cmds
-        self.window.controller.chat.reply.handle()  # handle command queue
+        self.window.controller.kernel.stack.handle()  # handle command queue
 
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)  # update ctx in DB
@@ -386,13 +401,19 @@ class Experts:
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
         # send slave expert response to master expert
-        self.window.controller.chat.input.send(
-            "@"+expert_id+" says:\n\n" + str(reply_ctx.output),
-            force=True,
-            reply=False,
-            internal=False,
-            prev_ctx=reply_ctx,
-        )
+        context = BridgeContext()
+        context.ctx = reply_ctx
+        context.prompt = "@"+expert_id+" says:\n\n" + str(reply_ctx.output)
+        extra = {
+            "force": True,
+            "reply": False,
+            "internal": False,
+        }
+        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def get_functions(self) -> list:
         """

@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from httpx_socks import SyncProxyTransport
 
 from openai import OpenAI, DefaultHttpxClient
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext
 
 from .assistants import Assistants
 from .chat import Chat

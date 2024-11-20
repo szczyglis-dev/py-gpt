@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 from PySide6.QtCore import QTimer
 
-from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 
@@ -65,7 +65,8 @@ class Tabs:
     def reload(self):
         """Reload tabs"""
         self.window.core.tabs.reload()
-        self.window.controller.chat.render.prepare()
+        event = RenderEvent(RenderEvent.PREPARE)
+        self.window.core.dispatcher.dispatch(event)
 
     def reload_after(self):
         """Reload tabs after"""

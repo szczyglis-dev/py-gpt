@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
 
@@ -157,10 +156,21 @@ class Text:
         self.window.controller.chat.log("Appending input to chat window...")
 
         # render: begin
-        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=stream_mode)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": stream_mode,
+        }
+        event = RenderEvent(RenderEvent.BEGIN, data)
+        self.window.core.dispatcher.dispatch(event)
 
         # append text from input to chat window
-        self.window.controller.chat.render.append_input(ctx.meta, ctx)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.INPUT_APPEND, data)
+        self.window.core.dispatcher.dispatch(event)
 
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
@@ -228,10 +238,11 @@ class Text:
                 extra['agent_provider'] = agent_provider
 
             self.window.controller.chat.common.lock_input()  # lock input
-            self.window.core.bridge.call(
-                context=bridge_context,
-                extra=extra,
-            )  # async handled via handle_bridge_*
+            event = KernelEvent(KernelEvent.REQUEST, {
+                'context': bridge_context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
 
         except Exception as e:
             self.window.controller.chat.log("Bridge call ERROR: {}".format(e))  # log

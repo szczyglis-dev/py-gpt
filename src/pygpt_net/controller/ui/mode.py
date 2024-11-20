@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
 
 

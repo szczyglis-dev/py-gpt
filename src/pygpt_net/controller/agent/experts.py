@@ -6,9 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 
@@ -110,7 +112,13 @@ class Experts:
                     if mentions:
                         num_calls = 0
                         self.log("Calling experts...")
-                        self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream_mode)  # close previous render
+                        data = {
+                            "meta": ctx.meta,
+                            "ctx": ctx,
+                            "stream": stream_mode,
+                        }
+                        event = RenderEvent(RenderEvent.END, data)
+                        self.window.core.dispatcher.dispatch(event)  # close previous render
                         for expert_id in mentions:
                             if not self.window.core.experts.exists(expert_id):
                                 self.log("Expert not found: " + expert_id)
@@ -124,7 +132,15 @@ class Experts:
                             reply.ctx = ctx
                             reply.parent_id = expert_id
                             reply.input = mentions[expert_id]
-                            self.window.controller.chat.reply.add(reply)
+                            # send to kernel
+                            context = BridgeContext()
+                            context.ctx = ctx
+                            context.reply_context = reply
+                            event = KernelEvent(KernelEvent.AGENT_CALL, {
+                                'context': context,
+                                'extra': {},
+                            })
+                            self.window.core.dispatcher.dispatch(event)
 
                             num_calls += 1
                         if num_calls > 0:

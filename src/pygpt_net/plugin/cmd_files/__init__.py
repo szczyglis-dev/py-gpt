@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
 
 from pygpt_net.plugin.base.plugin import BasePlugin
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
@@ -85,7 +85,7 @@ class Plugin(BasePlugin):
 
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
-                data['html'] = self.output.handle(ctx)
+                data['html'] = self.output.handle(ctx, data['content'])
 
     def cmd_syntax(self, data: dict):
         """

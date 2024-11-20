@@ -13,7 +13,8 @@ import json
 
 from PySide6.QtCore import Signal
 
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.core.worker import Worker, WorkerSignals
 
 
@@ -41,7 +42,7 @@ class Command:
 
         # begin reply stack
         if event.name in self.flush_events:
-            self.window.core.dispatcher.clear_reply_stack()
+            self.window.controller.kernel.replies.clear()
 
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id) or all:
@@ -57,7 +58,7 @@ class Command:
 
         # flush reply stack
         if event.name in self.flush_events:
-            self.window.core.dispatcher.flush_reply_stack()
+            self.window.controller.kernel.replies.flush()
 
     def dispatch_only(self, event: Event):
         """
@@ -67,11 +68,11 @@ class Command:
         """
         self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
         if event.name in self.flush_events:
-            self.window.core.dispatcher.clear_reply_stack()
+            self.window.controller.kernel.replies.clear()
         for id in self.window.core.plugins.get_ids():
             self.window.core.dispatcher.apply(id, event)
         if event.name in self.flush_events:
-            self.window.core.dispatcher.flush_reply_stack()
+            self.window.controller.kernel.replies.flush()
 
     def dispatch_async(self, event: Event):
         """
@@ -138,9 +139,16 @@ class Command:
                 if ctx.extra_ctx:
                     data = ctx.extra_ctx  # if extra content is set, use it as data to send
                 prev_ctx = self.window.core.ctx.as_previous(ctx)  # copy result to previous ctx and clear current ctx
-                self.window.controller.chat.input.send(
-                    text=data,
-                    force=True,
-                    internal=ctx.internal,
-                    prev_ctx=prev_ctx,
-                )
+
+                context = BridgeContext()
+                context.ctx = prev_ctx
+                context.prompt = data
+                extra = {
+                    "force": True,
+                    "internal": ctx.internal,
+                }
+                event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+                    'context': context,
+                    'extra': extra,
+                })
+                self.window.core.dispatcher.dispatch(event)

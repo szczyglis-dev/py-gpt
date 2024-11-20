@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import re
 
 from PySide6.QtCore import QTimer
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.core.access.events import ControlEvent
+from pygpt_net.core.events import ControlEvent
 from pygpt_net.utils import trans
 
 
@@ -140,7 +140,7 @@ class Control:
             self.window.controller.chat.input.clear_input()
             self.handle_result(event, True)
         elif event.name == ControlEvent.CTX_STOP:
-            self.window.controller.chat.common.stop()
+            self.window.controller.kernel.stop()
         elif event.name == ControlEvent.CTX_ATTACHMENTS_CLEAR:
             self.window.controller.attachment.clear(force=True)
         elif event.name == ControlEvent.CTX_CURRENT:

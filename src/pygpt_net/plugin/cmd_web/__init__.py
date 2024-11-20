@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import ssl
 from urllib.request import Request, urlopen
 
+from requests import HTTPError
+
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.web.base import BaseProvider
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
@@ -368,18 +370,24 @@ class Plugin(BasePlugin):
             url=url,
             headers=headers,
         )
-        if self.get_option_value('disable_ssl'):
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            data = urlopen(
-                req,
-                context=context,
-                timeout=self.get_option_value('timeout'),
-            ).read()
-        else:
-            data = urlopen(
-                req,
-                timeout=self.get_option_value('timeout'),
-            ).read()
+        data = ""
+        try:
+            if self.get_option_value('disable_ssl'):
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                data = urlopen(
+                    req,
+                    context=context,
+                    timeout=self.get_option_value('timeout'),
+                ).read()
+            else:
+                data = urlopen(
+                    req,
+                    timeout=self.get_option_value('timeout'),
+                ).read()
+        except HTTPError as e:
+            data = str(e)
+        except Exception as e:
+            raise e
         return data

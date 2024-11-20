@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -67,9 +66,29 @@ class Output:
         # only append output if not in stream mode, TODO: plugin output add
         if not stream_mode:
             if stream_enabled:  # use global stream settings here to persist previously added input
-                self.window.controller.chat.render.append_input(ctx.meta, ctx, flush=True, append=True)
-            self.window.controller.chat.render.append_output(ctx.meta, ctx)
-            self.window.controller.chat.render.append_extra(ctx.meta, ctx, True)  # + icons
+                data = {
+                    "meta": ctx.meta,
+                    "ctx": ctx,
+                    "flush": True,
+                    "append": True,
+                }
+                event = RenderEvent(RenderEvent.INPUT_APPEND, data)
+                self.window.core.dispatcher.dispatch(event)
+
+            data = {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }
+            event = RenderEvent(RenderEvent.OUTPUT_APPEND, data)
+            self.window.core.dispatcher.dispatch(event)
+
+            data = {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "footer": True,
+            }
+            event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
+            self.window.core.dispatcher.dispatch(event)  # + icons
 
         self.handle_complete(ctx)
 
@@ -92,7 +111,7 @@ class Output:
             self.window.core.history.append(ctx, "output")
 
         if self.window.controller.chat.common.can_unlock(ctx):
-            if not self.window.controller.chat.common.stopped():
+            if not self.window.controller.kernel.stopped():
                 self.window.controller.chat.common.unlock_input()  # unlock input
 
     def post_handle(
@@ -126,12 +145,18 @@ class Output:
 
         # render: end
         if ctx.sub_calls == 0:  # if no experts called
-            self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)
+            data = {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "stream": stream,
+            }
+            event = RenderEvent(RenderEvent.END, data)
+            self.window.core.dispatcher.dispatch(event)
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
         if self.window.controller.chat.common.can_unlock(ctx):
-            if not self.window.controller.chat.common.stopped():
+            if not self.window.controller.kernel.stopped():
                 self.window.controller.chat.common.unlock_input()  # unlock input
 
         # handle ctx name (generate title from summary if not initialized)
@@ -189,8 +214,9 @@ class Output:
             self.window.stateChanged.emit(self.window.STATE_IDLE)
 
         if mode != "assistant":
-            self.window.controller.chat.reply.handle()  # handle reply
-            self.window.controller.chat.render.reload()  # reload chat window
+            self.window.controller.kernel.stack.handle()  # handle reply
+            event = RenderEvent(RenderEvent.RELOAD)
+            self.window.core.dispatcher.dispatch(event)  # reload chat window
 
     def log(self, data: any):
         """
@@ -198,4 +224,4 @@ class Output:
 
         :param data: Data to log
         """
-        self.window.core.debug.info(data)
+        self.window.controller.chat.log(data)

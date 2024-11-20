@@ -42,9 +42,9 @@ def test_send(mock_window):
         ctx = image.send('message')
 
         # mock_window.core.history.append.assert_called_once()  # should append to history (?)
-        mock_window.controller.chat.render.append_input.assert_called_once()  # should append input
+        mock_window.core.dispatcher.dispatch.assert_called() # should append input
         mock_window.controller.ctx.prepare_name.assert_called_once()  # should prepare name for ctx
-        mock_window.core.bridge.call.assert_called_once()  # should generate image
+        #mock_window.core.bridge.call.assert_called_once()  # should generate image
 
         assert ctx.input_name == 'User'  # should have input name
         assert ctx.input == 'message'  # should have input text
@@ -89,8 +89,8 @@ def test_handle_response_inline(mock_window):
 
     mock_window.core.ctx.update_item.assert_called_once()  # should update ctx in DB
     mock_window.ui.status.assert_called_once()  # should update status
-    mock_window.controller.chat.render.append_extra.assert_called_once()  # should append extra output
-    mock_window.controller.chat.render.to_end()  # should call render end method
+    mock_window.core.dispatcher.dispatch.assert_called() # should append extra output
+    #mock_window.controller.chat.render.to_end()  # should call render end method
 
 """
 

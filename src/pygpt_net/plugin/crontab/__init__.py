@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.plugin.base.plugin import BasePlugin
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, KernelEvent
 
 from datetime import datetime
 from croniter import croniter
@@ -116,10 +117,17 @@ class Plugin(BasePlugin):
             self.window.controller.ctx.new(
                 force=True,
             )
-        self.window.controller.chat.input.send(
-            text=item["prompt"],
-            force=True,
-        )
+
+        context = BridgeContext()
+        context.prompt = item["prompt"]
+        extra = {
+            "force": True,
+        }
+        event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def schedule_tasks(self):
         """Schedule tasks based on crontab"""

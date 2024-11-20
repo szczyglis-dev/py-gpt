@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.events import AppEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -86,9 +86,9 @@ class Chat:
         :param mode: mode (input/output)
         """
         if self.window.core.config.get("log.ctx"):
-            self.log("Context: {}: {}".format(mode.upper(), ctx.dump()))  # log
+            self.log("[ctx] {}: {}".format(mode.upper(), ctx.dump()))  # log
         else:
-            self.log("Context: {}.".format(mode.upper()))
+            self.log("[ctx] {}.".format(mode.upper()))
 
     def log(self, data: any):
         """
@@ -96,4 +96,4 @@ class Chat:
 
         :param data: Data to log
         """
-        self.window.core.debug.info(data)
+        self.window.core.debug.info("[chat] " + str(data))

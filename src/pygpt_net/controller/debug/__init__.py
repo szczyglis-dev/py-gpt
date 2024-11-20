@@ -6,23 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from logging import ERROR, WARNING, INFO, DEBUG
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QTextCursor
 
 
-class Debug:
+class Debug(QObject):
     def __init__(self, window=None):
         """
         Debug controller
 
         :param window: Window instance
         """
+        super(Debug, self).__init__()
         self.window = window
         self.is_logger = False  # logger window opened
         self.is_app_log = False  # app log window opened

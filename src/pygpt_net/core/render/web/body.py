@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
 
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -19,8 +20,6 @@ from .syntax_highlight import SyntaxHighlight
 import pygpt_net.js_rc
 import pygpt_net.css_rc
 import pygpt_net.fonts_rc
-from ...dispatcher import Event
-
 
 class Body:
 
@@ -259,14 +258,33 @@ class Body:
         html = ""
         if ctx.extra is not None and ctx.extra != "":
             html += "<div class=\"msg-extra\">"
+
+            # single tool
             if "plugin" in ctx.extra:
                 event = Event(Event.TOOL_OUTPUT_RENDER, {
                     'tool': ctx.extra["plugin"],
                     'html': '',
+                    'multiple': False,
+                    'content': ctx.extra,  # tool output
                 })
                 event.ctx = ctx
                 self.window.core.dispatcher.dispatch(event, all=True)  # handle by plugins
                 html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
+
+            # multiple tools, list
+            elif "tool_output" in ctx.extra and isinstance(ctx.extra["tool_output"], list):
+                for key, tool in enumerate(ctx.extra["tool_output"]):
+                    if "plugin" not in tool:
+                        continue
+                    event = Event(Event.TOOL_OUTPUT_RENDER, {
+                        'tool': tool["plugin"],
+                        'html': '',
+                        'multiple': True,
+                        'content': tool,  # tool output[]
+                    })
+                    event.ctx = ctx
+                    self.window.core.dispatcher.dispatch(event, all=True)
+                    html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
             html += "</div>"
         return html
 

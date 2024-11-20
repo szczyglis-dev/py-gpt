@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 
 
@@ -75,12 +77,18 @@ class Reply:
                 context.cmds,  # commands
             )
         elif context.type == ReplyContext.AGENT_CONTINUE:
-            self.window.controller.chat.input.send(
-                text=context.input,
-                force=True,
-                internal=True,
-                prev_ctx=context.ctx,
-            )
+            bridge_context = BridgeContext()
+            bridge_context.ctx = context.ctx
+            bridge_context.prompt = context.input
+            extra = {
+                "force": True,
+                "internal": True,
+            }
+            event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+                'context': bridge_context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     def is_locked(self) -> bool:
         """
@@ -100,7 +108,7 @@ class Reply:
 
     def handle(self):
         """Handle reply stack"""
-        if self.window.controller.chat.common.stopped():
+        if self.window.controller.kernel.stopped():
             self.clear()
             return
 

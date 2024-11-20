@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.19 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.bridge import BridgeContext, BridgeSignals
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.bridge.worker import BridgeSignals
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -153,7 +154,7 @@ class Runner:
                         del ctx.extra[k]
 
                 step_ctx.extra["agent_step"] = True
-                signals.on_step.emit(step_ctx)
+                self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
 
         # final response
@@ -166,7 +167,7 @@ class Runner:
             response_ctx.set_output(str(response))
             response_ctx.extra["agent_output"] = True  # mark as output response
             response_ctx.extra["agent_finish"] = True  # mark as finished
-            signals.on_step.emit(response_ctx)
+            self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
         return True
 
     def run_assistant(
@@ -211,7 +212,7 @@ class Runner:
         response_ctx.set_output(str(response))
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
-        signals.on_step.emit(response_ctx)
+        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
         return True
 
     def run_plan(
@@ -272,7 +273,7 @@ class Runner:
         ))
         step_ctx.set_output(plan_desc)
         step_ctx.cmds = []
-        signals.on_step.emit(step_ctx)
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
         i = 1
         for sub_task in plan.sub_tasks:
@@ -328,7 +329,7 @@ class Runner:
                         del ctx.extra[k]
 
                 step_ctx.extra["agent_step"] = True
-                signals.on_step.emit(step_ctx)
+                self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
                 j += 1
 
             # finalize the response and commit to memory
@@ -347,7 +348,7 @@ class Runner:
                 response_ctx.set_input(str(tools_output))
                 response_ctx.set_output(str(response))
                 response_ctx.extra.update(extra)
-                signals.on_step.emit(response_ctx)
+                self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
 
         return True
@@ -391,7 +392,7 @@ class Runner:
             return True  # abort if stopped
 
         ctx = context.ctx
-        signals.on_begin.emit(ctx, "")  # lock input, show stop btn
+        self.send_response(ctx, signals, KernelEvent.APPEND_BEGIN)  # lock input, show stop btn
         history = context.history
         prompt = self.window.core.agents.observer.evaluation.get_prompt(history)
         tools = self.window.core.agents.observer.evaluation.get_tools()
@@ -415,24 +416,25 @@ class Runner:
             return True  # abort if stopped
 
         score = int(score)
-        signals.on_evaluate.emit("{score_label}: {score}%".format(
+        msg = "{score_label}: {score}%".format(
             score_label=trans('eval.score'),
             score=str(score)
-        ))
-
+        )
+        self.send_response(ctx, signals, KernelEvent.SET_STATUS, msg=msg)
         if score < 0:
-            signals.on_end.emit(ctx)
+            self.send_response(ctx, signals, KernelEvent.APPEND_END)
             return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if score >= good_score != 0:
-            signals.on_end.emit(ctx, "{status_finished} {score_label}: {score}%".format(
+            msg = "{status_finished} {score_label}: {score}%".format(
                 status_finished=trans('status.finished'),
                 score_label=trans('eval.score'),
                 score=str(score)
-            ))
+            )
+            self.send_response(ctx, signals, KernelEvent.APPEND_END, msg=msg)
             return True
 
-        #print("Instruction: " + instruction, "Score: " + str(score))
+        # print("Instruction: " + instruction, "Score: " + str(score))
         step_ctx = self.add_ctx(ctx)
         step_ctx.set_input(instruction)
         step_ctx.set_output("")
@@ -449,7 +451,7 @@ class Runner:
             "footer": "Score: " + str(score) + "%",
         }
         step_ctx.internal = False  # input
-        signals.on_step.emit(step_ctx)
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
         # call next run
         context = BridgeContext()
@@ -483,6 +485,23 @@ class Runner:
         ctx.live = True
         return ctx
 
+    def send_response(self, ctx: CtxItem, signals: BridgeSignals, event_name: str, **kwargs):
+        """
+        Send async response to chat window (BridgeSignals)
+
+        :param ctx: CtxItem
+        :param signals: BridgeSignals
+        :param event_name: kernel event
+        :param kwargs: extra data
+        """
+        context = BridgeContext()
+        context.ctx = ctx
+        event = KernelEvent(event_name, {
+            'context': context,
+            'extra': kwargs,
+        })
+        signals.response.emit(event)
+
     def prepare_input(self, prompt: str) -> str:
         """
         Prepare input context
@@ -501,7 +520,7 @@ class Runner:
 
         :return: True if stopped
         """
-        return self.window.controller.chat.input.stop or self.window.controller.agent.flow.stop
+        return self.window.controller.kernel.stopped() or self.window.controller.agent.flow.stop
 
     def get_error(self) -> Exception or None:
         """

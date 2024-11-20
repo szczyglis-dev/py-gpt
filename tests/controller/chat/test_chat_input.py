@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.input import Input
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -27,7 +28,6 @@ def test_send_input(mock_window):
 
     input.send_input()
     mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: user.send
-    input.send.assert_called_once_with(message)
 
 
 def test_send_input_stop(mock_window):
@@ -40,20 +40,23 @@ def test_send_input_stop(mock_window):
     mock_window.ui.nodes['input'].toPlainText = MagicMock(return_value=message)
 
     input.send_input()
-    mock_window.controller.chat.common.stop.assert_called_once()
-    mock_window.controller.chat.render.clear_input.assert_called_once()
+    mock_window.controller.kernel.stop.assert_called_once()
     mock_window.core.dispatcher.dispatch.assert_called()
     input.send.assert_not_called()
 
 
 def test_send(mock_window):
     """Test send"""
+    mock_window.controller.kernel.stopped = MagicMock(return_value=False)
     input = Input(mock_window)
     input.execute = MagicMock()
-    message = 'test'
+    context = BridgeContext()
+    context.prompt = "xxx"
+    context.ctx = None
+    extra = {}
 
-    input.send(message)
-    input.execute.assert_called_once_with(text=message, force=False, reply=False, internal=False, prev_ctx=None, parent_id=None)
+    input.send(context, extra)
+    input.execute.assert_called_once_with(text="xxx", force=False, reply=False, internal=False, prev_ctx=None, parent_id=None)
 
 
 def test_execute_text(mock_window):
@@ -84,7 +87,7 @@ def test_execute_text(mock_window):
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.controller.chat.render.clear_input.assert_called_once()
+        mock_window.core.dispatcher.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()
@@ -154,7 +157,7 @@ def test_execute_no_ctx(mock_window):
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.controller.chat.render.clear_input.assert_called_once()
+        mock_window.core.dispatcher.dispatch.assert_called()
 
         # handle allowed should not be called
         mock_window.controller.ctx.handle_allowed.assert_not_called()
@@ -217,7 +220,7 @@ def test_execute_vision_mode(mock_window):
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.controller.chat.render.clear_input.assert_called_once()
+        mock_window.core.dispatcher.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()
@@ -262,17 +265,10 @@ def test_execute_vision_plugin(mock_window):
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.controller.chat.render.clear_input.assert_called_once()
+        mock_window.core.dispatcher.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()
 
         # vision: capture frame should be called
         mock_window.controller.camera.capture_frame.assert_called_once_with(False)
-
-
-def test_log(mock_window):
-    """Test log"""
-    input = Input(mock_window)
-    input.log('msg')
-    mock_window.core.debug.info.assert_called_once_with('msg')

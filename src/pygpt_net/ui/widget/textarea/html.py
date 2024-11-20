@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import re
@@ -17,6 +17,7 @@ from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 
+from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.utils import trans
@@ -160,7 +161,10 @@ class HtmlOutput(QWebEngineView):
         :param success: True if loaded successfully
         """
         if success:
-            self.window.controller.chat.render.on_page_loaded(self.meta)
+            event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
+                "meta": self.meta,
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     def get_selected_text(self) -> str:
         """

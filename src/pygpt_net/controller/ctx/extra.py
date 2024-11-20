@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.utils import trans
 
 
@@ -49,7 +51,7 @@ class Extra:
 
         :param id: block id
         """
-        blocks = self.window.controller.chat.render.get_renderer().parser.get_code_blocks()
+        blocks = self.window.controller.chat.render.instance().parser.get_code_blocks()
         if id not in blocks:
             print("Code block not found: ", id)
             return
@@ -115,7 +117,11 @@ class Extra:
             self.window.core.ctx.remove_items_from(meta_id, item_id)
             model = self.window.core.config.get('model')
             self.window.core.ctx.set_model(model)
-            self.window.controller.chat.render.on_edit_submit(item)
+            data = {
+                "ctx": item,
+            }
+            event = RenderEvent(RenderEvent.ACTION_EDIT_SUBMIT, data)
+            self.window.core.dispatcher.dispatch(event)
             self.window.controller.ctx.edit_item_id = None
             self.window.controller.ctx.edit_meta_id = None
             mode = self.window.core.config.get('mode')
@@ -142,7 +148,7 @@ class Extra:
         """
         Regenerate ctx item
 
-        :param item_id: Item id
+        :param item_id: ctx item id
         :param force: Force regenerate
         """
         if not force:
@@ -160,16 +166,28 @@ class Extra:
             model = self.window.core.config.get('model')
             self.window.core.ctx.set_model(model)
             self.window.core.ctx.remove_items_from(meta_id, item_id)
-            self.window.controller.chat.render.on_reply_submit(item)
+            data = {
+                "ctx": item,
+            }
+            event = RenderEvent(RenderEvent.ACTION_REGEN_SUBMIT, data)
+            self.window.core.dispatcher.dispatch(event)
             mode = self.window.core.config.get('mode')
             self.window.controller.model.set(mode, model)
-            self.window.controller.chat.input.send(input_text)
+
+            context = BridgeContext()
+            context.ctx = item
+            context.prompt = input_text
+            event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+                'context': context,
+                'extra': {},
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     def audio_read_item(self, item_id: int):
         """
         Read ctx item audio
 
-        :param item_id: Item id
+        :param item_id: ctx item id
         """
         item = self.window.core.ctx.get_item_by_id(item_id)
         if item is not None:
@@ -189,7 +207,7 @@ class Extra:
         """
         Join ctx items
 
-        :param item_id: Item id
+        :param item_id: ctx item id
         :param force: Force join
         """
         if not force:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -22,6 +22,7 @@ from .threads import Threads
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.utils import trans
 from pygpt_net.item.ctx import CtxItem
+from ...core.events import RenderEvent
 
 
 class Assistant:
@@ -81,7 +82,11 @@ class Assistant:
                     print("Run stop failed: ", e)
 
                 # render final output
-                self.window.controller.chat.render.stream_end(ctx.meta, ctx)
+                event = RenderEvent(RenderEvent.STREAM_END, {
+                    "meta": ctx.meta,
+                    "ctx": ctx,
+                })
+                self.window.core.dispatcher.dispatch(event)
                 self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     def begin(self, ctx: CtxItem):

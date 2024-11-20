@@ -26,9 +26,7 @@ def test_handle(mock_window):
     ctx.meta = meta
     output.handle(ctx, 'chat', stream_mode=False)
 
-    mock_window.core.dispatcher.dispatch.assert_called_once()  # should dispatch event: ctx.after
-    mock_window.controller.chat.render.append_output.assert_called_once_with(meta, ctx)
-    mock_window.controller.chat.render.append_extra.assert_called_once_with(meta, ctx, True)
+    mock_window.core.dispatcher.dispatch.assert_called()  # should dispatch event: ctx.after
     output.handle_complete.assert_called_once_with(ctx)
 
 

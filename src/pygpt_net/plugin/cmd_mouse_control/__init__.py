@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
 
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.plugin.base.plugin import BasePlugin
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
@@ -141,7 +142,17 @@ class Plugin(BasePlugin):
                                                                      silent=True)  # attach screenshot
             ctx.images.append(path)
             ctx.images_before.append(path)
-        self.window.core.dispatcher.reply(ctx, flush=True)
+
+        context = BridgeContext()
+        context.ctx = ctx
+        extra = {
+            "flush": True,
+        }            
+        event = KernelEvent(KernelEvent.REPLY_ADD, {
+            'context': context,
+            'extra': extra,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     @Slot(dict, object)
     def handle_screenshot(self, response: dict, ctx: CtxItem = None):

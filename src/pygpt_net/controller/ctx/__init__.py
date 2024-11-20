@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
 
-from pygpt_net.core.dispatcher import Event
-from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .common import Common
@@ -230,7 +229,11 @@ class Ctx:
         self.update()
 
         # render reset
-        self.window.controller.chat.render.clear(meta)
+        data = {
+            "meta": meta,
+        }
+        event = RenderEvent(RenderEvent.CLEAR, data)
+        self.window.core.dispatcher.dispatch(event)
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
@@ -306,11 +309,13 @@ class Ctx:
     def refresh_output(self):
         """Refresh output"""
         # append ctx to output
-        self.window.controller.chat.render.append_context(
-            self.window.core.ctx.get_current_meta(),
-            self.window.core.ctx.get_items(),
-            clear=True,
-        )
+        data = {
+            "meta": self.window.core.ctx.get_current_meta(),
+            "items": self.window.core.ctx.get_items(),
+            "clear": True,
+        }
+        event = RenderEvent(RenderEvent.CTX_APPEND, data)
+        self.window.core.dispatcher.dispatch(event)
 
     def load(self, id: int, restore_model: bool = True):
         """
@@ -328,7 +333,11 @@ class Ctx:
 
         # reset appended data / prepare new ctx
         if meta is not None:
-            self.window.controller.chat.render.on_load(meta)
+            data = {
+                "meta": meta,
+            }
+            event = RenderEvent(RenderEvent.ON_LOAD, data)
+            self.window.core.dispatcher.dispatch(event)
 
         # get current settings stored in ctx
         thread = self.window.core.ctx.get_thread()
@@ -427,7 +436,8 @@ class Ctx:
         # reset current if current ctx deleted
         if self.window.core.ctx.get_current() == id:
             self.window.core.ctx.clear_current()
-            self.window.controller.chat.render.clear_output()
+            event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
+            self.window.core.dispatcher.dispatch(event)
         self.update()
 
         # update tab title

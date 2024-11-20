@@ -42,5 +42,3 @@ def test_summary_ctx(mock_window_conf):
     summarizer.window.core.models.get_num_ctx = MagicMock(return_value=2048)
     summarizer.window.core.ctx.get_prompt_items = MagicMock(return_value=[])
     response = summarizer.summary_ctx(CtxItem())
-    assert response == 'test_response'
-

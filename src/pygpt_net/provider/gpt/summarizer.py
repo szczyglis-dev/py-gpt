@@ -9,7 +9,8 @@
 # Updated Date: 2024.04.30 15:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -51,8 +52,12 @@ class Summarizer:
             max_tokens=500,
             temperature=0.0,
         )
-        response = self.window.core.bridge.quick_call(
-            context=bridge_context,
-        )
+        event = KernelEvent(KernelEvent.CALL, {
+            'context': bridge_context,
+            'extra': {},
+            'response': None,
+        })
+        self.window.core.dispatcher.dispatch(event)
+        response = event.data.get('response')
         if response is not None:
             return response

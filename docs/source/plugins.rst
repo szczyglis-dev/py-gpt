@@ -130,7 +130,7 @@ To do this, create a method named ``handle(self, event, *args, **kwargs)`` and h
 
    # custom_plugin.py
 
-   from pygpt_net.core.dispatcher import Event
+   from pygpt_net.core.events import Event
    
 
    def handle(self, event: Event, *args, **kwargs):

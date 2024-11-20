@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import requests
+
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -82,7 +84,7 @@ class Image:
             return True
 
         # check if async allowed
-        if not self.window.core.dispatcher.async_allowed(ctx):
+        if not self.window.controller.kernel.async_allowed(ctx):
             self.worker.run()
             return True
 
@@ -148,9 +150,12 @@ class ImageWorker(QObject, QRunnable):
                     max_tokens=200,
                     temperature=1.0,
                 )
-                response = self.window.core.bridge.quick_call(
-                    context=bridge_context,
-                )
+                event = KernelEvent(KernelEvent.CALL, {
+                    'context': bridge_context,
+                    'extra': {},
+                })
+                self.window.core.dispatcher.dispatch(event)
+                response = event.data.get('response')
                 if response is not None and response != "":
                     self.input_prompt = response
 

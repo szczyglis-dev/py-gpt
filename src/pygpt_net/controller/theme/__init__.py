@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from .common import Common
 from .markdown import Markdown
 from .menu import Menu
 from .nodes import Nodes
+from ...core.events import RenderEvent
 
 
 class Theme:
@@ -99,7 +100,8 @@ class Theme:
             else:
                 state = True
             self.window.core.config.set(name, state)
-            self.window.controller.chat.render.on_theme_change()
+            event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
+            self.window.core.dispatcher.dispatch(event)
             self.reload()
         self.window.core.config.save()
         self.nodes.apply_all()
@@ -113,7 +115,8 @@ class Theme:
         """
         self.window.core.config.set("render.code_syntax", name)
         self.window.core.config.save()
-        self.window.controller.chat.render.on_theme_change()
+        event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
+        self.window.core.dispatcher.dispatch(event)
         if update_menu:
             self.menu.update_syntax()
 

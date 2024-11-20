@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.12 14:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.utils import trans
 
 
@@ -71,8 +71,21 @@ class Image:
         self.window.core.ctx.add(ctx)
 
         # render: begin
-        self.window.controller.chat.render.begin(ctx.meta, ctx, stream=False)
-        self.window.controller.chat.render.append_input(ctx.meta, ctx)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": False,
+        }
+        event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
+        self.window.core.dispatcher.dispatch(event)
+
+        # append input to chat
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.INPUT_APPEND, data)
+        self.window.core.dispatcher.dispatch(event)
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
@@ -89,10 +102,11 @@ class Image:
             "num": num,
         }
         try:
-            self.window.core.bridge.call(
-                context=bridge_context,
-                extra=extra,
-            )
+            event = KernelEvent(KernelEvent.REQUEST, {
+                'context': bridge_context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
@@ -178,13 +192,38 @@ class Image:
                 }
             )
             ctx.reply = False
-            self.window.controller.chat.render.append_extra(ctx.meta, ctx)  # show image first
-            self.window.controller.chat.render.end_extra(ctx.meta, ctx)
-            self.window.core.dispatcher.reply(ctx, flush=True)
+            data = {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }
+            event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
+            self.window.core.dispatcher.dispatch(event)  # show image first
+
+            event = RenderEvent(RenderEvent.EXTRA_END, data)
+            self.window.core.dispatcher.dispatch(event)  # end extra
+
+            context = BridgeContext()
+            context.ctx = ctx
+            extra = {
+                "flush": True,
+            }
+            event = KernelEvent(KernelEvent.REPLY_ADD, {
+                'context': context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
             return
 
         # NOT internal-mode, user called, so append only img output to chat (show images now)
-        self.window.controller.chat.render.append_extra(ctx.meta, ctx)
-        self.window.controller.chat.render.end_extra(ctx.meta, ctx)
+
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
+        self.window.core.dispatcher.dispatch(event)  # show image first
+
+        event = RenderEvent(RenderEvent.EXTRA_END, data)
+        self.window.core.dispatcher.dispatch(event)  # end extra
 
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle

@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QPushButton
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.utils import trans
 
 class VoiceControlButton(QWidget):

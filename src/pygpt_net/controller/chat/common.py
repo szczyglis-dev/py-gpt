@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
@@ -14,8 +14,7 @@ import os
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QApplication
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -69,7 +68,11 @@ class Common:
         is_timestamp = self.window.core.config.get('output_timestamp')
         self.window.ui.nodes['output.timestamp'].setChecked(is_timestamp)
         if is_timestamp:
-            self.window.controller.chat.render.on_enable_timestamp(self.initialized)
+            data = {
+                "initialized": self.initialized,
+            }
+            event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
+            self.window.core.dispatcher.dispatch(event)
 
         # raw (plain) output
         plain = self.window.core.config.get('render.plain')
@@ -83,15 +86,20 @@ class Common:
                 self.window.ui.nodes['output'][pid].setVisible(True)
                 self.window.ui.nodes['output_plain'][pid].setVisible(False)
 
-        self.window.controller.chat.render.switch(self.initialized)  # switch renderer if needed
+        event = RenderEvent(RenderEvent.ON_SWITCH)
+        self.window.core.dispatcher.dispatch(event)  # switch renderer if needed
 
         # edit icons
         if self.window.core.config.has('ctx.edit_icons'):
             self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
+            data = {
+                "initialized": self.initialized,
+            }
             if self.window.core.config.get('ctx.edit_icons'):
-                self.window.controller.chat.render.on_enable_edit(self.initialized)
+                event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
             else:
-                self.window.controller.chat.render.on_disable_edit(self.initialized)
+                event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
+            self.window.core.dispatcher.dispatch(event)
 
         # images generation
         if self.window.core.config.get('img_raw'):
@@ -137,7 +145,7 @@ class Common:
         """
         Toggle stream
 
-        :param value: value of the checkbox
+        :param value: True if enabled
         """
         self.window.core.config.set('stream', value)
 
@@ -145,7 +153,7 @@ class Common:
         """
         Toggle cmd enabled
 
-        :param value: value of the checkbox
+        :param value: True if enabled
         """
         self.window.core.config.set('cmd', value)
 
@@ -161,7 +169,7 @@ class Common:
         """
         Toggle send clear
 
-        :param value: value of the checkbox
+        :param value: True if enabled
         """
         self.window.core.config.set('send_clear', value)
 
@@ -169,7 +177,7 @@ class Common:
         """
         Toggle send with shift
 
-        :param value: value of the checkbox
+        :param value: True if enabled
         """
         self.window.core.config.set('send_mode', value)
 
@@ -207,7 +215,7 @@ class Common:
         if (self.window.controller.agent.experts.enabled() and
                 self.window.core.experts.has_calls(ctx)):
             unlock = False
-        if self.window.controller.chat.reply.waiting():
+        if self.window.controller.kernel.stack.waiting():
             unlock = False
         return unlock
 
@@ -227,14 +235,17 @@ class Common:
         event = Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
         })
-        self.window.controller.chat.reply.clear()  # pause reply stack
+        self.window.controller.kernel.stack.clear()  # pause reply stack
         self.window.controller.agent.experts.stop()
         self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True
         self.window.controller.assistant.threads.reset()  # reset run and func calls
         self.window.core.dispatcher.dispatch(event)  # stop audio input
-        self.window.controller.chat.input.stop = True
-        self.window.controller.chat.render.tool_output_end()  # show waiting
+        self.window.controller.kernel.halt = True
+
+        event = RenderEvent(RenderEvent.TOOL_END)
+        self.window.core.dispatcher.dispatch(event)  # show waiting
+
         self.window.core.gpt.stop()
         self.unlock_input()
 
@@ -251,14 +262,6 @@ class Common:
 
         if not exit:
             self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
-
-    def stopped(self) -> bool:
-        """
-        Check if input is stopped
-
-        :return: True if input is stopped
-        """
-        return self.window.controller.chat.input.stop
 
     def check_api_key(self) -> bool:
         """
@@ -281,10 +284,14 @@ class Common:
         """
         self.window.core.config.set('output_timestamp', value)
         self.window.core.config.save()
+        data = {
+            "initialized": True
+        }
         if value:
-            self.window.controller.chat.render.on_enable_timestamp(live=True)
+            event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
         else:
-            self.window.controller.chat.render.on_disable_timestamp(live=True)
+            event = RenderEvent(RenderEvent.ON_TS_DISABLE, data)
+        self.window.core.dispatcher.dispatch(event)
 
     def toggle_raw(self, value: bool):
         """
@@ -303,7 +310,8 @@ class Common:
                 'value': value
             },
         )
-        self.window.controller.chat.render.switch()
+        event = RenderEvent(RenderEvent.ON_SWITCH)
+        self.window.core.dispatcher.dispatch(event)
 
         # restore previous font size
         self.window.controller.ui.update_font_size()
@@ -316,10 +324,14 @@ class Common:
         """
         self.window.core.config.set('ctx.edit_icons', value)
         self.window.core.config.save()
+        data = {
+            "initialized": True,
+        }
         if value:
-            self.window.controller.chat.render.on_enable_edit(live=True)
+            event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
         else:
-            self.window.controller.chat.render.on_disable_edit(live=True)
+            event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
+        self.window.core.dispatcher.dispatch(event)
 
     def img_enable_raw(self):
         """Enable help for images"""

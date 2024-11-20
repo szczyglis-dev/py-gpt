@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -25,6 +25,7 @@ from pygpt_net.controller.dialogs import Dialogs
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.finder import Finder
 from pygpt_net.controller.idx import Idx
+from pygpt_net.controller.kernel import Kernel
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
@@ -63,6 +64,7 @@ class Controller:
         self.files = Files(window)
         self.finder = Finder(window)
         self.idx = Idx(window)
+        self.kernel = Kernel(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
@@ -81,6 +83,7 @@ class Controller:
     def setup(self):
         """Setup controller"""
         self.debug.setup()  # prepare log level
+        self.kernel.init()
         self.chat.init()
 
         # setup layout

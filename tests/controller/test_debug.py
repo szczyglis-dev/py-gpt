@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
-# 
+
 import os
 from unittest.mock import MagicMock, call, patch
 
 import PySide6
 
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from tests.mocks import mock_window
 from pygpt_net.controller import Debug

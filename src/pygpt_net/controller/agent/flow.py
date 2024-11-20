@@ -9,6 +9,8 @@
 # Updated Date: 2024.11.14 01:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -153,12 +155,21 @@ class Flow:
             if self.prev_output is not None and self.prev_output != "":
 
                 # always abort if already waiting for reply from expert or command
-                if not self.window.controller.chat.reply.waiting():
+                if not self.window.controller.kernel.stack.waiting():
+                    # add to reply stack
                     reply = ReplyContext()
                     reply.type = ReplyContext.AGENT_CONTINUE
                     reply.ctx = ctx
                     reply.input = self.prev_output
-                    self.window.controller.chat.reply.add(reply)  # add to reply stack
+                    # send to kernel
+                    context = BridgeContext()
+                    context.ctx = ctx
+                    context.reply_context = reply
+                    event = KernelEvent(KernelEvent.AGENT_CONTINUE, {
+                        'context': context,
+                        'extra': {},
+                    })
+                    self.window.core.dispatcher.dispatch(event)
 
         # internal call will not trigger async mode and will hide the message from previous iteration
         elif self.iteration >= int(iterations):
@@ -267,7 +278,7 @@ class Flow:
 
         :param auto: auto
         """
-        self.window.controller.chat.reply.lock()
+        self.window.controller.kernel.stack.lock()
         self.window.controller.chat.common.unlock_input()
         self.iteration = 0
         self.prev_output = None

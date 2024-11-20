@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -15,27 +15,28 @@ class Output:
     def __init__(self, plugin=None):
         self.plugin = plugin
 
-    def handle(self, ctx: CtxItem) -> str:
+    def handle(self, ctx: CtxItem, content) -> str:
         """
         Handle output
 
         :param ctx: CtxItem
+        :param content: dict
         :return: HTML output
         """
         html = ""
         lang = "bash"
-        if "code" in ctx.extra:
-            if "input" in ctx.extra["code"]:
-                if "lang" in ctx.extra["code"]["input"] and "content" in ctx.extra["code"]["input"]:
-                    lang = ctx.extra["code"]["input"]["lang"]
-                    raw = "```{}\n{}\n```".format(lang, ctx.extra["code"]["input"]["content"])
-                    code = self.plugin.window.controller.chat.render.get_renderer().parser.parse_code(raw)
+        if isinstance(content, dict) and "code" in content:
+            if "input" in content["code"]:
+                if "lang" in content["code"]["input"] and "content" in content["code"]["input"]:
+                    lang = content["code"]["input"]["lang"]
+                    raw = "```{}\n{}\n```".format(lang, content["code"]["input"]["content"])
+                    code = self.plugin.window.controller.chat.render.instance().parser.parse_code(raw)
                     html += "<div class=\"tool-output-header\">INPUT</div><div class=\"code-wrapper\">{}</div>".format(code)
-            if "output" in ctx.extra["code"] and "content" in ctx.extra["code"]["output"]:
-                if "lang" in ctx.extra["code"]["output"]:
-                    lang = ctx.extra["code"]["output"]["lang"]
-                    raw = "```{}\n{}\n```".format(lang, ctx.extra["code"]["output"]["content"])
-                    code = self.plugin.window.controller.chat.render.get_renderer().parser.parse_code(raw)
+            if "output" in content["code"] and "content" in content["code"]["output"]:
+                if "lang" in content["code"]["output"]:
+                    lang = content["code"]["output"]["lang"]
+                    raw = "```{}\n{}\n```".format(lang, content["code"]["output"]["content"])
+                    code = self.plugin.window.controller.chat.render.instance().parser.parse_code(raw)
                     html += "<div class=\"tool-output-header\">OUTPUT</div><div class=\"code-wrapper\">{}</div>".format(
                         code)
         return html

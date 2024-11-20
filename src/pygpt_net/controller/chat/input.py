@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.access.events import AppEvent
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -76,9 +76,10 @@ class Input:
 
         if self.generating \
                 and text is not None \
-                and text.strip() == "stop":
-            self.window.controller.chat.common.stop()  # TODO: to chat main
-            self.window.controller.chat.render.clear_input()
+                and text.lower().strip() in ["stop", "halt"]:
+            self.window.controller.kernel.stop()  # TODO: to chat main
+            event = RenderEvent(RenderEvent.CLEAR_INPUT)
+            self.window.core.dispatcher.dispatch(event)
             return
 
         # agent modes
@@ -93,27 +94,33 @@ class Input:
         })
         self.window.core.dispatcher.dispatch(event)
         text = event.data['value']
-        self.send(text)
+
+        # event: handle input
+        context = BridgeContext()
+        context.prompt = text
+        event = KernelEvent(KernelEvent.INPUT_USER, {
+            'context': context,
+            'extra': {},
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def send(
             self,
-            text: str = None,
-            force: bool = False,
-            reply: bool = False,
-            internal: bool = False,
-            prev_ctx: CtxItem = None,
-            parent_id: int = None,
+            context: BridgeContext,
+            extra: dict,
     ):
         """
         Send input wrapper
 
-        :param text: input text
-        :param force: force send (ignore input lock)
-        :param reply: reply mode (from plugins)
-        :param internal: internal call
-        :param prev_ctx: previous context (if reply)
-        :param parent_id: parent id (if expert)
+        :param context: bridge context
+        :param extra: extra data
         """
+        text = str(context.prompt)
+        prev_ctx = context.ctx
+        force = extra.get("force", False)
+        reply = extra.get("reply", False)
+        internal = extra.get("internal", False)
+        parent_id = extra.get("parent_id", None)
         self.execute(
             text=text,
             force=force,
@@ -173,7 +180,7 @@ class Input:
 
         # unlock Assistant run thread if locked
         self.window.controller.assistant.threads.stop = False
-        self.stop = False
+        self.window.controller.kernel.halt = False
 
         self.log("Input prompt: {}".format(text))  # log
 
@@ -216,7 +223,8 @@ class Input:
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force and not internal:
-            self.window.controller.chat.render.clear_input()
+            event = RenderEvent(RenderEvent.CLEAR_INPUT)
+            self.window.core.dispatcher.dispatch(event)
 
         # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
         if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:
@@ -250,4 +258,4 @@ class Input:
 
         :param data: Data to log
         """
-        self.window.core.debug.info(data)
+        self.window.controller.chat.log(data)

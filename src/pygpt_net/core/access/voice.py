@@ -6,14 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import json
 import re
 
-from pygpt_net.core.bridge import BridgeContext
-from .events import ControlEvent, AppEvent
+from pygpt_net.core.bridge.context import BridgeContext
+
+from pygpt_net.core.events import ControlEvent, AppEvent, KernelEvent
 
 
 class Voice:
@@ -224,9 +225,12 @@ class Voice:
             max_tokens=0,
             temperature=0.0,
         )
-        response = self.window.core.bridge.quick_call(
-            context=bridge_context,
-        )
+        event = KernelEvent(KernelEvent.CALL, {
+            'context': bridge_context,
+            'extra': {},
+        })
+        self.window.core.dispatcher.dispatch(event)
+        response = event.data.get('response')
         if response is None or response == "":
             return []
 

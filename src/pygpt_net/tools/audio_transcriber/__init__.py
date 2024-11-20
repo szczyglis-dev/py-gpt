@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.audio_transcriber.ui.dialogs import AudioTranscribe
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 

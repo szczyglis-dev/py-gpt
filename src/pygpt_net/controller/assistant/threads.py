@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import json
@@ -14,6 +14,8 @@ import time
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
+from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans, get_image_extensions
 
@@ -56,7 +58,12 @@ class Threads:
         self.window.controller.chat.output.handle(ctx, 'assistant', stream)
 
         if stream:  # append all output to chat
-            self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)  # extra reload for stream markdown needed here
+            event = RenderEvent(RenderEvent.END, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "stream": stream,
+            })  # extra reload for stream markdown needed here
+            self.window.core.dispatcher.dispatch(event)
 
         ctx.clear_reply()  # reset results
 
@@ -78,9 +85,9 @@ class Threads:
         self.window.controller.ctx.update()
 
         # if is command execute and not locked yet (not executing)
-        if has_cmd and self.window.controller.chat.reply.waiting():
+        if has_cmd and self.window.controller.kernel.stack.waiting():
             self.log("Replying for message command...")
-            self.window.controller.chat.reply.handle()
+            self.window.controller.kernel.stack.handle()
 
         self.log("Handled output message.")
 
@@ -247,9 +254,9 @@ class Threads:
         # index ctx (llama-index)
         self.window.controller.idx.on_ctx_end(ctx, mode="assistant")
 
-        if has_calls and self.window.controller.chat.reply.waiting():
+        if has_calls and self.window.controller.kernel.stack.waiting():
             self.log("Replying for tool call...")
-            self.window.controller.chat.reply.handle()
+            self.window.controller.kernel.stack.handle()
             return
 
         # check if there are any response, if not send empty response
@@ -262,13 +269,19 @@ class Threads:
             results = {
                 "response": "",
             }
-            self.window.controller.chat.input.send(
-                text=json.dumps(results),
-                force=True,
-                reply=True,
-                internal=True,
-                prev_ctx=ctx,
-            )
+            context = BridgeContext()
+            context.ctx = ctx
+            context.prompt = json.dumps(results)
+            extra = {
+                "force": True,
+                "reply": True,
+                "internal": True,
+            }
+            event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+                'context': context,
+                'extra': extra,
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     def handle_tool_outputs(self, ctx: CtxItem) -> list:
         """
@@ -324,7 +337,12 @@ class Threads:
         stream = self.window.core.config.get('stream')
         ctx.current = False  # reset current state
         ctx.from_previous()
-        self.window.controller.chat.render.end(ctx.meta, ctx, stream=stream)  # extra reload for stream markdown needed here
+        event = RenderEvent(RenderEvent.END, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": stream,
+        })  # extra reload for stream markdown needed here
+        self.window.core.dispatcher.dispatch(event)
         self.window.core.ctx.update_item(ctx)
         self.window.controller.ctx.update()
         self.window.core.debug.log(err)

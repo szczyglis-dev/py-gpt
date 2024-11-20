@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.03 12:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,7 +14,7 @@ import copy
 from PySide6 import QtCore
 from PySide6.QtCore import QObject, QEvent
 
-from pygpt_net.core.access.events import ControlEvent
+from pygpt_net.core.events import ControlEvent
 
 
 class Shortcuts:

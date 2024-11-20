@@ -11,7 +11,7 @@
 
 from unittest.mock import MagicMock
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
 from pygpt_net.provider.gpt.chat import Chat

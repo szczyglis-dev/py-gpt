@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -15,7 +15,7 @@ import os
 
 from PySide6.QtCore import QTimer
 
-from pygpt_net.core.access.events import AppEvent
+from pygpt_net.core.events import AppEvent
 from pygpt_net.utils import trans
 
 

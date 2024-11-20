@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import base64
@@ -15,7 +15,7 @@ import os
 from unittest.mock import MagicMock, mock_open, patch
 
 from tests.mocks import mock_window_conf
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.gpt.vision import Vision
 

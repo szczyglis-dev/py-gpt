@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -34,18 +35,23 @@ class Stream:
         begin = True
 
         # chunks: stream begin
-        self.window.controller.chat.render.stream_begin(ctx.meta, ctx)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
+        self.window.core.dispatcher.dispatch(event)
 
         # read stream
         try:
             if ctx.stream is not None:
-                self.log("Reading stream...")  # log
+                self.log("[chat] Stream begin...")  # log
 
                 tool_calls = []
 
                 for chunk in ctx.stream:
                     # if force stop then break
-                    if self.window.controller.chat.input.stop:
+                    if self.window.controller.kernel.stopped():
                         break
 
                     response = None
@@ -134,12 +140,14 @@ class Stream:
                             continue
                         output += response
                         output_tokens += 1
-                        self.window.controller.chat.render.append_chunk(
-                            ctx.meta,
-                            ctx,
-                            response,
-                            begin,
-                        )
+                        data = {
+                            "meta": ctx.meta,
+                            "ctx": ctx,
+                            "chunk": response,
+                            "begin": begin,
+                        }
+                        event = RenderEvent(RenderEvent.STREAM_APPEND, data)
+                        self.window.core.dispatcher.dispatch(event)
                         QApplication.processEvents()  # process events to update UI after each chunk
                         begin = False
 
@@ -157,10 +165,15 @@ class Stream:
         ctx.set_tokens(ctx.input_tokens, output_tokens)
 
         # chunks: stream end
-        self.window.controller.chat.render.stream_end(ctx.meta, ctx)
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.STREAM_END, data)
+        self.window.core.dispatcher.dispatch(event)
 
         # log
-        self.log("End of stream.")
+        self.log("[chat] Stream end.")
 
     def log(self, data: any):
         """

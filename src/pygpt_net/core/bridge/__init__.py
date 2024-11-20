@@ -6,87 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
-
-from pygpt_net.item.ctx import CtxItem
-from pygpt_net.item.model import ModelItem
-
-
-class BridgeContext:
-    def __init__(self, **kwargs):
-        """
-        Bridge context
-
-        :param kwargs: keyword arguments
-        """
-        self.ctx = kwargs.get("ctx", CtxItem())
-        self.history = kwargs.get("history", [])
-        self.mode = kwargs.get("mode", None)
-        self.parent_mode = kwargs.get("parent_mode", None)  # real mode (global)
-        self.model = kwargs.get("model", None)  # model instance, not model name
-        self.temperature = kwargs.get("temperature", 1.0)
-        self.prompt = kwargs.get("prompt", "")
-        self.system_prompt = kwargs.get("system_prompt", "")
-        self.system_prompt_raw = kwargs.get("system_prompt_raw", "")  # without plugins addons
-        self.stream = kwargs.get("stream", False)
-        self.assistant_id = kwargs.get("assistant_id", "")
-        self.thread_id = kwargs.get("thread_id", "")
-        self.external_functions = kwargs.get("external_functions", [])
-        self.tools_outputs = kwargs.get("tools_outputs", [])
-        self.max_tokens = kwargs.get("max_tokens", 150)
-        self.idx = kwargs.get("idx", None)
-        self.idx_mode = kwargs.get("idx_mode", "chat")
-        self.attachments = kwargs.get("attachments", [])
-        self.file_ids = kwargs.get("file_ids", [])
-
-        # check types
-        if self.ctx is not None and not isinstance(self.ctx, CtxItem):
-            raise ValueError("Invalid context instance")
-        if self.model is not None and not isinstance(self.model, ModelItem):
-            raise ValueError("Invalid model instance")
-
-    def to_dict(self) -> dict:
-        """
-        Return as dictionary
-
-        :return: dictionary
-        """
-        data = {
-            "ctx": self.ctx,
-            "history": len(self.history),
-            "mode": self.mode,
-            "parent_mode": self.parent_mode,
-            "model": self.model,
-            "temperature": self.temperature,
-            "prompt": self.prompt,
-            "system_prompt": self.system_prompt,
-            "system_prompt_raw": self.system_prompt_raw,
-            "stream": self.stream,
-            "assistant_id": self.assistant_id,
-            "thread_id": self.thread_id,
-            "external_functions": self.external_functions,
-            "tools_outputs": self.tools_outputs,
-            "max_tokens": self.max_tokens,
-            "idx": self.idx,
-            "idx_mode": self.idx_mode,
-            "attachments": self.attachments,
-            "file_ids": self.file_ids,
-        }
-        if self.ctx is not None:
-            data["ctx"] = self.ctx.to_dict()
-        if self.model is not None:
-            data["model"] = self.model.to_dict()
-
-        # sort by keys
-        data = dict(sorted(data.items(), key=lambda item: item[0]))
-        return data
-
+from .context import BridgeContext
+from .worker import BridgeWorker
 
 class Bridge:
     def __init__(self, window=None):
@@ -102,14 +29,14 @@ class Bridge:
         self.sync_modes = ["assistant"]
         self.worker = None
 
-    def call(self, context: BridgeContext, extra: dict = None) -> bool:
+    def request(self, context: BridgeContext, extra: dict = None) -> bool:
         """
-        Make call to provider
+        Make request to provider
 
         :param context: Bridge context
         :param extra: extra data
         """
-        if self.window.controller.chat.common.stopped():
+        if self.window.controller.kernel.stopped():
             return False
 
         allowed_model_change = ["vision"]
@@ -118,7 +45,7 @@ class Bridge:
         self.window.stateChanged.emit(self.window.STATE_BUSY)  # set busy
 
         # debug
-        self.window.core.debug.info("Bridge call...")
+        self.window.core.debug.info("[bridge] Request...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
                 debug = {k: str(v) for k, v in context.to_dict().items()}
@@ -156,7 +83,7 @@ class Bridge:
                 idx = self.window.core.agents.legacy.get_idx()  # get index, idx is common for agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
-                    self.window.core.debug.info("AGENT/EXPERT: Using index: " + idx)
+                    self.window.core.debug.info("[agent/expert] Using index: " + idx)
                 else:
                     context.idx = None  # don't use index
 
@@ -169,7 +96,7 @@ class Bridge:
             context.model = self.window.controller.model.switch_inline(mode, model)
 
         # debug
-        self.window.core.debug.info("Bridge call (after inline)...")
+        self.window.core.debug.info("[bridge] After inline...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
                 debug = {k: str(v) for k, v in context.to_dict().items()}
@@ -180,6 +107,7 @@ class Bridge:
 
         if extra is None:
             extra = {}
+
         # async worker
         self.worker = self.get_worker()
         self.worker.context = context
@@ -188,21 +116,23 @@ class Bridge:
 
         # some modes must be called synchronously
         if mode in self.sync_modes:
+            self.window.core.debug.info("[bridge] Starting worker (sync)...")
             self.worker.run()
             return True
 
         # async call
+        self.window.core.debug.info("[bridge] Starting worker (async)...")
         self.window.threadpool.start(self.worker)
         return True
 
-    def loop_next(self, context: BridgeContext, extra: dict = None) -> bool:
+    def request_next(self, context: BridgeContext, extra: dict = None) -> bool:
         """
-        Make call to provider (loop next step)
+        Make next call to provider (loop next step)
 
         :param context: Bridge context
         :param extra: extra data
         """
-        if self.window.controller.chat.common.stopped():
+        if self.window.controller.kernel.stopped():
             return False
 
         if extra is None:
@@ -218,7 +148,7 @@ class Bridge:
         self.window.threadpool.start(self.worker)
         return True
 
-    def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
+    def call(self, context: BridgeContext, extra: dict = None) -> str:
         """
         Make quick call to provider and get response content
 
@@ -226,10 +156,10 @@ class Bridge:
         :param extra: extra data
         :return: response content
         """
-        if self.window.controller.chat.common.stopped():
+        if self.window.controller.kernel.stopped():
             return ""
 
-        self.window.core.debug.info("Bridge quick call...")
+        self.window.core.debug.info("[bridge] Call...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):
                 debug = {k: str(v) for k, v in context.to_dict().items()}
@@ -283,18 +213,13 @@ class Bridge:
 
     def get_worker(self):
         """
-        Prepare worker
+        Prepare async worker
 
         :return: BridgeWorker
         """
         worker = BridgeWorker()
         worker.window = self.window
-        worker.signals.on_begin.connect(self.window.controller.chat.response.handle_begin)
-        worker.signals.on_step.connect(self.window.controller.chat.response.handle_append)
-        worker.signals.on_end.connect(self.window.controller.chat.response.handle_end)
-        worker.signals.on_evaluate.connect(self.window.controller.chat.response.handle_evaluate)
-        worker.signals.success.connect(self.window.controller.chat.response.handle_success)
-        worker.signals.error.connect(self.window.controller.chat.response.handle_failed)
+        worker.signals.response.connect(self.window.controller.kernel.listener)
         return worker
 
     def apply_rate_limit(self):
@@ -313,86 +238,3 @@ class Bridge:
                 self.window.core.debug.debug("RPM limit: sleep for {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
         self.last_call = now
-
-
-class BridgeSignals(QObject):
-    """Bridge signals"""
-    on_step = Signal(object)  # CtxItem
-    on_cmd = Signal(str, object, object)  # plugin_name, CtxItem, request params
-    on_end = Signal(object, str)  # CtxItem, message
-    on_evaluate = Signal(str)  # message
-    on_begin = Signal(object, str)  # CtxItem, message
-    success = Signal(bool, object, dict)  # status, BridgeContext, extra
-    error = Signal(object)  # exception
-
-
-class BridgeWorker(QObject, QRunnable):
-    """Bridge worker"""
-    def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
-        self.signals = BridgeSignals()
-        self.args = args
-        self.kwargs = kwargs
-        self.window = None
-        self.context = None
-        self.extra = None
-        self.mode = None
-
-    @Slot()
-    def run(self):
-        """Run bridge worker"""
-        result = False
-        try:
-            # Langchain
-            if self.mode == "langchain":
-                result = self.window.core.chain.call(
-                    context=self.context,
-                    extra=self.extra,
-                )
-
-            # Llama-index: chat with files
-            elif self.mode == "llama_index":
-                result = self.window.core.idx.chat.call(
-                    context=self.context,
-                    extra=self.extra,
-                )
-
-            # Llama-index: agents
-            elif self.mode == "agent_llama":
-                result = self.window.core.agents.runner.call(
-                    context=self.context,
-                    extra=self.extra,
-                    signals=self.signals,
-                )
-                if result:
-                    return  # don't emit any signals (handled in agent runner, step by step)
-                else:
-                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
-
-            # Loop: next step
-            elif self.mode == "loop_next":
-                result = self.window.core.agents.runner.run_next(
-                    context=self.context,
-                    extra=self.extra,
-                    signals=self.signals,
-                )
-                if result:
-                    return  # don't emit any signals (handled in agent runner, step by step)
-                else:
-                    self.extra["error"] = str(self.window.core.agents.runner.get_error())
-
-            # API OpenAI: chat, completion, vision, image, assistants
-            else:
-                result = self.window.core.gpt.call(
-                    context=self.context,
-                    extra=self.extra,
-                )
-        except Exception as e:
-            if self.signals is not None:
-                self.signals.error.emit(e)
-                return
-
-        # send success to main thread
-        if self.signals is not None:
-            self.signals.success.emit(result, self.context, self.extra)

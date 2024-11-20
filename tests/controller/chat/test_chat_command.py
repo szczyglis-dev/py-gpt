@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -19,7 +19,7 @@ from pygpt_net.item.ctx import CtxItem
 def test_handle_cmd(mock_window):
     """Test handle cmd: all commands"""
     command = Command(mock_window)
-    mock_window.controller.chat.common.stopped = MagicMock(return_value=False)
+    mock_window.controller.kernel.stopped = MagicMock(return_value=False)
     mock_window.core.config.data['cmd'] = True  # enable all cmd execution
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_inline = MagicMock()
@@ -34,13 +34,13 @@ def test_handle_cmd(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.chat.reply.add.assert_called_once()
+    mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_handle_cmd_only(mock_window):
     """Test handle cmd: only inline commands"""
     command = Command(mock_window)
-    mock_window.controller.chat.common.stopped = MagicMock(return_value=False)
+    mock_window.controller.kernel.stopped = MagicMock(return_value=False)
     mock_window.core.config.data['cmd'] = False  # disable cmd execution, allow only 'inline' commands
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_inline = MagicMock()
@@ -55,7 +55,7 @@ def test_handle_cmd_only(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.chat.reply.add.assert_called_once()
+    mock_window.core.dispatcher.dispatch.assert_called()
 
 
 def test_handle_cmd_no_cmds(mock_window):
@@ -72,4 +72,4 @@ def test_handle_cmd_no_cmds(mock_window):
     ctx = CtxItem()
     command.handle(ctx)
 
-    mock_window.controller.chat.reply.add.assert_not_called()
+    mock_window.controller.kernel.stack.add.assert_not_called()

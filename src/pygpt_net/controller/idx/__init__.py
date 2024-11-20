@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -240,7 +240,7 @@ class Idx:
             return
 
         # ignore if manually stopped
-        if self.window.controller.chat.input.stop:
+        if self.window.controller.kernel.stopped():
             return
 
         idx = "base"  # default index

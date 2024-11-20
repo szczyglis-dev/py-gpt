@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -46,37 +47,6 @@ class Llama:
         self.iteration = 0  # reset iteration
         self.window.controller.agent.flow.stop = False  # reset stop flag
         self.update()  # update status
-
-    def flow_continue(self, ctx: CtxItem):
-        """
-        Handle run continue
-
-        :param ctx: CtxItem
-        """
-        if type(ctx.extra) == dict and ctx.extra.get("agent_finish", False):
-            self.flow_end()  # end of run
-            """
-            # TODO: implement agent continue in future
-            if self.window.core.config.get("agent.continue.always"):
-                if self.window.controller.agent.flow.stop:
-                    self.flow_end()  # end of run
-                    return  # abort if stop flag is set
-                max_iterations = self.window.core.config.get("agent.iterations", 3)
-                if max_iterations != 0:
-                    if self.iteration >= max_iterations:
-                        self.flow_end()  # end of run
-                        return  # abort if max iterations reached
-                reply = ReplyContext()
-                reply.type = ReplyContext.AGENT_CONTINUE
-                reply.ctx = ctx
-                reply.input = self.window.core.config.get("prompt.agent.continue.llama")
-                self.iteration += 1
-                self.update()  # update status
-                self.window.controller.chat.reply.add(reply)  # add to reply stack
-                self.window.controller.chat.reply.handle()  # send reply
-            else:
-                self.flow_end()  # end of run
-            """
 
     def flow_end(self):
         """End of run"""
@@ -118,7 +88,11 @@ class Llama:
         context.ctx = ctx
         context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
         self.window.ui.status(trans('status.evaluating'))  # show info
-        self.window.core.bridge.loop_next(context)
+        event = KernelEvent(KernelEvent.REQUEST_NEXT, {
+            'context': context,
+            'extra': {},
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def update(self):
         """Update agent status"""

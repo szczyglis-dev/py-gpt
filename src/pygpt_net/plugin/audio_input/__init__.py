@@ -6,22 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import Slot
 
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.audio_input.base import BaseProvider
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .config import Config
 from .worker import Worker
-from. simple import Simple
+from .simple import Simple
 
 
 class Plugin(BasePlugin):
@@ -449,12 +450,20 @@ class Plugin(BasePlugin):
                 idx = self.window.controller.notepad.get_current_active()
                 self.window.controller.notepad.append_text(text, idx)
                 self.set_status('')
-                self.window.controller.chat.render.clear_input()  # clear here
+
+                data = {}
+                event = RenderEvent(RenderEvent.CLEAR_INPUT, data)
+                self.window.core.dispatcher.dispatch(event)  # clear here
+
             # to: calendar
             elif self.window.controller.calendar.is_active():
                 self.window.controller.calendar.note.append_text(text)
                 self.set_status('')
-                self.window.controller.chat.render.clear_input()  # clear here
+
+                data = {}
+                event = RenderEvent(RenderEvent.CLEAR_INPUT, data)
+                self.window.core.dispatcher.dispatch(event)  # clear here
+
             # to: chat
             else:
                 self.set_status('...')
@@ -462,7 +471,15 @@ class Plugin(BasePlugin):
                 prefix = ""
                 if self.window.controller.agent.enabled():
                     prefix = "user: "
-                self.window.controller.chat.input.send(prefix + text)  # send text, input clear in send method
+
+                context = BridgeContext()
+                context.prompt = prefix + text
+                extra = {}
+                event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
+                    'context': context,
+                    'extra': extra,
+                })
+                self.window.core.dispatcher.dispatch(event)  # send text, input clear in send method
                 self.set_status('')
 
     @Slot(object)

@@ -6,9 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -29,7 +31,7 @@ class Command:
 
         :param ctx: CtxItem
         """
-        if self.window.controller.chat.common.stopped():
+        if self.window.controller.kernel.stopped():
             return
 
         mode = self.window.core.config.get('mode')
@@ -52,6 +54,7 @@ class Command:
 
             # plugins
             self.log("Preparing command reply context...")
+
             reply = ReplyContext()
             reply.ctx = ctx
             reply.cmds = cmds
@@ -60,8 +63,19 @@ class Command:
             else:
                 reply.type = ReplyContext.CMD_EXECUTE_INLINE
 
-            self.window.controller.chat.render.tool_output_begin(ctx.meta)  # show waiting
-            self.window.controller.chat.reply.add(reply)  # send command execution to reply stack
+            data = {
+                "meta": ctx.meta,
+            }
+            event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
+            self.window.core.dispatcher.dispatch(event)  # show waiting
+            context = BridgeContext()
+            context.ctx = ctx
+            context.reply_context = reply
+            event = KernelEvent(KernelEvent.TOOL_CALL, {
+                'context': context,
+                'extra': {},
+            })
+            self.window.core.dispatcher.dispatch(event)
 
     def log(self, data: any):
         """

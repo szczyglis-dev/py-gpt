@@ -12,7 +12,7 @@
 import os
 from unittest.mock import MagicMock, patch
 
-from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from tests.mocks import mock_window
 from pygpt_net.plugin.cmd_code_interpreter import Plugin, Worker
