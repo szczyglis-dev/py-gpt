@@ -1138,6 +1138,17 @@ class Storage:
             conn.execute(text("DELETE FROM sqlite_sequence WHERE name='ctx_group'"))
         return True
 
+    def clear_meta(self, meta_id: int):
+        """
+        Delete all items with meta ID
+
+        :param meta_id: meta ID
+        :return:
+        """
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(text(f"DELETE FROM ctx_item WHERE meta_id = {meta_id}"))
+
     def update_group(self, group: CtxGroup) -> bool:
         """
         Update group

@@ -381,3 +381,11 @@ class DbSqliteProvider(BaseProvider):
         :param group_id: group ID
         """
         return self.storage.update_meta_group_id(id, group_id)
+
+    def clear_meta(self, id: int):
+        """
+        Clear meta by ID
+
+        :param id: ctx ID
+        """
+        return self.storage.clear_meta(id)

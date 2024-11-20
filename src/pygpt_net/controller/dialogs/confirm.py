@@ -59,6 +59,8 @@ class Confirm:
             self.window.controller.ctx.delete_group(id, True)  # group delete
         elif type == 'ctx.group.delete.all':
             self.window.controller.ctx.delete_group_all(id, True)  # group delete + items
+        elif type == 'ctx.reset_meta':
+            self.window.controller.ctx.common.reset(id, True)
 
         # images
         elif type == 'img_delete':

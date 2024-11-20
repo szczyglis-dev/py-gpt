@@ -1315,6 +1315,17 @@ class Ctx:
             if self.current in self.meta:
                 self.save(self.current)
 
+    def reset_meta(self, id: int):
+        """
+        Reset meta
+
+        :param id: meta id
+        """
+        if id in self.meta:
+            self.provider.clear_meta(id)
+            self.meta[id].initialized = False
+        self.load_meta()
+
     def as_previous(self, ctx: CtxItem) -> CtxItem:
         """
         Prepare previous context item and clear current reply results

@@ -81,6 +81,13 @@ class CtxItem:
             self.urls = copy.deepcopy(self.prev_ctx.urls)
             self.images = copy.deepcopy(self.prev_ctx.images_before)
 
+    def has_commands(self) -> bool:
+        """
+        Check if commands are
+
+        :return: True if commands are present
+        """
+        return len(self.cmds) > 0 or len(self.tool_calls) > 0
 
     def add_doc_meta(self, meta: dict):
         """

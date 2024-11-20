@@ -14,6 +14,9 @@ from typing_extensions import deprecated
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
+from ...core.events import KernelEvent
+from ...item.ctx import CtxItem
+
 
 class BaseWorker(QObject, QRunnable):
     def __init__(self, plugin: BasePlugin = None, *args, **kwargs):
@@ -211,6 +214,16 @@ class BaseWorker(QObject, QRunnable):
         if self.has_param(item, param):
             return item["params"][param]
         return default
+
+    def is_stopped(self):
+        """
+        Check if worker is stopped
+
+        :return: True if stopped
+        """
+        if self.plugin is not None:
+            return self.plugin.window.controller.kernel.stopped()
+        return False
 
     def run_sync(self):
         """Run synchronous"""

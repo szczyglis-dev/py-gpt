@@ -175,6 +175,11 @@ class ContextList(BaseList):
                     lambda checked=False, ctx_id=ctx_id: self.action_copy_id(ctx_id)
                 )
 
+                actions['reset'] = QAction(QIcon(":/icons/close.svg"), trans('action.ctx_reset'), self)
+                actions['reset'].triggered.connect(
+                    lambda checked=False, ctx_id=ctx_id: self.action_reset(ctx_id)
+                )
+
                 menu = QMenu(self)
                 menu.addAction(actions['rename'])
                 menu.addAction(actions['duplicate'])
@@ -295,6 +300,8 @@ class ContextList(BaseList):
                     action.setEnabled(False)  # disable action, only for info
                     menu.addAction(action)
 
+                menu.addAction(actions['reset'])
+
                 if idx >= 0:
                     self.window.controller.ctx.select_by_id(ctx_id)
                     menu.exec_(event.globalPos())
@@ -372,6 +379,14 @@ class ContextList(BaseList):
         :param id: context id
         """
         self.window.controller.ctx.common.copy_id(id)
+
+    def action_reset(self, id):
+        """
+        Reset action handler
+
+        :param id: context id
+        """
+        self.window.controller.ctx.common.reset(id)
 
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):

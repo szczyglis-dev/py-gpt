@@ -157,3 +157,20 @@ class Common:
         value = "@" + str(id)
         self.window.controller.chat.common.append_to_input(value, separator=" ")
         QApplication.clipboard().setText(value)
+
+    def reset(self, meta_id: int, force: bool = False):
+        """
+        Reset by meta id
+
+        :param meta_id: context id
+        :param force: True to force reset
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.reset_meta',
+                id=meta_id,
+                msg=trans('ctx.reset_meta.confirm'),
+            )
+            return
+        self.window.core.ctx.reset_meta(meta_id)
+        self.window.controller.ctx.load(meta_id)

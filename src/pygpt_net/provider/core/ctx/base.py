@@ -110,4 +110,7 @@ class BaseProvider:
     def update_meta_group_id(self, meta_id: int, group_id: int):
         pass
 
+    def clear_meta(self, meta_id: int):
+        pass
+
 
