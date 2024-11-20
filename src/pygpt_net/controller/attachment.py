@@ -550,8 +550,9 @@ class Attachment:
         if not ctx.cmds:
             return True
         for item in ctx.cmds:
-            if item["cmd"] in ["analyze_image_attachment"]:
-                return False
+            if "cmd" in item:
+                if item["cmd"] in ["analyze_image_attachment"]:
+                    return False
         return True
 
     def reload(self):
