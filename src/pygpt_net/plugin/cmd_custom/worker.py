@@ -37,7 +37,11 @@ class Worker(BaseWorker):
         responses = []
         msg = None
         for item in self.cmds:
+            if self.is_stopped():
+                break
             for my_cmd in self.plugin.get_option_value("cmds"):
+                if self.is_stopped():
+                    break
                 if my_cmd["name"] == item["cmd"]:
                     try:
                         response = self.handle_cmd(my_cmd, item)

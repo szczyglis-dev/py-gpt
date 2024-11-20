@@ -217,6 +217,8 @@ class Common:
             unlock = False
         if self.window.controller.kernel.stack.waiting():
             unlock = False
+        if ctx.has_commands():
+            unlock = False
         return unlock
 
 

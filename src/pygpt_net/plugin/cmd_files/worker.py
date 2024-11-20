@@ -39,6 +39,8 @@ class Worker(BaseWorker):
     def run(self):
         responses = []
         for item in self.cmds:
+            if self.is_stopped():
+                break
             try:
                 response = None
                 if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):

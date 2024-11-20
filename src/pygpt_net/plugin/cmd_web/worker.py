@@ -33,9 +33,10 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        self.websearch.signals = self.signals  # connect signals
         responses = []
         for item in self.cmds:
+            if self.is_stopped():
+                break
             response = None
             try:
                 if item["cmd"] == "web_search":

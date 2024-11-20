@@ -33,6 +33,8 @@ class Worker(BaseWorker):
         responses = []
         msg = None
         for item in self.cmds:
+            if self.is_stopped():
+                break
             response = None
             try:
                 if item["cmd"] == "get_context":
