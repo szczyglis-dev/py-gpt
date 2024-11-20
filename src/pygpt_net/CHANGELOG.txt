@@ -3,6 +3,7 @@
 - Refactored kernel and render events.
 - Added multiple formatted extra outputs from plugins.
 - Added a 'Reset (clear)' option in the context list for clearing the current context.
+- Improved agents steps output handling.
 - Fixed the audio button.
 - Improved the stop event.
 - Other small fixes.

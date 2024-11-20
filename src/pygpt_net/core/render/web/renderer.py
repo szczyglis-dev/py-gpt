@@ -709,9 +709,20 @@ class Renderer(BaseRenderer):
 
         # check if next ctx is internal and current ctx has commands
         if is_cmd:
-            # get output from next input (JSON response)
-            tool_output = self.helpers.format_cmd_text(str(next_ctx.input))
-            output_class = ""  # show tool output
+            # first, check current input if agent step and results
+            if ctx.results is not None and len(ctx.results) > 0 \
+                    and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
+                tool_output = self.helpers.format_cmd_text(str(ctx.input))
+                output_class = ""  # show tool output
+            else:
+                # get output from next input (JSON response)
+                tool_output = self.helpers.format_cmd_text(str(next_ctx.input))
+                output_class = ""  # show tool output
+
+        # check if agent step and results in current ctx
+        elif ctx.results is not None and len(ctx.results) > 0 \
+            and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
+            tool_output = self.helpers.format_cmd_text(str(ctx.input))
         else:
             # loading spinner
             if (

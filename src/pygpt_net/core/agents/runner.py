@@ -299,37 +299,44 @@ class Runner:
             if verbose:
                 print(task_header)
 
+            step_ctx = self.add_ctx(ctx)
+            step_ctx.set_input(str(ctx.results))
+            step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
+                sub_task_label=trans('msg.agent.plan.subtask'),
+                i=str(i),
+                c=str(c),
+                step_label=trans('msg.agent.step'),
+                j=str(j),
+                task_header=task_header
+            ))
+            self.copy_step_results(step_ctx, ctx, tools_output)
+            step_ctx.extra["agent_step"] = True
+            self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+
+            # -----------------------------------------------------------
+
             # loop until the last step is reached
             while not step_output.is_last:
                 if self.is_stopped():
                     break
 
                 step_output = agent.run_step(task.task_id)
-                step_ctx = self.add_ctx(ctx)
-                step_ctx.set_input(str(tools_output))
-                step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
-                    sub_task_label=trans('msg.agent.plan.subtask'),
-                    i=str(i),
-                    c=str(c),
-                    step_label=trans('msg.agent.step'),
-                    j=str(j),
-                    task_header=task_header
-                ))
-                step_ctx.cmds = tools_output
+                tools_output = self.window.core.agents.tools.export_sources(step_output.output)
 
-                # copy extra data (output from plugins)
-                if tools_output:
-                    for k in ctx.extra:
-                        if not k.startswith("agent_"):
-                            step_ctx.extra[k] = ctx.extra[k]
-
-                # reset input ctx
-                for k in list(ctx.extra.keys()):
-                    if k != "agent_input":
-                        del ctx.extra[k]
-
-                step_ctx.extra["agent_step"] = True
-                self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+                if j > 1:
+                    step_ctx = self.add_ctx(ctx)
+                    step_ctx.set_input(str(tools_output))
+                    step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
+                        sub_task_label=trans('msg.agent.plan.subtask'),
+                        i=str(i),
+                        c=str(c),
+                        step_label=trans('msg.agent.step'),
+                        j=str(j),
+                        task_header=task_header
+                    ))
+                    self.copy_step_results(step_ctx, ctx, tools_output)
+                    step_ctx.extra["agent_step"] = True
+                    self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
                 j += 1
 
             # finalize the response and commit to memory
@@ -352,6 +359,27 @@ class Runner:
             i += 1
 
         return True
+
+    def copy_step_results(self, step_ctx: CtxItem, ctx: CtxItem, tools_output: list):
+        """
+        Copy step results
+
+        :param step_ctx: previous context
+        :param ctx: current context
+        :param tools_output: tools output
+        """
+        step_ctx.cmds = tools_output
+        step_ctx.results = ctx.results
+        # copy extra data (output from plugins)
+        if tools_output:
+            for k in ctx.extra:
+                if not k.startswith("agent_"):
+                    step_ctx.extra[k] = ctx.extra[k]
+
+        # reset input ctx
+        for k in list(ctx.extra.keys()):
+            if k != "agent_input":
+                del ctx.extra[k]
 
     def run_once(self, input: str, tools: list, model_name) -> str:
         """

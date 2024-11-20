@@ -376,7 +376,7 @@ class BasePlugin(QObject):
         allow_output = ["request", "result", "context"]
         clean_response = {}
         for key in response:
-            if key in allow_output:
+            if key in allow_output or key.startswith("agent_"):
                 clean_response[key] = response[key]
 
         ctx.results.append(clean_response)
