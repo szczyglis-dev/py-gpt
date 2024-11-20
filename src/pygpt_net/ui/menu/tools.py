@@ -57,7 +57,7 @@ class Tools:
 
         # docker rebuild
         self.window.ui.menu['menu.tools'].addSeparator()
-        self.window.ui.menu['menu.tools.ipython.rebuild'] = QAction(QIcon(":/icons/settings.svg"), "Rebuild IPython docker image", self.window)
+        self.window.ui.menu['menu.tools.ipython.rebuild'] = QAction(QIcon(":/icons/settings.svg"), "Rebuild IPython Docker Image", self.window)
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['menu.tools.ipython.rebuild'])
         self.window.ui.menu['menu.tools.ipython.rebuild'].triggered.connect(
             lambda: self.window.core.plugins.get("cmd_code_interpreter").builder.build_image()

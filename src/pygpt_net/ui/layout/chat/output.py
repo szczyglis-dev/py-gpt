@@ -119,7 +119,7 @@ class Output:
 
         # interpreter icon
         self.window.ui.nodes['icon.interpreter'] = IconLabel(":/icons/code.svg")
-        self.window.ui.nodes['icon.interpreter'].setToolTip("Python code interpreter")
+        self.window.ui.nodes['icon.interpreter'].setToolTip("Python Code Interpreter")
         self.window.ui.nodes['icon.interpreter'].clicked.connect(
             lambda: self.window.tools.get("interpreter").toggle()
         )

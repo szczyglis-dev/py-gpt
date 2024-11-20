@@ -5,10 +5,10 @@ PyGPT features several useful tools, including:
 
 * Indexer
 * Media Player
-* Image viewer
-* Text editor
-* Transcribe audio/video files
-* Python code interpreter
+* Image Viewer
+* Text Eeditor
+* Transcribe Audio/Video Files
+* Python Code Interpreter
 * HTML/JS Canvas (built-in HTML renderer)
 
 .. image:: images/v2_tool_menu.png
