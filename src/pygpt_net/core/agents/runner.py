@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -240,7 +240,7 @@ class Runner:
         plan = agent.state.plan_dict[plan_id]
         c = len(plan.sub_tasks)
 
-        # send plan description
+        # prepare plan description
         plan_desc = "`{current_plan}:`\n".format(
             current_plan=trans('msg.agent.plan.current')
         )
@@ -264,6 +264,8 @@ class Runner:
         if verbose:
             print(plan_desc)
 
+        # -----------------------------------------------------------
+
         step_ctx = self.add_ctx(ctx)
         step_ctx.set_input("{num_subtasks_label}: {count}, {plan_label}: {plan_id}".format(
             num_subtasks_label=trans('msg.agent.plan.num_subtasks'),
@@ -273,12 +275,13 @@ class Runner:
         ))
         step_ctx.set_output(plan_desc)
         step_ctx.cmds = []
-        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)  # send plan description
 
         i = 1
         for sub_task in plan.sub_tasks:
             if self.is_stopped():
                 break
+
             j = 1
             task = agent.state.get_task(sub_task.name)
             step_output = agent.run_step(task.task_id)
@@ -299,8 +302,9 @@ class Runner:
             if verbose:
                 print(task_header)
 
+            # this can be the last step in current sub-task, so send it first
             step_ctx = self.add_ctx(ctx)
-            step_ctx.set_input(str(ctx.results))
+            step_ctx.set_input(str(tools_output)) # TODO: tool_outputs?
             step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
                 sub_task_label=trans('msg.agent.plan.subtask'),
                 i=str(i),
@@ -315,7 +319,7 @@ class Runner:
 
             # -----------------------------------------------------------
 
-            # loop until the last step is reached
+            # loop until the last step is reached, if first step is not last
             while not step_output.is_last:
                 if self.is_stopped():
                     break
@@ -323,6 +327,7 @@ class Runner:
                 step_output = agent.run_step(task.task_id)
                 tools_output = self.window.core.agents.tools.export_sources(step_output.output)
 
+                # do not send again the first step (it was sent before the loop)
                 if j > 1:
                     step_ctx = self.add_ctx(ctx)
                     step_ctx.set_input(str(tools_output))
@@ -341,7 +346,7 @@ class Runner:
 
             # finalize the response and commit to memory
             extra = {}
-            extra["agent_output"] = True,  # mark as output response
+            extra["agent_output"] = True,  # mark as output response (will be attached to ctx items on continue)
 
             if i == c:  # if last subtask
                 extra["agent_finish"] = True
@@ -349,12 +354,13 @@ class Runner:
             if self.is_stopped():
                 return True  # abort if stopped
 
+            # the is no tool calls here, only final response
             if step_output.is_last:
                 response = agent.finalize_response(task.task_id, step_output=step_output)
                 response_ctx = self.add_ctx(ctx)
                 response_ctx.set_input(str(tools_output))
                 response_ctx.set_output(str(response))
-                response_ctx.extra.update(extra)
+                response_ctx.extra.update(extra)  # extend with `agent_output` and `agent_finish`
                 self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
 
@@ -362,7 +368,10 @@ class Runner:
 
     def copy_step_results(self, step_ctx: CtxItem, ctx: CtxItem, tools_output: list):
         """
-        Copy step results
+        Copy step results from base context item
+
+        INFO: It is required to copy results from previous context item to the current one
+        because tool calls store their output in the base context item, so we need to copy it
 
         :param step_ctx: previous context
         :param ctx: current context
@@ -370,13 +379,14 @@ class Runner:
         """
         step_ctx.cmds = tools_output
         step_ctx.results = ctx.results
+
         # copy extra data (output from plugins)
         if tools_output:
             for k in ctx.extra:
-                if not k.startswith("agent_"):
-                    step_ctx.extra[k] = ctx.extra[k]
+                if not k.startswith("agent_"):  # do not copy `agent_input` and etc.
+                    step_ctx.extra[k] = ctx.extra[k]  # copy only plugin output
 
-        # reset input ctx
+        # reset input ctx, remove outputs from plugins (tools) from previous step
         for k in list(ctx.extra.keys()):
             if k != "agent_input":
                 del ctx.extra[k]
