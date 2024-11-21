@@ -157,10 +157,6 @@ class Input:
 
         self.log("Begin.")
         self.generating = True  # set generating flag
-        # set state to: busy
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
-            "id": "chat",
-        }))
 
         mode = self.window.core.config.get('mode')
         if mode == 'assistant':
@@ -220,6 +216,10 @@ class Input:
                 self.window.stateChanged.emit(self.window.STATE_ERROR)
                 return
 
+        # set state to: busy
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": "chat",
+        }))
         self.window.update_status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
