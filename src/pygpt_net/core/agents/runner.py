@@ -231,6 +231,7 @@ class Runner:
             return True  # abort if stopped
 
         # final response
+        self.set_busy(signals)
         response = agent.chat(self.prepare_input(ctx.input))
         response_ctx = self.add_ctx(ctx)
         response_ctx.thread = thread_id
@@ -260,6 +261,7 @@ class Runner:
         if self.is_stopped():
             return True  # abort if stopped
 
+        self.set_busy(signals)
         plan_id = agent.create_plan(
             self.prepare_input(ctx.input)
         )
@@ -308,6 +310,8 @@ class Runner:
             if self.is_stopped():
                 break
 
+            self.set_busy(signals)
+
             j = 1
             task = agent.state.get_task(sub_task.name)
 
@@ -351,6 +355,8 @@ class Runner:
             while not step_output.is_last:
                 if self.is_stopped():
                     break
+
+                self.set_busy(signals)
 
                 step_output = agent.run_step(task.task_id)
                 tools_output = self.window.core.agents.tools.export_sources(step_output.output)
@@ -464,6 +470,7 @@ class Runner:
         tools = self.window.core.agents.observer.evaluation.get_tools()
 
         # evaluate
+        self.set_busy(signals)
         self.next_instruction = ""  # reset
         self.prev_score = -1  # reset
         self.run_once(prompt, tools, ctx.model)  # tool will update evaluation
@@ -517,6 +524,8 @@ class Runner:
             "footer": "Score: " + str(score) + "%",
         }
         step_ctx.internal = False  # input
+
+        self.set_busy(signals)
         self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
         # call next run
