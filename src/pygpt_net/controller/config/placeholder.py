@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.21 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -109,7 +109,6 @@ class Placeholder:
         """
         ids = self.window.core.llm.get_ids(MODE_LANGCHAIN)
         data = []
-        data.append({'_': '---'})
         for id in ids:
             data.append({id: id})
         return data
@@ -122,7 +121,6 @@ class Placeholder:
         """
         ids = self.window.core.llm.get_ids(MODE_LLAMA_INDEX)
         data = []
-        data.append({'_': '---'})
         for id in ids:
             data.append({id: id})
         return data
