@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 import time
@@ -15,13 +15,17 @@ from PySide6.QtCore import QObject, Slot
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
 
 from .reply import Reply
 from .stack import Stack
-from ...utils import trans
 
 
 class Kernel(QObject):
+
+    STATE_IDLE = "idle"
+    STATE_BUSY = "busy"
+    STATE_ERROR = "error"
 
     def __init__(self, window=None):
         super(Kernel, self).__init__(window)
@@ -32,12 +36,15 @@ class Kernel(QObject):
         self.busy = False
         self.last_stack = []
         self.status = ""
-        self.state = "IDLE"
+        self.state = self.STATE_IDLE
 
     def init(self):
         """Init kernel"""
+        self.last_stack = []
         self.halt = False
         self.busy = False
+        self.state = self.STATE_IDLE
+        self.status = ""
 
     @Slot(object)
     def listener(self, event: KernelEvent):
@@ -49,7 +56,7 @@ class Kernel(QObject):
         if self.stopped() and event.name != KernelEvent.INPUT_USER:
             return
 
-        self.window.dispatch(event)
+        self.window.dispatch(event)  # return event to handle()
 
     def handle(self, event: KernelEvent):
         """
@@ -220,17 +227,27 @@ class Kernel(QObject):
 
     def restart(self):
         """Restart kernel"""
-        pass
+        self.window.dispatch(KernelEvent(KernelEvent.RESTART))
+        self.init()
 
     def terminate(self):
         """Terminate kernel"""
-        pass  # to output end
+        self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
+        self.stop(exit=True)
+        self.window.ui.hide_loading()
+        self.window.controller.plugins.destroy()
 
-    def stop(self):
-        """Stop kernel"""
+    def stop(self, exit: bool = False):
+        """
+        Stop kernel
+
+        :param exit: on app exit
+        """
         self.halt = True
-        self.window.controller.chat.common.stop()
-        self.set_state(KernelEvent(KernelEvent.STATE_IDLE, {"msg": trans("status.stopped")}))
+        self.window.controller.chat.common.stop(exit=exit)
+        if not exit:
+            self.window.dispatch(KernelEvent(KernelEvent.STOP))
+            self.set_state(KernelEvent(KernelEvent.STATE_IDLE, {"msg": trans("status.stopped")}))
 
     def set_state(self, event):
         """
@@ -241,16 +258,19 @@ class Kernel(QObject):
         # update state
         if event.name == KernelEvent.STATE_BUSY:
             self.busy = True
-            self.window.ui.tray.set_icon(self.window.STATE_BUSY)
+            self.state = self.STATE_BUSY
+            self.window.ui.tray.set_icon(self.STATE_BUSY)
             if not self.halt:
                 self.window.ui.show_loading()
         elif event.name == KernelEvent.STATE_IDLE:
             self.busy = False
-            self.window.ui.tray.set_icon(self.window.STATE_IDLE)
+            self.state = self.STATE_IDLE
+            self.window.ui.tray.set_icon(self.STATE_IDLE)
             self.window.ui.hide_loading()
         elif event.name == KernelEvent.STATE_ERROR:
             self.busy = False
-            self.window.ui.tray.set_icon(self.window.STATE_ERROR)
+            self.state = self.STATE_ERROR
+            self.window.ui.tray.set_icon(self.STATE_ERROR)
             self.window.ui.hide_loading()
 
         # update message if provided

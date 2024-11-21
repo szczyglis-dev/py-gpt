@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 import os
@@ -267,9 +267,8 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         self.is_closing = True
         print("Closing...")
-        print("Sending terminate signal to all plugins...")
-        self.controller.chat.common.stop(exit=True)
-        self.controller.plugins.destroy()
+        print("Sending terminate signal to all...")
+        self.controller.kernel.terminate()
         print("Saving ctx groups...")
         self.controller.ctx.save_all()
         print("Saving tabs...")

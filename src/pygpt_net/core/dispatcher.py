@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import (
@@ -56,11 +56,23 @@ class Dispatcher:
         # kernel events
         if isinstance(event, KernelEvent):
             # dispatch event to kernel controller
-            self.window.controller.kernel.handle(event)
+            if not event.name in [  # those events are sent by kernel
+                KernelEvent.INIT,
+                KernelEvent.RESTART,
+                KernelEvent.STOP,
+                KernelEvent.TERMINATE,
+            ]:
+                self.window.controller.kernel.handle(event)
             if self.is_log(event):
                 self.window.core.debug.info("[event] Dispatch end: " + event.full_name + " (" + str(event.call_id) + ")")
             self.call_id += 1
-            return [], event # kernel events finish here
+            if not event.name in [
+                KernelEvent.INIT,
+                KernelEvent.RESTART,
+                KernelEvent.STOP,
+                KernelEvent.TERMINATE,
+            ]:
+                return [], event # kernel events finish here
 
         # render events
         elif isinstance(event, RenderEvent):

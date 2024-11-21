@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 from .base import BaseEvent
@@ -14,6 +14,12 @@ from .base import BaseEvent
 
 class KernelEvent(BaseEvent):
     """Kernel events"""
+
+    # core, events sent from kernel
+    INIT = "kernel.init"
+    RESTART = "kernel.restart"
+    STOP = "kernel.stop"
+    TERMINATE = "kernel.terminate"
 
     # input
     INPUT_SYSTEM = "kernel.input.system"

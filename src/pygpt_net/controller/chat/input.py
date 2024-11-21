@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -149,7 +149,9 @@ class Input:
         :param prev_ctx: previous context (if reply)
         :param parent_id: parent id (if expert)
         """
-        self.window.stateChanged.emit(self.window.STATE_IDLE)
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "chat",
+        }))
 
         # check if input is not locked
         if self.locked and not force and not internal:
@@ -236,7 +238,7 @@ class Input:
             # check if current ctx is allowed for this mode - if not, then create new ctx
             self.window.controller.ctx.handle_allowed(mode)
 
-        # send input to API, return ctx
+        # send input to API
         if mode == 'img':
             self.window.controller.chat.image.send(
                 text=text,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -140,7 +140,8 @@ class Controller:
 
     def reload(self):
         """Reload components"""
-        self.reloading = True
+        self.reloading = True  # lock
+
         self.window.core.reload()  # db, config, patch, etc.
         self.ui.tabs.reload()
         self.ctx.reload()
@@ -167,5 +168,6 @@ class Controller:
         # post-reload
         self.ui.tabs.reload_after()
         self.ctx.reload_after()
+        self.kernel.restart()
 
-        self.reloading = False
+        self.reloading = False  # unlock
