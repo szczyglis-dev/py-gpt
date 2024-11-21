@@ -107,6 +107,7 @@
     "llama_index": "gpt-4o-mini",
     "vision": "gpt-4o",
     "agent": "gpt-4o",
+    "agent_llama": "gpt-4o",
     "expert": "gpt-4o"
   },
   "current_preset": {
@@ -118,6 +119,7 @@
     "llama_index": "",
     "vision": "",
     "agent": "",
+    "agent_llama": "",
     "expert": ""
   },
   "debug": false,
@@ -141,6 +143,7 @@
   "interpreter.input": "",
   "interpreter.ipython": true,
   "lang": "en",
+  "layout.animation.disable": false,
   "layout.density": -1,
   "layout.dialog.geometry.store": true,
   "layout.dialog.geometry": {},

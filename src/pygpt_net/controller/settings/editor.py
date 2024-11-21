@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 import copy
 
-from pygpt_net.core.events import RenderEvent
 from pygpt_net.utils import trans
 
 
@@ -49,7 +48,6 @@ class Editor:
         self.window.ui.add_hook("update.config.font_size.toolbox", self.hook_update)
         self.window.ui.add_hook("update.config.zoom", self.hook_update)
         self.window.ui.add_hook("update.config.theme.markdown", self.hook_update)
-        self.window.ui.add_hook("update.config.render.plain", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
@@ -272,17 +270,6 @@ class Editor:
         elif key == "access.voice_control":
             self.window.core.config.set(key, value)
             self.window.controller.access.voice.update()
-
-        # update raw output
-        elif key == "render.plain":
-            self.window.core.config.set(key, value)
-            if not value:
-                self.window.ui.nodes['output.raw'].setChecked(False)
-            else:
-                self.window.ui.nodes['output.raw'].setChecked(True)
-            event = RenderEvent(RenderEvent.ON_SWITCH)
-            self.window.dispatch(event)
-            self.window.controller.ui.update_font_size()
 
         # call vision checkboxes events
         elif key == "vision.capture.enabled":

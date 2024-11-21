@@ -255,6 +255,19 @@
         "step": 1,
         "advanced": false
     },
+    "layout.animation.disable": {
+        "section": "layout",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.layout.animation.disable",
+        "description": "settings.layout.animation.disable.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "layout.dialog.geometry.store": {
         "section": "layout",
         "type": "bool",
@@ -273,18 +286,6 @@
         "slider": false,
         "label": "settings.theme.markdown",
         "value": true,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
-    "render.plain": {
-        "section": "layout",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.render.plain",
-        "value": false,
         "min": 0,
         "max": 0,
         "multiplier": 1,
@@ -340,6 +341,19 @@
         "max": 10000,
         "multiplier": 1,
         "step": 1,
+        "advanced": false
+    },
+    "ctx.auto_summary.model": {
+        "section": "ctx",
+        "type": "combo",
+        "use": "models",
+        "slider": false,
+        "label": "settings.ctx.auto_summary.model",
+        "value": "gpt-3.5-turbo-1106",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
         "advanced": false
     },
     "ctx.records.folders.top": {
@@ -508,20 +522,8 @@
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.convert_lists",
+        "description": "settings.ctx.convert_lists.desc",
         "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "ctx.auto_summary.model": {
-        "section": "ctx",
-        "type": "combo",
-        "use": "models",
-        "slider": false,
-        "label": "settings.ctx.auto_summary.model",
-        "value": "gpt-3.5-turbo-1106",
         "min": null,
         "max": null,
         "multiplier": null,
