@@ -70,7 +70,7 @@ class Experts:
         :param parent_id: Parent ID
         """
         # if agent enabled
-        if self.window.controller.agent.enabled():
+        if self.window.controller.agent.legacy.enabled():
             prev_prompt = sys_prompt
             sys_prompt = self.window.core.prompt.get("agent.instruction")
             if prev_prompt is not None and prev_prompt.strip() != "":
@@ -78,7 +78,7 @@ class Experts:
 
         # expert or agent mode
         if self.window.controller.agent.experts.enabled() and parent_id is None:  # master expert has special prompt
-            if self.window.controller.agent.enabled():  # if agent then leave agent prompt
+            if self.window.controller.agent.legacy.enabled():  # if agent then leave agent prompt
                 sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
             else:
                 sys_prompt = self.window.core.experts.get_prompt()
@@ -86,7 +86,7 @@ class Experts:
 
         # if global mode is agent
         if mode == MODE_AGENT:
-            sys_prompt = self.window.controller.agent.flow.on_system_prompt(
+            sys_prompt = self.window.controller.agent.legacy.on_system_prompt(
                 sys_prompt,
                 append_prompt=None,  # sys prompt from preset is used here
                 auto_stop=self.window.core.config.get('agent.auto_stop'),

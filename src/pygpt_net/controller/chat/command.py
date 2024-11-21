@@ -49,7 +49,7 @@ class Command:
             # agent mode
             if mode == MODE_AGENT:
                 commands = self.window.core.command.from_commands(cmds)  # pack to execution list
-                self.window.controller.agent.flow.on_cmd(
+                self.window.controller.agent.legacy.on_cmd(
                     ctx,
                     commands,
                 )

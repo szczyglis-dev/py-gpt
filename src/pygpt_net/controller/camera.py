@@ -31,7 +31,7 @@ class Camera(QObject):
 
         :param window: Window instance
         """
-        super(Camera, self).__init__(window)
+        super(Camera, self).__init__()
         self.window = window
         self.frame = None
         self.thread_started = False

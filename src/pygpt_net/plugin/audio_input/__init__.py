@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import os
@@ -469,7 +469,7 @@ class Plugin(BasePlugin):
                 self.set_status('...')
                 self.window.update_status(trans('audio.speak.sending'))
                 prefix = ""
-                if self.window.controller.agent.enabled():
+                if self.window.controller.agent.legacy.enabled():
                     prefix = "user: "
 
                 context = BridgeContext()

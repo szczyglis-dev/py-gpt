@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -23,8 +23,41 @@ class Llama:
         :param window: Window instance
         """
         self.window = window
-        self.iteration = 0
         self.eval_step = 0
+        self.options = {
+            "agent.llama.loop.score": {
+                "type": "int",
+                "slider": True,
+                "label": "agent.llama.loop.score",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "value": 75,
+                "multiplier": 1,
+            },
+        }
+
+    def setup(self):
+        """Setup agent controller"""
+        # register hooks
+        self.window.ui.add_hook("update.global.agent.llama.loop.score", self.hook_update)
+        self.reload()  # restore config
+
+    def reload(self):
+        """Reload agent toolbox options"""
+        # loop enable checkbox
+        if self.window.core.config.get('agent.llama.loop.enabled'):
+            self.window.ui.config['global']['agent.llama.loop.enabled'].setChecked(True)
+        else:
+            self.window.ui.config['global']['agent.llama.loop.enabled'].setChecked(False)
+
+        # loop score slider
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="agent.llama.loop.score",
+            option=self.options["agent.llama.loop.score"],
+            value=self.window.core.config.get('agent.llama.loop.score'),
+        )
 
     def reset_eval_step(self):
         """Reset evaluation step"""
@@ -42,18 +75,17 @@ class Llama:
         """
         return self.eval_step
 
-    def flow_begin(self):
-        """Run begin"""
-        self.iteration = 0  # reset iteration
-        self.window.controller.agent.flow.stop = False  # reset stop flag
-        self.update()  # update status
+    def on_user_send(self, text: str):
+        """
+        Run begin
 
-    def flow_end(self):
+        :param text: user input
+        """
+        self.reset_eval_step()  # reset evaluation step
+
+    def on_end(self):
         """End of run"""
-        # self.update()  # update status
-        self.iteration = 0  # reset iteration
         self.eval_step = 0  # reset evaluation step
-        self.window.controller.agent.flow.stop = False  # reset stop flag
         if self.window.core.config.get("agent.goal.notify"):
             self.window.ui.tray.show_msg(
                 trans("notify.agent.goal.title"),
@@ -67,21 +99,21 @@ class Llama:
         :param ctx: CtxItem
         """
         if not self.window.core.config.get("agent.llama.loop.enabled"):
-            self.flow_end()
+            self.on_end()
             return  # abort if loop is disabled
 
         # check if not stopped
-        if self.is_stopped():
-            self.flow_end()
+        if self.window.controller.kernel.stopped():
+            self.on_end()
             return
 
         # check max steps
         max_steps = int(self.window.core.config.get("agent.llama.max_eval"))
         if max_steps != 0 and self.get_eval_step() >= max_steps:
-            self.flow_end()
+            self.on_end()
             return  # abort if max steps reached
 
-        # eval step++
+        # evaluation step++
         self.eval_step_next()
 
         context = BridgeContext()
@@ -94,23 +126,27 @@ class Llama:
         })
         self.window.dispatch(event)
 
+    def on_stop(self):
+        """Stop agent"""
+        pass
+
     def update(self):
         """Update agent status"""
-        # get iterations
-        iterations = int(self.window.core.config.get("agent.iterations"))
-        if iterations == 0:
-            iterations_str = "∞"  # infinity loop
-        else:
-            iterations_str = str(iterations)
+        pass
 
-        status = str(self.iteration) + " / " + iterations_str
-        self.window.ui.nodes['status.agent'].setText(status)
-        self.window.controller.agent.common.toggle_status()
-
-    def is_stopped(self) -> bool:
+    def hook_update(self, key, value, caller, *args, **kwargs):
         """
-        Check if run is stopped
+        Hook: on option update
 
-        :return: True if stopped
+        :param key: config key
+        :param value: config value
+        :param caller: caller name
+        :param args: args
+        :param kwargs: kwargs
         """
-        return self.window.controller.agent.flow.stop
+        if self.window.core.config.get(key) == value:
+            return
+        if key == 'agent.llama.loop.score':
+            self.window.core.config.set(key, int(value))
+            self.window.core.config.save()
+            self.update()

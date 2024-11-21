@@ -216,7 +216,7 @@ class Response:
         if msg:
             status = msg
         self.window.update_status(status)
-        self.window.controller.agent.llama.flow_end()
+        self.window.controller.agent.llama.on_end()
         self.window.controller.chat.common.unlock_input()  # unlock input
         # set state to: idle
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {

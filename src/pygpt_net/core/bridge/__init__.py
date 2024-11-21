@@ -36,7 +36,7 @@ class Bridge:
         self.last_call = None  # last API call time, for throttling
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
-        self.sync_modes = [MODE_ASSISTANT]
+        self.sync_modes = [MODE_ASSISTANT, MODE_EXPERT]
         self.worker = None
 
     def request(self, context: BridgeContext, extra: dict = None) -> bool:
@@ -70,7 +70,7 @@ class Bridge:
         context.parent_mode = base_mode  # store base mode
 
         # get agent or expert internal sub-mode
-        if base_mode == MODE_AGENT or base_mode == MODE_EXPERT:
+        if base_mode in [MODE_AGENT, MODE_EXPERT]:
             is_virtual = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if base_mode == MODE_AGENT:

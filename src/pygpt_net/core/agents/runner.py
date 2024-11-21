@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -637,7 +637,7 @@ class Runner:
 
         :return: True if stopped
         """
-        return self.window.controller.kernel.stopped() or self.window.controller.agent.flow.stop
+        return self.window.controller.kernel.stopped() or self.window.controller.agent.legacy.stop
 
     def get_error(self) -> Exception or None:
         """

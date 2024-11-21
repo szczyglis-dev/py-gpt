@@ -59,7 +59,7 @@ class Output:
 
         # agent mode
         if mode == MODE_AGENT:
-            self.window.controller.agent.flow.on_ctx_after(ctx)
+            self.window.controller.agent.legacy.on_ctx_after(ctx)
 
         # event: context after
         event = Event(Event.CTX_AFTER)
@@ -201,7 +201,7 @@ class Output:
         if mode == MODE_AGENT:
             agent_iterations = int(self.window.core.config.get("agent.iterations"))
             self.log("Agent: ctx end, iterations: {}".format(agent_iterations))
-            self.window.controller.agent.flow.on_ctx_end(
+            self.window.controller.agent.legacy.on_ctx_end(
                 ctx,
                 iterations=agent_iterations,
             )
@@ -214,7 +214,7 @@ class Output:
         self.window.controller.chat.input.generating = False  # unlock
 
         if (mode not in self.window.controller.chat.input.no_ctx_idx_modes
-                and not self.window.controller.agent.enabled()):
+                and not self.window.controller.agent.legacy.enabled()):
             self.window.controller.idx.on_ctx_end(ctx, mode=mode)  # update ctx DB index
             # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
 

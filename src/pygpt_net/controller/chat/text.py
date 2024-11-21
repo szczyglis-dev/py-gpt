@@ -124,7 +124,7 @@ class Text:
 
         # agent mode: before context
         if mode == MODE_AGENT:
-            self.window.controller.agent.flow.on_ctx_before(ctx)
+            self.window.controller.agent.legacy.on_ctx_before(ctx)
 
         # event: context before
         event = Event(Event.CTX_BEFORE)

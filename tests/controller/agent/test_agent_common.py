@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import os
@@ -20,7 +20,7 @@ from pygpt_net.controller.agent import Common
 def test_toggle_status(mock_window):
     """Test toggle_status"""
     mock_window.core.config.set("mode", "agent")
-    mock_window.controller.agent.is_inline = MagicMock(return_value=False)
+    mock_window.controller.agent.legacy.is_inline = MagicMock(return_value=False)
     common = Common(mock_window)
     common.show_status = MagicMock()
     common.hide_status = MagicMock()

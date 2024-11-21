@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -31,7 +31,7 @@ class AgentLlama:
         :return: QWidget
         """
         # loop score
-        option = self.window.controller.agent.options["agent.llama.loop.score"]
+        option = self.window.controller.agent.llama.options["agent.llama.loop.score"]
         self.window.ui.nodes['agent.llama.loop.score.label'] = QLabel(trans("toolbox.agent.llama.loop.score.label"))
         self.window.ui.nodes['agent.llama.loop.score'] = \
             OptionSlider(

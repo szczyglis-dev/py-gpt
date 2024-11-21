@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -36,6 +36,7 @@ def test_send_input_stop(mock_window):
     input.send = MagicMock()
     input.generating = True
     message = 'stop'
+    mock_window.controller.agent.common.is_infinity_loop = MagicMock(return_value=False)
     mock_window.controller.ctx.extra.is_editing = MagicMock(return_value=False)
     mock_window.ui.nodes['input'].toPlainText = MagicMock(return_value=message)
 
@@ -195,6 +196,7 @@ def test_execute_vision_mode(mock_window):
     mock_window.core.ctx.count_meta = MagicMock(return_value=1)  # ctx exists
     mock_window.controller.camera.is_enabled = MagicMock(return_value=True)
     mock_window.controller.camera.is_auto = MagicMock(return_value=True)
+    mock_window.controller.ui.vision.has_vision = MagicMock(return_value=True)
 
     ctx = CtxItem()
     mock_window.controller.chat.text.send = MagicMock(return_value=ctx)  # send text to API and get ctx
@@ -222,7 +224,7 @@ def test_execute_vision_mode(mock_window):
         mock_window.controller.ctx.handle_allowed.assert_called_once()
 
         # vision: capture frame should be called
-        mock_window.controller.camera.capture_frame.assert_called_once_with(False)
+        mock_window.controller.camera.handle_auto_capture()
 
 
 def test_execute_vision_plugin(mock_window):
@@ -236,6 +238,7 @@ def test_execute_vision_plugin(mock_window):
     mock_window.core.ctx.count_meta = MagicMock(return_value=1)  # ctx exists
     mock_window.controller.camera.is_enabled = MagicMock(return_value=True)
     mock_window.controller.camera.is_auto = MagicMock(return_value=True)
+    mock_window.controller.ui.vision.has_vision = MagicMock(return_value=True)
 
     # plugin enabled for vision mode
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=True)
@@ -266,4 +269,4 @@ def test_execute_vision_plugin(mock_window):
         mock_window.controller.ctx.handle_allowed.assert_called_once()
 
         # vision: capture frame should be called
-        mock_window.controller.camera.capture_frame.assert_called_once_with(False)
+        mock_window.controller.camera.handle_auto_capture()

@@ -6,9 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+)
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -16,7 +20,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class Flow:
+class Legacy:
     def __init__(self, window=None):
         """
         Agent flow controller
@@ -25,7 +29,6 @@ class Flow:
         """
         self.window = window
         self.iteration = 0  # legacy
-        self.iteration_llama = 0  # llama-index
         self.prev_output = None
         self.is_user = True
         self.stop = False
@@ -42,6 +45,69 @@ class Flow:
         or task was failed or when the conversation falls into a loop, THEN STOP REASONING and include "goal_update" 
         command with one of these statuses: "pause", "failed" or "wait".
         """
+        self.options = {
+            "agent.iterations": {
+                "type": "int",
+                "slider": True,
+                "label": "agent.iterations",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "value": 3,
+                "multiplier": 1,
+            },
+        }
+
+    def setup(self):
+        """Setup agent controller"""
+        # register hooks
+        self.window.ui.add_hook("update.global.agent.iterations", self.hook_update)
+        self.reload()  # restore config
+
+    def reload(self):
+        """Reload agent toolbox options"""
+        # auto-stop checkbox
+        if self.window.core.config.get('agent.auto_stop'):
+            self.window.ui.config['global']['agent.auto_stop'].setChecked(True)
+        else:
+            self.window.ui.config['global']['agent.auto_stop'].setChecked(False)
+
+        # continuous mode checkbox
+        if self.window.core.config.get('agent.continue.always'):
+            self.window.ui.config['global']['agent.continue'].setChecked(True)
+        else:
+            self.window.ui.config['global']['agent.continue'].setChecked(False)
+
+        # iterations slider
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="agent.iterations",
+            option=self.options["agent.iterations"],
+            value=self.window.core.config.get('agent.iterations'),
+        )
+
+    def update(self):
+        """Update agent status"""
+        iterations = "-"
+        mode = self.window.core.config.get('mode')
+
+        # get iterations from plugin or from agent mode
+        if mode in [
+            MODE_AGENT,
+            MODE_AGENT_LLAMA,
+        ]:
+            iterations = int(self.window.core.config.get("agent.iterations"))
+        elif self.is_inline():
+            if self.window.controller.plugins.is_enabled("agent"):
+                iterations = int(self.window.core.plugins.get_option("agent", "iterations"))
+        if iterations == 0:
+            iterations_str = "∞"  # infinity loop
+        else:
+            iterations_str = str(iterations)
+
+        status = str(self.iteration) + " / " + iterations_str
+        self.window.ui.nodes['status.agent'].setText(status)
+        self.window.controller.agent.common.toggle_status()
 
     def get_functions(self) -> list:
         """
@@ -117,7 +183,7 @@ class Flow:
         self.finished = False  # reset finished flag
         if self.stop:
             self.stop = False
-        self.window.controller.agent.update()  # update status
+        self.window.controller.agent.legacy.update()  # update status
 
     def on_ctx_end(
             self,
@@ -151,7 +217,7 @@ class Flow:
 
         if iterations == 0 or self.iteration < int(iterations):
             self.iteration += 1
-            self.window.controller.agent.update()  # update status
+            self.window.controller.agent.legacy.update()  # update status
             if self.prev_output is not None and self.prev_output != "":
 
                 # always abort if already waiting for reply from expert or command
@@ -272,6 +338,26 @@ class Flow:
                 self.window.core.debug.error(e)
                 return
 
+    def is_inline(self) -> bool:
+        """
+        Is agent inline (plugin) enabled
+
+        :return: True if enabled
+        """
+        return self.window.controller.plugins.is_type_enabled("agent")
+
+    def enabled(self) -> bool:
+        """
+        Is agent enabled
+
+        :return: True if enabled
+        """
+        return self.window.core.config.get('mode') == MODE_AGENT or self.is_inline()
+
+    def add_run(self):
+        """Increment agent iteration"""
+        self.iteration += 1
+
     def on_stop(self, auto: bool = False):
         """
         Event: On force stop
@@ -291,3 +377,20 @@ class Flow:
                 ctx=None,
                 mode="agent",
             )
+
+    def hook_update(self, key, value, caller, *args, **kwargs):
+        """
+        Hook: on option update
+
+        :param key: config key
+        :param value: config value
+        :param caller: caller name
+        :param args: args
+        :param kwargs: kwargs
+        """
+        if self.window.core.config.get(key) == value:
+            return
+        if key == 'agent.iterations':
+            self.window.core.config.set(key, int(value))  # cast to int, if from text input
+            self.window.core.config.save()
+            self.update()

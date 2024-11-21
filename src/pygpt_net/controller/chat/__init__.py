@@ -11,7 +11,6 @@
 
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import trans
 
 from .command import Command
 from .common import Common
@@ -75,8 +74,8 @@ class Chat:
         self.window.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
 
         # stop agent on error
-        if self.window.controller.agent.enabled():
-            self.window.controller.agent.flow.on_stop()
+        if self.window.controller.agent.legacy.enabled():
+            self.window.controller.agent.legacy.on_stop()
 
     def log_ctx(self, ctx: CtxItem, mode: str):
         """

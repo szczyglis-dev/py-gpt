@@ -79,9 +79,9 @@ class Input:
 
         # agent modes
         if mode == MODE_AGENT:
-            self.window.controller.agent.flow.on_user_send(text)  # begin legacy agent flow
+            self.window.controller.agent.legacy.on_user_send(text)  # begin legacy agent flow
         elif mode == MODE_AGENT_LLAMA:
-            self.window.controller.agent.llama.flow_begin()  # begin llama agent flow
+            self.window.controller.agent.llama.on_user_send(text)  # begin llama agent flow
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
@@ -178,7 +178,7 @@ class Input:
         # agent mode
         if mode == MODE_AGENT:
             self.log("Agent: input before: {}".format(text))
-            text = self.window.controller.agent.flow.on_input_before(text)
+            text = self.window.controller.agent.legacy.on_input_before(text)
 
         # event: before input
         event = Event(Event.INPUT_BEFORE, {

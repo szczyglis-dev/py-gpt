@@ -89,9 +89,9 @@ class Reply:
 
         self.window.update_status("")  # clear status
         if self.reply_ctx.internal:
-            if self.window.controller.agent.enabled():
-                self.window.controller.agent.add_run()
-                self.window.controller.agent.update()
+            if self.window.controller.agent.legacy.enabled():
+                self.window.controller.agent.legacy.add_run()
+                self.window.controller.agent.legacy.update()
 
         # prepare data to send as reply
         tool_data = json.dumps(results)

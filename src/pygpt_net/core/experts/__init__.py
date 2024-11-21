@@ -68,7 +68,7 @@ class Experts:
 
         :return: True if enabled
         """
-        return self.window.controller.agent.enabled()
+        return self.window.controller.agent.legacy.enabled()
 
     def exists(self, id: str) -> bool:
         """
@@ -318,7 +318,7 @@ class Experts:
 
         # create slave item
         ctx = CtxItem()
-        ctx.meta = slave.meta
+        ctx.meta = slave  # use slave-meta
         ctx.internal = internal
         ctx.hidden = hidden
         ctx.current = True  # mark as current context item
@@ -368,7 +368,7 @@ class Experts:
             system_prompt=sys_prompt,
             system_prompt_raw=sys_prompt_raw,
             prompt=query,
-            stream=stream_mode,
+            stream=False,
             attachments=files,
             file_ids=file_ids,
             assistant_id=self.window.core.config.get('assistant'),
@@ -379,7 +379,7 @@ class Experts:
             max_tokens=max_tokens,
         )
         self.window.controller.chat.common.lock_input()  # lock input
-        event = KernelEvent(KernelEvent.REQUEST, {
+        event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,
             'extra': {},
         })
@@ -390,12 +390,15 @@ class Experts:
 
         # handle output
         ctx.current = False  # reset current state
+        ctx.output = result  # store expert output in their context
+        
         self.window.core.ctx.update_item(ctx)
+
         ctx.from_previous()  # append previous result if exists
         self.window.controller.chat.output.handle(
-            ctx,
-            mode,
-            stream_mode,
+            ctx=ctx,
+            mode=mode,
+            stream_mode=False,
         )
         ctx.clear_reply()  # reset results
         self.window.controller.chat.command.handle(ctx)  # handle cmds
@@ -410,7 +413,11 @@ class Experts:
 
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
+        reply_ctx.meta = master_ctx.meta
         reply_ctx.from_dict(ctx.to_dict())
+
+        # assign expert output
+        reply_ctx.output = result
         reply_ctx.input_name = expert_name
         reply_ctx.output_name = ""
         reply_ctx.cmds = []  # clear cmds

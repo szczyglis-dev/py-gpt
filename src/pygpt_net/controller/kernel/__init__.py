@@ -250,16 +250,16 @@ class Kernel(QObject):
         :param exit: on app exit
         """
         self.halt = True
-        self.window.controller.chat.common.stop(exit=exit)
+        self.window.controller.chat.common.stop(exit=exit)  # it stops legacy agent also
         if not exit:
             self.window.dispatch(KernelEvent(KernelEvent.STOP))
             self.set_state(KernelEvent(KernelEvent.STATE_IDLE, {"msg": trans("status.stopped")}))
 
-    def set_state(self, event):
+    def set_state(self, event: KernelEvent):
         """
         Set kernel state
 
-        :param: event
+        :param: KernelEvent event
         """
         # update state
         if event.name == KernelEvent.STATE_BUSY:
@@ -329,6 +329,6 @@ class Kernel(QObject):
             return False
         if ctx.agent_call:
             return False
-        if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
+        if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
             return False
         return True

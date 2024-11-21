@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import os
@@ -209,8 +209,8 @@ class Common:
         mode = self.window.core.config.get('mode')
         if mode == "assistant":
             finish = False
-        if (self.window.controller.agent.enabled() and
-                (not self.window.controller.agent.flow.finished or self.window.controller.agent.flow.stop)):
+        if (self.window.controller.agent.legacy.enabled() and
+                (not self.window.controller.agent.legacy.finished or self.window.controller.agent.legacy.stop)):
             unlock = False
         if (self.window.controller.agent.experts.enabled() and
                 self.window.core.experts.has_calls(ctx)):
@@ -239,7 +239,7 @@ class Common:
         })
         self.window.controller.kernel.stack.clear()  # pause reply stack
         self.window.controller.agent.experts.stop()
-        self.window.controller.agent.flow.on_stop()
+        self.window.controller.agent.legacy.on_stop()
         self.window.controller.assistant.threads.stop = True
         self.window.controller.assistant.threads.reset()  # reset run and func calls
         self.window.dispatch(event)  # stop audio input

@@ -404,8 +404,8 @@ class Command:
 
         cmds = copy.deepcopy(data['cmd'])  # make copy to prevent changes in original plugins cmd
         func_plugins = self.cmds_to_functions(cmds)  # plugin functions
-        if self.window.controller.agent.enabled():
-            func_agent = self.cmds_to_functions(self.window.controller.agent.flow.get_functions())  # agent functions
+        if self.window.controller.agent.legacy.enabled():
+            func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())  # agent functions
         if self.window.controller.agent.experts.enabled():
             func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())  # agent functions
         return func_plugins + func_agent + func_experts
@@ -541,6 +541,6 @@ class Command:
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:
             return False  # disabled for specific modes
-        if self.window.controller.agent.enabled() or self.window.controller.agent.experts.enabled():
+        if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
             return False
         return self.window.core.config.get('func_call.native', False)  # otherwise check config
