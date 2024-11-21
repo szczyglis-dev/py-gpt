@@ -12,17 +12,11 @@
 import datetime
 import os
 import cv2
-from PySide6.QtCore import Slot
 
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QImage, QPixmap, Qt
 
 from pygpt_net.core.types import (
-    MODE_AGENT,
-    MODE_AGENT_LLAMA,
-    MODE_CHAT,
-    MODE_COMPLETION,
-    MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
     MODE_VISION,
 )
 from pygpt_net.core.events import AppEvent
@@ -187,8 +181,19 @@ class Camera:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
         self.window.dispatch(AppEvent(AppEvent.CAMERA_CAPTURED))  # app event
 
+    def handle_auto_capture(self):
+        """Handle auto capture"""
+        if self.is_enabled():
+            if self.is_auto():
+                self.capture_frame(switch=False)
+                self.window.controller.chat.log("Captured frame from camera.")  # log
+
     def get_current_frame(self, flip_colors: bool = True):
-        """Get current frame"""
+        """
+        Get current frame
+
+        :param flip_colors: True if flip colors
+        """
         if self.frame is None:
             return None
         if flip_colors:
@@ -254,7 +259,7 @@ class Camera:
         """
         Capture frame and save 
 
-        :return: True if success
+        :return: Path to saved frame
         """
         # capture frame
         if not self.thread_started:

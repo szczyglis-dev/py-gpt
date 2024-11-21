@@ -12,6 +12,9 @@
 from pygpt_net.core.types import (
     MODE_AGENT,
 )
+from pygpt_net.utils import trans
+
+
 class Common:
     def __init__(self, window=None):
         """
@@ -83,6 +86,27 @@ class Common:
             self.disable_loop()
         else:
             self.enable_loop()
+
+    def is_infinity_loop(self, mode: str) -> bool:
+        """
+        Check if infinity loop is enabled
+
+        :param mode: current mode
+        :return: True if infinity loop is enabled
+        """
+        if (mode == MODE_AGENT and self.window.core.config.get('agent.iterations') == 0) or \
+            (self.window.controller.plugins.is_enabled("agent")
+             and self.window.core.plugins.get_option("agent", "iterations") == 0):
+            return True
+        return False
+
+    def display_infinity_loop_confirm(self):
+        """Show infinity confirm"""
+        self.window.ui.dialogs.confirm(
+            type="agent.infinity.run",
+            id=0,
+            msg=trans("agent.infinity.confirm.content"),
+        )
 
     def show_status(self):
         """Show agent status"""

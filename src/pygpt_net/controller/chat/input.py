@@ -16,7 +16,6 @@ from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
     MODE_IMAGE,
-    MODE_VISION,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -39,7 +38,10 @@ class Input:
             # MODE_LLAMA_INDEX,
             MODE_AGENT,
         ]  # assistant is handled in async, agent is handled in agent flow
-        self.stop_commands = ["stop", "halt"]
+        self.stop_commands = [
+            "stop",
+            "halt",
+        ]
 
     def send_input(self, force: bool = False):
         """
@@ -49,38 +51,30 @@ class Input:
         """
         self.window.controller.agent.experts.unlock()  # unlock experts
         self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
-        if not force:
-            self.window.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
-
-        # check if not in edit mode
-        if not force and self.window.controller.ctx.extra.is_editing():
-            self.window.controller.ctx.extra.edit_submit()
-            return
 
         # get text from input
         text = self.window.ui.nodes['input'].toPlainText().strip()
         mode = self.window.core.config.get('mode')
 
-        # if agent mode: iterations check
         if not force:
-            if (mode == MODE_AGENT and self.window.core.config.get('agent.iterations') == 0) \
-                    or (self.window.controller.plugins.is_enabled("agent")
-                        and self.window.core.plugins.get_option("agent", "iterations") == 0):
+            self.window.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
 
-                # show alert confirm
-                self.window.ui.dialogs.confirm(
-                    type="agent.infinity.run",
-                    id=0,
-                    msg=trans("agent.infinity.confirm.content"),
-                )
+            # check if not in edit mode
+            if self.window.controller.ctx.extra.is_editing():
+                self.window.controller.ctx.extra.edit_submit()
                 return
 
+            # if agent mode: iterations check, show alert confirm if infinity loop
+            if self.window.controller.agent.common.is_infinity_loop(mode):
+                self.window.controller.agent.common.display_infinity_loop_confirm()
+                return
+
+        # listen for stop command
         if self.generating \
                 and text is not None \
                 and text.lower().strip() in self.stop_commands:
             self.window.controller.kernel.stop()  # TODO: to chat main
-            event = RenderEvent(RenderEvent.CLEAR_INPUT)
-            self.window.dispatch(event)
+            self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
 
         # agent modes
@@ -93,7 +87,9 @@ class Input:
         event = Event(Event.USER_SEND, {
             'value': text,
         })
-        self.window.dispatch(event)
+        self.window.dispatch(Event(Event.USER_SEND, {
+            'value': text,
+        }))
         text = event.data['value']
 
         # event: handle input
@@ -169,16 +165,11 @@ class Input:
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False  # unlock
                 return
-        elif (mode == MODE_VISION
-              or self.window.controller.plugins.is_type_enabled('vision')
-              or self.window.controller.ui.vision.is_vision_model()):
-            # capture frame from camera if auto-capture enabled
-            if self.window.controller.camera.is_enabled():
-                if self.window.controller.camera.is_auto():
-                    self.window.controller.camera.capture_frame(switch=False)
-                    self.log("Captured frame from camera.")  # log
+        elif self.window.controller.ui.vision.has_vision():
+            # handle auto capture
+            self.window.controller.camera.handle_auto_capture()
 
-        # unlock Assistant run thread if locked
+        # unlock Assistants run thread if locked
         self.window.controller.assistant.threads.stop = False
         self.window.controller.kernel.resume()
 
@@ -197,22 +188,16 @@ class Input:
         self.window.dispatch(event)
         text = event.data['value']
 
-        # check if image captured from camera
-        camera_captured = (
-                (
-                        mode == MODE_VISION
-                        or self.window.controller.plugins.is_type_enabled('vision')
-                        or self.window.controller.ui.vision.is_vision_model()
-                )
-                and self.window.controller.attachment.has(mode)  # check if attachment exists
-        )
+        # check if image captured from camera, # check if attachment exists
+        camera_captured = (self.window.controller.ui.vision.has_vision()
+                           and self.window.controller.attachment.has(mode))
 
         # allow empty input only for vision modes, otherwise abort
         if len(text.strip()) == 0 and not camera_captured:
             self.generating = False  # unlock as not generating
             return
 
-        # check API key, show monit if not set
+        # check API key, show monit if no API key
         if mode not in self.window.controller.launcher.no_api_key_allowed:
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
@@ -237,7 +222,7 @@ class Input:
             self.window.controller.ctx.update()
             self.log("New context created...")  # log
         else:
-            # check if current ctx is allowed for this mode - if not, then create new ctx
+            # check if current ctx is allowed for this mode - if not, then auto-create new ctx
             self.window.controller.ctx.handle_allowed(mode)
 
         # send input to API
