@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 12:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import json
@@ -133,7 +133,7 @@ class Command:
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
 
-            self.window.ui.status("")  # Clear status
+            self.window.update_status("")  # Clear status
             if ctx.reply:
                 data = json.dumps(ctx.results)
                 if ctx.extra_ctx:
@@ -151,4 +151,4 @@ class Command:
                     'context': context,
                     'extra': extra,
                 })
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)

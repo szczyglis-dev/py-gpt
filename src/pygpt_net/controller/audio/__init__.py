@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -37,7 +37,7 @@ class Audio:
         :param state: True to enable, False to disable
         :param btn: True if called from button
         """
-        self.window.core.dispatcher.dispatch(
+        self.window.dispatch(
             Event(Event.AUDIO_INPUT_TOGGLE, {
                 "value": state,
             })
@@ -77,14 +77,14 @@ class Audio:
 
     def stop_input(self):
         """Stop audio input"""
-        self.window.core.dispatcher.dispatch(
+        self.window.dispatch(
             Event(Event.AUDIO_INPUT_STOP, {
                 "value": True,
             }), all=True)
 
     def stop_output(self):
         """Stop audio output"""
-        self.window.core.dispatcher.dispatch(
+        self.window.dispatch(
             Event(Event.AUDIO_OUTPUT_STOP, {
                 "value": True,
             }), all=True)
@@ -159,7 +159,7 @@ class Audio:
             "text": text,
             'cache_file': cache_file,
         }
-        self.window.core.dispatcher.dispatch(event, all=all)
+        self.window.dispatch(event, all=all)
 
     def play_audio(self, path: str):
         """
@@ -268,7 +268,7 @@ class Audio:
 
         :param text: text to play
         """
-        self.window.ui.status(trans("status.audio.start"))
+        self.window.update_status(trans("status.audio.start"))
 
     def on_play(self, event: str):
         """
@@ -277,13 +277,13 @@ class Audio:
         :param event: event name
         """
         if event == Event.AUDIO_READ_TEXT:
-            self.window.ui.status("")
+            self.window.update_status("")
 
     def on_stop(self):
         """
         On audio playback stopped (force)
         """
-        self.window.ui.status(trans("status.audio.stopped"))
+        self.window.update_status(trans("status.audio.stopped"))
 
     def is_playing(self) -> bool:
         """

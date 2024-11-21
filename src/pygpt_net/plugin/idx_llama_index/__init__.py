@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import json
@@ -158,7 +158,7 @@ class Plugin(BasePlugin):
             'context': bridge_context,
             'extra': {},
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         response = event.data.get('response')
         if response is not None and response != "":
             prepared_question = response
@@ -295,6 +295,9 @@ class Plugin(BasePlugin):
 
         if not is_cmd:
             return
+
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
 
         try:
             worker = Worker()

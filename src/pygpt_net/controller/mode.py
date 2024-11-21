@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -38,9 +38,9 @@ class Mode:
         event = Event(Event.MODE_SELECT, {
             'value': mode,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.window.controller.attachment.update()
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
 
     def set(self, mode: str):
         """
@@ -78,7 +78,7 @@ class Mode:
         self.window.controller.model.select_current()
 
         # set status: ready
-        self.window.ui.status(trans('status.started'))
+        self.window.update_status(trans('status.started'))
 
         # if assistant mode then update ctx label
         if mode == "assistant":
@@ -170,7 +170,7 @@ class Mode:
             'prompt': prompt,
         })
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         return event.data['value']
 
     def update_mode(self):

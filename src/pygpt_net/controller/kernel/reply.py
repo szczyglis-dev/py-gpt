@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import json
@@ -84,7 +84,7 @@ class Reply:
             for result in responses:
                 results.append(result)
 
-        self.window.ui.status("")  # clear status
+        self.window.update_status("")  # clear status
         if self.reply_ctx.internal:
             if self.window.controller.agent.enabled():
                 self.window.controller.agent.add_run()
@@ -99,7 +99,7 @@ class Reply:
 
         prev_ctx = self.window.core.ctx.as_previous(self.reply_ctx)  # copy result to previous ctx and clear current ctx
         self.window.core.ctx.update_item(self.reply_ctx)  # update context in db
-        self.window.ui.status('...')
+        self.window.update_status('...')
 
         parent_id = None
         if self.reply_ctx.sub_call:
@@ -112,7 +112,7 @@ class Reply:
             "tool_data": tool_data,
         }
         event = RenderEvent(RenderEvent.TOOL_UPDATE, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.clear()
 
         # send reply
@@ -129,7 +129,7 @@ class Reply:
             'context': context,
             'extra': extra,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def run_post_response(self, ctx: CtxItem, extra_data: dict = None):
         """

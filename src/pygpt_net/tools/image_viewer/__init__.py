@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 18:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -202,7 +202,7 @@ class ImageViewer(BaseTool):
             if path:
                 self.save(path)
             else:
-                self.window.ui.status("No image to save")
+                self.window.update_status("No image to save")
 
     def save(self, path: str):
         """
@@ -211,7 +211,7 @@ class ImageViewer(BaseTool):
         :param path: path to image
         """
         if path is None:
-            self.window.ui.status("No image to save")
+            self.window.update_status("No image to save")
             return
 
         save_path = QFileDialog.getSaveFileName(
@@ -225,7 +225,7 @@ class ImageViewer(BaseTool):
                 if save_path[0] == '':
                     return
                 shutil.copyfile(path, save_path[0])
-                self.window.ui.status(trans('status.img.saved') + ": {}".format(os.path.basename(save_path[0])))
+                self.window.update_status(trans('status.img.saved') + ": {}".format(os.path.basename(save_path[0])))
             except Exception as e:
                 self.window.core.debug.log(e)
 
@@ -237,7 +237,7 @@ class ImageViewer(BaseTool):
         :param force: force delete without confirmation
         """
         if path is None:
-            self.window.ui.status("No image to delete")
+            self.window.update_status("No image to delete")
             return
 
         if not force:

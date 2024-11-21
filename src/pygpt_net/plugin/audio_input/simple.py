@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -92,7 +92,7 @@ class Simple:
                                       frames_per_buffer=1024,
                                       stream_callback=callback)
 
-            self.plugin.window.ui.status(trans('audio.speak.now'))
+            self.plugin.window.update_status(trans('audio.speak.now'))
             self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
             self.stream.start_stream()
         except Exception as e:
@@ -128,12 +128,12 @@ class Simple:
 
             # abort if timeout
             if timeout:
-                self.plugin.window.ui.status("Aborted.".format(self.TIMEOUT_SECONDS))
+                self.plugin.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
                 return
 
             if self.frames:
                 if len(self.frames) < self.MIN_FRAMES:
-                    self.plugin.window.ui.status(trans("status.audio.too_short"))
+                    self.plugin.window.update_status(trans("status.audio.too_short"))
                     self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
                 wf = wave.open(path, 'wb')
@@ -144,4 +144,4 @@ class Simple:
                 wf.close()
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
         else:
-            self.plugin.window.ui.status("")
+            self.plugin.window.update_status("")

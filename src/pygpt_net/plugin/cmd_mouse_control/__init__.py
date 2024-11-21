@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -97,6 +97,9 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
+
         try:
             worker = Worker()
             worker.from_defaults(self)
@@ -152,7 +155,7 @@ class Plugin(BasePlugin):
             'context': context,
             'extra': extra,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     @Slot(dict, object)
     def handle_screenshot(self, response: dict, ctx: CtxItem = None):

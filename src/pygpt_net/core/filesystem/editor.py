@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.10 23:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -31,7 +31,7 @@ class Editor:
         """
         file = self.window.ui.dialog[dialog_id].file
         self.load(dialog_id, file)
-        self.window.ui.status("Reloaded file: {}".format(file))
+        self.window.update_status("Reloaded file: {}".format(file))
 
     def clear(self, dialog_id: str):
         """
@@ -44,7 +44,7 @@ class Editor:
         self.window.ui.dialog[dialog_id].base_content = ""
         self.window.ui.dialog[dialog_id].reset_file_title()
         self.window.ui.editor[dialog_id].on_update()
-        self.window.ui.status("")
+        self.window.update_status("")
 
     def destroy(self, dialog_id: str):
         """
@@ -74,7 +74,7 @@ class Editor:
         self.window.ui.paths[dialog_id].setText(file)
         self.window.ui.dialog[dialog_id].file = file
         if not os.path.exists(file):
-            self.window.ui.status("File not found: {}".format(file))
+            self.window.update_status("File not found: {}".format(file))
             return
         try:
             with open(file, 'r', encoding="utf-8") as f:
@@ -85,7 +85,7 @@ class Editor:
                 self.window.ui.editor[dialog_id].on_update()
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.status("Error loading file: {}".format(e))
+            self.window.update_status("Error loading file: {}".format(e))
 
     def save(self, dialog_id: str, path: str = None):
         """
@@ -107,7 +107,7 @@ class Editor:
             try:
                 json.loads(data)
             except Exception as e:
-                self.window.ui.status("WARNING: This is not a valid JSON: {}".format(e))
+                self.window.update_status("WARNING: This is not a valid JSON: {}".format(e))
                 self.window.ui.dialogs.alert("WARNING: This is not a valid JSON: {}".format(e))
 
         # save changes
@@ -116,8 +116,8 @@ class Editor:
                 f.write(data)
             self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(data)
             self.window.ui.dialog[dialog_id].update_file_title(force=True)
-            self.window.ui.status("Saved file: {}".format(os.path.basename(path)))
+            self.window.update_status("Saved file: {}".format(os.path.basename(path)))
             self.window.controller.files.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.status("Error saving file: {}".format(path))
+            self.window.update_status("Error saving file: {}".format(path))

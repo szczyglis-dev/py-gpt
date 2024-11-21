@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.15 15:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt, QIcon
@@ -66,6 +66,7 @@ class Prompt:
         self.window.ui.nodes['preset.prompt'] = PromptTextarea(self.window, 'preset', 'prompt', option)
         self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.window.ui.nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), self.window)
+        self.window.ui.nodes['tip.toolbox.prompt'].setAlignment(Qt.AlignCenter)
 
         # rows
         layout = QVBoxLayout()

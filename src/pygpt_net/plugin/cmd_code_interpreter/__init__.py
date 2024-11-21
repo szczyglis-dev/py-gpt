@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
         ]
         self.order = 100
         self.allowed_cmds = [
-            "ipython_execute_new",
+            #"ipython_execute_new",
             "ipython_execute",
             "ipython_kernel_restart",
             "code_execute",
@@ -171,18 +171,21 @@ class Plugin(BasePlugin):
                 # snap version
                 if self.window.core.platforms.is_snap():
                     self.error(trans('ipython.docker.install.snap'))
-                    self.window.ui.status(trans('ipython.docker.install.snap'))
+                    self.window.update_status(trans('ipython.docker.install.snap'))
                 # other versions
                 else:
                     self.error(trans('ipython.docker.install'))
-                    self.window.ui.status(trans('ipython.docker.install'))
+                    self.window.update_status(trans('ipython.docker.install'))
                 return
             # check if image exists
             if not self.ipython.is_image():
                 self.error(trans('ipython.image.build'))
-                self.window.ui.status(trans('ipython.docker.build.start'))
+                self.window.update_status(trans('ipython.docker.build.start'))
                 self.builder.build_image()
                 return
+
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
 
         try:
             worker = Worker()
@@ -220,4 +223,5 @@ class Plugin(BasePlugin):
         # print(data)
         cleaned_data = self.ipython.remove_ansi(data)
         self.window.tools.get("interpreter").append_output(cleaned_data)
-        self.window.ui.status("")
+        if self.window.tools.get("interpreter").opened:
+            self.window.update_status("")

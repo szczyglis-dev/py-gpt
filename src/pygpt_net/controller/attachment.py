@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -225,7 +225,7 @@ class Attachment:
         self.window.controller.chat.vision.unavailable()  # set no content to provide
         self.update()
         if not auto:
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
+            self.window.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
 
     def clear_silent(self):
         """

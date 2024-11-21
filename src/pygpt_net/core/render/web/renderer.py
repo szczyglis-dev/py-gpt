@@ -762,8 +762,9 @@ class Renderer(BaseRenderer):
             '<div class="name-header name-bot">{name_bot}</div>'
             '<div class="msg">'
             '{html}'
-            '{html_tools}'
+            
             '<div class="msg-tool-extra">{tool_extra}</div>'
+            '{html_tools}'
             '<div class="msg-extra">{extra}</div>'
             '{footer}'
             '</div>'

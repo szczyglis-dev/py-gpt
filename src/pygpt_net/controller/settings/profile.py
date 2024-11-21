@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -56,7 +56,7 @@ class Profile:
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
-        self.window.ui.status("Please wait...")
+        self.window.update_status("Please wait...")
 
         if save_current:
             print("Saving all settings in current profile...")
@@ -72,7 +72,7 @@ class Profile:
         self.update_menu()
         self.update_list()
         self.window.ui.update_title()
-        self.window.ui.status(trans("dialog.profile.status.changed") + ": " + profile['name'])
+        self.window.update_status(trans("dialog.profile.status.changed") + ": " + profile['name'])
         self.select_current_on_list()
 
     def select_current_on_list(self):
@@ -186,7 +186,7 @@ class Profile:
         if mode == 'create':
             # create new profile
             uuid = self.window.core.config.profile.add(name, path)
-            self.window.ui.status(trans("dialog.profile.status.created"))
+            self.window.update_status(trans("dialog.profile.status.created"))
             if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
                 self.switch(uuid, force=True)
 
@@ -195,7 +195,7 @@ class Profile:
             profile = self.window.core.config.profile.get(uuid)
             old_path = profile['workdir'].replace("%HOME%", str(Path.home()))
             self.window.core.config.profile.update_profile(uuid, name, path)
-            self.window.ui.status(trans("dialog.profile.status.updated"))
+            self.window.update_status(trans("dialog.profile.status.updated"))
 
             # if current profile and path was changed then reload:
             if uuid == current:
@@ -239,7 +239,7 @@ class Profile:
 
             # make duplicate
             self.duplicate(uuid, name, path)
-            self.window.ui.status(trans("dialog.profile.status.duplicated"))
+            self.window.update_status(trans("dialog.profile.status.duplicated"))
             if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
                 self.switch(uuid, force=True)
 
@@ -303,7 +303,7 @@ class Profile:
             name = profile['name']
             # remove profile
             if self.window.core.config.profile.remove(uuid):
-                self.window.ui.status(trans("dialog.profile.status.removed") + ": " + name)
+                self.window.update_status(trans("dialog.profile.status.removed") + ": " + name)
                 self.update_list()
                 self.update_menu()
 
@@ -352,7 +352,7 @@ class Profile:
                     remove_db=remove_db,
                     remove_datadir=remove_datadir,
                 )
-                self.window.ui.status(trans("dialog.profile.status.deleted") + ": " + name)
+                self.window.update_status(trans("dialog.profile.status.deleted") + ": " + name)
                 self.update_list()
                 self.update_menu()
 
@@ -384,7 +384,7 @@ class Profile:
         path_from = profile['workdir'].replace("%HOME%", str(Path.home()))
         path_to = new_path
         print("Copying all files from {} to: {}".format(path_from, path_to))
-        self.window.ui.status("Copying files...")
+        self.window.update_status("Copying files...")
         result = self.window.core.filesystem.copy_workdir(
             path_from,
             path_to,
@@ -393,10 +393,10 @@ class Profile:
         )
         if not result:
             self.window.ui.dialogs.alert("Error copying files!")
-            self.window.ui.status("Error copying files!")
+            self.window.update_status("Error copying files!")
             return
         print("[OK] All files copied successfully.")
-        self.window.ui.status("Files copied.")
+        self.window.update_status("Files copied.")
         self.update_list()
         self.update_menu()
 
@@ -446,7 +446,7 @@ class Profile:
             )
             if uuid == current:
                 self.switch(uuid, force=True, save_current=False)  # reload current profile
-            self.window.ui.status("Profile cleared: " + profile['name'])
+            self.window.update_status("Profile cleared: " + profile['name'])
 
     def reset_by_idx(self, idx: int, force: bool = False):
         """

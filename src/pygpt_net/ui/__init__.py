@@ -170,6 +170,20 @@ class UI:
         """
         return self.nodes['status'].text()
 
+    def show_loading(self):
+        """Show loading"""
+        self.window.ui.nodes['anim.loading'].start_anim()
+        self.window.ui.nodes['anim.loading'].show()
+        #self.window.ui.nodes['anim.loading.status'].start_anim()
+        #self.window.ui.nodes['anim.loading.status'].show()
+
+    def hide_loading(self):
+        """Hide loading"""
+        self.window.ui.nodes['anim.loading'].stop_anim()
+        self.window.ui.nodes['anim.loading'].hide()
+        #self.window.ui.nodes['anim.loading.status'].stop_anim()
+        #self.window.ui.nodes['anim.loading.status'].hide()
+
     def setup_font(self):
         """Load and setup UI fonts"""
         extensions = [

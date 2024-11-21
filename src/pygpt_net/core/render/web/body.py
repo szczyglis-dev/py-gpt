@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -268,7 +268,7 @@ class Body:
                     'content': ctx.extra,  # tool output
                 })
                 event.ctx = ctx
-                self.window.core.dispatcher.dispatch(event, all=True)  # handle by plugins
+                self.window.dispatch(event, all=True)  # handle by plugins
                 html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
 
             # multiple tools, list
@@ -283,7 +283,7 @@ class Body:
                         'content': tool,  # tool output[]
                     })
                     event.ctx = ctx
-                    self.window.core.dispatcher.dispatch(event, all=True)
+                    self.window.dispatch(event, all=True)
                     html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
             html += "</div>"
         return html

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 
@@ -40,7 +40,7 @@ class Batch:
             return
 
         # run asynchronous
-        self.window.ui.status("Importing assistants...please wait...")
+        self.window.update_status("Importing assistants...please wait...")
         self.window.core.gpt.assistants.importer.import_assistants()
 
     def import_stores(self, force: bool = False):
@@ -57,7 +57,7 @@ class Batch:
             )
             return
         # run asynchronous
-        self.window.ui.status("Importing vector stores...please wait...")
+        self.window.update_status("Importing vector stores...please wait...")
         self.window.core.assistants.store.truncate()  # clear all stores
         self.window.core.gpt.assistants.importer.import_vector_stores()
         self.window.controller.assistant.files.update()
@@ -133,7 +133,7 @@ class Batch:
             )
             return
         # run asynchronous
-        self.window.ui.status("Removing files...please wait...")
+        self.window.update_status("Removing files...please wait...")
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.truncate_files()  # remove all files from API
 
@@ -166,7 +166,7 @@ class Batch:
             )
             return
         # run asynchronous
-        self.window.ui.status("Removing files...please wait...")
+        self.window.update_status("Removing files...please wait...")
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.truncate_files(store_id)  # remove all files from API
 
@@ -198,11 +198,11 @@ class Batch:
                 msg=trans('confirm.assistant.files.clear'),
             )
             return
-        self.window.ui.status("Clearing store files...please wait...")
+        self.window.update_status("Clearing store files...please wait...")
         QApplication.processEvents()
         self.window.core.assistants.files.truncate_local(store_id)  # clear files local
         self.window.controller.assistant.files.update()
-        self.window.ui.status("OK. All store files cleared.")
+        self.window.update_status("OK. All store files cleared.")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
     def clear_files(self, force: bool = False):
@@ -218,11 +218,11 @@ class Batch:
                 msg=trans('confirm.assistant.files.clear'),
             )
             return
-        self.window.ui.status("Clearing files...please wait...")
+        self.window.update_status("Clearing files...please wait...")
         QApplication.processEvents()
         self.window.core.assistants.files.truncate_local()  # clear files local
         self.window.controller.assistant.files.update()
-        self.window.ui.status("OK. All files cleared.")
+        self.window.update_status("OK. All files cleared.")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
     def clear_stores(self, force: bool = False):
@@ -238,12 +238,12 @@ class Batch:
                 msg=trans('confirm.assistant.store.clear'),
             )
             return
-        self.window.ui.status("Clearing vector stores...please wait...")
+        self.window.update_status("Clearing vector stores...please wait...")
         QApplication.processEvents()
         self.window.core.assistants.store.truncate()  # clear all stores
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
-        self.window.ui.status("OK. All stores cleared.")
+        self.window.update_status("OK. All stores cleared.")
         self.window.controller.assistant.store.current = None
         self.window.controller.assistant.store.init()
 
@@ -261,7 +261,7 @@ class Batch:
             )
             return
         # run asynchronous
-        self.window.ui.status("Removing vector stores...please wait...")
+        self.window.update_status("Removing vector stores...please wait...")
         QApplication.processEvents()
         self.window.core.assistants.store.truncate()  # clear all stores
         self.window.core.gpt.assistants.importer.truncate_vector_stores()
@@ -283,7 +283,7 @@ class Batch:
                 msg=trans('confirm.assistant.store.refresh'),
             )
             return
-        self.window.ui.status("Refreshing vector stores...please wait...")
+        self.window.update_status("Refreshing vector stores...please wait...")
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.refresh_vector_stores()
 
@@ -296,7 +296,7 @@ class Batch:
         self.window.controller.assistant.update()
         self.window.controller.assistant.store.update()
         self.window.controller.assistant.files.update()
-        self.window.ui.status("OK. Imported assistants: " + str(num) + ".")
+        self.window.update_status("OK. Imported assistants: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
     def handle_imported_assistants_failed(self, error: any):
@@ -308,7 +308,7 @@ class Batch:
         self.window.core.debug.log(error)
         print("Error importing assistants")
         self.window.controller.assistant.update()
-        self.window.ui.status("Error importing assistants.")
+        self.window.update_status("Error importing assistants.")
         self.window.ui.dialogs.alert(error)
 
     def handle_refreshed_stores(self, num: int):
@@ -320,7 +320,7 @@ class Batch:
         self.window.controller.assistant.store.update_current()
         self.window.controller.assistant.store.update()
         self.window.ui.dialogs.alert(trans("status.finished"))
-        self.window.ui.status("OK. All stores refreshed.")
+        self.window.update_status("OK. All stores refreshed.")
 
     def handle_refreshed_stores_failed(self, error: any):
         """
@@ -332,7 +332,7 @@ class Batch:
         print("Error refreshing stores", error)
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
-        self.window.ui.status("Error refreshing stores.")
+        self.window.update_status("Error refreshing stores.")
         self.window.ui.dialogs.alert(error)
 
     def handle_imported_stores(self, num: int):
@@ -343,7 +343,7 @@ class Batch:
         """
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
-        self.window.ui.status("OK. Imported stores: " + str(num) + ".")
+        self.window.update_status("OK. Imported stores: " + str(num) + ".")
         # alert on files import after stores
         # self.window.ui.dialogs.alert(trans("status.finished"))
 
@@ -357,7 +357,7 @@ class Batch:
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
         print("Error importing stores", error)
-        self.window.ui.status("Error importing stores.")
+        self.window.update_status("Error importing stores.")
         self.window.ui.dialogs.alert(error)
 
     def handle_truncated_stores(self, num: int):
@@ -372,7 +372,7 @@ class Batch:
         self.window.controller.assistant.store.update()
         self.window.controller.assistant.store.current = None
         self.window.controller.assistant.store.init()
-        self.window.ui.status("OK. Removed stores: " + str(num) + ".")
+        self.window.update_status("OK. Removed stores: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
     def handle_truncated_stores_failed(self, error: any):
@@ -385,7 +385,7 @@ class Batch:
         print("Error removing stores", error)
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.update()
-        self.window.ui.status("Error removing stores.")
+        self.window.update_status("Error removing stores.")
         self.window.ui.dialogs.alert(error)
 
     def handle_imported_files(self, num: int):
@@ -395,7 +395,7 @@ class Batch:
         :param num: number of imported files
         """
         self.window.controller.assistant.files.update()
-        self.window.ui.status("OK. Imported files: " + str(num) + ".")
+        self.window.update_status("OK. Imported files: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
     def handle_imported_files_failed(self, error: any):
@@ -407,7 +407,7 @@ class Batch:
         self.window.core.debug.log(error)
         self.window.controller.assistant.files.update()
         print("Error importing files")
-        self.window.ui.status("Error importing files.")
+        self.window.update_status("Error importing files.")
         self.window.ui.dialogs.alert(error)
 
     def handle_truncated_files(self, store_id: str = None, num: int = 0):
@@ -417,7 +417,7 @@ class Batch:
         :param store_id: vector store ID
         :param num: number of truncated files
         """
-        self.window.ui.status("OK. Truncated files: " + str(num) + ".")
+        self.window.update_status("OK. Truncated files: " + str(num) + ".")
         if store_id is not None:
             self.window.controller.assistant.store.refresh_by_store_id(store_id)
         self.window.controller.assistant.files.update()
@@ -432,7 +432,7 @@ class Batch:
         self.window.core.debug.log(error)
         print("Error truncating files")
         self.window.controller.assistant.files.update()
-        self.window.ui.status("Error truncating files.")
+        self.window.update_status("Error truncating files.")
         self.window.ui.dialogs.alert(error)
 
     def remove_store_from_assistants(self, store_id: str):
@@ -520,7 +520,7 @@ class Batch:
             return
 
         store_id = self.window.controller.assistant.store.current
-        self.window.ui.status("Uploading files...please wait...")
+        self.window.update_status("Uploading files...please wait...")
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.upload_files(store_id, self.files_to_upload)
         self.files_to_upload = []  # clear files
@@ -533,7 +533,7 @@ class Batch:
         """
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.refresh_status()
-        self.window.ui.status("OK. Uploaded files: " + str(num) + ".")
+        self.window.update_status("OK. Uploaded files: " + str(num) + ".")
         self.window.ui.dialogs.alert("OK. Uploaded files: " + str(num) + ".")
 
     def handle_uploaded_files_failed(self, error: any):
@@ -546,7 +546,7 @@ class Batch:
         print("Error uploading files")
         self.window.controller.assistant.files.update()
         self.window.controller.assistant.store.refresh_status()
-        self.window.ui.status("Error uploading files.")
+        self.window.update_status("Error uploading files.")
         self.window.ui.dialogs.alert(error)
 
     def handle_status_change(self, mode: str, msg: str):
@@ -556,4 +556,4 @@ class Batch:
         :param mode: status mode
         :param msg: status message
         """
-        self.window.ui.status(msg)
+        self.window.update_status(msg)

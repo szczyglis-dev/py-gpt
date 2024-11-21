@@ -114,6 +114,9 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
+
         try:
             worker = Worker()
             worker.from_defaults(self)

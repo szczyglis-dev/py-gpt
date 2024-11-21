@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -169,7 +169,7 @@ class Flow:
                         'context': context,
                         'extra': {},
                     })
-                    self.window.core.dispatcher.dispatch(event)
+                    self.window.dispatch(event)
 
         # internal call will not trigger async mode and will hide the message from previous iteration
         elif self.iteration >= int(iterations):
@@ -257,7 +257,7 @@ class Flow:
                 if item["cmd"] == "goal_update":
                     if item["params"]["status"] == "finished":
                         self.on_stop(auto=True)
-                        self.window.ui.status(trans('status.finished'))  # show info
+                        self.window.update_status(trans('status.finished'))  # show info
                         self.finished = True
                         if self.window.core.config.get("agent.goal.notify"):
                             self.window.ui.tray.show_msg(
@@ -266,7 +266,7 @@ class Flow:
                             )
                     elif item["params"]["status"] in self.pause_status:
                         self.on_stop(auto=True)
-                        self.window.ui.status(trans('status.finished'))  # show info
+                        self.window.update_status(trans('status.finished'))  # show info
                         self.finished = True
             except Exception as e:
                 self.window.core.debug.error(e)

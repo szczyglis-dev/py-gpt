@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
+import time
 from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.events import KernelEvent
@@ -26,10 +27,15 @@ class Kernel(QObject):
         self.replies = Reply(window)
         self.stack = Stack(window)
         self.halt = False
+        self.busy = False
+        self.last_stack = []
+        self.status = ""
+        self.state = "IDLE"
 
     def init(self):
         """Init kernel"""
         self.halt = False
+        self.busy = False
 
     @Slot(object)
     def listener(self, event: KernelEvent):
@@ -41,7 +47,7 @@ class Kernel(QObject):
         if self.stopped() and event.name != KernelEvent.INPUT_USER:
             return
 
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def handle(self, event: KernelEvent):
         """
@@ -52,6 +58,7 @@ class Kernel(QObject):
         if self.stopped() and event.name != KernelEvent.INPUT_USER:
             return
 
+        self.store(event)  # store event in stack
         name = event.name
         context = event.data.get("context")
         extra = event.data.get("extra")
@@ -71,7 +78,6 @@ class Kernel(QObject):
             KernelEvent.APPEND_BEGIN,
             KernelEvent.APPEND_DATA,
             KernelEvent.APPEND_END,
-            KernelEvent.SET_STATUS,
             KernelEvent.TOOL_CALL,
             KernelEvent.AGENT_CONTINUE,
             KernelEvent.AGENT_CALL,
@@ -83,6 +89,16 @@ class Kernel(QObject):
             KernelEvent.REPLY_RETURN,
         ]:
             response = self.reply(context, extra, event)
+
+        elif name in [
+            KernelEvent.STATE_BUSY,
+            KernelEvent.STATE_IDLE,
+            KernelEvent.STATE_ERROR,
+        ]:
+            self.set_state(event)
+
+        elif name == KernelEvent.STATUS:
+            self.set_status(event.data.get("status"))
 
         event.data["response"] = response  # update response
 
@@ -128,7 +144,6 @@ class Kernel(QObject):
             KernelEvent.APPEND_BEGIN,
             KernelEvent.APPEND_DATA,
             KernelEvent.APPEND_END,
-            KernelEvent.SET_STATUS,
         ]:
             return self.output(context, extra, event)
         elif event.name in [
@@ -200,8 +215,6 @@ class Kernel(QObject):
             return self.window.controller.chat.response.append(context, extra)
         elif event.name == KernelEvent.APPEND_END:
             return self.window.controller.chat.response.end(context, extra)
-        elif event.name == KernelEvent.SET_STATUS:
-            return self.window.controller.chat.response.update_status(context, extra)
 
     def restart(self):
         """Restart kernel"""
@@ -215,6 +228,41 @@ class Kernel(QObject):
         """Stop kernel"""
         self.halt = True
         self.window.controller.chat.common.stop()
+        self.set_state(KernelEvent(KernelEvent.STATE_IDLE))
+
+    def set_state(self, event):
+        """
+        Set kernel state
+
+        :param: event
+        """
+        # update state
+        if event.name == KernelEvent.STATE_BUSY:
+            self.busy = True
+            self.window.ui.tray.set_icon(self.window.STATE_BUSY)
+            self.window.ui.show_loading()
+        elif event.name == KernelEvent.STATE_IDLE:
+            self.busy = False
+            self.window.ui.tray.set_icon(self.window.STATE_IDLE)
+            self.window.ui.hide_loading()
+        elif event.name == KernelEvent.STATE_ERROR:
+            self.busy = False
+            self.window.ui.tray.set_icon(self.window.STATE_ERROR)
+            self.window.ui.hide_loading()
+
+        # update message if provided
+        msg = event.data.get("msg", None)
+        if msg is not None:
+            self.set_status(msg)
+
+    def set_status(self, status: str):
+        """
+        Set kernel status
+
+        :param status: status
+        """
+        self.status = status
+        self.window.ui.status(status)
 
     def resume(self):
         """Resume kernel"""
@@ -227,6 +275,18 @@ class Kernel(QObject):
         :return: True if stopped
         """
         return self.halt
+
+    def store(self, event):
+        """
+        Store event in stack
+
+        :param event: event
+        """
+        # last 30 events
+        if len(self.last_stack) > 30:
+            self.last_stack.pop(0)
+        ts = time.strftime("%H:%M:%S: ", time.localtime())
+        self.last_stack.append(ts + event.name)
 
     def async_allowed(self, ctx: CtxItem) -> bool:
         """

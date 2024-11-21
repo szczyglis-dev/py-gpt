@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import AppEvent
@@ -69,10 +69,10 @@ class Chat:
         """
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(str(err))
-        self.window.ui.status(str(err))
+        self.window.update_status(str(err))
         self.window.controller.chat.common.unlock_input()  # always unlock input on error
         self.window.stateChanged.emit(self.window.STATE_ERROR)
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
+        self.window.dispatch(AppEvent(AppEvent.INPUT_ERROR))  # app event
 
         # stop agent on error
         if self.window.controller.agent.enabled():

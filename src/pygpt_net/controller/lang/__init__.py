@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -92,7 +92,7 @@ class Lang:
         self.window.controller.ctx.common.update_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)
-        self.window.ui.status('')  # clear status
+        self.window.update_status('')  # clear status
 
     def reload(self):
         """Reload language"""

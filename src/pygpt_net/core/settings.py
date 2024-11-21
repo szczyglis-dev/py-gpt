@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -115,7 +115,7 @@ class Settings:
         """Load defaults from file"""
         file = self.window.ui.dialog['config.editor'].file
         self.load_editor(file)
-        self.window.ui.status("Restored from user file: {}".format(file))
+        self.window.update_status("Restored from user file: {}".format(file))
 
     def load_default_editor_app(self):
         """Load defaults from file (app)"""
@@ -124,11 +124,11 @@ class Settings:
         if basename.endswith(".css"):
             path = str(os.path.join(self.window.core.config.get_app_path(), "data", "css", basename))
             self.load_editor(file, path)
-            self.window.ui.status("Restored from app defaults: {}".format(basename))
+            self.window.update_status("Restored from app defaults: {}".format(basename))
         elif basename.endswith(".json"):
             path = str(os.path.join(self.window.core.config.get_app_path(), "data", "config", basename))
             self.load_editor(file, path)
-            self.window.ui.status("Restored from app defaults: {}".format(basename))
+            self.window.update_status("Restored from app defaults: {}".format(basename))
 
     def load_editor(self, file: str = None, path: str = None):
         """
@@ -152,7 +152,7 @@ class Settings:
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.status("Error loading file: {}".format(e))
+            self.window.update_status("Error loading file: {}".format(e))
 
     def save_editor(self):
         """Save file to disk"""
@@ -165,7 +165,7 @@ class Settings:
             try:
                 json.loads(data)
             except Exception as e:
-                self.window.ui.status("This is not a valid JSON: {}".format(e))
+                self.window.update_status("This is not a valid JSON: {}".format(e))
                 self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
                 return
             path = os.path.join(self.window.core.config.get_user_path(), file)
@@ -173,7 +173,7 @@ class Settings:
             path = os.path.join(self.window.core.config.get_user_path(), 'css', file)
 
         if path is None:
-            self.window.ui.status("Error saving file: invalid file name")
+            self.window.update_status("Error saving file: invalid file name")
             return
 
         # make backup of current file
@@ -184,13 +184,13 @@ class Settings:
             backup_path = os.path.join(self.window.core.config.get_user_path(), backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
-            self.window.ui.status("Created backup file: {}".format(backup_file))
+            self.window.update_status("Created backup file: {}".format(backup_file))
 
         # save changes to current file
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
-            self.window.ui.status("Saved file: {}".format(path))
+            self.window.update_status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
             if file == "config.json":
                 self.window.core.config.load_config()  # reload config
@@ -198,8 +198,8 @@ class Settings:
                 self.window.core.models.load()  # reload models
             elif file.endswith('.css'):
                 event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 self.window.controller.theme.reload(force=True)  # reload theme
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.ui.status("Error saving file: {}".format(path))
+            self.window.update_status("Error saving file: {}".format(path))

@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QSizePolicy, QPushButton
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.anims.loader import Loader
 from pygpt_net.utils import trans
 
 
@@ -37,8 +38,11 @@ class Status:
         self.window.ui.nodes['global.stop'] = QPushButton("STOP")
         self.window.ui.nodes['global.stop'].setVisible(False)
         self.window.ui.nodes['global.stop'].clicked.connect(self.window.controller.ui.on_global_stop)
+        self.window.ui.nodes['anim.loading.status'] = Loader()
+        self.window.ui.nodes['anim.loading.status'].hide()
 
         layout = QHBoxLayout()
+        layout.addWidget(self.window.ui.nodes['anim.loading.status'])
         layout.addWidget(self.window.ui.nodes['status.agent'])
         layout.addWidget(self.window.ui.nodes['status'])
         layout.addWidget(self.window.ui.nodes['global.stop'])

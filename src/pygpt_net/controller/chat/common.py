@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -72,7 +72,7 @@ class Common:
                 "initialized": self.initialized,
             }
             event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # raw (plain) output
         plain = self.window.core.config.get('render.plain')
@@ -87,7 +87,7 @@ class Common:
                 self.window.ui.nodes['output_plain'][pid].setVisible(False)
 
         event = RenderEvent(RenderEvent.ON_SWITCH)
-        self.window.core.dispatcher.dispatch(event)  # switch renderer if needed
+        self.window.dispatch(event)  # switch renderer if needed
 
         # edit icons
         if self.window.core.config.has('ctx.edit_icons'):
@@ -99,7 +99,7 @@ class Common:
                 event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
             else:
                 event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # images generation
         if self.window.core.config.get('img_raw'):
@@ -233,7 +233,7 @@ class Common:
         event = Event(Event.FORCE_STOP, {
             "value": True,
         })
-        self.window.core.dispatcher.dispatch(event)  # stop event
+        self.window.dispatch(event)  # stop event
         event = Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
         })
@@ -242,17 +242,17 @@ class Common:
         self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True
         self.window.controller.assistant.threads.reset()  # reset run and func calls
-        self.window.core.dispatcher.dispatch(event)  # stop audio input
+        self.window.dispatch(event)  # stop audio input
         self.window.controller.kernel.halt = True
 
         event = RenderEvent(RenderEvent.TOOL_END)
-        self.window.core.dispatcher.dispatch(event)  # show waiting
+        self.window.dispatch(event)  # show waiting
 
         self.window.core.gpt.stop()
         self.unlock_input()
 
         self.window.controller.chat.input.generating = False
-        self.window.ui.status(trans('status.stopped'))
+        self.window.update_status(trans('status.stopped'))
         self.window.stateChanged.emit(self.window.STATE_IDLE)
 
         # remotely stop assistant
@@ -263,7 +263,7 @@ class Common:
                 self.window.core.debug.log(e)
 
         if not exit:
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
+            self.window.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
     def check_api_key(self) -> bool:
         """
@@ -274,7 +274,7 @@ class Common:
         result = True
         if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
             self.window.controller.launcher.show_api_monit()
-            self.window.ui.status("Missing API KEY!")
+            self.window.update_status("Missing API KEY!")
             result = False
         return result
 
@@ -293,7 +293,7 @@ class Common:
             event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
         else:
             event = RenderEvent(RenderEvent.ON_TS_DISABLE, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def toggle_raw(self, value: bool):
         """
@@ -313,7 +313,7 @@ class Common:
             },
         )
         event = RenderEvent(RenderEvent.ON_SWITCH)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # restore previous font size
         self.window.controller.ui.update_font_size()
@@ -333,7 +333,7 @@ class Common:
             event = RenderEvent(RenderEvent.ON_EDIT_ENABLE, data)
         else:
             event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def img_enable_raw(self):
         """Enable help for images"""
@@ -384,7 +384,7 @@ class Common:
             )
             with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(str(text).strip())
-            self.window.ui.status(trans('status.saved') + ": " + os.path.basename(file_name))
+            self.window.update_status(trans('status.saved') + ": " + os.path.basename(file_name))
 
     def show_response_tokens(self, ctx: CtxItem):
         """
@@ -395,7 +395,7 @@ class Common:
         extra_data = ""
         if ctx.is_vision:
             extra_data = " (VISION)"
-        self.window.ui.status(
+        self.window.update_status(
             trans('status.tokens') + ": {} + {} = {}{}".
             format(
                 ctx.input_tokens,

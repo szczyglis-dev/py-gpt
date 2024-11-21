@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from pygpt_net.plugin.base.plugin import BasePlugin
-from pygpt_net.core.events import Event
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
@@ -109,6 +109,9 @@ class Plugin(BasePlugin):
 
         if not is_cmd:
             return
+
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
 
         try:
             worker = Worker()

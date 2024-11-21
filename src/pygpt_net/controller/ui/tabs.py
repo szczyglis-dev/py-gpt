@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
+
 from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import AppEvent, RenderEvent
@@ -66,7 +67,7 @@ class Tabs:
         """Reload tabs"""
         self.window.core.tabs.reload()
         event = RenderEvent(RenderEvent.PREPARE)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def reload_after(self):
         """Reload tabs after"""
@@ -118,7 +119,7 @@ class Tabs:
                 self.window.controller.camera.enable_capture()
 
         if prev_tab != idx:
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
+            self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
     def get_current_idx(self) -> int:
         """

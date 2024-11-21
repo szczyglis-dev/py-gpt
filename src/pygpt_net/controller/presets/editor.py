@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -341,7 +341,7 @@ class Editor:
             )
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
-                self.window.ui.status(trans('status.preset.empty_id'))
+                self.window.update_status(trans('status.preset.empty_id'))
                 return
 
             # generate new filename
@@ -413,7 +413,7 @@ class Editor:
                 option=self.options["filename"],
                 value=id,
             )
-        self.window.ui.status(trans('status.preset.saved'))
+        self.window.update_status(trans('status.preset.saved'))
 
         # sort by name
         self.window.core.presets.sort_by_name()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -101,7 +101,7 @@ class Theme:
                 state = True
             self.window.core.config.set(name, state)
             event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             self.reload()
         self.window.core.config.save()
         self.nodes.apply_all()
@@ -116,7 +116,7 @@ class Theme:
         self.window.core.config.set("render.code_syntax", name)
         self.window.core.config.save()
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         if update_menu:
             self.menu.update_syntax()
 

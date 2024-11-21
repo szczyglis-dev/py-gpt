@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.events import Event, AppEvent, RenderEvent
+from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -59,7 +59,7 @@ class Output:
         # event: context after
         event = Event(Event.CTX_AFTER)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         self.log("Appending output to chat window...")
 
@@ -73,14 +73,14 @@ class Output:
                     "append": True,
                 }
                 event = RenderEvent(RenderEvent.INPUT_APPEND, data)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
 
             data = {
                 "meta": ctx.meta,
                 "ctx": ctx,
             }
             event = RenderEvent(RenderEvent.OUTPUT_APPEND, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
             data = {
                 "meta": ctx.meta,
@@ -88,7 +88,7 @@ class Output:
                 "footer": True,
             }
             event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
-            self.window.core.dispatcher.dispatch(event)  # + icons
+            self.window.dispatch(event)  # + icons
 
         self.handle_complete(ctx)
 
@@ -113,6 +113,11 @@ class Output:
         if self.window.controller.chat.common.can_unlock(ctx):
             if not self.window.controller.kernel.stopped():
                 self.window.controller.chat.common.unlock_input()  # unlock input
+
+        # reset state to: idle
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "chat",
+        }))
 
     def post_handle(
             self,
@@ -151,7 +156,7 @@ class Output:
                 "stream": stream,
             }
             event = RenderEvent(RenderEvent.END, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
         # send btn will be unlocked in agent mode on stop
@@ -199,7 +204,7 @@ class Output:
         # event: context end
         event = Event(Event.CTX_END)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.window.controller.ui.update_tokens()  # update UI
         self.window.controller.chat.input.generating = False  # unlock
 
@@ -209,7 +214,7 @@ class Output:
             # disabled in agent mode here to prevent loops, handled in agent flow internally if agent mode
 
         self.log("End.")
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_END))  # app event
+        self.window.dispatch(AppEvent(AppEvent.CTX_END))  # app event
 
         # restore state to idle if no errors
         if self.window.state != self.window.STATE_ERROR:
@@ -218,7 +223,7 @@ class Output:
         if mode != "assistant":
             self.window.controller.kernel.stack.handle()  # handle reply
             event = RenderEvent(RenderEvent.RELOAD)
-            self.window.core.dispatcher.dispatch(event)  # reload chat window
+            self.window.dispatch(event)  # reload chat window
 
     def log(self, data: any):
         """

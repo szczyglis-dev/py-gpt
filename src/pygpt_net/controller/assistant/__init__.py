@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -86,7 +86,7 @@ class Assistant:
                     "meta": ctx.meta,
                     "ctx": ctx,
                 })
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 self.window.controller.assistant.threads.handle_output_message(ctx, stream=True)
 
     def begin(self, ctx: CtxItem):
@@ -108,7 +108,7 @@ class Assistant:
         if self.window.core.config.get('assistant_thread') is None:
             try:
                 thread_id = self.threads.create_thread()
-                self.window.ui.status(trans('status.sending'))
+                self.window.update_status(trans('status.sending'))
                 self.window.core.config.set('assistant_thread', thread_id)
             except Exception as e:
                 self.window.core.debug.log(e)
@@ -241,7 +241,7 @@ class Assistant:
                 assistant = self.window.core.assistants.get_by_id(id)
                 assistant.reset()
 
-        self.window.ui.status(trans('status.assistant.cleared'))
+        self.window.update_status(trans('status.assistant.cleared'))
         self.update()
 
     def delete(self, idx: int = None, force: bool = False):
@@ -277,7 +277,7 @@ class Assistant:
 
                     self.window.core.assistants.delete(id)
                     self.update()
-                    self.window.ui.status(trans('status.assistant.deleted'))
+                    self.window.update_status(trans('status.assistant.deleted'))
 
     def goto_online(self):
         """Open Assistants page"""

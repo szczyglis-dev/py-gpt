@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -43,7 +43,7 @@ class Extra:
         item = self.window.core.ctx.get_item_by_id(item_id)
         if item is not None and item.output is not None:
             QApplication.clipboard().setText(item.output.strip())
-            self.window.ui.status(trans("clipboard.copied"))
+            self.window.update_status(trans("clipboard.copied"))
 
     def copy_code_block(self, id: int):
         """
@@ -58,7 +58,7 @@ class Extra:
         value = blocks.get(id)
         QApplication.clipboard().setText(value.strip())
         suffix = value[:30] + "..." if len(value) > 20 else value
-        self.window.ui.status(trans("clipboard.copied_to") + " " + suffix)
+        self.window.update_status(trans("clipboard.copied_to") + " " + suffix)
 
     def copy_code_text(self, value: str):
         """
@@ -68,7 +68,7 @@ class Extra:
         """
         QApplication.clipboard().setText(value.strip())
         suffix = value[:20] + "..." if len(value) > 20 else value
-        self.window.ui.status(trans("clipboard.copied_to") + " " + suffix)
+        self.window.update_status(trans("clipboard.copied_to") + " " + suffix)
 
     def edit_item(self, item_id: int):
         """
@@ -121,7 +121,7 @@ class Extra:
                 "ctx": item,
             }
             event = RenderEvent(RenderEvent.ACTION_EDIT_SUBMIT, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             self.window.controller.ctx.edit_item_id = None
             self.window.controller.ctx.edit_meta_id = None
             mode = self.window.core.config.get('mode')
@@ -170,7 +170,7 @@ class Extra:
                 "ctx": item,
             }
             event = RenderEvent(RenderEvent.ACTION_REGEN_SUBMIT, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             mode = self.window.core.config.get('mode')
             self.window.controller.model.set(mode, model)
 
@@ -181,7 +181,7 @@ class Extra:
                 'context': context,
                 'extra': {},
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
     def audio_read_item(self, item_id: int):
         """

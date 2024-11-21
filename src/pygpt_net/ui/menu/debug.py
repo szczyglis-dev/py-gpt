@@ -40,6 +40,7 @@ class Debug:
         self.window.ui.menu['debug.db'] = QAction(trans("menu.debug.db"), self.window, checkable=True)
         self.window.ui.menu['debug.logger'] = QAction(trans("menu.debug.logger"), self.window, checkable=True)
         self.window.ui.menu['debug.app.log'] = QAction(trans("menu.debug.app.log"), self.window, checkable=True)
+        self.window.ui.menu['debug.kernel'] = QAction(trans("menu.debug.kernel"), self.window, checkable=True)
 
         self.window.ui.menu['debug.config'].triggered.connect(
             lambda: self.window.controller.debug.toggle('config'))
@@ -71,6 +72,8 @@ class Debug:
             lambda: self.window.controller.debug.toggle_app_log())
         self.window.ui.menu['debug.db'].triggered.connect(
             lambda: self.window.controller.debug.toggle('db'))
+        self.window.ui.menu['debug.kernel'].triggered.connect(
+            lambda: self.window.controller.debug.toggle('kernel'))
 
         self.window.ui.menu['menu.debug'] = self.window.menuBar().addMenu(trans("menu.debug"))
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
@@ -84,6 +87,7 @@ class Debug:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.context'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.events'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.indexes'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.kernel'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.models'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.plugins'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.presets'])

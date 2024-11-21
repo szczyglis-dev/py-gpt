@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -236,7 +236,7 @@ class Editor:
         if persist:
             self.window.core.models.save()
             self.close()
-            self.window.ui.status(trans("info.settings.saved"))
+            self.window.update_status(trans("info.settings.saved"))
 
     def reload_items(self):
         """Reload items"""

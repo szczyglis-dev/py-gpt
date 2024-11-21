@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -50,7 +50,7 @@ class Presets:
         :param name: preset name
         """
         if name.strip() == "":
-            self.window.ui.status("Preset name cannot be empty!")
+            self.window.update_status("Preset name cannot be empty!")
             return
         presets = self.get_presets()
         presets[id] = {
@@ -126,7 +126,7 @@ class Presets:
         :param name: preset name
         """
         if name.strip() == "":
-            self.window.ui.status("Preset name cannot be empty!")
+            self.window.update_status("Preset name cannot be empty!")
             return
         presets = self.get_presets()
         if id in presets:
@@ -239,7 +239,7 @@ class Presets:
             self.store(presets)
             if self.get_current_id() == id:
                 self.toggle(id)
-            self.window.ui.status("Preset cleared: " + presets[id]['name'])
+            self.window.update_status("Preset cleared: " + presets[id]['name'])
 
     def reset_by_idx(self, idx: int, force: bool = False):
         """
@@ -350,7 +350,7 @@ class Presets:
         # update status
         preset = self.get_preset(id)
         if preset:
-            self.window.ui.status("Preset loaded: " + preset['name'])
+            self.window.update_status("Preset loaded: " + preset['name'])
 
     def get_current_id(self) -> str:
         """

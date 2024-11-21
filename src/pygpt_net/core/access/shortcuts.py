@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -96,7 +96,7 @@ class GlobalShortcutFilter(QObject):
                     if (event.key() == shortcut['key'] and
                         (shortcut['key_modifier'] == QtCore.Qt.NoModifier or event.modifiers() == shortcut['key_modifier'])
                     ):
-                        self.window.core.dispatcher.dispatch(ControlEvent(shortcut['action']))
+                        self.window.dispatch(ControlEvent(shortcut['action']))
                         return True
         except Exception as e:
             print(e)

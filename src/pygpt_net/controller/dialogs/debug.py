@@ -20,6 +20,7 @@ from pygpt_net.core.debug.context import ContextDebug
 from pygpt_net.core.debug.db import DatabaseDebug
 from pygpt_net.core.debug.events import EventsDebug
 from pygpt_net.core.debug.indexes import IndexesDebug
+from pygpt_net.core.debug.kernel import KernelDebug
 from pygpt_net.core.debug.models import ModelsDebug
 from pygpt_net.core.debug.plugins import PluginsDebug
 from pygpt_net.core.debug.presets import PresetsDebug
@@ -48,6 +49,7 @@ class Debug:
         self.workers['db'] = DatabaseDebug(self.window)
         self.workers['events'] = EventsDebug(self.window)
         self.workers['indexes'] = IndexesDebug(self.window)
+        self.workers['kernel'] = KernelDebug(self.window)
         self.workers['models'] = ModelsDebug(self.window)
         self.workers['plugins'] = PluginsDebug(self.window)
         self.workers['presets'] = PresetsDebug(self.window)

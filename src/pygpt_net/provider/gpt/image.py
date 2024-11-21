@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -89,6 +89,9 @@ class Image:
             return True
 
         # start
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": "img",
+        }))
         self.window.threadpool.start(self.worker)
         return True
 
@@ -154,7 +157,7 @@ class ImageWorker(QObject, QRunnable):
                     'context': bridge_context,
                     'extra': {},
                 })
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 response = event.data.get('response')
                 if response is not None and response != "":
                     self.input_prompt = response

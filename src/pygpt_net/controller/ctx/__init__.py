@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -130,7 +130,7 @@ class Ctx:
         self.window.core.ctx.set_current(id)
         if prev_id != id or force:
             self.load(id)
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
+            self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
         else:
             # only update current group if defined
             meta = self.window.core.ctx.get_meta_by_id(id)
@@ -160,7 +160,7 @@ class Ctx:
         event = Event(Event.CTX_SELECT, {
             'value': id,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def select_by_current(self, focus: bool = False):
         """
@@ -233,7 +233,7 @@ class Ctx:
             "meta": meta,
         }
         event = RenderEvent(RenderEvent.CLEAR, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
@@ -254,7 +254,7 @@ class Ctx:
             self.window.controller.ui.tabs.update_title_current(meta.name)
 
         # app event
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CTX_CREATED))
+        self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
         return meta
 
     def add(self, ctx: CtxItem):
@@ -315,7 +315,7 @@ class Ctx:
             "clear": True,
         }
         event = RenderEvent(RenderEvent.CTX_APPEND, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def load(self, id: int, restore_model: bool = True):
         """
@@ -337,7 +337,7 @@ class Ctx:
                 "meta": meta,
             }
             event = RenderEvent(RenderEvent.ON_LOAD, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # get current settings stored in ctx
         thread = self.window.core.ctx.get_thread()
@@ -437,7 +437,7 @@ class Ctx:
         if self.window.core.ctx.get_current() == id:
             self.window.core.ctx.clear_current()
             event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
         self.update()
 
         # update tab title

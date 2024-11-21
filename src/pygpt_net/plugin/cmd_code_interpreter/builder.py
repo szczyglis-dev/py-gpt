@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal, QObject
@@ -35,13 +35,13 @@ class Builder(QObject):
     def handle_build_finished(self):
         """Handle build finished"""
         self.plugin.window.ui.dialogs.alert(trans('ipython.docker.build.finish'))
-        self.plugin.window.ui.status(trans('ipython.docker.build.finish'))
+        self.plugin.window.update_status(trans('ipython.docker.build.finish'))
 
     @Slot(object)
     def handle_build_failed(self, error):
         """Handle build failed"""
         self.plugin.window.ui.dialogs.alert(str(error))
-        self.plugin.window.ui.status(str(error))
+        self.plugin.window.update_status(str(error))
 
 class WorkerSignals(BaseSignals):
     build_finished = Signal()

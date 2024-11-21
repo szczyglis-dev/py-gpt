@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import ssl
@@ -312,6 +312,9 @@ class Plugin(BasePlugin):
             self.gen_api_key_response(ctx, cmds)
             return
 
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
+
         try:
             worker = Worker()
             worker.from_defaults(self)
@@ -339,7 +342,7 @@ class Plugin(BasePlugin):
             }
             err = "API key is not set. Please set credentials in plugin settings."
             self.log(err)
-            self.window.ui.status(err)
+            self.window.update_status(err)
             msg = "Tell the user that the required API key or other config is not configured in the plugin settings, " \
                   "and to set the API key in the settings in order to use the internet search plugin."
             data = {

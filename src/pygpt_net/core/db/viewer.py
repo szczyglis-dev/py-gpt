@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import json
@@ -249,4 +249,4 @@ class Viewer:
         """
         self.database.window.core.debug.info(msg)
         print(msg)
-        self.database.window.ui.status(msg)
+        self.database.window.update_status(msg)

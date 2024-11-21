@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -243,8 +243,8 @@ class Voice:
                                       frames_per_buffer=1024,
                                       stream_callback=callback)
 
-            self.window.ui.status(trans('audio.speak.now'))
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STARTED))  # app event
+            self.window.update_status(trans('audio.speak.now'))
+            self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STARTED))  # app event
             self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
@@ -278,14 +278,14 @@ class Voice:
 
             # abort if timeout
             if timeout:
-                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
-                self.window.ui.status("Aborted.".format(self.TIMEOUT_SECONDS))
+                self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+                self.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
                 return
 
             if self.frames:
                 if len(self.frames) < self.MIN_FRAMES:
-                    self.window.ui.status(trans("status.audio.too_short"))
-                    self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+                    self.window.update_status(trans("status.audio.too_short"))
+                    self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
                 wf = wave.open(path, 'wb')
                 wf.setnchannels(1)
@@ -293,11 +293,11 @@ class Voice:
                 wf.setframerate(44100)
                 wf.writeframes(b''.join(self.frames))
                 wf.close()
-                self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_SENT))  # app event
+                self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_SENT))  # app event
                 self.handle_thread(True)  # handle transcription in simple mode
         else:
-            self.window.ui.status("")
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+            self.window.update_status("")
+            self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
 
     def handle_thread(self, force: bool = False):
         """
@@ -350,7 +350,7 @@ class Voice:
         :param ctx: CtxItem
         """
         if text is None or text.strip() == '':
-            self.window.ui.status("")
+            self.window.update_status("")
             return
         self.window.core.debug.info("VOICE CONTROL INPUT: " + text)
         commands = self.window.core.access.voice.recognize_commands(text)
@@ -367,24 +367,24 @@ class Voice:
             for command in commands:
                 cmd = command["cmd"]
                 params = command.get("params", "")
-                self.window.ui.status(trans("event.audio.cmd").format(cmd=cmd))
+                self.window.update_status(trans("event.audio.cmd").format(cmd=cmd))
                 event = ControlEvent(cmd)
                 event.data = {
                     "params": params,
                 }
                 if event.name == "unrecognized":
                     unrecognized = True
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 self.window.core.debug.info("VOICE CONTROL COMMAND: " + cmd, params)
                 trans_key = "event.control." + cmd
 
                 if cmd in self.confirm_events:
-                    self.window.ui.status(trans("event.audio.confirm"))
+                    self.window.update_status(trans("event.audio.confirm"))
                 else:
                     event_name = trans(trans_key)
                     if event_name == trans_key:  # if no translation
                         event_name = cmd
-                    self.window.ui.status(trans("event.audio.cmd").format(cmd=event_name))
+                    self.window.update_status(trans("event.audio.cmd").format(cmd=event_name))
                     QApplication.processEvents()
 
             # play OK sound
@@ -399,7 +399,7 @@ class Voice:
 
         :param data: message
         """
-        self.window.ui.status(str(data))
+        self.window.update_status(str(data))
 
     @Slot(object)
     def handle_status(self, data: str):
@@ -408,7 +408,7 @@ class Voice:
 
         :param data: message
         """
-        self.window.ui.status(str(data))
+        self.window.update_status(str(data))
 
     @Slot()
     def handle_destroy(self):

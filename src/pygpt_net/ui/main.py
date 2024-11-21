@@ -15,6 +15,7 @@ from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggi
 from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 
+from pygpt_net.core.events import BaseEvent, KernelEvent
 from pygpt_net.container import Container
 from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
@@ -225,13 +226,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.tools.on_post_update()
 
     @Slot(str)
-    def update_status(self, text: str):
+    def update_status(self, message: str = ""):
         """
-        Update status text
+        Update global status
 
-        :param text: status text
+        :param message: status message
         """
-        self.ui.status(text)
+        self.dispatch(KernelEvent(KernelEvent.STATUS, {"status": str(message)}))
 
     @Slot(str)
     def update_state(self, state: str):
@@ -242,6 +243,16 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.state = state
         self.ui.tray.set_icon(state)
+
+    @Slot(object)
+    def dispatch(self, event: BaseEvent, all: bool = False):
+        """
+        Dispatch App event
+
+        :param event
+        :param all: True to dispatch to all plugins
+        """
+        self.core.dispatcher.dispatch(event, all=all)
 
     def closeEvent(self, event):
         """

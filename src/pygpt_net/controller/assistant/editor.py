@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 00:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -336,11 +336,11 @@ class Editor:
             return
 
         if id is None or id == "" or not self.window.core.assistants.has(id):
-            self.window.ui.status(trans('status.sending'))
+            self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
             assistant = self.window.controller.assistant.create()  # id is created in API here
             if assistant is None:
-                self.window.ui.status("status.error")
+                self.window.update_status("status.error")
                 print("ERROR: Assistant not created!")
                 return
             id = assistant.id  # set to ID created in API
@@ -360,7 +360,7 @@ class Editor:
 
         # update data in API if only updating data here (not creating)
         if not created:
-            self.window.ui.status(trans('status.sending'))
+            self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
             self.window.controller.assistant.update_data(assistant)
 
@@ -370,7 +370,7 @@ class Editor:
         self.window.controller.assistant.update()
 
         self.window.ui.dialogs.close('editor.assistants')
-        self.window.ui.status(trans('status.assistant.saved'))
+        self.window.update_status(trans('status.assistant.saved'))
 
         # switch to edited assistant
         self.window.controller.assistant.select_by_id(id)

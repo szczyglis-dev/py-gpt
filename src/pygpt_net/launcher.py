@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import sys
@@ -251,6 +251,6 @@ class Launcher:
         self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.window.ui.tray.setup(self.app)
         self.window.controller.after_setup()
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
         self.window.installEventFilter(self.shortcut_filter)
         sys.exit(self.app.exec())

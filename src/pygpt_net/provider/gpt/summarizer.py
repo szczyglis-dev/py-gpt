@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -57,7 +57,7 @@ class Summarizer:
             'extra': {},
             'response': None,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         response = event.data.get('response')
         if response is not None:
             return response

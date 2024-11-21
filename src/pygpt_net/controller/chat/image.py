@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -52,7 +52,7 @@ class Image:
         if model_data.id == 'dall-e-3':
             num = 1
 
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
 
         # create ctx item
         ctx = CtxItem()
@@ -65,7 +65,7 @@ class Image:
         # event: context before
         event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # add ctx to DB
         self.window.core.ctx.add(ctx)
@@ -77,7 +77,7 @@ class Image:
             "stream": False,
         }
         event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # append input to chat
         data = {
@@ -85,7 +85,7 @@ class Image:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.INPUT_APPEND, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
@@ -106,11 +106,11 @@ class Image:
                 'context': bridge_context,
                 'extra': extra,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
-            self.window.ui.status(trans('status.error'))
+            self.window.update_status(trans('status.error'))
 
         return ctx
 
@@ -123,6 +123,9 @@ class Image:
         :param paths: list with paths to downloaded images
         :param prompt: prompt used to generate images
         """
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "img",
+        }))
         string = ""
         i = 1
         for path in paths:
@@ -143,13 +146,13 @@ class Image:
         # event: after context
         event = Event(Event.CTX_AFTER)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # store last mode (in text mode this is handled in send_text)
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.core.ctx.store()  # save current ctx to DB
-        self.window.ui.status(trans('status.img.generated'))
+        self.window.update_status(trans('status.img.generated'))
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
@@ -165,6 +168,9 @@ class Image:
         :param paths: list with paths to downloaded images
         :param prompt: prompt used to generate images
         """
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "img",
+        }))
         string = ""
         i = 1
         for path in paths:
@@ -175,7 +181,7 @@ class Image:
         ctx.images = local_urls  # save images paths in ctx item here
         
         self.window.core.ctx.update_item(ctx)  # update in DB
-        self.window.ui.status(trans('status.img.generated'))  # update status
+        self.window.update_status(trans('status.img.generated'))  # update status
 
         # WARNING:
         # if internal (sync) mode, then re-send OK status response, if not, append only img result
@@ -197,10 +203,10 @@ class Image:
                 "ctx": ctx,
             }
             event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
-            self.window.core.dispatcher.dispatch(event)  # show image first
+            self.window.dispatch(event)  # show image first
 
             event = RenderEvent(RenderEvent.EXTRA_END, data)
-            self.window.core.dispatcher.dispatch(event)  # end extra
+            self.window.dispatch(event)  # end extra
 
             context = BridgeContext()
             context.ctx = ctx
@@ -211,7 +217,7 @@ class Image:
                 'context': context,
                 'extra': extra,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             return
 
         # NOT internal-mode, user called, so append only img output to chat (show images now)
@@ -221,9 +227,9 @@ class Image:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.EXTRA_APPEND, data)
-        self.window.core.dispatcher.dispatch(event)  # show image first
+        self.window.dispatch(event)  # show image first
 
         event = RenderEvent(RenderEvent.EXTRA_END, data)
-        self.window.core.dispatcher.dispatch(event)  # end extra
+        self.window.dispatch(event)  # end extra
 
         self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle

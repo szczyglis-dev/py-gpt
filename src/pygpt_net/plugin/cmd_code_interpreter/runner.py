@@ -163,7 +163,6 @@ class Runner:
         """
         client = self.get_docker()
         mapping = self.get_volumes()
-        response = None
         try:
             response = client.containers.run(
                 self.get_docker_image(),

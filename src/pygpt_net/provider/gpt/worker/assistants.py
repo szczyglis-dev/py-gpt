@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -194,7 +194,7 @@ class AssistantsWorker:
         }
         data.update(kwargs)
         event = RenderEvent(event_name, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def log(self, message: str):
         """

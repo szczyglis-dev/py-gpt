@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
+# 
 from pygpt_net.core.events import RenderEvent
 
 
@@ -128,7 +129,7 @@ class Nodes:
                 self.window.ui.nodes['output'][pid].value = zoom
                 self.window.ui.nodes['output'][pid].update_zoom()
             event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # font size, legacy (markdown)
         elif self.window.controller.chat.render.get_engine() == 'legacy':

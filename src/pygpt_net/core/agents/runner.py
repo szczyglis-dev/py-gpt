@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -125,14 +125,36 @@ class Runner:
 
         # run steps
         i = 1
+        idx = 0
         while not is_last:
             if self.is_stopped():
                 break  # handle force stop
 
+            if verbose:
+                print ("\n----------- BEGIN STEP {} ----------\n".format(i))
+
+            self.set_busy(signals)
             step_output = agent.run_step(task.task_id)
             is_last = step_output.is_last
+
             # append each step to chat output, last step = final response, so we skip it
             tools_output = self.window.core.agents.tools.export_sources(step_output.output)
+
+            # get only current step tool calls using idx
+            if tools_output:
+                # check if idx is in range
+                if idx < len(tools_output):
+                    tools_output = [tools_output[idx]]
+                    # INFO: idx is indexed from 0
+                    # because tool outputs from previous step goes to the next ctx item!
+
+            if verbose:
+                print("\n")
+                print("Step: " + str(i))
+                print("Is last: " + str(is_last))
+                print("Tool calls: " + str(tools_output))
+                print("\n")
+
             if not is_last:
                 step_ctx = self.add_ctx(ctx)
                 step_ctx.set_input(str(tools_output))
@@ -141,6 +163,8 @@ class Runner:
                     i=str(i)
                 ))
                 step_ctx.cmds = tools_output
+                step_ctx.results = ctx.results  # get results from base ctx
+                ctx.results = []  # reset results
 
                 # copy extra data (output from plugins)
                 if tools_output:
@@ -156,6 +180,7 @@ class Runner:
                 step_ctx.extra["agent_step"] = True
                 self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
+            idx += 1
 
         # final response
         if is_last:
@@ -168,6 +193,7 @@ class Runner:
             response_ctx.extra["agent_output"] = True  # mark as output response
             response_ctx.extra["agent_finish"] = True  # mark as finished
             self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+        self.set_idle(signals)
         return True
 
     def run_assistant(
@@ -284,6 +310,8 @@ class Runner:
 
             j = 1
             task = agent.state.get_task(sub_task.name)
+
+            self.set_status(signals, trans("status.agent.reasoning"))
             step_output = agent.run_step(task.task_id)
             tools_output = self.window.core.agents.tools.export_sources(step_output.output)
 
@@ -458,7 +486,7 @@ class Runner:
             score_label=trans('eval.score'),
             score=str(score)
         )
-        self.send_response(ctx, signals, KernelEvent.SET_STATUS, msg=msg)
+        self.set_status(signals, msg)
         if score < 0:
             self.send_response(ctx, signals, KernelEvent.APPEND_END)
             return True
@@ -540,6 +568,48 @@ class Runner:
         })
         signals.response.emit(event)
 
+    def set_busy(self, signals: BridgeSignals, **kwargs):
+        """
+        Set busy status
+
+        :param signals: BridgeSignals
+        :param kwargs: extra data
+        """
+        data = {
+            "id": "agent",
+            "msg": trans("status.agent.reasoning"),
+        }
+        event = KernelEvent(KernelEvent.STATE_BUSY, data)
+        data.update(kwargs)
+        signals.response.emit(event)
+
+    def set_idle(self, signals: BridgeSignals, **kwargs):
+        """
+        Set idle status
+
+        :param signals: BridgeSignals
+        :param kwargs: extra data
+        """
+        data = {
+            "id": "agent",
+        }
+        event = KernelEvent(KernelEvent.STATE_IDLE, data)
+        data.update(kwargs)
+        signals.response.emit(event)
+
+    def set_status(self, signals: BridgeSignals, msg: str):
+        """
+        Set busy status
+
+        :param signals: BridgeSignals
+        :param msg: status message
+        """
+        data = {
+            "status": msg,
+        }
+        event = KernelEvent(KernelEvent.STATUS, data)
+        signals.response.emit(event)
+
     def prepare_input(self, prompt: str) -> str:
         """
         Prepare input context
@@ -549,7 +619,7 @@ class Runner:
         event = Event(Event.AGENT_PROMPT, {
             'value': prompt,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         return event.data['value']
 
     def is_stopped(self) -> bool:

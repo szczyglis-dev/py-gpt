@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -49,7 +49,7 @@ class Input:
         self.window.controller.agent.experts.unlock()  # unlock experts
         self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
         if not force:
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
+            self.window.dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
 
         # check if not in edit mode
         if not force and self.window.controller.ctx.extra.is_editing():
@@ -79,7 +79,7 @@ class Input:
                 and text.lower().strip() in ["stop", "halt"]:
             self.window.controller.kernel.stop()  # TODO: to chat main
             event = RenderEvent(RenderEvent.CLEAR_INPUT)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             return
 
         # agent modes
@@ -92,7 +92,7 @@ class Input:
         event = Event(Event.USER_SEND, {
             'value': text,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         text = event.data['value']
 
         # event: handle input
@@ -102,7 +102,7 @@ class Input:
             'context': context,
             'extra': {},
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def send(
             self,
@@ -157,6 +157,10 @@ class Input:
 
         self.log("Begin.")
         self.generating = True  # set generating flag
+        # set state to: busy
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": "chat",
+        }))
 
         mode = self.window.core.config.get('mode')
         if mode == 'assistant':
@@ -191,7 +195,7 @@ class Input:
             'value': text,
             'mode': mode,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         text = event.data['value']
 
         # check if image captured from camera
@@ -216,12 +220,12 @@ class Input:
                 self.window.stateChanged.emit(self.window.STATE_ERROR)
                 return
 
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force and not internal:
             event = RenderEvent(RenderEvent.CLEAR_INPUT)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
         if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:

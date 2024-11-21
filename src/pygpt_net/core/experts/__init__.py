@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -251,7 +251,7 @@ class Experts:
             'context': context,
             'extra': extra,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def call(
             self,
@@ -318,7 +318,7 @@ class Experts:
             "ctx": ctx,
             "stream": stream_mode,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.window.core.ctx.provider.append_item(slave, ctx)  # to slave meta
 
         # build sys prompt
@@ -328,7 +328,7 @@ class Experts:
             'value': sys_prompt,
             'is_expert': True,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         sys_prompt = event.data['value']
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
             mode,
@@ -367,7 +367,7 @@ class Experts:
             'context': bridge_context,
             'extra': {},
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         result = event.data.get("response")
         if not result:  # abort if bridge call failed
             return
@@ -413,7 +413,7 @@ class Experts:
             'context': context,
             'extra': extra,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def get_functions(self) -> list:
         """

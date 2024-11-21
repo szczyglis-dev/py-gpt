@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import json
@@ -63,7 +63,7 @@ class Threads:
                 "ctx": ctx,
                 "stream": stream,
             })  # extra reload for stream markdown needed here
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         ctx.clear_reply()  # reset results
 
@@ -281,7 +281,7 @@ class Threads:
                 'context': context,
                 'extra': extra,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
     def handle_tool_outputs(self, ctx: CtxItem) -> list:
         """
@@ -342,12 +342,12 @@ class Threads:
             "ctx": ctx,
             "stream": stream,
         })  # extra reload for stream markdown needed here
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.window.core.ctx.update_item(ctx)
         self.window.controller.ctx.update()
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert(err)
-        self.window.ui.status("An error occurred. Please try again.")
+        self.window.update_status("An error occurred. Please try again.")
         self.window.controller.chat.common.unlock_input()  # unlock input
         # self.handle_stream_end(ctx)
 

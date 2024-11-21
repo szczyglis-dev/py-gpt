@@ -11,11 +11,13 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton, \
+    QGridLayout, QSpacerItem, QWidgetItem, QLayout
 
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel, HelpLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
+from pygpt_net.ui.widget.anims.loader import Loader, Loading
 
 from .explorer import Explorer
 from .input import Input
@@ -186,29 +188,70 @@ class Output:
         opts_layout.setAlignment(Qt.AlignLeft)
 
         layout = QHBoxLayout()
-        layout.addLayout(opts_layout)
-        # layout.addWidget(self.window.ui.plugin_addon['audio.output'])
-        layout.addStretch(1)
-        layout.addWidget(self.window.ui.nodes['icon.video.capture'])
-        layout.addWidget(self.window.ui.nodes['icon.audio.input'])
-        layout.addWidget(self.window.ui.nodes['icon.audio.output'])
-        layout.addWidget(self.window.ui.nodes['icon.interpreter'])
-        layout.addWidget(self.window.ui.nodes['icon.indexer'])
-        layout.addWidget(self.window.ui.plugin_addon['schedule'])
-        layout.addWidget(QLabel(" "))
-        layout.addWidget(self.window.ui.nodes['chat.plugins'])
-        layout.addWidget(QLabel(" "))
-        layout.addWidget(self.window.ui.nodes['chat.label'])
-        layout.addWidget(QLabel("  "))
-        layout.addWidget(self.window.ui.nodes['chat.model'])
-        layout.addWidget(QLabel("  "))
-        layout.addWidget(self.window.ui.nodes['prompt.context'])
-        layout.setContentsMargins(0, 0, 0, 0)
+
+        left_layout = QHBoxLayout()
+        left_layout.addLayout(opts_layout)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+
+        right_layout = QHBoxLayout()
+        right_layout.addWidget(self.window.ui.nodes['icon.video.capture'])
+        right_layout.addWidget(self.window.ui.nodes['icon.audio.input'])
+        right_layout.addWidget(self.window.ui.nodes['icon.audio.output'])
+        right_layout.addWidget(self.window.ui.nodes['icon.interpreter'])
+        right_layout.addWidget(self.window.ui.nodes['icon.indexer'])
+        right_layout.addWidget(self.window.ui.plugin_addon['schedule'])
+        right_layout.addWidget(QLabel(" "))
+        right_layout.addWidget(self.window.ui.nodes['chat.plugins'])
+        right_layout.addWidget(QLabel(" "))
+        right_layout.addWidget(self.window.ui.nodes['chat.label'])
+        right_layout.addWidget(QLabel("  "))
+        right_layout.addWidget(self.window.ui.nodes['chat.model'])
+        right_layout.addWidget(QLabel("  "))
+        right_layout.addWidget(self.window.ui.nodes['prompt.context'])
+        right_layout.setContentsMargins(0, 0, 0, 0)
+
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+        right_widget = QWidget()
+        right_widget.setLayout(right_layout)
+
+        self.window.ui.nodes['anim.loading'] = Loading()
+        self.window.ui.nodes['anim.loading'].hide()
+
+        grid = QGridLayout()
+
+        left_layout = QHBoxLayout()
+        left_layout.addWidget(left_widget)
+        left_layout.addStretch(1)
+
+        center_layout = QHBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(self.window.ui.nodes['anim.loading'])
+        center_layout.addStretch()
+
+        right_layout = QHBoxLayout()
+        right_layout.addStretch(1)
+        right_layout.addWidget(right_widget)
+
+        grid.addLayout(left_layout, 0, 0)
+        grid.addLayout(center_layout, 0, 1, alignment=Qt.AlignCenter)
+        grid.addLayout(right_layout, 0, 2, alignment=Qt.AlignRight)
+        grid.setContentsMargins(0, 0, 0, 0)
 
         self.window.ui.nodes['chat.footer'] = QWidget()
-        self.window.ui.nodes['chat.footer'].setLayout(layout)
+        self.window.ui.nodes['chat.footer'].setLayout(grid)
 
         bottom_layout = QVBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['chat.footer'])
         bottom_layout.setContentsMargins(0, 0, 0, 0)
         return bottom_layout
+
+    def set_fixed_size_policy(self, layout):
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if isinstance(item, QWidgetItem):
+                widget = item.widget()
+                if widget:
+                    widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            elif isinstance(item, QLayout):
+                self.set_fixed_size_policy(item)

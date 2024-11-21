@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -90,7 +90,7 @@ class Camera:
         # start
         self.window.threadpool.start(worker)
         self.thread_started = True
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CAMERA_ENABLED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.CAMERA_ENABLED))  # app event
 
     def stop_capture(self):
         """Stop camera capture thread"""
@@ -98,7 +98,7 @@ class Camera:
             return
 
         self.stop = True
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
 
     @Slot(object)
     def handle_error(self, err):
@@ -176,7 +176,7 @@ class Camera:
                 )
         else:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.CAMERA_CAPTURED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.CAMERA_CAPTURED))  # app event
 
     def get_current_frame(self, flip_colors: bool = True):
         """Get current frame"""
@@ -398,7 +398,7 @@ class Camera:
         else:
             self.disable_auto()
 
-        self.window.ui.status('')
+        self.window.update_status('')
 
     def is_enabled(self) -> bool:
         """

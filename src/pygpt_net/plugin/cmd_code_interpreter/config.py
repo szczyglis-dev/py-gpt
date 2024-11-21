@@ -106,6 +106,7 @@ class Config(BaseConfig):
             description="Allows Python code execution in IPython interpreter (in current kernel)",
             tab="ipython",
         )
+        """
         plugin.add_cmd(
             "ipython_execute_new",
             instruction="execute Python code in the IPython interpreter in a new kernel and get the output. Use this option only if a kernel restart is required; otherwise, use `ipython_execute` to run the code in the current session",
@@ -121,6 +122,7 @@ class Config(BaseConfig):
             description="Allows Python code execution in IPython interpreter (in new kernel)",
             tab="ipython",
         )
+        """
         plugin.add_cmd(
             "ipython_kernel_restart",
             instruction="restart IPython kernel",

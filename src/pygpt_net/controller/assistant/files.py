@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -71,7 +71,7 @@ class Files:
         :param store_id: store ID
         """
         # run asynchronous
-        self.window.ui.status("Importing files...please wait...")
+        self.window.update_status("Importing files...please wait...")
         self.window.core.gpt.assistants.importer.import_files(store_id)
 
     def download(self, idx: int):
@@ -163,7 +163,7 @@ class Files:
             assistant = self.window.core.assistants.get_by_id(id)
             thread_id = self.window.core.config.get('assistant_thread')
             items = self.window.core.assistants.files.get_by_store_or_thread(assistant.vector_store, thread_id)
-            self.window.ui.status(trans('status.sending'))
+            self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
 
             for id in list(items.keys()):
@@ -171,14 +171,14 @@ class Files:
                 try:
                     self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
                 except Exception as e:
-                    self.window.ui.status(trans('status.error'))
+                    self.window.update_status(trans('status.error'))
                     self.window.ui.dialogs.alert(e)
 
             # update store status
             if assistant.vector_store:
                 self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
 
-            self.window.ui.status(trans('status.deleted'))
+            self.window.update_status(trans('status.deleted'))
 
         self.update()
 
@@ -212,7 +212,7 @@ class Files:
             return
 
         # delete file in API
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
         try:
             self.window.core.assistants.files.delete(file)  # delete from DB, API and vector stores
@@ -221,11 +221,11 @@ class Files:
             if assistant.vector_store:
                 self.window.controller.assistant.store.refresh_by_store_id(assistant.vector_store)
 
-            self.window.ui.status(trans('status.deleted'))
+            self.window.update_status(trans('status.deleted'))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
-            self.window.ui.status(trans('status.error'))
+            self.window.update_status(trans('status.error'))
 
         self.update()
 

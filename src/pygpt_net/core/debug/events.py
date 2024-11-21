@@ -9,7 +9,7 @@
 # Updated Date: 2024.11.20 03:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.events import ControlEvent, AppEvent, Event
+from pygpt_net.core.events import ControlEvent, AppEvent, Event, KernelEvent, RenderEvent
 
 
 class EventsDebug:
@@ -27,6 +27,8 @@ class EventsDebug:
         self.window.core.debug.begin(self.id)
         self.window.core.debug.add(self.id, 'App Events:', str(AppEvent.__dict__))
         self.window.core.debug.add(self.id, 'Control Events:', str(ControlEvent.__dict__))
+        self.window.core.debug.add(self.id, 'Kernel Events:', str(KernelEvent.__dict__))
+        self.window.core.debug.add(self.id, 'Render Events:', str(RenderEvent.__dict__))
         self.window.core.debug.add(self.id, 'Plugin Events:', str(self.extract_plugins()))
         self.window.core.debug.add(self.id, 'Voice Cmds (all):', str(self.window.core.access.voice.commands))
         self.window.core.debug.add(self.id, 'Voice Cmds (allowed):', str(self.window.core.access.voice.get_commands()))

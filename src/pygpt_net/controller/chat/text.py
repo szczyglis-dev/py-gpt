@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
@@ -43,20 +43,20 @@ class Text:
         :param parent_id: parent context id
         :return: context item
         """
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
 
         # event: prepare username
         event = Event(Event.USER_NAME, {
             'value': self.window.core.config.get('user_name'),
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         user_name = event.data['value']
 
         # event: prepare ai.name
         event = Event(Event.AI_NAME, {
             'value': self.window.core.config.get('ai_name'),
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         ai_name = event.data['value']
 
         # prepare mode, model, etc.
@@ -123,7 +123,7 @@ class Text:
         # event: context before
         event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # agent or expert mode
         sys_prompt = self.window.controller.agent.experts.append_prompts(mode, sys_prompt, parent_id)
@@ -133,7 +133,7 @@ class Text:
             'mode': mode,
             'value': str(sys_prompt),
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         sys_prompt = event.data['value']
 
         # tool calls
@@ -162,7 +162,7 @@ class Text:
             "stream": stream_mode,
         }
         event = RenderEvent(RenderEvent.BEGIN, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # append text from input to chat window
         data = {
@@ -170,7 +170,7 @@ class Text:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.INPUT_APPEND, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # add ctx to DB here and only update it after response,
         # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
@@ -207,7 +207,7 @@ class Text:
                 if preset is not None:
                     assistant_id = preset.assistant_id
 
-            self.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
+            self.window.dispatch(AppEvent(AppEvent.INPUT_CALL))  # app event
             bridge_context = BridgeContext(
                 ctx=ctx,
                 history=self.window.core.ctx.all(meta_id=parent_id),  # get all ctx items
@@ -241,7 +241,7 @@ class Text:
                 'context': bridge_context,
                 'extra': extra,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
         except Exception as e:
             self.window.controller.chat.log("Bridge call ERROR: {}".format(e))  # log

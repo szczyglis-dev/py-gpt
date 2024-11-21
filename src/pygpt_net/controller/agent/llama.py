@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -87,12 +87,12 @@ class Llama:
         context = BridgeContext()
         context.ctx = ctx
         context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
-        self.window.ui.status(trans('status.evaluating'))  # show info
+        self.window.update_status(trans('status.evaluating'))  # show info
         event = KernelEvent(KernelEvent.REQUEST_NEXT, {
             'context': context,
             'extra': {},
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def update(self):
         """Update agent status"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -123,7 +123,7 @@ class Plugins:
             event = Event(Event.ENABLE, {
                 'value': id,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
             # update audio menu
             if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
@@ -148,7 +148,7 @@ class Plugins:
                 event = Event(Event.DISABLE, {
                     'value': id,
                 })
-                self.window.core.dispatcher.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
+                self.window.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
 
                 # update audio menu
                 if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
@@ -236,7 +236,7 @@ class Plugins:
 
         # send force stop event
         event = Event(Event.FORCE_STOP, {})
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         for id in self.window.core.plugins.get_ids():
             try:
@@ -282,7 +282,7 @@ class Plugins:
                 'value': is_advanced,
             }
             event = Event(Event.PLUGIN_OPTION_GET, data)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             if 'value' in event.data:
                 is_advanced = event.data['value']
 
@@ -318,7 +318,7 @@ class Plugins:
                         'value': num,
                     }
                     event = Event(Event.PLUGIN_OPTION_GET, data)
-                    self.window.core.dispatcher.dispatch(event)
+                    self.window.dispatch(event)
                     if 'value' in event.data:
                         num = event.data['value']
                     # update tray menu
@@ -402,7 +402,7 @@ class Plugins:
             if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
                 change_status = False
         if change_status:
-            self.window.ui.status(trans('status.cmd.wait'))
+            self.window.update_status(trans('status.cmd.wait'))
 
         ctx.results = []
         event.ctx = ctx
@@ -411,7 +411,7 @@ class Plugins:
         # reset status if nothing executed
         current = self.window.ui.get_status()
         if current == trans('status.cmd.wait'):
-            self.window.ui.status("")
+            self.window.update_status("")
 
         return ctx.results
 
@@ -439,7 +439,7 @@ class Plugins:
             if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
                 change_status = False
         if change_status:
-            self.window.ui.status(trans('status.cmd.wait'))
+            self.window.update_status(trans('status.cmd.wait'))
 
         ctx.results = []
         event.ctx = ctx
@@ -448,7 +448,7 @@ class Plugins:
         # reset status if nothing executed
         current = self.window.ui.get_status()
         if current == trans('status.cmd.wait'):
-            self.window.ui.status("")
+            self.window.update_status("")
 
         return ctx.results
 

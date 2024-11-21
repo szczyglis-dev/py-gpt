@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.14 18:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -120,7 +120,7 @@ class TextEditor(BaseTool):
                     f.read()
             except Exception as e:
                 self.window.ui.dialogs.alert(e)
-                self.window.ui.status("Error opening text file: {}".format(e))
+                self.window.update_status("Error opening text file: {}".format(e))
                 return
 
             # close current editor if different file
@@ -149,7 +149,7 @@ class TextEditor(BaseTool):
             self.window.ui.dialog[id].setWindowTitle(title)  # set window title
             self.window.ui.editor[id].setFocus()  # set focus
             if not force:
-                self.window.ui.status("Loaded file: {}".format(os.path.basename(file)))  # set status
+                self.window.update_status("Loaded file: {}".format(os.path.basename(file)))  # set status
         else:
             self.window.core.filesystem.editor.clear(id)  # clear editor if no file
 

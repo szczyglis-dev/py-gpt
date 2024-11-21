@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -81,6 +81,7 @@ class Presets:
         self.window.ui.nodes[self.id].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.window.ui.nodes['tip.toolbox.presets'] = HelpLabel(trans('tip.toolbox.presets'), self.window)
+        self.window.ui.nodes['tip.toolbox.presets'].setAlignment(Qt.AlignCenter)
 
         layout = QVBoxLayout()
         layout.addStretch()

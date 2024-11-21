@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -257,7 +257,7 @@ class Plugin(BasePlugin):
         self.stop = True
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(False)
         self.set_status('')
-        self.window.ui.status("")
+        self.window.update_status("")
 
     def on_stop(self):
         """Event: AUDIO_INPUT_STOP"""
@@ -268,7 +268,7 @@ class Plugin(BasePlugin):
         self.listening = False
         self.speech_enabled = False
         self.set_status('')
-        self.window.ui.status("")
+        self.window.update_status("")
 
     def on_input_before(self, text: str):
         """
@@ -402,7 +402,7 @@ class Plugin(BasePlugin):
                     check_text = text.lower().strip()
                     check_word = word.lower().strip()
                     if not check_text.startswith(check_word):
-                        self.window.ui.status(trans('audio.speak.ignoring'))
+                        self.window.update_status(trans('audio.speak.ignoring'))
                         self.set_status(trans('audio.speak.ignoring'))
                         return
 
@@ -420,7 +420,7 @@ class Plugin(BasePlugin):
                     if check_text.startswith(check_word):
                         is_magic_word = True
                         self.set_status(trans('audio.magic_word.detected'))
-                        self.window.ui.status(trans('audio.magic_word.detected'))
+                        self.window.update_status(trans('audio.magic_word.detected'))
                         break
 
             # if magic word enabled
@@ -434,11 +434,11 @@ class Plugin(BasePlugin):
                 # if not previously detected, then abort now
                 if not magic_prev_detected:
                     if not is_magic_word:
-                        self.window.ui.status(trans('audio.magic_word.invalid'))
+                        self.window.update_status(trans('audio.magic_word.invalid'))
                     self.window.ui.nodes['input'].setText(text)
                     return
                 else:
-                    self.window.ui.status("")
+                    self.window.update_status("")
 
         # update input text
         self.window.ui.nodes['input'].setText(text)
@@ -453,7 +453,7 @@ class Plugin(BasePlugin):
 
                 data = {}
                 event = RenderEvent(RenderEvent.CLEAR_INPUT, data)
-                self.window.core.dispatcher.dispatch(event)  # clear here
+                self.window.dispatch(event)  # clear here
 
             # to: calendar
             elif self.window.controller.calendar.is_active():
@@ -462,12 +462,12 @@ class Plugin(BasePlugin):
 
                 data = {}
                 event = RenderEvent(RenderEvent.CLEAR_INPUT, data)
-                self.window.core.dispatcher.dispatch(event)  # clear here
+                self.window.dispatch(event)  # clear here
 
             # to: chat
             else:
                 self.set_status('...')
-                self.window.ui.status(trans('audio.speak.sending'))
+                self.window.update_status(trans('audio.speak.sending'))
                 prefix = ""
                 if self.window.controller.agent.enabled():
                     prefix = "user: "
@@ -479,7 +479,7 @@ class Plugin(BasePlugin):
                     'context': context,
                     'extra': extra,
                 })
-                self.window.core.dispatcher.dispatch(event)  # send text, input clear in send method
+                self.window.dispatch(event)  # send text, input clear in send method
                 self.set_status('')
 
     @Slot(object)
@@ -490,14 +490,14 @@ class Plugin(BasePlugin):
         :param data: message
         """
         self.set_status(str(data))
-        self.window.ui.status(str(data))
+        self.window.update_status(str(data))
 
     @Slot()
     def handle_destroy(self):
         """Handle listener destroyed"""
         self.thread_started = False
         self.set_status('')
-        self.window.ui.status("")
+        self.window.update_status("")
 
     @Slot()
     def handle_started(self):
@@ -511,6 +511,6 @@ class Plugin(BasePlugin):
         self.thread_started = False
         self.listening = False
         self.stop = False
-        self.window.ui.status("")
+        self.window.update_status("")
         self.set_status('')
         self.toggle_speech(False)

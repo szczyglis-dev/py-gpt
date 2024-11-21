@@ -11,7 +11,8 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget, \
+    QGridLayout
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
@@ -144,16 +145,28 @@ class Input:
         self.window.ui.plugin_addon['audio.input'] = AudioInput(self.window)
         self.window.ui.plugin_addon['audio.input.btn'] = AudioInputButton(self.window)
 
-        header = QHBoxLayout()
-        header.addWidget(self.window.ui.nodes['input.label'])
-        header.addWidget(self.window.ui.nodes['inline.vision'])
-        header.addStretch(1)
-        header.addWidget(self.window.ui.plugin_addon['audio.input'])
-        header.addWidget(self.window.ui.plugin_addon['audio.input.btn'])
-        header.addStretch(1)
-        header.addWidget(self.window.ui.nodes['input.counter'], alignment=Qt.AlignRight)
+        grid = QGridLayout()
 
-        return header
+        left_layout = QHBoxLayout()
+        left_layout.addWidget(self.window.ui.nodes['input.label'])
+        left_layout.addWidget(self.window.ui.nodes['inline.vision'])
+        left_layout.addStretch(1)
+
+        center_layout = QHBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(self.window.ui.plugin_addon['audio.input'])
+        center_layout.addWidget(self.window.ui.plugin_addon['audio.input.btn'])
+        center_layout.addStretch()
+
+        right_layout = QHBoxLayout()
+        right_layout.addStretch(1)
+        right_layout.addWidget(self.window.ui.nodes['input.counter'])
+
+        grid.addLayout(left_layout, 0, 0)
+        grid.addLayout(center_layout, 0, 1, alignment=Qt.AlignCenter)
+        grid.addLayout(right_layout, 0, 2, alignment=Qt.AlignRight)
+
+        return grid
 
     def setup_bottom(self) -> QHBoxLayout:
         """

@@ -29,6 +29,8 @@ class BaseEvent:
         self.id = None
         self.name = name
         self.data = data
+        if self.data is None:
+            self.data = {}
         self.ctx = ctx  # CtxItem
         self.stop = False  # True to stop propagation
         self.internal = False

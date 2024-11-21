@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -52,7 +52,7 @@ class Markdown:
             for pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-        self.window.core.dispatcher.dispatch(event)  # per current engine
+        self.window.dispatch(event)  # per current engine
 
     def get_web_css(self) -> str:
         """
@@ -70,14 +70,14 @@ class Markdown:
         """Clear CSS of markdown formatter"""
         meta = self.window.core.ctx.get_current_meta()
         event = RenderEvent(RenderEvent.CLEAR_ALL)
-        self.window.core.dispatcher.dispatch(event)  # per current engine
+        self.window.dispatch(event)  # per current engine
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
         data = {
             "meta": meta,
         }
         event = RenderEvent(RenderEvent.END, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def load(self):
         """Load markdown styles"""

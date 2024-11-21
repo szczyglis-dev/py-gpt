@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -40,7 +40,7 @@ class Stream:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # read stream
         try:
@@ -147,7 +147,7 @@ class Stream:
                             "begin": begin,
                         }
                         event = RenderEvent(RenderEvent.STREAM_APPEND, data)
-                        self.window.core.dispatcher.dispatch(event)
+                        self.window.dispatch(event)
                         QApplication.processEvents()  # process events to update UI after each chunk
                         begin = False
 
@@ -170,7 +170,7 @@ class Stream:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.STREAM_END, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # log
         self.log("[chat] Stream end.")

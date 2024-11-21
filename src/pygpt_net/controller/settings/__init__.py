@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import os
@@ -56,7 +56,7 @@ class Settings:
         self.window.controller.painter.save()
         if not force:
             self.window.ui.dialogs.alert(info)
-            self.window.ui.status(info)
+            self.window.update_status(info)
         self.window.controller.ui.update()
 
     def update(self):
@@ -225,7 +225,7 @@ class Settings:
         if os.path.exists(self.window.core.config.path):
             self.window.controller.files.open_dir(self.window.core.config.path)
         else:
-            self.window.ui.status('Config directory not exists: {}'.format(self.window.core.config.path))
+            self.window.update_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
     def welcome_settings(self):
         """Open settings at first launch (if no API key yet)"""

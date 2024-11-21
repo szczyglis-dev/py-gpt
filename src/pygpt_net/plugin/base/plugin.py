@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -309,9 +309,21 @@ class BasePlugin(QObject):
         self.debug(msg)
         if self.is_threaded():
             return
-        self.window.ui.status(msg.replace("\n", " "))
+        self.window.update_status(msg.replace("\n", " "))
         if self.is_log():
             print(msg)
+
+    def cmd_prepare(self, ctx: CtxItem, cmds: list):
+        """
+        On command run
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        # set state: busy
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": "img",
+        }))
 
     @Slot(object, object, dict)
     def handle_finished(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
@@ -336,7 +348,7 @@ class BasePlugin(QObject):
                 'context': context,
                 'extra': extra,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
 
     @Slot(object, object, dict)
     def handle_finished_more(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):
@@ -362,7 +374,7 @@ class BasePlugin(QObject):
             'context': context,
             'extra': extra,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def prepare_reply_ctx(self, response: dict, ctx: CtxItem = None) -> dict:
         """
@@ -416,7 +428,7 @@ class BasePlugin(QObject):
         """
         if self.is_threaded():
             return
-        self.window.ui.status(str(data))
+        self.window.update_status(str(data))
 
     @Slot(object)
     def handle_error(self, err: any):

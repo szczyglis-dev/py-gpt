@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -125,7 +125,7 @@ class Editor:
             self.window.core.config.set('layout.tray.minimize', False)
 
         self.window.core.config.save()
-        self.window.ui.status(trans('info.settings.saved'))
+        self.window.update_status(trans('info.settings.saved'))
         self.window.controller.ui.update_font_size()
         self.window.controller.ui.update()
 
@@ -281,7 +281,7 @@ class Editor:
             else:
                 self.window.ui.nodes['output.raw'].setChecked(True)
             event = RenderEvent(RenderEvent.ON_SWITCH)
-            self.window.core.dispatcher.dispatch(event)
+            self.window.dispatch(event)
             self.window.controller.ui.update_font_size()
 
         # call vision checkboxes events

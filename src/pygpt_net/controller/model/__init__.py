@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -44,11 +44,11 @@ class Model:
         event = Event(Event.MODEL_SELECT, {
             'value': model,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # update all layout
         self.window.controller.ui.update()
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.MODEL_SELECTED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.MODEL_SELECTED))  # app event
 
     def next(self):
         """Select next model"""
@@ -92,7 +92,7 @@ class Model:
         event = Event(Event.MODEL_SELECT, {
             'value': model,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
     def select_on_list(self, model):
         self.window.ui.nodes["prompt.model"].set_value(model)
@@ -134,7 +134,7 @@ class Model:
             'mode': mode,
             'model': model,  # model instance
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         tmp_model = event.data['model']
         if tmp_model is not None:
             model = tmp_model

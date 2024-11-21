@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -150,11 +150,11 @@ class VectorStore:
         """Reload store status"""
         if self.current is not None:  # TODO: reset on profile reload
             if self.window.core.assistants.store.has(self.current):
-                self.window.ui.status(trans('status.sending'))
+                self.window.update_status(trans('status.sending'))
                 QApplication.processEvents()
                 store = self.window.core.assistants.store.items[self.current]
                 self.refresh_store(store)
-                self.window.ui.status(trans('status.assistant.saved'))
+                self.window.update_status(trans('status.assistant.saved'))
                 self.update()  # update stores list in assistant dialog
 
     def refresh_store(self, store: AssistantStoreItem, update: bool = True):
@@ -190,10 +190,10 @@ class VectorStore:
         if store_id is not None and store_id in self.window.core.assistants.store.items:
             store = self.window.core.assistants.store.items[store_id]
             if store is not None:
-                self.window.ui.status(trans('status.sending'))
+                self.window.update_status(trans('status.sending'))
                 QApplication.processEvents()
                 self.refresh_store(store)
-                self.window.ui.status(trans('status.assistant.saved'))
+                self.window.update_status(trans('status.assistant.saved'))
                 self.update()
 
     def update_current(self):
@@ -239,19 +239,19 @@ class VectorStore:
 
         # save config
         if persist:
-            self.window.ui.status(trans('status.sending'))
+            self.window.update_status(trans('status.sending'))
             QApplication.processEvents()
             if self.current is not None:
                 store = self.window.core.assistants.store.update(
                     self.window.core.assistants.store.items[self.current]
                 )
                 if store is None:
-                    self.window.ui.status(trans('status.error'))
+                    self.window.update_status(trans('status.error'))
                     self.window.ui.dialogs.alert("Failed to save vector store")
                     return
 
             self.update()  # update stores list in assistant dialog
-            self.window.ui.status(trans("info.settings.saved"))
+            self.window.update_status(trans("info.settings.saved"))
             self.restore_selection()
 
     def reload_items(self):
@@ -279,16 +279,16 @@ class VectorStore:
 
     def new(self):
         """Create new vector store"""
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
 
         store = self.window.core.assistants.store.create()
         if store is None:
-            self.window.ui.status(trans('status.error'))
+            self.window.update_status(trans('status.error'))
             self.window.ui.dialogs.alert("Failed to create new vector store")
             return
 
-        self.window.ui.status(trans('status.assistant.saved'))
+        self.window.update_status(trans('status.assistant.saved'))
 
         self.window.core.assistants.store.update(store)
         self.update()  # update stores list in assistant dialog
@@ -330,7 +330,7 @@ class VectorStore:
             self.window.ui.dialogs.alert("Please select vector store first.")
             return
 
-        self.window.ui.status(trans('status.sending'))
+        self.window.update_status(trans('status.sending'))
         QApplication.processEvents()
         if self.current == store_id:
             self.current = None
@@ -338,16 +338,16 @@ class VectorStore:
             print("Deleting store: {}".format(store_id))
             if self.window.core.assistants.store.delete(store_id):
                 self.window.controller.assistant.batch.remove_store_from_assistants(store_id)
-                self.window.ui.status(trans('status.deleted'))
+                self.window.update_status(trans('status.deleted'))
                 self.window.core.assistants.store.save()
                 self.window.controller.assistant.files.update()
                 self.update()  # update stores list in assistant dialog
                 self.init()
                 self.restore_selection()
             else:
-                self.window.ui.status(trans('status.error'))
+                self.window.update_status(trans('status.error'))
         except Exception as e:
-            self.window.ui.status(trans('status.error'))
+            self.window.update_status(trans('status.error'))
             self.window.ui.dialogs.alert(e)
 
     def set_by_tab(self, idx: int):

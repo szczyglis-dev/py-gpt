@@ -179,6 +179,9 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
+        # set state: busy
+        self.cmd_prepare(ctx, my_commands)
+
         # don't allow to clear attachments list
         if needed_lock:
             self.window.controller.attachment.lock()

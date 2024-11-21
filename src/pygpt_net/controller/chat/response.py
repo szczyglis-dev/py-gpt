@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.events import RenderEvent, KernelEvent
 from pygpt_net.utils import trans
 
 
@@ -40,10 +40,10 @@ class Response:
             self.window.controller.chat.log("Bridge response: ERROR")
             if error is not None:
                 self.window.ui.dialogs.alert(error)
-                self.window.ui.status(error)
+                self.window.update_status(error)
             else:
                 self.window.ui.dialogs.alert(trans('status.error'))
-                self.window.ui.status(trans('status.error'))
+                self.window.update_status(trans('status.error'))
         else:
             self.window.controller.chat.log_ctx(ctx, "output")  # log
             if self.window.controller.kernel.stopped():
@@ -62,9 +62,13 @@ class Response:
                 "meta": ctx.meta,
             }
             event = RenderEvent(RenderEvent.TOOL_CLEAR, data)
-            self.window.core.dispatcher.dispatch(event)  # hide cmd waiting
+            self.window.dispatch(event)  # hide cmd waiting
             if not self.window.controller.kernel.stopped():
                 self.window.controller.chat.common.unlock_input()  # unlock input
+            # set state to: error
+            self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                "id": "chat",
+            }))
             return
 
         try:
@@ -76,7 +80,8 @@ class Response:
                     stream,
                 )
         except Exception as e:
-            self.failed(e)
+            extra["error"] = e
+            self.failed(context, extra)
 
         # post-handle, execute cmd, etc.
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
@@ -92,7 +97,7 @@ class Response:
         msg = extra.get("msg", "")
         self.window.controller.chat.common.lock_input()  # lock input
         if msg:
-            self.window.ui.status(msg)
+            self.window.update_status(msg)
 
     def append(self, context: BridgeContext, extra: dict):
         """
@@ -139,7 +144,7 @@ class Response:
             "stream": stream,
         }
         event = RenderEvent(RenderEvent.BEGIN, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # append step input to chat window
         data = {
@@ -147,7 +152,7 @@ class Response:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.INPUT_APPEND, data)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         self.window.core.ctx.add(ctx)
         self.window.controller.ctx.update(
             reload=True,
@@ -180,15 +185,15 @@ class Response:
             "meta": ctx.meta,
         }
         event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
-        self.window.core.dispatcher.dispatch(event)  # show cmd waiting
+        self.window.dispatch(event)  # show cmd waiting
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
         event = RenderEvent(RenderEvent.RELOAD)
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
 
         # if continue reasoning
         if ctx.extra is None or (type(ctx.extra) == dict and "agent_finish" not in ctx.extra):
-            self.window.ui.status(trans("status.agent.reasoning"))
+            self.window.update_status(trans("status.agent.reasoning"))
             self.window.controller.chat.common.lock_input()  # lock input, re-enable stop button
 
         if ctx.extra is not None and (type(ctx.extra) == dict and "agent_finish" in ctx.extra):
@@ -205,9 +210,13 @@ class Response:
         status = trans("status.finished")
         if msg:
             status = msg
-        self.window.ui.status(status)
+        self.window.update_status(status)
         self.window.controller.agent.llama.flow_end()
         self.window.controller.chat.common.unlock_input()  # unlock input
+        # set state to: idle
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+            "id": "chat",
+        }))
 
     def failed(self, context: BridgeContext, extra: dict):
         """
@@ -221,6 +230,10 @@ class Response:
         self.window.controller.chat.handle_error(err)
         self.window.controller.chat.common.unlock_input()  # unlock input
         print("Error in sending text: " + str(err))
+        # set state to: error
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+            "id": "chat",
+        }))
 
     def update_status(self, context: BridgeContext, extra: dict):
         """
@@ -230,4 +243,4 @@ class Response:
         :param extra: Extra data
         """
         msg = extra.get("msg", "")
-        self.window.ui.status(msg)
+        self.window.update_status(msg)

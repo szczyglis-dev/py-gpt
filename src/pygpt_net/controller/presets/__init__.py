@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 import re
@@ -49,7 +49,7 @@ class Presets:
         # update all layout
         self.window.controller.ui.update()
         self.window.controller.model.select_current()
-        self.window.core.dispatcher.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
+        self.window.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
 
     def get_current(self) -> PresetItem or None:
         """
@@ -129,7 +129,7 @@ class Presets:
         """
         content = self.window.ui.nodes['input'].toPlainText()
         if content.strip() == "":
-            self.window.ui.status("Prompt is empty!")
+            self.window.update_status("Prompt is empty!")
             return
         if not force:
             self.window.ui.dialog['rename'].id = 'prompt.custom.new'
@@ -139,7 +139,7 @@ class Presets:
             return
         self.window.ui.dialog['rename'].close()
         self.window.core.prompt.custom.new(name, content)
-        self.window.ui.status("Prompt saved")
+        self.window.update_status("Prompt saved")
 
     def rename_prompt(self, uuid: str, name: str = "", force: bool = False):
         """
@@ -161,7 +161,7 @@ class Presets:
         self.window.ui.dialog['rename'].close()
         item.name = name
         self.window.core.prompt.custom.save()
-        self.window.ui.status("Prompt renamed")
+        self.window.update_status("Prompt renamed")
 
     def delete_prompt(self, uuid: str, force: bool = False):
         """
@@ -181,7 +181,7 @@ class Presets:
             return
         self.window.ui.dialog['confirm'].close()
         self.window.core.prompt.custom.delete(uuid)
-        self.window.ui.status("Prompt deleted")
+        self.window.update_status("Prompt deleted")
 
     def paste_to_textarea(self, textarea, text: str):
         """
@@ -414,7 +414,7 @@ class Presets:
                     self.refresh()
                     idx = self.window.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
-                    self.window.ui.status(trans('status.preset.duplicated'))
+                    self.window.update_status(trans('status.preset.duplicated'))
 
     def enable(self, idx: int = None):
         """
@@ -473,7 +473,7 @@ class Presets:
                 self.window.core.presets.items[preset].temperature = 1.0
                 self.refresh()
 
-        self.window.ui.status(trans('status.preset.cleared'))
+        self.window.update_status(trans('status.preset.cleared'))
 
         # reload assistant default instructions
         mode = self.window.core.config.get('mode')
@@ -506,7 +506,7 @@ class Presets:
                         self.window.ui.nodes['preset.prompt'].setPlainText("")
                     self.window.core.presets.remove(preset_id, True)
                     self.refresh()
-                    self.window.ui.status(trans('status.preset.deleted'))
+                    self.window.update_status(trans('status.preset.deleted'))
 
     def restore(self, force: bool = False):
         """

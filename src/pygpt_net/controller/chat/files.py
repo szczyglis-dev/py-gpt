@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -33,7 +33,7 @@ class Files:
         attachments = self.upload(mode)  # current thread is already in global config
         if len(attachments) > 0:
             ctx.attachments = attachments
-            self.window.ui.status(trans('status.sending'))
+            self.window.update_status(trans('status.sending'))
             self.window.controller.chat.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
             self.window.controller.attachment.set_consumed()  # mark as consumed
         return attachments
@@ -56,7 +56,7 @@ class Files:
                 c = self.window.controller.assistant.files.count_upload(attachments)
                 if c > 0:
                     is_upload = True
-                    self.window.ui.status(trans('status.uploading'))
+                    self.window.update_status(trans('status.uploading'))
                     num_uploaded = self.window.controller.assistant.files.upload(
                         mode,
                         attachments,
@@ -66,7 +66,7 @@ class Files:
 
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
-                    self.window.ui.status(trans('status.uploaded'))
+                    self.window.update_status(trans('status.uploaded'))
 
             except Exception as e:
                 self.window.core.debug.log(e)
