@@ -243,6 +243,7 @@ class CodeInterpreter(BaseTool):
         ]
         event = Event(Event.CMD_EXECUTE, {
             'commands': commands,
+            'silent': True,
         })
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)
@@ -278,6 +279,7 @@ class CodeInterpreter(BaseTool):
         ]
         event = Event(Event.CMD_EXECUTE, {
             'commands': commands,
+            'silent': True,
         })
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)

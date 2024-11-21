@@ -104,3 +104,8 @@ class PythonOutput(BaseCodeEditor):
         self.setProperty('class', 'interpreter-output')
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
+
+    def clear_content(self):
+        """Clear content"""
+        super(PythonOutput, self).clear_content()
+        self.window.tools.get("interpreter").save_output()

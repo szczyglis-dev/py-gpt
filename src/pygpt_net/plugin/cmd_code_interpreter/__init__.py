@@ -76,6 +76,7 @@ class Plugin(BasePlugin):
         name = event.name
         data = event.data
         ctx = event.ctx
+        silent = data.get("silent", False)
 
         if name == Event.CMD_SYNTAX:
             self.cmd_syntax(data)
@@ -84,6 +85,7 @@ class Plugin(BasePlugin):
             self.cmd(
                 ctx,
                 data['commands'],
+                silent,
             )
 
         elif name == Event.TOOL_OUTPUT_RENDER:
@@ -140,12 +142,13 @@ class Plugin(BasePlugin):
         self.window.tools.get("html_canvas").set_output(data)
         self.window.tools.get("html_canvas").open()
 
-    def cmd(self, ctx: CtxItem, cmds: list):
+    def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
         Event: CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
+        :param silent: silent mode
         """
         is_cmd = False
         force = False
@@ -185,7 +188,8 @@ class Plugin(BasePlugin):
                 return
 
         # set state: busy
-        self.cmd_prepare(ctx, my_commands)
+        if not silent:
+            self.cmd_prepare(ctx, my_commands)
 
         try:
             worker = Worker()

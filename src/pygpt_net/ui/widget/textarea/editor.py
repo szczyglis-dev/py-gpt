@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor
 from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.text.finder import Finder
@@ -95,7 +95,19 @@ class BaseCodeEditor(QTextEdit):
         action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
+        # clear
+        action = QAction(QIcon(":/icons/close.svg"), trans('action.clear'), self)
+        action.triggered.connect(
+            lambda: self.clear_content())
+        menu.addAction(action)
+
         menu.exec_(event.globalPos())
+
+    def clear_content(self):
+        """Clear content"""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.Document)
+        cursor.removeSelectedText()
 
     def audio_read_selection(self):
         """Read selected text (audio)"""
