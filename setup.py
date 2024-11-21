@@ -70,6 +70,7 @@ setup(
         'llama-index-embeddings-ollama>=0.2.0, <0.3.0',
         'llama-index-llms-anthropic>=0.1.17, <0.2.0',
         'llama-index-llms-openai>=0.1.29, <0.2.0',
+        'llama-index-llms-openai-like>=0.1.3, <0.2.0',
         'llama-index-llms-azure-openai>=0.1.10, <0.2.0',
         'llama-index-llms-gemini>=0.2.0, <0.3.0',
         'llama-index-llms-ollama>=0.2.2, <0.3.0',
