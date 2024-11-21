@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, call
@@ -26,9 +26,9 @@ def test_setup(mock_window):
 def test_toggle_input(mock_window):
     """Test toggle input"""
     audio = Audio(mock_window)
-    audio.window.core.dispatcher.dispatch = MagicMock()
+    audio.window.dispatch = MagicMock()
     audio.toggle_input(True)
-    audio.window.core.dispatcher.dispatch.assert_called_once()
+    audio.window.dispatch.assert_called_once()
 
 
 def test_toggle_output(mock_window):
@@ -78,17 +78,17 @@ def test_disable_input(mock_window):
 def test_stop_input(mock_window):
     """Test stop input"""
     audio = Audio(mock_window)
-    audio.window.core.dispatcher.dispatch = MagicMock()
+    audio.window.dispatch = MagicMock()
     audio.stop_input()
-    audio.window.core.dispatcher.dispatch.assert_called_once()
+    audio.window.dispatch.assert_called_once()
 
 
 def test_stop_output(mock_window):
     """Test stop output"""
     audio = Audio(mock_window)
-    audio.window.core.dispatcher.dispatch = MagicMock()
+    audio.window.dispatch = MagicMock()
     audio.stop_output()
-    audio.window.core.dispatcher.dispatch.assert_called_once()
+    audio.window.dispatch.assert_called_once()
 
 
 def test_update(mock_window):
@@ -135,6 +135,6 @@ def test_update_menu(mock_window):
 def test_read_text(mock_window):
     """Test read text"""
     audio = Audio(mock_window)
-    audio.window.core.dispatcher.dispatch = MagicMock()
+    audio.window.dispatch = MagicMock()
     audio.read_text('test')
-    audio.window.core.dispatcher.dispatch.assert_called_once()
+    audio.window.dispatch.assert_called_once()

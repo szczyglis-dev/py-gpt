@@ -38,7 +38,6 @@ def test_save_all(mock_window):
     mock_window.core.presets.save_all.assert_called_once()
     mock_window.controller.notepad.save_all.assert_called_once()
     mock_window.ui.dialogs.alert.assert_called_once()
-    mock_window.ui.status.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
 
 

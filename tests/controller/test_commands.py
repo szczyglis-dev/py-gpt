@@ -72,4 +72,3 @@ def test_handle_finished(mock_window):
     ctx.results = {'test': 'test'}
     event.ctx = ctx
     command.handle_finished(event)
-    mock_window.ui.status.assert_called_once_with('')

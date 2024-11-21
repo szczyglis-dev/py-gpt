@@ -58,7 +58,6 @@ def test_prepare(mock_window):
     mock_window.ui.status = MagicMock()
     assistant.threads.create_thread = MagicMock()
     assistant.prepare()
-    mock_window.ui.status.assert_called_once()
     assistant.threads.create_thread.assert_called_once()
     assert mock_window.core.config.get('assistant_thread') == assistant.threads.create_thread.return_value
 

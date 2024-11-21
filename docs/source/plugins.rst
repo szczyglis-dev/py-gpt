@@ -738,10 +738,6 @@ Default: 5559
 
 Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
 
-- ``Enable: ipython_execute_new`` *cmd.ipython_execute_new*
-
-Allows Python code execution in IPython interpreter (in new kernel). *Default:* ``True``
-
 - ``Enable: python_kernel_restart`` *cmd.ipython_kernel_restart*
 
 Allows to restart IPython kernel. *Default:* ``True``

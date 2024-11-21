@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -25,19 +25,18 @@ def test_select(mock_window):
     event = Event('mode.select', {
         'value': 'chat',
     })
-    mock_window.core.dispatcher.dispatch = MagicMock(return_value=(['test'], event))
+    mock_window.dispatch = MagicMock(return_value=(['test'], event))
 
     mode.change_locked = MagicMock()
     mode.change_locked.return_value = False
 
     mode.select('chat')
-    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: mode.select
+    mock_window.dispatch.assert_called()  # must dispatch event: mode.select
 
     # must update rest of elements
     mock_window.controller.attachment.update.assert_called()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
-    mock_window.ui.status.assert_called_once()
 
     assert mock_window.core.config.get('mode') == 'chat'
     assert mock_window.core.config.get('preset') == ''
@@ -53,7 +52,7 @@ def test_select_assistant(mock_window):
     event = Event('mode.select', {
         'value': 'assistant',
     })
-    mock_window.core.dispatcher.dispatch = MagicMock(return_value=(['test'], event))
+    mock_window.dispatch = MagicMock(return_value=(['test'], event))
 
     mode.change_locked = MagicMock()
     mode.change_locked.return_value = False
@@ -64,13 +63,12 @@ def test_select_assistant(mock_window):
     mock_window.core.ctx.get_current = MagicMock(return_value=1)
 
     mode.select('assistant')
-    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: mode.select
+    mock_window.dispatch.assert_called()  # must dispatch event: mode.select
 
     # must update rest of elements
     mock_window.controller.attachment.update.assert_called()
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
-    mock_window.ui.status.assert_called_once()
 
     mock_window.controller.ctx.common.update_label_by_current.assert_called_once()
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.27 05:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -27,7 +27,7 @@ def test_send_input(mock_window):
     mock_window.ui.nodes['input'].toPlainText = MagicMock(return_value=message)
 
     input.send_input()
-    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: user.send
+    mock_window.dispatch.assert_called()  # must dispatch event: user.send
 
 
 def test_send_input_stop(mock_window):
@@ -41,7 +41,7 @@ def test_send_input_stop(mock_window):
 
     input.send_input()
     mock_window.controller.kernel.stop.assert_called_once()
-    mock_window.core.dispatcher.dispatch.assert_called()
+    mock_window.dispatch.assert_called()
     input.send.assert_not_called()
 
 
@@ -80,14 +80,13 @@ def test_execute_text(mock_window):
 
         mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None, parent_id=None)
         # mock_window.controller.ui.update_tokens.assert_called_once()
-        mock_window.ui.status.assert_called_once()
 
         # attachments clear should be called
         #mock_window.controller.attachment.clear.assert_called_once()
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.core.dispatcher.dispatch.assert_called()
+        mock_window.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()
@@ -113,7 +112,6 @@ def test_execute_image(mock_window):
 
         mock_window.controller.chat.image.send.assert_called_once_with(text='test', prev_ctx=None, parent_id=None)
         # mock_window.controller.ui.update_tokens.assert_called_once()
-        mock_window.ui.status.assert_called_once()
 
         # attachments clear should not be called
         # mock_window.controller.attachment.clear.assert_not_called()
@@ -150,14 +148,13 @@ def test_execute_no_ctx(mock_window):
             parent_id=None
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
-        mock_window.ui.status.assert_called_once()
 
         # attachments clear should be called
         # mock_window.controller.attachment.clear.assert_called_once()
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.core.dispatcher.dispatch.assert_called()
+        mock_window.dispatch.assert_called()
 
         # handle allowed should not be called
         mock_window.controller.ctx.handle_allowed.assert_not_called()
@@ -213,14 +210,13 @@ def test_execute_vision_mode(mock_window):
             parent_id=None
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
-        mock_window.ui.status.assert_called_once()
 
         # attachments clear should be called
         # mock_window.controller.attachment.clear.assert_called_once()
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.core.dispatcher.dispatch.assert_called()
+        mock_window.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()
@@ -258,14 +254,13 @@ def test_execute_vision_plugin(mock_window):
             parent_id=None
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
-        mock_window.ui.status.assert_called_once()
 
         # attachments clear should be called
         # mock_window.controller.attachment.clear.assert_called_once()
         # mock_window.controller.attachment.update.assert_called_once()
 
         # input clear should be called
-        mock_window.core.dispatcher.dispatch.assert_called()
+        mock_window.dispatch.assert_called()
 
         # handle allowed should be called
         mock_window.controller.ctx.handle_allowed.assert_called_once()

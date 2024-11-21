@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -92,7 +92,7 @@ def test_enable(mock_window):
     plugins = Plugins(mock_window)
     mock_window.core.plugins.is_registered = MagicMock(return_value=True)
     mock_window.core.plugins.enable = MagicMock()
-    mock_window.core.dispatcher.dispatch = MagicMock()
+    mock_window.dispatch = MagicMock()
     mock_window.controller.audio.update = MagicMock()
     plugins.has_type = MagicMock(return_value=True)
     plugins.update_info = MagicMock()
@@ -100,7 +100,7 @@ def test_enable(mock_window):
     plugins.enable('test')
     mock_window.core.plugins.is_registered.assert_called_once_with('test')
     mock_window.core.plugins.enable.assert_called_once_with('test')
-    mock_window.core.dispatcher.dispatch.assert_called_once()
+    mock_window.dispatch.assert_called_once()
     mock_window.controller.audio.update.assert_called_once()
     plugins.update_info.assert_called_once()
     plugins.update.assert_called_once()
@@ -111,7 +111,7 @@ def test_disable(mock_window):
     plugins = Plugins(mock_window)
     mock_window.core.plugins.is_registered = MagicMock(return_value=True)
     mock_window.core.plugins.disable = MagicMock()
-    mock_window.core.dispatcher.dispatch = MagicMock()
+    mock_window.dispatch = MagicMock()
     mock_window.controller.audio.update = MagicMock()
     plugins.has_type = MagicMock(return_value=True)
     plugins.update_info = MagicMock()
@@ -119,7 +119,7 @@ def test_disable(mock_window):
     plugins.disable('test')
     mock_window.core.plugins.is_registered.assert_called_once_with('test')
     mock_window.core.plugins.disable.assert_called_once_with('test')
-    mock_window.core.dispatcher.dispatch.assert_called_once()
+    mock_window.dispatch.assert_called_once()
     mock_window.controller.audio.update.assert_called_once()
     plugins.update_info.assert_called_once()
     plugins.update.assert_called_once()

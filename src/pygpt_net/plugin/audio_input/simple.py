@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -93,7 +93,7 @@ class Simple:
                                       stream_callback=callback)
 
             self.plugin.window.update_status(trans('audio.speak.now'))
-            self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
+            self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
             self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
@@ -114,7 +114,7 @@ class Simple:
         :param timeout: True if stopped due to timeout
         """
         self.is_recording = False
-        self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STOPPED))  # app event
+        self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STOPPED))  # app event
         if self.timer:
             self.timer.stop()
             self.timer = None
@@ -134,7 +134,7 @@ class Simple:
             if self.frames:
                 if len(self.frames) < self.MIN_FRAMES:
                     self.plugin.window.update_status(trans("status.audio.too_short"))
-                    self.plugin.window.core.dispatcher.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
+                    self.plugin.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
                 wf = wave.open(path, 'wb')
                 wf.setnchannels(1)

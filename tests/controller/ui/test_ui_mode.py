@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, call
@@ -32,9 +32,9 @@ def test_update(mock_window):
     mock_window.ui.tabs['input'].setTabVisible = MagicMock()
     mock_window.ui.tabs['input'].setTabVisible = MagicMock()
     mock_window.ui.nodes['input.stream'].setVisible = MagicMock()
-    mock_window.core.dispatcher.dispatch = MagicMock()
-    mock_window.core.dispatcher.dispatch.return_value = MagicMock()
-    mock_window.core.dispatcher.dispatch.return_value.data = {'value': True}
+    mock_window.dispatch = MagicMock()
+    mock_window.dispatch.return_value = MagicMock()
+    mock_window.dispatch.return_value.data = {'value': True}
     mode.update()
     mock_window.ui.nodes['presets.widget'].setVisible.assert_called()
     mock_window.ui.nodes['preset.clear'].setVisible.assert_called()

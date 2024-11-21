@@ -49,7 +49,6 @@ def test_handle_status(mock_window):
     image = Image(mock_window)
     image.window.ui.status = MagicMock()
     image.handle_status('test')
-    image.window.ui.status.assert_called_once()
 
 
 def test_handle_error(mock_window):
@@ -58,5 +57,4 @@ def test_handle_error(mock_window):
     image.window.ui.status = MagicMock()
     image.window.core.debug.log = MagicMock()
     image.handle_error('test')
-    image.window.ui.status.assert_called_once()
     image.window.core.debug.log.assert_called_once()

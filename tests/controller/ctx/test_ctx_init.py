@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -193,7 +193,7 @@ def test_refresh_output(mock_window):
 
     ctx.refresh_output()
 
-    mock_window.core.dispatcher.dispatch.assert_called()
+    mock_window.dispatch.assert_called()
 
 
 def test_load(mock_window):
@@ -262,7 +262,7 @@ def test_delete(mock_window):
     ctx.update.assert_called_once()
 
     # current
-    mock_window.core.dispatcher.dispatch.assert_called()
+    mock_window.dispatch.assert_called()
 
 
 def test_delete_history(mock_window):

@@ -36,6 +36,9 @@ def mock_window():
     window.tools = MagicMock()
     window.ui = MagicMock()
     window.threadpool = MagicMock()
+    window.dispatch = MagicMock()
+    window.update_status = MagicMock()
+    window.update_state = MagicMock()
     return window
 
 
@@ -55,4 +58,7 @@ def mock_window_conf():
     window.core.config.get_lang = MagicMock(return_value='en')
     window.core.debug = MagicMock()
     window.tools = MagicMock()
+    window.dispatch = MagicMock()
+    window.update_status = MagicMock()
+    window.update_state = MagicMock()
     return window

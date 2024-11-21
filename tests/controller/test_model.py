@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -25,13 +25,13 @@ def test_select(mock_window):
     event = Event('model.select', {
         'value': 'gpt-4',
     })
-    mock_window.core.dispatcher.dispatch = MagicMock(return_value=(['test'], event))
+    mock_window.dispatch = MagicMock(return_value=(['test'], event))
 
     model.change_locked = MagicMock()
     model.change_locked.return_value = False
 
     model.select('gpt-4')  # idx on list
-    mock_window.core.dispatcher.dispatch.assert_called()  # must dispatch event: model.select
+    mock_window.dispatch.assert_called()  # must dispatch event: model.select
 
     # must update rest of elements
     mock_window.controller.ui.update()
@@ -57,13 +57,13 @@ def test_set_by_idx(mock_window):
     event = Event('model.select', {
         'value': 'gpt-4',
     })
-    mock_window.core.dispatcher.dispatch = MagicMock(return_value=(['test'], event))
+    mock_window.dispatch = MagicMock(return_value=(['test'], event))
 
     model.change_locked = MagicMock()
     model.change_locked.return_value = False
 
     model.set_by_idx('chat', 0)  # idx on list
-    mock_window.core.dispatcher.dispatch.assert_called_once()  # must dispatch event: model.select
+    mock_window.dispatch.assert_called_once()  # must dispatch event: model.select
 
     assert mock_window.core.config.get('model') == 'gpt-4'
     assert mock_window.core.config.get('current_model') == {'chat': 'gpt-4'}

@@ -104,7 +104,6 @@ def test_on_cmd(mock_window):
     assert flow.prev_output is None
     assert flow.iteration == 0
     assert flow.is_user is True
-    assert flow.window.ui.status.called
 
 
 def test_cmd(mock_window):
@@ -118,7 +117,6 @@ def test_cmd(mock_window):
     assert flow.prev_output is None
     assert flow.iteration == 0
     assert flow.is_user is True
-    assert flow.window.ui.status.called
 
 
 def test_on_stop(mock_window):
