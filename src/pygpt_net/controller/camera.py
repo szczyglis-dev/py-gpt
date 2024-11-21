@@ -13,7 +13,7 @@ import datetime
 import os
 import cv2
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QImage, QPixmap, Qt
 
 from pygpt_net.core.types import (
@@ -24,13 +24,14 @@ from pygpt_net.core.camera import CaptureWorker
 from pygpt_net.utils import trans
 
 
-class Camera:
+class Camera(QObject):
     def __init__(self, window=None):
         """
         Camera controller
 
         :param window: Window instance
         """
+        super(Camera, self).__init__(window)
         self.window = window
         self.frame = None
         self.thread_started = False
