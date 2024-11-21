@@ -66,6 +66,7 @@ setup(
         'llama-index-agent-openai==0.2.9',
         'llama-index>=0.10.65, <0.11.0',
         'llama-index-embeddings-azure-openai>=0.1.6, <0.2.0',
+        'llama-index-embeddings-huggingface-api>=0.1.0, <0.2.0',
         'llama-index-embeddings-openai>=0.1.6, <0.2.0',
         'llama-index-embeddings-ollama>=0.2.0, <0.3.0',
         'llama-index-llms-anthropic>=0.1.17, <0.2.0',

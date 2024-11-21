@@ -43,6 +43,7 @@ from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.google import GoogleLLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
+from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
 from pygpt_net.provider.llms.local import LocalLLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
@@ -331,6 +332,7 @@ def run(**kwargs):
     launcher.add_llm(AnthropicLLM())
     launcher.add_llm(GoogleLLM())
     launcher.add_llm(HuggingFaceLLM())
+    launcher.add_llm(HuggingFaceApiLLM())
     launcher.add_llm(LocalLLM())
     launcher.add_llm(OllamaLLM())
 

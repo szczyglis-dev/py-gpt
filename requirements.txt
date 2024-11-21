@@ -792,9 +792,12 @@ httpx-socks==0.9.2 ; python_version >= "3.10" and python_version < "3.12" \
 httpx==0.27.2 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0 \
     --hash=sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2
-huggingface-hub==0.26.2 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:98c2a5a8e786c7b2cb6fdeb2740893cba4d53e312572ed3d8afafda65b128c46 \
-    --hash=sha256:b100d853465d965733964d123939ba287da60a547087783ddff8a323f340332b
+huggingface-hub==0.23.5 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:67a9caba79b71235be3752852ca27da86bd54311d2424ca8afdb8dda056edf98 \
+    --hash=sha256:d7a7d337615e11a45cc14a0ce5a605db6b038dc24af42866f731684825226e90
+huggingface-hub[inference]==0.23.5 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:67a9caba79b71235be3752852ca27da86bd54311d2424ca8afdb8dda056edf98 \
+    --hash=sha256:d7a7d337615e11a45cc14a0ce5a605db6b038dc24af42866f731684825226e90
 humanfriendly==10.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477 \
     --hash=sha256:6b0b831ce8f15f7300721aa49829fc4e83921a9a301cc7f606be6686a2288ddc
@@ -949,6 +952,9 @@ llama-index-core==0.10.67 ; python_version >= "3.10" and python_version < "3.12"
 llama-index-embeddings-azure-openai==0.1.11 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:40a4fd9a31ba74f071739d6c8405187b66e7f584ae2f64a30316c6c7b6a25325 \
     --hash=sha256:afefe55ee69934528c569ddf71fb1e9ddf2992b6c344c4c9d72a03fa8c33cf40
+llama-index-embeddings-huggingface-api==0.1.1 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:34c3f67e0755eb9acb101e027cdfa3b89d76706e43ff53da97cbff6fe4e180cf \
+    --hash=sha256:e36ddd5c824f9077d870ba6a1c53b4978038af230ca757e93ec1aaed0d2555ed
 llama-index-embeddings-ollama==0.2.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:372b059321386bd9bbf4f619ad33dd551adb9ee92eeeb0c664d3466f7c212e2e \
     --hash=sha256:5673c740e1dd146e17d1c0401c1e179c0d559caf0967f4a4721b89fbb6822ad8
@@ -970,6 +976,9 @@ llama-index-llms-azure-openai==0.1.10 ; python_version >= "3.10" and python_vers
 llama-index-llms-gemini==0.2.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:4e559be8154aed4b948e3982bbd9e51c19726c448dea3fae6aa5dc9dc0414765 \
     --hash=sha256:784ed65c2d554d00df4bc756940226de4c4e516412cff3fc0de9947fc54d92f5
+llama-index-llms-huggingface-api==0.1.0 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:06f0debc4254d933d3f113017b45d9d6053569cb312869694bded4b59456956a \
+    --hash=sha256:76d771922503c1d7cf765e9bde896be47ab3936f938750ce2e5643d8db5f41dd
 llama-index-llms-ollama==0.2.2 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:0c7f192cb8b768707bd5154b97e2a41284732d62070eb76190dee125e95245ea \
     --hash=sha256:c224d7c17d641045bc9b6a6681dab434c1c421af0bacb5825eea444fefd8ed78
@@ -1015,6 +1024,9 @@ llama-index-readers-twitter==0.1.3 ; python_version >= "3.10" and python_version
 llama-index-readers-web==0.1.23 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:225ef6c825d89037312afc192950b98132ba9c268cd4562e7493a83798277cf7 \
     --hash=sha256:d2c03458fe6c86acf976d332ebabab1c6f0f71a9e6f4610704a950a46df6e0ef
+llama-index-utils-huggingface==0.1.1 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:a0079ab81b983482b968a8caaab370661313defc1de8ddd21073c9e841c0f58c \
+    --hash=sha256:a282e942ad7712b14d36c81eaa375af3ca99f415d71bde7d981287c0cc6f5ab4
 llama-index-vector-stores-chroma==0.1.10 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:18859272ec8d3ed20bae7e4a9bc18feb4233e8be2a725d33626f283ac41d1475 \
     --hash=sha256:97971f7b36461ef37be023b9ceb5531396cc48360d0bdbda51cce1290301cc47
@@ -1246,6 +1258,15 @@ marshmallow==3.23.1 ; python_version >= "3.10" and python_version < "3.12" \
 mdurl==0.1.2 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
+minijinja==2.5.0 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:025c0232bfbb92ff53bd474cfd230b687480fd6b4c4e9b4f5b354d91a62dc144 \
+    --hash=sha256:1ddd1941d0fbf84dbce103f65a3e04eba7d958d08e399f6d3c63bce2fbc1ae0c \
+    --hash=sha256:369d6ed56b571feb25f84b87eec0fb286b1931bb472eed1f148ca69777c596d3 \
+    --hash=sha256:516e84a4f03b81002fd0eea966341b8c12fd9ebc4b222dc6ebc50a2b7535df13 \
+    --hash=sha256:888d88ab7328de337581656b220409aaa85c992d3ec25e50095196fb4f0752ae \
+    --hash=sha256:ca97a8d8053aa0111f855d6706883dbfdbda600bd2dd0e152c03077a42c003e3 \
+    --hash=sha256:d393ca982b5189c2a8f42b82612170885b48f500e4afac6dc127e980b286b798 \
+    --hash=sha256:de15fc9ee8c6e0cd22799460af499520055139a8db3636e1c7136278215fe095
 mistune==3.0.2 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:71481854c30fdbc938963d3605b72501f5c10a9320ecd412c121c163a1c7d205 \
     --hash=sha256:fc7f93ded930c92394ef2cb6f04a8aabab4117a91449e72dcc8dfa646a508be8
