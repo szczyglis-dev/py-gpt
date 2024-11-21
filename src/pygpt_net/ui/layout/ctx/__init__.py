@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
-from PySide6 import QtCore
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
