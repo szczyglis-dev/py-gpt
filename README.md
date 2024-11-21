@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.17** | build: **2024.11.20** | Python: **>=3.10, <3.12**
+Release: **2.4.18** | build: **2024.11.21** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3625,6 +3625,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.18 (2024-11-21)**
+
+- Refactored kernel status and state handling.
+- Fixed: audio input execution.
+- Improved output from tools in Agents.
+- Added status loading animation indicator.
+- Other fixes.
 
 **2.4.17 (2024-11-20)**
 
