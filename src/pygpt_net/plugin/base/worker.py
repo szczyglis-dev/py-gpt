@@ -84,7 +84,7 @@ class BaseWorker(QObject, QRunnable):
         :param extra_data: extra data
         """
         # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
-        if self.ctx.agent_call and self.plugin is not None:
+        if self.ctx is not None and self.ctx.agent_call and self.plugin is not None:
             self.plugin.handle_finished(response, self.ctx, extra_data)
             return
 
