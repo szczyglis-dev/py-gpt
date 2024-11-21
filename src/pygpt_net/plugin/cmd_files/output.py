@@ -31,12 +31,12 @@ class Output:
                     lang = content["code"]["input"]["lang"]
                     raw = "```{}\n{}\n```".format(lang, content["code"]["input"]["content"])
                     code = self.plugin.window.controller.chat.render.instance().parser.parse_code(raw)
-                    html += "<div class=\"tool-output-header\">INPUT</div><div class=\"code-wrapper\">{}</div>".format(code)
+                    html += "<div class=\"tool-output-header\">Input</div><div class=\"code-wrapper\">{}</div>".format(code)
             if "output" in content["code"] and "content" in content["code"]["output"]:
                 if "lang" in content["code"]["output"]:
                     lang = content["code"]["output"]["lang"]
                     raw = "```{}\n{}\n```".format(lang, content["code"]["output"]["content"])
                     code = self.plugin.window.controller.chat.render.instance().parser.parse_code(raw)
-                    html += "<div class=\"tool-output-header\">OUTPUT</div><div class=\"code-wrapper\">{}</div>".format(
+                    html += "<div class=\"tool-output-header\">Output</div><div class=\"code-wrapper\">{}</div>".format(
                         code)
         return html
