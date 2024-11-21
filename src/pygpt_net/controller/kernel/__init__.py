@@ -332,3 +332,13 @@ class Kernel(QObject):
         if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
             return False
         return True
+
+    def is_threaded(self) -> bool:
+        """
+        Check if plugin run is threaded
+
+        :return: True if threaded
+        """
+        if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
+            return True
+        return False

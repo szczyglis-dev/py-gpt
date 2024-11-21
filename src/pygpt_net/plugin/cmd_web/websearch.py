@@ -423,8 +423,6 @@ class WebSearch:
 
         :return: True if threaded
         """
-        if (self.plugin is not None
-                and self.plugin.window is not None
-                and self.plugin.window.core.config.get("mode") == "agent_llama"):
-            return True
+        if self.plugin is not None:
+            return self.plugin.is_threaded()
         return False

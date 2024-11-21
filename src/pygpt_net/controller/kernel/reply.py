@@ -26,7 +26,6 @@ class Reply:
         :param window: Window instance
         """
         self.window = window
-        self.nolog_events = ["system.prompt"]
         self.reply_stack = []
         self.reply_ctx = None
         self.last_result = None
@@ -45,7 +44,6 @@ class Reply:
         if "flush" in extra and extra["flush"]:
             flush = True
         ctx = context.ctx
-        self.run_post_response(ctx, extra)
         if ctx is not None:
             self.run_post_response(ctx, extra)
             self.last_result = ctx.results
@@ -142,7 +140,7 @@ class Reply:
         :param extra_data: extra data
         """
         if isinstance(extra_data, dict):
-            if (ctx is None or not ctx.agent_call) or not self.is_threaded():
+            if (ctx is None or not ctx.agent_call) or not self.window.controller.kernel.is_threaded():
                 if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
                     if "file_explorer" in extra_data["post_update"]:
                         # update file explorer view
@@ -153,16 +151,6 @@ class Reply:
         self.window.core.debug.info("Reply stack (clear)...")
         self.reply_ctx = None
         self.reply_stack = []
-
-    def is_threaded(self) -> bool:
-        """
-        Check if plugin is threaded
-
-        :return: True if threaded
-        """
-        if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
-            return True
-        return False
 
     def is_log(self) -> bool:
         """

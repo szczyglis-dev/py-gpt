@@ -413,8 +413,8 @@ class BasePlugin(QObject):
             if self.window.core.config.get("ctx.use_extra"):
                 if ctx.extra_ctx is None:
                     ctx.extra_ctx = ""
-                if ctx.extra_ctx == "":
-                    ctx.extra_ctx += "\n"
+                if ctx.extra_ctx != "":
+                    ctx.extra_ctx += "\n\n"
                 ctx.extra_ctx += response["context"]  # allow more context data
                 response["result"] = "OK"
             else:
@@ -468,6 +468,4 @@ class BasePlugin(QObject):
 
         :return: True if threaded
         """
-        if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
-            return True
-        return False
+        return self.window.controller.kernel.is_threaded()
