@@ -15,10 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
-    MODE_EXPERT,
     MODE_IMAGE,
-    MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
     MODE_VISION,
 )
 from pygpt_net.item.ctx import CtxItem
