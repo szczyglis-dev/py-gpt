@@ -18,6 +18,8 @@ from pygpt_net.item.ctx import CtxItem
 
 from .reply import Reply
 from .stack import Stack
+from ...utils import trans
+
 
 class Kernel(QObject):
 
@@ -228,7 +230,7 @@ class Kernel(QObject):
         """Stop kernel"""
         self.halt = True
         self.window.controller.chat.common.stop()
-        self.set_state(KernelEvent(KernelEvent.STATE_IDLE))
+        self.set_state(KernelEvent(KernelEvent.STATE_IDLE, {"msg": trans("status.stopped")}))
 
     def set_state(self, event):
         """
@@ -240,7 +242,8 @@ class Kernel(QObject):
         if event.name == KernelEvent.STATE_BUSY:
             self.busy = True
             self.window.ui.tray.set_icon(self.window.STATE_BUSY)
-            self.window.ui.show_loading()
+            if not self.halt:
+                self.window.ui.show_loading()
         elif event.name == KernelEvent.STATE_IDLE:
             self.busy = False
             self.window.ui.tray.set_icon(self.window.STATE_IDLE)
