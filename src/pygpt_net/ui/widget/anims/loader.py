@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 01:00:00                  #
+# Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QWidget
@@ -93,6 +93,7 @@ class Loading(QWidget):
         self.spacing = (self.total_width - 3 * self.square_size) / 2
         self._pos1 = self._pos2 = self._pos3 = 0
         self.started = False
+        self.initialized = False
         # self.start_anim()
 
     def sizeHint(self):
@@ -114,13 +115,15 @@ class Loading(QWidget):
         self.anim2.start()
         self.anim3.start()
         self.started = True
+        self.initialized = True
 
     def stop_anim(self):
         """Stop animation."""
         self.started = False
-        self.anim1.stop()
-        self.anim2.stop()
-        self.anim3.stop()
+        if self.initialized:
+            self.anim1.stop()
+            self.anim2.stop()
+            self.anim3.stop()
 
     def create_animation(self, property_name, delay):
         """
@@ -199,14 +202,6 @@ class Loading(QWidget):
         """
         self._pos3 = value
         self.update()
-
-    def sizeHint(self):
-        """
-        Size hint
-
-        :return: size
-        """
-        return QSize(self.total_width, self.square_size)
 
     def paintEvent(self, event):
         """
