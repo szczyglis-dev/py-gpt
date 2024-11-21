@@ -79,6 +79,7 @@ class Assistants:
         self.window.ui.nodes[self.id].setMinimumWidth(40)
 
         self.window.ui.nodes['tip.toolbox.assistants'] = HelpLabel(trans('tip.toolbox.assistants'), self.window)
+        self.window.ui.nodes['tip.toolbox.assistants'].setAlignment(Qt.AlignCenter)
 
         # rows
         layout = QVBoxLayout()
