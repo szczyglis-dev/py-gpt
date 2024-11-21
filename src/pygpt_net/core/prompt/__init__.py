@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -47,7 +47,7 @@ class Prompt:
             'value': prompt,
             'silent': True,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         prompt = event.data['value']
 
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
@@ -68,13 +68,13 @@ class Prompt:
             # full execute cmd syntax
             if self.window.core.config.get('cmd'):
                 event = Event(Event.CMD_SYNTAX, data)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 prompt = self.window.core.command.append_syntax(event.data)
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 prompt = self.window.core.command.append_syntax(event.data)
 
         return prompt
@@ -107,7 +107,7 @@ class Prompt:
             'value': sys_prompt,
             'is_expert': is_expert,
         })
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         sys_prompt = event.data['value']
 
         # event: post prompt (post-handle system prompt)
@@ -119,7 +119,7 @@ class Prompt:
             'is_expert': is_expert,
         })
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
+        self.window.dispatch(event)
         sys_prompt = event.data['value']
 
         # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
@@ -137,13 +137,13 @@ class Prompt:
             # full execute cmd syntax
             if self.window.core.config.get('cmd'):
                 event = Event(Event.CMD_SYNTAX, data)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 sys_prompt = self.window.core.command.append_syntax(event.data)
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
-                self.window.core.dispatcher.dispatch(event)
+                self.window.dispatch(event)
                 sys_prompt = self.window.core.command.append_syntax(event.data)
 
         return sys_prompt

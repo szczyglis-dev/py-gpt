@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.11.21 02:00:00                  #
 # ================================================== #
-
+from PySide6 import QtCore
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
@@ -41,6 +42,7 @@ class CtxMain:
         search_input = self.search_input.setup()
 
         self.window.ui.nodes['tip.toolbox.ctx'] = HelpLabel(trans('tip.toolbox.ctx'), self.window)
+        self.window.ui.nodes['tip.toolbox.ctx'].setAlignment(Qt.AlignCenter)
 
         layout = QVBoxLayout()
         layout.addWidget(ctx)
