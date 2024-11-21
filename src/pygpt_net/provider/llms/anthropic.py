@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from llama_index.llms.anthropic import Anthropic
-
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
+from pygpt_net.core.types import (
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
@@ -27,7 +30,7 @@ class AnthropicLLM(BaseLLM):
             - api_key: API key for Anthropic API
         """
         self.id = "anthropic"
-        self.type = ["llama_index"]
+        self.type = [MODE_LLAMA_INDEX]
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         """

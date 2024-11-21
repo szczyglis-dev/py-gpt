@@ -6,8 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.types import (
+    MODE_CHAT,
+    MODE_IMAGE,
+    MODE_VISION,
+)
 
 class Vision:
     def __init__(self, window=None):
@@ -25,13 +31,13 @@ class Vision:
         :return: True if vision is available
         """
         mode = self.window.core.config.get("mode")
-        if mode == 'img':
+        if mode == MODE_IMAGE:
             return False
-        if mode == 'vision':
+        if mode == MODE_VISION:
             return True
         if self.window.controller.plugins.is_type_enabled('vision'):
             return True
-        if self.is_vision_model() and mode in ["chat"]:
+        if self.is_vision_model() and mode in [MODE_CHAT]:
             return True
         return False
 
@@ -59,7 +65,7 @@ class Vision:
         if model_id is not None:
             if self.window.core.models.has(model_id):
                 model = self.window.core.models.get(model_id)
-                if "vision" in model.mode:
+                if MODE_VISION in model.mode:
                     return True
         return False
 

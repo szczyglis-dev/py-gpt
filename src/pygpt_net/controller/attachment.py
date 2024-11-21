@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,9 @@ from datetime import datetime
 from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QFileDialog, QApplication
 
+from pygpt_net.core.types import (
+    MODE_VISION,
+)
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -61,7 +64,7 @@ class Attachment:
         if not self.has(mode):
             self.window.controller.chat.vision.unavailable()
         else:
-            if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
+            if mode == MODE_VISION or self.window.controller.plugins.is_type_enabled('vision'):
                 self.window.controller.chat.vision.available()
 
         # update tokens counter (vision plugin, etc.)

@@ -6,9 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import Event
@@ -44,7 +51,13 @@ class Plugin(BasePlugin):
             "analyze_screenshot",
             "analyze_camera_capture",
         ]
-        self.disabled_mode_switch = ["vision", "agent", "agent_llama", "llama_index", "langchain"]
+        self.disabled_mode_switch = [
+            MODE_VISION,
+            MODE_AGENT,
+            MODE_AGENT_LLAMA,
+            MODE_LLAMA_INDEX,
+            MODE_LANGCHAIN,
+        ]
         self.worker = None
         self.config = Config(self)
         self.init_options()
@@ -82,7 +95,7 @@ class Plugin(BasePlugin):
                 )  # mode change
 
         elif name == Event.MODEL_BEFORE:
-            if "mode" in data and data["mode"] == "vision":
+            if "mode" in data and data["mode"] == MODE_VISION:
                 key = self.get_option_value("model")
                 if self.window.core.models.has(key):
                     data['model'] = self.window.core.models.get(key)
@@ -100,7 +113,7 @@ class Plugin(BasePlugin):
 
         elif name == Event.UI_ATTACHMENTS:
             mode = data["mode"]
-            if mode in ["agent", "agent_llama"] and not self.window.core.config.get("cmd"):
+            if mode in [MODE_AGENT, MODE_AGENT_LLAMA] and not self.window.core.config.get("cmd"):
                 pass
             else:
                 data['value'] = True  # allow render attachments UI elements
@@ -291,13 +304,13 @@ class Plugin(BasePlugin):
         :return: updated mode
         """
         # abort if already in vision mode or command enabled
-        if mode == "vision" or mode in self.disabled_mode_switch:
+        if mode == MODE_VISION or mode in self.disabled_mode_switch:
             return mode  # keep current mode
 
         # if already used in this ctx then keep vision mode
         if self.is_vision_provided():
             ctx.is_vision = True
-            return 'vision'
+            return MODE_VISION
 
         return mode  # keep current mode
 

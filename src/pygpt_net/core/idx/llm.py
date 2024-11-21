@@ -17,6 +17,9 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.indices.service_context import ServiceContext
 from llama_index.llms.openai import OpenAI
 
+from pygpt_net.core.types import (
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.item.model import ModelItem
 
 
@@ -63,7 +66,7 @@ class Llm:
                     self.window.core.llm.llms[provider].init(
                         window=self.window,
                         model=model,
-                        mode="llama_index",
+                        mode=MODE_LLAMA_INDEX,
                         sub_mode="",
                     )
                     # get llama LLM instance

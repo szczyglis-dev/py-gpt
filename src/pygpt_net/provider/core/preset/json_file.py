@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import json
@@ -14,8 +14,21 @@ import os
 import shutil
 from packaging.version import Version
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.provider.core.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
+
 from .patch import Patch
 
 
@@ -170,16 +183,16 @@ class JsonFileProvider(BaseProvider):
             'ai_name': item.ai_name,
             'user_name': item.user_name,
             'prompt': item.prompt,
-            'chat': item.chat,
-            'completion': item.completion,
-            'img': item.img,
-            'vision': item.vision,
-            'langchain': item.langchain,
-            'assistant': item.assistant,
-            "llama_index": item.llama_index,
-            "agent": item.agent,
-            "agent_llama": item.agent_llama,
-            "expert": item.expert,
+            MODE_CHAT: item.chat,
+            MODE_COMPLETION: item.completion,
+            MODE_IMAGE: item.img,
+            MODE_VISION: item.vision,
+            MODE_LANGCHAIN: item.langchain,
+            MODE_ASSISTANT: item.assistant,
+            MODE_LLAMA_INDEX: item.llama_index,
+            MODE_AGENT: item.agent,
+            MODE_AGENT_LLAMA: item.agent_llama,
+            MODE_EXPERT: item.expert,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
@@ -199,6 +212,27 @@ class JsonFileProvider(BaseProvider):
         :param data: serialized item
         :param item: item to deserialize
         """
+        if MODE_CHAT in data:
+            item.chat = data[MODE_CHAT]
+        if MODE_COMPLETION in data:
+            item.completion = data[MODE_COMPLETION]
+        if MODE_IMAGE in data:
+            item.img = data[MODE_IMAGE]
+        if MODE_VISION in data:
+            item.vision = data[MODE_VISION]
+        if MODE_LANGCHAIN in data:
+            item.langchain = data[MODE_LANGCHAIN]
+        if MODE_ASSISTANT in data:
+            item.assistant = data[MODE_ASSISTANT]
+        if MODE_LLAMA_INDEX in data:
+            item.llama_index = data[MODE_LLAMA_INDEX]
+        if MODE_AGENT in data:
+            item.agent = data[MODE_AGENT]
+        if MODE_AGENT_LLAMA in data:
+            item.agent_llama = data[MODE_AGENT_LLAMA]
+        if MODE_EXPERT in data:
+            item.expert = data[MODE_EXPERT]
+
         if 'uuid' in data:
             item.uuid = data['uuid']
         if 'name' in data:
@@ -209,26 +243,6 @@ class JsonFileProvider(BaseProvider):
             item.user_name = data['user_name']
         if 'prompt' in data:
             item.prompt = data['prompt']
-        if 'chat' in data:
-            item.chat = data['chat']
-        if 'completion' in data:
-            item.completion = data['completion']
-        if 'img' in data:
-            item.img = data['img']
-        if 'vision' in data:
-            item.vision = data['vision']
-        if 'langchain' in data:
-            item.langchain = data['langchain']
-        if 'assistant' in data:
-            item.assistant = data['assistant']
-        if 'llama_index' in data:
-            item.llama_index = data['llama_index']
-        if 'agent' in data:
-            item.agent = data['agent']
-        if 'agent_llama' in data:
-            item.agent_llama = data['agent_llama']
-        if 'expert' in data:
-            item.expert = data['expert']
         if 'temperature' in data:
             item.temperature = data['temperature']
         if 'filename' in data:

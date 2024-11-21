@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from langchain_openai import OpenAI
@@ -19,6 +19,10 @@ from llama_index.llms.openai import OpenAI as LlamaOpenAI
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIMultiModal
 from llama_index.embeddings.openai import OpenAIEmbedding
 
+from pygpt_net.core.types import (
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
@@ -27,7 +31,7 @@ class OpenAILLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
-        self.type = ["langchain", "llama_index", "embeddings"]
+        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
         """

@@ -6,14 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+)
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import trans
 
 
 class Command:
@@ -45,7 +47,7 @@ class Command:
             self.log("Command call received...")
 
             # agent mode
-            if mode == 'agent':
+            if mode == MODE_AGENT:
                 commands = self.window.core.command.from_commands(cmds)  # pack to execution list
                 self.window.controller.agent.flow.on_cmd(
                     ctx,

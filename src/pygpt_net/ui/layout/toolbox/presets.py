@@ -6,13 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSplitter, QWidget, QSizePolicy
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_EXPERT,
+)
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 from pygpt_net.ui.layout.toolbox.footer import Footer
@@ -119,9 +123,9 @@ class Presets:
             name = data[n].name
 
             # show disabled in expert mode
-            if mode == "expert" and not n.startswith("current.") and data[n].enabled:
+            if mode == MODE_EXPERT and not n.startswith("current.") and data[n].enabled:
                 name = "[x] " + name
-            elif mode =="agent":
+            elif mode == MODE_AGENT:
                 num_experts = self.window.core.experts.count_experts(n)
                 if num_experts > 0:
                     name = name + " (" + str(num_experts) + " experts)"

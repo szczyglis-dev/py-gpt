@@ -6,10 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.provider.core.mode.json_file import JsonFileProvider
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 
 
 class Modes:
@@ -23,6 +35,18 @@ class Modes:
         self.window = window
         self.provider = JsonFileProvider(window)
         self.initialized = False
+        self.all = [
+            MODE_AGENT,
+            MODE_AGENT_LLAMA,
+            MODE_ASSISTANT,
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_EXPERT,
+            MODE_IMAGE,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_VISION,
+        ]
         self.items = {}
 
     def get_by_idx(self, idx):

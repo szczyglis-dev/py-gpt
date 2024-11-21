@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.types import (
+    MODE_EXPERT,
+)
 
 class Experts:
     def __init__(self, window=None):
@@ -47,7 +51,7 @@ class Experts:
 
     def update_list(self):
         """Update presets list"""
-        items = self.window.core.presets.get_by_mode("expert")
+        items = self.window.core.presets.get_by_mode(MODE_EXPERT)
         items_data = {}
         for item in items:
             if item.startswith("current.") or self.is_active(items[item].uuid):
@@ -101,7 +105,7 @@ class Experts:
 
         :param idx: index
         """
-        presets = self.window.core.presets.get_by_mode("expert")
+        presets = self.window.core.presets.get_by_mode(MODE_EXPERT)
         i = 0
         for preset in presets:
             if preset.startswith("current.") or self.is_active(presets[preset].uuid):

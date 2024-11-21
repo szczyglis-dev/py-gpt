@@ -6,11 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.types import (
+    MODE_CHAT,
+    MODE_COMPLETION,
+)
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+
 from .chat import Chat
 from .completion import Completion
 
@@ -46,17 +52,17 @@ class Chain:
         ai_name = ctx.output_name  # from ctx
         response = None
         used_tokens = 0
-        sub_mode = 'chat'
+        sub_mode = MODE_CHAT
 
         # get available sub-modes
         if 'mode' in model.langchain:
-            if 'chat' in model.langchain['mode']:
-                sub_mode = 'chat'
-            elif 'completion' in model.langchain['mode']:
-                sub_mode = 'completion'
+            if MODE_CHAT in model.langchain['mode']:
+                sub_mode = MODE_CHAT
+            elif MODE_COMPLETION in model.langchain['mode']:
+                sub_mode = MODE_COMPLETION
 
         try:
-            if sub_mode == 'chat':
+            if sub_mode == MODE_CHAT:
                 response = self.chat.send(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -67,7 +73,7 @@ class Chain:
                     user_name=user_name,
                 )
                 used_tokens = self.chat.get_used_tokens()
-            elif sub_mode == 'completion':
+            elif sub_mode == MODE_COMPLETION:
                 response = self.completion.send(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -95,12 +101,11 @@ class Chain:
 
         # get output
         output = None
-        if sub_mode == 'chat':
+        if sub_mode == MODE_CHAT:
             output = response.content
-        elif sub_mode == 'completion':
+        elif sub_mode == MODE_COMPLETION:
             output = response
 
         # store context
         ctx.set_output(output, ai_name)
-
         return True

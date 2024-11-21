@@ -11,6 +11,9 @@
 
 import json
 
+from pygpt_net.core.types import (
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
@@ -30,7 +33,7 @@ class Plugin(BasePlugin):
             "get_context",
         ]
         self.ignored_modes = [
-            "llama_index",
+            MODE_LLAMA_INDEX,
         ]
         self.type = [
             "cmd.inline",

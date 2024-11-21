@@ -6,11 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+)
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
 from pygpt_net.core.events import Event
@@ -398,7 +401,7 @@ class Plugins:
         self.log("Executing plugin commands...")
         mode = self.window.core.config.get('mode')
         change_status = True
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
                 change_status = False
         if change_status:
@@ -435,7 +438,7 @@ class Plugins:
         self.log("Executing inline plugin commands...")
         mode = self.window.core.config.get('mode')
         change_status = True
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             if len(cmds) == 1 and cmds[0]["cmd"] == "goal_update":
                 change_status = False
         if change_status:

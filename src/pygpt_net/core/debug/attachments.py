@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
-
 
 class AttachmentsDebug:
     def __init__(self, window=None):
@@ -24,8 +23,7 @@ class AttachmentsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
-        modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant', 'llama_index', 'agent', 'agent_llama']
-        for mode in modes:
+        for mode in self.window.core.modes.all:
             self.window.core.debug.add(self.id, '[' + mode + ']', '')
             attachments = self.window.core.attachments.get_all(mode)
             for key in list(attachments):

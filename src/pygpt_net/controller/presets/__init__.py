@@ -6,13 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import re
 
 from PySide6.QtGui import QTextCursor
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_EXPERT,
+)
 from pygpt_net.controller.presets.editor import Editor
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.preset import PresetItem
@@ -316,7 +322,7 @@ class Presets:
         self.window.core.config.set('temperature', 1.0)
 
         # set default prompt if mode is chat
-        if mode == 'chat':
+        if mode == MODE_CHAT:
             self.window.core.config.set('prompt', self.window.core.prompt.get('default'))
         else:
             self.window.core.config.set('prompt', None)
@@ -365,7 +371,7 @@ class Presets:
     def refresh(self):
         """Refresh presets"""
         mode = self.window.core.config.get('mode')
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             return
 
         self.select_default()  # if no preset then select previous from current presets
@@ -477,7 +483,7 @@ class Presets:
 
         # reload assistant default instructions
         mode = self.window.core.config.get('mode')
-        if mode == "assistant":
+        if mode == MODE_ASSISTANT:
             self.window.core.assistants.load()
 
     def delete(self, idx: int = None, force: bool = False):
@@ -522,8 +528,8 @@ class Presets:
             )
             return
         mode = self.window.core.config.get('mode')
-        if mode == "agent":
-            mode = "expert"  # shared presets
+        if mode == MODE_AGENT:
+            mode = MODE_EXPERT  # shared presets
         self.window.core.presets.restore(mode)
         self.refresh()
 
@@ -536,8 +542,8 @@ class Presets:
         """
         if idx is not None:
             mode = self.window.core.config.get('mode')
-            if mode == "agent":
-                mode = "expert"  # shared presets
+            if mode == MODE_AGENT:
+                mode = MODE_EXPERT  # shared presets
             preset_id = self.window.core.presets.get_by_idx(idx, mode)
             if preset_id is not None and preset_id != "":
                 if preset_id == "current." + mode:
@@ -563,7 +569,7 @@ class Presets:
         # if self.window.controller.chat.input.generating:
         # return True
         mode = self.window.core.config.get('mode')
-        if mode == "assistant":
+        if mode == MODE_ASSISTANT:
             return True
         return False
 

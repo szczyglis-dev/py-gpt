@@ -6,11 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -26,19 +36,13 @@ class Input:
         self.locked = False
         self.stop = False
         self.generating = False
-        self.no_api_key_allowed = [
-            "langchain",
-            "llama_index",
-            "agent",
-            "agent_llama",
-            "expert",
-        ]
         self.no_ctx_idx_modes = [
-            # "img",
-            "assistant",
-            # "llama_index",
-            "agent",
+            # MODE_IMAGE,
+            MODE_ASSISTANT,
+            # MODE_LLAMA_INDEX,
+            MODE_AGENT,
         ]  # assistant is handled in async, agent is handled in agent flow
+        self.stop_commands = ["stop", "halt"]
 
     def send_input(self, force: bool = False):
         """
@@ -62,7 +66,7 @@ class Input:
 
         # if agent mode: iterations check
         if not force:
-            if (mode == "agent" and self.window.core.config.get('agent.iterations') == 0) \
+            if (mode == MODE_AGENT and self.window.core.config.get('agent.iterations') == 0) \
                     or (self.window.controller.plugins.is_enabled("agent")
                         and self.window.core.plugins.get_option("agent", "iterations") == 0):
 
@@ -76,16 +80,16 @@ class Input:
 
         if self.generating \
                 and text is not None \
-                and text.lower().strip() in ["stop", "halt"]:
+                and text.lower().strip() in self.stop_commands:
             self.window.controller.kernel.stop()  # TODO: to chat main
             event = RenderEvent(RenderEvent.CLEAR_INPUT)
             self.window.dispatch(event)
             return
 
         # agent modes
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             self.window.controller.agent.flow.on_user_send(text)  # begin legacy agent flow
-        elif mode == "agent_llama":
+        elif mode == MODE_AGENT_LLAMA:
             self.window.controller.agent.llama.flow_begin()  # begin llama agent flow
 
         # event: user input send (manually)
@@ -161,30 +165,30 @@ class Input:
         self.generating = True  # set generating flag
 
         mode = self.window.core.config.get('mode')
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             # check if assistant is selected
             if self.window.core.config.get('assistant') is None \
                     or self.window.core.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False  # unlock
                 return
-        elif (mode == 'vision'
+        elif (mode == MODE_VISION
               or self.window.controller.plugins.is_type_enabled('vision')
               or self.window.controller.ui.vision.is_vision_model()):
             # capture frame from camera if auto-capture enabled
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
-                    self.window.controller.camera.capture_frame(False)
+                    self.window.controller.camera.capture_frame(switch=False)
                     self.log("Captured frame from camera.")  # log
 
         # unlock Assistant run thread if locked
         self.window.controller.assistant.threads.stop = False
-        self.window.controller.kernel.halt = False
+        self.window.controller.kernel.resume()
 
         self.log("Input prompt: {}".format(text))  # log
 
         # agent mode
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             self.log("Agent: input before: {}".format(text))
             text = self.window.controller.agent.flow.on_input_before(text)
 
@@ -199,7 +203,7 @@ class Input:
         # check if image captured from camera
         camera_captured = (
                 (
-                        mode == 'vision'
+                        mode == MODE_VISION
                         or self.window.controller.plugins.is_type_enabled('vision')
                         or self.window.controller.ui.vision.is_vision_model()
                 )
@@ -212,22 +216,23 @@ class Input:
             return
 
         # check API key, show monit if not set
-        if mode not in self.no_api_key_allowed:
+        if mode not in self.window.controller.launcher.no_api_key_allowed:
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
-                self.window.stateChanged.emit(self.window.STATE_ERROR)
+                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                    "id": "chat",
+                }))
                 return
 
         # set state to: busy
         self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": "chat",
+            "msg": trans('status.sending'),
         }))
-        self.window.update_status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force and not internal:
-            event = RenderEvent(RenderEvent.CLEAR_INPUT)
-            self.window.dispatch(event)
+            self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
 
         # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
         if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.get_current() is None:
@@ -239,7 +244,7 @@ class Input:
             self.window.controller.ctx.handle_allowed(mode)
 
         # send input to API
-        if mode == 'img':
+        if mode == MODE_IMAGE:
             self.window.controller.chat.image.send(
                 text=text,
                 prev_ctx=prev_ctx,

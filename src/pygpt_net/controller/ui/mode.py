@@ -6,9 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -29,21 +38,21 @@ class Mode:
         mode = self.window.core.config.data['mode']
 
         # presets
-        if mode != "assistant":
+        if mode != MODE_ASSISTANT:
             self.window.ui.nodes['presets.widget'].setVisible(True)
         else:
             self.window.ui.nodes['presets.widget'].setVisible(False)
 
         # presets: labels
-        if mode == "agent":
+        if mode == MODE_AGENT:
             self.window.ui.nodes['preset.agents.label'].setVisible(True)
             self.window.ui.nodes['preset.experts.label'].setVisible(False)
             self.window.ui.nodes['preset.presets.label'].setVisible(False)
-        elif mode == "agent_llama":
+        elif mode == MODE_AGENT_LLAMA:
             self.window.ui.nodes['preset.agents.label'].setVisible(True)
             self.window.ui.nodes['preset.experts.label'].setVisible(False)
             self.window.ui.nodes['preset.presets.label'].setVisible(False)
-        elif mode == "expert":
+        elif mode == MODE_EXPERT:
             self.window.ui.nodes['preset.agents.label'].setVisible(False)
             self.window.ui.nodes['preset.experts.label'].setVisible(True)
             self.window.ui.nodes['preset.presets.label'].setVisible(False)
@@ -53,7 +62,7 @@ class Mode:
             self.window.ui.nodes['preset.presets.label'].setVisible(True)
 
         # presets: editor
-        if mode == "agent":
+        if mode == MODE_AGENT:
             self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
@@ -64,7 +73,7 @@ class Mode:
             self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
-        elif mode == "agent_llama":
+        elif mode == MODE_AGENT_LLAMA:
             self.window.ui.nodes['preset.editor.user_name'].setVisible(False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
@@ -85,7 +94,8 @@ class Mode:
             self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt"))
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
-            if mode == "assistant":
+
+            if mode == MODE_ASSISTANT:
                 self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(True)
                 self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             else:
@@ -95,52 +105,52 @@ class Mode:
         # presets: clear
         self.window.ui.nodes['preset.clear'].setVisible(False)
         """
-        if mode in ["img", "assistant"]:
+        if mode in [MODE_IMAGE, MODE_ASSISTANT]:
             self.window.ui.nodes['preset.clear'].setVisible(False)
         else:
             self.window.ui.nodes['preset.clear'].setVisible(True)
         """
 
         # presets: use
-        if mode == 'img':
+        if mode == MODE_IMAGE:
             self.window.ui.nodes['preset.use'].setVisible(True)
         else:
             self.window.ui.nodes['preset.use'].setVisible(False)
 
         # img options
-        if mode == "img":
+        if mode == MODE_IMAGE:
             self.window.ui.nodes['dalle.options'].setVisible(True)
         else:
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
         # agent options
-        if mode in ["agent"]:
+        if mode in [MODE_AGENT]:
             self.window.ui.nodes['agent.options'].setVisible(True)
         else:
             self.window.ui.nodes['agent.options'].setVisible(False)
 
         # agent llama options
-        if mode in ["agent_llama"]:
+        if mode in [MODE_AGENT_LLAMA]:
             self.window.ui.nodes['agent_llama.options'].setVisible(True)
         else:
             self.window.ui.nodes['agent_llama.options'].setVisible(False)
 
         """
         # agent llama sys prompt
-        if mode in ["agent_llama"]:
+        if mode in [MODE_AGENT_LLAMA]:
             self.window.ui.nodes['preset.prompt'].setVisible(False)
         else:
             self.window.ui.nodes['preset.prompt'].setVisible(True)
         """
 
         # assistants list
-        if mode == "assistant":
+        if mode == MODE_ASSISTANT:
             self.window.ui.nodes['assistants.widget'].setVisible(True)
         else:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
 
         # indexes list
-        if mode == "llama_index":
+        if mode == MODE_LLAMA_INDEX:
             # self.window.ui.nodes['indexes.widget'].setVisible(True)
             self.window.ui.nodes['idx.options'].setVisible(True)
         else:
@@ -148,7 +158,7 @@ class Mode:
             self.window.ui.nodes['idx.options'].setVisible(False)
 
         # stream mode
-        if mode in ["img"]:
+        if mode in [MODE_IMAGE]:
             self.window.ui.nodes['input.stream'].setVisible(False)
         else:
             self.window.ui.nodes['input.stream'].setVisible(True)
@@ -165,7 +175,7 @@ class Mode:
         self.window.ui.tabs['input'].setTabVisible(1, show)  # attachments
 
         # uploaded files
-        if mode == "assistant":
+        if mode == MODE_ASSISTANT:
             self.window.ui.tabs['input'].setTabVisible(2, True)
         else:
             self.window.ui.tabs['input'].setTabVisible(2, False)
@@ -182,14 +192,14 @@ class Mode:
 
         :param mode: current mode
         """
-        if mode == "vision":
+        if mode == MODE_VISION:
             return True
 
         allowed = self.window.controller.painter.is_active()
         if allowed:
             return True
 
-        if mode in ["img", "assistant"]:
+        if mode in [MODE_IMAGE, MODE_ASSISTANT]:
             return False
 
         if self.window.controller.ui.vision.is_vision_model():
@@ -206,10 +216,10 @@ class Mode:
 
     def are_attachments(self, mode: str) -> bool:
         """Check if attachments are allowed"""
-        if mode in ["vision", "assistant"]:
+        if mode in [MODE_VISION, MODE_ASSISTANT]:
             return True
 
-        if mode in ["img"]:
+        if mode in [MODE_IMAGE]:
             return False
 
         if self.window.controller.ui.vision.has_vision():

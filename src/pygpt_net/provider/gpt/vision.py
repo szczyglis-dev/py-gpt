@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import base64
 import os
 import re
 
+from pygpt_net.core.types import (
+    MODE_VISION,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -94,7 +97,7 @@ class Vision:
         messages = []
 
         # tokens config
-        mode = 'vision'
+        mode = MODE_VISION
         used_tokens = self.window.core.tokens.from_user(
             prompt,
             system_prompt,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 16:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from langchain_openai import AzureOpenAI
@@ -17,6 +17,10 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI as LlamaAzureOpenAI
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 
+from pygpt_net.core.types import (
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
@@ -33,7 +37,7 @@ class AzureOpenAILLM(BaseLLM):
             - api_key: API key for Azure OpenAI API
         """
         self.id = "azure_openai"
-        self.type = ["langchain", "llama_index", "embeddings"]
+        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
         """

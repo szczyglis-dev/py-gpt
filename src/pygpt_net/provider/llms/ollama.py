@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
 import os
 
 from langchain_community.chat_models import ChatOllama
@@ -16,6 +17,11 @@ from llama_index.llms.ollama import Ollama
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
+
+from pygpt_net.core.types import (
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 import nest_asyncio
@@ -25,7 +31,7 @@ class OllamaLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(OllamaLLM, self).__init__(*args, **kwargs)
         self.id = "ollama"
-        self.type = ["langchain", "llama_index", "embeddings"]
+        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
         """

@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
+from pygpt_net.core.types import (
+    MODE_EXPERT,
+)
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -80,7 +83,7 @@ class PresetList(BaseList):
 
         menu = QMenu(self)
         menu.addAction(actions['edit'])
-        if mode == "expert":
+        if mode == MODE_EXPERT:
             if not preset.filename.startswith("current."):
                 if not preset.enabled:
                     actions['enable'] = QAction(QIcon(":/icons/check.svg"), trans('preset.action.enable'), self)

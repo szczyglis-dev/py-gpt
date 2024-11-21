@@ -6,12 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from llama_index.core.agent import ReActAgent as Agent
 from llama_index.core.agent.react_multimodal.step import (
     MultimodalReActAgentWorker,
+)
+
+from pygpt_net.core.types import (
+    MODE_VISION,
 )
 
 from .base import BaseAgent
@@ -41,7 +45,7 @@ class ReactAgent(BaseAgent):
         model = kwargs.get("model", None)
         modes = model.mode if model is not None else None
         is_multimodal = False
-        if "vision" in modes:
+        if MODE_VISION in modes:
             is_multimodal = True
         if is_multimodal:
             step_engine = MultimodalReActAgentWorker.from_tools(

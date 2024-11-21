@@ -6,13 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import copy
 import uuid
 
 from packaging.version import Version
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.provider.core.preset.json_file import JsonFileProvider
 
@@ -186,25 +198,25 @@ class Presets:
         """
         preset = self.items[id]
         if preset.chat:
-            return 'chat'
+            return MODE_CHAT
         if preset.completion:
-            return 'completion'
+            return MODE_COMPLETION
         if preset.img:
-            return 'img'
+            return MODE_IMAGE
         if preset.vision:
-            return 'vision'
+            return MODE_VISION
         if preset.langchain:
-            return 'langchain'
+            return MODE_LANGCHAIN
         if preset.assistant:
-            return 'assistant'
+            return MODE_ASSISTANT
         if preset.llama_index:
-            return 'llama_index'
+            return MODE_LLAMA_INDEX
         if preset.agent:
-            return 'agent'
+            return MODE_AGENT
         if preset.agent_llama:
-            return 'agent_llama'
+            return MODE_AGENT_LLAMA
         if preset.expert:
-            return 'expert'
+            return MODE_EXPERT
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -265,16 +277,16 @@ class Presets:
         """
         presets = {}
         for id in self.items:
-            if (mode == 'chat' and self.items[id].chat) \
-                    or (mode == 'completion' and self.items[id].completion) \
-                    or (mode == 'img' and self.items[id].img) \
-                    or (mode == 'vision' and self.items[id].vision) \
-                    or (mode == 'langchain' and self.items[id].langchain) \
-                    or (mode == 'assistant' and self.items[id].assistant) \
-                    or (mode == 'llama_index' and self.items[id].llama_index) \
-                    or (mode == 'agent' and self.items[id].agent) \
-                    or (mode == 'agent_llama' and self.items[id].agent_llama) \
-                    or (mode == 'expert' and self.items[id].expert):
+            if (mode == MODE_CHAT and self.items[id].chat) \
+                    or (mode == MODE_COMPLETION and self.items[id].completion) \
+                    or (mode == MODE_IMAGE and self.items[id].img) \
+                    or (mode == MODE_VISION and self.items[id].vision) \
+                    or (mode == MODE_LANGCHAIN and self.items[id].langchain) \
+                    or (mode == MODE_ASSISTANT and self.items[id].assistant) \
+                    or (mode == MODE_LLAMA_INDEX and self.items[id].llama_index) \
+                    or (mode == MODE_AGENT and self.items[id].agent) \
+                    or (mode == MODE_AGENT_LLAMA and self.items[id].agent_llama) \
+                    or (mode == MODE_EXPERT and self.items[id].expert):
                 presets[id] = self.items[id]
         return presets
 

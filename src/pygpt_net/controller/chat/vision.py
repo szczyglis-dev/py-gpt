@@ -6,8 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 
 class Vision:
     def __init__(self, window=None):
@@ -20,12 +30,12 @@ class Vision:
         self.is_enabled = False
         self.is_available = False
         self.allowed_modes = [
-            "chat",
-            "completion",
-            "langchain",
-            "llama_index",
-            "agent",
-            "agent_llama",
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_AGENT,
+            MODE_AGENT_LLAMA,
         ]
 
     def setup(self):
@@ -53,17 +63,17 @@ class Vision:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        if mode in ["agent", "agent_llama"]:
+        if mode in [MODE_AGENT, MODE_AGENT_LLAMA]:
             return  # disallow change in agent modes
-        if mode == "chat" and "vision" in model_data.mode:
+        if mode == MODE_CHAT and MODE_VISION in model_data.mode:
             return  # abort if vision is already allowed
-        if mode == 'vision':
+        if mode == MODE_VISION:
             return
         # abort if vision is already enabled
         if not self.window.controller.plugins.is_enabled('openai_vision') \
                 or (self.window.controller.plugins.is_enabled('openai_vision')
                     and mode not in self.allowed_modes):
-            self.window.controller.mode.set('vision')
+            self.window.controller.mode.set(MODE_VISION)
 
     def allowed(self) -> bool:
         """

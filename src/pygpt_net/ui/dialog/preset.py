@@ -6,12 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -89,15 +100,15 @@ class Preset(BaseConfigDialog):
 
         # modes
         mode_keys = [
-            "chat",
-            "completion",
-            "img",
-            "vision",
-            "langchain",
-            "llama_index",
-            "agent_llama",
-            "agent",
-            "expert",
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_IMAGE,
+            MODE_VISION,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_AGENT_LLAMA,
+            MODE_AGENT,
+            MODE_EXPERT,
         ]
         rows_mode = QVBoxLayout()
         rows_mode.addStretch()

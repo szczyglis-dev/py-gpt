@@ -6,12 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import re
 
 from PySide6.QtCore import QTimer
+
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION, MODE_IMAGE,
+)
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import ControlEvent
 from pygpt_net.utils import trans
@@ -60,9 +72,9 @@ class Control:
             elif self.mode_action == ControlEvent.MODE_PREV:
                 self.window.controller.mode.prev()
             elif self.mode_action == ControlEvent.MODE_CHAT:
-                self.window.controller.mode.set("chat")
+                self.window.controller.mode.set(MODE_CHAT)
             elif self.mode_action == ControlEvent.MODE_LLAMA_INDEX:
-                self.window.controller.mode.set("llama_index")
+                self.window.controller.mode.set(MODE_LLAMA_INDEX)
             self.mode_action = None
 
     def handle(self, event: ControlEvent, force: bool = False):

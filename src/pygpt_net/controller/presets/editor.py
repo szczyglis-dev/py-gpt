@@ -6,14 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION, MODE_IMAGE,
+)
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
+
 from .experts import Experts
 
 
@@ -43,35 +55,35 @@ class Editor:
                 "type": "text",
                 "label": "preset.user_name",
             },
-            "img": {
+            MODE_IMAGE: {
                 "type": "bool",
                 "label": "preset.img",
             },
-            "chat": {
+            MODE_CHAT: {
                 "type": "bool",
                 "label": "preset.chat",
             },
-            "completion": {
+            MODE_COMPLETION: {
                 "type": "bool",
                 "label": "preset.completion",
             },
-            "vision": {
+            MODE_VISION: {
                 "type": "bool",
                 "label": "preset.vision",
             },
-            "langchain": {
+            MODE_LANGCHAIN: {
                 "type": "bool",
                 "label": "preset.langchain",
             },
-            "expert": {
+            MODE_EXPERT: {
                 "type": "bool",
                 "label": "preset.expert",
             },
-            "agent_llama": {
+            MODE_AGENT_LLAMA: {
                 "type": "bool",
                 "label": "preset.agent_llama",
             },
-            "agent": {
+            MODE_AGENT: {
                 "type": "bool",
                 "label": "preset.agent",
             },
@@ -79,7 +91,7 @@ class Editor:
             # "type": "bool",
             # "label": "preset.assistant",
             # },
-            "llama_index": {
+            MODE_LLAMA_INDEX: {
                 "type": "bool",
                 "label": "preset.llama_index",
             },
@@ -136,8 +148,8 @@ class Editor:
             },
         }
         self.hidden_by_mode = {  # hidden fields by mode
-            "chat": ["idx"],
-            "agent_llama": ["temperature"],
+            MODE_CHAT: ["idx"],
+            MODE_AGENT_LLAMA: ["temperature"],
         }
         self.id = "preset"
         self.current = None
@@ -207,7 +219,7 @@ class Editor:
         mode = self.window.core.config.get('mode')
         if key == "prompt":
             self.window.core.config.set('prompt', value)
-            if mode == 'assistant':
+            if mode == MODE_ASSISTANT:
                 self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
@@ -255,25 +267,25 @@ class Editor:
         # set current mode at start
         if id is None:
             mode = self.window.core.config.get("mode")
-            if mode == "chat":
+            if mode == MODE_CHAT:
                 data.chat = True
-            elif mode == "completion":
+            elif mode == MODE_COMPLETION:
                 data.completion = True
-            elif mode == "img":
+            elif mode == MODE_IMAGE:
                 data.img = True
-            elif mode == "vision":
+            elif mode == MODE_VISION:
                 data.vision = True
-            elif mode == "langchain":
+            elif mode == MODE_LANGCHAIN:
                 data.langchain = True
-            # elif mode == "'"assistant':
+            # elif mode == MODE_ASSISTANT:
                 # data.assistant = True
-            elif mode == "llama_index":
+            elif mode == MODE_LLAMA_INDEX:
                 data.llama_index = True
-            elif mode == "expert":
+            elif mode == MODE_EXPERT:
                 data.expert = True
-            elif mode == "agent":
+            elif mode == MODE_AGENT:
                 data.agent = True
-            elif mode == "agent_llama":
+            elif mode == MODE_AGENT_LLAMA:
                 data.agent_llama = True
 
         options = {}
@@ -326,7 +338,16 @@ class Editor:
             option=self.options["filename"],
         )
         mode = self.window.core.config.get("mode")
-        modes = ["chat", "completion", "img", "vision", "langchain", "llama_index", "expert", "agent_llama"]
+        modes = [
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_IMAGE,
+            MODE_VISION,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_EXPERT,
+            MODE_AGENT_LLAMA,
+        ]
 
         # disallow editing default preset
         if id == "current." + mode:
@@ -376,7 +397,7 @@ class Editor:
             ):
                 is_mode = True
                 break
-        if mode != "agent" and not is_mode:
+        if mode != MODE_AGENT and not is_mode:
             self.window.ui.dialogs.alert(
                 trans('alert.preset.no_chat_completion')
             )
@@ -386,8 +407,8 @@ class Editor:
         self.assign_data(id)
 
         # if agent, assign experts and select only agent mode
-        if self.window.core.config.get('mode') == 'agent':
-            self.window.core.presets.items[id].mode = ["agent"]
+        if self.window.core.config.get('mode') == MODE_AGENT:
+            self.window.core.presets.items[id].mode = [MODE_AGENT]
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')

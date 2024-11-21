@@ -6,11 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.types import (
+    MODE_AGENT_LLAMA,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.core.events import KernelEvent
 
 class BridgeSignals(QObject):
@@ -38,21 +43,21 @@ class BridgeWorker(QObject, QRunnable):
         result = False
         try:
             # Langchain
-            if self.mode == "langchain":
+            if self.mode == MODE_LANGCHAIN:
                 result = self.window.core.chain.call(
                     context=self.context,
                     extra=self.extra,
                 )
 
             # Llama-index: chat with files
-            elif self.mode == "llama_index":
+            elif self.mode == MODE_LLAMA_INDEX:
                 result = self.window.core.idx.chat.call(
                     context=self.context,
                     extra=self.extra,
                 )
 
             # Llama-index: agents
-            elif self.mode == "agent_llama":
+            elif self.mode == MODE_AGENT_LLAMA:
                 result = self.window.core.agents.runner.call(
                     context=self.context,
                     extra=self.extra,
@@ -64,7 +69,7 @@ class BridgeWorker(QObject, QRunnable):
                     self.extra["error"] = str(self.window.core.agents.runner.get_error())
 
             # Loop: next step
-            elif self.mode == "loop_next":
+            elif self.mode == "loop_next":  # virtual mode
                 result = self.window.core.agents.runner.run_next(
                     context=self.context,
                     extra=self.extra,

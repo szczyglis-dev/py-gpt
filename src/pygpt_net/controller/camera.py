@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -16,6 +16,15 @@ from PySide6.QtCore import Slot
 
 from PySide6.QtGui import QImage, QPixmap, Qt
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.core.events import AppEvent
 from pygpt_net.core.camera import CaptureWorker
 from pygpt_net.utils import trans
@@ -429,7 +438,8 @@ class Camera:
         mode = self.window.core.config.get('mode')
         if self.window.controller.painter.is_active():
             return True
-        if mode != 'vision' and mode not in self.window.controller.chat.vision.allowed_modes:
+        if (mode != MODE_VISION
+                and mode not in self.window.controller.chat.vision.allowed_modes):
             return False
         if self.window.controller.plugins.is_type_enabled('vision'):
             return True

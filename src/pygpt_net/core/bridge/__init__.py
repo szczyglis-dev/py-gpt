@@ -6,11 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
+
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_EXPERT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 
 from .context import BridgeContext
 from .worker import BridgeWorker
@@ -26,7 +36,7 @@ class Bridge:
         self.last_call = None  # last API call time, for throttling
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
-        self.sync_modes = ["assistant"]
+        self.sync_modes = [MODE_ASSISTANT]
         self.worker = None
 
     def request(self, context: BridgeContext, extra: dict = None) -> bool:
@@ -39,7 +49,7 @@ class Bridge:
         if self.window.controller.kernel.stopped():
             return False
 
-        allowed_model_change = ["vision"]
+        allowed_model_change = [MODE_VISION]
         is_virtual = False
 
         self.window.stateChanged.emit(self.window.STATE_BUSY)  # set busy
@@ -60,12 +70,12 @@ class Bridge:
         context.parent_mode = base_mode  # store base mode
 
         # get agent or expert internal sub-mode
-        if base_mode == "agent" or base_mode == "expert":
+        if base_mode == MODE_AGENT or base_mode == MODE_EXPERT:
             is_virtual = True
             sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
-            if base_mode == "agent":
+            if base_mode == MODE_AGENT:
                 sub_mode = self.window.core.agents.legacy.get_mode()
-            elif base_mode == "expert":
+            elif base_mode == MODE_EXPERT:
                 sub_mode = self.window.core.experts.get_mode()
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
@@ -75,11 +85,11 @@ class Bridge:
             if not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
 
-        if mode == "llama_index" and base_mode != "llama_index":
-            context.idx_mode = "chat"
+        if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
+            context.idx_mode = MODE_CHAT
 
         if is_virtual:
-            if mode == "llama_index":  # after switch
+            if mode == MODE_LLAMA_INDEX:  # after switch
                 idx = self.window.core.agents.legacy.get_idx()  # get index, idx is common for agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
@@ -169,10 +179,10 @@ class Bridge:
 
         if context.model is not None:
             # check if model is supported by chat API, if not then try to use llama-index or langchain call
-            if not context.model.is_supported("chat"):
+            if not context.model.is_supported(MODE_CHAT):
 
                 # tmp switch to: llama-index
-                if context.model.is_supported("llama_index"):
+                if context.model.is_supported(MODE_LLAMA_INDEX):
                     context.stream = False  # force disable stream
                     ctx = context.ctx  # output will be filled in query
                     ctx.input = context.prompt
@@ -189,7 +199,7 @@ class Bridge:
                     return ""
 
                 # tmp switch to: langchain
-                elif context.model.is_supported("langchain"):
+                elif context.model.is_supported(MODE_LANGCHAIN):
                     context.stream = False
                     ctx = context.ctx
                     ctx.input = context.prompt

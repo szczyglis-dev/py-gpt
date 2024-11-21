@@ -6,8 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+)
 
 from .common import Common
 from .experts import Experts
@@ -65,7 +70,7 @@ class Agent:
         mode = self.window.core.config.get('mode')
 
         # get iterations from plugin or from agent mode
-        if mode in ["agent", "agent_llama"]:
+        if mode in [MODE_AGENT, MODE_AGENT_LLAMA]:
             iterations = int(self.window.core.config.get("agent.iterations"))
         elif self.is_inline():
             if self.window.controller.plugins.is_enabled("agent"):
@@ -155,7 +160,7 @@ class Agent:
 
         :return: True if enabled
         """
-        return self.window.core.config.get('mode') == 'agent' or self.is_inline()
+        return self.window.core.config.get('mode') == MODE_AGENT or self.is_inline()
 
     def add_run(self):
         """Increment agent iteration"""

@@ -6,9 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import RenderEvent, KernelEvent
 from pygpt_net.utils import trans
@@ -51,7 +56,7 @@ class Response:
 
         ctx.current = False  # reset current state
         stream = context.stream
-        mode = extra.get('mode', 'chat')
+        mode = extra.get('mode', MODE_CHAT)
         reply = extra.get('reply', False)
         internal = extra.get('internal', False)
         self.window.core.ctx.update_item(ctx)
@@ -72,7 +77,7 @@ class Response:
             return
 
         try:
-            if mode != "assistant":
+            if mode != MODE_ASSISTANT:
                 ctx.from_previous()  # append previous result if exists
                 self.window.controller.chat.output.handle(
                     ctx,
@@ -161,7 +166,7 @@ class Response:
         self.window.core.ctx.update_item(ctx)
 
         # update ctx meta
-        if mode == "agent_llama" and ctx.meta is not None:
+        if mode == MODE_AGENT_LLAMA and ctx.meta is not None:
             self.window.core.ctx.replace(ctx.meta)
             self.window.core.ctx.save(ctx.meta.id)
             # update preset if exists

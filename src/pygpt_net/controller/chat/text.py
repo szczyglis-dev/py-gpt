@@ -6,9 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -74,7 +80,7 @@ class Text:
         tools_outputs = []  # tools outputs (assistant only)
 
         # o1 models: disable stream mode
-        if model.startswith("o1") or mode == "agent_llama":
+        if model.startswith("o1") or mode == MODE_AGENT_LLAMA:
             stream_mode = False
 
         # create ctx item
@@ -107,7 +113,7 @@ class Text:
         self.window.controller.files.uploaded_ids = []  # clear uploaded files ids at the beginning
 
         # assistant: create thread, upload attachments
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             self.window.controller.assistant.begin(ctx)
 
         # store in history (input only)
@@ -117,7 +123,7 @@ class Text:
         self.window.controller.chat.log_ctx(ctx, "input")  # log
 
         # agent mode: before context
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             self.window.controller.agent.flow.on_ctx_before(ctx)
 
         # event: context before
@@ -138,7 +144,7 @@ class Text:
 
         # tool calls
         disable_native_func_calls = False
-        if mode == "llama_index":
+        if mode == MODE_LLAMA_INDEX:
             # check if index is selected
             if self.window.controller.idx.index_selected():
                 disable_native_func_calls = True  # native func calls allowed only for LLM call, not the query engine
@@ -186,7 +192,7 @@ class Text:
         functions += self.window.core.command.get_functions(parent_id)
 
         # assistant only
-        if mode == 'assistant':
+        if mode == MODE_ASSISTANT:
             # prepare tool outputs for assistant
             tools_outputs = self.window.controller.assistant.threads.handle_tool_outputs(ctx)
             if len(tools_outputs) > 0:
@@ -202,7 +208,7 @@ class Text:
 
             # assistant
             assistant_id = self.window.core.config.get('assistant')
-            if mode == "agent_llama":
+            if mode == MODE_AGENT_LLAMA:
                 preset = self.window.controller.presets.get_current()
                 if preset is not None:
                     assistant_id = preset.assistant_id
@@ -232,7 +238,7 @@ class Text:
                 'reply': reply,
                 'internal': internal,
             }
-            if mode == "agent_llama":
+            if mode == MODE_AGENT_LLAMA:
                 extra['agent_idx'] = agent_idx
                 extra['agent_provider'] = agent_provider
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,6 +15,18 @@ import uuid
 
 from packaging.version import Version
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.provider.core.ctx.base import BaseProvider
 from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
@@ -56,17 +68,28 @@ class Ctx:
         self.filters_labels = []  # search labels
         self.current_cmd = []  # current commands
         self.current_cmd_schema = "" # current commands schema
+        self.all_modes = [
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_IMAGE,
+            MODE_LANGCHAIN,
+            MODE_VISION,
+            MODE_ASSISTANT,
+            MODE_LLAMA_INDEX,
+            MODE_AGENT,
+            MODE_EXPERT,
+        ]
         self.allowed_modes = {
-            'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'img': ["img"],
-            'langchain': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'vision': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'assistant': ["assistant"],
-            'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'expert': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent", "expert"],
-            'agent_llama': ["agent_llama"],
+            MODE_CHAT: self.all_modes,
+            MODE_COMPLETION: self.all_modes,
+            MODE_IMAGE: [MODE_IMAGE],
+            MODE_LANGCHAIN: self.all_modes,
+            MODE_VISION: self.all_modes,
+            MODE_ASSISTANT: [MODE_ASSISTANT],
+            MODE_LLAMA_INDEX: self.all_modes,
+            MODE_AGENT: self.all_modes,
+            MODE_EXPERT: self.all_modes,
+            MODE_AGENT_LLAMA: [MODE_AGENT_LLAMA],
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False
@@ -802,7 +825,7 @@ class Ctx:
             self,
             history_items: list,
             model: str,
-            mode: str = "chat",
+            mode: str = MODE_CHAT,
             used_tokens: int = 100,
             max_tokens: int = 1000,
             ignore_first: bool = True
@@ -862,7 +885,7 @@ class Ctx:
     def get_prompt_items(
             self,
             model: str,
-            mode: str = "chat",
+            mode: str = MODE_CHAT,
             used_tokens: int = 100,
             max_tokens: int = 1000,
             ignore_first: bool = True

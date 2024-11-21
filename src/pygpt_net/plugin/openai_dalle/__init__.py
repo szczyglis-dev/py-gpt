@@ -6,9 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_CHAT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
@@ -29,12 +38,12 @@ class Plugin(BasePlugin):
             "cmd.inline",
         ]
         self.allowed_modes = [
-            "chat",
-            "langchain",
-            "vision",
-            "llama_index",
-            "assistant",
-            "agent",
+            MODE_CHAT,
+            MODE_LANGCHAIN,
+            MODE_VISION,
+            MODE_LLAMA_INDEX,
+            MODE_ASSISTANT,
+            MODE_AGENT,
         ]
         self.allowed_cmds = [
             "image",
@@ -137,7 +146,7 @@ class Plugin(BasePlugin):
                     model.id = "dall-e-3"
                     bridge_context = BridgeContext(
                         ctx=ctx,
-                        mode="image",
+                        mode="image",  # fake mode, not-img mode
                         model=model,  # model instance
                         prompt=query,
                     )
@@ -146,7 +155,7 @@ class Plugin(BasePlugin):
                         "inline": True, # force inline mode
                     }
                     sync = False
-                    if self.window.core.config.get("mode") == "agent_llama":
+                    if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
                         sync = True
                     self.window.core.gpt.image.generate(bridge_context, extra, sync)  # force inline mode, async call
             except Exception as e:

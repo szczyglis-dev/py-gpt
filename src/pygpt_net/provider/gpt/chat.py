@@ -6,12 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import json
 import re
 
+from pygpt_net.core.types import (
+    MODE_CHAT,
+    MODE_VISION,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -146,7 +150,7 @@ class Chat:
         messages = []
 
         # tokens config
-        mode = "chat"
+        mode = MODE_CHAT
         allowed_system = True
         if model.id is not None and model.id.startswith("o1"):
             allowed_system = False
@@ -201,7 +205,7 @@ class Chat:
 
         # use vision if available in current model
         content = str(prompt)
-        if "vision" in model.mode:
+        if MODE_VISION in model.mode:
             content = self.window.core.gpt.vision.build_content(prompt, attachments)
             # mark attachments as consumed
             if len(self.window.core.gpt.vision.attachments) > 0:

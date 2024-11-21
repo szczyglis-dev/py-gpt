@@ -6,9 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_EXPERT,
+)
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 
@@ -29,7 +33,7 @@ class Plugin(BasePlugin):
         ]
         self.order = 9998
         self.use_locale = True
-        self.disallowed_modes = ["agent", "expert"]
+        self.disallowed_modes = [MODE_AGENT, MODE_EXPERT]
         self.config = Config(self)
         self.init_options()
 

@@ -6,12 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import time
 from PySide6.QtCore import QObject, Slot
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_ASSISTANT,
+    MODE_EXPERT,
+)
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -318,7 +324,7 @@ class Kernel(QObject):
         :param ctx: context item
         :return: True if async commands are allowed
         """
-        disabled = ["assistant", "agent", "expert", "agent_llama"]
+        disabled = [MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA]
         if self.window.core.config.get("mode") in disabled:
             return False
         if ctx.agent_call:

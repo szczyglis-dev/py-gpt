@@ -6,9 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_EXPERT,
+)
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -51,7 +55,7 @@ class Experts:
 
         :return: True if experts are enabled
         """
-        modes = ["agent", "expert"]
+        modes = [MODE_AGENT, MODE_EXPERT]
         mode = self.window.core.config.get('mode')
         if mode in modes or self.window.controller.plugins.is_type_enabled("expert"):
             return True
@@ -81,7 +85,7 @@ class Experts:
                 # mode = "chat"  # change mode to chat for expert
 
         # if global mode is agent
-        if mode == 'agent':
+        if mode == MODE_AGENT:
             sys_prompt = self.window.controller.agent.flow.on_system_prompt(
                 sys_prompt,
                 append_prompt=None,  # sys prompt from preset is used here

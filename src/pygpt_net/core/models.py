@@ -6,13 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import copy
 
 from packaging.version import Version
 
+from pygpt_net.core.types import (
+    MODE_CHAT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
@@ -26,6 +31,7 @@ class Models:
         """
         self.window = window
         self.provider = JsonFileProvider(window)
+        self.default = "gpt-4o-mini"
         self.items = {}
 
     def install(self):
@@ -226,10 +232,10 @@ class Models:
         :return: new model
         """
         model = ModelItem()
-        model.id = "gpt-3.5-turbo-1106"
-        model.name = "gpt-3.5-turbo-1106"
+        model.id = self.default
+        model.name = self.default
         model.tokens = 4096
-        model.ctx = 4096
+        model.ctx = 128000
         return model
 
     def delete(self, model: str):
@@ -331,18 +337,18 @@ class Models:
         :param mode: mode (initial)
         :return: mode (supported)
         """
-        if model.is_supported("chat"):
+        if model.is_supported(MODE_CHAT):
             self.window.core.debug.info(
                 "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
-            mode = "chat"
-        elif model.is_supported("llama_index"):
+            mode = MODE_CHAT
+        elif model.is_supported(MODE_LLAMA_INDEX):
             self.window.core.debug.info(
                 "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
-            mode = "llama_index"
-        elif model.is_supported("langchain"):
+            mode = MODE_LLAMA_INDEX
+        elif model.is_supported(MODE_LANGCHAIN):
             self.window.core.debug.info(
                 "WARNING: Switching to langchain mode (model not supported in: {})".format(mode))
-            mode = "langchain"
+            mode = MODE_LANGCHAIN
         return mode
 
     def get_version(self) -> str:

@@ -6,9 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_EXPERT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 class Launcher:
     def __init__(self, window=None):
         """
@@ -17,11 +24,18 @@ class Launcher:
         :param window: Window instance
         """
         self.window = window
+        self.no_api_key_allowed = [
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_AGENT,
+            MODE_AGENT_LLAMA,
+            MODE_EXPERT,
+        ]
 
     def post_setup(self):
         """Post setup launcher"""
         # show welcome API KEY dialog (disable for langchain mode)
-        if self.window.core.config.get('mode') != 'langchain' and \
+        if not self.window.core.config.get('mode') in self.no_api_key_allowed and \
                 (self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == ''):
             self.show_api_monit()
 

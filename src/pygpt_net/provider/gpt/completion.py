@@ -6,9 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import (
+    MODE_COMPLETION,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -133,7 +136,7 @@ class Completion:
             items = self.window.core.ctx.get_history(
                 history,
                 model.id,
-                "completion",
+                MODE_COMPLETION,
                 used_tokens,
                 max_ctx_tokens,
             )

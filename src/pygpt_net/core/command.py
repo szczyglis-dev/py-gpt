@@ -6,13 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import re
 
+from pygpt_net.core.types import (
+    MODE_ASSISTANT,
+    MODE_COMPLETION,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+)
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
@@ -40,7 +46,7 @@ class Command:
         extra = ""
         schema = self.extract_syntax(data['cmd'])
         if schema:
-            if self.window.core.config.get('mode') == "assistant":
+            if self.window.core.config.get('mode') == MODE_ASSISTANT:
                 extra = self.window.core.prompt.get('cmd.extra.assistants')  # Assistants API env fix
             else:
                 extra = self.window.core.prompt.get('cmd.extra')
@@ -528,9 +534,9 @@ class Command:
         :return: True if enabled
         """
         disabled_modes = [
-            "llama_index",
-            "langchain",
-            "completion",
+            MODE_LLAMA_INDEX,
+            MODE_LANGCHAIN,
+            MODE_COMPLETION,
         ]
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:

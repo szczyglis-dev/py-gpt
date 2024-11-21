@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 import copy
 
 from PySide6.QtCore import QObject, Slot
 
+from pygpt_net.core.types import (
+    MODE_AGENT_LLAMA,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
@@ -465,6 +468,6 @@ class BasePlugin(QObject):
 
         :return: True if threaded
         """
-        if self.window.core.config.get("mode") == "agent_llama":
+        if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
             return True
         return False

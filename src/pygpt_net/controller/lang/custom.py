@@ -6,11 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_IMAGE,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.utils import trans
 
 
@@ -43,15 +54,15 @@ class Custom:
         self.window.ui.config['assistant']['tool.code_interpreter'].box.setText(
             trans('assistant.tool.code_interpreter')
         )
-        self.window.ui.config['preset']['chat'].box.setText(trans("preset.chat"))
-        self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
-        self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
-        self.window.ui.config['preset']['vision'].box.setText(trans("preset.vision"))
-        self.window.ui.config['preset']['langchain'].box.setText(trans("preset.langchain"))
-        self.window.ui.config['preset']['llama_index'].box.setText(trans("preset.llama_index"))
-        self.window.ui.config['preset']['agent'].box.setText(trans("preset.agent"))
-        self.window.ui.config['preset']['agent_llama'].box.setText(trans("preset.agent_llama"))
-        self.window.ui.config['preset']['expert'].box.setText(trans("preset.expert"))
+        self.window.ui.config['preset'][MODE_CHAT].box.setText(trans("preset.chat"))
+        self.window.ui.config['preset'][MODE_COMPLETION].box.setText(trans("preset.completion"))
+        self.window.ui.config['preset'][MODE_IMAGE].box.setText(trans("preset.img"))
+        self.window.ui.config['preset'][MODE_VISION].box.setText(trans("preset.vision"))
+        self.window.ui.config['preset'][MODE_LANGCHAIN].box.setText(trans("preset.langchain"))
+        self.window.ui.config['preset'][MODE_LLAMA_INDEX].box.setText(trans("preset.llama_index"))
+        self.window.ui.config['preset'][MODE_AGENT].box.setText(trans("preset.agent"))
+        self.window.ui.config['preset'][MODE_AGENT_LLAMA].box.setText(trans("preset.agent_llama"))
+        self.window.ui.config['preset'][MODE_EXPERT].box.setText(trans("preset.expert"))
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 

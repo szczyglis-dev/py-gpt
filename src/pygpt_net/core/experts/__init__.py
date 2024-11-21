@@ -6,9 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.21 20:00:00                  #
 # ================================================== #
 
+
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_EXPERT,
+    MODE_LANGCHAIN,
+    MODE_LLAMA_INDEX,
+    MODE_VISION,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
@@ -23,7 +33,13 @@ class Experts:
         :param window: Window instance
         """
         self.window = window
-        self.allowed_modes = ["chat", "completion", "vision", "langchain", "llama_index"]
+        self.allowed_modes = [
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_VISION,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+        ]
         self.allowed_cmds = ["expert_call"]
 
     def get_mode(self) -> str:
@@ -32,7 +48,7 @@ class Experts:
 
         :return: sub-mode
         """
-        mode = "chat"
+        mode = MODE_CHAT
         current = self.window.core.config.get("experts.mode")
         if current is not None and current in self.allowed_modes:
             mode = current
@@ -61,7 +77,7 @@ class Experts:
         :param id: expert id
         :return: True if exists
         """
-        return self.window.core.presets.has("expert", id)
+        return self.window.core.presets.has(MODE_EXPERT, id)
 
     def get_expert(self, id: str) -> PresetItem:
         """
@@ -70,7 +86,7 @@ class Experts:
         :param id: expert id
         :return: expert item (preset)
         """
-        return self.window.core.presets.get_by_id("expert", id)
+        return self.window.core.presets.get_by_id(MODE_EXPERT, id)
 
     def get_experts(self) -> dict:
         """
@@ -79,11 +95,11 @@ class Experts:
         :return: experts dict
         """
         experts = {}
-        presets = self.window.core.presets.get_by_mode("expert")
+        presets = self.window.core.presets.get_by_mode(MODE_EXPERT)
 
         # mode: agent
         if self.agent_enabled():
-            agents = self.window.core.presets.get_by_mode("agent")
+            agents = self.window.core.presets.get_by_mode(MODE_AGENT)
             agent = self.window.core.config.get('preset')
             if agent is not None:
                 if agent in agents:
@@ -110,7 +126,7 @@ class Experts:
         :return: number of experts
         """
         i = 0
-        agents = self.window.core.presets.get_by_mode("agent")
+        agents = self.window.core.presets.get_by_mode(MODE_AGENT)
         if uuid in agents:
             for expert_uuid in agents[uuid].experts:
                 expert = self.window.core.presets.get_by_uuid(expert_uuid)
@@ -298,7 +314,7 @@ class Experts:
         stream_mode = self.window.core.config.get('stream')
         db_idx = self.window.controller.idx.current_idx # get idx from agent config
 
-        mode = "expert"  # force expert mode, mode will change in bridge
+        mode = MODE_EXPERT  # force expert mode, mode will change in bridge
 
         # create slave item
         ctx = CtxItem()
