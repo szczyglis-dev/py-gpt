@@ -112,6 +112,8 @@ class Runner:
         Returns:
         list: A list of paths starting with '/data'.
         """
+        if text is None:
+            return []
         pattern = r"(/data/[^\s'\";]+)"
         paths = re.findall(pattern, text)
         return paths
