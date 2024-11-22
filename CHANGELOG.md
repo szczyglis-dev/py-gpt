@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.20 (2024-11-22)
+
+- Small fixes.
+
 ## 2.4.19 (2024-11-22)
 
 - Added new LLM providers for Llama-index: HuggingFaceAPI and LocalAI.
