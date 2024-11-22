@@ -3628,6 +3628,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.20 (2024-11-22)**
 
+- Fixed freeze in Windows installer. #75
 - Small fixes.
 
 **2.4.19 (2024-11-22)**

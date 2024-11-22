@@ -2,6 +2,7 @@
 
 ## 2.4.20 (2024-11-22)
 
+- Fixed freeze in Windows installer. #75
 - Small fixes.
 
 ## 2.4.19 (2024-11-22)
