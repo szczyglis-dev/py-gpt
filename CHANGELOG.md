@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.19 (2024-11-22)
+
+- Added new LLM providers for Llama-index: HuggingFaceAPI and LocalAI.
+- The IPython interpreter now returns local paths to generated files and images (mapped to: %workdir%/ipython/).
+- Refactored legacy Agent and Expert modes.
+- Fixed Expert mode initialization.
+- Added an option in Settings -> Layout to disable animations.
+
 ## 2.4.18 (2024-11-21)
 
 - Refactored kernel status and state handling.
