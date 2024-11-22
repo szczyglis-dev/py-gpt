@@ -1664,6 +1664,8 @@ class Patch:
             # < 2.4.19
             if old < parse_version("2.4.19"):
                 print("Migrating config from < 2.4.19...")
+                if 'layout.animation.disable' not in data:
+                    data["layout.animation.disable"] = self.window.core.config.get_base('layout.animation.disable')
                 if 'cmd_code_interpreter' in data['plugins'] \
                         and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
                     # remove
