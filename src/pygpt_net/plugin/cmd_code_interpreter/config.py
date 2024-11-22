@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 19:00:00                  #
+# Updated Date: 2024.11.21 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -93,7 +93,9 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "ipython_execute",
-            instruction="execute Python code in IPython interpreter (in current kernel) and get output.",
+            instruction="execute Python code in IPython interpreter (in current kernel) and get output. "
+                        "Tip: when generating plots or other image data always print path to generated image at "
+                        "the end and provide local path (prefixed with file://, not sandbox:) to the user.",
             params=[
                 {
                     "name": "code",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.21 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -1655,6 +1655,15 @@ class Patch:
                         and 'cmd.ipython_execute_new' in data['plugins']['cmd_code_interpreter']:
                     # remove
                     del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute_new']
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute']
+                updated = True
+
+            # < 2.4.19
+            if old < parse_version("2.4.19"):
+                print("Migrating config from < 2.4.19...")
                 if 'cmd_code_interpreter' in data['plugins'] \
                         and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
                     # remove

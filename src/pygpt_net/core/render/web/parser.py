@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.03 21:00:00                  #
+# Updated Date: 2024.11.21 22:00:00                  #
 # ================================================== #
 
 import os
@@ -56,6 +56,16 @@ class Parser:
         """
         return self.code_blocks
 
+    def prepare_paths(self, text: str) -> str:
+        """
+        Prepare paths in markdown text
+
+        :param text: markdown text
+        :return: markdown text with prepared paths
+        """
+        # Replace sandbox paths with file paths
+        return text.replace("](sandbox:", "](file://")
+
     def parse(self, text: str) -> str:
         """
         Parse markdown text
@@ -65,7 +75,8 @@ class Parser:
         """
         self.init()
         try:
-            soup = BeautifulSoup(self.md.convert(text.strip()), 'html.parser')
+            text = self.prepare_paths(text.strip())
+            soup = BeautifulSoup(self.md.convert(text), 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             # if self.window.core.config.get("ctx.convert_lists"):
             #   self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs, DISABLED: 2024-11-03
