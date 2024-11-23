@@ -331,6 +331,19 @@
         "step": null,
         "advanced": false
     },
+    "ctx.attachment.img": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.attachment.img",
+        "description": "settings.ctx.attachment.img.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.attachment.summary.model": {
         "section": "files",
         "type": "combo",

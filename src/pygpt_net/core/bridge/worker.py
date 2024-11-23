@@ -119,4 +119,3 @@ class BridgeWorker(QObject, QRunnable):
             if ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT or self.mode == MODE_AGENT_LLAMA:
                 ctx.hidden_input = ad_context  # store for future use, only if query context
                 # if full context or summary, then whole extra context will be applied to current input
-                # TODO: or LLAMA_AGENT, then append to input

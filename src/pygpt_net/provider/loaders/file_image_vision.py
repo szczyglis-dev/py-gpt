@@ -26,7 +26,8 @@ class Loader(BaseLoader):
             "use_local": False,  # use local model instead of API
             "keep_image": False,
             "local_prompt": "Question: describe what you see in this image. Answer:",
-            "api_prompt": "Describe what you see in this image",
+            "api_prompt": "Describe what is visible in the image, do it as accurately as possible, "
+                          "including a comprehensive description of all details",
             "api_model": "gpt-4o",
             "api_tokens": 1000,
         }

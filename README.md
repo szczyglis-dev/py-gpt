@@ -1073,9 +1073,16 @@ You can use attachments to provide additional context to the conversation. Uploa
 - Word .docx documents (docx)
 - XML files (xml)
 
+and:
+
+- Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
+- Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
+
+**Note:** To use images as additional context, you must enable the option in settings: `Files and attachments -> Allow images as additional context`. Otherwise, only normal vision/handling by the vision model will be active for images.
+
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 
-- `Full context`: This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
+- `Full context`: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
 
 - `Query only`: The indexed attachment will only be queried in real-time using Llama-index. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
 

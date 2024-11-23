@@ -37,6 +37,7 @@ class Attachment(QObject):
         super(Attachment, self).__init__()
         self.window = window
         self.mode = self.MODE_QUERY_CONTEXT
+        self.uploaded = False
 
     def has(self, mode: str) -> bool:
         """
@@ -93,9 +94,10 @@ class Attachment(QObject):
         :param path: Path to file
         :return: True if excluded
         """
+        allow_images = self.window.core.config.get("ctx.attachment.img", False)
         allowed = self.window.core.idx.indexing.is_allowed(path)
         if allowed:
-            if not self.window.core.filesystem.types.is_image(path):
+            if not self.window.core.filesystem.types.is_image(path) or allow_images:
                 return True
         return False
 
@@ -108,9 +110,10 @@ class Attachment(QObject):
         :return: True if uploaded
         """
         # upload on chat input send, handle to index, etc.
-        uploaded = False
+        self.uploaded = False
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
-        print("Uploading attachments for meta UUID: {}...".format(meta.uuid))
+        if self.window.core.config.get("ctx.attachment.verbose", False) and len(attachments) > 0:
+            self.window.core.debug.log("Uploading attachments...\nMode: {}".format(mode))
         for uuid in attachments:
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
@@ -119,10 +122,10 @@ class Attachment(QObject):
             if item:
                 meta.additional_ctx.append(item)
                 attachment.consumed = True  # allow for deletion
-                uploaded = True
-        if uploaded:
+                self.uploaded = True
+        if self.uploaded:
             self.window.core.ctx.save(meta.id)  # save meta
-        return uploaded
+        return self.uploaded
 
     def has_context(self, meta: CtxMeta) -> bool:
         """
@@ -168,10 +171,10 @@ class Attachment(QObject):
             content = self.get_query_context(meta, str(ctx.input))
         elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
             content = self.get_context_summary(ctx)
-        if self.window.core.config.get("ctx.attachment.verbose", False):
-            self.window.core.debug.log("Received additional context: {}".format(content))
         if content:
-            return "ADDITIONAL CONTEXT: {}".format(content)
+            if self.window.core.config.get("ctx.attachment.verbose", False):
+                self.window.core.debug.log("Received additional context: {}".format(content))
+            return "ADDITIONAL CONTEXT FROM ATTACHMENT: {}".format(content)
         return ""
 
     def get_full_context(self, ctx: CtxItem) -> str:
@@ -315,19 +318,7 @@ class Attachment(QObject):
         self.window.core.attachments.context.clear(meta, delete_files=remove_local)
         self.update_list(meta)
 
-    def query_context(self, meta: CtxMeta, query: str):
-        """
-        Query additional context for attachment
-
-        :param meta: CtxMeta
-        """
-        # query additional context by meta UUID, using bg Llama index
-        # get additional context from this content basing on user query
-        # bridge call about summary
-        print("Querying additional context...")
-        pass
-
-    @Slot()
+    @Slot(object)
     def handle_attachment_error(self, error: Exception):
         """
         Handle attachment error
@@ -339,7 +330,7 @@ class Attachment(QObject):
             "msg": "Error reading attachments: {}".format(str(error))
         }))
 
-    @Slot()
+    @Slot(str)
     def handle_attachment_success(self, text: str):
         """
         Handle attachment success
@@ -359,7 +350,7 @@ class Attachment(QObject):
         """
         Switch context mode
 
-        :param mode: str
+        :param mode: context mode
         """
         # switch attachment mode
         self.mode = mode
