@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 22:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -1670,6 +1670,17 @@ class Patch:
                         and 'cmd.ipython_execute' in data['plugins']['cmd_code_interpreter']:
                     # remove
                     del data['plugins']['cmd_code_interpreter']['cmd.ipython_execute']
+                updated = True
+
+            # < 2.4.21
+            if old < parse_version("2.4.21"):
+                print("Migrating config from < 2.4.21...")
+                if 'ctx.attachment.mode' not in data:
+                    data["ctx.attachment.mode"] = self.window.core.config.get_base('ctx.attachment.mode')
+                if 'ctx.attachment.summary.model' not in data:
+                    data["ctx.attachment.summary.model"] = self.window.core.config.get_base('ctx.attachment.summary.model')
+                if 'ctx.attachment.verbose' not in data:
+                    data["ctx.attachment.verbose"] = self.window.core.config.get_base('ctx.attachment.verbose')
                 updated = True
 
         # update file

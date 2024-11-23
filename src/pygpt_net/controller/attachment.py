@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import os
@@ -223,8 +223,8 @@ class Attachment:
         self.window.core.attachments.delete_all(
             mode=mode,
             remove_local=remove_local,
+            auto=auto,
         )
-
         self.window.controller.chat.vision.unavailable()  # set no content to provide
         self.update()
         if not auto:
@@ -240,22 +240,6 @@ class Attachment:
             mode=mode,
             remove_local=False,
         )
-
-    def set_consumed(self, value: bool = True):
-        """
-        Mark as consumed
-
-        :param value: value
-        """
-        self.is_consumed = value
-
-    def consumed(self) -> bool:
-        """
-        Return True if attachment is consumed
-
-        :return: True if attachment is consumed
-        """
-        return self.is_consumed
 
     def open_add(self):
         """Open add attachment file dialog"""

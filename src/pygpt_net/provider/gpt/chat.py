@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import json
@@ -193,23 +193,20 @@ class Chat:
                 role_name = "system"
                 if not allowed_system:
                     role_name = "user"
-                if item.input is not None and item.input != "":
-                    messages.append({"role": role_name, "name": self.sanitize_name(user_name), "content": item.input})
+                if item.final_input is not None and item.final_input != "":
+                    messages.append({"role": role_name, "name": self.sanitize_name(user_name), "content": item.final_input})
 
                 # output
                 role_name = "system"
                 if not allowed_system:
                     role_name = "assistant"
-                if item.output is not None and item.output != "":
-                    messages.append({"role": role_name, "name": self.sanitize_name(ai_name), "content": item.output})
+                if item.final_output is not None and item.final_output != "":
+                    messages.append({"role": role_name, "name": self.sanitize_name(ai_name), "content": item.final_output})
 
         # use vision if available in current model
         content = str(prompt)
         if MODE_VISION in model.mode:
             content = self.window.core.gpt.vision.build_content(prompt, attachments)
-            # mark attachments as consumed
-            if len(self.window.core.gpt.vision.attachments) > 0:
-                self.window.controller.attachment.set_consumed(True)
 
         # append current prompt
         messages.append({"role": "user", "content": content})

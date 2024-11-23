@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -177,8 +177,10 @@ class Mode:
         # uploaded files
         if mode == MODE_ASSISTANT:
             self.window.ui.tabs['input'].setTabVisible(2, True)
+            self.window.ui.tabs['input'].setTabVisible(3, False)
         else:
             self.window.ui.tabs['input'].setTabVisible(2, False)
+            self.window.ui.tabs['input'].setTabVisible(3, True)
 
         # toggle chat footer
         if not self.is_chat_tab():
@@ -226,10 +228,10 @@ class Mode:
             return True
 
         # event: UI: attachments
-        value = False
+        # value = False
         event = Event(Event.UI_ATTACHMENTS, {
             'mode': mode,
-            'value': value,
+            'value': True,
         })
         self.window.dispatch(event)
         return event.data['value']

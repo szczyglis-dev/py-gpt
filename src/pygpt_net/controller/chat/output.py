@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -185,9 +185,7 @@ class Output:
         # clear attachments after send, only if attachments has been provided before send
         auto_clear = self.window.core.config.get('attachments_send_clear')
         if self.window.controller.attachment.clear_allowed(ctx):
-            if (auto_clear
-                    and self.window.controller.attachment.consumed()
-                    and not self.window.controller.attachment.is_locked()):
+            if auto_clear and not self.window.controller.attachment.is_locked():
                 self.window.controller.attachment.clear(force=True, auto=True)
                 self.window.controller.attachment.update()
                 self.log("Attachments cleared.")  # log

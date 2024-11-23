@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -119,6 +119,9 @@ class Ctx:
         # update calendar ctx list
         self.window.controller.calendar.update(all=False)
 
+        # update additional context attachments
+        self.window.controller.chat.attachment.update()
+
     def select(self, id: int, force: bool = False):
         """
         Select ctx by id
@@ -136,7 +139,10 @@ class Ctx:
             meta = self.window.core.ctx.get_meta_by_id(id)
             if meta is not None:
                 self.set_group(meta.group_id)
+
         self.common.focus_chat()
+        # update additional context attachments
+        self.window.controller.chat.attachment.update()
 
     def select_by_idx(self, idx: int):
         """
@@ -431,6 +437,7 @@ class Ctx:
         # delete ctx items from db
         items = self.window.core.ctx.all()
         self.window.core.history.remove_items(items)  # remove txt history items
+        self.window.core.attachments.context.delete_by_meta_id(id)
         self.window.core.ctx.remove(id)  # remove ctx from db
 
         # reset current if current ctx deleted
@@ -503,6 +510,7 @@ class Ctx:
         self.unselect()
         self.window.core.ctx.truncate()
         self.window.core.history.truncate()
+        self.window.core.attachments.context.truncate()
         self.update()
         self.new()
 
@@ -533,6 +541,7 @@ class Ctx:
         self.window.core.ctx.truncate()
         self.window.core.history.truncate()
         self.window.core.ctx.truncate_groups()
+        self.window.core.attachments.context.truncate()
         self.update()
         self.new()
 

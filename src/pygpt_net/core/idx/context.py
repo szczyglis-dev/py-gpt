@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -62,16 +62,16 @@ class Context:
             )
             for item in items:
                 # input
-                if item.input is not None and item.input != "":
+                if item.final_input is not None and item.final_input != "":
                     messages.append(ChatMessage(
                         role=MessageRole.USER,
-                        content=item.input
+                        content=item.final_input
                     ))
                 # output
-                if item.output is not None and item.output != "":
+                if item.final_output is not None and item.final_output != "":
                     messages.append(ChatMessage(
                         role=MessageRole.ASSISTANT,
-                        content=item.output
+                        content=item.final_output
                     ))
 
         return messages

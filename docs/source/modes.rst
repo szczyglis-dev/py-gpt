@@ -240,8 +240,7 @@ Options for indexing existing context history or enabling real-time indexing new
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. 
 Always control the number of tokens used on the OpenAI page.
 
-**Tip:** when using ``Chat with files`` you are using additional context from db data and files indexed from ``data`` directory, not the files sending via ``Attachments`` tab. 
-Attachments tab in ``Chat with files`` mode can be used to provide images to ``Vision (inline)`` plugin only.
+**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
 **Token limit:** When you use ``Chat with files`` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "Execute commands" option to reduce the number of tokens used by the system prompt.
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -20,6 +20,7 @@ from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import Document
 from llama_index.core import SimpleDirectoryReader
 
+from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.utils import parse_args, pack_arg
 
@@ -372,19 +373,18 @@ class Indexing:
 
         for file in files:   # per file to allow use of multiple loaders
             try:
-                # remove old file from index if exists
-                file_id = self.window.core.idx.files.get_id(file)
-
                 if self.is_stopped():  # force stop
                     break
 
                 # force replace or not old document
                 if replace is not None:
                     if replace:
+                        file_id = self.window.core.idx.files.get_id(file)
                         self.remove_old_file(idx, file_id, force=True)
                 else:
                     # if auto, only replace if not temporary
                     if not is_tmp:
+                        file_id = self.window.core.idx.files.get_id(file)
                         self.remove_old_file(idx, file_id)
 
                 # index new version of file
@@ -894,6 +894,71 @@ class Indexing:
         except Exception as e:
             self.window.core.debug.log(e)
         index.insert(document=doc)
+
+    def index_attachment(
+            self,
+            file_path: str,
+            index_path: str,
+            model: ModelItem = None
+    ) -> list:
+        """
+        Index context attachment
+
+        :param file_path: path to file to index
+        :param index_path: index path
+        :param model: model
+        :return: response
+        """
+        if model is None:
+            model = self.window.core.models.from_defaults()
+
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.window.core.idx.storage.get_ctx_idx(index_path, service_context=service_context)  # get or create ctx index
+
+        idx = "tmp:{}".format(index_path)  # tmp index id
+        self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
+
+        doc_ids = []
+        documents = self.get_documents(file_path)
+        for d in documents:
+            if self.is_stopped():  # force stop
+                break
+            self.prepare_document(d)
+            self.index_document(index, d)
+            doc_ids.append(d.id_)  # add to index
+
+        self.window.core.idx.storage.store_ctx_idx(index_path, index)
+        return doc_ids
+
+        """
+        # query tmp index
+        output = None
+        if len(files) > 0:
+            self.log("Querying temporary in-memory index: {}...".format(idx))
+            response = index.as_query_engine(
+                llm=llm,
+                streaming=False,
+            ).query(query)  # query with default prompt
+            if response:
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
+                output = response.
+        return output
+        """
+    def remove_attachment(self, index_path: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param index_path: index path
+        :param doc_id: document ID
+        :return: True if success
+        """
+        model = self.window.core.models.from_defaults()
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.window.core.idx.storage.get_ctx_idx(index_path,
+                                                         service_context=service_context)  # get or create ctx index
+        index.delete_ref_doc(doc_id)
+        self.window.core.idx.storage.store_ctx_idx(index_path, index)
+        return True
 
     def apply_rate_limit(self):
         """Apply API calls RPM limit"""

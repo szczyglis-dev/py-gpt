@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import os
@@ -72,7 +72,10 @@ class Database:
             'images_json',
             'files_json',
             'attachments_json',
+            'additional_ctx_json',
             'extra',
+            'hidden_input',
+            'hidden_output',
             'input_tokens',
             'output_tokens',
             'total_tokens',
@@ -102,6 +105,7 @@ class Database:
             'is_archived',
             'label',
             'indexes_json',
+            'additional_ctx_json',
             'external_id',
             'group_id',
             'root_id',
@@ -213,9 +217,9 @@ class Database:
             'ctx_item': {
                 'columns': columns["ctx_item"],
                 'sort_by': columns["ctx_item"],
-                'search_fields': ['id', 'input', 'output', 'input_name', 'output_name', 'meta_id'],
+                'search_fields': ['id', 'input', 'output', 'input_name', 'output_name', 'meta_id', 'hidden_input', 'hidden_output'],
                 'timestamp_columns': ['input_ts', 'output_ts'],
-                'json_columns': ['cmds_json', 'results_json', 'urls_json', 'images_json', 'files_json', 'attachments_json', 'docs_json'],
+                'json_columns': ['cmds_json', 'results_json', 'urls_json', 'images_json', 'files_json', 'attachments_json', 'docs_json', 'additional_ctx_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',
@@ -225,7 +229,7 @@ class Database:
                 'sort_by': columns["ctx_meta"],
                 'search_fields': ['id', 'name'],
                 'timestamp_columns': ['created_ts', 'updated_ts', 'indexed_ts'],
-                'json_columns': ['indexes_json'],
+                'json_columns': ['indexes_json', 'additional_ctx_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',

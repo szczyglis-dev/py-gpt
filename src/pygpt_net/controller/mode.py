@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -40,6 +40,7 @@ class Mode:
         })
         self.window.dispatch(event)
         self.window.controller.attachment.update()
+        self.window.controller.chat.attachment.update()
         self.window.dispatch(AppEvent(AppEvent.MODE_SELECTED))  # app event
 
     def set(self, mode: str):

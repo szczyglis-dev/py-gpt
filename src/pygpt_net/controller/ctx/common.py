@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -79,6 +79,7 @@ class Common:
         """
         new_id = self.window.core.ctx.duplicate(meta_id)
         if new_id is not None:
+            self.window.core.attachments.context.duplicate(meta_id, new_id)  # copy attachments
             self.window.update_status(
                 "Context duplicated, new ctx id: {}".format(new_id)
             )
@@ -173,4 +174,5 @@ class Common:
             )
             return
         self.window.core.ctx.reset_meta(meta_id)
+        self.window.core.attachments.context.reset_by_meta_id(meta_id, delete_files=True)
         self.window.controller.ctx.load(meta_id)

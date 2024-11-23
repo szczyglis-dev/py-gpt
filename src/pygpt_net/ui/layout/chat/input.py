@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRa
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
+from pygpt_net.ui.layout.chat.attachments_ctx import AttachmentsCtx
 from pygpt_net.ui.layout.status import Status
 from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.audio.input_button import AudioInputButton
@@ -37,6 +38,7 @@ class Input:
         self.status = Status(window)
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
+        self.attachments_ctx = AttachmentsCtx(window)
 
         # min height
         self.min_height_files_tab = 120
@@ -52,6 +54,7 @@ class Input:
         input = self.setup_input()
         files = self.setup_attachments()
         files_uploaded = self.setup_attachments_uploaded()
+        files_ctx = self.setup_attachments_ctx()
 
         # tabs
         self.window.ui.tabs['input'] = InputTabs(self.window)
@@ -59,11 +62,13 @@ class Input:
         self.window.ui.tabs['input'].addTab(input, trans('input.tab'))
         self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
         self.window.ui.tabs['input'].addTab(files_uploaded, trans('attachments_uploaded.tab'))
+        self.window.ui.tabs['input'].addTab(files_ctx, trans('attachments_uploaded.tab'))
         self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)  # update min height on tab change
 
         self.window.ui.tabs['input'].setTabIcon(0, QIcon(":/icons/input.svg"))
         self.window.ui.tabs['input'].setTabIcon(1, QIcon(":/icons/attachment.svg"))
         self.window.ui.tabs['input'].setTabIcon(2, QIcon(":/icons/upload.svg"))
+        self.window.ui.tabs['input'].setTabIcon(3, QIcon(":/icons/upload.svg"))
 
         # layout
         layout = QVBoxLayout()
@@ -117,6 +122,21 @@ class Input:
         """
         layout = QVBoxLayout()
         layout.addLayout(self.attachments_uploaded.setup())
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setMinimumHeight(self.min_height_files_tab)
+        return widget
+
+    def setup_attachments_ctx(self) -> QWidget:
+        """
+        Setup attachments ctx
+
+        :return: QWidget
+        """
+        layout = QVBoxLayout()
+        layout.addLayout(self.attachments_ctx.setup())
         layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()

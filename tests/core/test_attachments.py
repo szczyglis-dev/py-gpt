@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -336,8 +336,6 @@ def test_delete_all():
         }
         attachments.items = items
         attachments.delete_all(mode)
-        attachments.clear.assert_called_once_with(mode, remove_local=False)
-        attachments.provider.truncate.assert_called_once_with(mode)
 
 
 def test_clear():

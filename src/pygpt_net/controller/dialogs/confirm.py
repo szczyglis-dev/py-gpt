@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -135,6 +135,10 @@ class Confirm:
             self.window.controller.assistant.files.delete(id, True)
         elif type == 'attachments.clear':
             self.window.controller.attachment.clear(force=True, remove_local=True)
+        elif type == 'attachments.ctx.clear':
+            self.window.controller.chat.attachment.clear(force=True, remove_local=True)
+        elif type == 'attachments.ctx.delete':
+            self.window.controller.chat.attachment.delete_by_idx(id, force=True, remove_local=True)
 
         # files
         elif type == 'files.delete':

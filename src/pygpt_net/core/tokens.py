@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -215,13 +215,13 @@ class Tokens:
         if mode in CHAT_MODES:
             # input message
             try:
-                num += Tokens.from_str(str(ctx.input), model)
+                num += Tokens.from_str(str(ctx.final_input), model)
             except Exception as e:
                 print("Tokens calc exception", e)
 
             # output message
             try:
-                num += Tokens.from_str(str(ctx.output), model)
+                num += Tokens.from_str(str(ctx.final_output), model)
             except Exception as e:
                 print("Tokens calc exception", e)
 
@@ -261,16 +261,16 @@ class Tokens:
                     and ctx.output_name is not None \
                     and ctx.input_name != "" \
                     and ctx.output_name != "":
-                if ctx.input is not None and ctx.input != "":
-                    message += "\n" + ctx.input_name + ": " + ctx.input
-                if ctx.output is not None and ctx.output != "":
-                    message += "\n" + ctx.output_name + ": " + ctx.output
+                if ctx.final_input is not None and ctx.final_input != "":
+                    message += "\n" + ctx.input_name + ": " + ctx.final_input
+                if ctx.final_output is not None and ctx.final_output != "":
+                    message += "\n" + ctx.output_name + ": " + ctx.final_output
             # if without names
             else:
-                if ctx.input is not None and ctx.input != "":
-                    message += "\n" + ctx.input
-                if ctx.output is not None and ctx.output != "":
-                    message += "\n" + ctx.output
+                if ctx.final_input is not None and ctx.final_input != "":
+                    message += "\n" + ctx.final_input
+                if ctx.final_output is not None and ctx.final_output != "":
+                    message += "\n" + ctx.final_output
             try:
                 num += Tokens.from_str(message, model)
             except Exception as e:

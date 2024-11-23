@@ -561,8 +561,7 @@ Options for indexing existing context history or enabling real-time indexing new
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
-**Tip:** when using `Chat with files` you are using additional context from db data and files indexed from `data` directory, not the files sending via `Attachments` tab. 
-Attachments tab in `Chat with files` mode can be used to provide images to `Vision (inline)` plugin only.
+**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
 **Token limit:** When you use `Chat with files` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "Execute commands" option to reduce the number of tokens used by the system prompt.
 
@@ -1052,17 +1051,37 @@ Use voice synthesis to describe events on the screen.
 ![v2_access](https://github.com/szczyglis-dev/py-gpt/assets/61396542/02dd161b-6fb1-48f9-9217-40c658888833)
 
 
-# Files and attachments
+# Attachments and files
 
 ## Input attachments (upload)
 
-**PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
+**PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Attachments` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/bd3d9840-2bc4-4ba8-a603-69724f9eb620)
 
-The attachment feature is available in both the `Assistant` and `Vision` modes at default.
-In `Assistant` mode, you can send documents and files to analyze, while in `Vision` mode, you can send images.
-In other modes, you can enable attachments by activating the `Vision (inline)` plugin (for providing images only).
+You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from Llama-index. You can upload any file format supported by the application through Llama-index. Supported formats include:
+
+- CSV files (csv)
+- Epub files (epub)
+- Excel .xlsx spreadsheets (xlsx)
+- HTML files (html, htm)
+- IPYNB Notebook files (ipynb)
+- JSON files (json)
+- Markdown files (md)
+- PDF documents (pdf)
+- Plain-text files (txt and etc.)
+- Word .docx documents (docx)
+- XML files (xml)
+
+The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
+
+- `Full context`: This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
+
+- `Query only`: The indexed attachment will only be queried in real-time using Llama-index. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
+
+- `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
+
+**Note:** Only text files from the list above are included in the additional context. Images will not be included in the context but will be used by the vision model in real-time. Adding image files to the context will be available in future versions.
 
 ## Files (download, code generation)
 

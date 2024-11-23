@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -70,10 +70,6 @@ class Vision:
             **response_kwargs
         )
 
-        # mark attachments as consumed
-        if len(self.get_attachments()) > 0:
-            self.window.controller.attachment.set_consumed(True)
-
         return response
 
     def build(
@@ -129,14 +125,12 @@ class Vision:
             )
             for item in items:
                 # input
-                if item.input is not None and item.input != "":
-                    content = self.build_content(item.input)
-                    messages.append({"role": "user", "content": content})
+                if item.final_input is not None and item.final_input != "":
+                    messages.append({"role": "user", "content": item.final_input})
 
                 # output
-                if item.output is not None and item.output != "":
-                    content = self.build_content(item.output)
-                    messages.append({"role": "assistant", "content": content})
+                if item.final_output is not None and item.final_output != "":
+                    messages.append({"role": "assistant", "content": item.final_output})
 
         # append current prompt
         content = self.build_content(prompt, attachments)
@@ -198,6 +192,7 @@ class Vision:
                             }
                         )
                         self.attachments[id] = attachment.path
+                        attachment.consumed = True
 
         return content
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 19:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,7 +14,10 @@ import copy
 from packaging.version import Version
 
 from pygpt_net.item.attachment import AttachmentItem
+from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.provider.core.attachment.json_file import JsonFileProvider
+
+from .context import Context
 
 
 class Attachments:
@@ -26,6 +29,7 @@ class Attachments:
         """
         self.window = window
         self.provider = JsonFileProvider(window)
+        self.context = Context(window)
         self.items = {}
         self.current = None
 
@@ -119,17 +123,53 @@ class Attachments:
         if id is not None:
             return self.items[mode][id]
 
-    def get_all(self, mode: str) -> dict:
+    def get_all(self, mode: str, only_files: bool = True) -> dict:
         """
         Return all items in mode
 
         :param mode: mode
+        :param only_files: only files
         :return: attachments items dict
         """
         if mode not in self.items:
             self.items[mode] = {}
 
-        return self.items[mode]
+        current = self.items[mode]
+        if not only_files:
+            additional = self.get_from_meta_ctx(mode, self.window.core.ctx.get_current_meta())
+            for attachment in additional:
+                current[attachment.id] = attachment
+        return current
+
+    def get_from_meta_ctx(self, mode: str, meta: CtxMeta) -> list:
+        """
+        Get attachments from meta context
+
+        :param mode: mode
+        :param meta: meta context
+        :return: attachments
+        """
+        if meta is None:
+            return []
+        attachments = []
+        for attachment in meta.additional_ctx:
+            item = AttachmentItem()
+            if 'uuid' not in attachment:
+                continue
+            item.id = attachment['uuid']
+            if 'name' in attachment:
+                item.name = attachment['name']
+            else:
+                item.name = 'No name'
+            if 'path' in attachment:
+                item.path = attachment['path']
+            else:
+                item.path = '-'
+            item.ctx = True
+            item.meta_id = meta.id
+            attachments.append(item)
+        return attachments
+
 
     def new(
             self,
@@ -236,18 +276,26 @@ class Attachments:
             del self.items[mode][id]
             self.save()
 
-    def delete_all(self, mode: str, remove_local: bool = False):
+    def delete_all(self, mode: str, remove_local: bool = False, auto: bool = False):
         """
         Delete all attachments
 
         :param mode: mode
         :param remove_local: remove local copy
+        :param auto: auto delete
         """
-        self.clear(
-            mode,
-            remove_local=remove_local,
-        )
-        self.provider.truncate(mode)
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        for id in list(self.items[mode].keys()):
+            if not self.items[mode][id].consumed and auto:
+                continue
+            if remove_local:
+                self.window.core.filesystem.remove_upload(
+                    self.items[mode][id].path,
+                )
+            del self.items[mode][id]
+            self.save()
 
     def clear(self, mode: str, remove_local: bool = False):
         """
@@ -266,9 +314,7 @@ class Attachments:
         self.items[mode] = {}
 
     def clear_all(self):
-        """
-        Clear all attachments
-        """
+        """Clear all attachments"""
         self.items = {}
 
     def replace_id(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import json
@@ -151,6 +151,7 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     item.images = unpack_item_value(row['images_json'])
     item.files = unpack_item_value(row['files_json'])
     item.attachments = unpack_item_value(row['attachments_json'])
+    item.additional_ctx = unpack_item_value(row['additional_ctx_json'])
     item.extra = unpack_item_value(row['extra'])
     item.input_tokens = unpack_var(row['input_tokens'], 'int')
     item.output_tokens = unpack_var(row['output_tokens'], 'int')
@@ -192,6 +193,7 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.label = unpack_var(row['label'], 'int')
     meta.indexes = unpack_item_value(row['indexes_json'])
     meta.group_id = unpack_var(row['group_id'], 'int')
+    meta.additional_ctx = unpack_item_value(row['additional_ctx_json'])
     return meta
 
 

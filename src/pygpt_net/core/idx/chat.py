@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import json
@@ -395,10 +395,47 @@ class Chat:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
 
-        # clean tmp index# clean tmp index
+        # clean tmp index
         self.log("Removing temporary in-memory index: {} ({})...".format(idx, tmp_id))
         self.storage.clean_tmp(tmp_id)  # clean memory
         self.log("Returning response: {}...".format(output))
+        return output
+
+    def query_attachment(
+            self,
+            query: str,
+            path: str,
+            model: ModelItem = None
+    ) -> str:
+        """
+        Query attachment
+
+        :param query: query
+        :param path: path to index
+        :param model: model
+        :return: response
+        """
+        if model is None:
+            model = self.window.core.models.from_defaults()
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get_ctx_idx(path, service_context=service_context)
+        """
+        response = index.as_query_engine(
+            llm=llm,
+            streaming=False,
+        ).query(query)
+        """
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(query)
+        response = ""
+        for node in nodes:
+            if node.score > 0.5:
+                response = node.text
+                break
+        output = ""
+        print(response)
+        if response:
+            output = str(response)
         return output
 
     def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:

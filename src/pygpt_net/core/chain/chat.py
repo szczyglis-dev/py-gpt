@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -139,11 +139,11 @@ class Chat:
             )
             for item in items:
                 # input
-                if item.input is not None and item.input != "":
-                    messages.append(HumanMessage(content=item.input))
+                if item.final_input is not None and item.final_input != "":
+                    messages.append(HumanMessage(content=item.final_input))
                 # output
-                if item.output is not None and item.output != "":
-                    messages.append(AIMessage(content=item.output))
+                if item.final_output is not None and item.final_output != "":
+                    messages.append(AIMessage(content=item.final_output))
 
         # append current prompt
         messages.append(HumanMessage(content=str(prompt)))

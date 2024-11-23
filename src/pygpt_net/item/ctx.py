@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -35,6 +35,7 @@ class CtxItem:
         self.images_before = []
         self.files = []
         self.attachments = []
+        self.additional_ctx = []
         self.reply = False
         self.input = None
         self.output = None
@@ -47,6 +48,8 @@ class CtxItem:
         self.output_name = None
         self.input_timestamp = None
         self.output_timestamp = None
+        self.hidden_input = None
+        self.hidden_output = None
         self.input_tokens = 0
         self.output_tokens = 0
         self.total_tokens = 0
@@ -69,6 +72,35 @@ class CtxItem:
         self.sub_reply = False  # sub call reply
         self.hidden = False  # hidden context
         self.pid = 0
+
+
+    @property
+    def final_input(self) -> str:
+        """
+        Final input
+
+        :return: input text
+        """
+        content = None
+        if self.input is not None:
+            content = self.input
+            if self.hidden_input:
+                content += "\n\n" + self.hidden_input
+        return content
+
+    @property
+    def final_output(self) -> str:
+        """
+        Final output
+
+        :return: output text
+        """
+        content = None
+        if self.output is not None:
+            content = self.output
+            if self.hidden_output:
+                content += "\n\n" + self.hidden_output
+        return content
 
     def clear_reply(self):
         """Clear current reply output"""
@@ -165,6 +197,8 @@ class CtxItem:
             "output_name": self.output_name,
             "input_timestamp": self.input_timestamp,
             "output_timestamp": self.output_timestamp,
+            'hidden_input': self.hidden_input,
+            'hidden_output': self.hidden_output,
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
@@ -216,6 +250,8 @@ class CtxItem:
         self.output_name = data.get("output_name", None)
         self.input_timestamp = data.get("input_timestamp", None)
         self.output_timestamp = data.get("output_timestamp", None)
+        self.hidden_input = data.get("hidden_input", None)
+        self.hidden_output = data.get("hidden_output", None)
         self.input_tokens = data.get("input_tokens", 0)
         self.output_tokens = data.get("output_tokens", 0)
         self.total_tokens = data.get("total_tokens", 0)
@@ -234,6 +270,7 @@ class CtxItem:
         self.sub_call = data.get("sub_call", False)
         self.sub_reply = data.get("sub_reply", False)
         self.hidden = data.get("hidden", False)
+
 
     def dump(self) -> str:
         """
@@ -283,6 +320,7 @@ class CtxMeta:
         self.archived = False
         self.label = 0  # label color
         self.indexes = {}  # indexes data
+        self.additional_ctx = [] # additional context data
         self.group_id = None
         self.root_id = None
         self.parent_id = None
@@ -319,6 +357,7 @@ class CtxMeta:
             "archived": self.archived,
             "label": self.label,
             "indexes": self.indexes,
+            "additional_ctx": self.additional_ctx,
             "group_id": self.group_id,
             "root_id": self.root_id,
             "parent_id": self.parent_id,
@@ -355,6 +394,7 @@ class CtxMeta:
         self.archived = data.get("archived", False)
         self.label = data.get("label", 0)
         self.indexes = data.get("indexes", {})
+        self.additional_ctx = data.get("additional_ctx", [])
         self.group_id = data.get("group_id", None)
         self.root_id = data.get("root_id", None)
         self.parent_id = data.get("parent_id", None)

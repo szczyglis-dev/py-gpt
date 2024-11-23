@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch, mock_open, Mock
@@ -44,6 +44,7 @@ def test_get_meta(mock_window):
         'label': 0,
         'indexed_ts': 0,
         'indexes_json': {},
+        'additional_ctx_json': [],
         'group_id': 1,
     }
     conn = Mock()
@@ -105,6 +106,7 @@ def test_get_items(mock_window):
         'images_json': None,
         'files_json': None,
         'attachments_json': None,
+        'additional_ctx_json': [],
         'extra': 'test',
         'input_tokens': 1,
         'output_tokens': 1,
@@ -287,6 +289,7 @@ def test_unpack_meta(mock_window):
         'label': 0,
         'indexed_ts': 0,
         'indexes_json': {},
+        'additional_ctx_json': [],
         'group_id': 1,
     }
     meta = CtxMeta()
@@ -339,6 +342,7 @@ def test_unpack_item(mock_window):
         'images_json': None,
         'files_json': None,
         'attachments_json': None,
+        'additional_ctx_json': [],
         'extra': None,
         'input_tokens': 1,
         'output_tokens': 1,

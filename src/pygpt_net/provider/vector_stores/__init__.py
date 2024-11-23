@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -15,6 +15,7 @@ from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
 from .base import BaseStore
+from .ctx_attachment import CtxAttachmentProvider
 from .temp import TempProvider
 
 
@@ -50,6 +51,15 @@ class Storage:
         :return: vector store provider instance
         """
         return self.tmp_storage
+
+    def get_ctx_idx_storage(self, path: str) -> BaseStore or None:
+        """
+        Get temp vector store provider
+        
+        :param path: Path to index on disk
+        :return: vector store provider instance
+        """
+        return CtxAttachmentProvider(window=self.window, path=path)
 
     def register(self, name: str, storage=None):
         """
@@ -217,6 +227,47 @@ class Storage:
         if storage is None:
             raise Exception('Storage engine not found!')
         storage.clean(id)
+
+    def get_ctx_idx(self, path: str, service_context=None) -> (str, BaseIndex):
+        """
+        Get context index instance
+
+        :param path: path to index directory
+        :param service_context: service context
+        :return: index instance
+        """
+        # convert path to md5 hash
+        storage = self.get_ctx_idx_storage(path)
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.get(
+            service_context=service_context,
+        )
+
+    def store_ctx_idx(self, path: str, index: BaseIndex = None):
+        """
+        Store context index
+
+        :param path: path to index directory
+        :param index: index instance
+        """
+        storage = self.get_ctx_idx_storage(path)
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        storage.store(
+            index=index,
+        )
+
+    def clean_ctx_idx(self, path: str):
+        """
+        Clean temp index
+
+        :param path: path to index directory
+        """
+        storage = self.get_ctx_idx_storage(path)
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        storage.clean()
 
     def index_from_empty(self) -> BaseIndex:
         """

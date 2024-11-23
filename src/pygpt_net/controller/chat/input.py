@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -91,6 +91,22 @@ class Input:
             'value': text,
         }))
         text = event.data['value']
+
+        # handle attachments with additional context (not images here)
+        if mode != MODE_ASSISTANT and self.window.controller.chat.attachment.has(mode):
+            self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+                "id": "chat",
+                "msg": "Reading attachments..."
+            }))
+            try:
+                self.window.controller.chat.attachment.handle(mode, text)
+                return  # return here, will be handled in signal
+            except Exception as e:
+                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                    "id": "chat",
+                    "msg": "Error reading attachments: {}".format(str(e))
+                }))
+                return
 
         # event: handle input
         context = BridgeContext()

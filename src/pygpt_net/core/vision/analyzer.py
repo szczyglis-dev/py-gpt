@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 19:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -49,6 +49,7 @@ class Analyzer:
             output = response.choices[0].message.content.strip()
         for id in files:
             ctx.images_before.append(files[id].path)
+            files[id].consumed = True  # allow for deletion
 
         # re-allow clearing attachments
         self.window.controller.attachment.unlock()
@@ -122,8 +123,6 @@ class Analyzer:
 
         # clear if capture clear
         if self.window.controller.attachment.is_capture_clear():
-            # clear only if really consumed
-            if self.window.controller.attachment.consumed():
-                self.window.controller.attachment.clear(True, auto=True)
+            self.window.controller.attachment.clear(True, auto=True)
 
         return result

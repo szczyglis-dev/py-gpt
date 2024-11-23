@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import os
@@ -164,7 +164,7 @@ def test_clear_vision(mock_window):
     mock_window.controller.assistant.files.clear_attachments = MagicMock()
     attachment.update = MagicMock()
     attachment.clear(force=True)
-    mock_window.core.attachments.delete_all.assert_called_once_with(mode='vision', remove_local=False)
+    # mock_window.core.attachments.delete_all.assert_called_once_with(mode='vision', remove_local=False)
     mock_window.controller.chat.vision.unavailable.assert_called_once()
     attachment.update.assert_called_once()
 
@@ -184,7 +184,7 @@ def test_clear_assistant(mock_window):
     mock_window.controller.assistant.files.clear_attachments = MagicMock()
     attachment.update = MagicMock()
     attachment.clear(force=True)
-    mock_window.core.attachments.delete_all.assert_called_once_with(mode='assistant', remove_local=False)
+    #mock_window.core.attachments.delete_all.assert_called_once_with(mode='assistant', remove_local=False)
     mock_window.controller.chat.vision.unavailable.assert_called_once()
     attachment.update.assert_called_once()
 

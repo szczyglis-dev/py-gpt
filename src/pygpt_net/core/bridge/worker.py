@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -41,7 +41,11 @@ class BridgeWorker(QObject, QRunnable):
         """Run bridge worker"""
         self.window.core.debug.info("[bridge] Worker started.")
         result = False
+
         try:
+            # ADDITIONAL CONTEXT: append additional context from attachments
+            self.handle_additional_context()
+
             # Langchain
             if self.mode == MODE_LANGCHAIN:
                 result = self.window.core.chain.call(
@@ -104,3 +108,15 @@ class BridgeWorker(QObject, QRunnable):
                 'extra': self.extra,
             })
             self.signals.response.emit(event)
+
+    def handle_additional_context(self):
+        """Append additional context"""
+        ctx = self.context.ctx
+        ad_context = self.window.controller.chat.attachment.get_context(ctx)
+        ad_mode = self.window.controller.chat.attachment.get_mode()
+        if ad_context:
+            self.context.prompt += "\n\n" + ad_context  # append to input text
+            if ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT or self.mode == MODE_AGENT_LLAMA:
+                ctx.hidden_input = ad_context  # store for future use, only if query context
+                # if full context or summary, then whole extra context will be applied to current input
+                # TODO: or LLAMA_AGENT, then append to input

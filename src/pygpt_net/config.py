@@ -55,6 +55,7 @@ class Config:
             "data": "data",
             "history": "history",
             "idx": "idx",
+            "ctx_idx": "ctx_idx",
             "img": "img",
             "locale": "locale",
             "presets": "presets",

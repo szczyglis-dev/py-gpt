@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import json
@@ -19,9 +19,13 @@ class AttachmentItem:
         """
         self.name = None
         self.id = None
+        self.uuid = None
         self.path = None
         self.remote = None
         self.vector_store_ids = []
+        self.meta_id = None
+        self.ctx = False
+        self.consumed = False
         self.size = 0
         self.send = False
 
@@ -33,11 +37,14 @@ class AttachmentItem:
         """
         return {
             'id': self.id,
+            'uuid': self.uuid,
             'name': self.name,
             'path': self.path,
             'size': self.size,
             'remote': self.remote,
+            'ctx': self.ctx,
             'vector_store_ids': self.vector_store_ids,
+            'meta_id': self.meta_id,
             'send': self.send
         }
 
@@ -49,6 +56,8 @@ class AttachmentItem:
         """
         if 'id' in data:
             self.id = data['id']
+        if 'uuid' in data:
+            self.uuid = data['uuid']
         if 'name' in data:
             self.name = data['name']
         if 'path' in data:
@@ -57,8 +66,12 @@ class AttachmentItem:
             self.size = data['size']
         if 'remote_id' in data:
             self.remote = data['remote']
+        if 'ctx' in data:
+            self.ctx = data['ctx']
         if 'vector_store_ids' in data:
             self.vector_store_ids = data['vector_store_ids']
+        if 'meta_id' in data:
+            self.meta_id = data['meta_id']
         if 'send' in data:
             self.send = data['send']
 

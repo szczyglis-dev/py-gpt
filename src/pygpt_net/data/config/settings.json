@@ -291,7 +291,7 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },
+    },    
     "upload.store": {
         "section": "files",
         "type": "bool",
@@ -312,6 +312,33 @@
         "label": "settings.upload.data_dir",
         "description": "settings.upload.data_dir.desc",
         "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.attachment.verbose": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.attachment.verbose",
+        "description": "settings.ctx.attachment.verbose.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.attachment.summary.model": {
+        "section": "files",
+        "type": "combo",
+        "use": "models",
+        "slider": false,
+        "label": "settings.ctx.attachment.summary.model",
+        "description": "settings.ctx.attachment.summary.model.desc",
+        "value": "gpt-4o-mini",
         "min": null,
         "max": null,
         "multiplier": null,

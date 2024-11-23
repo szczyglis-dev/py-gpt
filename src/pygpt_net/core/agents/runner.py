@@ -53,6 +53,7 @@ class Runner:
             ctx = context.ctx
             ctx.extra["agent_input"] = True  # mark as user input
             ctx.agent_call = True  # disables reply from plugin commands
+            prompt = context.prompt
 
             # prepare agent
             model = context.model
@@ -85,6 +86,7 @@ class Runner:
             kwargs = {
                 "agent": agent,
                 "ctx": ctx,
+                "prompt": prompt,
                 "signals": signals,
                 "verbose": verbose,
             }
@@ -104,6 +106,7 @@ class Runner:
             self,
             agent,
             ctx: CtxItem,
+            prompt: str,
             signals: BridgeSignals,
             verbose: bool = False
     ) -> bool:
@@ -112,6 +115,7 @@ class Runner:
 
         :param agent: Agent instance
         :param ctx: Input context
+        :param prompt: input text
         :param signals: BridgeSignals
         :param verbose: verbose mode
         :return: True if success
@@ -120,7 +124,7 @@ class Runner:
             return True  # abort if stopped
 
         is_last = False
-        task = agent.create_task(self.prepare_input(ctx.input))
+        task = agent.create_task(self.prepare_input(prompt))
         tools_output = None
 
         # run steps
@@ -200,6 +204,7 @@ class Runner:
             self,
             agent,
             ctx: CtxItem,
+            prompt: str,
             signals: BridgeSignals,
             verbose: bool = False
     ) -> bool:
@@ -208,6 +213,7 @@ class Runner:
 
         :param agent: Agent instance
         :param ctx: Input context
+        :param prompt: input text
         :param signals: BridgeSignals
         :param verbose: verbose mode
         :return: True if success
@@ -232,7 +238,7 @@ class Runner:
 
         # final response
         self.set_busy(signals)
-        response = agent.chat(self.prepare_input(ctx.input))
+        response = agent.chat(self.prepare_input(prompt))
         response_ctx = self.add_ctx(ctx)
         response_ctx.thread = thread_id
         response_ctx.set_input("Assistant")
@@ -246,6 +252,7 @@ class Runner:
             self,
             agent,
             ctx: CtxItem,
+            prompt: str,
             signals: BridgeSignals,
             verbose: bool = False
     ) -> bool:
@@ -254,6 +261,7 @@ class Runner:
 
         :param agent: Agent instance
         :param ctx: Input context
+        :param prompt: input text
         :param signals: BridgeSignals
         :param verbose: verbose mode
         :return: True if success
@@ -263,7 +271,7 @@ class Runner:
 
         self.set_busy(signals)
         plan_id = agent.create_plan(
-            self.prepare_input(ctx.input)
+            self.prepare_input(prompt)
         )
         plan = agent.state.plan_dict[plan_id]
         c = len(plan.sub_tasks)
@@ -637,7 +645,7 @@ class Runner:
 
         :return: True if stopped
         """
-        return self.window.controller.kernel.stopped() or self.window.controller.agent.legacy.stop
+        return self.window.controller.kernel.stopped()
 
     def get_error(self) -> Exception or None:
         """
