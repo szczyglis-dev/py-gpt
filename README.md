@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.22** | build: **2024.11.23** | Python: **>=3.10, <3.12**
+Release: **2.4.23** | build: **2024.11.23** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3651,6 +3651,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.23 (2024-11-23)**
+
+- Condensed layout widgets margins.
+- Added filename info to provided additional context from attachments.
+- Fixed auto-clear in attachments in Assistants mode.
 
 **2.4.22 (2024-11-23)**
 

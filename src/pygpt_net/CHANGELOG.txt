@@ -1,3 +1,9 @@
+2.4.23 (2024-11-23)
+
+- Condensed layout widgets margins.
+- Added filename info to provided additional context from attachments.
+- Fixed auto-clear in attachments in Assistants mode.
+
 2.4.22 (2024-11-23)
 
 - Added the ability to use attachments with images, audio, and video as additional context. Tip: to enable the use of images as additional context, you need to enable the option: `Files and attachments -> Allow images as additional context`.
