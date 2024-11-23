@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.21** | build: **2024.11.23** | Python: **>=3.10, <3.12**
+Release: **2.4.22** | build: **2024.11.23** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3651,6 +3651,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.22 (2024-11-23)**
+
+- Added the ability to use attachments with images, audio, and video as additional context. Tip: to enable the use of images as additional context, you need to enable the option: `Files and attachments -> Allow images as additional context`.
+- Edit icons in the chat window are enabled by default.
 
 **2.4.21 (2024-11-23)**
 
