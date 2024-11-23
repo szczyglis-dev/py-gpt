@@ -25,14 +25,15 @@ class Packer:
         self.zip_ext = [".zip"]
         self.tar_ext = [".tar", ".gz", ".bz2"]
 
-    def remove_tmp(self, path: str):
+    def is_archive(self, path: str) -> bool:
         """
-        Remove temporary directory
+        Check if path is archive
 
-        :param path: path to directory
+        :param path: Path to file
+        :return: True if archive
         """
-        if os.path.exists(path) and os.path.isdir(path):
-            shutil.rmtree(path)
+        ext = os.path.splitext(path)[1]
+        return ext in self.zip_ext or ext in self.tar_ext
 
     def unpack(self, path: str) -> str:
         """
@@ -75,3 +76,12 @@ class Packer:
         with tarfile.open(path, 'r') as tar_ref:
             tar_ref.extractall(dir)
         return dir
+
+    def remove_tmp(self, path: str):
+        """
+        Remove temporary directory
+
+        :param path: path to directory
+        """
+        if os.path.exists(path) and os.path.isdir(path):
+            shutil.rmtree(path)

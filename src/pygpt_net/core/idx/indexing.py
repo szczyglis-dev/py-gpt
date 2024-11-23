@@ -279,7 +279,6 @@ class Indexing:
         :return: list of documents
         """
         # TODO: if .zip then unpack here, and return path to /tmp
-
         if not silent:
             self.window.core.idx.log("Reading documents from path: {}".format(path))
         if os.path.isdir(path):
@@ -304,6 +303,12 @@ class Indexing:
                 if not silent:
                     self.window.core.idx.log("Ignoring excluded path: {}".format(path))
                 return []
+
+            # check if archive (zip, tar)
+            if self.window.core.filesystem.packer.is_archive(path):
+                tmp_path = self.window.core.filesystem.packer.unpack(path)
+                if tmp_path:
+                    return self.get_documents(tmp_path, force=force, silent=silent, loader_kwargs=loader_kwargs)
 
             if ext in self.loaders["file"]:
                 if not silent:

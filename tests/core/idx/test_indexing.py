@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.21 19:00:00                  #
+# Updated Date: 2024.11.23 19:00:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,7 @@ def test_get_online_loader(mock_window):
 def test_get_documents(mock_window):
     """Test get documents"""
     idx = Indexing(mock_window)
+    mock_window.core.filesystem.packer.is_archive = MagicMock(return_value=False)
     idx.get_online_loader = MagicMock(return_value=None)
     doc = Document()
     docs = [doc]

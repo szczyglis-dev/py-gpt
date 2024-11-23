@@ -123,7 +123,7 @@ class Attachment(QObject):
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
                 continue  # skip images
-            if self.is_archive(attachment.path):
+            if self.window.core.filesystem.packer.is_archive(attachment.path):
                 tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
                 if tmp_path:
                     for root, dirs, files in os.walk(tmp_path):
@@ -152,15 +152,6 @@ class Attachment(QObject):
         if self.uploaded:
             self.window.core.ctx.save(meta.id)  # save meta
         return self.uploaded
-
-    def is_archive(self, path: str) -> bool:
-        """
-        Check if path is archive
-
-        :param path: Path to file
-        :return: True if archive
-        """
-        return path.endswith(tuple(self.archives_allowed))
 
     def has_context(self, meta: CtxMeta) -> bool:
         """
