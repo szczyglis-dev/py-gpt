@@ -90,6 +90,7 @@ class Common:
         self.window.dispatch(event)  # switch renderer if needed
 
         # edit icons
+        """
         if self.window.core.config.has('ctx.edit_icons'):
             self.window.ui.nodes['output.edit'].setChecked(self.window.core.config.get('ctx.edit_icons'))
             data = {
@@ -100,6 +101,7 @@ class Common:
             else:
                 event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
             self.window.dispatch(event)
+        """
 
         # images generation
         if self.window.core.config.get('img_raw'):

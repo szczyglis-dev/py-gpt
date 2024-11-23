@@ -161,12 +161,14 @@ class Output:
                 self.window.ui.nodes['output.raw'].isChecked())
         )
 
+        """
         # edit icons
         self.window.ui.nodes['output.edit'] = QCheckBox(trans('output.edit'))
         self.window.ui.nodes['output.edit'].clicked.connect(
             lambda: self.window.controller.chat.common.toggle_edit_icons(
                 self.window.ui.nodes['output.edit'].isChecked())
         )
+        """
 
         # tokens
         self.window.ui.nodes['prompt.context'] = ChatStatusLabel("")
@@ -183,7 +185,7 @@ class Output:
         # opts_layout.setSpacing(2)  #
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
-        opts_layout.addWidget(self.window.ui.nodes['output.edit'])
+        # opts_layout.addWidget(self.window.ui.nodes['output.edit'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
         opts_layout.setAlignment(Qt.AlignLeft)
 

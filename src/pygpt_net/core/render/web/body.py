@@ -70,7 +70,8 @@ class Body:
         :return: HTML code
         """
         html = ""
-        show_edit = self.window.core.config.get('ctx.edit_icons')
+        show_edit = True
+        # show_edit = self.window.core.config.get('ctx.edit_icons')
         icons_html = "".join(self.get_action_icons(ctx, all=show_edit))
         if icons_html != "":
             extra = "<div class=\"action-icons\" data-id=\"{}\">{}</div>".format(ctx.id, icons_html)
