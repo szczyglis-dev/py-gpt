@@ -214,7 +214,7 @@ class Files:
                 self.window.core.config.set_last_used_dir(
                     os.path.dirname(files[0])
                 )
-                if parent_path is not None:
+                if parent_path:
                     target_directory = parent_path
                 else:
                     target_directory = self.window.core.config.get_user_dir('data')
