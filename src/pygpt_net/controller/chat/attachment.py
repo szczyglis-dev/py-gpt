@@ -174,7 +174,7 @@ class Attachment(QObject):
         if content:
             if self.window.core.config.get("ctx.attachment.verbose", False):
                 self.window.core.debug.log("Received additional context: {}".format(content))
-            return "ADDITIONAL CONTEXT FROM ATTACHMENT: {}".format(content)
+            return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT: {}".format(content)
         return ""
 
     def get_full_context(self, ctx: CtxItem) -> str:
