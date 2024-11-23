@@ -315,6 +315,7 @@ class Files:
                         old_id,
                         new_id,
                     )
+                    attachment.consumed = True
                     num += 1  # increment uploaded files counter
 
         # update assistants list
