@@ -1683,6 +1683,15 @@ class Patch:
                     data["ctx.attachment.verbose"] = self.window.core.config.get_base('ctx.attachment.verbose')
                 updated = True
 
+            # < 2.4.22
+            if old < parse_version("2.4.22"):
+                print("Migrating config from < 2.4.22...")
+                data["ctx.attachment.mode"] = self.window.core.config.get_base('ctx.attachment.mode')
+                if 'ctx.attachment.img' not in data:
+                    data["ctx.attachment.img"] = self.window.core.config.get_base(
+                        'ctx.attachment.img')
+                updated = True
+
         # update file
         migrated = False
         if updated:
