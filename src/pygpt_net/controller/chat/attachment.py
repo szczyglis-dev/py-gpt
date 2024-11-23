@@ -136,7 +136,9 @@ class Attachment(QObject):
                             if self.is_allowed(str(path)):
                                 item = self.window.core.attachments.context.upload(meta, sub_attachment, prompt)
                                 if item:
-                                    item["path"] = os.path.basename(attachment.path) + "/" + file
+                                    # prepare relative path to archive root
+                                    file_path_relative = os.path.relpath(path, tmp_path)
+                                    item["path"] = os.path.basename(attachment.path) + "/" + file_path_relative
                                     item["size"] = os.path.getsize(path)
                                     meta.additional_ctx.append(item)
                                     self.uploaded = True
