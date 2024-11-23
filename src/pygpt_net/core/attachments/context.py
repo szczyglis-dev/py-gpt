@@ -47,7 +47,7 @@ class Context:
 
         # Example of a correct response:        
 
-        `Item X is located at place Y.`        
+        `[filename] Item X is located at place Y.`        
 
         # Content to summarize:
 
@@ -73,11 +73,12 @@ class Context:
         meta_uuid = str(meta.uuid)
         return os.path.join(self.window.core.config.get_user_dir("ctx_idx"), meta_uuid)
 
-    def get_context_text(self, ctx: CtxItem) -> str:
+    def get_context_text(self, ctx: CtxItem, filename: bool = False) -> str:
         """
         Get raw text context for meta
 
         :param ctx: CtxItem instance
+        :param filename: append filename
         :return: raw context
         """
         meta = ctx.meta
@@ -90,9 +91,11 @@ class Context:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
                 text_path = os.path.join(file_idx_path, file_id + ".txt")
+                if filename:
+                    context += "Filename: {}\n".format(file["name"]) + "\n"
                 if os.path.exists(text_path):
                     with open(text_path, "r") as f:
-                        context += f.read() + "\n"
+                        context += f.read() + "\n\n"
         return context
 
     def query_context(self, meta: CtxMeta, query: str) -> str:
@@ -133,7 +136,7 @@ class Context:
 
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
-            content=str(self.get_context_text(ctx)).strip(),
+            content=str(self.get_context_text(ctx, filename=True)).strip(),
         )
         if self.is_verbose():
             print("Attachments: summary prompt: {}".format(prompt))

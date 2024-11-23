@@ -174,7 +174,7 @@ class Attachment(QObject):
         if content:
             if self.window.core.config.get("ctx.attachment.verbose", False):
                 print("Received additional context: {}".format(content))
-            return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT: {}".format(content)
+            return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
 
     def get_full_context(self, ctx: CtxItem) -> str:
@@ -184,7 +184,7 @@ class Attachment(QObject):
         :param ctx: CtxItem
         :return: Full context
         """
-        return self.window.core.attachments.context.get_context_text(ctx)
+        return self.window.core.attachments.context.get_context_text(ctx, filename=True)
 
     def get_query_context(self, meta: CtxMeta, query: str) -> str:
         """
