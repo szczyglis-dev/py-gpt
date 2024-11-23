@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.24 (2024-11-23)
+
+- Added the ability to use ZIP and TAR archives as attachments (they are now unpacked "on the fly").
+- Added the ability to index ZIP and TAR archives (it may be necessary to remove .zip and .tar from the blacklist in the settings).
+- Fix: error when uploading to the /data directory using the Upload files button.
+
 ## 2.4.23 (2024-11-23)
 
 - Condensed layout widgets margins.

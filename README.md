@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.23** | build: **2024.11.23** | Python: **>=3.10, <3.12**
+Release: **2.4.24** | build: **2024.11.23** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3636,13 +3636,6 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 
 To get the new version, simply download it and start using it in place of the old one. All your custom settings like configuration, presets, indexes, and past conversations will be kept and ready to use right away in the new version.
 
-
-## Coming soon
-
-- Enhanced integration with Langchain
-- More vector databases support
-- Development of autonomous agents
-
 ## DISCLAIMER
 
 This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
@@ -3658,6 +3651,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.24 (2024-11-23)**
+
+- Added the ability to use ZIP and TAR archives as attachments (they are now unpacked "on the fly").
+- Added the ability to index ZIP and TAR archives (it may be necessary to remove .zip and .tar from the blacklist in the settings).
+- Fix: error when uploading to the /data directory using the Upload files button.
 
 **2.4.23 (2024-11-23)**
 
@@ -3688,55 +3687,6 @@ may consume additional tokens that are not displayed in the main window.
 - Refactored legacy Agent and Expert modes.
 - Fixed Expert mode initialization.
 - Added an option in Settings -> Layout to disable animations.
-
-**2.4.18 (2024-11-21)**
-
-- Refactored kernel status and state handling.
-- Fixed: audio input execution.
-- Improved output from tools in Agents.
-- Added status loading animation indicator.
-- Other fixes.
-
-**2.4.17 (2024-11-20)**
-
-- Refactored kernel and render events.
-- Added multiple formatted extra outputs from plugins.
-- Added a 'Reset (clear)' option in the context list for clearing the current context.
-- Improved agents steps output handling.
-- Fixed the audio button.
-- Improved the stop event.
-- Other small fixes.
-
-**2.4.16 (2024-11-19)**
-
-- Code Interpreter and Files I/O input/output is now displayed in chat window, using syntax highlight.
-- Refactored plugins structure.
-- Fix: command execution in Chat in Files mode when no index is selected.
-- Fix: missing translations in Agent mode.
-
-
-**2.4.15 (2024-11-18)**
-
-- Vision analysis added to all modes.
-- Added commands for the Vision plugin: image analysis from an attachment, screenshot analysis, camera image analysis - performed in the background in every mode, without switching to vision mode.
-- Improved execution of multiple commands at once..
-- Improved integration with IPython and extended instructions for the model.
-- Other fixes and improvements.
-
-**2.4.14 (2024-11-17)**
-
-- Added a `Loop / evaluate` mode for Llama-index agents, allowing them to work autonomously in a loop and evaluates the correctness of received results using a percentage scale from 0% to 100%, and automatically continue and correct responses below expected value.
-- Updated layout: mode and model lists replaced with comboboxes.
-
-**2.4.13 (2024-11-16)**
-
-- Introduced `Code Interpreter (v2)` with `IPython`: Enables session state retention on a kernel and building on previous computations, allowing for a Jupyter-like workflow, which is useful for iterative development and data analysis. Supports magic commands like `!pip install <package_name>` for package installation within the session. (currently in beta)
-
-**2.4.12 (2024-11-15)**
-
-- Added httpx-socks to the dependencies, enabling the use of SOCKS proxies.
-
-**2.4.11 (2024-11-15)**
 
 
 # Credits and links
