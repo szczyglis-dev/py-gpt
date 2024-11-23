@@ -122,7 +122,7 @@ class Attachment(QObject):
         for uuid in attachments:
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
-                continue  # skip images
+                continue  # skip not allowed files
             if self.window.core.filesystem.packer.is_archive(attachment.path):
                 tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
                 if tmp_path:
@@ -191,17 +191,20 @@ class Attachment(QObject):
         """
         content = ""
         meta = ctx.meta
-        if self.window.core.config.get("ctx.attachment.verbose", False):
-            print("Getting additional context...\nMode: {}".format(self.mode))
+        if self.mode != self.MODE_DISABLED:
+            if self.window.core.config.get("ctx.attachment.verbose", False):
+                print("Getting additional context...\nMode: {}".format(self.mode))
+
         if self.mode == self.MODE_FULL_CONTEXT:
             content = self.get_full_context(ctx)
         elif self.mode == self.MODE_QUERY_CONTEXT:
             content = self.get_query_context(meta, str(ctx.input))
         elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
             content = self.get_context_summary(ctx)
+
         if content:
             if self.window.core.config.get("ctx.attachment.verbose", False):
-                print("Received additional context: {}".format(content))
+                print("[OK] Appending additional context: {}".format(content))
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
 

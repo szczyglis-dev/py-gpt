@@ -193,8 +193,6 @@ class Context:
             os.remove(raw_path)
         copyfile(attachment.path, raw_path)
 
-        # unpack .zip here, to /tmp and return path to directory
-
         # extract text content using data loader
         loader_kwargs = {
             "prompt": prompt,
