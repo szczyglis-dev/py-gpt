@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
 
 import json
@@ -433,7 +433,6 @@ class Chat:
                 response = node.text
                 break
         output = ""
-        print(response)
         if response:
             output = str(response)
         return output

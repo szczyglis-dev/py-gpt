@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -262,15 +262,24 @@ class Indexing:
             return False
         return True
 
-    def get_documents(self, path: str, force: bool = False, silent: bool = False) -> list[Document]:
+    def get_documents(
+            self,
+            path: str,
+            force: bool = False,
+            silent: bool = False,
+            loader_kwargs: dict = None,
+    ) -> list[Document]:
         """
-        Get documents from path
+        Get documents from path using data loaders
 
         :param path: path to data
         :param force: force reading
         :param silent: disable logging
+        :param loader_kwargs: additional keyword arguments for loader
         :return: list of documents
         """
+        # TODO: if .zip then unpack here, and return path to /tmp
+
         if not silent:
             self.window.core.idx.log("Reading documents from path: {}".format(path))
         if os.path.isdir(path):
@@ -300,7 +309,12 @@ class Indexing:
                 if not silent:
                     self.window.core.idx.log("Using loader for: {}".format(ext))
                 reader = self.loaders["file"][ext]
-                documents = reader.load_data(file=Path(path))
+
+                # use custom loader method if available
+                if hasattr(reader, "load_data_custom") and loader_kwargs:
+                    documents = reader.load_data_custom(file=Path(path), **loader_kwargs)
+                else:
+                    documents = reader.load_data(file=Path(path))
             else:
                 if not silent:
                     self.window.core.idx.log("Using default SimpleDirectoryReader for: {}".format(ext))
@@ -311,14 +325,20 @@ class Indexing:
         self.window.core.idx.metadata.append_file_metadata(documents, path)
         return documents
 
-    def read_text_content(self, path: str) -> str:
+    def read_text_content(self, path: str, loader_kwargs: dict = None) -> str:
         """
         Get content from file using loaders
 
         :param path: path to file
+        :param loader_kwargs: additional keyword arguments for data loader
         :return: file content
         """
-        docs = self.get_documents(path, force=True, silent=True)
+        docs = self.get_documents(
+            path,
+            force=True,  # allow excluded extensions
+            silent=True,
+            loader_kwargs=loader_kwargs,
+        )
         data = []
         for doc in docs:
             data.append(doc.text)

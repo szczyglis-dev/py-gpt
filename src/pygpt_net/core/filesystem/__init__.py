@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 12:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
 
 import os
@@ -14,11 +14,13 @@ import shutil
 
 from datetime import datetime
 from pathlib import PurePath
+from uuid import uuid4
 
 from PySide6.QtCore import QUrl
 
 from .actions import Actions
 from .editor import Editor
+from .packer import Packer
 from .types import Types
 from .url import Url
 
@@ -32,6 +34,7 @@ class Filesystem:
         self.window = window
         self.actions = Actions(window)
         self.editor = Editor(window)
+        self.packer = Packer(window)
         self.types = Types(window)
         self.url = Url(window)
         self.workdir_placeholder = "%workdir%"
@@ -239,9 +242,11 @@ class Filesystem:
         upload_dir = self.window.core.config.get_user_dir("upload")
         file_name = os.path.basename(path)
         upload_path = os.path.join(upload_dir, file_name)
-        # if file exists, add datetime prefix
+        # if file exists, store in UUID subdir
         if os.path.exists(upload_path):
-            upload_path = os.path.join(upload_dir, datetime.now().strftime("%Y-%m-%d_%H-%M-%S_") + file_name)
+            subdir = str(uuid4())
+            os.makedirs(os.path.join(upload_dir, subdir), exist_ok=True)
+            upload_path = os.path.join(upload_dir, subdir, file_name)
         shutil.copyfile(path, upload_path)
         return upload_path
 

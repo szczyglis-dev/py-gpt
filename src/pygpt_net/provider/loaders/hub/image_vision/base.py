@@ -205,3 +205,25 @@ class ImageVisionLLMReader(BaseReader):
             if self._window is None:
                 raise ValueError("Window instance is required to use API model.")
             return self.load_api(file, extra_info)
+
+    def load_data_custom(
+        self, file: Path, extra_info: Optional[Dict] = None, **kwargs
+    ) -> List[Document]:
+        """
+        Parse file.
+
+        :param file: file path
+        :param extra_info: additional metadata
+        :param kwargs: additional arguments
+        :return: list of documents
+        """
+        extra_args = kwargs.get("extra_args", {})
+        if self._use_local:
+            is_compiled = self._window.core.config.is_compiled() or self._window.core.platforms.is_snap()
+            if is_compiled:
+                raise ValueError("Local models are not available in compiled version.")
+            return self.load_local(file, extra_info)
+        else:
+            if self._window is None:
+                raise ValueError("Window instance is required to use API model.")
+            return self.load_api(file, extra_info)

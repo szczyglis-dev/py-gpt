@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
+
+import os
 
 from PySide6.QtCore import Slot, QObject
 
@@ -17,6 +19,7 @@ from pygpt_net.core.types import (
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.attachments.worker import AttachmentWorker
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxMeta, CtxItem
 from pygpt_net.utils import trans
 
@@ -38,6 +41,7 @@ class Attachment(QObject):
         self.window = window
         self.mode = self.MODE_QUERY_CONTEXT
         self.uploaded = False
+        self.archives_allowed = [".zip", ".tar", ".gz", ".bz2"]
 
     def has(self, mode: str) -> bool:
         """
@@ -96,17 +100,18 @@ class Attachment(QObject):
         """
         allow_images = self.window.core.config.get("ctx.attachment.img", False)
         allowed = self.window.core.idx.indexing.is_allowed(path)
-        if allowed:
+        if allowed or path.endswith(tuple(self.archives_allowed)):
             if not self.window.core.filesystem.types.is_image(path) or allow_images:
                 return True
         return False
 
-    def upload(self, meta: CtxMeta, mode: str) -> bool:
+    def upload(self, meta: CtxMeta, mode: str, prompt: str) -> bool:
         """
         Upload attachments for meta
 
         :param meta: CtxMeta
         :param mode: str
+        :param prompt: user input prompt
         :return: True if uploaded
         """
         # upload on chat input send, handle to index, etc.
@@ -118,14 +123,44 @@ class Attachment(QObject):
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
                 continue  # skip images
-            item = self.window.core.attachments.context.upload(meta, attachment)
-            if item:
-                meta.additional_ctx.append(item)
-                attachment.consumed = True  # allow for deletion
-                self.uploaded = True
+            if self.is_archive(attachment.path):
+                tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
+                if tmp_path:
+                    for root, dirs, files in os.walk(tmp_path):
+                        for file in files:
+                            path = os.path.join(root, file)
+                            sub_attachment = AttachmentItem()
+                            sub_attachment.path = path
+                            sub_attachment.name = os.path.basename(path)
+                            sub_attachment.consumed = False
+                            if self.is_allowed(str(path)):
+                                item = self.window.core.attachments.context.upload(meta, sub_attachment, prompt)
+                                if item:
+                                    item["path"] = os.path.basename(attachment.path) + "/" + file
+                                    item["size"] = os.path.getsize(path)
+                                    meta.additional_ctx.append(item)
+                                    self.uploaded = True
+                                    sub_attachment.consumed = True
+                                    attachment.consumed = True
+                    self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
+            else:
+                item = self.window.core.attachments.context.upload(meta, attachment, prompt)
+                if item:
+                    meta.additional_ctx.append(item)
+                    attachment.consumed = True  # allow for deletion
+                    self.uploaded = True
         if self.uploaded:
             self.window.core.ctx.save(meta.id)  # save meta
         return self.uploaded
+
+    def is_archive(self, path: str) -> bool:
+        """
+        Check if path is archive
+
+        :param path: Path to file
+        :return: True if archive
+        """
+        return path.endswith(tuple(self.archives_allowed))
 
     def has_context(self, meta: CtxMeta) -> bool:
         """

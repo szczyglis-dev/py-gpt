@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -30,6 +30,7 @@ class Context:
         :param window: Window instance
         """
         self.window = window
+        self.dir_index = "index"
         self.summary_prompt = """
         Summarize the text below by extracting the most important information, 
         especially those that may help answer the question: 
@@ -106,7 +107,10 @@ class Context:
         :param query: query string
         :return: query result
         """
-        idx_path = os.path.join(self.get_dir(meta), "index")
+        meta_path = self.get_dir(meta)
+        if not os.path.exists(meta_path) or not os.path.isdir(meta_path):
+            return ""
+        idx_path = os.path.join(self.get_dir(meta), self.dir_index)
         model = None
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
 
@@ -158,12 +162,13 @@ class Context:
             print("Attachments: summary received: {}".format(response))
         return response
 
-    def upload(self, meta: CtxMeta, attachment: AttachmentItem) -> dict:
+    def upload(self, meta: CtxMeta, attachment: AttachmentItem, prompt: str) -> dict:
         """
         Upload attachment for context
 
         :param meta: CtxMeta instance
         :param attachment: AttachmentItem instance
+        :param prompt: user input prompt
         :return: Dict with attachment data
         """
         if self.is_verbose():
@@ -174,7 +179,7 @@ class Context:
         file_id = str(uuid.uuid4())
         meta_path = self.get_dir(meta)
         file_idx_path = os.path.join(meta_path, file_id)
-        index_path = os.path.join(meta_path, "index")
+        index_path = os.path.join(meta_path, self.dir_index)
         os.makedirs(meta_path, exist_ok=True)
         os.makedirs(file_idx_path, exist_ok=True)
 
@@ -188,8 +193,16 @@ class Context:
             os.remove(raw_path)
         copyfile(attachment.path, raw_path)
 
+        # unpack .zip here, to /tmp and return path to directory
+
         # extract text content using data loader
-        text = self.window.core.idx.indexing.read_text_content(raw_path)
+        loader_kwargs = {
+            "prompt": prompt,
+        }  # extra loader kwargs
+        text = self.window.core.idx.indexing.read_text_content(
+            path=raw_path,
+            loader_kwargs=loader_kwargs,
+        )
         if text:
             text_path = os.path.join(file_idx_path, file_id + ".txt")
             with open(text_path, "w") as f:
@@ -217,6 +230,7 @@ class Context:
             "doc_ids": doc_ids,
             "indexed": True,
             "content_type": "text",
+            "size": os.path.getsize(attachment.path),
             "length": len(text),
             "tokens": tokens,
         }
@@ -351,7 +365,7 @@ class Context:
         """
         file_id = item["uuid"]
         meta_path = self.get_dir(meta)
-        index_path = os.path.join(meta_path, "index")
+        index_path = os.path.join(meta_path, self.dir_index)
         file_idx_path = os.path.join(meta_path, file_id)
         if item["type"] == "local_file":
             if os.path.exists(file_idx_path):

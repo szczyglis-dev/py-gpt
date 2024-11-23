@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.11.23 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -60,6 +60,7 @@ class Config:
             "locale": "locale",
             "presets": "presets",
             "upload": "upload",
+            "tmp": "tmp",
         }
         self.provider = JsonFileProvider(window)
         self.provider.path_app = self.get_app_path()

@@ -1061,6 +1061,8 @@ Use voice synthesis to describe events on the screen.
 
 You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from Llama-index. You can upload any file format supported by the application through Llama-index. Supported formats include:
 
+Text-based types:
+
 - CSV files (csv)
 - Epub files (epub)
 - Excel .xlsx spreadsheets (xlsx)
@@ -1073,10 +1075,15 @@ You can use attachments to provide additional context to the conversation. Uploa
 - Word .docx documents (docx)
 - XML files (xml)
 
-and:
+Media-types:
 
-- Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
+- Image (using vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
 - Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
+
+Archives:
+
+- zip
+- tar, tar.gz, tar.bz2
 
 **Note:** To use images as additional context, you must enable the option in settings: `Files and attachments -> Allow images as additional context`. Otherwise, only normal vision/handling by the vision model will be active for images.
 

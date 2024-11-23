@@ -139,6 +139,8 @@ class AttachmentsCtx:
 
             if os.path.exists(path):
                 size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
+            elif 'size' in item:
+                size = self.window.core.filesystem.sizeof_fmt(item['size'])
 
             self.window.ui.models[self.id].insertRow(i)
             index = self.window.ui.models[self.id].index(i, 0)
