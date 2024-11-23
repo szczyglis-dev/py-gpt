@@ -51,5 +51,6 @@ class Model:
         layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(self.window.ui.nodes[self.id])
         layout.addStretch()
+        layout.setContentsMargins(2, 5, 5, 5)
 
         return layout

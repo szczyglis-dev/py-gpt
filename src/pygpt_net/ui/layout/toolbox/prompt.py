@@ -73,7 +73,7 @@ class Prompt:
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes['preset.prompt'])
         layout.addWidget(self.window.ui.nodes['tip.toolbox.prompt'])
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(2, 5, 5, 5)
 
         widget = QWidget()
         widget.setLayout(layout)

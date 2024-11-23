@@ -12,9 +12,9 @@
 from PySide6.QtCore import Slot, QObject
 
 from pygpt_net.core.types import (
-    MODE_AGENT, MODE_ASSISTANT,
+    MODE_ASSISTANT,
 )
-from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.attachments.worker import AttachmentWorker
 from pygpt_net.item.ctx import CtxMeta, CtxItem
@@ -113,7 +113,7 @@ class Attachment(QObject):
         self.uploaded = False
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
         if self.window.core.config.get("ctx.attachment.verbose", False) and len(attachments) > 0:
-            self.window.core.debug.log("Uploading attachments...\nMode: {}".format(mode))
+            print("Uploading attachments...\nMode: {}".format(mode))
         for uuid in attachments:
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
@@ -164,7 +164,7 @@ class Attachment(QObject):
         content = ""
         meta = ctx.meta
         if self.window.core.config.get("ctx.attachment.verbose", False):
-            self.window.core.debug.log("Getting additional context...\nMode: {}".format(self.mode))
+            print("Getting additional context...\nMode: {}".format(self.mode))
         if self.mode == self.MODE_FULL_CONTEXT:
             content = self.get_full_context(ctx)
         elif self.mode == self.MODE_QUERY_CONTEXT:
@@ -173,7 +173,7 @@ class Attachment(QObject):
             content = self.get_context_summary(ctx)
         if content:
             if self.window.core.config.get("ctx.attachment.verbose", False):
-                self.window.core.debug.log("Received additional context: {}".format(content))
+                print("Received additional context: {}".format(content))
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT: {}".format(content)
         return ""
 

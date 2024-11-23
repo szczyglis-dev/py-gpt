@@ -78,6 +78,7 @@ class Indexes:
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id])
+        layout.setContentsMargins(2, 5, 5, 5)
         #layout.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         # model

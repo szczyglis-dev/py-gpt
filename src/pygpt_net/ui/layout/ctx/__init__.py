@@ -50,6 +50,7 @@ class CtxMain:
         layout.addWidget(self.window.ui.nodes['tip.toolbox.ctx'])
         layout.addWidget(search_input)
         layout.addWidget(video)
+        layout.setContentsMargins(5, 5, 2, 5)
 
         widget = QWidget()
         widget.setLayout(layout)

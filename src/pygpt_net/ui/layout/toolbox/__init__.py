@@ -66,6 +66,7 @@ class ToolboxMain:
         bottom = QVBoxLayout()
         bottom.addWidget(self.prompt.setup())
         bottom.addWidget(self.footer.setup())
+        bottom.setContentsMargins(0, 0, 0, 0)
 
         bottom_widget = QWidget()
         bottom_widget.setLayout(bottom)

@@ -88,6 +88,8 @@ class Output:
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['output'])
         layout.addLayout(self.setup_bottom())
+        layout.setContentsMargins(0, 5, 0, 0)
+
         widget = QWidget()
         widget.setLayout(layout)
         return widget
@@ -189,8 +191,6 @@ class Output:
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
         opts_layout.setAlignment(Qt.AlignLeft)
 
-        layout = QHBoxLayout()
-
         left_layout = QHBoxLayout()
         left_layout.addLayout(opts_layout)
         left_layout.setContentsMargins(0, 0, 0, 0)
@@ -225,15 +225,18 @@ class Output:
         left_layout = QHBoxLayout()
         left_layout.addWidget(left_widget)
         left_layout.addStretch(1)
+        left_layout.setContentsMargins(0, 0, 0, 0)
 
         center_layout = QHBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(self.window.ui.nodes['anim.loading'])
         center_layout.addStretch()
+        center_layout.setContentsMargins(0, 0, 0, 0)
 
         right_layout = QHBoxLayout()
         right_layout.addStretch(1)
         right_layout.addWidget(right_widget)
+        right_layout.setContentsMargins(0, 0, 0, 0)
 
         grid.addLayout(left_layout, 0, 0)
         grid.addLayout(center_layout, 0, 1, alignment=Qt.AlignCenter)
@@ -245,7 +248,7 @@ class Output:
 
         bottom_layout = QVBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['chat.footer'])
-        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.setContentsMargins(2, 0, 2, 0)
         return bottom_layout
 
     def set_fixed_size_policy(self, layout):

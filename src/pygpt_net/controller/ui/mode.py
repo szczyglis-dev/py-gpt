@@ -159,6 +159,7 @@ class Mode:
 
         # stream mode
         if mode in [MODE_IMAGE]:
+
             self.window.ui.nodes['input.stream'].setVisible(False)
         else:
             self.window.ui.nodes['input.stream'].setVisible(True)
@@ -179,8 +180,12 @@ class Mode:
             self.window.ui.tabs['input'].setTabVisible(2, True)
             self.window.ui.tabs['input'].setTabVisible(3, False)
         else:
-            self.window.ui.tabs['input'].setTabVisible(2, False)
-            self.window.ui.tabs['input'].setTabVisible(3, True)
+            if mode != MODE_IMAGE:
+                self.window.ui.tabs['input'].setTabVisible(2, False)
+                self.window.ui.tabs['input'].setTabVisible(3, True)
+            else:
+                self.window.ui.tabs['input'].setTabVisible(2, False)
+                self.window.ui.tabs['input'].setTabVisible(3, False)
 
         # toggle chat footer
         if not self.is_chat_tab():

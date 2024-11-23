@@ -86,6 +86,7 @@ class Assistants:
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id])
         layout.addWidget(self.window.ui.nodes['tip.toolbox.assistants'])
+        layout.setContentsMargins(2, 5, 5, 5)
 
         # model
         self.window.ui.models[self.id] = self.create_model(self.window)

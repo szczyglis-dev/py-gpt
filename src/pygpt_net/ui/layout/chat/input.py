@@ -75,6 +75,7 @@ class Input:
         layout.addLayout(self.setup_header())
         layout.addWidget(self.window.ui.tabs['input'])
         layout.addLayout(self.setup_bottom())
+        layout.setContentsMargins(0, 0, 0, 5)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -186,6 +187,7 @@ class Input:
         grid.addLayout(center_layout, 0, 1, alignment=Qt.AlignCenter)
         grid.addLayout(right_layout, 0, 2, alignment=Qt.AlignRight)
 
+        grid.setContentsMargins(0, 0, 0, 0)
         return grid
 
     def setup_bottom(self) -> QHBoxLayout:
@@ -197,6 +199,7 @@ class Input:
         layout = QHBoxLayout()
         layout.addLayout(self.status.setup())
         layout.addLayout(self.setup_buttons())
+        layout.setContentsMargins(2, 0, 2, 0)
 
         return layout
 

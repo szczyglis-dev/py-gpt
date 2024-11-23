@@ -108,7 +108,7 @@ class Context:
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
 
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: query result: {}".format(result))
+            print("Attachments: query result: {}".format(result))
 
         return result
 
@@ -129,14 +129,14 @@ class Context:
             raise Exception("Attachments: summary model not found: {}".format(model))
 
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: using summary model: {}".format(model))
+            print("Attachments: using summary model: {}".format(model))
 
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
             content=str(self.get_context_text(ctx)).strip(),
         )
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: summary prompt: {}".format(prompt))
+            print("Attachments: summary prompt: {}".format(prompt))
 
         ctx = CtxItem()
         bridge_context = BridgeContext(
@@ -152,7 +152,7 @@ class Context:
         self.window.dispatch(event)
         response = event.data.get("response")
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: summary received: {}".format(response))
+            print("Attachments: summary received: {}".format(response))
         return response
 
     def upload(self, meta: CtxMeta, attachment: AttachmentItem) -> dict:
@@ -164,7 +164,7 @@ class Context:
         :return: Dict with attachment data
         """
         if self.is_verbose():
-            self.window.core.debug.log("Uploading for meta ID: {}".format(meta.id))
+            print("Uploading for meta ID: {}".format(meta.id))
 
         # prepare idx dir
         name = os.path.basename(attachment.path)
@@ -176,8 +176,8 @@ class Context:
         os.makedirs(file_idx_path, exist_ok=True)
 
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: created path: {}".format(meta_path))
-            self.window.core.debug.log("Attachments: vector index path: {}".format(index_path))
+            print("Attachments: created path: {}".format(meta_path))
+            print("Attachments: vector index path: {}".format(index_path))
 
         # copy raw file
         raw_path = os.path.join(file_idx_path, name)
@@ -193,7 +193,7 @@ class Context:
                 f.write(text)
 
             if self.is_verbose():
-                self.window.core.debug.log("Attachments: read text content {}".format(text))
+                print("Attachments: read text content {}".format(text))
 
         tokens = 0
         if text:
@@ -204,7 +204,7 @@ class Context:
         doc_ids = self.window.core.idx.indexing.index_attachment(attachment.path, index_path, model)
 
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: indexed. Doc IDs: {}".format(doc_ids))
+            print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
 
         result = {
             "name": name,
@@ -219,7 +219,7 @@ class Context:
         }
 
         if self.is_verbose():
-            self.window.core.debug.log("Attachments: uploaded: {}".format(result))
+            print("Attachments: uploaded: {}".format(result))
 
         return result
 
@@ -246,7 +246,7 @@ class Context:
         if os.path.exists(from_meta_path) and os.path.isdir(from_meta_path):
             shutil.copytree(from_meta_path, to_meta_path)
             if self.is_verbose():
-                self.window.core.debug.log("Attachments copied from {} to: {}".
+                print("Attachments copied from {} to: {}".
                                            format(from_meta_path, to_meta_path))
         return True
 
@@ -337,7 +337,7 @@ class Context:
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
             shutil.rmtree(meta_path)
             if self.is_verbose():
-                self.window.core.debug.log("Attachment deleted dir: {}".format(meta_path))
+                print("Attachment deleted dir: {}".format(meta_path))
 
     def delete_local(self, meta: CtxMeta, item: dict):
         """
@@ -355,7 +355,7 @@ class Context:
                 for f in os.listdir(file_idx_path):
                     os.remove(os.path.join(file_idx_path, f))
                     if self.is_verbose():
-                        self.window.core.debug.log("Attachment deleted: {}".format(f))
+                        print("Attachment deleted: {}".format(f))
                 os.rmdir(file_idx_path)
 
         # delete from index
@@ -363,7 +363,7 @@ class Context:
             for doc_id in item["doc_ids"]:
                 self.window.core.idx.indexing.remove_attachment(index_path, doc_id)
                 if self.is_verbose():
-                    self.window.core.debug.log("Attachment deleted doc ID: {}".format(doc_id))
+                    print("Attachment deleted doc ID: {}".format(doc_id))
 
     def truncate(self):
         """Truncate all attachments"""

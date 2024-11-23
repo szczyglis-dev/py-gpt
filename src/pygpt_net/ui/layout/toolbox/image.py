@@ -64,9 +64,10 @@ class Image:
         rows = QVBoxLayout()
         rows.addWidget(label)
         rows.addLayout(cols)
+        rows.setContentsMargins(2, 5, 5, 5)
 
         self.window.ui.nodes['dalle.options'] = QWidget()
         self.window.ui.nodes['dalle.options'].setLayout(rows)
-        self.window.ui.nodes['dalle.options'].setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['dalle.options'].setContentsMargins(2, 0, 0, 0)
 
         return self.window.ui.nodes['dalle.options']

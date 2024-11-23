@@ -73,7 +73,7 @@ class Footer:
         # rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())
         rows.addWidget(self.window.ui.nodes['voice.control.btn'])
-        rows.setContentsMargins(0, 0, 0, 0)
+        rows.setContentsMargins(2, 0, 0, 0)
 
         # logo
         logo_button = self.setup_logo()

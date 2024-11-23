@@ -75,7 +75,7 @@ class Presets:
         header.addWidget(self.window.ui.nodes['preset.agents.label'])
         header.addWidget(self.window.ui.nodes['preset.experts.label'])
         header.addWidget(self.window.ui.nodes['preset.presets.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(0, 0, 0, 0)
+        header.setContentsMargins(2, 0, 0, 0)
 
         header_widget = QWidget()
         header_widget.setLayout(header)
@@ -92,6 +92,7 @@ class Presets:
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id], 1)
         layout.addWidget(self.window.ui.nodes['tip.toolbox.presets'])
+        layout.setContentsMargins(2, 5, 5, 5)
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
