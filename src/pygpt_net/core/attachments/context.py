@@ -207,7 +207,7 @@ class Context:
                 f.write(text)
 
             if self.is_verbose():
-                print("Attachments: read text content {}".format(text))
+                print("Attachments: read text content: {}".format(text))
 
         tokens = 0
         if text:

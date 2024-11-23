@@ -39,9 +39,9 @@ class Attachment(QObject):
         """
         super(Attachment, self).__init__()
         self.window = window
-        self.mode = self.MODE_QUERY_CONTEXT
+        self.mode = self.MODE_FULL_CONTEXT
         self.uploaded = False
-        self.archives_allowed = [".zip", ".tar", ".gz", ".bz2"]
+        self.uploaded_tab_idx = 3
 
     def has(self, mode: str) -> bool:
         """
@@ -50,7 +50,6 @@ class Attachment(QObject):
         :param mode: Work mode
         :return: True if has attachments
         """
-        # check if has attachments
         if self.window.core.attachments.has(mode):
             files = self.window.core.attachments.get_all(mode, only_files=True)
             for id in files:
@@ -61,7 +60,7 @@ class Attachment(QObject):
 
     def setup(self):
         """Setup attachments"""
-        self.mode = self.window.core.config.get("ctx.attachment.mode", self.MODE_QUERY_CONTEXT)
+        self.mode = self.window.core.config.get("ctx.attachment.mode", self.MODE_FULL_CONTEXT)
         if self.mode == self.MODE_QUERY_CONTEXT:
             self.window.ui.nodes['input.attachments.ctx.mode.query'].setChecked(True)
         elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
@@ -87,8 +86,8 @@ class Attachment(QObject):
         worker.meta = self.window.core.ctx.get_current_meta()
         worker.mode = mode
         worker.prompt = text
-        worker.signals.error.connect(self.handle_attachment_error)
-        worker.signals.success.connect(self.handle_attachment_success)
+        worker.signals.error.connect(self.handle_upload_error)
+        worker.signals.success.connect(self.handle_upload_success)
         self.window.threadpool.start(worker)
 
     def is_allowed(self, path: str) -> bool:
@@ -96,11 +95,11 @@ class Attachment(QObject):
         Check if path is allowed for indexing
 
         :param path: Path to file
-        :return: True if excluded
+        :return: True if allowed
         """
         allow_images = self.window.core.config.get("ctx.attachment.img", False)
-        allowed = self.window.core.idx.indexing.is_allowed(path)
-        if allowed or path.endswith(tuple(self.archives_allowed)):
+        ext_allowed = self.window.core.idx.indexing.is_allowed(path)
+        if ext_allowed or self.window.core.filesystem.packer.is_archive(path):
             if not self.window.core.filesystem.types.is_image(path) or allow_images:
                 return True
         return False
@@ -114,16 +113,17 @@ class Attachment(QObject):
         :param prompt: user input prompt
         :return: True if uploaded
         """
-        # upload on chat input send, handle to index, etc.
         self.uploaded = False
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
-        if self.window.core.config.get("ctx.attachment.verbose", False) and len(attachments) > 0:
-            print("Uploading attachments...\nMode: {}".format(mode))
+        if self.is_verbose() and len(attachments) > 0:
+            print("\nUploading attachments...\nWork Mode: {}".format(mode))
         for uuid in attachments:
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
                 continue  # skip not allowed files
             if self.window.core.filesystem.packer.is_archive(attachment.path):
+                if self.is_verbose():
+                    print("Unpacking archive: {}".format(attachment.path))
                 tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
                 if tmp_path:
                     for root, dirs, files in os.walk(tmp_path):
@@ -133,12 +133,13 @@ class Attachment(QObject):
                             sub_attachment.path = path
                             sub_attachment.name = os.path.basename(path)
                             sub_attachment.consumed = False
+                            path_relative = os.path.relpath(path, tmp_path)
                             if self.is_allowed(str(path)):
+                                if self.is_verbose():
+                                    print("Uploading unpacked from archive: {}".format(path_relative))
                                 item = self.window.core.attachments.context.upload(meta, sub_attachment, prompt)
                                 if item:
-                                    # prepare relative path to archive root
-                                    file_path_relative = os.path.relpath(path, tmp_path)
-                                    item["path"] = os.path.basename(attachment.path) + "/" + file_path_relative
+                                    item["path"] = os.path.basename(attachment.path) + "/" + path_relative
                                     item["size"] = os.path.getsize(path)
                                     meta.additional_ctx.append(item)
                                     self.uploaded = True
@@ -162,7 +163,6 @@ class Attachment(QObject):
         :param meta: CtxMeta
         :return: True if has context
         """
-        # check if has additional context for attachment
         return len(meta.additional_ctx) > 0
 
     def current_has_context(self) -> bool:
@@ -172,13 +172,15 @@ class Attachment(QObject):
         :return: True if has context
         """
         meta = self.window.core.ctx.get_current_meta()
+        if meta is None:
+            return False
         return self.has_context(meta)
 
     def get_mode(self) -> str:
         """
-        Get attachment mode
+        Get additional context append mode
 
-        :return: Attachment mode
+        :return: Additional context append mode
         """
         return self.mode
 
@@ -192,8 +194,8 @@ class Attachment(QObject):
         content = ""
         meta = ctx.meta
         if self.mode != self.MODE_DISABLED:
-            if self.window.core.config.get("ctx.attachment.verbose", False):
-                print("Getting additional context...\nMode: {}".format(self.mode))
+            if self.is_verbose():
+                print("\nGetting additional context...\nContext Mode: {}".format(self.mode))
 
         if self.mode == self.MODE_FULL_CONTEXT:
             content = self.get_full_context(ctx)
@@ -203,8 +205,8 @@ class Attachment(QObject):
             content = self.get_context_summary(ctx)
 
         if content:
-            if self.window.core.config.get("ctx.attachment.verbose", False):
-                print("[OK] Appending additional context: {}".format(content))
+            if self.is_verbose():
+                print("\n--- Using additional context ---\n\n{}".format(content))
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
 
@@ -212,7 +214,7 @@ class Attachment(QObject):
         """
         Get full context for attachment
 
-        :param ctx: CtxItem
+        :param ctx: CtxItem instance
         :return: Full context
         """
         return self.window.core.attachments.context.get_context_text(ctx, filename=True)
@@ -221,7 +223,7 @@ class Attachment(QObject):
         """
         Get query context for attachment
 
-        :param meta: CtxMeta
+        :param meta: CtxMeta instance
         :param query: Query string
         :return: Query context
         """
@@ -231,26 +233,22 @@ class Attachment(QObject):
         """
         Get context summary
 
-        :param ctx: CtxItem
+        :param ctx: CtxItem instance
         :return: Context summary
         """
         return self.window.core.attachments.context.summary_context(ctx, ctx.input)
 
-    def get_uploaded_attachments(self, meta: CtxMeta):
+    def get_uploaded_attachments(self, meta: CtxMeta) -> list:
         """
         Get uploaded attachments for meta
 
-        :param meta: CtxMeta
+        :param meta: CtxMeta instance
+        :return: List of attachments
         """
-        # get uploaded attachments for meta
         return meta.additional_ctx
 
     def update(self):
-        """
-        Update attachments
-        :return:
-        """
-        # update attachments
+        """Update attachments list"""
         mode = self.window.core.config.get("mode")
         if mode == MODE_ASSISTANT:
             self.hide_uploaded()  # hide uploaded attachments in Assistant mode
@@ -261,6 +259,8 @@ class Attachment(QObject):
     def update_list(self, meta: CtxMeta):
         """
         Update list of attachments
+
+        :param meta: CtxMeta instance
         """
         # update list of attachments
         if meta is None or meta.additional_ctx is None:
@@ -274,7 +274,7 @@ class Attachment(QObject):
         """
         Update tab label
 
-        :param meta: CtxMeta
+        :param meta: CtxMeta instance
         """
         if meta is None or meta.additional_ctx is None:
             num_files = 0
@@ -294,13 +294,21 @@ class Attachment(QObject):
            self.hide_uploaded()
         """
 
+    def is_verbose(self) -> bool:
+        """
+        Check if verbose mode is enabled
+
+        :return: True if verbose mode is enabled
+        """
+        return self.window.core.config.get("ctx.attachment.verbose", False)
+
     def show_uploaded(self):
         """Show uploaded attachments"""
-        self.window.ui.tabs['input'].setTabVisible(3, True)
+        self.window.ui.tabs['input'].setTabVisible(self.uploaded_tab_idx, True)
 
     def hide_uploaded(self):
         """Hide uploaded attachments"""
-        self.window.ui.tabs['input'].setTabVisible(3, False)
+        self.window.ui.tabs['input'].setTabVisible(self.uploaded_tab_idx, False)
 
     def delete_by_idx(self, idx: int, force: bool = False, remove_local=True):
         """
@@ -350,9 +358,9 @@ class Attachment(QObject):
         self.update_list(meta)
 
     @Slot(object)
-    def handle_attachment_error(self, error: Exception):
+    def handle_upload_error(self, error: Exception):
         """
-        Handle attachment error
+        Handle upload error
 
         :param error: Exception
         """
@@ -362,13 +370,12 @@ class Attachment(QObject):
         }))
 
     @Slot(str)
-    def handle_attachment_success(self, text: str):
+    def handle_upload_success(self, text: str):
         """
-        Handle attachment success
+        Handle upload success
 
         :param text: Input prompt text
         """
-        # event: handle input
         context = BridgeContext()
         context.prompt = text
         event = KernelEvent(KernelEvent.INPUT_USER, {
@@ -383,7 +390,6 @@ class Attachment(QObject):
 
         :param mode: context mode
         """
-        # switch attachment mode
         self.mode = mode
         self.window.core.config.set("ctx.attachment.mode", mode)
         self.window.core.config.save()
