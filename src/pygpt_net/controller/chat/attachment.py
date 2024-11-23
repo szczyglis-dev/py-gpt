@@ -195,7 +195,7 @@ class Attachment(QObject):
         meta = ctx.meta
         if self.mode != self.MODE_DISABLED:
             if self.is_verbose():
-                print("\nGetting additional context...\nContext Mode: {}".format(self.mode))
+                print("\nPreparing additional context...\nContext Mode: {}".format(self.mode))
 
         if self.mode == self.MODE_FULL_CONTEXT:
             content = self.get_full_context(ctx)
@@ -325,7 +325,6 @@ class Attachment(QObject):
                 msg=trans('attachments.delete.confirm'),
             )
             return
-        # delete by index
         meta = self.window.core.ctx.get_current_meta()
         if meta is None or meta.additional_ctx is None:
             return
