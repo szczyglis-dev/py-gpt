@@ -157,7 +157,7 @@ class Image:
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
 
-        self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
+        self.window.controller.chat.common.unlock_input()  # unlock input
 
     @Slot(object, list, str)
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
@@ -218,6 +218,7 @@ class Image:
                 'extra': extra,
             })
             self.window.dispatch(event)
+            self.window.controller.chat.common.unlock_input()  # unlock input
             return
 
         # NOT internal-mode, user called, so append only img output to chat (show images now)
@@ -232,4 +233,4 @@ class Image:
         event = RenderEvent(RenderEvent.EXTRA_END, data)
         self.window.dispatch(event)  # end extra
 
-        self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
+        self.window.controller.chat.common.unlock_input()  # unlock input

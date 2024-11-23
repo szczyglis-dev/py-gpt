@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.20** | build: **2024.11.22** | Python: **>=3.10, <3.12**
+Release: **2.4.21** | build: **2024.11.23** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3644,6 +3644,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.21 (2024-11-23)**
+
+- Added the ability to send additional context from attachments without needing to activate the "Chat with Files" mode. Now, you just need to attach a file, and the additional context from the file will be available in the conversation. More information can be found in the "Files and attachments" section of the documentation.
+
+- Fixed the issue with restarting the agent after it has been forcefully stopped.
 
 **2.4.20 (2024-11-22)**
 

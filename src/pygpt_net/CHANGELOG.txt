@@ -1,3 +1,7 @@
+2.4.21 (2024-11-23)
+
+- Added the ability to send additional context from attachments without needing to activate the "Chat with Files" mode. Now, you just need to attach a file, and the additional context from the file will be available in the conversation. More information can be found in the "Files and attachments" section of the documentation.
+
 2.4.20 (2024-11-22)
 
 - Fixed freeze in Windows installer. #75
