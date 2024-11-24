@@ -166,9 +166,6 @@ class Plugin(BasePlugin):
             "ipython_execute",
             "ipython_kernel_restart",
         ]
-        sandbox_commands = [
-            "sys_exec",
-        ]
         # ipython
         if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
             # check for Docker installed
@@ -210,7 +207,7 @@ class Plugin(BasePlugin):
                     return
                 # check if image exists
                 if not self.docker.is_image():
-                    self.error(trans('image.build'))
+                    self.error(trans('docker.image.build'))
                     self.window.update_status(trans('docker.build.start'))
                     self.docker.build()
                     return

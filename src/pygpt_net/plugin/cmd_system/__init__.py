@@ -86,9 +86,11 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         # get current working directory
+        os = self.window.core.platforms.get_as_string(env_suffix=False)
         cwd = self.window.core.config.get_user_dir('data')
         if self.get_option_value("sandbox_docker"):
             cwd = "/data (in docker sandbox, mapped on our host machine to: {})".format(cwd)
+            os = "Linux"  # docker image
         for item in self.allowed_cmds:
             if self.has_cmd(item):
                 cmd = self.get_cmd(item)
@@ -97,7 +99,7 @@ class Plugin(BasePlugin):
                                           "ANY command to \"command\" param. Current workdir is: {cwd}. " \
                                           "Current OS is: {os}".format(
                         cwd=cwd,
-                        os=self.window.core.platforms.get_as_string(env_suffix=False))
+                        os=os)
                 data['cmd'].append(cmd)  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
@@ -140,7 +142,7 @@ class Plugin(BasePlugin):
                     return
                 # check if image exists
                 if not self.docker.is_image():
-                    self.error(trans('image.build'))
+                    self.error(trans('docker.image.build'))
                     self.window.update_status(trans('docker.build.start'))
                     self.docker.build()
                     return
