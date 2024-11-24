@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.24 06:00:00                  #
 # ================================================== #
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -17,6 +18,7 @@ from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
+
 import pygpt_net.icons_rc
 
 
@@ -124,7 +126,9 @@ class OptionCmd(QWidget):
         group_id = self.parent_id + '.' + id + '.config'
         group = CollapsedGroup(self.window, group_id, None, False, None)
         group.box.setText(trans('settings.cmd.config.collapse'))
+        group.box.setIcon(QIcon(":/icons/expand.svg"))
         group.add_layout(params_layout)
+        group.layout.setContentsMargins(35, 0, 0, 0)
 
         # add to groups
         self.window.ui.groups[group_id] = group
