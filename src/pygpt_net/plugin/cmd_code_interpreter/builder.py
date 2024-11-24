@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal, QObject
@@ -21,11 +21,20 @@ class Builder(QObject):
         self.plugin = plugin
         self.worker = None
 
-    def build_image(self):
-        """Run IPython image build"""
+    def build_and_restart(self):
+        """Run IPython image build and restart container"""
+        self.build_image(restart=True)
+
+    def build_image(self, restart: bool = False):
+        """
+        Run IPython image build
+
+        :param restart: Restart container
+        """
         try:
             self.worker = Worker()
             self.worker.plugin = self.plugin
+            self.worker.restart = restart
             self.worker.signals.build_finished.connect(self.handle_build_finished)
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
@@ -60,11 +69,14 @@ class Worker(BaseWorker):
         self.args = args
         self.kwargs = kwargs
         self.plugin = None
+        self.restart = False
 
     @Slot()
     def run(self):
         try:
             self.plugin.ipython.build_image()
+            if self.restart:
+                self.plugin.ipython.restart()
             self.signals.build_finished.emit()
         except Exception as e:
             self.signals.error.emit(e)

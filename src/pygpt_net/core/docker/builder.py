@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Signal, Slot, QObject
@@ -24,12 +24,13 @@ class Builder(QObject):
         self.docker = None
         self.worker = None
 
-    def build_image(self):
+    def build_image(self, restart: bool = False):
         """Run image build"""
         try:
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.docker = self.docker
+            self.worker.restart = restart
             self.worker.signals.build_finished.connect(self.handle_build_finished)
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
@@ -65,11 +66,14 @@ class Worker(BaseWorker):
         self.kwargs = kwargs
         self.docker = None
         self.plugin = None
+        self.restart = False
 
     @Slot()
     def run(self):
         try:
             self.docker.build_image()
             self.signals.build_finished.emit()
+            if self.restart:
+                self.docker.restart()
         except Exception as e:
             self.signals.error.emit(e)

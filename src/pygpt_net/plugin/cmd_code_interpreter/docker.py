@@ -26,6 +26,10 @@ class Docker(BaseDocker):
         """Run image build"""
         self.builder.build_image()
 
+    def build_and_restart(self):
+        """Run image build and restart container"""
+        self.builder.build_image(restart=True)
+
     def get_dockerfile(self) -> str:
         """
         Get the Dockerfile

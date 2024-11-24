@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 import os
@@ -136,8 +136,10 @@ class Docker:
         :param name: Container name.
         """
         client = self.get_docker_client()
-        local_data_dir = self.get_local_data_dir()
         image_name = self.get_image_name()
+        entrypoint = self.get_entrypoint()
+        volumes = self.get_volumes()
+        ports = self.get_ports()
 
         try:
             container = client.containers.get(name)
@@ -150,15 +152,11 @@ class Docker:
                 container = client.containers.create(
                     image=image_name,
                     name=name,
-                    volumes={
-                        local_data_dir: {
-                            'bind': '/data',
-                            'mode': 'rw',
-                        }
-                    },
+                    volumes=volumes,
+                    ports=ports,
                     tty=True,
                     stdin_open=True,
-                    command='tail -f /dev/null'
+                    command=entrypoint,
                 )
                 container.start()
         except docker.errors.NotFound:
@@ -166,19 +164,175 @@ class Docker:
             container = client.containers.create(
                 image=image_name,
                 name=name,
-                volumes={
-                    local_data_dir: {
-                        'bind': '/data',
-                        'mode': 'rw',
-                    }
-                },
+                volumes=volumes,
+                ports=ports,
                 tty=True,
                 stdin_open=True,
-                command='tail -f /dev/null'
+                command=entrypoint,
             )
             container.start()
         except Exception as e:
             self.log(f"Error creating container: {e}")
+
+    def restart_container(self, name: str):
+        """
+        Restart the Docker container.
+
+        :param name: Container name.
+        """
+        client = self.get_docker_client()
+        image_name = self.get_image_name()
+        entrypoint = self.get_entrypoint()
+        volumes = self.get_volumes()
+        ports = self.get_ports()
+
+        try:
+            container = client.containers.get(name)
+            container.reload()
+            status = container.status
+            print(f"Container '{name}' status: {status}")
+
+            if status == 'running':
+                print(f"Stopping and starting container '{name}'...")
+                container.stop()
+                container.wait()
+                container.reload()
+
+            elif status == 'paused':
+                print(f"Resuming and starting container '{name}'...")
+                container.unpause()
+                container.stop()
+                container.wait()
+                container.reload()
+
+            elif status in ['exited', 'created']:
+                print(f"Container '{name}' is in state '{status}'. Starting it.")
+
+            elif status == 'restarting':
+                print(f"Container '{name}' is restarting. Waiting...")
+                container.wait()
+                container.reload()
+
+            elif status == 'removing':
+                print(f"Container '{name}' is being removed. Waiting...")
+                container.wait()
+                container = None
+
+            elif status == 'dead':
+                print(f"Container '{name}' is dead. Removing and creating a new one.")
+                container.remove()
+                container = None
+
+            else:
+                print(f"Unknown container status: {status}. Removing and creating a new one.")
+                container.remove()
+                container = None
+
+            if container:
+                print(f"Starting container '{name}'...")
+                try:
+                    container.start()
+                    container.reload()
+                    if container.status != 'running':
+                        print(f"Container '{name}' did not start correctly. Status: {container.status}")
+                        print(f"Removing and creating a new container '{name}'...")
+                        container.remove()
+                        container = None
+                except Exception as e:
+                    print(f"Error starting container '{name}': {e}")
+                    print(f"Removing and creating a new container '{name}'...")
+                    container.remove()
+                    container = None
+
+            if not container:
+                print(f"Creating a new container '{name}'...")
+                container = client.containers.create(
+                    image=image_name,
+                    name=name,
+                    volumes=volumes,
+                    ports=ports,
+                    tty=True,
+                    stdin_open=True,
+                    command=entrypoint,  # 'running'
+                )
+                container.start()
+                container.reload()
+                if container.status != 'running':
+                    print(f"Container '{name}' did not start correctly. Status: {container.status}")
+                else:
+                    print(f"Container '{name}' started successfully.")
+
+        except docker.errors.NotFound:
+            print(f"Container '{name}' not found. Creating a new one.")
+            container = client.containers.create(
+                image=image_name,
+                name=name,
+                volumes=volumes,
+                ports=ports,
+                tty=True,
+                stdin_open=True,
+                command=entrypoint,  # 'running'
+            )
+            container.start()
+            container.reload()
+            if container.status != 'running':
+                print(f"Container '{name}' did not start correctly. Status: {container.status}")
+            else:
+                print(f"Container '{name}' started successfully.")
+        except Exception as e:
+            print(f"Error restarting container '{name}': {e}")
+
+    def restart(self):
+        """Restart the Docker container."""
+        self.restart_container(self.get_container_name())
+
+    def get_volumes(self) -> dict:
+        """
+        Get the volumes mappings.
+
+        :return: Volumes mappings.
+        """
+        workdir = self.get_local_data_dir()
+        config = self.plugin.get_option_value('docker_volumes')
+        data = {}
+        for item in config:
+            if item['enabled']:
+                host_dir = item['host'].format(workdir=workdir)
+                data[host_dir] = {
+                    'bind': item['docker'],
+                    'mode': 'rw',
+                }
+        return data
+
+    def get_ports(self) -> dict:
+        """
+        Get the ports mappings.
+
+        :return: Ports mappings.
+        """
+        config = self.plugin.get_option_value('docker_ports')
+        data = {}
+        for item in config:
+            if item['enabled']:
+                docker_port = item['docker']
+                try:
+                    host_port = int(item['host'])
+                except ValueError:
+                    print("WARNING: Invalid host port number: {}. "
+                          "Please provide a valid port number as integer value".format(item['host']))
+                    continue
+                if "/" not in docker_port:
+                    docker_port = f"{docker_port}/tcp"
+                data[docker_port] = host_port
+        return data
+
+    def get_entrypoint(self) -> str:
+        """
+        Get the Docker entrypoint.
+
+        :return: Docker entrypoint command.
+        """
+        return self.plugin.get_option_value('docker_entrypoint')
 
     def execute(self, cmd: str) -> bytes or None:
         """

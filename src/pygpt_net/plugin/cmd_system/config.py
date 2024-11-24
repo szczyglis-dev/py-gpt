@@ -29,6 +29,26 @@ class Config(BaseConfig):
         dockerfile += '\n\n'
         dockerfile += '# Data directory, bound as a volume to the local \'data/\' directory'
         dockerfile += '\nWORKDIR /data'
+
+        volumes_keys = {
+            "enabled": "bool",
+            "docker": "text",
+            "host": "text",
+        }
+        volumes_items = [
+            {
+                "enabled": True,
+                "docker": "/data",
+                "host": "{workdir}",
+            },
+        ]
+        ports_keys = {
+            "enabled": "bool",
+            "docker": "text",
+            "host": "int",
+        }
+        ports_items = []
+
         plugin.add_option(
             "sandbox_docker",
             type="bool",
@@ -60,6 +80,36 @@ class Config(BaseConfig):
             value='pygpt_system_container',
             label="Docker container name",
             tab="sandbox",
+        )
+        plugin.add_option(
+            "docker_entrypoint",
+            type="text",
+            value='tail -f /dev/null',
+            label="Docker run command",
+            tab="sandbox",
+            advanced=True,
+        )
+        plugin.add_option(
+            "docker_volumes",
+            type="dict",
+            value=volumes_items,
+            label="Docker volumes",
+            description="Docker volumes mapping",
+            tooltip="Docker volumes mapping",
+            keys=volumes_keys,
+            tab="sandbox",
+            advanced=True,
+        )
+        plugin.add_option(
+            "docker_ports",
+            type="dict",
+            value=ports_items,
+            label="Docker ports",
+            description="Docker ports mapping",
+            tooltip="Docker ports mapping",
+            keys=ports_keys,
+            tab="sandbox",
+            advanced=True,
         )
         plugin.add_option(
             "auto_cwd",

@@ -856,7 +856,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
-            "default": false
+            "default": true
         },
         "gpt-4o-mini": {
             "id": "gpt-4o-mini",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 import os
@@ -95,6 +95,10 @@ class IPythonInterpreter:
             return True
         except docker.errors.ImageNotFound:
             return False
+
+    def restart(self):
+        """Restart the container."""
+        self.restart_container(self.get_container_name())
 
     def build_image(self):
         """Build the Docker image for the IPython kernel."""

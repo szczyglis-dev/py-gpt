@@ -131,6 +131,26 @@ class Config(BaseConfig):
             tab="ipython",
         )
         """
+
+        volumes_keys = {
+            "enabled": "bool",
+            "docker": "text",
+            "host": "text",
+        }
+        volumes_items = [
+            {
+                "enabled": True,
+                "docker": "/data",
+                "host": "{workdir}",
+            },
+        ]
+        ports_keys = {
+            "enabled": "bool",
+            "docker": "text",
+            "host": "int",
+        }
+        ports_items = []
+
         plugin.add_cmd(
             "ipython_kernel_restart",
             instruction="restart IPython kernel",
@@ -219,6 +239,36 @@ class Config(BaseConfig):
             value='pygpt_python_legacy_container',
             label="Docker container name",
             tab="python_legacy",
+        )
+        plugin.add_option(
+            "docker_entrypoint",
+            type="text",
+            value='tail -f /dev/null',
+            label="Docker run command",
+            tab="python_legacy",
+            advanced=True,
+        )
+        plugin.add_option(
+            "docker_volumes",
+            type="dict",
+            value=volumes_items,
+            label="Docker volumes",
+            description="Docker volumes mapping",
+            tooltip="Docker volumes mapping",
+            keys=volumes_keys,
+            tab="python_legacy",
+            advanced=True,
+        )
+        plugin.add_option(
+            "docker_ports",
+            type="dict",
+            value=ports_items,
+            label="Docker ports",
+            description="Docker ports mapping",
+            tooltip="Docker ports mapping",
+            keys=ports_keys,
+            tab="python_legacy",
+            advanced=True,
         )
         plugin.add_option(
             "attach_output",
