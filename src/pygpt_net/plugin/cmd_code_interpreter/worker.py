@@ -71,9 +71,6 @@ class Worker(BaseWorker):
                         if "silent" in item:
                             response = None
 
-                    elif item["cmd"] == "sys_exec":
-                        response = self.cmd_sys_exec(item)
-
                     elif item["cmd"] == "get_python_output":
                         response = self.cmd_get_python_output(item)
 
@@ -239,33 +236,6 @@ class Worker(BaseWorker):
                     item=item,
                     request=request,
                     all=True,
-                )
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_sys_exec(self, item: dict) -> dict:
-        """
-        Execute system command
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.from_request(item)
-        try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.sys_exec_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.sys_exec_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
                 )
         except Exception as e:
             result = self.throw_error(e)

@@ -103,8 +103,8 @@ class Mode:
                 self.window.ui.nodes['preset.tool.function.label.all'].setVisible(True)
 
         # presets: clear
-        self.window.ui.nodes['preset.clear'].setVisible(False)
         """
+        self.window.ui.nodes['preset.clear'].setVisible(False)
         if mode in [MODE_IMAGE, MODE_ASSISTANT]:
             self.window.ui.nodes['preset.clear'].setVisible(False)
         else:
@@ -112,10 +112,12 @@ class Mode:
         """
 
         # presets: use
+        """
         if mode == MODE_IMAGE:
             self.window.ui.nodes['preset.use'].setVisible(True)
         else:
             self.window.ui.nodes['preset.use'].setVisible(False)
+        """
 
         # img options
         if mode == MODE_IMAGE:

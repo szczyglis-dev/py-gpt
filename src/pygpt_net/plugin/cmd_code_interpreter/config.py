@@ -53,7 +53,13 @@ class Config(BaseConfig):
         dockerfile += '\n--Session.key=19749810-8febfa748186a01da2f7b28c, \\'
         dockerfile += '\n--Session.signature_scheme=hmac-sha256]'
 
-        # cmd enable/disable
+        dockerfile_legacy = 'FROM python:3.9-alpine'
+        dockerfile_legacy += '\n\n'
+        dockerfile_legacy += 'RUN mkdir /data'
+        dockerfile_legacy += '\n\n'
+        dockerfile_legacy += '# Data directory, bound as a volume to the local \'data/\' directory'
+        dockerfile_legacy += '\nWORKDIR /data'
+
         plugin.add_option(
             "ipython_dockerfile",
             type="textarea",
@@ -192,20 +198,27 @@ class Config(BaseConfig):
             tab="python_legacy",
         )
         plugin.add_option(
-            "sandbox_docker_image",
-            type="text",
-            value='python:3.8-alpine',
-            label="Docker image",
-            description="Docker image to use for sandbox",
+            "dockerfile",
+            type="textarea",
+            value=dockerfile_legacy,
+            label="Dockerfile",
+            description="Dockerfile",
+            tooltip="Dockerfile",
             tab="python_legacy",
         )
         plugin.add_option(
-            "auto_cwd",
-            type="bool",
-            value=True,
-            label="Auto-append CWD to sys_exec",
-            description="Automatically append current working directory to sys_exec command",
-            tab="general",
+            "image_name",
+            type="text",
+            value='pygpt_python_legacy',
+            label="Docker image name",
+            tab="python_legacy",
+        )
+        plugin.add_option(
+            "container_name",
+            type="text",
+            value='pygpt_python_legacy_container',
+            label="Docker container name",
+            tab="python_legacy",
         )
         plugin.add_option(
             "attach_output",
@@ -268,22 +281,6 @@ class Config(BaseConfig):
             enabled=False,
             description="Allows Python code execution (generate and execute from file)",
             tab="python_legacy",
-        )
-        plugin.add_cmd(
-            "sys_exec",
-            instruction="execute ANY system command, script or app in user's environment. "
-                        "Do not use this command to install Python libraries, use IPython environment and IPython commands instead.",
-            params=[
-                {
-                    "name": "command",
-                    "type": "str",
-                    "description": "system command",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="Allows system commands execution",
-            tab="general",
         )
         plugin.add_cmd(
             "get_python_output",

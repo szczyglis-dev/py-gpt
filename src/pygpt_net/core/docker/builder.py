@@ -6,26 +6,30 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.17 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Slot, Signal, QObject
+from PySide6.QtCore import Signal, Slot, QObject
 
 from pygpt_net.core.events import RenderEvent
-from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
+from pygpt_net.plugin.base.signals import BaseSignals
+from pygpt_net.plugin.base.worker import BaseWorker
 from pygpt_net.utils import trans
+
 
 class Builder(QObject):
     def __init__(self, plugin=None):
         super(Builder, self).__init__()
         self.plugin = plugin
+        self.docker = None
         self.worker = None
 
     def build_image(self):
-        """Run IPython image build"""
+        """Run image build"""
         try:
             self.worker = Worker()
             self.worker.plugin = self.plugin
+            self.worker.docker = self.docker
             self.worker.signals.build_finished.connect(self.handle_build_finished)
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
@@ -35,11 +39,12 @@ class Builder(QObject):
     @Slot()
     def handle_build_finished(self):
         """Handle build finished"""
-        self.plugin.window.ui.dialogs.alert(trans('ipython.docker.build.finish'))
-        self.plugin.window.update_status(trans('ipython.docker.build.finish'))
+        self.plugin.window.ui.dialogs.alert(trans('docker.build.finish'))
+        self.plugin.window.update_status(trans('docker.build.finish'))
         self.plugin.window.controller.kernel.stop()
         event = RenderEvent(RenderEvent.END)
         self.plugin.window.dispatch(event)
+
 
     @Slot(object)
     def handle_build_failed(self, error):
@@ -49,7 +54,6 @@ class Builder(QObject):
         self.plugin.window.controller.kernel.stop()
         event = RenderEvent(RenderEvent.END)
         self.plugin.window.dispatch(event)
-
 class WorkerSignals(BaseSignals):
     build_finished = Signal()
 
@@ -59,12 +63,13 @@ class Worker(BaseWorker):
         self.signals = WorkerSignals()
         self.args = args
         self.kwargs = kwargs
+        self.docker = None
         self.plugin = None
 
     @Slot()
     def run(self):
         try:
-            self.plugin.ipython.build_image()
+            self.docker.build_image()
             self.signals.build_finished.emit()
         except Exception as e:
             self.signals.error.emit(e)

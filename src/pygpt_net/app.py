@@ -22,6 +22,7 @@ from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
 from pygpt_net.plugin.cmd_history import Plugin as CtxHistoryPlugin
 from pygpt_net.plugin.cmd_mouse_control import Plugin as CmdMousePlugin
 from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
+from pygpt_net.plugin.cmd_system import Plugin as CmdSystemPlugin
 from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
@@ -310,6 +311,7 @@ def run(**kwargs):
     launcher.add_plugin(CmdWebPlugin())
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
+    launcher.add_plugin(CmdSystemPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
     launcher.add_plugin(CmdApiPlugin())
     launcher.add_plugin(CmdSerialPlugin())

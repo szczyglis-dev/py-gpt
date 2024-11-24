@@ -201,17 +201,8 @@ class Runner:
         :param cmd: command to run
         :return: response
         """
-        client = self.get_docker()
-        mapping = self.get_volumes()
         try:
-            response = client.containers.run(
-                self.get_docker_image(),
-                cmd,
-                volumes=mapping,
-                working_dir="/data",
-                stdout=True,
-                stderr=True,
-            )
+            response = self.plugin.docker.execute(cmd)
         except Exception as e:
             # self.error(e)
             response = str(e).encode("utf-8")
@@ -389,60 +380,6 @@ class Runner:
             "request": request,
             "result": str(result),
             "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
-        }
-
-    def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute system command on host
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg)
-        self.log("Running command: {}".format(item["params"]['command']))
-        try:
-            process = subprocess.Popen(
-                item["params"]['command'],
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            stdout, stderr = process.communicate()
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
-        }
-
-    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute system command in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg, sandbox=True)
-        self.log(
-            "Running command: {}".format(item["params"]['command']),
-            sandbox=True,
-        )
-        response = self.run_docker(item["params"]['command'])
-        result = self.handle_result_docker(response)
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
         }
 
     def ipython_execute_new(self, ctx, item: dict, request: dict, all: bool = False) -> dict:

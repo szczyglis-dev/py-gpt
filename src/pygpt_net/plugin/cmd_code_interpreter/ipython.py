@@ -105,7 +105,7 @@ class IPythonInterpreter:
             fileobj=context,
             custom_context=True,
             rm=True,
-            tag=self.image_name,
+            tag=self.get_image_name(),
         )
         for chunk in logs:
             if 'stream' in chunk:

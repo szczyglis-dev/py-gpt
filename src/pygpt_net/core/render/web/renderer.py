@@ -142,6 +142,8 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
         if self.pids[pid].item is not None and stream:
             self.append_context_item(meta, self.pids[pid].item)
             self.pids[pid].item = None
