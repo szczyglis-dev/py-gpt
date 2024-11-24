@@ -141,6 +141,8 @@ class Attachment(QObject):
                                 if item:
                                     item["path"] = os.path.basename(attachment.path) + "/" + path_relative
                                     item["size"] = os.path.getsize(path)
+                                    if meta.additional_ctx is None:
+                                        meta.additional_ctx = []
                                     meta.additional_ctx.append(item)
                                     self.uploaded = True
                                     sub_attachment.consumed = True
@@ -149,6 +151,8 @@ class Attachment(QObject):
             else:
                 item = self.window.core.attachments.context.upload(meta, attachment, prompt)
                 if item:
+                    if meta.additional_ctx is None:
+                        meta.additional_ctx = []
                     meta.additional_ctx.append(item)
                     attachment.consumed = True  # allow for deletion
                     self.uploaded = True

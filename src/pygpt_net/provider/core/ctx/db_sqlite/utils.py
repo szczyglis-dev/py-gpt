@@ -158,6 +158,11 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     item.total_tokens = unpack_var(row['total_tokens'], 'int')
     item.internal = unpack_var(row['is_internal'], 'bool')
     item.doc_ids = unpack_item_value(row['docs_json'])
+
+    if item.additional_ctx is None:
+        item.additional_ctx = []
+    if item.doc_ids is None:
+        item.doc_ids = []
     return item
 
 
@@ -194,6 +199,9 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.indexes = unpack_item_value(row['indexes_json'])
     meta.group_id = unpack_var(row['group_id'], 'int')
     meta.additional_ctx = unpack_item_value(row['additional_ctx_json'])
+
+    if meta.additional_ctx is None:
+        meta.additional_ctx = []
     return meta
 
 
