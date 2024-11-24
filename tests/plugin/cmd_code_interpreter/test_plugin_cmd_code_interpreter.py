@@ -26,7 +26,6 @@ def test_options(mock_window):
     assert "python_cmd_tpl" in options
     assert "cmd.code_execute" in options
     assert "cmd.code_execute_file" in options
-    assert "cmd.sys_exec" in options
     assert "sandbox_docker" in options
     assert "sandbox_docker_image" in options
 
@@ -44,5 +43,5 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["cmd"]) == 8  # code_execute, code_execute_file, sys_exec
+    assert len(event.data["cmd"]) == 7  # code_execute, code_execute_file, sys_exec
 
