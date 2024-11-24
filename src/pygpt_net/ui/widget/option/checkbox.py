@@ -17,7 +17,14 @@ from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
 class OptionCheckbox(QWidget):
-    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None, icon = None):
+    def __init__(
+            self,
+            window=None,
+            parent_id: str = None,
+            id: str = None,
+            option: dict = None,
+            icon = None
+    ):
         """
         Settings checkbox
 

@@ -16,7 +16,12 @@ from pygpt_net.utils import trans
 
 
 class ToggleLabel(QWidget):
-    def __init__(self, title: str = None, parent=None):
+    def __init__(
+            self,
+            title: str = None,
+            label_position: str = 'right',
+            parent=None,
+    ):
         """
         Toggle checkbox with label
 
@@ -28,8 +33,12 @@ class ToggleLabel(QWidget):
         self.box = AnimToggle()
 
         self.layout = QHBoxLayout()
-        self.layout.addWidget(self.box)
-        self.layout.addWidget(self.label)
+        if label_position == 'left':
+            self.layout.addWidget(self.label)
+            self.layout.addWidget(self.box)
+        else:
+            self.layout.addWidget(self.box)
+            self.layout.addWidget(self.label)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 

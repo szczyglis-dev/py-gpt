@@ -35,7 +35,7 @@ class Prompt:
         :return: QWidget
         """
         # cmd enable/disable
-        self.window.ui.nodes['cmd.enabled'] = ToggleLabel(trans('cmd.enabled'))
+        self.window.ui.nodes['cmd.enabled'] = ToggleLabel(trans('cmd.enabled'), label_position="left")
         self.window.ui.nodes['cmd.enabled'].box.stateChanged.connect(
             lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].box.isChecked())
         )
