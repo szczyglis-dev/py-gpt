@@ -56,9 +56,22 @@ class Tools:
             self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu[key])
 
         # docker rebuild
+        # ipython
         self.window.ui.menu['menu.tools'].addSeparator()
-        self.window.ui.menu['menu.tools.ipython.rebuild'] = QAction(QIcon(":/icons/settings.svg"), "Rebuild IPython Docker Image", self.window)
+        self.window.ui.menu['menu.tools.ipython.rebuild'] = QAction(QIcon(":/icons/reload.svg"), "Rebuild IPython Docker Image", self.window)
         self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['menu.tools.ipython.rebuild'])
         self.window.ui.menu['menu.tools.ipython.rebuild'].triggered.connect(
             lambda: self.window.core.plugins.get("cmd_code_interpreter").builder.build_image()
+        )
+        # legacy
+        self.window.ui.menu['menu.tools.python_legacy.rebuild'] = QAction(QIcon(":/icons/reload.svg"), "Rebuild Python (Legacy) Docker Image", self.window)
+        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['menu.tools.python_legacy.rebuild'])
+        self.window.ui.menu['menu.tools.python_legacy.rebuild'].triggered.connect(
+            lambda: self.window.core.plugins.get("cmd_code_interpreter").docker.build()
+        )
+        # sys
+        self.window.ui.menu['menu.tools.system.rebuild'] = QAction(QIcon(":/icons/reload.svg"), "Rebuild System Sandbox Docker Image", self.window)
+        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['menu.tools.system.rebuild'])
+        self.window.ui.menu['menu.tools.system.rebuild'].triggered.connect(
+            lambda: self.window.core.plugins.get("cmd_system").docker.build()
         )
