@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.24** | build: **2024.11.23** | Python: **>=3.10, <3.12**
+Release: **2.4.25** | build: **2024.11.24** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3651,6 +3651,17 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.25 (2024-11-24)**
+
+- Added new plugin: System (OS), with optional sandbox support.
+- Execution of system commands moved to the System plugin.
+- Improved sandbox/Docker management.
+- Enhanced plugin settings.
+- Commands renamed to Tools, simplified layout.
+- Fix: handling of the Mouse and Keyboard plugin.
+- Fix: switching to a new context from a non-chat tab.
+- Fix: camera screenshots when the camera is not started.
 
 **2.4.24 (2024-11-23)**
 

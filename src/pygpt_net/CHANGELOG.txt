@@ -1,3 +1,14 @@
+2.4.25 (2024-11-24)
+
+- Added new plugin: System (OS), with optional sandbox support.
+- Execution of system commands moved to the System plugin.
+- Improved sandbox/Docker management.
+- Enhanced plugin settings.
+- Commands renamed to Tools, simplified layout.
+- Fix: handling of the Mouse and Keyboard plugin.
+- Fix: switching to a new context from a non-chat tab.
+- Fix: camera screenshots when the camera is not started.
+
 2.4.24 (2024-11-23)
 
 - Added the ability to use ZIP and TAR archives as attachments (they are now unpacked "on the fly").
