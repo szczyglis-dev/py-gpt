@@ -75,7 +75,7 @@ class Presets:
         header.addWidget(self.window.ui.nodes['preset.agents.label'])
         header.addWidget(self.window.ui.nodes['preset.experts.label'])
         header.addWidget(self.window.ui.nodes['preset.presets.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(2, 0, 0, 0)
+        header.setContentsMargins(5, 0, 0, 0)
 
         header_widget = QWidget()
         header_widget.setLayout(header)

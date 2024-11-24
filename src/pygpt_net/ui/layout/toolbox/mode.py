@@ -46,8 +46,12 @@ class Mode:
         self.window.ui.nodes[self.id] = ModeCombo(self.window, self.id)
         self.window.ui.nodes[label_key] = TitleLabel(trans("toolbox.mode.label"))
 
+        header_layout = QVBoxLayout()
+        header_layout.addWidget(self.window.ui.nodes[label_key])
+        header_layout.setContentsMargins(5, 5, 0, 0)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes[label_key])
+        layout.addLayout(header_layout)
         layout.addWidget(self.window.ui.nodes[self.id])
         layout.addStretch()
         layout.setContentsMargins(2, 5, 5, 5)

@@ -63,7 +63,7 @@ class Indexes:
         header.addWidget(self.window.ui.nodes['indexes.label'])
         header.addStretch(1)
         header.addWidget(self.window.ui.nodes['indexes.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(0, 0, 0, 0)
+        header.setContentsMargins(5, 0, 0, 0)
         header_widget = QWidget()
         header_widget.setLayout(header)
 
