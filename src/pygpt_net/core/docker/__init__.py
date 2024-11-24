@@ -31,7 +31,7 @@ class Docker:
 
         :return: Dockerfile.
         """
-        return self.plugin.get_option_value('ipython_dockerfile')
+        return self.plugin.get_option_value('dockerfile')
 
     def get_image_name(self) -> str:
         """
@@ -39,7 +39,7 @@ class Docker:
 
         :return: Image name.
         """
-        return self.plugin.get_option_value('ipython_image_name')
+        return self.plugin.get_option_value('image_name')
 
     def get_container_name(self) -> str:
         """
@@ -47,7 +47,7 @@ class Docker:
 
         :return: Container name.
         """
-        return self.plugin.get_option_value('ipython_container_name')
+        return self.plugin.get_option_value('container_name')
 
     def create_docker_context(self, dockerfile: str) -> io.BytesIO:
         """
