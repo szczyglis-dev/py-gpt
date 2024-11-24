@@ -259,6 +259,7 @@ class Ctx:
         if meta is not None:
             self.window.controller.ui.tabs.update_title_current(meta.name)
 
+        # switch to new context if non-chat tab
         self.select(meta.id)
 
         # app event

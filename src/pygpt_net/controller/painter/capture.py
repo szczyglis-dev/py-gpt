@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.11.24 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -19,6 +19,7 @@ from pynput.mouse import Controller
 
 from PySide6.QtGui import QImage
 
+from pygpt_net.core.events import KernelEvent
 from pygpt_net.utils import trans
 
 
@@ -109,7 +110,10 @@ class Capture:
                 self.window.controller.painter.open(path)
                 # show last capture time in status
                 dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
-                self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
+                event = KernelEvent(KernelEvent.STATUS, {
+                    'status': trans("painter.capture.manual.captured.success") + ' ' + dt_info,
+                })
+                self.window.dispatch(event)
             return path
 
         except Exception as e:
@@ -138,7 +142,10 @@ class Capture:
 
             # show last capture time in status
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
-            self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
+            event = KernelEvent(KernelEvent.STATUS, {
+                'status': trans("painter.capture.manual.captured.success") + ' ' + dt_info,
+            })
+            self.window.dispatch(event)
             return True
 
         except Exception as e:

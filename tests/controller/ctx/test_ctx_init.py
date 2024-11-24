@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2024.11.24 02:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -136,6 +136,7 @@ def test_new(mock_window):
     ctx.common = MagicMock()
     ctx.common.update_label = MagicMock()
     ctx.update = MagicMock()
+    ctx.select = MagicMock()
 
     mock_window.core.ctx.mode = 'assistant'  # mode from ctx is used to update ctx label
     mock_window.core.config.data['assistant'] = 'as_123'  # fake assistant id

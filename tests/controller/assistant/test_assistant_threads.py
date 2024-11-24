@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.28 16:00:00                  #
+# Updated Date: 2024.11.24 00:00:00                  #
 # ================================================== #
 
 import os
@@ -80,14 +80,12 @@ def handle_status_complete(mock_window):
     """Test handle status complete"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
-    mock_window.statusChanged.emit = MagicMock()
 
     ctx = CtxItem()
     ctx.thread = "thread_id"
     threads.handle_status("completed", ctx)
 
     mock_window.controller.chat.common.unlock_input.assert_called_once()
-    mock_window.statusChanged.emit.assert_called_once()
 
     assert threads.stop is False
 
@@ -96,14 +94,12 @@ def handle_status_failed(mock_window):
     """Test handle status failed"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
-    mock_window.statusChanged.emit = MagicMock()
 
     ctx = CtxItem()
     ctx.thread = "thread_id"
     threads.handle_status("failed", ctx)
 
     mock_window.controller.chat.common.unlock_input.assert_called_once()
-    mock_window.statusChanged.emit.assert_called_once()
 
     assert threads.stop is False
 
@@ -112,7 +108,6 @@ def handle_status_common(mock_window):
     """Test handle status common"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
-    mock_window.statusChanged.emit = MagicMock()
 
     ctx = CtxItem()
     ctx.thread = "thread_id"
@@ -134,6 +129,4 @@ def test_handle_destroy(mock_window):
 def test_handle_started(mock_window):
     """Test handle started"""
     threads = Threads(mock_window)
-    mock_window.statusChanged = MagicMock()
     threads.handle_started()
-    mock_window.statusChanged.emit.assert_called_once()

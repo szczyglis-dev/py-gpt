@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.24 00:00:00                  #
 # ================================================== #
 
 import json
@@ -20,13 +20,14 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans, get_image_extensions
 
 
-class Threads:
+class Threads(QObject):
     def __init__(self, window=None):
         """
         Assistant threads controller
 
         :param window: Window instance
         """
+        super(Threads, self).__init__()
         self.window = window
         self.started = False
         self.stop = False  # force stop run
@@ -217,8 +218,10 @@ class Threads:
         ctx.tool_calls = self.window.core.command.unpack_tool_calls(
             run.required_action.submit_tool_outputs.tool_calls
         )
-        self.window.statusChanged.emit(trans('assistant.run.func.call'))
-        self.window.stateChanged.emit(self.window.STATE_IDLE)
+        event = KernelEvent(KernelEvent.STATE_IDLE, {
+            'msg': trans('assistant.run.func.call'),
+        })
+        self.window.dispatch(event)
         self.handle_tool_calls(ctx)
 
     def handle_tool_calls(self, ctx: CtxItem):
@@ -407,10 +410,12 @@ class Threads:
 
         :param ctx: CtxItem
         """
-        self.window.stateChanged.emit(self.window.STATE_IDLE)
         self.window.controller.chat.common.unlock_input()  # unlock input
         self.stop = False
-        self.window.statusChanged.emit(trans('assistant.run.completed'))
+        event = KernelEvent(KernelEvent.STATE_IDLE, {
+            'msg': trans('assistant.run.completed'),
+        })
+        self.window.dispatch(event)
         self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens
 
     def handle_status_error(self, ctx: CtxItem):
@@ -421,8 +426,10 @@ class Threads:
         """
         self.stop = False
         self.window.controller.chat.common.unlock_input()
-        self.window.statusChanged.emit(trans('assistant.run.failed'))
-        self.window.stateChanged.emit(self.window.STATE_ERROR)
+        event = KernelEvent(KernelEvent.STATE_ERROR, {
+            'msg': trans('assistant.run.failed'),
+        })
+        self.window.dispatch(event)
 
     def handle_run_step_created(self, ctx: CtxItem, stream: bool = False):
         """
@@ -455,8 +462,10 @@ class Threads:
         if status == "completed":
             self.stop = False
             self.handle_messages(ctx)
-            self.window.statusChanged.emit(trans('assistant.run.completed'))
-            self.window.stateChanged.emit(self.window.STATE_IDLE)
+            event = KernelEvent(KernelEvent.STATE_IDLE, {
+                'msg': trans('assistant.run.completed'),
+            })
+            self.window.dispatch(event)
             self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens
 
         # function call
@@ -465,8 +474,10 @@ class Threads:
             ctx.tool_calls = self.window.core.command.unpack_tool_calls(
                 run.required_action.submit_tool_outputs.tool_calls
             )
-            self.window.statusChanged.emit(trans('assistant.run.func.call'))
-            self.window.stateChanged.emit(self.window.STATE_IDLE)
+            event = KernelEvent(KernelEvent.STATE_IDLE, {
+                'msg': trans('assistant.run.func.call'),
+            })
+            self.window.dispatch(event)
             self.handle_tool_calls(ctx)
 
         # error
@@ -483,7 +494,10 @@ class Threads:
     def handle_started(self):
         """Handle listening started"""
         self.log("Run: assistant is listening status...")
-        self.window.statusChanged.emit(trans('assistant.run.listening'))
+        event = KernelEvent(KernelEvent.STATUS, {
+            'status': trans('assistant.run.listening'),
+        })
+        self.window.dispatch(event)
 
     def is_log(self) -> bool:
         """
