@@ -44,7 +44,8 @@ class OptionCheckbox(QWidget):
                 self.real_time = self.option["real_time"]
 
         self.box = QCheckBox(self.title, self.window)
-        self.box.setChecked(self.value)
+        if self.value is not None:
+            self.box.setChecked(self.value)
         self.box.stateChanged.connect(
             lambda: self.window.controller.config.checkbox.on_update(
                 self.parent_id,
