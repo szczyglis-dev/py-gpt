@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
-
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
@@ -20,6 +20,8 @@ class ToggleLabel(QWidget):
             self,
             title: str = None,
             label_position: str = 'right',
+            icon=None,
+            icon_size=24,
             parent=None,
     ):
         """
@@ -32,12 +34,22 @@ class ToggleLabel(QWidget):
         self.label = QLabel(self.title)
         self.box = AnimToggle()
 
+        ico = None
+        if icon is not None:
+            ico = QLabel()
+            pixmap = QIcon(icon).pixmap(icon_size, icon_size)
+            ico.setPixmap(pixmap)
+
         self.layout = QHBoxLayout()
         if label_position == 'left':
+            if icon is not None:
+                self.layout.addWidget(ico)
             self.layout.addWidget(self.label)
             self.layout.addWidget(self.box)
         else:
             self.layout.addWidget(self.box)
+            if icon is not None:
+                self.layout.addWidget(ico)
             self.layout.addWidget(self.label)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
