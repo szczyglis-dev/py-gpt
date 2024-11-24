@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.11.24 06:00:00                  #
 # ================================================== #
 
 import platform
@@ -115,13 +115,16 @@ class Platforms:
                and "SNAP_NAME" in os.environ \
                and os.environ["SNAP_NAME"] == Config.SNAP_NAME
 
-    def get_as_string(self) -> str:
+    def get_as_string(self, env_suffix: bool = True) -> str:
         """
         Return platform as string
 
+        :param env_suffix: include environment suffix
         :return: platform as string
         """
-        return self.get_os() + ', ' + self.get_architecture() + self.get_env_suffix()
+        if env_suffix:
+            return self.get_os() + ', ' + self.get_architecture() + self.get_env_suffix()
+        return self.get_os() + ', ' + self.get_architecture()
 
     def get_env_suffix(self) -> str:
         """

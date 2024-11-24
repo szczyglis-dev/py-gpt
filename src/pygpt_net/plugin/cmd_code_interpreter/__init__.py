@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.24 06:00:00                  #
 # ================================================== #
 
 import os
@@ -109,7 +109,10 @@ class Plugin(BasePlugin):
                 cmd = self.get_cmd(item)
                 if self.get_option_value("auto_cwd") and item == "sys_exec":
                     cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                          "ANY command to \"command\" param, current workdir is: {}".format(cwd)
+                                          "ANY command to \"command\" param. Current workdir is: {cwd}. " \
+                                          "Current OS is: {os}".format(
+                        cwd=cwd,
+                        os=self.window.core.platforms.get_as_string(env_suffix=False))
                 if item == "ipython_execute" or item == "ipython_execute_new":
                     cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
                                            "directory is bound in host machine to: {}").format(ipython_data)
