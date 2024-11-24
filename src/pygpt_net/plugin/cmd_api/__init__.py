@@ -27,7 +27,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_api"
-        self.name = "Command: API calls"
+        self.name = "API calls"
         self.description = "Provides the ability to make external API calls"
         self.prefix = "API"
         self.order = 100

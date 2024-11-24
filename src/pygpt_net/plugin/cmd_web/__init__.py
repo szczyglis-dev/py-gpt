@@ -28,7 +28,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_web"
-        self.name = "Command: Web Search"
+        self.name = "Web Search"
         self.description = "Allows to connect to the Web and search web pages for actual data."
         self.prefix = "Web"
         self.urls = {}

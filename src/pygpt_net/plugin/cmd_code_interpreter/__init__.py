@@ -18,6 +18,7 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
+from .docker import Docker
 from .builder import Builder
 from .ipython import IPythonInterpreter
 from .output import Output
@@ -31,7 +32,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
-        self.name = "Command: Code Interpreter (v2)"
+        self.name = "Code Interpreter (v2)"
         self.description = "Provides Python/HTML/JS code execution"
         self.prefix = "Code"
         self.type = [
@@ -45,7 +46,6 @@ class Plugin(BasePlugin):
             "code_execute",
             "code_execute_file",
             "code_execute_all",
-            "sys_exec",
             "get_python_output",
             "get_python_input",
             "clear_python_output",
@@ -53,6 +53,7 @@ class Plugin(BasePlugin):
             "get_html_output",
         ]
         self.use_locale = True
+        self.docker = Docker(self)
         self.runner = Runner(self)
         self.ipython = IPythonInterpreter(self)
         self.builder = Builder(self)
@@ -107,12 +108,6 @@ class Plugin(BasePlugin):
         for item in self.allowed_cmds:
             if self.has_cmd(item):
                 cmd = self.get_cmd(item)
-                if self.get_option_value("auto_cwd") and item == "sys_exec":
-                    cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                          "ANY command to \"command\" param. Current workdir is: {cwd}. " \
-                                          "Current OS is: {os}".format(
-                        cwd=cwd,
-                        os=self.window.core.platforms.get_as_string(env_suffix=False))
                 if item == "ipython_execute" or item == "ipython_execute_new":
                     cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
                                            "directory is bound in host machine to: {}").format(ipython_data)
@@ -171,6 +166,10 @@ class Plugin(BasePlugin):
             "ipython_execute",
             "ipython_kernel_restart",
         ]
+        sandbox_commands = [
+            "sys_exec",
+        ]
+        # ipython
         if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
             # check for Docker installed
             if not self.ipython.is_docker_installed():
@@ -189,6 +188,32 @@ class Plugin(BasePlugin):
                 self.window.update_status(trans('ipython.docker.build.start'))
                 self.builder.build_image()
                 return
+
+        # legacy python
+        if self.get_option_value("sandbox_docker"):
+            sandbox_commands = [
+                "code_execute",
+                "code_execute_all",
+                "code_execute_file",
+            ]
+            if any(x in [x["cmd"] for x in my_commands] for x in sandbox_commands):
+                # check for Docker installed
+                if not self.docker.is_docker_installed():
+                    # snap version
+                    if self.window.core.platforms.is_snap():
+                        self.error(trans('docker.install.snap'))
+                        self.window.update_status(trans('docker.install.snap'))
+                    # other versions
+                    else:
+                        self.error(trans('docker.install'))
+                        self.window.update_status(trans('docker.install'))
+                    return
+                # check if image exists
+                if not self.docker.is_image():
+                    self.error(trans('image.build'))
+                    self.window.update_status(trans('docker.build.start'))
+                    self.docker.build()
+                    return
 
         # set state: busy
         if not silent:

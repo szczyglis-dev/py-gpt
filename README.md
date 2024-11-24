@@ -491,7 +491,7 @@ You can ask for: `Query the file my_cars.txt about what color my car is.`
 
 And you will receive the response: `Red`.
 
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option "Auto-index readed files" in plugin settings. Remember to enable "Execute commands" checkbox to allow usage of query commands. 
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option "Auto-index readed files" in plugin settings. Remember to enable "+ Tools" checkbox to allow usage of query commands. 
 
 **Using Chat with files mode**
 
@@ -563,7 +563,7 @@ Options for indexing existing context history or enabling real-time indexing new
 
 **Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
-**Token limit:** When you use `Chat with files` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "Execute commands" option to reduce the number of tokens used by the system prompt.
+**Token limit:** When you use `Chat with files` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
 
 **Available vector stores** (provided by `Llama-index`):
 
@@ -664,7 +664,7 @@ File: https://github.com/run-llama/llama_index/tree/main/llama-index-integration
 
 Web: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
 
-**Tip:** to index an external data or data from the Web just ask for it, by using `Command: Web Search` plugin, e.g. you can ask the model with `Please index the youtube video: URL to video`, etc. Data loader for a specified content will be choosen automatically.
+**Tip:** to index an external data or data from the Web just ask for it, by using `Web Search` plugin, e.g. you can ask the model with `Please index the youtube video: URL to video`, etc. Data loader for a specified content will be choosen automatically.
 
 Allowed additional keyword arguments for built-in data loaders (files):
 
@@ -1103,11 +1103,11 @@ The content from the uploaded attachments will be used in the current conversati
 
 This `data` directory is also where the application stores files that are generated locally by the AI, such as code files or any other data requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated `Llama-index`) and use it's contents as additional context provided to discussion.
 
-The `Command: Files I/O` plugin takes care of file operations in the `data` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
+The `Files I/O` plugin takes care of file operations in the `data` directory, while the `Code Interpreter` plugin allows for the execution of code from these files.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2ada219d-68c9-45e3-96af-86ac5bc73593)
 
-To allow the model to manage files or python code execution, the `Execute commands` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or python code execution, the `+ Tools` option must be active, along with the above-mentioned plugins:
 
 ![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
 
@@ -1552,30 +1552,30 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
-- `Command: API calls` - plugin lets you connect the model to the external services using custom defined API calls.
+- `API calls` - plugin lets you connect the model to the external services using custom defined API calls.
 
-- `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
+- `Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
 The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
 Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
-- `Command: Custom Commands` - allows you to create and execute custom commands on your system.
+- `Custom Commands` - allows you to create and execute custom commands on your system.
 
-- `Command: Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
+- `Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
 as well as list and create directories.
 
-- `Command: Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
+- `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
 
-- `Command: Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
+- `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
 
-- `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
+- `Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 
 - `Context history (calendar, inline)` - provides access to context history database.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-- `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `Execute commands` option to be enabled.
+- `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `+ Tools` option to be enabled.
 
 - `Experts (inline)` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
@@ -1914,11 +1914,11 @@ Model used for querying `Llama-index`. *Default:* `gpt-3.5-turbo`
 Indexes to use. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
 
 
-## Command: API calls
+## API calls
 
 **PyGPT** lets you connect the model to the external services using custom defined API calls.
 
-To activate this feature, turn on the `Command: API calls` plugin found in the `Plugins` menu.
+To activate this feature, turn on the `API calls` plugin found in the `Plugins` menu.
 
 In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
 
@@ -1971,13 +1971,13 @@ Connection timeout (seconds). *Default:* `5`
 User agent to use when making requests. *Default:* `Mozilla/5.0`
 
 
-## Command: Code Interpreter
+## Code Interpreter
 
 ### Executing Code
 
 From version `2.4.13` with built-in `IPython`.
 
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
 
 **IPython:** Starting from version `2.4.13`, it is highly recommended to adopt the new option: `IPython`, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
@@ -2007,7 +2007,7 @@ sudo snap connect pygpt:docker docker:docker-daemon
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
 
-**Tip:** always remember to enable the `Execute commands` option to allow execute commands from the plugins.
+**Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
 
 
 **Options:**
@@ -2130,7 +2130,7 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 
 
-## Command: Custom Commands
+## Custom Commands
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
@@ -2192,7 +2192,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 ![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/97cbc5b9-0dd9-487e-9182-d9873dea42ab)
 
-## Command: Files I/O
+## Files I/O
 
 The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
 
@@ -2326,7 +2326,7 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
 
 
-## Command: Mouse And Keyboard
+## Mouse And Keyboard
 
 Introduced in version: `2.4.4` (2024-11-09)
 
@@ -2343,7 +2343,7 @@ Plugin capabilities include:
 - Control the keyboard (pressing keys, typing text)
 - Making screenshots
 
-The `Execute commands` option must be enabled to use this plugin.
+The `+ Tools` option must be enabled to use this plugin.
 
 **Options:**
 
@@ -2406,11 +2406,11 @@ Allows `keyboard_key` command execution. *Default:* `True`
 Allows `keyboard_type` command execution. *Default:* `True`
 
 
-## Command: Web Search
+## Web Search
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the `Command: Web Search` plugin found in the `Plugins` menu.
+To activate this feature, turn on the `Web Search` plugin found in the `Plugins` menu.
 
 Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` APIs and can be extended with other search engine providers. 
 
@@ -2541,7 +2541,7 @@ Prompt used for web search results summarize, use {query} as a placeholder for s
 
 Prompt used for specified URL page summarize.
 
-## Command: Serial port / USB
+## Serial port / USB
 
 Provides commands for reading and sending data to USB ports.
 
@@ -2717,7 +2717,7 @@ If enabled, then a tray notification will be shown on every run of the job. *Def
 
 ## DALL-E 3: Image Generation (inline)
 
-The plugin integrates `DALL-E 3` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as `GPT-4`. The plugin does not require the `Execute commands` option to be enabled.
+The plugin integrates `DALL-E 3` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as `GPT-4`. The plugin does not require the `+ Tools` option to be enabled.
 
 **Options**
 
@@ -2753,11 +2753,11 @@ Replace whole system prompt with vision prompt against appending it to the curre
 
 - `Enable: capturing images from camera` *cmd.camera_capture*
 
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `Execute commands` option must be enabled. *Default:* `False`
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
 
 - `Enable: making screenshots` *cmd.make_screenshot*
 
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `Execute commands` option must be enabled. *Default:* `False`
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
 
 ## Real Time
 
@@ -3033,11 +3033,11 @@ In background, **PyGPT** uses an internal syntax to define commands and their pa
 
 It is a JSON object wrapped between `~###~`. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the `Custom Commands` plugin, or simply by creating your own plugin and adding it to the application.
 
-**Tip:** The `Execute commands` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
+**Tip:** The `+ Tools` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
 
 ![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
 
-When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `Execute commands` option is active.
+When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `+ Tools` option is active.
 
 However, there is an additional possibility to define your own commands and execute them with the help of GPT.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:
@@ -3088,7 +3088,7 @@ Then, in the `Custom Commands` plugin, create a new command with the same name a
 
 **Command to execute:** `echo "OK. Email sent: {quote}"`
 
-At next, enable the `Execute commands` option and enable the plugin.
+At next, enable the `+ Tools` option and enable the plugin.
 
 Ask GPT in Chat mode:
 

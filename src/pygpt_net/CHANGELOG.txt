@@ -110,7 +110,7 @@
 
 - Added a new tool: HTML/JS Canvas, connected to the Code Interpreter plugin. This feature enables real-time rendering of HTML/JS code in a Chromium-based output by using two new Code Interpreter commands: render_html_output and get_html_output.
 - Added an SVG icon to the New Tab button.
-- Improved the system prompt and execution flow in the Command: Mouse And Keyboard plugin and introduced a new option Auto-focus to the plugin settings (default: False).
+- Improved the system prompt and execution flow in the Mouse And Keyboard plugin and introduced a new option Auto-focus to the plugin settings (default: False).
 
 2.4.6 (2024-11-10)
 
@@ -124,7 +124,7 @@
 
 2.4.4 (2024-11-09)
 
-- Added a new plugin: Command: Mouse And Keyboard. The plugin allows the model to control the mouse and keyboard, control the cursor position, click mouse buttons, use scroll, type text, and press keys on the keyboard.
+- Added a new plugin: Mouse And Keyboard. The plugin allows the model to control the mouse and keyboard, control the cursor position, click mouse buttons, use scroll, type text, and press keys on the keyboard.
 
 2.4.3 (2024-11-08)
 
@@ -873,7 +873,7 @@
 2.0.171 (2024-02-27)
 
 - Added core for loading web resources (not only webpages) to Llama-index.
-- Added a data loader for transcriptions of YouTube videos (simply ask for index a YouTube video URL using the "Command: Web Search" plugin - the "web_index" command must be enabled).
+- Added a data loader for transcriptions of YouTube videos (simply ask for index a YouTube video URL using the "Web Search" plugin - the "web_index" command must be enabled).
 - Fixed the "Initial token count exceeds token limit" error in Chat with files mode.
 - Added missing translations for dictionary items in settings dialogs.
 
@@ -910,7 +910,7 @@
 - Added search provider: Bing.
 - Added audio output providers: Google and Eleven Labs.
 - Added audio input providers: Google, Google Cloud, and Bing.
-- Added a new plugin: "Command: API calls" which allows defining commands for API calls to external services.
+- Added a new plugin: "API calls" which allows defining commands for API calls to external services.
 - Added an "Excluded file extensions" configuration option in Settings -> Llama-index.
 - Fixed audio input listener initialization in the Audio Input plugin.
 
@@ -1048,11 +1048,11 @@
 
 2.0.144 (2024-02-02)
 
-- Improved Command: Context history plugin prompts
+- Improved Context history plugin prompts
 
 2.0.143 (2024-02-02)
 
-- Added a new plugin: Command: Context history (calendar)
+- Added a new plugin: Context history (calendar)
 - Added a new feature to context list: Pin on top
 - Added Minimize to tray on exit option
 
@@ -1215,8 +1215,8 @@
 
 2.0.117 (2024-01-24)
 
-- Added a new feature to the "Command: Files I/O" plugin - "Get and upload file as attachment". It lets automatically read files from "data" folder and send them as attachments - just ask to send a file as an attachment and the model will send it to itself (like sending an image for analysis). Option is disabled by default in the plugin"s settings.
-- Added a new plugin: "Command: Serial port / USB". This plugin lets you read and send any commands to USB ports (so you can control robots now ;) ).
+- Added a new feature to the "Files I/O" plugin - "Get and upload file as attachment". It lets automatically read files from "data" folder and send them as attachments - just ask to send a file as an attachment and the model will send it to itself (like sending an image for analysis). Option is disabled by default in the plugin"s settings.
+- Added a new plugin: "Serial port / USB". This plugin lets you read and send any commands to USB ports (so you can control robots now ;) ).
 - Made it possible to use URLs for images when not using the vision feature.
 - Fixed saving and reloading prompts in Assistant mode.
 - Removed display of empty external images from the output.
@@ -1470,7 +1470,7 @@
 
 2.0.77 (2024-01-05)
 
-- Fixed inline plugins disable when pausing command plugins by unchecking 'Execute commands' checkbox
+- Fixed inline plugins disable when pausing command plugins by unchecking '+ Tools' checkbox
 - Added real-time image appending into chat window when generating images in Image Generation mode
 - Added automatic creation of context after deletion from the list when no other context is selected
 - Updated docs
@@ -1884,8 +1884,8 @@
 
 2.0.9 (2023-12-09)
 
-- Added Command: Custom Commands feature; plugin allows to easily create and execute custom commands
-- Added new features to Command: Files I/O: downloading files, copying files and dirs, moving files and dirs
+- Added Custom Commands feature; plugin allows to easily create and execute custom commands
+- Added new features to Files I/O: downloading files, copying files and dirs, moving files and dirs
 
 2.0.8 (2023-12-08)
 

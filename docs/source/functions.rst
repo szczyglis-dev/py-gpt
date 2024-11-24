@@ -11,12 +11,12 @@ In background, **PyGPT** uses an internal syntax to define commands and their pa
 
 It is a JSON object wrapped between ``~###~``. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the ``Custom Commands`` plugin, or simply by creating your own plugin and adding it to the application.
 
-**Tip:** The ``Execute commands`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
+**Tip:** The ``+ Tools`` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
 
 .. image:: images/v2_code_execute.png
    :width: 400
 
-When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the ``Execute commands`` option is active.
+When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the ``+ Tools`` option is active.
 
 However, there is an additional possibility to define your own commands and execute them with the help of GPT.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:
@@ -68,7 +68,7 @@ Then, in the ``Custom Commands`` plugin, create a new command with the same name
 
 **Command to execute:** ``echo "OK. Email sent: {quote}"``
 
-At next, enable the ``Execute commands`` option and enable the plugin.
+At next, enable the ``+ Tools`` option and enable the plugin.
 
 Ask GPT in Chat mode:
 

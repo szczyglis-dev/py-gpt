@@ -90,13 +90,13 @@ class Plugin(BasePlugin):
 
         # 2) event called when command syntax is prepared (before input is sent to the model)
         elif name == Event.CMD_SYNTAX:
-            # Event.CMD_SYNTAX_INLINE is also available and do not require "Execute commands" to be enabled
+            # Event.CMD_SYNTAX_INLINE is also available and do not require "+ Tools" to be enabled
             print("Handling example CMD_SYNTAX event...")
             self.cmd_syntax(data)  # list of syntax items is available in data['syntax']
 
         # 3) event called when commands are executed (after model output is received)
         elif name == Event.CMD_EXECUTE:
-            # Event.CMD_INLINE is also available and do not require "Execute commands" to be enabled
+            # Event.CMD_INLINE is also available and do not require "+ Tools" to be enabled
             print("Handling example CMD_EXECUTE event...")
             self.cmd(ctx, data['commands'])  # list of commands is available in data['commands']
 

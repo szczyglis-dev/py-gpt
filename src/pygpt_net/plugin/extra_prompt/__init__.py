@@ -19,7 +19,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "extra_prompt"
-        self.name = "System Prompt Extra (append)"
+        self.name = "System Prompt Extra"
         self.description = "Appends extra system prompt from list to every system prompt."
         self.prefix = "Prompt"
         self.iteration = 0

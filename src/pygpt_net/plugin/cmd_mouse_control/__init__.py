@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_mouse_control"
-        self.name = "Command: Mouse And Keyboard"
+        self.name = "Mouse And Keyboard"
         self.description = "Provides ability to control mouse and keyboard"
         self.prefix = "Mouse"
         self.order = 100

@@ -56,12 +56,12 @@ Files (download, code generation)
 
 This ``data`` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated ``Llama-index``) and use it's contents as additional context provided to discussion.
 
-The ``Command: Files I/O`` plugin takes care of file operations in the ``data`` directory, while the ``Command: Code Interpreter`` plugin allows for the execution of code from these files.
+The ``Files I/O`` plugin takes care of file operations in the ``data`` directory, while the ``Code Interpreter`` plugin allows for the execution of code from these files.
 
 .. image:: images/v2_file_output.png
    :width: 800
 
-To allow the model to manage files or python code execution, the ``Execute commands`` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or python code execution, the ``+ Tools`` option must be active, along with the above-mentioned plugins:
 
 .. image:: images/v2_code_execute.png
    :width: 400

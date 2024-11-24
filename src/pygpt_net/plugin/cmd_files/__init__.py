@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_files"
-        self.name = "Command: Files I/O"
+        self.name = "Files I/O"
         self.description = "Provides commands to read and write files"
         self.prefix = "I/O"
         self.order = 100

@@ -11,20 +11,20 @@ The following plugins are currently available, and model can use them instantly:
 * ``Audio Output`` - provides voice synthesis.
 * ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 * ``Chat with files (Llama-index, inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files).
-* ``Command: API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
-* ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
-* ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Command: Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
-* ``Command: Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
-* ``Command: Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
-* ``Command: Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
+* ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
+* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
+* ``Custom Commands`` - allows you to create and execute custom commands on your system.
+* ``Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
+* ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
+* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
+* ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Context history (calendar, inline)`` - provides access to context history database.
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-* ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``Execute commands`` option to be enabled.
+* ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``+ Tools`` option to be enabled.
 * ``Experts (inline)`` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
-* ``System Prompt Extra (append)`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+* ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
 
 
@@ -566,12 +566,12 @@ Model used for querying ``Llama-index``. *Default:* ``gpt-3.5-turbo``
 
 Indexes to use. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
 
-Command: API calls
+API calls
 -------------------
 
 **PyGPT** lets you connect the model to the external services using custom defined API calls.
 
-To activate this feature, turn on the ``Command: API calls`` plugin found in the ``Plugins`` menu.
+To activate this feature, turn on the ``API calls`` plugin found in the ``Plugins`` menu.
 
 In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
 
@@ -624,14 +624,14 @@ Connection timeout (seconds). *Default:* `5`
 User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
 
 
-Command: Code Interpreter
+Code Interpreter
 -------------------------
 
 **Executing Code**
 
 From version ``2.4.13`` with built-in ``IPython``.
 
-The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Command: Files I/O`` plugin, it facilitates running code from files saved in the ``data`` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the ``data`` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
 
 **IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
@@ -660,7 +660,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon 
 
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
-**Tip:** always remember to enable the ``Execute commands`` option to allow execute commands from the plugins.
+**Tip:** always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
 
 **Options:**
 
@@ -782,7 +782,7 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 Docker image to use for sandbox *Default:* ``python:3.8-alpine``
 
 
-Command: Custom Commands
+Custom Commands
 ------------------------
 
 With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
@@ -851,7 +851,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
    :width: 800
 
 
-Command: Files I/O
+Files I/O
 ------------------
 
 The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
@@ -986,7 +986,7 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
 
 
-Command: Mouse And Keyboard
+Mouse And Keyboard
 ---------------------------
 
 Introduced in version: `2.4.4` (2024-11-09)
@@ -1004,7 +1004,7 @@ Plugin capabilities include:
 * Control the keyboard (pressing keys, typing text)
 * Making screenshots
 
-The ``Execute commands`` option must be enabled to use this plugin.
+The ``+ Tools`` option must be enabled to use this plugin.
 
 **Options:**
 
@@ -1071,12 +1071,12 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 
 
 
-Command: Web Search
+Web Search
 --------------------------
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the ``Command: Web Search`` plugin found in the ``Plugins`` menu.
+To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
 
 Web searches are provided by ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
 
@@ -1210,7 +1210,7 @@ Prompt used for web search results summarize, use {query} as a placeholder for s
 
 Prompt used for specified URL page summarize
 
-Command: Serial port / USB
+Serial port / USB
 ---------------------------
 
 Provides commands for reading and sending data to USB ports.
@@ -1395,7 +1395,7 @@ If enabled, then a tray notification will be shown on every run of the job. *Def
 DALL-E 3: Image Generation (inline)
 -----------------------------------
 
-The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``Execute commands`` option to be enabled.
+The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``+ Tools`` option to be enabled.
 
 **Options**
 
@@ -1434,11 +1434,11 @@ Replace whole system prompt with vision prompt against appending it to the curre
 
 - ``Enable: capturing images from camera`` *cmd.camera_capture*
 
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `Execute commands` option must be enabled. *Default:* `False`
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
 
 - ``Enable: making screenshots`` *cmd.make_screenshot*
 
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `Execute commands` option must be enabled. *Default:* `False`
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
 
 
 Real Time
