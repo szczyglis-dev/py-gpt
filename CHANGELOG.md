@@ -1,6 +1,10 @@
 # CHANGELOG
 
-# 2.4.25 (2024-11-24)
+## 2.4.26 (2024-11-24)
+
+- Fix: issue #77
+
+## 2.4.25 (2024-11-24)
 
 - Added new plugin: System (OS), with optional sandbox support.
 - Execution of system commands moved to the System plugin.
