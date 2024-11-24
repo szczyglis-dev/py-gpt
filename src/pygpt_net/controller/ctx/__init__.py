@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.24 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -258,6 +258,8 @@ class Ctx:
         # update tab title
         if meta is not None:
             self.window.controller.ui.tabs.update_title_current(meta.name)
+
+        self.select(meta.id)
 
         # app event
         self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
