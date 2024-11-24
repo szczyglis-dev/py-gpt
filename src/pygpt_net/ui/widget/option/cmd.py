@@ -109,8 +109,7 @@ class OptionCmd(QWidget):
         params_label = QLabel(trans(params_key))
 
         # widgets
-        self.enabled = OptionCheckbox(self.window, parent_id, key_enabled, option_enabled)  # enable checkbox
-        self.enabled.box.setIcon(QIcon(":/icons/terminal.svg"))
+        self.enabled = OptionCheckbox(self.window, parent_id, key_enabled, option_enabled, icon = ":/icons/build.svg")  # enable checkbox
         self.params = OptionDict(self.window, parent_id, key_params, option_params)  # command params
         self.instruction = OptionTextarea(self.window, parent_id, key_instruction, option_instruction)  # command instruction
 
