@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
 
 from pygpt_net.ui.widget.option.slider import OptionSlider
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
 
@@ -45,11 +46,11 @@ class AgentLlama:
         self.window.ui.config['global']['agent.llama.loop.score'] = self.window.ui.nodes['agent.llama.loop.score']
 
         # loop enabled
-        self.window.ui.nodes['agent.llama.loop.enabled'] = QCheckBox(trans("toolbox.agent.llama.loop.enabled.label"))
-        self.window.ui.nodes['agent.llama.loop.enabled'].stateChanged.connect(
+        self.window.ui.nodes['agent.llama.loop.enabled'] = ToggleLabel(trans("toolbox.agent.llama.loop.enabled.label"))
+        self.window.ui.nodes['agent.llama.loop.enabled'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_loop(
-                self.window.ui.config['global']['agent.llama.loop.enabled'].isChecked())
+                self.window.ui.config['global']['agent.llama.loop.enabled'].box.isChecked())
         )
         self.window.ui.config['global']['agent.llama.loop.enabled'] = self.window.ui.nodes['agent.llama.loop.enabled']
 

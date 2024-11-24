@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
 
 from pygpt_net.ui.widget.option.slider import OptionSlider
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
 
@@ -43,20 +44,20 @@ class Agent:
         self.window.ui.config['global']['agent.iterations'] = self.window.ui.nodes['agent.iterations']
 
         # auto stop
-        self.window.ui.nodes['agent.auto_stop'] = QCheckBox(trans("toolbox.agent.auto_stop.label"))
-        self.window.ui.nodes['agent.auto_stop'].stateChanged.connect(
+        self.window.ui.nodes['agent.auto_stop'] = ToggleLabel(trans("toolbox.agent.auto_stop.label"))
+        self.window.ui.nodes['agent.auto_stop'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_auto_stop(
-                self.window.ui.config['global']['agent.auto_stop'].isChecked())
+                self.window.ui.config['global']['agent.auto_stop'].box.isChecked())
         )
         self.window.ui.config['global']['agent.auto_stop'] = self.window.ui.nodes['agent.auto_stop']
 
         # continue more
-        self.window.ui.nodes['agent.continue'] = QCheckBox(trans("toolbox.agent.continue.label"))
-        self.window.ui.nodes['agent.continue'].stateChanged.connect(
+        self.window.ui.nodes['agent.continue'] = ToggleLabel(trans("toolbox.agent.continue.label"))
+        self.window.ui.nodes['agent.continue'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_continue(
-                self.window.ui.config['global']['agent.continue'].isChecked())
+                self.window.ui.config['global']['agent.continue'].box.isChecked())
         )
         self.window.ui.config['global']['agent.continue'] = self.window.ui.nodes['agent.continue']
 

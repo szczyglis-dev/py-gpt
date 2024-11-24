@@ -6,14 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
+from pygpt_net.ui.widget.anims.toggles import AnimToggle
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -33,12 +35,12 @@ class Prompt:
         :return: QWidget
         """
         # cmd enable/disable
-        self.window.ui.nodes['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
-        self.window.ui.nodes['cmd.enabled'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked())
+        self.window.ui.nodes['cmd.enabled'] = ToggleLabel(trans('cmd.enabled'))
+        self.window.ui.nodes['cmd.enabled'].box.stateChanged.connect(
+            lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].box.isChecked())
         )
-        self.window.ui.nodes['cmd.enabled'].setToolTip(trans('cmd.tip'))
-        self.window.ui.nodes['cmd.enabled'].setIcon(QIcon(":/icons/add.svg"))
+        self.window.ui.nodes['cmd.enabled'].box.setToolTip(trans('cmd.tip'))
+        self.window.ui.nodes['cmd.enabled'].box.setIcon(QIcon(":/icons/add.svg"))
 
         # label
         self.window.ui.nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))

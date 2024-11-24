@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 06:00:00                  #
+# Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QIcon
@@ -140,8 +140,8 @@ class OptionCmd(QWidget):
         self.setLayout(self.layout)
 
         # show tooltip only if different from description
-        if txt_tooltip != txt_desc:
-            self.setToolTip(txt_tooltip)
+        # if txt_tooltip != txt_desc:
+            # self.setToolTip(txt_tooltip)
 
         # update
         self.update()

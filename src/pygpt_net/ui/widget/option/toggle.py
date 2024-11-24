@@ -9,7 +9,7 @@
 # Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
+from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
 from pygpt_net.utils import trans
@@ -44,8 +44,7 @@ class OptionCheckbox(QWidget):
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
 
-        # self.box = QCheckBox(self.title, self.window)
-        self.box = AnimToggle()
+        self.box = AnimToggle(self.title, self.window)
         if self.value is not None:
             self.box.setChecked(self.value)
         self.box.stateChanged.connect(
@@ -57,40 +56,7 @@ class OptionCheckbox(QWidget):
             )
         )
 
-        self.label = QLabel(self.title)
-        self.box = AnimToggle()
-
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
-        self.layout.addWidget(self.label)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+
         self.setLayout(self.layout)
-
-        # self.layout = QHBoxLayout()
-        #self.layout.addWidget(self.box)
-
-        #self.setLayout(self.layout)
-
-    def setText(self, text: str):
-        """
-        Set label text
-
-        :param text: text
-        """
-        self.label.setText(text)
-
-    def setChecked(self, state: bool):
-        """
-        Set checkbox state
-
-        :param state: state
-        """
-        self.box.setChecked(state)
-
-    def isChecked(self) -> bool:
-        """
-        Get checkbox state
-
-        :return: state
-        """
-        return self.box.isChecked()
