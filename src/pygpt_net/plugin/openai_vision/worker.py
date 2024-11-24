@@ -75,8 +75,10 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            self.window.controller.camera.manual_capture(force=True)
-            result = "OK"
+            if self.window.controller.camera.internal_capture():
+                result = "OK"
+            else:
+                result = "FAILED"
         except Exception as e:
             result = self.throw_error(e)
         return self.make_response(item, result)

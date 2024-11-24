@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
+import os
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.attachment import AttachmentItem
@@ -88,7 +89,10 @@ class Analyzer:
         files = {
             "camera": attachment,
         }
-        return self.send(ctx, prompt, files)
+        if path:
+            return self.send(ctx, prompt, files)
+        else:
+            return "FAILED: There was a problem with capturing the image."
 
     def from_path(self, ctx: CtxItem, prompt: str, path: str) -> str:
         """
@@ -101,6 +105,9 @@ class Analyzer:
         """
         if not path:
             return self.from_current_attachments(ctx, prompt)  # try current if no path provided
+
+        if not os.path.exists(path):
+            return "FAILED: File not found"
 
         attachment = AttachmentItem()
         attachment.path = path

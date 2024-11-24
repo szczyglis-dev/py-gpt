@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.23 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+import time
+
 import cv2
 
 from PySide6.QtCore import Slot, QObject
@@ -19,7 +21,7 @@ from PySide6.QtGui import QImage, QPixmap, Qt
 from pygpt_net.core.types import (
     MODE_VISION,
 )
-from pygpt_net.core.events import AppEvent
+from pygpt_net.core.events import AppEvent, KernelEvent
 from pygpt_net.core.camera import CaptureWorker
 from pygpt_net.utils import trans
 
@@ -72,76 +74,6 @@ class Camera(QObject):
         else:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
-    def start(self):
-        """Start camera thread"""
-        if self.thread_started:
-            return
-
-        # prepare thread
-        self.stop = False
-
-        # worker
-        worker = CaptureWorker()
-        worker.window = self.window
-
-        # signals
-        worker.signals.capture.connect(self.handle_capture)
-        worker.signals.finished.connect(self.handle_stop)
-        worker.signals.unfinished.connect(self.handle_unfinished)
-        worker.signals.stopped.connect(self.handle_stop)
-        worker.signals.error.connect(self.handle_error)
-
-        # start
-        self.window.threadpool.start(worker)
-        self.thread_started = True
-        self.window.dispatch(AppEvent(AppEvent.CAMERA_ENABLED))  # app event
-
-    def stop_capture(self):
-        """Stop camera capture thread"""
-        if not self.thread_started:
-            return
-
-        self.stop = True
-        self.window.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
-
-    @Slot(object)
-    def handle_error(self, err):
-        """
-        Handle thread error signal
-
-        :param err: error message
-        """
-        self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert(err)
-
-    @Slot(object)
-    def handle_capture(self, frame):
-        """
-        Handle capture frame signal
-
-        :param frame: frame
-        """
-        self.frame = frame
-        self.update()
-
-    @Slot()
-    def handle_stop(self):
-        """On capture stopped signal"""
-        self.thread_started = False
-        self.hide_camera(False)
-
-    @Slot()
-    def handle_unfinished(self):
-        """On capture unfinished (never started) signal"""
-        if self.window.core.platforms.is_snap():
-            self.window.ui.dialogs.open(
-                'snap_camera',
-                width=400,
-                height=200
-            )
-        self.thread_started = False
-        self.disable_capture()
-
     def update(self):
         """Update camera frame"""
         if not self.thread_started \
@@ -175,12 +107,47 @@ class Camera(QObject):
         """
         if not self.is_auto() or force:
             if not self.capture_frame(True):
-                self.window.statusChanged.emit(
-                    trans("vision.capture.manual.captured.error")
-                )
+                event = KernelEvent(KernelEvent.STATE_ERROR, {
+                    'msg': trans("vision.capture.manual.captured.error"),
+                })
+                self.window.dispatch(event)
         else:
-            self.window.statusChanged.emit(trans('vision.capture.auto.click'))
+            event = KernelEvent(KernelEvent.STATUS, {
+                'status': trans('vision.capture.auto.click'),
+            })
+            self.window.dispatch(event)
         self.window.dispatch(AppEvent(AppEvent.CAMERA_CAPTURED))  # app event
+
+    def internal_capture(self) -> bool:
+        """
+        Capture frame internally
+
+        :return: True if success
+        """
+        before_enabled = self.is_enabled()
+        if not self.thread_started:
+            self.is_capture = True
+            self.window.ui.menu['video.capture'].setChecked(True)
+            self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam.svg")
+            print("Starting camera thread...")
+            self.start()
+            time.sleep(3)
+
+        if not self.capture_frame(False):
+            event = KernelEvent(KernelEvent.STATE_ERROR, {
+                    'msg': trans("vision.capture.manual.captured.error"),
+                })
+            self.window.dispatch(event)
+            result = False
+        else:
+            self.window.dispatch(AppEvent(AppEvent.CAMERA_CAPTURED))  # app event
+            result = True
+
+        # stop capture if not enabled before
+        if not before_enabled:
+            self.disable_capture_internal()
+
+        return result
 
     def handle_auto_capture(self):
         """Handle auto capture"""
@@ -244,16 +211,20 @@ class Camera(QObject):
             self.window.controller.attachment.update()
 
             # show last capture time in status
-            self.window.statusChanged.emit(
-                trans("vision.capture.manual.captured.success") + ' ' + dt_info
-            )
+            event = KernelEvent(KernelEvent.STATUS, {
+                'status': trans("vision.capture.manual.captured.success") + ' ' + dt_info,
+            })
+            self.window.dispatch(event)
 
             return True
 
         except Exception as e:
             print("Frame capture exception", e)
             self.window.core.debug.log(e)
-            self.window.statusChanged.emit(trans('vision.capture.error'))
+            event = KernelEvent(KernelEvent.STATUS, {
+                'status': trans('vision.capture.error'),
+            })
+            self.window.dispatch(event)
         return False
 
     def capture_frame_save(self) -> str:
@@ -263,8 +234,14 @@ class Camera(QObject):
         :return: Path to saved frame
         """
         # capture frame
+        before_enabled = self.is_enabled()
         if not self.thread_started:
+            self.is_capture = True
+            self.window.ui.menu['video.capture'].setChecked(True)
+            self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam.svg")
+            print("Starting camera thread...")
             self.start()
+            time.sleep(3)
 
         path = ""
         try:
@@ -283,12 +260,27 @@ class Camera(QObject):
             ]
             frame = self.get_current_frame()
             cv2.imwrite(path, frame, compression_params)
+
+            # stop capture if not enabled before
+            if not before_enabled:
+                self.disable_capture_internal()
+
             return path
 
         except Exception as e:
             print("Frame capture exception", e)
             self.window.core.debug.log(e)
+
+        # stop capture if not enabled before
+        if not before_enabled:
+            self.disable_capture_internal()
         return path
+
+    def disable_capture_internal(self):
+        """Disable camera capture"""
+        self.window.ui.menu['video.capture'].setChecked(False)
+        self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam_off.svg")
+        self.disable_capture(force=True)
 
     def show_camera(self):
         """Show camera"""
@@ -324,9 +316,13 @@ class Camera(QObject):
         if not self.thread_started:
             self.start()
 
-    def disable_capture(self):
-        """Disable capture"""
-        if not self.capture_allowed():
+    def disable_capture(self, force: bool = False):
+        """
+        Disable capture
+
+        :param force: force disable
+        """
+        if not self.capture_allowed() and not force:
             return
 
         self.is_capture = False
@@ -434,6 +430,76 @@ class Camera(QObject):
     def blank_screen(self):
         """Make and set blank screen"""
         self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
+
+    def start(self):
+        """Start camera thread"""
+        if self.thread_started:
+            return
+
+        # prepare thread
+        self.stop = False
+
+        # worker
+        worker = CaptureWorker()
+        worker.window = self.window
+
+        # signals
+        worker.signals.capture.connect(self.handle_capture)
+        worker.signals.finished.connect(self.handle_stop)
+        worker.signals.unfinished.connect(self.handle_unfinished)
+        worker.signals.stopped.connect(self.handle_stop)
+        worker.signals.error.connect(self.handle_error)
+
+        # start
+        self.window.threadpool.start(worker)
+        self.thread_started = True
+        self.window.dispatch(AppEvent(AppEvent.CAMERA_ENABLED))  # app event
+
+    def stop_capture(self):
+        """Stop camera capture thread"""
+        if not self.thread_started:
+            return
+
+        self.stop = True
+        self.window.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
+
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error signal
+
+        :param err: error message
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert(err)
+
+    @Slot(object)
+    def handle_capture(self, frame):
+        """
+        Handle capture frame signal
+
+        :param frame: frame
+        """
+        self.frame = frame
+        self.update()
+
+    @Slot()
+    def handle_stop(self):
+        """On capture stopped signal"""
+        self.thread_started = False
+        self.hide_camera(False)
+
+    @Slot()
+    def handle_unfinished(self):
+        """On capture unfinished (never started) signal"""
+        if self.window.core.platforms.is_snap():
+            self.window.ui.dialogs.open(
+                'snap_camera',
+                width=400,
+                height=200
+            )
+        self.thread_started = False
+        self.disable_capture()
 
     def capture_allowed(self) -> bool:
         """

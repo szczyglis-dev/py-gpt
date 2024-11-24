@@ -18,7 +18,7 @@ from PySide6.QtWidgets import QFileDialog, QApplication
 from pygpt_net.core.types import (
     MODE_VISION,
 )
-from pygpt_net.core.events import AppEvent
+from pygpt_net.core.events import AppEvent, KernelEvent
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -463,7 +463,10 @@ class Attachment:
         self.window.core.attachments.new(mode, title, url, False)
         self.window.core.attachments.save()
         self.window.controller.attachment.update()
-        self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + os.path.basename(url))
+        event = KernelEvent(KernelEvent.STATUS, {
+            'status': trans("painter.capture.manual.captured.success") + ' ' + os.path.basename(url),
+        })
+        self.window.dispatch(event)
 
     def from_clipboard_text(self, text: str, all: bool = False):
         """
