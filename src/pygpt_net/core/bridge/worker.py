@@ -112,6 +112,10 @@ class BridgeWorker(QObject, QRunnable):
     def handle_additional_context(self):
         """Append additional context"""
         ctx = self.context.ctx
+        if ctx is None:
+            return
+        if ctx.meta is None:
+            return
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
         ad_context = self.window.controller.chat.attachment.get_context(ctx)

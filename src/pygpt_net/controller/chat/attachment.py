@@ -163,6 +163,8 @@ class Attachment(QObject):
         :param meta: CtxMeta
         :return: True if has context
         """
+        if meta is None or meta.additional_ctx is None:
+            return False
         return len(meta.additional_ctx) > 0
 
     def current_has_context(self) -> bool:
