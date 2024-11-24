@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.16 05:00:00                  #
+# Updated Date: 2024.11.24 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, QRunnable
@@ -14,8 +14,6 @@ from typing_extensions import deprecated
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
-from ...core.events import KernelEvent
-from ...item.ctx import CtxItem
 
 
 class BaseWorker(QObject, QRunnable):
@@ -200,6 +198,8 @@ class BaseWorker(QObject, QRunnable):
         :param param: parameter name
         :return: True if item has parameter
         """
+        if item is None:
+            return False
         return "params" in item and param in item["params"]
 
     def get_param(self, item: dict, param: str, default: any = None) -> any:

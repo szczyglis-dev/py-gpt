@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.24 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_CHAT,
 )
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.item.ctx import CtxItem
@@ -52,6 +53,7 @@ class Plugin(BasePlugin):
             "analyze_camera_capture",
         ]
         self.disabled_mode_switch = [
+            MODE_CHAT,
             MODE_VISION,
             MODE_AGENT,
             MODE_AGENT_LLAMA,

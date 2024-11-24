@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.24 04:00:00                  #
 # ================================================== #
 
 import time
@@ -102,7 +102,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Mouse get position"
             self.log(self.msg)
-            result = self.get_current()
+            result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
@@ -133,7 +133,7 @@ class Worker(BaseWorker):
             error = str(e)
             self.log("Error: {}".format(e))
         try:
-            result = self.get_current()
+            result = self.get_current(item)
             if error:
                 result["error"] = error
             self.log("Response: {}".format(result))
@@ -150,7 +150,7 @@ class Worker(BaseWorker):
         """
         button = Button.left
         num = 1
-        if self.has_param("button"):
+        if self.has_param(item, "button"):
             btn_name = self.get_param(item, "button")
             if btn_name == "middle":
                 button = Button.middle
@@ -161,7 +161,7 @@ class Worker(BaseWorker):
         try:
             mouse = MouseController()
             mouse.click(button, num)
-            result = self.get_current()
+            result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
@@ -183,7 +183,7 @@ class Worker(BaseWorker):
         try:
             mouse = MouseController()
             mouse.scroll(x, y)
-            result = self.get_current()
+            result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
@@ -233,7 +233,7 @@ class Worker(BaseWorker):
                 self.log("Error: {}".format(e))
 
         try:
-            result = self.get_current()
+            result = self.get_current(item)
             if error:
                 result["error"] = error
             self.log("Response: {}".format(result))
@@ -275,7 +275,7 @@ class Worker(BaseWorker):
                 keyboard.type(text)
 
         try:
-            result = self.get_current()
+            result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
@@ -289,7 +289,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            result = self.get_current()
+            result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
