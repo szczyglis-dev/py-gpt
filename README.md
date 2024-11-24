@@ -3652,6 +3652,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.27 (2024-11-24)**
+
+- Profile switch fix.
+
 **2.4.26 (2024-11-24)**
 
 - Fix: issue #77
