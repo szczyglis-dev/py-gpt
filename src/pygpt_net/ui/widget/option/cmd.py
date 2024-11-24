@@ -128,7 +128,7 @@ class OptionCmd(QWidget):
         group.box.setText(trans('settings.cmd.config.collapse'))
         group.box.setIcon(QIcon(":/icons/expand.svg"))
         group.add_layout(params_layout)
-        group.layout.setContentsMargins(35, 0, 0, 0)
+        group.layout.setContentsMargins(0, 0, 0, 0)
 
         # add to groups
         self.window.ui.groups[group_id] = group

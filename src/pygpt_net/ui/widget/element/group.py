@@ -8,8 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QWidget, QVBoxLayout
+
+import pygpt_net.icons_rc
 
 
 class CollapsedGroup(QWidget):
@@ -42,6 +45,14 @@ class CollapsedGroup(QWidget):
                 self.section,
             )
         )
+        self.box.stateChanged.connect(lambda: self.update_icon(self.box.checkState()))
+        self.box.setProperty('class', 'label-help')
+        self.box.setStyleSheet("""
+            QCheckBox::indicator {
+                width: 0px;
+                height: 0px;
+            }
+        """)
 
         # options layout
         self.options = QVBoxLayout()
@@ -57,6 +68,17 @@ class CollapsedGroup(QWidget):
         self.layout.addWidget(options_widget)
 
         self.setLayout(self.layout)
+
+    def update_icon(self, state):
+        """
+        Update icon based on state
+
+        :param state:checkbox state
+        """
+        if state == Qt.Checked:
+            self.box.setIcon(QIcon(":/icons/collapse.svg"))
+        else:
+            self.box.setIcon(QIcon(":/icons/expand.svg"))
 
     def collapse(self, value):
         """
