@@ -1692,6 +1692,15 @@ class Patch:
                         'ctx.attachment.img')
                 updated = True
 
+            # < 2.4.29
+            if old < parse_version("2.4.29"):
+                print("Migrating config from < 2.4.29...")
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'ipython_dockerfile' in data['plugins']['cmd_code_interpreter']:
+                    # remove
+                    del data['plugins']['cmd_code_interpreter']['ipython_dockerfile']
+                updated = True
+
         # update file
         migrated = False
         if updated:

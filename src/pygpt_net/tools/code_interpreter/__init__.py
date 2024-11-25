@@ -233,6 +233,7 @@ class CodeInterpreter(BaseTool):
 
     def restart_kernel(self):
         """Restart kernel"""
+        print("Sending restart event...")
         commands = [
             {
                 "cmd": "ipython_kernel_restart",

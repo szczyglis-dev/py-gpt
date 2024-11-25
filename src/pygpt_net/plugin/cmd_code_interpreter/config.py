@@ -23,35 +23,36 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
-        dockerfile = '# Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes'
-        dockerfile += '(Menu -> Tools -> Rebuild IPython Docker Image)'
-        dockerfile += '\n\n'
-        dockerfile += 'FROM python:3.9'
-        dockerfile += '\n\n'
-        dockerfile += '# You can customize the packages installed by default here:'
-        dockerfile += '\n# ========================================================'
-        dockerfile += '\nRUN pip install jupyter ipykernel'
-        dockerfile += '\n# ========================================================'
-        dockerfile += '\n\n'
-        dockerfile += 'RUN mkdir /data'
-        dockerfile += '\n\n'
-        dockerfile += '# Expose the necessary ports for Jupyter kernel communication'
-        dockerfile += '\nEXPOSE 5555 5556 5557 5558 5559'
-        dockerfile += '\n\n'
-        dockerfile += '# Data directory, bound as a volume to the local \'data/ipython\' directory'
-        dockerfile += '\nWORKDIR /data'
-        dockerfile += '\n\n'
-        dockerfile += '# Start the IPython kernel with specified ports and settings'
-        dockerfile += '\nCMD ["ipython", "kernel", \\'
-        dockerfile += '\n--ip=0.0.0.0, \\'
-        dockerfile += '\n--transport=tcp, \\'
-        dockerfile += '\n--shell=5555, \\'
-        dockerfile += '\n--iopub=5556, \\'
-        dockerfile += '\n--stdin=5557, \\'
-        dockerfile += '\n--control=5558, \\'
-        dockerfile += '\n--hb=5559, \\'
-        dockerfile += '\n--Session.key=19749810-8febfa748186a01da2f7b28c, \\'
-        dockerfile += '\n--Session.signature_scheme=hmac-sha256]'
+        dockerfile = '''
+        # Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes(Menu -> Tools -> Rebuild IPython Docker Image)
+
+        FROM python:3.9
+
+        # You can customize the packages installed by default here:
+        # ========================================================
+        RUN pip install jupyter ipykernel
+        # ========================================================
+
+        RUN mkdir /data
+
+        # Expose the necessary ports for Jupyter kernel communication
+        EXPOSE 5555 5556 5557 5558 5559
+
+        # Data directory, bound as a volume to the local 'data/ipython' directory
+        WORKDIR /data
+
+        # Start the IPython kernel with specified ports and settings
+        CMD ["ipython", "kernel", \
+        "--ip=0.0.0.0", \
+        "--transport=tcp", \
+        "--shell=5555", \
+        "--iopub=5556", \
+        "--stdin=5557", \
+        "--control=5558", \
+        "--hb=5559", \
+        "--Session.key=19749810-8febfa748186a01da2f7b28c", \
+        "--Session.signature_scheme=hmac-sha256"]
+        '''
 
         dockerfile_legacy = 'FROM python:3.9-alpine'
         dockerfile_legacy += '\n\n'

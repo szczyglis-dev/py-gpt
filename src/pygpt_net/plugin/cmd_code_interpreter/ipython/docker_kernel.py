@@ -235,6 +235,8 @@ class DockerKernel:
 
         # run the container
         try:
+            print("Running container {}...".format(name))
+            self.prepare_conn()
             local_data_dir = self.get_local_data_dir()
             client.containers.run(
                 self.get_image_name(),
@@ -387,7 +389,8 @@ class DockerKernel:
         self.restart_container(self.get_container_name())
         if self.client is not None:
             self.client.stop_channels()
-        self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
+        else:
+            self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
         self.client.load_connection_file()
         self.client.start_channels()
         self.client.wait_for_ready()

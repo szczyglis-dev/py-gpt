@@ -3660,6 +3660,7 @@ may consume additional tokens that are not displayed in the main window.
 - Checkboxes replaced with Toggle buttons.
 - Improved settings dialogs.
 - Slight modification of the layout.
+- Fix: Dockerfile formatting in Code Interpreter config.
 - Fix: experts inline plugin execution.
 
 **2.4.28 (2024-11-24)**
