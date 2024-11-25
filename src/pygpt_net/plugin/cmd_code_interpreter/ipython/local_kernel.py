@@ -105,7 +105,7 @@ class LocalKernel:
         """
         self.init()
         if not current:
-            self.restart()
+            self.restart_kernel()
 
         self.log("Executing code: " + str(code)[:100] + "...")
 

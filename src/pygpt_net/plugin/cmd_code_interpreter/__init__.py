@@ -102,18 +102,20 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         # get current working directory
-        cwd = self.window.core.config.get_user_dir('data')
-        ipython_data = os.path.join(cwd, 'ipython')
-        if self.get_option_value("sandbox_docker") or self.get_option_value("sandbox_ipython"):
-            cwd = "/data (in docker sandbox)"
+        legacy_data = self.window.core.config.get_user_dir('data')
+        ipython_data = os.path.join(legacy_data, 'ipython')
 
         for item in self.allowed_cmds:
             if self.has_cmd(item):
                 cmd = self.get_cmd(item)
-                if item == "ipython_execute" or item == "ipython_execute_new":
+                if item in ["ipython_execute", "ipython_execute_new"]:
                     if self.get_option_value("sandbox_ipython"):
                         cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
                                            "directory is bound in host machine to: {}").format(ipython_data)
+                elif item in ["code_execute", "code_execute_file", "code_execute_all"]:
+                    if self.get_option_value("sandbox_docker"):
+                        cmd["instruction"] += ("\nPython works in Docker container. Directory /data is the container's workdir - "
+                                           "directory is bound in host machine to: {}").format(legacy_data)
                 data['cmd'].append(cmd)  # append command
 
     @Slot(object, str)
