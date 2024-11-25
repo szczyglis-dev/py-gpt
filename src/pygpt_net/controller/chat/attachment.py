@@ -114,9 +114,12 @@ class Attachment(QObject):
         :return: True if uploaded
         """
         self.uploaded = False
+        auto_index = self.window.core.config.get("attachments_auto_index", False)
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
+
         if self.is_verbose() and len(attachments) > 0:
             print("\nUploading attachments...\nWork Mode: {}".format(mode))
+
         for uuid in attachments:
             attachment = attachments[uuid]
             if not self.is_allowed(attachment.path):
@@ -137,7 +140,13 @@ class Attachment(QObject):
                             if self.is_allowed(str(path)):
                                 if self.is_verbose():
                                     print("Uploading unpacked from archive: {}".format(path_relative))
-                                item = self.window.core.attachments.context.upload(meta, sub_attachment, prompt)
+                                item = self.window.core.attachments.context.upload(
+                                    meta=meta,
+                                    attachment=sub_attachment,
+                                    prompt=prompt,
+                                    real_path=attachment.path,
+                                    auto_index=auto_index,
+                                )
                                 if item:
                                     item["path"] = os.path.basename(attachment.path) + "/" + path_relative
                                     item["size"] = os.path.getsize(path)
@@ -149,7 +158,13 @@ class Attachment(QObject):
                                     attachment.consumed = True
                     self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
             else:
-                item = self.window.core.attachments.context.upload(meta, attachment, prompt)
+                item = self.window.core.attachments.context.upload(
+                    meta=meta,
+                    attachment=attachment,
+                    prompt=prompt,
+                    real_path=attachment.path,
+                    auto_index=auto_index,
+                )
                 if item:
                     if meta.additional_ctx is None:
                         meta.additional_ctx = []
@@ -361,6 +376,128 @@ class Attachment(QObject):
             return
         self.window.core.attachments.context.clear(meta, delete_files=remove_local)
         self.update_list(meta)
+
+    def select(self, idx: int):
+        """
+        Select uploaded file
+
+        :param idx: index of file
+        """
+        pass
+
+    def open_by_idx(self, idx: int):
+        """
+        Open attachment by index
+
+        :param idx: Index on list
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            path = item["path"]
+            if "real_path" in item:
+                path = item["real_path"]
+            if os.path.exists(path) and os.path.isfile(path):
+                print("Opening attachment: {}".format(path))
+                self.window.controller.files.open(path)
+
+    def open_dir_src_by_idx(self, idx: int):
+        """
+        Open source directory by index
+
+        :param idx: Index on list
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            path = item["path"]
+            if "real_path" in item:
+                path = item["real_path"]
+            dir = os.path.dirname(path)
+            if os.path.exists(dir) and os.path.isdir(dir):
+                print("Opening source directory: {}".format(dir))
+                self.window.controller.files.open(dir)
+
+    def open_dir_dest_by_idx(self, idx: int):
+        """
+        Open destination directory by index
+
+        :param idx: Index on list
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            root_dir = self.window.core.attachments.context.get_dir(meta)
+            dir = os.path.join(root_dir, item["uuid"])
+            if os.path.exists(dir) and os.path.isdir(dir):
+                self.window.controller.files.open(dir)
+                print("Opening destination directory: {}".format(dir))
+
+    def has_file_by_idx(self, idx: int) -> bool:
+        """
+        Check if has file by index
+
+        :param idx: Index on list
+        :return: True if has file
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return False
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            path = item["path"]
+            if "real_path" in item:
+                path = item["real_path"]
+            return os.path.exists(path) and os.path.isfile(path)
+        return False
+
+    def has_src_by_idx(self, idx: int) -> bool:
+        """
+        Check if has source directory by index
+
+        :param idx: Index on list
+        :return: True if has source directory
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return False
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            path = item["path"]
+            if "real_path" in item:
+                path = item["real_path"]
+            dir = os.path.dirname(path)
+            return os.path.exists(dir) and os.path.isdir(dir)
+        return False
+
+    def has_dest_by_idx(self, idx: int) -> bool:
+        """
+        Check if has destination directory by index
+
+        :param idx: Index on list
+        :return: True if has destination directory
+        """
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.additional_ctx is None:
+            return False
+        items = self.window.core.attachments.context.get_all(meta)
+        if idx < len(items):
+            item = items[idx]
+            root_dir = self.window.core.attachments.context.get_dir(meta)
+            dir = os.path.join(root_dir, item["uuid"])
+            return os.path.exists(dir) and os.path.isdir(dir)
+        return False
 
     @Slot(object)
     def handle_upload_error(self, error: Exception):

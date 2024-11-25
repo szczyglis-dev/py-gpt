@@ -1701,6 +1701,14 @@ class Patch:
                     del data['plugins']['cmd_code_interpreter']['ipython_dockerfile']
                 updated = True
 
+            # < 2.4.31
+            if old < parse_version("2.4.31"):
+                print("Migrating config from < 2.4.31...")
+                if 'attachments_auto_index' not in data:
+                    data["attachments_auto_index"] = self.window.core.config.get_base(
+                        'attachments_auto_index')
+                updated = True
+
         # update file
         migrated = False
         if updated:

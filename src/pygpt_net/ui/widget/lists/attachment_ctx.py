@@ -85,18 +85,47 @@ class AttachmentCtxList(BaseList):
         """
         actions = {}
 
+        item = self.indexAt(event.pos())
+        idx = item.row()
+
+        has_file = False
+        has_src = False
+        has_dest = False
+
+        if idx >= 0:
+            has_file = self.window.controller.chat.attachment.has_file_by_idx(idx)
+            has_src = self.window.controller.chat.attachment.has_src_by_idx(idx)
+            has_dest = self.window.controller.chat.attachment.has_dest_by_idx(idx)
+
+        actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
+        actions['open'].triggered.connect(
+            lambda: self.action_open(event)
+        )
+        actions['open_dir_src'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_dir_src'), self)
+        actions['open_dir_src'].triggered.connect(
+            lambda: self.action_open_dir_src(event)
+        )
+        actions['open_dir_dest'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_dir_storage'), self)
+        actions['open_dir_dest'].triggered.connect(
+            lambda: self.action_open_dir_dest(event)
+        )
+
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event)
         )
 
         menu = QMenu(self)
+        if has_file:
+            menu.addAction(actions['open'])
+        if has_src:
+            menu.addAction(actions['open_dir_src'])
+        if has_dest:
+            menu.addAction(actions['open_dir_dest'])
         menu.addAction(actions['delete'])
 
-        item = self.indexAt(event.pos())
-        idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant.files.select(item.row())
+            self.window.controller.chat.attachment.select(item.row())
             menu.exec_(event.globalPos())
 
     def action_delete(self, event):
@@ -109,3 +138,36 @@ class AttachmentCtxList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.chat.attachment.delete_by_idx(idx)
+
+    def action_open(self, event):
+        """
+        Open action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.chat.attachment.open_by_idx(idx)
+
+    def action_open_dir_src(self, event):
+        """
+        Open source directory action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.chat.attachment.open_dir_src_by_idx(idx)
+
+    def action_open_dir_dest(self, event):
+        """
+        Open destination directory action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.chat.attachment.open_dir_dest_by_idx(idx)

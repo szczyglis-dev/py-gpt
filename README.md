@@ -356,7 +356,7 @@ This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such 
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
-Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Files` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
+Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Attachments` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f573ee22-8539-4259-b180-f97e54bc0d94)
 
@@ -1096,6 +1096,10 @@ The content from the uploaded attachments will be used in the current conversati
 - `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
 
 **Note:** Only text files from the list above are included in the additional context. Images will not be included in the context but will be used by the vision model in real-time. Adding image files to the context will be available in future versions.
+
+**Uploading larger files and auto-index:**
+
+To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
 
 ## Files (download, code generation)
 
@@ -3651,6 +3655,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.31 (2024-11-25)**
+
+- Added an option checkbox `Auto-index on upload` in the `Attachments` tab: 
+
+**Tip:** To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
+
+- Added context menu options in `Uploaded attachments` tab: `Open`, `Open Source directory` and `Open Storage directory`.
 
 **2.4.30 (2024-11-25)**
 

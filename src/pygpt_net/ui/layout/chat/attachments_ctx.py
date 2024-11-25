@@ -105,11 +105,12 @@ class AttachmentsCtx:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        model = QStandardItemModel(0, 4, parent)
+        model = QStandardItemModel(0, 5, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         model.setHeaderData(2, Qt.Horizontal, trans('attachments.header.size'))
         model.setHeaderData(3, Qt.Horizontal, trans('attachments.header.length'))
+        model.setHeaderData(4, Qt.Horizontal, trans('attachments.header.idx'))
         return model
 
     def update(self, data):
@@ -121,6 +122,7 @@ class AttachmentsCtx:
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for item in data:
+            indexed = False
             name = "No name"
             if 'name' in item:
                 name = item['name']
@@ -136,6 +138,12 @@ class AttachmentsCtx:
                 length = str(item['length'])
             if 'tokens' in item:
                 length += ' / ~' + str(item['tokens'])
+            if 'indexed' in item and item['indexed']:
+                indexed = True
+
+            idx_str = ""
+            if indexed:
+                idx_str = trans("attachments.ctx.indexed")
 
             if os.path.exists(path):
                 size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
@@ -149,4 +157,5 @@ class AttachmentsCtx:
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), path)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 2), size)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 3), length)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 4), idx_str)
             i += 1

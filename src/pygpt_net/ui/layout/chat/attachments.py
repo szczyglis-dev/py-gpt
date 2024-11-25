@@ -42,6 +42,7 @@ class Attachments:
         buttons = QHBoxLayout()
         buttons.addWidget(self.window.ui.nodes['attachments.btn.add'])
         buttons.addWidget(self.window.ui.nodes['attachments.btn.clear'])
+        buttons.addWidget(self.setup_auto_index())
         buttons.addWidget(self.setup_send_clear())
         buttons.addWidget(self.setup_capture_clear())
 
@@ -88,6 +89,22 @@ class Attachments:
 
         return widget
 
+    def setup_auto_index(self) -> QWidget:
+        """
+        Setup auto index checkbox
+
+        :return: QWidget
+        """
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.window.ui.nodes['attachments.auto_index'])
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
+
     def setup_buttons(self):
         """
         Setup buttons
@@ -109,6 +126,11 @@ class Attachments:
         self.window.ui.nodes['attachments.capture_clear'].stateChanged.connect(
             lambda: self.window.controller.attachment.toggle_capture_clear(
                 self.window.ui.nodes['attachments.capture_clear'].isChecked()))
+
+        self.window.ui.nodes['attachments.auto_index'] = QCheckBox(trans('attachments.auto_index'))
+        self.window.ui.nodes['attachments.auto_index'].stateChanged.connect(
+            lambda: self.window.controller.attachment.toggle_auto_index(
+                self.window.ui.nodes['attachments.auto_index'].isChecked()))
 
     def setup_attachments(self):
         """

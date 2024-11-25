@@ -65,6 +65,7 @@
   "assistant": "",
   "assistant_thread": "",
   "assistant.store.hide_threads": true,
+  "attachments_auto_index": false,
   "attachments_send_clear": true,
   "attachments_capture_clear": true,
   "audio.transcribe.convert_video": true,

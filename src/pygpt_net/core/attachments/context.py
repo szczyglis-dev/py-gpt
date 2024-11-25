@@ -111,6 +111,28 @@ class Context:
         if not os.path.exists(meta_path) or not os.path.isdir(meta_path):
             return ""
         idx_path = os.path.join(self.get_dir(meta), self.dir_index)
+
+        indexed = False
+        # index files if not indexed by auto_index
+        for i, file in enumerate(meta.additional_ctx):
+            if "indexed" not in file or not file["indexed"]:
+                file_id = file["uuid"]
+                file_idx_path = os.path.join(meta_path, file_id)
+                file_path = os.path.join(file_idx_path, file["name"])
+                model = None
+                doc_ids = self.window.core.idx.indexing.index_attachment(file_path, idx_path, model)
+                if self.is_verbose():
+                    print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
+                file["indexed"] = True
+                file["doc_ids"] = doc_ids
+                #meta.additional_ctx[i] = file  # update meta
+                indexed = True
+
+        if indexed:
+            # update ctx in DB
+            self.window.core.ctx.replace(meta)
+            self.window.core.ctx.save(meta.id)
+
         model = None
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
 
@@ -162,13 +184,22 @@ class Context:
             print("Attachments: summary received: {}".format(response))
         return response
 
-    def upload(self, meta: CtxMeta, attachment: AttachmentItem, prompt: str) -> dict:
+    def upload(
+            self,
+            meta: CtxMeta,
+            attachment: AttachmentItem,
+            prompt: str,
+            auto_index: bool = False,
+            real_path: str = None
+    ) -> dict:
         """
         Upload attachment for context
 
         :param meta: CtxMeta instance
         :param attachment: AttachmentItem instance
         :param prompt: user input prompt
+        :param auto_index: auto index
+        :param real_path: real path
         :return: Dict with attachment data
         """
         if self.is_verbose():
@@ -185,7 +216,8 @@ class Context:
 
         if self.is_verbose():
             print("Attachments: created path: {}".format(meta_path))
-            print("Attachments: vector index path: {}".format(index_path))
+            if auto_index:
+                print("Attachments: vector index path: {}".format(index_path))
 
         # copy raw file
         raw_path = os.path.join(file_idx_path, name)
@@ -214,24 +246,29 @@ class Context:
             tokens = self.window.core.tokens.from_str(text)
 
         # index file to ctx index
-        model = None
-        doc_ids = self.window.core.idx.indexing.index_attachment(attachment.path, index_path, model)
-
-        if self.is_verbose():
-            print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
+        doc_ids = []
+        if auto_index:
+            model = None
+            doc_ids = self.window.core.idx.indexing.index_attachment(attachment.path, index_path, model)
+            if self.is_verbose():
+                print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
 
         result = {
             "name": name,
             "path": attachment.path,
             "type": "local_file",
             "uuid": str(file_id),
-            "doc_ids": doc_ids,
-            "indexed": True,
             "content_type": "text",
             "size": os.path.getsize(attachment.path),
             "length": len(text),
             "tokens": tokens,
+            "indexed": False,
         }
+        if auto_index:
+            result["indexed"] = True
+            result["doc_ids"] = doc_ids
+        if real_path:
+            result["real_path"] = real_path
 
         if self.is_verbose():
             print("Attachments: uploaded: {}".format(result))

@@ -48,6 +48,10 @@ The content from the uploaded attachments will be used in the current conversati
 
 **Note:** Only text files from the list above are included in the additional context. Images will not be included in the context but will be used by the vision model in real-time. Adding image files to the context will be available in future versions.
 
+**Uploading larger files and auto-index:**
+
+To use the ``Query only`` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the ``Auto-index on upload`` option in the ``Attachments`` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the ``Full context`` option, which does not use the index, you can disable the ``Auto-index`` option to speed up the upload of the attachment. In this case, it will only be indexed when the ``Query only`` option is called for the first time, and until then, attachment will be available in the form of ``Full context`` and ``Summary``.
+
 
 Files (download, code generation)
 ---------------------------------
