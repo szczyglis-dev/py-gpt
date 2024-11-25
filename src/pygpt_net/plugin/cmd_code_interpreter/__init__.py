@@ -104,14 +104,15 @@ class Plugin(BasePlugin):
         # get current working directory
         cwd = self.window.core.config.get_user_dir('data')
         ipython_data = os.path.join(cwd, 'ipython')
-        if self.get_option_value("sandbox_docker"):
+        if self.get_option_value("sandbox_docker") or self.get_option_value("sandbox_ipython"):
             cwd = "/data (in docker sandbox)"
 
         for item in self.allowed_cmds:
             if self.has_cmd(item):
                 cmd = self.get_cmd(item)
                 if item == "ipython_execute" or item == "ipython_execute_new":
-                    cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
+                    if self.get_option_value("sandbox_ipython"):
+                        cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
                                            "directory is bound in host machine to: {}").format(ipython_data)
                 data['cmd'].append(cmd)  # append command
 
