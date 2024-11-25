@@ -111,11 +111,11 @@ class Plugin(BasePlugin):
                 if item in ["ipython_execute", "ipython_execute_new"]:
                     if self.get_option_value("sandbox_ipython"):
                         cmd["instruction"] += ("\nIPython works in Docker container. Directory /data is the container's workdir - "
-                                           "directory is bound in host machine to: {}").format(ipython_data)
+                                           "directory is mapped as volume in host machine to: {}").format(ipython_data)
                 elif item in ["code_execute", "code_execute_file", "code_execute_all"]:
                     if self.get_option_value("sandbox_docker"):
                         cmd["instruction"] += ("\nPython works in Docker container. Directory /data is the container's workdir - "
-                                           "directory is bound in host machine to: {}").format(legacy_data)
+                                           "directory is mapped as volume in host machine to: {}").format(legacy_data)
                 data['cmd'].append(cmd)  # append command
 
     @Slot(object, str)
