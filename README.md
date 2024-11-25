@@ -3652,7 +3652,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.4.30 (2024-11-24)**
+**2.4.30 (2024-11-25)**
 
 - Added instruction to model about mapped data directory in both legacy and IPython code interepreter.
 - Updated locales for plugins.
