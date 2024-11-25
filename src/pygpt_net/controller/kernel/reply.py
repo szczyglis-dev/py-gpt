@@ -6,14 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.25 01:00:00                  #
 # ================================================== #
 
 import json
 
-from pygpt_net.core.types import (
-    MODE_AGENT_LLAMA,
-)
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -31,13 +28,12 @@ class Reply:
         self.last_result = None
         self.reply_idx = -1
 
-    def add(self, context, extra, flush: bool = False) -> list:
+    def add(self, context, extra) -> list:
         """
         Send reply from plugins to model
 
         :param context: bridge context
         :param extra: extra data
-        :param flush: flush reply stack
         :return: list of results
         """
         flush = False
@@ -54,8 +50,9 @@ class Reply:
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
             if ctx.reply:
                 if self.reply_idx >= ctx.pid:  # skip if reply already sent for this context
+                    # >>> this prevents multiple replies from the same ctx item <<<
                     return []
-                self.reply_idx = ctx.pid
+                self.reply_idx = ctx.pid 
                 self.append(ctx)
             if flush or self.window.controller.kernel.async_allowed(ctx):
                 self.flush()
@@ -70,7 +67,6 @@ class Reply:
         """
         self.window.core.debug.info("Reply stack (add)...")
         self.reply_stack.append(ctx.results)
-        # ctx.cmds = []  # clear commands  (disables expand output in render)
         ctx.results = []  # clear results
         self.reply_ctx = ctx
 
@@ -102,6 +98,7 @@ class Reply:
         self.window.core.ctx.update_item(self.reply_ctx)  # update context in db
         self.window.update_status('...')
 
+        # if response from sub call, from experts
         parent_id = None
         if self.reply_ctx.sub_call:
             if self.reply_ctx.meta is not None:

@@ -540,6 +540,8 @@ class Renderer(BaseRenderer):
 
         :param pid: context PID
         """
+        if pid is None:
+            return
         self.clear_chunks_input(pid)
         self.clear_chunks_output(pid)
 
@@ -883,6 +885,8 @@ class Renderer(BaseRenderer):
 
        :param meta: context meta
         """
+        if meta is None:
+            return
         pid = self.get_or_create_pid(meta)
         self.reset_names_by_pid(pid)
 

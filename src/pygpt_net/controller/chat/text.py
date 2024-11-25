@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -103,7 +103,7 @@ class Text:
 
         # if reply from expert command
         if parent_id is not None:  # parent_id = reply from expert
-            ctx.meta = self.window.core.ctx.get_meta_by_id(parent_id)  # append to current ctx
+            # At this point, ctx.meta ID = slave META ID (parent_id is given from slave, not from master)
             ctx.sub_reply = True  # mark as sub reply
             ctx.input_name = prev_ctx.input_name
             ctx.output_name = prev_ctx.output_name
@@ -147,7 +147,8 @@ class Text:
         if mode == MODE_LLAMA_INDEX:
             # check if index is selected
             if self.window.controller.idx.index_selected():
-                disable_native_func_calls = True  # native func calls allowed only for LLM call, not the query engine
+                disable_native_func_calls = True
+                # ^^^ native func calls allowed only for LLM call, not for the query engine
 
         # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(

@@ -60,7 +60,7 @@ class Experts:
 
         :return: True if stopped
         """
-        return self.window.controller.agent.experts.stopped()
+        return self.window.controller.kernel.stopped()
 
     def agent_enabled(self) -> bool:
         """
@@ -235,14 +235,20 @@ class Experts:
         """
         Re-send response from commands to master expert
 
+        If command has been called by expert then response for command is send here to parent
+
         :param ctx: context item
         """
         if self.stopped():
             return
 
+        # master meta is here, ctx.meta = MASTER META ID here!
+
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
         reply_ctx.from_dict(ctx.to_dict())
+
+        # reply ctx has no meta here!!!!
         reply_ctx.input_name = "Expert"
         reply_ctx.output_name = ""
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
@@ -327,6 +333,7 @@ class Experts:
         ctx.set_input(query, str(ai_name))
         ctx.set_output(None, expert_name)
         ctx.sub_call = True  # mark as sub-call
+        ctx.pid = master_ctx.pid  # copy PID from parent to allow reply
 
         # render: begin
         event = RenderEvent(RenderEvent.BEGIN, {
@@ -380,11 +387,12 @@ class Experts:
         )
         self.window.controller.chat.common.lock_input()  # lock input
         event = KernelEvent(KernelEvent.CALL, {
-            'context': bridge_context,
+            'context': bridge_context,  # call using slave ctx history
             'extra': {},
         })
         self.window.dispatch(event)
         result = event.data.get("response")
+
         if not result:  # abort if bridge call failed
             return
 
@@ -395,26 +403,34 @@ class Experts:
         self.window.core.ctx.update_item(ctx)
 
         ctx.from_previous()  # append previous result if exists
+
+        # tmp switch meta for render purposes
+        ctx.meta = master_ctx.meta
         self.window.controller.chat.output.handle(
             ctx=ctx,
             mode=mode,
             stream_mode=False,
         )
         ctx.clear_reply()  # reset results
+        ctx.meta = slave  # restore before cmd execute
+
         self.window.controller.chat.command.handle(ctx)  # handle cmds
         self.window.controller.kernel.stack.handle()  # handle command queue
 
+        # if command to execute then end here, and reply is returned to reply() above from stack, and ctx.reply = TRUE here
+        # 
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
-        # if commands reply after bridge call, then stop (already handled in dispatcher)
+        # if commands reply after bridge call, then stop (already handled in sync dispatcher)
         if ctx.reply:
             return
 
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
-        reply_ctx.meta = master_ctx.meta
+        
         reply_ctx.from_dict(ctx.to_dict())
+        reply_ctx.meta = master_ctx.meta
 
         # assign expert output
         reply_ctx.output = result
@@ -423,7 +439,7 @@ class Experts:
         reply_ctx.cmds = []  # clear cmds
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
-        # send slave expert response to master expert
+        # only if no command call, return final result to main
         context = BridgeContext()
         context.ctx = reply_ctx
         context.prompt = "@"+expert_id+" says:\n\n" + str(reply_ctx.output)
