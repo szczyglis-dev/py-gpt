@@ -71,7 +71,7 @@ class Plugin(BasePlugin):
             if "mode" in data:
                 self.mode = data['mode']
 
-        elif name == Event.POST_PROMPT:
+        elif name == Event.POST_PROMPT_ASYNC:
             if self.mode in self.ignored_modes:  # ignore
                 return
 
@@ -167,6 +167,22 @@ class Plugin(BasePlugin):
             prepared_question = response
         return prepared_question
 
+    def get_from_retrieval(self, query: str) -> str:
+        """
+        Get response from retrieval
+
+        :param query: query
+        :return: response
+        """
+        idx = self.get_option_value("idx")
+        indexes = idx.split(",")
+        response = ""
+        for index in indexes:
+            response = self.window.core.idx.chat.query_retrieval(query, index)
+            if response is not None and response != "":
+                break
+        print(response)
+        return response
 
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """
@@ -187,6 +203,12 @@ class Plugin(BasePlugin):
                 return prompt
 
         self.log("Querying Llama-index for: " + question)
+
+        # at first, try to get from retrieval
+        response = self.get_from_retrieval(question)
+        if response is not None and response != "":
+            self.log("Found using retrieval...")
+            return prompt + "\nADDITIONAL CONTEXT: " + response
 
         response, doc_ids, metas = self.query(question)
         if response is None or len(response) == 0:

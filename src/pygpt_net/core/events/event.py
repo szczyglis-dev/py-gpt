@@ -48,6 +48,7 @@ class Event(BaseEvent):
     PLUGIN_SETTINGS_CHANGED = "plugin.settings.changed"
     PLUGIN_OPTION_GET = "plugin.option.get"
     POST_PROMPT = "post.prompt"
+    POST_PROMPT_ASYNC = "post.prompt.async"
     PRE_PROMPT = "pre.prompt"
     SYSTEM_PROMPT = "system.prompt"
     TOOL_OUTPUT_RENDER = "tool.output.render"

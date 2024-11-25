@@ -437,6 +437,35 @@ class Chat:
             output = str(response)
         return output
 
+    def query_retrieval(
+            self,
+            query: str,
+            idx: str,
+            model: ModelItem = None
+    ) -> str:
+        """
+        Query attachment
+
+        :param query: query
+        :param idx: index id
+        :param model: model
+        :return: response
+        """
+        if model is None:
+            model = self.window.core.models.from_defaults()
+        index, service_context = self.get_index(idx, model)
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(query)
+        response = ""
+        for node in nodes:
+            if node.score > 0.5:
+                response = node.text
+                break
+        output = ""
+        if response:
+            output = str(response)
+        return output
+
     def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
         """
         Get memory buffer

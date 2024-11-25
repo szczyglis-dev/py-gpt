@@ -16,7 +16,8 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
 )
-from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.events import KernelEvent, Event
+
 
 class BridgeSignals(QObject):
     """Bridge signals"""
@@ -43,6 +44,9 @@ class BridgeWorker(QObject, QRunnable):
         result = False
 
         try:
+            # POST PROMPT ASYNC: handle post prompt async event
+            self.handle_post_prompt_async()
+
             # ADDITIONAL CONTEXT: append additional context from attachments
             self.handle_additional_context()
 
@@ -108,6 +112,17 @@ class BridgeWorker(QObject, QRunnable):
                 'extra': self.extra,
             })
             self.signals.response.emit(event)
+
+    def handle_post_prompt_async(self):
+        """Handle post prompt async event"""
+        event = Event(Event.POST_PROMPT_ASYNC, {
+            'mode': self.context.mode,
+            'reply': self.context.ctx.reply,
+            'value': self.context.system_prompt,
+        })
+        event.ctx = self.context.ctx
+        self.window.dispatch(event)
+        self.context.system_prompt = event.data['value']
 
     def handle_additional_context(self):
         """Append additional context"""
