@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.28** | build: **2024.11.24** | Python: **>=3.10, <3.12**
+Release: **2.4.29** | build: **2024.11.25** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3651,6 +3651,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.29 (2024-11-25)**
+
+- Added a local IPython interpreter - you can now choose between local and sandbox (Docker) in the plugin settings.
+- Added the ability to configure mapped volumes and ports for Docker containers in the plugin settings.
+- Optimized and speed-up the Llama-index plugin (inline).
+- Checkboxes replaced with Toggle buttons.
+- Improved settings dialogs.
+- Slight modification of the layout.
+- Fix: experts inline plugin execution.
 
 **2.4.28 (2024-11-24)**
 

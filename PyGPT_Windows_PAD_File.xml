@@ -2,13 +2,13 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.4.28</Program_Version>
+<Program_Version>2.4.29</Program_Version>
 <Program_Release_Month>11</Program_Release_Month>
-<Program_Release_Day>24</Program_Release_Day>
+<Program_Release_Day>25</Program_Release_Day>
 <Program_Release_Year>2024</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.4.28/pygpt-2.4.28.msi</Download_URL>
+<Download_URL>https://pygpt.net/download/2.4.29/pygpt-2.4.29.msi</Download_URL>
 <Application_OS_Support>Windows 10 64 bit, Windows 11 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
