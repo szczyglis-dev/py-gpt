@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 06:00:00                  #
+# Updated Date: 2024.11.25 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -60,6 +60,15 @@ class Config(BaseConfig):
         dockerfile_legacy += '# Data directory, bound as a volume to the local \'data/\' directory'
         dockerfile_legacy += '\nWORKDIR /data'
 
+        plugin.add_option(
+            "sandbox_ipython",
+            type="bool",
+            value=False,
+            label="Sandbox (docker container)",
+            description="Executes commands in sandbox (docker container). "
+                        "Docker must be installed and running.",
+            tab="ipython",
+        )
         plugin.add_option(
             "ipython_dockerfile",
             type="textarea",
@@ -199,15 +208,6 @@ class Config(BaseConfig):
             tab="ipython",
             advanced=True,
         )
-
-        plugin.add_option(
-            "python_cmd_tpl",
-            type="text",
-            value="python3 {filename}",
-            label="Python command template",
-            description="Python command template to execute, use {filename} for filename placeholder",
-            tab="python_legacy",
-        )
         plugin.add_option(
             "sandbox_docker",
             type="bool",
@@ -215,6 +215,14 @@ class Config(BaseConfig):
             label="Sandbox (docker container)",
             description="Executes commands in sandbox (docker container). "
                         "Docker must be installed and running.",
+            tab="python_legacy",
+        )
+        plugin.add_option(
+            "python_cmd_tpl",
+            type="text",
+            value="python3 {filename}",
+            label="Python command template",
+            description="Python command template to execute, use {filename} for filename placeholder",
             tab="python_legacy",
         )
         plugin.add_option(

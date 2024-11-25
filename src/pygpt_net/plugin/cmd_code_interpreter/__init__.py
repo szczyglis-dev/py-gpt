@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 06:00:00                  #
+# Updated Date: 2024.11.25 02:00:00                  #
 # ================================================== #
 
 import os
@@ -20,7 +20,8 @@ from pygpt_net.item.ctx import CtxItem
 from .config import Config
 from .docker import Docker
 from .builder import Builder
-from .ipython import IPythonInterpreter
+from .ipython import LocalKernel
+from .ipython import DockerKernel
 from .output import Output
 from .runner import Runner
 from .worker import Worker
@@ -55,7 +56,8 @@ class Plugin(BasePlugin):
         self.use_locale = True
         self.docker = Docker(self)
         self.runner = Runner(self)
-        self.ipython = IPythonInterpreter(self)
+        self.ipython_docker = DockerKernel(self)
+        self.ipython_local = LocalKernel(self)
         self.builder = Builder(self)
         self.output = Output(self)
         self.worker = None
@@ -139,6 +141,16 @@ class Plugin(BasePlugin):
         """
         self.window.tools.get("html_canvas").set_output(data)
         self.window.tools.get("html_canvas").open()
+    def get_interpreter(self):
+        """
+        Get interpreter
+
+        :return: interpreter
+        """
+        if self.get_option_value("sandbox_ipython"):
+            return self.ipython_docker
+        else:
+            return self.ipython_local
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
@@ -161,30 +173,31 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        ipython_commands = [
-            "ipython_execute_new",
-            "ipython_execute",
-            "ipython_kernel_restart",
-        ]
         # ipython
-        if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
-            # check for Docker installed
-            if not self.ipython.is_docker_installed():
-                # snap version
-                if self.window.core.platforms.is_snap():
-                    self.error(trans('ipython.docker.install.snap'))
-                    self.window.update_status(trans('ipython.docker.install.snap'))
-                # other versions
-                else:
-                    self.error(trans('ipython.docker.install'))
-                    self.window.update_status(trans('ipython.docker.install'))
-                return
-            # check if image exists
-            if not self.ipython.is_image():
-                self.error(trans('ipython.image.build'))
-                self.window.update_status(trans('ipython.docker.build.start'))
-                self.builder.build_image()
-                return
+        if self.get_option_value("sandbox_ipython"):
+            ipython_commands = [
+                "ipython_execute_new",
+                "ipython_execute",
+                "ipython_kernel_restart",
+            ]
+            if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
+                # check for Docker installed
+                if not self.get_interpreter().is_docker_installed():
+                    # snap version
+                    if self.window.core.platforms.is_snap():
+                        self.error(trans('ipython.docker.install.snap'))
+                        self.window.update_status(trans('ipython.docker.install.snap'))
+                    # other versions
+                    else:
+                        self.error(trans('ipython.docker.install'))
+                        self.window.update_status(trans('ipython.docker.install'))
+                    return
+                # check if image exists
+                if not self.get_interpreter().is_image():
+                    self.error(trans('ipython.image.build'))
+                    self.window.update_status(trans('ipython.docker.build.start'))
+                    self.builder.build_image()
+                    return
 
         # legacy python
         if self.get_option_value("sandbox_docker"):
@@ -227,7 +240,7 @@ class Plugin(BasePlugin):
             worker.signals.clear.connect(self.handle_interpreter_clear)
             worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
-            self.ipython.attach_signals(worker.signals)
+            self.get_interpreter().attach_signals(worker.signals)
             self.runner.attach_signals(worker.signals)
 
             if not self.is_async(ctx) and not force:
@@ -250,7 +263,7 @@ class Plugin(BasePlugin):
         # if self.is_threaded():
             # return
         # print(data)
-        cleaned_data = self.ipython.remove_ansi(data)
+        cleaned_data = self.get_interpreter().remove_ansi(data)
         self.window.tools.get("interpreter").append_output(cleaned_data)
         if self.window.tools.get("interpreter").opened:
             self.window.update_status("")

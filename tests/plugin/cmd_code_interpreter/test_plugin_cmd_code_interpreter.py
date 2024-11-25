@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.25 02:00:00                  #
 # ================================================== #
 
 import os
@@ -27,7 +27,7 @@ def test_options(mock_window):
     assert "cmd.code_execute" in options
     assert "cmd.code_execute_file" in options
     assert "sandbox_docker" in options
-    assert "sandbox_docker_image" in options
+    assert "sandbox_ipython" in options
 
 
 def test_handle_cmd_syntax(mock_window):

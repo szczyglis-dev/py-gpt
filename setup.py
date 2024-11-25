@@ -57,6 +57,7 @@ setup(
         'EbookLib>=0.18, <1.0',
         'httpx>=0.27.2, <1.0.0',
         'httpx-socks>=0.9.2, <1.0.0',
+        'ipykernel>=6.29.5, <7.0.0',
         'jupyter_client>=8.6.3, <9.0.0',
         'langchain>=0.2.14, <0.3.0',
         'langchain-community>=0.2.12, <0.3.0',

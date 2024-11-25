@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 22:00:00                  #
+# Updated Date: 2024.11.25 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -416,7 +416,7 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
             self.log("Please wait...", sandbox=True)
-            result = self.plugin.ipython.execute(data, current=False)
+            result = self.plugin.get_interpreter().execute(data, current=False)
             result = self.handle_result_ipython(ctx, result)
         except Exception as e:
             self.error(e)
@@ -461,7 +461,7 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
             self.log("Please wait...", sandbox=True)
-            result = self.plugin.ipython.execute(data, current=True)
+            result = self.plugin.get_interpreter().execute(data, current=True)
             result = self.handle_result_ipython(ctx, result)
         except Exception as e:
             self.error(e)
@@ -489,7 +489,7 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=True)
         try:
             self.log("Restarting IPython kernel...", sandbox=True)
-            response = self.plugin.ipython.restart_kernel()
+            response = self.plugin.get_interpreter().restart_kernel()
         except Exception as e:
             self.error(e)
             response = False

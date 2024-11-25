@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2024.11.25 02:00:00                  #
 # ================================================== #
 
 import os
@@ -19,7 +19,7 @@ import tarfile
 from jupyter_client import BlockingKernelClient
 from docker.errors import DockerException
 
-class IPythonInterpreter:
+class DockerKernel:
     def __init__(self, plugin = None):
         self.plugin = plugin
         self.kernel_file = ".interpreter.kernel.json"
