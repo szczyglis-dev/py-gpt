@@ -1042,6 +1042,70 @@
             "default": false,
             "multimodal": []
         },
+        "chatgpt-4o-latest": {
+            "id": "chatgpt-4o-latest",
+            "name": "chatgpt-4o-latest",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index",
+                "vision",
+                "agent",
+                "expert",
+                "agent_llama"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "chatgpt-4o-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "chatgpt-4o-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
         "gpt-4-32k": {
             "id": "gpt-4-32k",
             "name": "gpt-4-32k",
