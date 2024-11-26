@@ -124,15 +124,14 @@ class Chat:
         if model.id is not None and model.id.startswith("o1"):
             stream = False
 
-        # modalities
-        response_kwargs["modalities"] = ["text"]
+        # audio mode
         if mode in [MODE_AUDIO]:
             stream = False
             voice_id = "alloy"
             tmp_voice = self.window.core.plugins.get_option("audio_output", "openai_voice")
             if tmp_voice:
                 voice_id = tmp_voice
-            response_kwargs["modalities"].append("audio")
+            response_kwargs["modalities"] = ["text", "audio"]
             response_kwargs["audio"] = {
                 "voice": voice_id,
                 "format": "wav"
