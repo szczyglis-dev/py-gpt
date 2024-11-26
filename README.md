@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.33** | build: **2024.11.26** | Python: **>=3.10, <3.12**
+Release: **2.4.34** | build: **2024.11.26** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3655,6 +3655,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.34 (2024-11-26)**
+
+- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta).
+- Added new models: `gpt-4o-audio-preview`, `gpt-4o-2024-11-20`, `chatgpt-4o-latest`.
+- Force disabled integration with the native system menu.
 
 **2.4.33 (2024-11-26)**
 

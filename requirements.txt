@@ -1623,9 +1623,9 @@ onnxruntime==1.20.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:d5f23cbfeb546e16ffea81c28d2e796a53197fdc6c92540648e2aa53a7c7a637 \
     --hash=sha256:dc4e7c10c98c1f407835448c26a7e14ebff3234f131e1fbc53bd9500c828df89 \
     --hash=sha256:e1eb08c13f91f830eb8df4f4e17a2a2652d1165f50bbed4f28f2afbf425c55d7
-openai==1.53.0 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:20f408c32fc5cb66e60c6882c994cdca580a5648e10045cd840734194f033418 \
-    --hash=sha256:be2c4e77721b166cce8130e544178b7d579f751b4b074ffbaade3854b6f85ec5
+openai==1.55.1 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:471324321e7739214f16a544e801947a046d3c5d516fae8719a317234e4968d3 \
+    --hash=sha256:d10d96a4f9dc5f05d38dea389119ec8dcd24bc9698293c8357253c601b4a77a5
 opencv-python==4.10.0.84 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:09a332b50488e2dda866a6c5573ee192fe3583239fb26ff2f7f9ceb0bc119ea6 \
     --hash=sha256:2db02bb7e50b703f0a2d50c50ced72e95c574e1e5a0bb35a8a86d0b35c98c236 \
