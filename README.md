@@ -374,6 +374,13 @@ Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c288a4b3-c932-4201-b5a3-8452aea49817)
 
+
+## Chat with Audio
+
+This mode works like the Chat mode but with native support for audio input and output using a multimodal model - `gpt-4o-audio`. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+
+More info: https://platform.openai.com/docs/guides/audio/quickstart
+
 ## Completion
 
 This mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through `Langchain`.
@@ -1568,6 +1575,8 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
 as well as list and create directories.
+
+- `System (OS)` - allows you to create and execute custom commands on your system.
 
 - `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
 
@@ -3658,7 +3667,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.34 (2024-11-26)**
 
-- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta).
+- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta): https://platform.openai.com/docs/guides/audio/quickstart
 - Added new models: `gpt-4o-audio-preview`, `gpt-4o-2024-11-20`, `chatgpt-4o-latest`.
 - Force disabled integration with the native system menu.
 

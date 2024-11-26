@@ -2,7 +2,7 @@
 
 ## 2.4.34 (2024-11-26)
 
-- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta).
+- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta): https://platform.openai.com/docs/guides/audio/quickstart
 - Added new models: `gpt-4o-audio-preview`, `gpt-4o-2024-11-20`, `chatgpt-4o-latest`.
 - Force disabled integration with the native system menu.
 
