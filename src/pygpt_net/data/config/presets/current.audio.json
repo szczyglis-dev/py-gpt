@@ -1,0 +1,34 @@
+{
+    "uuid": "9e6b1ef4-24f8-4fe7-b8a8-b71f73daf14d",
+    "name": "*",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "langchain": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "expert": false,
+    "audio": true,
+    "temperature": 1.0,
+    "filename": "current.audio",
+    "model": null,
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": null,
+    "agent_provider": null,
+    "assistant_id": "",
+    "enabled": true,
+    "__meta__": {
+        "version": "2.4.34",
+        "app.version": "2.4.34",
+        "updated_at": "2024-11-26T22:06:18"
+    }
+}
