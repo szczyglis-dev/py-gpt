@@ -12,7 +12,7 @@
 import os
 
 from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel, Qt
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
 from pygpt_net.ui.widget.element.button import SyncButton
@@ -20,6 +20,7 @@ from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.uploaded import UploadedFileList
 from pygpt_net.utils import trans
 
+import pygpt_net.icons_rc
 
 class AttachmentsUploaded:
     def __init__(self, window=None):
@@ -38,10 +39,11 @@ class AttachmentsUploaded:
         :return: QVBoxLayout
         """
         self.setup_attachments()
-
-        self.window.ui.nodes['attachments_uploaded.sync.tip'] = QLabel(trans('attachments_uploaded.sync.tip'))
-        self.window.ui.nodes['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
         empty_widget = QWidget()
+
+        self.window.ui.nodes['attachments_uploaded.sync.tip'] = HelpLabel(trans('attachments_uploaded.sync.tip'))
+        self.window.ui.nodes['attachments_uploaded.sync.tip'].setWordWrap(False)
+        self.window.ui.nodes['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
 
         self.window.ui.nodes['tip.input.attachments.uploaded'] = HelpLabel(trans('tip.input.attachments.uploaded'),
                                                                            self.window)
@@ -52,6 +54,8 @@ class AttachmentsUploaded:
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.btn.clear'])
         buttons_layout.addWidget(empty_widget)
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.sync.tip'])
+        buttons_layout.addStretch()
+
 
         # layout
         layout = QVBoxLayout()
@@ -70,7 +74,7 @@ class AttachmentsUploaded:
 
         # buttons
         self.window.ui.nodes['attachments_uploaded.btn.sync'] = SyncButton(trans('attachments_uploaded.btn.sync'), self.window)
-        self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
+        self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
             lambda: self.window.controller.assistant.files.clear()
         )
