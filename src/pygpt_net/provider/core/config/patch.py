@@ -1709,6 +1709,14 @@ class Patch:
                         'attachments_auto_index')
                 updated = True
 
+            # < 2.4.34
+            if old < parse_version("2.4.34"):
+                print("Migrating config from < 2.4.34...")
+                if 'ctx.attachment.query.model' not in data:
+                    data["ctx.attachment.query.model"] = self.window.core.config.get_base(
+                        'ctx.attachment.query.model')
+                updated = True
+
         # update file
         migrated = False
         if updated:

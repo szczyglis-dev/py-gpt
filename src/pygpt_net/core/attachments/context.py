@@ -153,8 +153,6 @@ class Context:
                         type = AttachmentItem.TYPE_URL
                         source = file["path"] # URL
                 doc_ids = self.index_attachment(type, source, idx_path)
-                if self.is_verbose():
-                    print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
                 file["indexed"] = True
                 file["doc_ids"] = doc_ids
                 indexed = True
@@ -164,14 +162,30 @@ class Context:
             self.window.core.ctx.replace(meta)
             self.window.core.ctx.save(meta.id)
 
-        model = None  # no model, retrieval is used
-        result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
+        model, model_item = self.get_selected_model("query")
+        result = self.window.core.idx.chat.query_attachment(query, idx_path, model_item)
         self.last_used_context = result
 
         if self.is_verbose():
             print("Attachments: query result: {}".format(result))
 
         return result
+
+    def get_selected_model(self, mode: str = "summary"):
+        """
+        Get selected model for attachments
+
+        :return: model name, model item
+        """
+        model_item = None
+        model = None
+        if mode == "summary":
+            model = self.window.core.config.get("ctx.attachment.summary.model", "gpt-4o-mini")
+        elif mode == "query":
+            model = self.window.core.config.get("ctx.attachment.query.model", "gpt-4o-mini")
+        if model:
+            model_item = self.window.core.models.get(model)
+        return model, model_item
 
     def summary_context(self, ctx: CtxItem, query: str) -> str:
         """
@@ -181,11 +195,7 @@ class Context:
         :param query: query string
         :return: query result
         """
-        model_item = None
-        model = self.window.core.config.get("ctx.attachment.summary.model", "gpt-4o-mini")
-        if model:
-            model_item = self.window.core.models.get(model)
-
+        model, model_item = self.get_selected_model("summary")
         if model_item is None:
             raise Exception("Attachments: summary model not found: {}".format(model))
 
@@ -285,8 +295,6 @@ class Context:
             if attachment.type == AttachmentItem.TYPE_URL:
                 source = attachment.path  # URL
             doc_ids = self.index_attachment(attachment.type, source, index_path)
-            if self.is_verbose():
-                print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
 
         result = {
             "name": name,

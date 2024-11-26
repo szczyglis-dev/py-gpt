@@ -358,6 +358,20 @@
         "step": null,
         "advanced": false
     },
+    "ctx.attachment.query.model": {
+        "section": "files",
+        "type": "combo",
+        "use": "models",
+        "slider": false,
+        "label": "settings.ctx.attachment.query.model",
+        "description": "settings.ctx.attachment.query.model.desc",
+        "value": "gpt-4o-mini",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "download.dir": {
         "section": "files",
         "type": "text",

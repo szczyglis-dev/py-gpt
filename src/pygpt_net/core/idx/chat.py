@@ -419,12 +419,8 @@ class Chat:
             model = self.window.core.models.from_defaults()
         service_context = self.window.core.idx.llm.get_service_context(model=model)
         index = self.storage.get_ctx_idx(path, service_context=service_context)
-        """
-        response = index.as_query_engine(
-            llm=llm,
-            streaming=False,
-        ).query(query)
-        """
+
+        # 1. try to retrieve directly from index
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         response = ""
@@ -435,6 +431,32 @@ class Chat:
         output = ""
         if response:
             output = str(response)
+        else:
+            # 2. try with prepared prompt
+            prompt = """
+            # Task
+            Translate the below user prompt into a suitable, short query for the RAG engine, so it can fetch the context 
+            related to the query from the vector database. 
+            
+            # Important rules
+            1. Edit the user prompt in a way that allows for the best possible result. 
+            2. In your response, give me only the reworded query, without any additional information from yourself. 
+            
+            # User prompt:
+            ```{prompt}```
+            """.format(prompt=query)
+            response_prepare = index.as_query_engine(
+                llm=service_context.llm,
+                streaming=False,
+            ).query(prompt)
+            if response_prepare:
+                # try the final query with prepared prompt
+                final_response = index.as_query_engine(
+                    llm=service_context.llm,
+                    streaming=False,
+                ).query(response_prepare.response)
+                if final_response:
+                    output = str(final_response.response)
         return output
 
     def query_retrieval(
