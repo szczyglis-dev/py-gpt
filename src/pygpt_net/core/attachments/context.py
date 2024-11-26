@@ -98,13 +98,21 @@ class Context:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
                 text_path = os.path.join(file_idx_path, file_id + ".txt")
+                store_path = file["path"]
+                if "real_path" in file:
+                    store_path = file["real_path"]
                 if filename:
                     if file["type"] == "url":
                         context += "URL: {}\n".format(file["path"]) + "\n"
-                        self.last_urls.append(file["path"])
                     else:
                         context += "Filename: {}\n".format(file["name"]) + "\n"
-                        self.last_files.append(file["path"])
+
+                # store used files and URLs in ctx
+                if file["type"] == "url":
+                    self.last_urls.append(store_path)
+                else:
+                    self.last_files.append(store_path)
+
                 if os.path.exists(text_path):
                     try:
                         with open(text_path, "r", encoding="utf-8") as f:

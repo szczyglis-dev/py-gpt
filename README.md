@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.32** | build: **2024.11.26** | Python: **>=3.10, <3.12**
+Release: **2.4.33** | build: **2024.11.26** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3655,6 +3655,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.33 (2024-11-26)**
+
+- Improved CSS and rendering of file and image lists.
+- Added displaying of used attachments in the chat window.
 
 **2.4.32 (2024-11-26)**
 
