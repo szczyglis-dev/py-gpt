@@ -88,23 +88,24 @@ class Chat:
         # extra API kwargs
         response_kwargs = {}
 
-        # tools / functions
+        # tools / functions >>>>>>>>>> TMP DISABLED FOR AUDIO <<<<<<<<<<
         tools = []
-        if functions is not None and isinstance(functions, list):
-            for function in functions:
-                if str(function['name']).strip() == '' or function['name'] is None:
-                    continue
-                params = {}
-                if function['params'] is not None and function['params'] != "":
-                    params = json.loads(function['params'])  # unpack JSON from string
-                tools.append({
-                    "type": "function",
-                    "function": {
-                        "name": function['name'],
-                        "parameters": params,
-                        "description": function['desc'],
-                    }
-                })
+        if mode not in [MODE_AUDIO]:
+            if functions is not None and isinstance(functions, list):
+                for function in functions:
+                    if str(function['name']).strip() == '' or function['name'] is None:
+                        continue
+                    params = {}
+                    if function['params'] is not None and function['params'] != "":
+                        params = json.loads(function['params'])  # unpack JSON from string
+                    tools.append({
+                        "type": "function",
+                        "function": {
+                            "name": function['name'],
+                            "parameters": params,
+                            "description": function['desc'],
+                        }
+                    })
 
         # fix: o1 compatibility
         if model.id is not None and not model.id.startswith("o1"):
