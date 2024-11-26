@@ -109,9 +109,11 @@ class Context:
 
                 # store used files and URLs in ctx
                 if file["type"] == "url":
-                    self.last_urls.append(store_path)
+                    if store_path not in self.last_urls:
+                        self.last_urls.append(store_path)
                 else:
-                    self.last_files.append(store_path)
+                    if store_path not in self.last_files:
+                        self.last_files.append(store_path)
 
                 if os.path.exists(text_path):
                     try:
