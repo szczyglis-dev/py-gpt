@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -31,6 +31,11 @@ class Context:
         """
         self.window = window
         self.dir_index = "index"
+        self.last_used_item = None
+        self.last_used_content = None
+        self.last_used_context = None
+        self.last_files = []
+        self.last_urls = []
         self.summary_prompt = """
         Summarize the text below by extracting the most important information, 
         especially those that may help answer the question: 
@@ -96,14 +101,19 @@ class Context:
                 if filename:
                     if file["type"] == "url":
                         context += "URL: {}\n".format(file["path"]) + "\n"
+                        self.last_urls.append(file["path"])
                     else:
                         context += "Filename: {}\n".format(file["name"]) + "\n"
+                        self.last_files.append(file["path"])
                 if os.path.exists(text_path):
                     try:
                         with open(text_path, "r", encoding="utf-8") as f:
                             context += f.read() + "\n\n"
                     except Exception as e:
                         print("Attachments: read error: {}".format(e))
+
+        self.last_used_content = context
+        self.last_used_context = context
         return context
 
     def query_context(self, meta: CtxMeta, query: str) -> str:
@@ -126,7 +136,6 @@ class Context:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
                 file_path = os.path.join(file_idx_path, file["name"])
-                model = None
                 type = AttachmentItem.TYPE_FILE
                 source = file_path
                 if "type" in file:
@@ -147,6 +156,7 @@ class Context:
 
         model = None  # no model, retrieval is used
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
+        self.last_used_context = result
 
         if self.is_verbose():
             print("Attachments: query result: {}".format(result))
@@ -193,6 +203,7 @@ class Context:
         })
         self.window.dispatch(event)
         response = event.data.get("response")
+        self.last_used_context = response
         if self.is_verbose():
             print("Attachments: summary received: {}".format(response))
         return response
@@ -518,6 +529,30 @@ class Context:
             os.makedirs(idx_path, exist_ok=True)
         except Exception as e:
             self.window.core.debug.error("Attachment.truncate", e)
+
+    def reset(self):
+        """Reset context info"""
+        self.last_used_item = None
+        self.last_used_content = None
+        self.last_used_context = None
+        self.last_files = []
+        self.last_urls = []
+
+    def get_used_files(self) -> list:
+        """
+        Get last used files
+
+        :return: list of files
+        """
+        return self.last_files
+
+    def get_used_urls(self) -> list:
+        """
+        Get last used URLs
+
+        :return: list of URLs
+        """
+        return self.last_urls
 
     def is_verbose(self) -> bool:
         """

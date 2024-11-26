@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 import json
 
@@ -45,6 +45,10 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'CMD (current)', str(self.window.core.ctx.current_cmd))
         self.window.core.debug.add(self.id, 'CMD schema (current)', str(self.window.core.ctx.current_cmd_schema))
         self.window.core.debug.add(self.id, 'FUNCTIONS (current)', str(self.get_functions()))
+        self.window.core.debug.add(self.id, 'Attachments: last used content',
+                                   str(self.window.core.attachments.context.last_used_content))
+        self.window.core.debug.add(self.id, 'Attachments: last used context',
+                                  str(self.window.core.attachments.context.last_used_context))
 
         current = None
         if self.window.core.ctx.get_current() is not None:
