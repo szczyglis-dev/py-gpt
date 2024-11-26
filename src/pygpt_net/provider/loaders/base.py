@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -74,6 +74,15 @@ class BaseLoader:
         if "url" in args:
             return args.get("url")
         return ""
+
+    def is_supported_attachment(self, source: str) -> bool:
+        """
+        Check if attachment is supported by loader
+
+        :param source: attachment source
+        :return: True if supported
+        """
+        return False
 
     def get(self) -> BaseReader:
         """
