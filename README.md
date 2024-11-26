@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.31** | build: **2024.11.25** | Python: **>=3.10, <3.12**
+Release: **2.4.32** | build: **2024.11.26** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3655,6 +3655,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.32 (2024-11-26)**
+
+- The "Add URL" option added to the "Attachments" tab allows users to include content from a given website as additional context. Currently, it only supports standard web pages and video transcription for YouTube links. More "web" options will be added in the future.
+- Added UTF-8 as default in attachments content text read/write.
 
 **2.4.31 (2024-11-25)**
 
