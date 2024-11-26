@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -348,6 +348,65 @@ class Indexing:
         for doc in docs:
             data.append(doc.text)
         return "\n".join(data)
+
+    def read_web_content(
+            self,
+            url: str,
+            type: str = "webpage",
+            extra_args: dict = None
+    ) -> str:
+        """
+        Get content from external resource
+
+        :param url: external url to index
+        :param type: type of URL (webpage, feed, etc.)
+        :param extra_args: extra arguments for loader
+        :return: file content
+        """
+        docs = self.read_web(url, type, extra_args)
+        data = []
+        for doc in docs:
+            data.append(doc.text)
+        return "\n".join(data)
+
+    def read_web(
+            self,
+            url: str,
+            type: str = "webpage",
+            extra_args: dict = None,
+    ) -> list[Document]:
+        """
+        Read data from external resource
+
+        :param url: external url to index
+        :param type: type of URL (webpage, feed, etc.)
+        :param extra_args: extra arguments for loader
+        :return: list of documents
+        """
+        documents = []
+
+        # check if web loader for defined type exists
+        if type not in self.loaders["web"]:
+            raise ValueError("No web loader for type: {}".format(type))
+
+        try:
+            if "url" not in extra_args:
+                extra_args["url"] = url
+
+            # get unique external content identifier
+            unique_id = self.data_providers[type].get_external_id(extra_args)
+            self.window.core.idx.log("Loading web documents from: {}".format(unique_id))
+            self.window.core.idx.log("Using web loader for type: {}".format(type))
+
+            args = self.data_providers[type].prepare_args(**extra_args)
+
+            # get documents from external resource
+            documents = self.loaders["web"][type].load_data(
+                **args
+            )
+        except Exception as e:
+            self.window.core.debug.log(e)
+        return documents
 
     def prepare_document(self, doc: Document):
         """
@@ -924,7 +983,8 @@ class Indexing:
             self,
             file_path: str,
             index_path: str,
-            model: ModelItem = None
+            model: ModelItem = None,
+            documents: list = None,
     ) -> list:
         """
         Index context attachment
@@ -932,6 +992,7 @@ class Indexing:
         :param file_path: path to file to index
         :param index_path: index path
         :param model: model
+        :param documents: list of documents (optional)
         :return: response
         """
         if model is None:
@@ -944,7 +1005,8 @@ class Indexing:
         self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
 
         doc_ids = []
-        documents = self.get_documents(file_path)
+        if documents is None:
+            documents = self.get_documents(file_path)
         for d in documents:
             if self.is_stopped():  # force stop
                 break
@@ -955,20 +1017,69 @@ class Indexing:
         self.window.core.idx.storage.store_ctx_idx(index_path, index)
         return doc_ids
 
+    def index_attachment_web(
+            self,
+            url: str,
+            index_path: str,
+            model: ModelItem = None,
+            documents: list = None,
+    ) -> list:
         """
-        # query tmp index
-        output = None
-        if len(files) > 0:
-            self.log("Querying temporary in-memory index: {}...".format(idx))
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=False,
-            ).query(query)  # query with default prompt
-            if response:
-                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                output = response.
-        return output
+        Index context attachment
+
+        :param url: URL to index
+        :param index_path: index path
+        :param model: model
+        :param documents: list of documents (optional)
+        :return: response
         """
+        if model is None:
+            model = self.window.core.models.from_defaults()
+
+        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.window.core.idx.storage.get_ctx_idx(index_path, service_context=service_context)  # get or create ctx index
+
+        idx = "tmp:{}".format(index_path)  # tmp index id
+        self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
+
+        web_type = self.get_webtype(url)
+        doc_ids = []
+        if documents is None:
+            documents = self.read_web(
+                url=url,
+                type=web_type,
+                extra_args={},
+            )
+        for d in documents:
+            if self.is_stopped():  # force stop
+                break
+            self.prepare_document(d)
+            self.index_document(index, d)
+            doc_ids.append(d.id_)  # add to index
+
+        self.window.core.idx.storage.store_ctx_idx(index_path, index)
+        return doc_ids
+
+    def get_webtype(self, url: str) -> str:
+        """
+        Get web type by URL
+
+        :param url: URL
+        :return: web type
+        """
+        type = "webpage"
+        yt_prefix = [
+            "https://youtube.com",
+            "https://youtu.be",
+            "https://www.youtube.com",
+            "https://m.youtube.com",
+        ]
+        for prefix in yt_prefix:
+            if url.startswith(prefix):
+                type = "youtube"
+                break
+        return type
+
     def remove_attachment(self, index_path: str, doc_id: str) -> bool:
         """
         Remove document from index

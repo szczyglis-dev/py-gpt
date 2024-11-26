@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -349,6 +349,18 @@ class Confirm:
         elif type == 'ctx.group':
             self.window.controller.ctx.create_group(name, id)
 
+    def accept_url(self, type: str, id: any, url: str):
+        """
+        Update URL provided
+
+        :param type: dialog type
+        :param id: dialog object id
+        :param url: URL
+        """
+        # add attachment
+        if type == 'attachment':
+            self.window.controller.attachment.add_url(url)
+
     def dismiss_rename(self):
         """Dismiss rename dialog"""
         self.window.ui.dialog['rename'].close()
@@ -356,3 +368,7 @@ class Confirm:
     def dismiss_create(self):
         """Dismiss create dialog"""
         self.window.ui.dialog['create'].close()
+
+    def dismiss_url(self):
+        """Dismiss url dialog"""
+        self.window.ui.dialog['url'].close()

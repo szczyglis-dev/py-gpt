@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -87,16 +87,23 @@ class Context:
         context = ""
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
             for file in meta.additional_ctx:
-                if "type" not in file or file["type"] != "local_file":
+                if ("type" not in file
+                        or file["type"] not in ["local_file", "url"]):
                     continue
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
                 text_path = os.path.join(file_idx_path, file_id + ".txt")
                 if filename:
-                    context += "Filename: {}\n".format(file["name"]) + "\n"
+                    if file["type"] == "url":
+                        context += "URL: {}\n".format(file["path"]) + "\n"
+                    else:
+                        context += "Filename: {}\n".format(file["name"]) + "\n"
                 if os.path.exists(text_path):
-                    with open(text_path, "r") as f:
-                        context += f.read() + "\n\n"
+                    try:
+                        with open(text_path, "r", encoding="utf-8") as f:
+                            context += f.read() + "\n\n"
+                    except Exception as e:
+                        print("Attachments: read error: {}".format(e))
         return context
 
     def query_context(self, meta: CtxMeta, query: str) -> str:
@@ -120,12 +127,17 @@ class Context:
                 file_idx_path = os.path.join(meta_path, file_id)
                 file_path = os.path.join(file_idx_path, file["name"])
                 model = None
-                doc_ids = self.window.core.idx.indexing.index_attachment(file_path, idx_path, model)
+                type = AttachmentItem.TYPE_FILE
+                source = file_path
+                if "type" in file:
+                    if file["type"] == "url":
+                        type = AttachmentItem.TYPE_URL
+                        source = file["path"] # URL
+                doc_ids = self.index_attachment(type, source, idx_path)
                 if self.is_verbose():
                     print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
                 file["indexed"] = True
                 file["doc_ids"] = doc_ids
-                #meta.additional_ctx[i] = file  # update meta
                 indexed = True
 
         if indexed:
@@ -133,7 +145,7 @@ class Context:
             self.window.core.ctx.replace(meta)
             self.window.core.ctx.save(meta.id)
 
-        model = None
+        model = None  # no model, retrieval is used
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model)
 
         if self.is_verbose():
@@ -160,9 +172,10 @@ class Context:
         if self.is_verbose():
             print("Attachments: using summary model: {}".format(model))
 
+        content = self.get_context_text(ctx, filename=True)
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
-            content=str(self.get_context_text(ctx, filename=True)).strip(),
+            content=str(content).strip(),
         )
         if self.is_verbose():
             print("Attachments: summary prompt: {}".format(prompt))
@@ -211,6 +224,7 @@ class Context:
         meta_path = self.get_dir(meta)
         file_idx_path = os.path.join(meta_path, file_id)
         index_path = os.path.join(meta_path, self.dir_index)
+
         os.makedirs(meta_path, exist_ok=True)
         os.makedirs(file_idx_path, exist_ok=True)
 
@@ -219,54 +233,55 @@ class Context:
             if auto_index:
                 print("Attachments: vector index path: {}".format(index_path))
 
-        # copy raw file
-        raw_path = os.path.join(file_idx_path, name)
-        if os.path.exists(raw_path):
-            os.remove(raw_path)
-        copyfile(attachment.path, raw_path)
+        # store content to read
+        src_file = self.store_content(attachment, file_idx_path)
 
         # extract text content using data loader
-        loader_kwargs = {
-            "prompt": prompt,
-        }  # extra loader kwargs
-        text = self.window.core.idx.indexing.read_text_content(
-            path=raw_path,
-            loader_kwargs=loader_kwargs,
-        )
-        if text:
+        content = self.read_content(attachment, src_file, prompt)
+        if content:
             text_path = os.path.join(file_idx_path, file_id + ".txt")
-            with open(text_path, "w") as f:
-                f.write(text)
-
+            with open(text_path, "w", encoding="utf-8") as f:
+                f.write(content)
             if self.is_verbose():
-                print("Attachments: read text content: {}".format(text))
+                print("Attachments: read text content: {}".format(content))
 
         tokens = 0
-        if text:
-            tokens = self.window.core.tokens.from_str(text)
+        if content:
+            tokens = self.window.core.tokens.from_str(content)
+
+        type = "local_file"
+        size = 0
+        if attachment.type == AttachmentItem.TYPE_FILE:
+            size = os.path.getsize(attachment.path)
+        elif attachment.type == AttachmentItem.TYPE_URL:
+            size = os.path.getsize(src_file)
+            type = "url"  # extra ctx type
 
         # index file to ctx index
         doc_ids = []
         if auto_index:
-            model = None
-            doc_ids = self.window.core.idx.indexing.index_attachment(attachment.path, index_path, model)
+            source = src_file
+            if attachment.type == AttachmentItem.TYPE_URL:
+                source = attachment.path  # URL
+            doc_ids = self.index_attachment(attachment.type, source, index_path)
             if self.is_verbose():
                 print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
 
         result = {
             "name": name,
             "path": attachment.path,
-            "type": "local_file",
+            "type": type,
             "uuid": str(file_id),
             "content_type": "text",
-            "size": os.path.getsize(attachment.path),
-            "length": len(text),
+            "size": size,
+            "length": len(content),
             "tokens": tokens,
             "indexed": False,
         }
         if auto_index:
             result["indexed"] = True
             result["doc_ids"] = doc_ids
+
         if real_path:
             result["real_path"] = real_path
 
@@ -274,6 +289,83 @@ class Context:
             print("Attachments: uploaded: {}".format(result))
 
         return result
+
+    def read_content(self, attachment: AttachmentItem, path: str, prompt: str) -> str:
+        """
+        Read content from attachment
+
+        :param attachment: AttachmentItem instance
+        :param path: source file path
+        :param prompt: user input prompt
+        :return: content
+        """
+        content = ""
+        if attachment.type == AttachmentItem.TYPE_FILE:
+            loader_kwargs = {
+                "prompt": prompt,
+            }  # extra loader kwargs
+            content = self.window.core.idx.indexing.read_text_content(
+                path=path,
+                loader_kwargs=loader_kwargs,
+            )
+        elif attachment.type == AttachmentItem.TYPE_URL:
+            # directly from path
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()  # already crawled
+
+        return content
+
+    def store_content(self, attachment: AttachmentItem, dir: str) -> str:
+        """
+        Prepare content for attachment
+
+        :param attachment: AttachmentItem instance
+        :param dir: directory to save content
+        :return: content
+        """
+        path = None
+        if attachment.type == AttachmentItem.TYPE_FILE:
+            # copy raw file
+            name = os.path.basename(attachment.path)
+            path = os.path.join(dir, name)
+            if os.path.exists(path):
+                os.remove(path)
+            copyfile(attachment.path, path)
+        elif attachment.type == AttachmentItem.TYPE_URL:
+            web_type = self.window.core.idx.indexing.get_webtype(attachment.path)
+            content = self.window.core.idx.indexing.read_web_content(
+                url=attachment.path,
+                type=web_type,  # webpage, default, TODO: add more types
+                extra_args={},
+            )
+            # src file save
+            name = "url.txt"
+            path = os.path.join(dir, name)
+            if os.path.exists(path):
+                os.remove(path)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
+        return path
+
+    def index_attachment(self, type: str, source: str, idx_path: str, documents: list = None) -> list:
+        """
+        Index attachment
+
+        :param type: attachment type
+        :param source: source file or URL
+        :param idx_path: index path
+        :param documents: list of documents (optional)
+        :return: list of doc IDs
+        """
+        model = None
+        doc_ids = []
+        if type == AttachmentItem.TYPE_FILE:
+            doc_ids = self.window.core.idx.indexing.index_attachment(source, idx_path, model, documents)
+        elif type == AttachmentItem.TYPE_URL:
+            doc_ids = self.window.core.idx.indexing.index_attachment_web(source, idx_path, model, documents)
+        if self.is_verbose():
+            print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
+        return doc_ids
 
     def duplicate(self, from_meta_id: int, to_meta_id: int) -> bool:
         """

@@ -6,19 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6 import QtCore
-from PySide6.QtGui import QStandardItemModel, Qt
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QWidget, QRadioButton
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment_ctx import AttachmentCtxList
 from pygpt_net.utils import trans
 
+import pygpt_net.icons_rc
 
 class AttachmentsCtx:
     def __init__(self, window=None):
@@ -90,7 +91,7 @@ class AttachmentsCtx:
         self.window.ui.nodes[self.id] = AttachmentCtxList(self.window)
 
         # buttons
-        self.window.ui.nodes['attachments_ctx.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
+        self.window.ui.nodes['attachments_ctx.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_ctx.btn.clear'].clicked.connect(
             lambda: self.window.controller.chat.attachment.clear()
         )

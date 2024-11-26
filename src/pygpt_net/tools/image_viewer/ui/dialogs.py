@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.26 15:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,6 +16,8 @@ from PySide6.QtWidgets import QMenuBar, QVBoxLayout, QHBoxLayout, QSizePolicy
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
 from pygpt_net.utils import trans
+
+import pygpt_net.icons_rc
 
 class DialogSpawner:
     def __init__(self, window=None):

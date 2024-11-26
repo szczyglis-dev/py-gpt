@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QResizeEvent, QImage
 from PySide6.QtWidgets import QMenu, QApplication, QHeaderView
 
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -91,9 +92,12 @@ class AttachmentList(BaseList):
         idx = item.row()
         preview_actions = []
         path = None
+        attachment = None
 
         if idx >= 0:
-            path = self.window.controller.attachment.get_path_by_idx(mode, idx)
+            attachment = self.window.controller.attachment.get_by_idx(mode, idx)
+            if attachment:
+                path = attachment.path
             preview_actions = []
             if self.window.core.filesystem.actions.has_preview(path):
                 preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
@@ -116,21 +120,22 @@ class AttachmentList(BaseList):
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
-        if idx >= 0 and preview_actions:
-            for action in preview_actions:
-                menu.addAction(action)
-        menu.addAction(actions['open'])
-        menu.addAction(actions['open_dir'])
+        if attachment and attachment.type == AttachmentItem.TYPE_FILE:
+            if idx >= 0 and preview_actions:
+                for action in preview_actions:
+                    menu.addAction(action)
 
-        if idx >= 0:
-            if self.window.core.filesystem.actions.has_use(path):
-                use_actions = self.window.core.filesystem.actions.get_use(self, path)
-                use_menu = QMenu(trans('action.use'), self)
-                for action in use_actions:
-                    use_menu.addAction(action)
-                menu.addMenu(use_menu)
+            menu.addAction(actions['open'])
+            menu.addAction(actions['open_dir'])
+            if idx >= 0:
+                if self.window.core.filesystem.actions.has_use(path):
+                    use_actions = self.window.core.filesystem.actions.get_use(self, path)
+                    use_menu = QMenu(trans('action.use'), self)
+                    for action in use_actions:
+                        use_menu.addAction(action)
+                    menu.addMenu(use_menu)
 
-        menu.addAction(actions['rename'])
+            menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
 
         if idx >= 0:

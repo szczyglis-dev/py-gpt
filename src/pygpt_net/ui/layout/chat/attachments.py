@@ -6,18 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import os
 
-from PySide6.QtGui import QStandardItemModel, Qt
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
 
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment import AttachmentList
 from pygpt_net.utils import trans
 
+import pygpt_net.icons_rc
 
 class Attachments:
     def __init__(self, window=None):
@@ -38,13 +40,21 @@ class Attachments:
         self.setup_attachments()
         self.setup_buttons()
 
+        empty_widget = QWidget()
+        self.window.ui.nodes['input.attachments.options.label'] = HelpLabel(trans("attachments.options.label"))
+
         # buttons layout
         buttons = QHBoxLayout()
         buttons.addWidget(self.window.ui.nodes['attachments.btn.add'])
+        buttons.addWidget(self.window.ui.nodes['attachments.btn.add_url'])
         buttons.addWidget(self.window.ui.nodes['attachments.btn.clear'])
+        buttons.addWidget(empty_widget)
+        buttons.addWidget(self.window.ui.nodes['input.attachments.options.label'])
+
         buttons.addWidget(self.setup_auto_index())
         buttons.addWidget(self.setup_send_clear())
         buttons.addWidget(self.setup_capture_clear())
+        buttons.addStretch()
 
         self.window.ui.nodes['tip.input.attachments'] = HelpLabel(trans('tip.input.attachments'), self.window)
 
@@ -109,11 +119,14 @@ class Attachments:
         """
         Setup buttons
         """
-        self.window.ui.nodes['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
-        self.window.ui.nodes['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
+        self.window.ui.nodes['attachments.btn.add'] = QPushButton(QIcon(":/icons/add.svg"), trans('attachments.btn.add'))
+        self.window.ui.nodes['attachments.btn.add_url'] = QPushButton(QIcon(":/icons/public_filled.svg"), trans('attachments.btn.add_url'))
+        self.window.ui.nodes['attachments.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments.btn.clear'))
 
         self.window.ui.nodes['attachments.btn.add'].clicked.connect(
             lambda: self.window.controller.attachment.open_add())
+        self.window.ui.nodes['attachments.btn.add_url'].clicked.connect(
+            lambda: self.window.controller.attachment.open_add_url())
         self.window.ui.nodes['attachments.btn.clear'].clicked.connect(
             lambda: self.window.controller.attachment.clear(remove_local=True))
 
@@ -166,8 +179,9 @@ class Attachments:
         for id in data:
             path = data[id].path
             size = ""
-            if path and os.path.exists(path):
-                size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
+            if data[id].type == AttachmentItem.TYPE_FILE:
+                if path and os.path.exists(path):
+                    size = self.window.core.filesystem.sizeof_fmt(os.path.getsize(path))
             ctx_str = ""
             if data[id].ctx:
                 ctx_str = "YES"

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import threading
@@ -35,6 +35,7 @@ from pygpt_net.ui.dialog.settings import Settings
 from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
 from pygpt_net.ui.dialog.update import Update
+from pygpt_net.ui.dialog.url import Url
 from pygpt_net.ui.dialog.workdir import Workdir
 from pygpt_net.ui.widget.dialog.alert import AlertDialog
 from pygpt_net.ui.widget.dialog.confirm import ConfirmDialog
@@ -66,6 +67,7 @@ class Dialogs:
         self.snap = Snap(self.window)
         self.start = Start(self.window)
         self.update = Update(self.window)
+        self.url = Url(self.window)
         self.workdir = Workdir(self.window)
 
     def setup(self):
@@ -85,6 +87,8 @@ class Dialogs:
         self.snap.setup()
         self.start.setup()
         self.update.setup()
+        self.url.setup()
+
         self.image.setup()
         self.license.setup()
         self.logger.setup()

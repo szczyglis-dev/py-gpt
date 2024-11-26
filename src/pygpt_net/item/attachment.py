@@ -6,13 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import json
 
 
 class AttachmentItem:
+
+    TYPE_FILE = 'file'
+    TYPE_URL = 'url'
+
     def __init__(self):
         """
         Attachment item
@@ -28,6 +32,7 @@ class AttachmentItem:
         self.consumed = False
         self.size = 0
         self.send = False
+        self.type = self.TYPE_FILE
 
     def serialize(self) -> dict:
         """
@@ -44,6 +49,7 @@ class AttachmentItem:
             'remote': self.remote,
             'ctx': self.ctx,
             'vector_store_ids': self.vector_store_ids,
+            'type': self.type,
             'meta_id': self.meta_id,
             'send': self.send
         }
@@ -70,6 +76,8 @@ class AttachmentItem:
             self.ctx = data['ctx']
         if 'vector_store_ids' in data:
             self.vector_store_ids = data['vector_store_ids']
+        if 'type' in data:
+            self.type = data['type']
         if 'meta_id' in data:
             self.meta_id = data['meta_id']
         if 'send' in data:

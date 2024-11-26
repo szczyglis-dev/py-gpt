@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -176,7 +176,8 @@ class Attachments:
             mode: str,
             name: str = None,
             path: str = None,
-            auto_save: bool = True
+            auto_save: bool = True,
+            type: str = AttachmentItem.TYPE_FILE,
     ) -> AttachmentItem:
         """
         Create new attachment
@@ -185,16 +186,19 @@ class Attachments:
         :param name: name
         :param path: path
         :param auto_save: auto_save
+        :param type: type
         :return: AttachmentItem
         """
         # make local copy of external attachment if enabled
-        if self.window.core.config.get("upload.store"):
-            if not self.window.core.filesystem.in_work_dir(path):
-                path = self.window.core.filesystem.store_upload(path)
+        if type == AttachmentItem.TYPE_FILE and path is not None:
+            if self.window.core.config.get("upload.store"):
+                if not self.window.core.filesystem.in_work_dir(path):
+                    path = self.window.core.filesystem.store_upload(path)
 
         attachment = self.create()
         attachment.name = name
         attachment.path = path
+        attachment.type = type
 
         if mode not in self.items:
             self.items[mode] = {}
@@ -410,7 +414,7 @@ class Attachments:
         for mode in self.items:
             for id in self.items[mode]:
                 attachment = self.items[mode][id]
-                if attachment.path is not None:
+                if attachment.path is not None and attachment.type == AttachmentItem.TYPE_FILE:
                     attachment.path = self.window.core.filesystem.to_workdir(
                         attachment.path,
                     )
@@ -422,7 +426,7 @@ class Attachments:
         for mode in data:
             for id in data[mode]:
                 attachment = data[mode][id]
-                if attachment.path is not None:
+                if attachment.path is not None and attachment.type == AttachmentItem.TYPE_FILE:
                     attachment.path = self.window.core.filesystem.make_local(
                         attachment.path,
                     )

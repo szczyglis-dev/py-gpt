@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import os
@@ -122,58 +122,114 @@ class Attachment(QObject):
 
         for uuid in attachments:
             attachment = attachments[uuid]
-            if not self.is_allowed(attachment.path):
-                continue  # skip not allowed files
-            if self.window.core.filesystem.packer.is_archive(attachment.path):
-                if self.is_verbose():
-                    print("Unpacking archive: {}".format(attachment.path))
-                tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
-                if tmp_path:
-                    for root, dirs, files in os.walk(tmp_path):
-                        for file in files:
-                            path = os.path.join(root, file)
-                            sub_attachment = AttachmentItem()
-                            sub_attachment.path = path
-                            sub_attachment.name = os.path.basename(path)
-                            sub_attachment.consumed = False
-                            path_relative = os.path.relpath(path, tmp_path)
-                            if self.is_allowed(str(path)):
-                                if self.is_verbose():
-                                    print("Uploading unpacked from archive: {}".format(path_relative))
-                                item = self.window.core.attachments.context.upload(
-                                    meta=meta,
-                                    attachment=sub_attachment,
-                                    prompt=prompt,
-                                    real_path=attachment.path,
-                                    auto_index=auto_index,
-                                )
-                                if item:
-                                    item["path"] = os.path.basename(attachment.path) + "/" + path_relative
-                                    item["size"] = os.path.getsize(path)
-                                    if meta.additional_ctx is None:
-                                        meta.additional_ctx = []
-                                    meta.additional_ctx.append(item)
-                                    self.uploaded = True
-                                    sub_attachment.consumed = True
-                                    attachment.consumed = True
-                    self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
-            else:
-                item = self.window.core.attachments.context.upload(
-                    meta=meta,
+            if attachment.type == AttachmentItem.TYPE_FILE:
+                result = self.upload_file(
                     attachment=attachment,
+                    meta=meta,
                     prompt=prompt,
-                    real_path=attachment.path,
                     auto_index=auto_index,
                 )
-                if item:
-                    if meta.additional_ctx is None:
-                        meta.additional_ctx = []
-                    meta.additional_ctx.append(item)
-                    attachment.consumed = True  # allow for deletion
+                if result:
+                    self.uploaded = True
+            elif attachment.type == AttachmentItem.TYPE_URL:
+                result = self.upload_web(
+                    attachment=attachment,
+                    meta=meta,
+                    prompt=prompt,
+                    auto_index=auto_index,
+                )
+                if result:
                     self.uploaded = True
         if self.uploaded:
             self.window.core.ctx.save(meta.id)  # save meta
         return self.uploaded
+
+    def upload_file(
+            self,
+            attachment: AttachmentItem,
+            meta: CtxMeta,
+            prompt: str,
+            auto_index: bool
+    ) -> bool:
+        """
+        Upload file attachment
+
+        :param attachment: AttachmentItem
+        :param meta: CtxMeta
+        :param prompt: User input prompt
+        :param auto_index: Auto index
+        :return: True if uploaded
+        """
+        uploaded = False
+        if not self.is_allowed(attachment.path):
+            return False
+        if self.window.core.filesystem.packer.is_archive(attachment.path):
+            if self.is_verbose():
+                print("Unpacking archive: {}".format(attachment.path))
+            tmp_path = self.window.core.filesystem.packer.unpack(attachment.path)
+            if tmp_path:
+                for root, dirs, files in os.walk(tmp_path):
+                    for file in files:
+                        path = os.path.join(root, file)
+                        sub_attachment = AttachmentItem()
+                        sub_attachment.path = path
+                        sub_attachment.name = os.path.basename(path)
+                        sub_attachment.consumed = False
+                        path_relative = os.path.relpath(path, tmp_path)
+                        if self.is_allowed(str(path)):
+                            if self.is_verbose():
+                                print("Uploading unpacked from archive: {}".format(path_relative))
+                            item = self.window.core.attachments.context.upload(
+                                meta=meta,
+                                attachment=sub_attachment,
+                                prompt=prompt,
+                                real_path=attachment.path,
+                                auto_index=auto_index,
+                            )
+                            if item:
+                                item["path"] = os.path.basename(attachment.path) + "/" + path_relative
+                                item["size"] = os.path.getsize(path)
+                                if meta.additional_ctx is None:
+                                    meta.additional_ctx = []
+                                meta.additional_ctx.append(item)
+                                uploaded = True
+                                sub_attachment.consumed = True
+                                attachment.consumed = True
+                self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
+        else:
+            item = self.window.core.attachments.context.upload(
+                meta=meta,
+                attachment=attachment,
+                prompt=prompt,
+                real_path=attachment.path,
+                auto_index=auto_index,
+            )
+            if item:
+                if meta.additional_ctx is None:
+                    meta.additional_ctx = []
+                meta.additional_ctx.append(item)
+                attachment.consumed = True  # allow for deletion
+                uploaded = True
+
+        return uploaded
+
+    def upload_web(
+            self,
+            attachment: AttachmentItem,
+            meta: CtxMeta,
+            prompt: str,
+            auto_index: bool
+    ) -> bool:
+        """
+        Upload web attachment
+
+        :param attachment: AttachmentItem
+        :param meta: CtxMeta
+        :param prompt: User input prompt
+        :param auto_index: Auto index
+        :return: True if uploaded
+        """
+        return self.upload_file(attachment, meta, prompt, auto_index)
 
     def has_context(self, meta: CtxMeta) -> bool:
         """

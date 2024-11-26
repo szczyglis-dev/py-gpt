@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import json
@@ -143,6 +143,7 @@ class JsonFileProvider(BaseProvider):
             'remote': attachment.remote,
             'send': attachment.send,
             'vector_store_ids': attachment.vector_store_ids,
+            'type': attachment.type,
         }
 
     @staticmethod
@@ -165,6 +166,8 @@ class JsonFileProvider(BaseProvider):
             attachment.send = data['send']
         if 'vector_store_ids' in data:
             attachment.vector_store_ids = data['vector_store_ids']
+        if 'type' in data:
+            attachment.type = data['type']
 
     def dump(self, item: AttachmentItem) -> str:
         """

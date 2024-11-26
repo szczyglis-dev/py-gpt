@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 02:00:00                  #
 # ================================================== #
 
 import os
 from datetime import datetime
+from urllib.parse import urlparse
 
 from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -275,6 +276,38 @@ class Attachment:
             self.window.core.attachments.save()
             self.update()
 
+    def open_add_url(self):
+        """Open add attachment URL dialog"""
+        self.window.ui.dialog['url'].id = "attachment"
+        self.window.ui.dialog['url'].input.setText("")
+        self.window.ui.dialog['url'].current = ""
+        self.window.ui.dialog['url'].show()
+        self.window.ui.dialog['url'].input.setFocus()
+
+    def add_url(self, url: str):
+        """
+        Add attachment by URL
+
+        :param url: URL
+        """
+        mode = self.window.core.config.get('mode')
+        # get domain or hostname
+        domain = ""
+        try:
+            domain = urlparse(url).netloc
+        except Exception as e:
+            domain = os.path.basename(url)
+        attachment = self.window.core.attachments.new(
+            mode=mode,
+            name=domain,
+            path=url,
+            auto_save=False,
+            type=AttachmentItem.TYPE_URL,
+        )
+        self.window.core.attachments.save()
+        self.update()
+        self.window.ui.dialog['url'].close()
+
     def open_dir(self, mode: str, idx: int):
         """
         Open in directory
@@ -327,6 +360,24 @@ class Attachment:
         if data is None:
             return ''
         return data.path
+
+    def get_by_idx(self, mode: str, idx: int) -> str:
+        """
+        Get attachment by index
+
+        :param mode: mode
+        :param idx: index
+        :return: path
+        """
+        file_id = self.window.core.attachments.get_id_by_idx(
+            mode=mode,
+            idx=idx,
+        )
+        data = self.window.core.attachments.get_by_id(
+            mode=mode,
+            id=file_id,
+        )
+        return data
 
     def has(self, mode: str) -> bool:
         """
