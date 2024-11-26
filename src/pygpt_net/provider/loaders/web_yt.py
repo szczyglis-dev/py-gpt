@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -52,3 +52,21 @@ class Loader(BaseLoader):
         args = {}
         args["ytlinks"] = [kwargs.get("url")]  # list of links
         return args
+
+    def is_supported_attachment(self, source: str) -> bool:
+        """
+        Check if attachment is supported by loader
+
+        :param source: attachment source
+        :return: True if supported
+        """
+        yt_prefix = [
+            "https://youtube.com",
+            "https://youtu.be",
+            "https://www.youtube.com",
+            "https://m.youtube.com",
+        ]
+        for prefix in yt_prefix:
+            if source.startswith(prefix):
+                return True
+        return False

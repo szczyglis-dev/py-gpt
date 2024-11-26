@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -1062,22 +1062,19 @@ class Indexing:
 
     def get_webtype(self, url: str) -> str:
         """
-        Get web type by URL
+        Get web loader type by URL
 
         :param url: URL
-        :return: web type
+        :return: web loader type
         """
-        type = "webpage"
-        yt_prefix = [
-            "https://youtube.com",
-            "https://youtu.be",
-            "https://www.youtube.com",
-            "https://m.youtube.com",
-        ]
-        for prefix in yt_prefix:
-            if url.startswith(prefix):
-                type = "youtube"
-                break
+        type = "webpage"  # default
+        for id in self.data_providers:
+            loader = self.data_providers[id]
+            if hasattr(loader, "is_supported_attachment"):
+                if loader.is_supported_attachment(url):
+                    type = id
+                    break
+        print("Selected web data loader: {}".format(type))
         return type
 
     def remove_attachment(self, index_path: str, doc_id: str) -> bool:

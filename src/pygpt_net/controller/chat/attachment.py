@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 import os
@@ -274,12 +274,21 @@ class Attachment(QObject):
             if self.is_verbose():
                 print("\nPreparing additional context...\nContext Mode: {}".format(self.mode))
 
+        self.window.core.attachments.context.reset()
         if self.mode == self.MODE_FULL_CONTEXT:
             content = self.get_full_context(ctx)
         elif self.mode == self.MODE_QUERY_CONTEXT:
             content = self.get_query_context(meta, str(ctx.input))
         elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
             content = self.get_context_summary(ctx)
+
+        # append used files and urls to context
+        files = self.window.core.attachments.context.get_used_files()
+        urls = self.window.core.attachments.context.get_used_urls()
+        if files:
+            ctx.files = files
+        if urls:
+            ctx.urls = urls
 
         if content:
             if self.is_verbose():
