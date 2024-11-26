@@ -377,9 +377,13 @@ Plugin allows you to generate images in Chat mode:
 
 ## Chat with Audio
 
+2024-11-26: currently in beta.
+
 This mode works like the Chat mode but with native support for audio input and output using a multimodal model - `gpt-4o-audio`. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
 More info: https://platform.openai.com/docs/guides/audio/quickstart
+
+**INFO:** The execution of commands and tools in this mode is temporarily unavailable.
 
 ## Completion
 
@@ -3667,7 +3671,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.34 (2024-11-26)**
 
-- Added a new mode: `Chat with Audio`, with built-in support for audio input/output (beta): https://platform.openai.com/docs/guides/audio/quickstart
+- Added a new mode: `Chat with Audio`, with built-in multimodal support for audio input/output. Currently in `beta`, the execution of commands and tools in this mode is temporarily unavailable.
 - Added new models: `gpt-4o-audio-preview`, `gpt-4o-2024-11-20`, `chatgpt-4o-latest`.
 - Force disabled integration with the native system menu.
 
