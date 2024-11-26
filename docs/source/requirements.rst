@@ -76,7 +76,7 @@ the application using the Python interpreter (>=3.10, <3.12).
 You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)
-```````````
+``````````
 
 1. Create a new virtual environment:
 
@@ -99,7 +99,11 @@ PyPi (pip)
 
 
 Running from GitHub source code
-````````````````````````````````
+-------------------------------
+
+Install with pip
+````````````````
+
 1. Clone git repository or download .zip file:
 
 .. code-block:: console
@@ -125,8 +129,10 @@ Running from GitHub source code
 .. code-block:: console
 
     python3 run.py
+    
 
-**Install with Poetry**
+Install with Poetry
+```````````````````
 
 1. Clone git repository or download .zip file:
 

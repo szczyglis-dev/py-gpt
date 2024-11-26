@@ -155,11 +155,11 @@ pip install pygpt-net
 pygpt
 ```
 
-## Source Code
+## Running from GitHub source code
 
 An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (>=3.10, <3.12). 
 
-### Running from GitHub source code
+### Install with pip
 
 1. Clone git repository or download .zip file:
 
@@ -187,7 +187,7 @@ pip install -r requirements.txt
 python3 run.py
 ```
 
-**Install with Poetry**
+### Install with Poetry
 
 1. Clone git repository or download .zip file:
 
