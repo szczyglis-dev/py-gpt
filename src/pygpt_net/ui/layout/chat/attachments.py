@@ -120,7 +120,7 @@ class Attachments:
         Setup buttons
         """
         self.window.ui.nodes['attachments.btn.add'] = QPushButton(QIcon(":/icons/add.svg"), trans('attachments.btn.add'))
-        self.window.ui.nodes['attachments.btn.add_url'] = QPushButton(QIcon(":/icons/public_filled.svg"), trans('attachments.btn.add_url'))
+        self.window.ui.nodes['attachments.btn.add_url'] = QPushButton(QIcon(":/icons/add.svg"), trans('attachments.btn.add_url'))
         self.window.ui.nodes['attachments.btn.clear'] = QPushButton(QIcon(":/icons/close.svg"), trans('attachments.btn.clear'))
 
         self.window.ui.nodes['attachments.btn.add'].clicked.connect(

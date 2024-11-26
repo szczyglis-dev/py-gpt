@@ -286,13 +286,13 @@ class Attachment:
 
     def add_url(self, url: str):
         """
-        Add attachment by URL
+        Add URL
 
         :param url: URL
         """
+        if not url:
+            return
         mode = self.window.core.config.get('mode')
-        # get domain or hostname
-        domain = ""
         try:
             domain = urlparse(url).netloc
         except Exception as e:
