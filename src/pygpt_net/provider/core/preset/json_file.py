@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import json
@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
+    MODE_AUDIO,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_EXPERT,
@@ -193,6 +194,7 @@ class JsonFileProvider(BaseProvider):
             MODE_AGENT: item.agent,
             MODE_AGENT_LLAMA: item.agent_llama,
             MODE_EXPERT: item.expert,
+            MODE_AUDIO: item.audio,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
@@ -232,6 +234,8 @@ class JsonFileProvider(BaseProvider):
             item.agent_llama = data[MODE_AGENT_LLAMA]
         if MODE_EXPERT in data:
             item.expert = data[MODE_EXPERT]
+        if MODE_AUDIO in data:
+            item.audio = data[MODE_AUDIO]
 
         if 'uuid' in data:
             item.uuid = data['uuid']

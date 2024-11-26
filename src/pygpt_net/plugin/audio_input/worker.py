@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -22,6 +22,7 @@ from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 class WorkerSignals(BaseSignals):
     transcribed = Signal(str, str)
+    on_realtime = Signal(str)
 
 
 class Worker(BaseWorker):
@@ -73,6 +74,13 @@ class Worker(BaseWorker):
             if os.path.exists(self.path):
                 # set status
                 self.status(trans('audio.speak.wait'))
+
+                # if multimodal audio, then only return path to audio file and do not transcribe
+                if self.plugin.window.controller.chat.audio.enabled():
+                    self.signals.on_realtime.emit(self.path)
+                    self.status('')
+                    return
+
                 # transcribe audio
                 transcript = self.plugin.get_provider().transcribe(self.path)
                 self.status('')

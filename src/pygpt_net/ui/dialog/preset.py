@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSp
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AUDIO,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_EXPERT,
@@ -108,6 +109,7 @@ class Preset(BaseConfigDialog):
             MODE_LLAMA_INDEX,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
+            MODE_AUDIO,
             MODE_EXPERT,
         ]
         rows_mode = QVBoxLayout()

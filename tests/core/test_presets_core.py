@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -44,7 +44,7 @@ def test_append_current(mock_window):
     presets = Presets(mock_window)
     presets.build = MagicMock(return_value=PresetItem())
     presets.append_current()
-    assert len(presets.items) == 10
+    assert len(presets.items) == 11
     assert presets.items['current.chat'].chat is True
     assert presets.items['current.completion'].completion is True
     assert presets.items['current.img'].img is True
@@ -223,7 +223,7 @@ def test_load(mock_window):
         'test3': PresetItem(),
     })
     presets.load()
-    assert len(presets.items) == 13  # 7 current presets + 3 loaded presets
+    assert len(presets.items) == 14  # 10 current. presets + 3 loaded presets
     presets.provider.load.assert_called_once_with()
 
 

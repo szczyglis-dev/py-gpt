@@ -9,14 +9,19 @@
 # Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
-MODE_AUDIO = "audio"
-MODE_CHAT = "chat"
-MODE_COMPLETION = "completion"
-MODE_IMAGE = "img"
-MODE_VISION = "vision"
-MODE_ASSISTANT = "assistant"
-MODE_LANGCHAIN = "langchain"
-MODE_LLAMA_INDEX = "llama_index"
-MODE_AGENT = "agent"
-MODE_AGENT_LLAMA = "agent_llama"
-MODE_EXPERT = "expert"
+import re
+
+
+def sanitize_name(name: str) -> str:
+    """
+    Sanitize name
+
+    :param name: name
+    :return: sanitized name
+    """
+    if name is None:
+        return ""
+    # allowed characters: a-z, A-Z, 0-9, _, and -
+    name = name.strip().lower()
+    sanitized_name = re.sub(r'[^a-z0-9_-]', '_', name)
+    return sanitized_name[:64]  # limit to 64 characters

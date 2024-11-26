@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import re
@@ -22,7 +22,8 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
-    MODE_VISION, MODE_IMAGE,
+    MODE_VISION, 
+    MODE_IMAGE,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import ControlEvent

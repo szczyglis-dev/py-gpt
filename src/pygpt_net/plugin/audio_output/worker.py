@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import time
@@ -30,27 +30,49 @@ class Worker(BaseWorker):
         self.text = None
         self.event = None
         self.cache_file = None  # path to cache file
+        self.mode = "generate"  # generate|playback
+        self.audio_file = None
 
     @Slot()
     def run(self):
-        from pygame import mixer
         try:
-            if self.text is None or self.text == "":
-                time.sleep(0.2)  # wait
-                return
-            path = self.plugin.get_provider().speech(self.text)
-            if path:
-                mixer.init()
-                playback = mixer.Sound(path)
-                self.stop_playback()  # stop previous playback
-                playback.play()
-                self.send(playback)  # send playback object to main thread
-
-                # store in cache if enabled
-                if self.cache_file:
-                    self.cache_audio_file(path, self.cache_file)
+            if self.mode == "generate":
+                self.generate()
+            elif self.mode == "playback":
+                self.play()
         except Exception as e:
             self.error(e)
+
+    def generate(self):
+        """
+        Generate and play audio file
+        """
+        if self.text is None or self.text == "":
+            time.sleep(0.2)  # wait
+            return
+        path = self.plugin.get_provider().speech(self.text)
+        if path:
+            from pygame import mixer
+            mixer.init()
+            playback = mixer.Sound(path)
+            self.stop_playback()  # stop previous playback
+            playback.play()
+            self.send(playback)  # send playback object to main thread to allow force stop
+
+            # store in cache if enabled
+            if self.cache_file:
+                self.cache_audio_file(path, self.cache_file)
+
+    def play(self):
+        """
+        Play audio file only
+        """
+        if self.audio_file:
+            from pygame import mixer
+            mixer.init()
+            playback = mixer.Sound(self.audio_file)
+            playback.play()
+            self.send(playback)  # send playback object to main thread to allow force stop
 
     def cache_audio_file(self, src: str, dst: str):
         """
@@ -81,28 +103,3 @@ class Worker(BaseWorker):
     def stop(self):
         """Send stop signal to main thread"""
         self.signals.stop.emit()
-
-
-class PlayWorker(BaseWorker):
-    def __init__(self, *args, **kwargs):
-        super(PlayWorker, self).__init__()
-        self.signals = WorkerSignals()
-        self.args = args
-        self.kwargs = kwargs
-        self.window = None
-        self.path = None
-
-    @Slot()
-    def run(self):
-        from pygame import mixer
-        try:
-            if self.path:
-                mixer.init()
-                playback = mixer.Sound(self.path)
-                playback.play()
-        except Exception as e:
-            self.error(e)
-
-
-
-

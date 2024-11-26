@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.input import Input
-from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -52,12 +52,21 @@ def test_send(mock_window):
     input = Input(mock_window)
     input.execute = MagicMock()
     context = BridgeContext()
+    context.multimodal_ctx = MultimodalContext()
     context.prompt = "xxx"
     context.ctx = None
     extra = {}
 
     input.send(context, extra)
-    input.execute.assert_called_once_with(text="xxx", force=False, reply=False, internal=False, prev_ctx=None, parent_id=None)
+    input.execute.assert_called_once_with(
+        text="xxx",
+        force=False,
+        reply=False,
+        internal=False,
+        prev_ctx=None,
+        parent_id=None,
+        multimodal_ctx=context.multimodal_ctx,
+    )
 
 
 def test_execute_text(mock_window):
@@ -79,7 +88,14 @@ def test_execute_text(mock_window):
         # assert input.generating is False
         # assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with(text='test', reply=False, internal=False, prev_ctx=None, parent_id=None)
+        mock_window.controller.chat.text.send.assert_called_once_with(
+            text='test',
+            reply=False,
+            internal=False,
+            prev_ctx=None,
+            parent_id=None,
+            multimodal_ctx=None,
+        )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
         # attachments clear should be called
@@ -146,7 +162,8 @@ def test_execute_no_ctx(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None
+            parent_id=None,
+            multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -209,7 +226,8 @@ def test_execute_vision_mode(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None
+            parent_id=None,
+            multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -254,7 +272,8 @@ def test_execute_vision_plugin(mock_window):
             reply=False,
             internal=False,
             prev_ctx=None,
-            parent_id=None
+            parent_id=None,
+            multimodal_ctx=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 

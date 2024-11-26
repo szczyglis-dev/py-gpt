@@ -11,6 +11,12 @@
             "label": "mode.chat",
             "default": true
         },
+        "audio": {
+            "id": "audio",
+            "name": "audio",
+            "label": "mode.audio",
+            "default": false
+        },
         "completion": {
             "id": "completion",
             "name": "completion",
@@ -43,13 +49,13 @@
         },
         "llama_index": {
             "id": "llama_index",
-            "name": "Index (Llama-index)",
+            "name": "Index (LlamaIndex)",
             "label": "mode.llama_index",
             "default": false
         },
         "agent_llama": {
             "id": "agent_llama",
-            "name": "Agent (Llama-index)",
+            "name": "Agent (LlamaIndex)",
             "label": "mode.agent_llama",
             "default": false
         },

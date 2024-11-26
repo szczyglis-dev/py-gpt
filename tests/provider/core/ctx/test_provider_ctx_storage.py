@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch, mock_open, Mock
@@ -114,6 +114,8 @@ def test_get_items(mock_window):
         'is_internal': 0,
         'is_vision': 0,
         'docs_json': None,
+        'audio_id': '',
+        'audio_expires_ts': 0,
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
@@ -139,12 +141,12 @@ def test_get_items(mock_window):
     assert result[0].thread == 1
     assert result[0].msg_id == 1
     assert result[0].run_id == 1
-    assert result[0].cmds is None
-    assert result[0].results is None
-    assert result[0].urls is None
-    assert result[0].images is None
-    assert result[0].files is None
-    assert result[0].attachments is None
+    assert result[0].cmds == []
+    assert result[0].results == []
+    assert result[0].urls == []
+    assert result[0].images == []
+    assert result[0].files == []
+    assert result[0].attachments == []
     assert result[0].extra == 'test'
     assert result[0].input_tokens == 1
     assert result[0].output_tokens == 1
@@ -350,6 +352,8 @@ def test_unpack_item(mock_window):
         'is_internal': 1,
         'is_vision': 1,
         'docs_json': None,
+        'audio_id': '',
+        'audio_expires_ts': 0,
     }
     item = CtxItem()
     unpack_item(item, row)
@@ -367,13 +371,13 @@ def test_unpack_item(mock_window):
     assert item.thread == 'thread_id'
     assert item.msg_id == 'msg_id'
     assert item.run_id == 'run_id'
-    assert item.cmds is None
-    assert item.results is None
-    assert item.urls is None
-    assert item.images is None
-    assert item.files is None
-    assert item.attachments is None
-    assert item.extra is None
+    assert item.cmds == []
+    assert item.results == []
+    assert item.urls == []
+    assert item.images == []
+    assert item.files == []
+    assert item.attachments == []
+    assert item.extra == {}
     assert item.input_tokens == 1
     assert item.output_tokens == 1
     assert item.total_tokens == 1

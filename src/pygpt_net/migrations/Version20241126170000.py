@@ -9,14 +9,20 @@
 # Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
-MODE_AUDIO = "audio"
-MODE_CHAT = "chat"
-MODE_COMPLETION = "completion"
-MODE_IMAGE = "img"
-MODE_VISION = "vision"
-MODE_ASSISTANT = "assistant"
-MODE_LANGCHAIN = "langchain"
-MODE_LLAMA_INDEX = "llama_index"
-MODE_AGENT = "agent"
-MODE_AGENT_LLAMA = "agent_llama"
-MODE_EXPERT = "expert"
+from sqlalchemy import text
+
+from .base import BaseMigration
+
+
+class Version20241126170000(BaseMigration):
+    def __init__(self, window=None):
+        super(Version20241126170000, self).__init__(window)
+        self.window = window
+
+    def up(self, conn):
+        conn.execute(text("""
+        ALTER TABLE ctx_item ADD COLUMN audio_id TEXT;
+        """))
+        conn.execute(text("""
+        ALTER TABLE ctx_item ADD COLUMN audio_expires_ts INTEGER;
+        """))

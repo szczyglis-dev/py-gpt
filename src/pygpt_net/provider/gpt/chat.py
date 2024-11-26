@@ -6,20 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import json
-import re
+import time
 
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
+    MODE_AUDIO,
 )
-from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
+from .utils import sanitize_name
 
 class Chat:
     def __init__(self, window=None):
@@ -31,7 +33,11 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, context: BridgeContext, extra: dict = None):
+    def send(
+            self,
+            context: BridgeContext,
+            extra: dict = None
+    ):
         """
         Call OpenAI API for chat
 
@@ -43,9 +49,11 @@ class Chat:
         stream = context.stream
         max_tokens = int(context.max_tokens or 0)
         system_prompt = context.system_prompt
+        mode = context.mode
         model = context.model
         functions = context.external_functions
         attachments = context.attachments
+        multimodal_ctx = context.multimodal_ctx
 
         ctx = context.ctx
         if ctx is None:
@@ -64,6 +72,7 @@ class Chat:
             attachments=attachments,
             ai_name=ai_name,
             user_name=user_name,
+            multimodal_ctx=multimodal_ctx,
         )
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
@@ -88,16 +97,14 @@ class Chat:
                 params = {}
                 if function['params'] is not None and function['params'] != "":
                     params = json.loads(function['params'])  # unpack JSON from string
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": function['name'],
-                            "parameters": params,
-                            "description": function['desc'],
-                        }
+                tools.append({
+                    "type": "function",
+                    "function": {
+                        "name": function['name'],
+                        "parameters": params,
+                        "description": function['desc'],
                     }
-                )
+                })
 
         # fix: o1 compatibility
         if model.id is not None and not model.id.startswith("o1"):
@@ -117,11 +124,25 @@ class Chat:
         if model.id is not None and model.id.startswith("o1"):
             stream = False
 
+        # modalities
+        response_kwargs["modalities"] = ["text"]
+        if mode in [MODE_AUDIO]:
+            stream = False
+            voice_id = "alloy"
+            tmp_voice = self.window.core.plugins.get_option("audio_output", "openai_voice")
+            if tmp_voice:
+                voice_id = tmp_voice
+            response_kwargs["modalities"].append("audio")
+            response_kwargs["audio"] = {
+                "voice": voice_id,
+                "format": "wav"
+            }
+
         response = client.chat.completions.create(
             messages=messages,
             model=model.id,
             stream=stream,
-            **response_kwargs
+            **response_kwargs,
         )
         return response
 
@@ -133,7 +154,8 @@ class Chat:
             history: list = None,
             attachments: dict = None,
             ai_name: str = None,
-            user_name: str = None
+            user_name: str = None,
+            multimodal_ctx: MultimodalContext = None,
     ) -> list:
         """
         Build list of chat messages
@@ -145,6 +167,7 @@ class Chat:
         :param attachments: attachments
         :param ai_name: AI name
         :param user_name: username
+        :param multimodal_ctx: Multimodal context
         :return: messages list
         """
         messages = []
@@ -190,26 +213,49 @@ class Chat:
             )
             for item in items:
                 # input
-                role_name = "system"
-                if not allowed_system:
-                    role_name = "user"
                 if item.final_input is not None and item.final_input != "":
-                    messages.append({"role": role_name, "name": self.sanitize_name(user_name), "content": item.final_input})
+                    messages.append({
+                        "role": "user",
+                        "name": sanitize_name(user_name),
+                        "content": item.final_input,
+                    })
 
                 # output
-                role_name = "system"
-                if not allowed_system:
-                    role_name = "assistant"
                 if item.final_output is not None and item.final_output != "":
-                    messages.append({"role": role_name, "name": self.sanitize_name(ai_name), "content": item.final_output})
+                    msg = {
+                        "role": "assistant",
+                        "name": sanitize_name(ai_name),
+                        "content": item.final_output,
+                    }
+                    # append previous audio ID
+                    if MODE_AUDIO in model.mode and item.audio_id:
+                        # at first check expires_at - expired audio throws error in API
+                        current_timestamp = time.time()
+                        audio_timestamp = int(item.audio_expires_ts) if item.audio_expires_ts else 0
+                        if audio_timestamp and audio_timestamp > current_timestamp:
+                            msg["audio"] = {
+                                "id": item.audio_id
+                            }
+                    messages.append(msg)
 
-        # use vision if available in current model
+        # use vision and audio if available in current model
         content = str(prompt)
         if MODE_VISION in model.mode:
-            content = self.window.core.gpt.vision.build_content(prompt, attachments)
+            content = self.window.core.gpt.vision.build_content(
+                content=content,
+                attachments=attachments,
+            )
+        if MODE_AUDIO in model.mode:
+            content = self.window.core.gpt.audio.build_content(
+                content=content,
+                multimodal_ctx=multimodal_ctx,
+            )
 
         # append current prompt
-        messages.append({"role": "user", "content": content})
+        messages.append({
+            "role": "user",
+            "content": content,
+        })
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(
@@ -217,20 +263,6 @@ class Chat:
             model.id,
         )
         return messages
-
-    def sanitize_name(self, name: str) -> str:
-        """
-        Sanitize name
-
-        :param name: name
-        :return: sanitized name
-        """
-        if name is None:
-            return ""
-        # allowed characters: a-z, A-Z, 0-9, _, and -
-        name = name.strip().lower()
-        sanitized_name = re.sub(r'[^a-z0-9_-]', '_', name)
-        return sanitized_name[:64]  # limit to 64 characters
 
     def reset_tokens(self):
         """Reset input tokens counter"""

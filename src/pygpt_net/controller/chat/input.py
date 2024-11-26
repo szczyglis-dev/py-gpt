@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.bridge.context import MultimodalContext
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -134,6 +135,7 @@ class Input:
         reply = extra.get("reply", False)
         internal = extra.get("internal", False)
         parent_id = extra.get("parent_id", None)
+        multimodal_ctx = context.multimodal_ctx
         self.execute(
             text=text,
             force=force,
@@ -141,6 +143,7 @@ class Input:
             internal=internal,
             prev_ctx=prev_ctx,
             parent_id=parent_id,
+            multimodal_ctx=multimodal_ctx,
         )
 
     def execute(
@@ -151,6 +154,7 @@ class Input:
             internal: bool = False,
             prev_ctx: CtxItem = None,
             parent_id: int = None,
+            multimodal_ctx: MultimodalContext = None,
     ):
         """
         Execute send input text to API
@@ -161,6 +165,7 @@ class Input:
         :param internal: internal call
         :param prev_ctx: previous context (if reply)
         :param parent_id: parent id (if expert)
+        :param multimodal_ctx: multimodal context
         """
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
@@ -208,8 +213,9 @@ class Input:
         camera_captured = (self.window.controller.ui.vision.has_vision()
                            and self.window.controller.attachment.has(mode))
 
-        # allow empty input only for vision modes, otherwise abort
-        if len(text.strip()) == 0 and not camera_captured:
+        # allow empty text input only if multimodal data, otherwise abort
+        is_audio = multimodal_ctx is not None and multimodal_ctx.is_audio_input
+        if len(text.strip()) == 0 and (not camera_captured and not is_audio):
             self.generating = False  # unlock as not generating
             return
 
@@ -256,6 +262,7 @@ class Input:
                 internal=internal,
                 prev_ctx=prev_ctx,
                 parent_id=parent_id,
+                multimodal_ctx=multimodal_ctx,
             )  # text mode: OpenAI, Langchain, Llama, etc.
 
     def log(self, data: any):

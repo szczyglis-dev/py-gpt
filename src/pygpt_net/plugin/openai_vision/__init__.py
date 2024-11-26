@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 04:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AUDIO,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
@@ -59,6 +60,7 @@ class Plugin(BasePlugin):
             MODE_AGENT_LLAMA,
             MODE_LLAMA_INDEX,
             MODE_LANGCHAIN,
+            MODE_AUDIO,
         ]
         self.worker = None
         self.config = Config(self)

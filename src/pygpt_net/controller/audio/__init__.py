@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import os
 
 from pygpt_net.core.events import Event, BaseEvent
-from pygpt_net.plugin.audio_output.worker import PlayWorker
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -64,6 +63,12 @@ class Audio:
         self.window.core.config.save()
         self.update()
 
+    def enable_input(self):
+        """Enable audio input"""
+        self.window.controller.plugins.enable('audio_input')
+        self.window.core.config.save()
+        self.update()
+
     def disable_input(self, update: bool = True):
         """
         Disable audio input
@@ -101,6 +106,16 @@ class Audio:
         :return: True if enabled
         """
         if self.window.controller.plugins.is_enabled('audio_output'):
+            return True
+        return False
+
+    def is_input_enabled(self) -> bool:
+        """
+        Check if any audio input is enabled
+
+        :return: True if enabled
+        """
+        if self.window.controller.plugins.is_enabled('audio_input'):
             return True
         return False
 
@@ -161,16 +176,29 @@ class Audio:
         }
         self.window.dispatch(event, all=all)
 
+    def play_chat_audio(self, path: str):
+        """
+        Play audio file (chat multimodal response)
+
+        :param path: audio file path
+        """
+        if not self.is_output_enabled():
+            return
+        self.play_audio(path)
+
     def play_audio(self, path: str):
         """
         Play audio file
 
         :param path: audio file path
         """
-        worker = PlayWorker()
-        worker.window = self.window
-        worker.path = path
-        self.window.threadpool.start(worker)
+        ctx = CtxItem()
+        event = Event(Event.AUDIO_PLAYBACK)
+        event.ctx = ctx
+        event.data = {
+            'audio_file': path,
+        }
+        self.window.dispatch(event, all=True)
 
     def play_sound(self, filename: str):
         """

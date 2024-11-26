@@ -225,7 +225,7 @@ class Launcher:
 
     def add_agent(self, agent: BaseAgent):
         """
-        Register agent (Llama-index agent)
+        Register agent (LlamaIndex agent)
 
         :param agent: Agent instance
         """

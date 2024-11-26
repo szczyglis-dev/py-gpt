@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -718,7 +718,9 @@ class Storage:
                 output_tokens,
                 total_tokens,
                 is_internal,
-                docs_json
+                docs_json,
+                audio_id,
+                audio_expires_ts
             )
             VALUES 
             (
@@ -749,7 +751,9 @@ class Storage:
                 :output_tokens,
                 :total_tokens,
                 :is_internal,
-                :docs_json
+                :docs_json,
+                :audio_id,
+                :audio_expires_ts
             )
         """).bindparams(
             meta_id=int(meta.id),
@@ -780,6 +784,8 @@ class Storage:
             total_tokens=int(item.total_tokens or 0),
             is_internal=int(item.internal),
             docs_json=pack_item_value(item.doc_ids),
+            audio_id=item.audio_id,
+            audio_expires_ts=int(item.audio_expires_ts or 0)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -822,7 +828,9 @@ class Storage:
                 output_tokens = :output_tokens,
                 total_tokens = :total_tokens,
                 is_internal = :is_internal,
-                docs_json = :docs_json
+                docs_json = :docs_json,
+                audio_id = :audio_id,
+                audio_expires_ts = :audio_expires_ts
             WHERE id = :id
         """).bindparams(
             id=item.id,
@@ -852,6 +860,8 @@ class Storage:
             total_tokens=int(item.total_tokens or 0),
             is_internal=int(item.internal or 0),
             docs_json=pack_item_value(item.doc_ids),
+            audio_id=item.audio_id,
+            audio_expires_ts=int(item.audio_expires_ts or 0)
         )
         with db.begin() as conn:
             conn.execute(stmt)

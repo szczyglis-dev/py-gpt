@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import os
@@ -82,6 +82,8 @@ class Database:
             'is_internal',
             'docs_json',
             'external_id',
+            'audio_id',
+            'audio_expires_ts',
         ]
         columns["ctx_meta"] = [
             'id',
@@ -218,7 +220,7 @@ class Database:
                 'columns': columns["ctx_item"],
                 'sort_by': columns["ctx_item"],
                 'search_fields': ['id', 'input', 'output', 'input_name', 'output_name', 'meta_id', 'hidden_input', 'hidden_output'],
-                'timestamp_columns': ['input_ts', 'output_ts'],
+                'timestamp_columns': ['input_ts', 'output_ts', 'audio_expires_ts'],
                 'json_columns': ['cmds_json', 'results_json', 'urls_json', 'images_json', 'files_json', 'attachments_json', 'docs_json', 'additional_ctx_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',

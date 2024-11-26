@@ -1461,7 +1461,7 @@
         "section": "developer",
         "type": "bool",
         "slider": false,
-        "label": "Log Llama-index usage to console",
+        "label": "Log LlamaIndex usage to console",
         "value": false,
         "min": null,
         "max": null,

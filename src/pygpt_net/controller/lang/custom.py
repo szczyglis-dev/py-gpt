@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AUDIO,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_EXPERT,
@@ -63,6 +64,7 @@ class Custom:
         self.window.ui.config['preset'][MODE_AGENT].box.setText(trans("preset.agent"))
         self.window.ui.config['preset'][MODE_AGENT_LLAMA].box.setText(trans("preset.agent_llama"))
         self.window.ui.config['preset'][MODE_EXPERT].box.setText(trans("preset.expert"))
+        self.window.ui.config['preset'][MODE_AUDIO].box.setText(trans("preset.audio"))
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 

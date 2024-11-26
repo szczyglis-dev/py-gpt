@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
+    MODE_AUDIO,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_EXPERT,
@@ -33,6 +34,7 @@ CHAT_MODES = [
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_EXPERT,
+    MODE_AUDIO,
 ]
 
 
@@ -374,7 +376,7 @@ class Tokens:
         model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
         tokens = 0
-        if mode == MODE_CHAT or mode == MODE_VISION:
+        if mode in [MODE_CHAT, MODE_VISION, MODE_AUDIO]:
             tokens += self.from_prompt(system_prompt, "", model_id)  # system prompt
             tokens += self.from_text("system", model_id)
             tokens += self.from_prompt(input_prompt, "", model_id)  # input prompt

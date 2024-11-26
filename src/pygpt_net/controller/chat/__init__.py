@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import AppEvent
 from pygpt_net.item.ctx import CtxItem
 
 from .attachment import Attachment
+from .audio import Audio
 from .command import Command
 from .common import Common
 from .files import Files
@@ -35,6 +36,7 @@ class Chat:
         """
         self.window = window
         self.attachment = Attachment(window)
+        self.audio = Audio(window)
         self.command = Command(window)
         self.common = Common(window)
         self.files = Files(window)

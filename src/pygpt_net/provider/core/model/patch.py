@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -306,6 +306,12 @@ class Patch:
                     if model.id not in exclude:
                         if "agent_llama" not in model.mode:
                             model.mode.append("agent_llama")
+                updated = True
+
+            # < 2.4.34 <--- add gpt-4o-audio-preview, gpt-4o-2024-11-20
+            if old < parse_version("2.4.34"):
+                print("Migrating models from < 2.4.34...")
+                # add missing gpt-4o-audio-preview, gpt-4o-2024-11-20
                 updated = True
 
         # update file

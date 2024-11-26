@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import os
@@ -343,6 +343,7 @@ class Plugin(BasePlugin):
             worker.signals.destroyed.connect(self.handle_destroy)
             worker.signals.started.connect(self.handle_started)
             worker.signals.stopped.connect(self.handle_stop)
+            worker.signals.on_realtime.connect(self.handle_realtime)
 
             worker.run_async()
 
@@ -370,6 +371,15 @@ class Plugin(BasePlugin):
         :param status: status text
         """
         self.window.ui.plugin_addon['audio.input'].set_status(status)
+
+    @Slot(str)
+    def handle_realtime(self, path: str):
+        """
+        Handle realtime audio input
+
+        :param path: audio input file path
+        """
+        self.window.controller.chat.audio.handle_input(path)
 
     @Slot(object, object)
     def handle_input(self, text: str, ctx: CtxItem = None):

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
 
+from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.audio_output.base import BaseProvider
 from pygpt_net.core.events import Event
@@ -118,15 +119,21 @@ class Plugin(BasePlugin):
         name = event.name
         data = event.data
         ctx = event.ctx
+        mode = self.window.core.config.get("mode")
 
         if name == Event.INPUT_BEFORE:
             self.on_input_before(data['value'])
 
-        elif name in [
-            Event.CTX_AFTER,
-            Event.AUDIO_READ_TEXT
-        ]:
-            self.on_ctx_after(ctx, event)
+        elif name == Event.CTX_AFTER:
+            if mode == MODE_AUDIO:
+                return  # skip if audio mode
+            self.on_generate(ctx, event)
+
+        elif name == Event.AUDIO_READ_TEXT:
+            self.on_generate(ctx, event)
+
+        elif name == Event.AUDIO_PLAYBACK:
+            self.on_playback(ctx, event)
 
         elif name == Event.AUDIO_OUTPUT_STOP:
             self.stop_audio()
@@ -139,7 +146,7 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def on_ctx_after(self, ctx: CtxItem, event: Event):
+    def on_generate(self, ctx: CtxItem, event: Event):
         """
         Events: CTX_AFTER, AUDIO_READ_TEXT
 
@@ -166,6 +173,7 @@ class Plugin(BasePlugin):
                 worker.event = name
                 worker.cache_file = cache_file
                 worker.text = self.window.core.audio.clean_text(text)
+                worker.mode = "generate"
 
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
@@ -176,6 +184,28 @@ class Plugin(BasePlugin):
                 # only for manual reading
                 if name == Event.AUDIO_READ_TEXT:
                     self.window.controller.audio.on_begin(worker.text)
+
+        except Exception as e:
+            self.error(e)
+
+    def on_playback(self, ctx: CtxItem, event: Event):
+        """
+        Events: AUDIO_PLAYBACK
+
+        :param ctx: CtxItem
+        :param event: Event
+        """     
+        try:
+            worker = Worker()
+            worker.from_defaults(self)
+            worker.audio_file = event.data["audio_file"]
+            worker.mode = "playback"
+
+            # signals
+            worker.signals.playback.connect(self.handle_playback)
+            worker.signals.stop.connect(self.handle_stop)
+
+            worker.run_async()
 
         except Exception as e:
             self.error(e)

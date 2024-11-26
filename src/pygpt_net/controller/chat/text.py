@@ -6,17 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 01:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AUDIO,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
-from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -38,6 +39,7 @@ class Text:
             internal: bool = False,
             prev_ctx: CtxItem = None,
             parent_id: str = None,
+            multimodal_ctx: MultimodalContext = None,
     ) -> CtxItem:
         """
         Send text message
@@ -47,6 +49,7 @@ class Text:
         :param internal: internal call
         :param prev_ctx: previous context item (if reply)
         :param parent_id: parent context id
+        :param multimodal_ctx: multimodal context
         :return: context item
         """
         self.window.update_status(trans('status.sending'))
@@ -80,7 +83,7 @@ class Text:
         tools_outputs = []  # tools outputs (assistant only)
 
         # o1 models: disable stream mode
-        if model.startswith("o1") or mode == MODE_AGENT_LLAMA:
+        if model.startswith("o1") or mode in [MODE_AGENT_LLAMA, MODE_AUDIO]:
             stream_mode = False
 
         # create ctx item
@@ -233,6 +236,7 @@ class Text:
                 external_functions=functions,  # external functions
                 tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
                 max_tokens=max_tokens,  # max output tokens
+                multimodal_ctx=multimodal_ctx,  # multimodal context
             )
             extra = {
                 'mode': mode,

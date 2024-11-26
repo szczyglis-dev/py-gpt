@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -110,6 +110,9 @@ class Output:
 
         # update response tokens
         self.window.controller.chat.common.show_response_tokens(ctx)
+
+        # handle audio output
+        self.window.controller.chat.audio.handle_output(ctx)
 
         # store to history
         if self.window.core.config.get('store_history'):

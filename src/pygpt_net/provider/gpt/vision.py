@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import base64
@@ -109,10 +109,16 @@ class Vision:
 
         # append initial (system) message
         if system_prompt is not None and system_prompt != "":
-            messages.append({"role": "system", "content": system_prompt})
+            messages.append({
+                "role": "system",
+                "content": system_prompt,
+            })
         else:
             if system_prompt is not None and system_prompt != "":
-                messages.append({"role": "system", "content": system_prompt})
+                messages.append({
+                    "role": "system",
+                    "content": system_prompt,
+                })
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
@@ -126,15 +132,24 @@ class Vision:
             for item in items:
                 # input
                 if item.final_input is not None and item.final_input != "":
-                    messages.append({"role": "user", "content": item.final_input})
+                    messages.append({
+                        "role": "user",
+                        "content": item.final_input,
+                    })
 
                 # output
                 if item.final_output is not None and item.final_output != "":
-                    messages.append({"role": "assistant", "content": item.final_output})
+                    messages.append({
+                        "role": "assistant",
+                        "content": item.final_output,
+                    })
 
         # append current prompt
         content = self.build_content(prompt, attachments)
-        messages.append({"role": "user", "content": content})
+        messages.append({
+            "role": "user",
+            "content": content,
+        })
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(
@@ -143,20 +158,27 @@ class Vision:
         )
         return messages
 
-    def build_content(self, prompt: str, attachments: dict = None) -> list:
+    def build_content(
+            self,
+            content: str or list,
+            attachments: dict = None,
+    ) -> list:
         """
-        Build vision contents
+        Build vision content
 
-        :param prompt: prompt (user input)
+        :param content: content (str or list)
         :param attachments: attachments (dict, optional)
         :return: List of contents
         """
-        content = [
-            {
-                "type": "text",
-                "text": str(prompt)
-            }
-        ]
+        if not isinstance(content, list):
+            content = [
+                {
+                    "type": "text",
+                    "text": str(content)
+                }
+            ]
+
+        prompt = content[0]['text']
 
         self.attachments = {}  # reset attachments, only current prompt
         self.urls = []

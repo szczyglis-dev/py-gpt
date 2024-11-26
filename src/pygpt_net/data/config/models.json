@@ -855,7 +855,7 @@
                 ]
             },
             "ctx": 128000,
-            "tokens": 4096,
+            "tokens": 16384,
             "default": true
         },
         "gpt-4o-mini": {
@@ -918,8 +918,129 @@
                 ]
             },
             "ctx": 128000,
-            "tokens": 4096,
+            "tokens": 16384,
             "default": false
+        },
+        "gpt-4o-audio-preview": {
+            "id": "gpt-4o-audio-preview",
+            "name": "gpt-4o-audio-preview",
+            "mode": [
+                "audio"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4o-audio-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4o-audio-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
+        "gpt-4o-2024-11-20": {
+            "id": "gpt-4o-2024-11-20",
+            "name": "gpt-4o-2024-11-20",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index",
+                "vision",
+                "agent",
+                "expert",
+                "agent_llama"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4o-2024-11-20",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4o-2024-11-20",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
         },
         "gpt-4-32k": {
             "id": "gpt-4-32k",

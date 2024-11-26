@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.11.26 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -58,6 +58,7 @@ class CtxItem:
         self.current = False
         self.internal = False
         self.is_vision = False
+        self.is_audio = False
         self.idx = 0
         self.first = False
         self.live = False  # True if is current flow (not loaded from DB)
@@ -72,6 +73,9 @@ class CtxItem:
         self.sub_reply = False  # sub call reply
         self.hidden = False  # hidden context
         self.pid = 0
+        self.audio_id = None
+        self.audio_output = None
+        self.audio_expires_ts = 0
 
 
     @property
@@ -193,6 +197,8 @@ class CtxItem:
             "thread": self.thread,
             "msg_id": self.msg_id,
             "run_id": self.run_id,
+            "audio_id": self.audio_id,
+            "audio_expires_ts": self.audio_expires_ts,
             "input_name": self.input_name,
             "output_name": self.output_name,
             "input_timestamp": self.input_timestamp,
@@ -246,6 +252,8 @@ class CtxItem:
         self.thread = data.get("thread", None)
         self.msg_id = data.get("msg_id", None)
         self.run_id = data.get("run_id", None)
+        self.audio_id = data.get("audio_id", None)
+        self.audio_expires_ts = data.get("audio_expires_ts", None)
         self.input_name = data.get("input_name", None)
         self.output_name = data.get("output_name", None)
         self.input_timestamp = data.get("input_timestamp", None)
