@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 import os.path
@@ -140,7 +140,7 @@ class Runner:
 
         # append to ctx
         ctx.files = paths
-        ctx.images = images_list
+        ctx.images = self.plugin.window.core.filesystem.make_local_list(list(images_list))
         return paths
 
     def handle_result_ipython(self, ctx: CtxItem, response) -> str:

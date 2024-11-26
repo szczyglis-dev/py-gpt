@@ -15,7 +15,10 @@ body {{
     background: #232629;
 }}
 a {{
-    color: #fff;
+    color: #a1b5c4 !important;
+}}
+a:hover {{
+    color: #b8cad7 !important;
 }}
 .msg-user {{
     color: #cbcbcb !important;

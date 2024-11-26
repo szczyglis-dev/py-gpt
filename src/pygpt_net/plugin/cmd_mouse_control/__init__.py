@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 04:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -141,7 +141,9 @@ class Plugin(BasePlugin):
             self.window.controller.attachment.clear_silent()
             path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
                                                                      silent=True)  # attach screenshot
-            ctx.images.append(path)
+            
+            img_path = self.window.core.filesystem.make_local(path)
+            ctx.images.append(img_path)
             #ctx.images_before.append(path)
 
         context = BridgeContext()

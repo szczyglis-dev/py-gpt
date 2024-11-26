@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
 import json
@@ -420,16 +420,20 @@ class Renderer(BaseRenderer):
         # files and attachments, TODO check attachments
         c = len(ctx.files)
         if c > 0:
+            files_html = []
             n = 1
             for file in ctx.files:
-                if file in appended:
+                if file in appended or file in self.pids[pid].files_appended:
                     continue
                 try:
                     appended.append(file)
-                    html += self.body.get_file_html(file, n, c)
+                    files_html.append(self.body.get_file_html(file, n, c))
+                    self.pids[pid].files_appended.append(file)
                     n += 1
                 except Exception as e:
                     pass
+            if files_html:
+                html += "<br/>" + "<br/>".join(files_html)
 
         # urls
         c = len(ctx.urls)
@@ -519,6 +523,7 @@ class Renderer(BaseRenderer):
         self.clear_chunks(pid)
         self.pids[pid].images_appended = []
         self.pids[pid].urls_appended = []
+        self.pids[pid].files_appended = []
         self.get_output_node_by_pid(pid).reset_current_content()
         self.reset_names_by_pid(pid)
 
