@@ -43,6 +43,10 @@ a = Analysis(
         ('src\\pygpt_net\\LICENSE', '.'),
         ('src\\pygpt_net\\data\\icon.png', '.'),
         ('src\\pygpt_net\\data\\icon.ico', '.'),
+        ('src\\pygpt_net\\data\\win32\\USER-LICENSE.rtf', '.'),
+        ('src\\pygpt_net\\data\\win32\\README.rtf', '.'),
+        ('src\\pygpt_net\\data\\win32\\banner.bmp', '.'),
+        ('src\\pygpt_net\\data\\win32\\banner_welcome.bmp', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
         ('venv\\Lib\\site-packages\\onnxruntime\\capi\\*', 'onnxruntime\\capi\\'),  # onnxruntime

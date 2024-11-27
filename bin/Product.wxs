@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="PyGPT - Desktop AI Assistant" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Marcin Szczyglinski" UpgradeCode="3FCD39F6-4965-4B51-A185-FC6E53CA431B">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perUser" InstallPrivileges="limited" />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <Property Id="REBOOT" Value="ReallySuppress" />
+    <UIRef Id="WixUI_InstallDir" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\_internal\USER-LICENSE.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="$(var.SourceDir)\_internal\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(var.SourceDir)\_internal\banner_welcome.bmp" />
+    <Icon Id="PyGPTIcon.ico" SourceFile="$(var.SourceDir)\_internal\icon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="PyGPTIcon.ico" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="AppDataFolder">
+        <Directory Id="INSTALLDIR" Name="PyGPT">
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" />
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+    <Feature Id="MainFeature" Title="PyGPT - Desktop AI Assistant" Level="1">
+      <ComponentGroupRef Id="PYGPTFiles" />
+      <ComponentRef Id="ApplicationComponent" />
+      <ComponentRef Id="DocumentationShortcutComponent" />
+      <ComponentRef Id="WebsiteShortcutComponent" />
+      <ComponentRef Id="SupportShortcutComponent" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+  <DirectoryRef Id="INSTALLDIR">
+    <Component Id="ApplicationComponent" Guid="ED1ED5C3-8B4E-4AB5-9E6C-D2E3FB2A001E">
+      <File Id="PygptExe" Source="$(var.SourceDir)\pygpt.exe" KeyPath="yes">
+        <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
+        <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
+      </File>
+      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1"/>
+    </Component>
+  </DirectoryRef>
+</Fragment>
+<Fragment>
+  <DirectoryRef Id="ApplicationProgramsFolder">
+    <Component Id="DocumentationShortcutComponent" Guid="D84D270D-41AE-4540-AF7C-022BDCB3E6FE">
+      <Shortcut Id="DocumentationShortcut" Directory="ApplicationProgramsFolder" Name="Documentation" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://pygpt.readthedocs.io" />
+      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="docs" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
+    <Component Id="WebsiteShortcutComponent" Guid="162ECC1B-EBD9-43DF-9F12-4429412C55AB">
+      <Shortcut Id="WebsiteShortcut" Directory="ApplicationProgramsFolder" Name="Official Website" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://pygpt.net" />
+      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="website" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
+    <Component Id="SupportShortcutComponent" Guid="05FC5020-6E2A-4C14-8A45-71B61190E7D4">
+      <Shortcut Id="SupportShortcut" Directory="ApplicationProgramsFolder" Name="GitHub" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://github.com/szczyglis-dev/py-gpt" />
+      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="support" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
+  </DirectoryRef>
+</Fragment>
+</Wix>
