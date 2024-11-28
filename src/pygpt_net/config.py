@@ -104,10 +104,19 @@ class Config:
 
         :return: base workdir path
         """
-        if "PYGPT_WORKDIR" in os.environ:
+        path = os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
+        if "PYGPT_WORKDIR" in os.environ and os.environ["PYGPT_WORKDIR"] != "":
             print("FORCE using workdir: {}".format(os.environ["PYGPT_WORKDIR"]))
-            return os.environ["PYGPT_WORKDIR"]
-        return os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
+            # convert relative path to absolute path if needed
+            if not os.path.isabs(os.environ["PYGPT_WORKDIR"]):
+                path = os.path.join(os.getcwd(), os.environ["PYGPT_WORKDIR"])
+            else:
+                path = os.environ["PYGPT_WORKDIR"]
+            if not os.path.exists(path):
+                print("Workdir path not exists: {}".format(path))
+                print("Creating workdir path: {}".format(path))
+                os.makedirs(path, exist_ok=True)
+        return path
 
     @staticmethod
     def prepare_workdir() -> str:
