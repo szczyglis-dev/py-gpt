@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.24 22:00:00                  #
 # ================================================== #
+
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
 
@@ -67,10 +68,7 @@ class OptionCheckbox(QWidget):
                 self.box.isChecked()
             )
         )
-
         self.label = QLabel(self.title)
-        self.box = AnimToggle()
-
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
 

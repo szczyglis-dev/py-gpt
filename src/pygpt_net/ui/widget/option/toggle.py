@@ -47,6 +47,7 @@ class OptionCheckbox(QWidget):
         self.box = AnimToggle(self.title, self.window)
         if self.value is not None:
             self.box.setChecked(self.value)
+
         self.box.stateChanged.connect(
             lambda: self.window.controller.config.checkbox.on_update(
                 self.parent_id,

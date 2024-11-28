@@ -26,8 +26,9 @@ class AnimToggle(QCheckBox):
     _light_grey_pen = QPen(Qt.lightGray)
 
     def __init__(self, title="", parent=None):
-        super().__init__(parent)
+        super().__init__()
         self.setText(title)
+        self.option = None
 
         # Initialize the colors based on the current palette
         self.updateColors()
@@ -103,7 +104,6 @@ class AnimToggle(QCheckBox):
         self.animations_group.start()
 
     def paintEvent(self, e: QPaintEvent):
-
         contRect = self.contentsRect()
         handleRadius = round(0.24 * contRect.height())
 
