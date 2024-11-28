@@ -97,13 +97,13 @@ Linux version requires `GLIBC` >= `2.35`.
 You can install **PyGPT** directly from Snap Store:
 
 ```commandline
-$ sudo snap install pygpt
+sudo snap install pygpt
 ```
 
 To manage future updates just use:
 
 ```commandline
-$ sudo snap refresh pygpt
+sudo snap refresh pygpt
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
@@ -111,13 +111,13 @@ $ sudo snap refresh pygpt
 **Using camera:** to use camera in Snap version you must connect the camera with:
 
 ```commandline
-$ sudo snap connect pygpt:camera
+sudo snap connect pygpt:camera
 ```
 
 **Using microphone:** to use microphone in Snap version you must connect the microphone with:
 
 ```commandline
-$ sudo snap connect pygpt:audio-record :audio-record
+sudo snap connect pygpt:audio-record :audio-record
 ```
 
 **Connecting IPython in Docker in Snap version**:
@@ -125,11 +125,11 @@ $ sudo snap connect pygpt:audio-record :audio-record
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 ```commandline
-$ sudo snap connect pygpt:docker-executables docker:docker-executables
+sudo snap connect pygpt:docker-executables docker:docker-executables
 ```
 
 ````commandline
-$ sudo snap connect pygpt:docker docker:docker-daemon
+sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
 ## PyPi (pip)
@@ -139,20 +139,20 @@ The application can also be installed from `PyPi` using `pip install`:
 1. Create virtual environment:
 
 ```commandline
-$ python3 -m venv venv
-$ source venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 2. Install from PyPi:
 
 ``` commandline
-$ pip install pygpt-net
+pip install pygpt-net
 ```
 
 3. Once installed run the command to start the application:
 
 ``` commandline
-$ pygpt
+pygpt
 ```
 
 ## Running from GitHub source code
@@ -164,27 +164,27 @@ An alternative method is to download the source code from `GitHub` and execute t
 1. Clone git repository or download .zip file:
 
 ```commandline
-$ git clone https://github.com/szczyglis-dev/py-gpt.git
-$ cd py-gpt
+git clone https://github.com/szczyglis-dev/py-gpt.git
+cd py-gpt
 ```
 
 2. Create a new virtual environment:
 
 ```commandline
-$ python3 -m venv venv
-$ source venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 3. Install requirements:
 
 ```commandline
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 4. Run the application:
 
 ```commandline
-$ python3 run.py
+python3 run.py
 ```
 
 ### Install with Poetry
@@ -192,33 +192,33 @@ $ python3 run.py
 1. Clone git repository or download .zip file:
 
 ```commandline
-$ git clone https://github.com/szczyglis-dev/py-gpt.git
-$ cd py-gpt
+git clone https://github.com/szczyglis-dev/py-gpt.git
+cd py-gpt
 ```
 
 2. Install Poetry (if not installed):
 
 ```commandline
-$ pip install poetry
+pip install poetry
 ```
 
 3. Create a new virtual environment that uses Python 3.10:
 
 ```commandline
-$ poetry env use python3.10
-$ poetry shell
+poetry env use python3.10
+poetry shell
 ```
 
 4. Install requirements:
 
 ```commandline
-$ poetry install
+poetry install
 ```
 
 5. Run the application:
 
 ```commandline
-$ poetry run python3 run.py
+poetry run python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
@@ -237,19 +237,19 @@ Reinstalling the application may fix this problem.
 ...then install `libxcb`:
 
 ```commandline
-$ sudo apt install libxcb-cursor0
+sudo apt install libxcb-cursor0
 ```
 
 If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:
 
 ```commandline
-$ sudo apt install portaudio19-dev
+sudo apt install portaudio19-dev
 ```
 
 ```commandline
-$ sudo apt install libasound2
-$ sudo apt install libasound2-data 
-$ sudo apt install libasound2-plugins
+sudo apt install libasound2
+sudo apt install libasound2-data 
+sudo apt install libasound2-plugins
 ```
 
 **Problems with GLIBC on Linux**
@@ -265,7 +265,7 @@ when trying to run the compiled version for Linux, try updating GLIBC to version
 
 
 ```commandline
-$ sudo snap connect pygpt:camera
+sudo snap connect pygpt:camera
 ```
 
 **Access to microphone in Snap version:**
@@ -273,7 +273,7 @@ $ sudo snap connect pygpt:camera
 To use microphone in Snap version you must connect the microphone with:
 
 ```commandline
-$ sudo snap connect pygpt:audio-record :audio-record
+sudo snap connect pygpt:audio-record :audio-record
 ```
 
 **Windows and VC++ Redistributable**
@@ -292,13 +292,13 @@ It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-pac
 If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
 
 ``` ini
-$ python3 run.py --legacy=1
+python3 run.py --legacy=1
 ```
 
 and to force disable OpenGL hardware acceleration:
 
 ``` ini
-$ python3 run.py --disable-gpu=1
+python3 run.py --disable-gpu=1
 ```
 
 You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
@@ -946,11 +946,11 @@ How to use locally installed Llama 3 or Mistral models:
 
 For example, on Linux:
 
-```$ curl -fsSL https://ollama.com/install.sh | sh```
+```curl -fsSL https://ollama.com/install.sh | sh```
 
 4) Run the model (e.g. Llama 3) locally on your machine. For example, on Linux:
 
-```$ ollama run llama3.1```
+```ollama run llama3.1```
 
 5) Return to PyGPT and select the correct model from models list to chat with selected model using Ollama running locally.
 
@@ -1467,11 +1467,11 @@ You can find the installation instructions here: https://docs.docker.com/engine/
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 ```commandline
-$ sudo snap connect pygpt:docker-executables docker:docker-executables
+sudo snap connect pygpt:docker-executables docker:docker-executables
 ```
 
 ````commandline
-$ sudo snap connect pygpt:docker docker:docker-daemon
+sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
 
