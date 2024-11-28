@@ -102,6 +102,8 @@ class UI:
         prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
             sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
+        attachments_tokens = self.window.controller.chat.attachment.get_current_tokens()
+        sum_tokens += attachments_tokens
 
         # ctx tokens
         ctx_string = "{} / {} - {} {}".format(
@@ -119,11 +121,12 @@ class UI:
         parsed_max_current = str(int(max_current))
         parsed_max_current = parsed_max_current.replace("000000", "M").replace("000", "k")
 
-        input_string = "{} + {} + {} + {} = {} / {}".format(
+        input_string = "{} + {} + {} + {} + {} = {} / {}".format(
             input_tokens,
             system_tokens,
             ctx_tokens,
             extra_tokens,
+            attachments_tokens,
             parsed_sum,
             parsed_max_current
         )

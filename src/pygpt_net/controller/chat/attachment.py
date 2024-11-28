@@ -564,6 +564,28 @@ class Attachment(QObject):
             return os.path.exists(dir) and os.path.isdir(dir)
         return False
 
+    def get_current_tokens(self) -> int:
+        """
+        Get current tokens
+
+        :return: Current attachments tokens
+        """
+        if self.mode != self.MODE_FULL_CONTEXT:
+            return 0
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None:
+            return 0
+        if meta.additional_ctx is None:
+            return 0
+        tokens = 0
+        for item in meta.additional_ctx:
+            if "tokens" in item:
+                try:
+                    tokens += int(item["tokens"])
+                except Exception as e:
+                    pass
+        return tokens
+
     @Slot(object)
     def handle_upload_error(self, error: Exception):
         """
@@ -600,3 +622,4 @@ class Attachment(QObject):
         self.mode = mode
         self.window.core.config.set("ctx.attachment.mode", mode)
         self.window.core.config.save()
+        self.window.controller.ui.update_tokens()
