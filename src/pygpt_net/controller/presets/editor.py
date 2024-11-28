@@ -330,6 +330,10 @@ class Editor:
             self.window.ui.config[self.id]['tool.function'].model.updateData([])
 
         # set focus to name field
+        current_model = self.window.core.config.get('model')
+        # set current model in combo box as selected
+        if id is None:
+            self.window.ui.config[self.id]['model'].set_value(current_model)
         self.window.ui.config[self.id]['name'].setFocus()
         self.show_hide_by_mode()
 
