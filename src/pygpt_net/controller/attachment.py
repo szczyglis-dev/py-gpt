@@ -232,6 +232,7 @@ class Attachment:
             mode=mode,
             remove_local=remove_local,
             auto=auto,
+            force=force,
         )
         self.window.controller.chat.vision.unavailable()  # set no content to provide
         self.update()

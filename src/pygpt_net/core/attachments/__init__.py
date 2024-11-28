@@ -280,19 +280,20 @@ class Attachments:
             del self.items[mode][id]
             self.save()
 
-    def delete_all(self, mode: str, remove_local: bool = False, auto: bool = False):
+    def delete_all(self, mode: str, remove_local: bool = False, auto: bool = False, force: bool = False):
         """
         Delete all attachments
 
         :param mode: mode
         :param remove_local: remove local copy
         :param auto: auto delete
+        :param force: force delete
         """
         if mode not in self.items:
             self.items[mode] = {}
 
         for id in list(self.items[mode].keys()):
-            if not self.items[mode][id].consumed and auto:
+            if (not self.items[mode][id].consumed and auto) and not force:
                 continue
             if remove_local:
                 self.window.core.filesystem.remove_upload(
