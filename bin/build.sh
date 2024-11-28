@@ -20,7 +20,7 @@ cp -rf $DIR_PARENT/icon.png $DIR_PARENT/dist/Linux/
 
 mv $DIR_PARENT/dist/Linux $DIR_PARENT/dist/pygpt-$VERSION
 cd $DIR_PARENT/dist
-zip -r pygpt-$VERSION.zip pygpt-$VERSION
+zip -r pygpt-$VERSION.zip pygpt-$VERSION -9
 cd $DIR_PARENT
 
 python -m build
