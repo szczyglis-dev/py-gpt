@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.34** | build: **2024.11.26** | Python: **>=3.10, <3.12**
+Release: **2.4.35** | build: **2024.11.28** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3832,6 +3832,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.35 (2024-11-28)**
+
+- Docker removed from dependencies in Snap version #82
+- Refactored documentation.
+- Fix: toggles real-time update hook.
+- Fix: missing edit icons.
+- Added tokens from attachments to counters if mode == Full context.
 
 **2.4.34 (2024-11-26)**
 

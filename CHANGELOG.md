@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.35 (2024-11-28)
+
+- Docker removed from dependencies in Snap version #82
+- Refactored documentation.
+- Fix: toggles real-time update hook.
+- Fix: missing edit icons.
+- Added tokens from attachments to counters if mode == Full context.
+
 ## 2.4.34 (2024-11-26)
 
 - Added a new mode: `Chat with Audio`, with built-in multimodal support for audio input/output. Currently in beta, the execution of commands and tools in this mode is temporarily unavailable.
