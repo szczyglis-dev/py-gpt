@@ -1717,6 +1717,12 @@ class Patch:
                         'ctx.attachment.query.model')
                 updated = True
 
+            # < 2.4.35
+            if old < parse_version("2.4.35"):
+                print("Migrating config from < 2.4.35...")
+                data["ctx.edit_icons"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:
