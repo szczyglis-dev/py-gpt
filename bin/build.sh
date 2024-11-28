@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script is used to build the app using pyinstaller
 
-VERSION="2.4.34"
+VERSION="2.4.35"
 
 cd "$(dirname "$0")"
 DIR_CURRENT="$(pwd)"
@@ -19,7 +19,9 @@ cp -rf $DIR_PARENT/SECURITY.md $DIR_PARENT/dist/Linux/
 cp -rf $DIR_PARENT/icon.png $DIR_PARENT/dist/Linux/
 
 mv $DIR_PARENT/dist/Linux $DIR_PARENT/dist/pygpt-$VERSION
-zip -r $DIR_PARENT/dist/pygpt-$VERSION.zip $DIR_PARENT/dist/pygpt-$VERSION
+cd $DIR_PARENT/dist
+zip -r pygpt-$VERSION.zip pygpt-$VERSION
+cd $DIR_PARENT
 
 python -m build
 twine check dist/*

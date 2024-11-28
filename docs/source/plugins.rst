@@ -449,7 +449,7 @@ You can find the installation instructions here: https://docs.docker.com/engine/
 
 **Tip: connecting IPython in Docker in Snap version**:
 
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon (built into the Snap package):
+To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 .. code-block:: console
 
