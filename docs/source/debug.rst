@@ -27,8 +27,7 @@ or
 * The value ``2`` enables the ``DEBUG`` logging level (most information).
 
 
-Compatibility (legacy) mode
----------------------------
+**Compatibility (legacy) mode**
 
 If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
 

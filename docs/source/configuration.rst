@@ -95,7 +95,7 @@ The following basic options can be modified directly within the application:
 
 * ``Search also in conversation content, not only in titles``: When enabled, context search will also consider the content of conversations, not just the titles of conversations.
 
-* ``Show Llama-index sources``: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
+* ``Show LlamaIndex sources``: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
 
 * ``Show code interpreter output``: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
 
@@ -135,7 +135,7 @@ The following basic options can be modified directly within the application:
 
 * ``Context: auto-summary (user message)``: User message for context auto-summary. Placeholders: {input}, {output}
 
-* ``Agent: evaluation prompt in loop (Llama-index)``: Prompt used for evaluating the response in Agents (Llama-index) mode.
+* ``Agent: evaluation prompt in loop (LlamaIndex)``: Prompt used for evaluating the response in Agents (LlamaIndex) mode.
 
 * ``Agent: system instruction (Legacy)``: Prompt to instruct how to handle autonomous mode.
 
@@ -169,11 +169,11 @@ The following basic options can be modified directly within the application:
 
 * ``Vision: Image capture quality``: Video capture image JPEG quality (%).
 
-**Indexes (Llama-index)**
+**Indexes (LlamaIndex)**
 
 * ``Indexes``: List of created indexes.
 
-* ``Vector Store``: Vector store to use (vector database provided by Llama-index).
+* ``Vector Store``: Vector store to use (vector database provided by LlamaIndex).
 
 * ``Vector Store (**kwargs)``: Keyword arguments for vector store provider (api_key, index_name, etc.).
 
@@ -199,7 +199,7 @@ The following basic options can be modified directly within the application:
 
 * ``Custom metadata to append/replace to indexed documents (web)``: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
 
-* ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
+* ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
 * ``Use local models in Video/Audio and Image (vision) loaders``: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
 
@@ -219,7 +219,7 @@ The following basic options can be modified directly within the application:
 
 * ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
 
-**Llama-index Agents**
+**LlamaIndex Agents**
 
 * ``Max steps (per iteration)`` - Max steps is one iteration before goal achieved
 
@@ -275,7 +275,7 @@ The following basic options can be modified directly within the application:
 
 * ``Log DALL-E usage to console``: Enables logging of DALL-E usage to console.
 
-* ``Log Llama-index usage to console``: Enables logging of Llama-index usage to console.
+* ``Log LlamaIndex usage to console``: Enables logging of LlamaIndex usage to console.
 
 * ``Log Assistants usage to console``: Enables logging of Assistants API usage to console.
 
@@ -290,3 +290,311 @@ These configuration files are located in the user's work directory within the fo
 .. code-block:: ini
 
    {HOME_DIR}/.config/pygpt-net/
+
+
+Manual configuration
+---------------------
+You can manually edit the configuration files in this directory (this is your work directory):
+
+.. code-block:: ini
+
+   {HOME_DIR}/.config/pygpt-net/
+
+* ``assistants.json`` - stores the list of assistants.
+* ``attachments.json`` - stores the list of current attachments.
+* ``config.json`` - stores the main configuration settings.
+* ``models.json`` - stores models configurations.
+* ``cache`` - a directory for audio cache.
+* ``capture`` - a directory for captured images from camera and screenshots
+* ``css`` - a directory for CSS stylesheets (user override)
+* ``history`` - a directory for context history in ``.txt`` format.
+* ``idx`` - ``LlamaIndex`` indexes
+* ``img`` - a directory for images generated with ``DALL-E 3`` and ``DALL-E 2``, saved as ``.png`` files.
+* ``locale`` - a directory for locales (user override)
+* ``data`` - a directory for data files and files downloaded/generated by GPT.
+* ``presets`` - a directory for presets stored as ``.json`` files.
+* ``upload`` - a directory for local copies of attachments coming from outside the workdir
+* ``db.sqlite`` - a database with contexts, notepads and indexes data records
+* ``app.log`` - a file with error and debug log
+
+
+Translations / locale
+-----------------------
+Locale `.ini` files are located in the directory:
+
+.. code-block:: ini
+
+   ./data/locale
+
+
+This directory is automatically scanned when the application launches. To add a new translation, 
+create and save the file with the appropriate name, for example:
+
+.. code-block:: ini
+
+   locale.es.ini  
+
+
+This will add Spanish as a selectable language in the application's language menu.
+
+**Overwriting CSS and locales with Your Own Files:**
+
+You can also overwrite files in the ``locale`` and ``css`` app directories with your own files in the user directory. 
+This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
+
+
+.. code-block:: ini
+
+   {HOME_DIR}/.config/pygpt-net/
+
+
+* `locale` - a directory for locales in ``.ini`` format.
+* `css` - a directory for CSS styles
+
+**Adding Your Own Fonts**
+
+You can add your own fonts and use them in CSS files. To load your own fonts, you should place them in the ``%workdir%/fonts`` directory. Supported font types include: ``otf``, ``ttf``.
+You can see the list of loaded fonts in ``Debug / Config``.
+
+**Example:**
+
+.. code-block:: ini
+
+   %workdir%
+   |_css
+   |_data
+   |_fonts
+      |_MyFont
+        |_MyFont-Regular.ttf
+        |_MyFont-Bold.ttf
+        |...
+        
+
+.. code-block:: console
+
+   pre {{
+       font-family: 'MyFont';
+   }}
+
+Data Loaders
+------------
+
+**Configuring data loaders**
+
+In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance.
+
+In most cases, an internal LlamaIndex loaders are used internally. 
+You can check these base loaders e.g. here:
+
+Files loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file
+
+Web loaders: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
+
+**Tip:** to index an external data or data from the Web just ask for it, by using ``Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. Data loader for a specified content will be choosen automatically.
+
+Allowed additional keyword arguments for built-in data loaders (files):
+
+**CSV Files**  (file_csv)
+
+* ``concat_rows`` - bool, default: ``True``
+* ``encoding`` - str, default: ``utf-8``
+
+**HTML Files** (file_html)
+
+* ``tag`` - str, default: ``section``
+* ``ignore_no_id`` - bool, default: ``False``
+
+**Image (vision)**  (file_image_vision)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
+
+**Note:** Usage of API mode consumes additional tokens in OpenAI API (for ``GPT-4 Vision`` model)!
+
+Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`` to be installed and uses the ``Salesforce/blip2-opt-2.7b`` model to describing images.
+
+* ``keep_image`` - bool, default: ``False``
+* ``local_prompt`` - str, default: ``Question: describe what you see in this image. Answer:``
+* ``api_prompt`` - str, default: ``Describe what you see in this image`` - Prompt to use in API
+* ``api_model`` - str, default: ``gpt-4-vision-preview`` - Model to use in API
+* ``api_tokens`` - int, default: ``1000`` - Max output tokens in API
+
+**IPYNB Notebook files** (file_ipynb)
+
+* ``parser_config`` - dict, default: ``None``
+* ``concatenate`` - bool, default: ``False``
+
+**Markdown files** (file_md)
+
+* ``remove_hyperlinks`` - bool, default: ``True``
+* ``remove_images`` - bool, default: ``True``
+
+**PDF documents** (file_pdf)
+
+* ``return_full_document`` - bool, default: ``False``
+
+**Video/Audio**  (file_video_audio)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local ``Whisper`` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the currently selected provider in ``Audio Input`` plugin will be used. If the ``OpenAI Whisper`` is chosen then the OpenAI API and the API Whisper model will be used. 
+
+**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for ``Whisper`` model)!
+
+Local mode requires ``torch`` and ``openai-whisper`` to be installed and uses the ``Whisper`` model locally to transcribing video and audio.
+
+* ``model_version`` - str, default: ``base`` - Whisper model to use, available models: https://github.com/openai/whisper
+
+**XML files** (file_xml)
+
+* ``tree_level_split`` - int, default: ``0``
+
+Allowed additional keyword arguments for built-in data loaders (Web and external content):
+
+**Bitbucket**  (web_bitbucket)
+
+* ``username`` - str, default: `None`
+* ``api_key`` - str, default: `None`
+* ``extensions_to_skip`` - list, default: `[]`
+
+**ChatGPT Retrieval**  (web_chatgpt_retrieval)
+
+* ``endpoint_url`` - str, default: `None`
+* ``bearer_token`` - str, default: `None`
+* ``retries`` - int, default: `None`
+* ``batch_size`` - int, default: `100`
+
+**Google Calendar** (web_google_calendar)
+
+* ``credentials_path`` - str, default: `credentials.json`
+* ``token_path`` - str, default: `token.json`
+
+**Google Docs** (web_google_docs)
+
+* ``credentials_path`` - str, default: `credentials.json`
+* ``token_path`` - str, default: `token.json`
+
+**Google Drive** (web_google_drive)
+
+* ``credentials_path`` - str, default: `credentials.json`
+* ``token_path`` - str, default: `token.json`
+* ``pydrive_creds_path`` - str, default: `creds.txt`
+
+**Google Gmail** (web_google_gmail)
+
+* ``credentials_path`` - str, default: `credentials.json`
+* ``token_path`` - str, default: `token.json`
+* ``use_iterative_parser`` - bool, default: `False`
+* ``max_results`` - int, default: `10`
+* ``results_per_page`` - int, default: `None`
+
+**Google Keep** (web_google_keep)
+
+* ``credentials_path`` - str, default: `keep_credentials.json`
+
+**Google Sheets** (web_google_sheets)
+
+* ``credentials_path`` - str, default: `credentials.json`
+* ``token_path`` - str, default: `token.json`
+
+**GitHub Issues**  (web_github_issues)
+
+* ``token`` - str, default: `None`
+* ``verbose`` - bool, default: `False`
+
+**GitHub Repository**  (web_github_repository)
+
+* ``token`` - str, default: `None`
+* ``verbose`` - bool, default: `False`
+* ``concurrent_requests`` - int, default: `5`
+* ``timeout`` - int, default: `5`
+* ``retries`` - int, default: `0`
+* ``filter_dirs_include`` - list, default: `None`
+* ``filter_dirs_exclude`` - list, default: `None`
+* ``filter_file_ext_include`` - list, default: `None`
+* ``filter_file_ext_exclude`` - list, default: `None`
+
+**Microsoft OneDrive**  (web_microsoft_onedrive)
+
+* ``client_id`` - str, default: `None`
+* ``client_secret`` - str, default: `None`
+* ``tenant_id`` - str, default: `consumers`
+
+**Sitemap (XML)**  (web_sitemap)
+
+* ``html_to_text`` - bool, default: `False`
+* ``limit`` - int, default: `10`
+
+**SQL Database**  (web_database)
+
+* ``engine`` - str, default: `None`
+* ``uri`` - str, default: `None`
+* ``scheme`` - str, default: `None`
+* ``host`` - str, default: `None`
+* ``port`` - str, default: `None`
+* ``user`` - str, default: `None`
+* ``password`` - str, default: `None`
+* ``dbname`` - str, default: `None`
+
+**Twitter/X posts**  (web_twitter)
+
+* ``bearer_token`` - str, default: `None`
+* ``num_tweets`` - int, default: `100`
+
+Vector stores
+-------------
+
+**Available vector stores** (provided by ``LlamaIndex``):
+
+* ChromaVectorStore
+* ElasticsearchStore
+* PinecodeVectorStore
+* RedisVectorStore
+* SimpleVectorStore
+
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> LlamaIndex`` window. 
+
+Arguments provided here (on list: ``Vector Store (**kwargs)`` in ``Advanced settings`` will be passed to selected vector store provider. You can check keyword arguments needed by selected provider on LlamaIndex API reference page: 
+
+https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
+
+Which keyword arguments are passed to providers?
+
+For ``ChromaVectorStore`` and ``SimpleVectorStore`` all arguments are set by PyGPT and passed internally (you do not need to configure anything). 
+For other providers you can provide these arguments:
+
+**ElasticsearchStore**
+
+Keyword arguments for ElasticsearchStore(``**kwargs``):
+
+* ``index_name`` (default: current index ID, already set, not required)
+* any other keyword arguments provided on list
+
+
+**PinecodeVectorStore**
+
+Keyword arguments for Pinecone(``**kwargs``):
+
+* ``api_key``
+* index_name (default: current index ID, already set, not required)
+
+**RedisVectorStore**
+
+Keyword arguments for RedisVectorStore(``**kwargs``):
+
+* ``index_name`` (default: current index ID, already set, not required)
+* any other keyword arguments provided on list
+
+
+You can extend list of available providers by creating custom provider and registering it on app launch.
+
+By default, you are using chat-based mode when using ``Chat with Files``.
+If you want to only query index (without chat) you can enable ``Query index only (without chat)`` option.
+
+
+**Adding custom vector stores and offline data loaders**
+
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
+
+See the section ``Extending PyGPT / Adding custom Vector Store provider`` for more details.

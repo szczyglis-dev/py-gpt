@@ -1,6 +1,9 @@
 Credits
 ========
 
+Links
+------
+
 **Official website:**
 https://pygpt.net
 
@@ -30,7 +33,7 @@ MIT License
 
 
 Special thanks
-===============
+--------------
 GitHub's community:
 
 * **BillionShields**
@@ -44,7 +47,7 @@ GitHub's community:
 
 
 Third-party libraries
-=====================
+---------------------
 
 Full list of external libraries used in this project is located in the **requirements.txt** file in the main folder of the repository.
 
@@ -54,6 +57,6 @@ https://github.com/google/material-design-icons
 
 https://fonts.google.com/icons
 
-Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
+Code of the LlamaIndex offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
 
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/

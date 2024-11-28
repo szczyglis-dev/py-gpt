@@ -6,12 +6,11 @@
 PyGPT - pygpt.net
 ====================
 
-| **Last update:** 2024-11-26 21:00
+| **Release:** 2.4.34 (2024-11-26), Last update: 2024-11-26 21:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.4.34 (2024-11-26)
 
 .. toctree::
    :maxdepth: 3
@@ -26,21 +25,19 @@ Contents
    requirements
    quick_start
    modes
-   accessibility
-   attachments
    context
+   attachments
    presets
-   images
    profiles
    models
    plugins
-   functions
-   tabs
    tools
+   functions
    tokens
+   accessibility
    configuration
-   advanced   
-   debug
    updates
-   coming_soon
+   debug
+   extending
+   security
    credits

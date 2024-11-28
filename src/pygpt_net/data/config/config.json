@@ -81,7 +81,7 @@
   "ctx.auto_summary.model": "gpt-4o-mini",
   "ctx.convert_lists": false,
   "ctx.counters.all": false,
-  "ctx.edit_icons": false,
+  "ctx.edit_icons": true,
   "ctx.code_interpreter": true,
   "ctx.list.expanded": [],
   "ctx.records.filter": "all",
@@ -234,7 +234,7 @@
   "painter.brush.color": "Black",
   "painter.brush.mode": "brush",
   "painter.brush.size": 3,
-  "painter.canvas.size": "800x600",
+  "painter.canvas.size": "1280x720",
   "plugins": {},
   "plugins_enabled": {
     "agent": false,

@@ -59,7 +59,7 @@ class About:
             versions = False
 
         if versions:
-            lib_versions = "OpenAI API: {}, Langchain: {}, Llama-index: {}\n\n".format(
+            lib_versions = "OpenAI API: {}, LangChain: {}, LlamaIndex: {}\n\n".format(
                 openai_version,
                 langchain_version,
                 llama_index_version,

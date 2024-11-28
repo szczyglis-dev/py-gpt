@@ -1,11 +1,15 @@
 Functions and commands
 ======================
 
-**INFO:** From version ``2.2.20`` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option ``Config -> Settings -> Prompts -> Use native API function calls``. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
+.. note::
+
+	Remember to enable the ``+ Tools`` checkbox to enable execution of tools and commands from plugins.
+
+From version ``2.2.20`` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option ``Config -> Settings -> Prompts -> Use native API function calls``. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
 
 In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
-.. code-block:: json
+.. code-block:: console
 
 	~###~{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}~###~
 
@@ -42,7 +46,7 @@ Create a new Preset, open the Preset edit dialog and add a new function using ``
 
 **Params (JSON):**
 
-.. code-block:: json
+.. code-block:: console
 
 	{
 	        "type": "object",

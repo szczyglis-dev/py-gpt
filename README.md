@@ -14,7 +14,7 @@ Release: **2.4.34** | build: **2024.11.26** | Python: **>=3.10, <3.12**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `Langchain` and `Llama-index`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3`,`Mistral` or `Bielik`), `Google Gemini` and `Anthropic Claude`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LangChain` and `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3`,`Mistral` or `Bielik`), `Google Gemini` and `Anthropic Claude`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -22,15 +22,15 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, Chat with files (via `Llama-index`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, vision, LangChain, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
-**Video** (mp4, version `2.2.0`, build `2024-04-28`):
+**Video** (mp4, version `2.2.35`, build `2024-11-28`):
 
-https://github.com/szczyglis-dev/py-gpt/assets/61396542/7140ded4-1639-4c12-ac33-201b68b99a16
+https://github.com/user-attachments/assets/5751a003-950f-40e7-a655-d098bbf27b0c
 
-**Screenshot** (version `2.2.0`, build `2024-04-28`):
+**Screenshot** (version `2.2.35`, build `2024-11-28`):
 
-![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d9f2e67f-919c-4faa-b059-6e2f5efd23e6)
+![v2_main](https://github.com/user-attachments/assets/29f1a595-006c-4e2c-b665-f626368ca330)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
 
@@ -38,57 +38,57 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 10 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts, Agent (Llama-index), and Agent (legacy, autonomous).
-- Supports multiple models: `o1`, `gpt-4`, `gpt-3.5`, and any model accessible through `Langchain` and `Llama-index` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `Bielik`, etc.
+- 11 modes of operation: Chat, Vision, Completion, Assistant, Image generation, LangChain, Chat with Files, Chat with Audio, Experts, Autonomous Mode and Agents.
+- Supports multiple models: `o1`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LangChain`, `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `Bielik`, etc.
+- Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+- Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
-- Real-time video camera capture in Vision mode.
 - Internet access via `Google` and `Microsoft Bing`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
-- Speech recognition via `OpenAI Whisper`, `Google`, `Google Cloud` and `Microsoft Bing`.
-- Image analysis via `gpt4-o` and `gpt-4 vision`.
-- Crontab / Task scheduler included.
-- Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+- Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
+- Real-time video camera capture in Vision mode.
+- Image analysis via `GPT-4 Vision` and `GPT-4o`.
+- Integrated `LangChain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Integrated calendar, day notes and search in contexts by selected date.
-- Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
+- Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 - Custom commands creation and execution.
+- Crontab / Task scheduler included.
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notepad.
 - Includes simple painter / drawing tool.
-- Includes optional Autonomous Mode (Agents).
 - Supports multiple languages.
-- Enables the use of all the powerful features of `o1`, `gpt-4`, `gpt-4-vision`, and `gpt-3.5`.
 - Requires no previous knowledge of using AI models.
-- Simplifies image generation using `DALL-E 3` and `DALL-E 2`.
-- Possesses the potential to support future OpenAI models.
+- Simplifies image generation using `DALL-E`.
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
 - Plugins support.
 - Built-in token usage calculation.
-- It's open source; source code is available on `GitHub`.
+- Possesses the potential to support future OpenAI models.
+- **Open source**; source code is available on `GitHub`.
 - Utilizes the user's own API key.
+- and many more.
 
 The application is free, open-source, and runs on PCs with `Linux`, `Windows 10`, `Windows 11` and `Mac`. 
 Full Python source code is available on `GitHub`.
 
-**PyGPT uses the user's API key  -  to use the application, 
-you must have a registered OpenAI account and your own API key.**
+**PyGPT uses the user's API key  -  to use the GPT models, 
+you must have a registered OpenAI account and your own API key. Local models do not require any API keys.**
 
-You can also use built-it Langchain support to connect to other Large Language Models (LLMs), 
+You can also use built-it LangChain support to connect to other Large Language Models (LLMs), 
 such as those on HuggingFace. Additional API keys may be required.
 
 # Installation
 
-## Compiled versions (Linux, Windows 10 and 11)
+## Binaries (Linux, Windows 10 and 11)
 
-You can download compiled versions for `Linux` and `Windows` (10/11). 
+You can download compiled binary versions for `Linux` and `Windows` (10/11). 
 
-Download the `.msi` or `zip`/`tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application. 64-bit only.
+**PyGPT** binaries require a PC with Windows 10, 11, or Linux. Simply download the installer or the archive with the appropriate version from the download page at https://pygpt.net, extract it, or install it, and then run the application. A binary version for Mac is not available, so you must run PyGPT from PyPi or from the source code on Mac. Currently, only 64-bit binaries are available.
 
 Linux version requires `GLIBC` >= `2.35`.
 
@@ -97,13 +97,13 @@ Linux version requires `GLIBC` >= `2.35`.
 You can install **PyGPT** directly from Snap Store:
 
 ```commandline
-sudo snap install pygpt
+$ sudo snap install pygpt
 ```
 
 To manage future updates just use:
 
 ```commandline
-sudo snap refresh pygpt
+$ sudo snap refresh pygpt
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
@@ -111,13 +111,13 @@ sudo snap refresh pygpt
 **Using camera:** to use camera in Snap version you must connect the camera with:
 
 ```commandline
-sudo snap connect pygpt:camera
+$ sudo snap connect pygpt:camera
 ```
 
 **Using microphone:** to use microphone in Snap version you must connect the microphone with:
 
 ```commandline
-sudo snap connect pygpt:audio-record :audio-record
+$ sudo snap connect pygpt:audio-record :audio-record
 ```
 
 **Connecting IPython in Docker in Snap version**:
@@ -125,7 +125,7 @@ sudo snap connect pygpt:audio-record :audio-record
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon (built into the Snap package):
 
 ```commandline
-sudo snap connect pygpt:docker-executables docker:docker-executables
+$ sudo snap connect pygpt:docker-executables docker:docker-executables
 ```
 
 ````commandline
@@ -139,52 +139,52 @@ The application can also be installed from `PyPi` using `pip install`:
 1. Create virtual environment:
 
 ```commandline
-python3 -m venv venv
-source venv/bin/activate
+$ python3 -m venv venv
+$ source venv/bin/activate
 ```
 
 2. Install from PyPi:
 
 ``` commandline
-pip install pygpt-net
+$ pip install pygpt-net
 ```
 
 3. Once installed run the command to start the application:
 
 ``` commandline
-pygpt
+$ pygpt
 ```
 
 ## Running from GitHub source code
 
-An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (>=3.10, <3.12). 
+An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.12`). 
 
 ### Install with pip
 
 1. Clone git repository or download .zip file:
 
 ```commandline
-git clone https://github.com/szczyglis-dev/py-gpt.git
-cd py-gpt
+$ git clone https://github.com/szczyglis-dev/py-gpt.git
+$ cd py-gpt
 ```
 
-2. Create virtual environment:
+2. Create a new virtual environment:
 
 ```commandline
-python3 -m venv venv
-source venv/bin/activate
+$ python3 -m venv venv
+$ source venv/bin/activate
 ```
 
 3. Install requirements:
 
 ```commandline
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 4. Run the application:
 
 ```commandline
-python3 run.py
+$ python3 run.py
 ```
 
 ### Install with Poetry
@@ -192,33 +192,33 @@ python3 run.py
 1. Clone git repository or download .zip file:
 
 ```commandline
-git clone https://github.com/szczyglis-dev/py-gpt.git
-cd py-gpt
+$ git clone https://github.com/szczyglis-dev/py-gpt.git
+$ cd py-gpt
 ```
 
 2. Install Poetry (if not installed):
 
 ```commandline
-pip install poetry
+$ pip install poetry
 ```
 
 3. Create a new virtual environment that uses Python 3.10:
 
 ```commandline
-poetry env use python3.10
-poetry shell
+$ poetry env use python3.10
+$ poetry shell
 ```
 
 4. Install requirements:
 
 ```commandline
-poetry install
+$ poetry install
 ```
 
 5. Run the application:
 
 ```commandline
-poetry run python3 run.py
+$ poetry run python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
@@ -237,19 +237,19 @@ Reinstalling the application may fix this problem.
 ...then install `libxcb`:
 
 ```commandline
-sudo apt install libxcb-cursor0
+$ sudo apt install libxcb-cursor0
 ```
 
 If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:
 
 ```commandline
-sudo apt install portaudio19-dev
+$ sudo apt install portaudio19-dev
 ```
 
 ```commandline
-sudo apt install libasound2
-sudo apt install libasound2-data 
-sudo apt install libasound2-plugins
+$ sudo apt install libasound2
+$ sudo apt install libasound2-data 
+$ sudo apt install libasound2-plugins
 ```
 
 **Problems with GLIBC on Linux**
@@ -265,7 +265,7 @@ when trying to run the compiled version for Linux, try updating GLIBC to version
 
 
 ```commandline
-sudo snap connect pygpt:camera
+$ sudo snap connect pygpt:camera
 ```
 
 **Access to microphone in Snap version:**
@@ -273,7 +273,7 @@ sudo snap connect pygpt:camera
 To use microphone in Snap version you must connect the microphone with:
 
 ```commandline
-sudo snap connect pygpt:audio-record :audio-record
+$ sudo snap connect pygpt:audio-record :audio-record
 ```
 
 **Windows and VC++ Redistributable**
@@ -292,13 +292,13 @@ It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-pac
 If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
 
 ``` ini
-python3 run.py --legacy=1
+$ python3 run.py --legacy=1
 ```
 
 and to force disable OpenGL hardware acceleration:
 
 ``` ini
-python3 run.py --disable-gpu=1
+$ python3 run.py --disable-gpu=1
 ```
 
 You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
@@ -311,11 +311,11 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 ## Other requirements
 
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
-and an active API key that must be input into the program.
+and an active API key that must be input into the program. Local models, such as `Llama3` do not require OpenAI account and any API keys.
 
 ## Debugging and logging
 
-**Tip:** Go to `Debugging and Logging` section for instructions on how to log and diagnose issues in a more detailed manner.
+Please go to `Debugging and Logging` section for instructions on how to log and diagnose issues in a more detailed manner.
 
 
 # Quick Start
@@ -334,7 +334,7 @@ Config -> Settings...
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/43622c58-6cdb-4ed8-b47d-47729763db04)
+![v2_settings](https://github.com/user-attachments/assets/003b0f86-8225-4478-8525-fb9324ac5c88)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -350,26 +350,25 @@ Your API keys will be available here:
 
 ## Chat
 
-**+ inline Vision and Image generation**
+**+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo` and `GPT-3.5`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `GPT-4`, `GPT-4o` and `GPT-3.5`. It works by using the `ChatCompletion` OpenAI API.
 
-The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
+The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
-Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Attachments` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
+Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the `Files and Attachments` section for more information on how to use attachments.
 
-![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f573ee22-8539-4259-b180-f97e54bc0d94)
+![v2_mode_chat](https://github.com/user-attachments/assets/719854af-c28c-4329-a4c4-8622038ba53b)
 
-**Vision:** If you want to send photos or image from camera to analysis you must enable plugin **GPT-4 Vision Inline** in the Plugins menu.
-Plugin allows you to send photos or image from camera to analysis in any Chat mode:
+**Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the `GPT-4 Vision (inline)` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
 
 ![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/assets/61396542/104b0a80-7cf8-4a02-aa74-27e89ad2e409)
 
 With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
 
-![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/3fbd99e2-5bbf-4bd4-81d8-fd4d7db9d8eb)
+![v3_vision_chat](https://github.com/user-attachments/assets/928d1aed-2689-44e1-b32a-68f02f83fb55)
 
-**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
+**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin `DALL-E 3 (inline)` in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c288a4b3-c932-4201-b5a3-8452aea49817)
@@ -383,63 +382,71 @@ This mode works like the Chat mode but with native support for audio input and o
 
 More info: https://platform.openai.com/docs/guides/audio/quickstart
 
+Currently, in beta. Tool and function calls are not enabled in this mode.
+
 **INFO:** The execution of commands and tools in this mode is temporarily unavailable.
 
 ## Completion
 
-This mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through `Langchain`.
+An older mode of operation that allows working in the standard text completion mode. However, it allows for a bit more flexibility with the text by enabling you to initiate the entire discussion in any way you like.
 
 Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-![v2_mode_completion](https://github.com/szczyglis-dev/py-gpt/assets/61396542/045ecb99-edcb-4eb1-9ff0-0b493dee0e27)
-
 From version `2.0.107` the `davinci` models are deprecated and has been replaced with `gpt-3.5-turbo-instruct` model in Completion mode.
 
-## Assistants
+## Image generation (DALL-E)
 
-This mode uses the new OpenAI's **Assistants API**.
+### DALL-E 3
 
-This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PyGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
+**PyGPT** enables quick and easy image creation with `DALL-E 3`. 
+The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
+and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
 
-Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
+Image generation using DALL-E is available in every mode via plugin `DALL-E 3 Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
 
-![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5c3b5604-928d-4f29-940a-21cc83c8dc34)
+If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
+Plugin allows you to generate images in Chat mode:
 
-In Assistant mode you are allowed to storage your files (per Assistant) and manage them easily from app:
+![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c288a4b3-c932-4201-b5a3-8452aea49817)
 
-![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b2c835ea-2816-4b85-bb6f-e08874e758f7)
+### Multiple variants
 
-Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
-uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
-can be sent to the OpenAI API.
+You can generate up to **4 different variants** (DALL-E 2) for a given prompt in one session. DALL-E 3 allows one image.
+To select the desired number of variants to create, use the slider located in the right-hand corner at 
+the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
 
-### Vector stores (via Assistants API)
+### Raw mode
 
-Assistant mode supports the use of external vector databases offered by the OpenAI API. This feature allows you to store your files in a database and then search them using the Assistant's API. Each assistant can be linked to one vector database—if a database is linked, all files uploaded in this mode will be stored in the linked vector database. If an assistant does not have a linked vector database, a temporary database is automatically created during the file upload, which is accessible only in the current thread. Files from temporary databases are automatically deleted after 7 days.
+There is an option for switching prompt generation mode.
 
-To enable the use of vector stores, enable the `Chat with files` checkbox in the Assistant settings. This enables the `File search` tool in Assistants API.
+If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
+If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
 
-To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window. In this management window, you can create a new database, edit an existing one, or import a list of all existing databases from the OpenAI server:
+![v2_dalle2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/e1c30292-8ed0-4346-8b85-6d7a02d65fb6)
 
-![v2_assistant_stores](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2f605326-5bf5-4c82-8dfd-cb1c0edf6724)
+### Image storage
 
-You can define, using `Expire days`, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
+Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
+You also have the options to delete it or view it in full size in your web browser.
 
-The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
+**Tip:** Use presets to save your prepared prompts. 
+This lets you quickly use them again for generating new images later on.
 
-![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f13c2eb-f961-4eae-b08b-0b4937f06ca9)
+The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
+prompts for creating new images.
+
+Images are stored in ``img`` directory in **PyGPT** user data folder.
+
 
 ## Vision (GPT-4 Vision)
 
-**INFO:** From version `2.2.6` (2024-04-30) Vision is available directly in Chat mode, without any plugins - if the model supports Vision (currently: `gpt-4-turbo` and `gpt-4-turbo-2024-04-09`).
-
-This mode enables image analysis using the `GPT-4 Vision` model. Functioning much like the chat mode, 
+This mode enables image analysis using the `gpt-4o` and `gpt-4-vision` models. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
-Vision is integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable the plugin and use Vision in standard modes.
+Vision is also integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
 
 Vision mode also includes real-time video capture from camera. To enable capture check the option `Camera` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable `Auto capture` - image will be captured and appended to chat message every time you send message.
 
@@ -459,16 +466,50 @@ Vision mode also includes real-time video capture from camera. To enable capture
 
 ![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7885d7d0-072e-4053-a81b-6374711fd348)
 
-**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` label will appear at the bottom of the Chat window.
 
-## Langchain
+## Assistants
 
-This mode enables you to work with models that are supported by `Langchain`. The Langchain support is integrated 
+This mode uses the OpenAI's **Assistants API**.
+
+This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PyGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
+
+Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
+
+![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5c3b5604-928d-4f29-940a-21cc83c8dc34)
+
+In Assistant mode you are allowed to storage your files in remote vector store (per Assistant) and manage them easily from app:
+
+![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b2c835ea-2816-4b85-bb6f-e08874e758f7)
+
+Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
+uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
+can be sent to the OpenAI API.
+
+### Vector stores (via Assistants API)
+
+Assistant mode supports the use of external vector databases offered by the OpenAI API. This feature allows you to store your files in a database and then search them using the Assistant's API. Each assistant can be linked to one vector database—if a database is linked, all files uploaded in this mode will be stored in the linked vector database. If an assistant does not have a linked vector database, a temporary database is automatically created during the file upload, which is accessible only in the current thread. Files from temporary databases are automatically deleted after 7 days.
+
+To enable the use of vector stores, enable the `Chat with Files` checkbox in the Assistant settings. This enables the `File search` tool in Assistants API.
+
+To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window (screen below). In this management window, you can create a new vector database, edit an existing one, or import a list of all existing databases from the OpenAI server:
+
+![v2_assistant_stores](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2f605326-5bf5-4c82-8dfd-cb1c0edf6724)
+
+You can define, using `Expire days`, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
+
+The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
+
+![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f13c2eb-f961-4eae-b08b-0b4937f06ca9)
+
+## LangChain
+
+This mode enables you to work with models that are supported by `LangChain`. The LangChain support is integrated 
 into the application, allowing you to interact with any LLM by simply supplying a configuration 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named `models.json`.
 
-Available LLMs providers supported by **PyGPT**, in `Langchain` and `Chat with files (llama-index)` modes:
+Available LLMs providers supported by **PyGPT**, in `LangChain` and `Chat with Files (LlamaIndex)` modes:
 
 ```
 - OpenAI
@@ -479,22 +520,20 @@ Available LLMs providers supported by **PyGPT**, in `Langchain` and `Chat with f
 - Ollama (Llama3, Mistral, etc.)
 ```
 
-![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/0471b6f9-7953-42cc-92bd-007f2c2e59d0)
-
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. 
 To integrate a new model, you can create your own wrapper and register it with the application. 
-Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
+Detailed instructions for this process are provided in the section titled `Managing models / Adding models via LangChain`.
 
-##  Chat with files (Llama-index)
+##  Chat with Files (LlamaIndex)
 
 This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents.
+It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
 
 **Querying single files**
 
-You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version `2.1.9` similar command is available for querying web and external content: `Directly query web content with Llama-index`.
+You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version `2.1.9` similar command is available for querying web and external content: `Directly query web content with LlamaIndex`.
 
-For example:
+**For example:**
 
 If you have a file: `data/my_cars.txt` with content `My car is red.`
 
@@ -502,9 +541,9 @@ You can ask for: `Query the file my_cars.txt about what color my car is.`
 
 And you will receive the response: `Red`.
 
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option "Auto-index readed files" in plugin settings. Remember to enable "+ Tools" checkbox to allow usage of query commands. 
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option `Auto-index readed files` in plugin settings. Remember to enable `+ Tools` checkbox to allow usage of tools and commands from plugins. 
 
-**Using Chat with files mode**
+**Using Chat with Files mode**
 
 In this mode, you are querying the whole index, stored in a vector store database.
 To start, you need to index (embed) the files you want to use as additional context.
@@ -518,7 +557,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
+To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (LlamaIndex, inline)` plugin.
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c3dfbc89-cbfe-4ae3-b7e7-821401d755cd)
 
@@ -564,19 +603,19 @@ Built-in file loaders:
 - Webpages (crawling any webpage content)
 - YouTube (transcriptions)
 
-You can configure data loaders in `Settings / Llama-index / Data Loaders` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in `Settings / LlamaIndex / Data Loaders` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
-Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.
+LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / LlamaIndex` section.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
 **Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
-**Token limit:** When you use `Chat with files` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
+**Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
 
-**Available vector stores** (provided by `Llama-index`):
+**Available vector stores** (provided by `LlamaIndex`):
 
 ```
 - ChromaVectorStore
@@ -586,253 +625,19 @@ Options for indexing existing context history or enabling real-time indexing new
 - SimpleVectorStore
 ```
 
-You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Llama-index` window. 
-Arguments provided here (on list: `Vector Store (**kwargs)` in `Advanced settings` will be passed to selected vector store provider. 
-You can check keyword arguments needed by selected provider on Llama-index API reference page: 
+You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> LlamaIndex` window. See the section: `Configuration / Vector stores` for configuration reference.
 
-https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
-
-Which keyword arguments are passed to providers?
-
-For `ChromaVectorStore` and `SimpleVectorStore` all arguments are set by PyGPT and passed internally (you do not need to configure anything).
-For other providers you can provide these arguments:
-
-**ElasticsearchStore**
-
-Keyword arguments for ElasticsearchStore(`**kwargs`):
-
-- `index_name` (default: current index ID, already set, not required)
-- any other keyword arguments provided on list
-
-**PinecodeVectorStore**
-
-Keyword arguments for Pinecone(`**kwargs`):
-
-- `api_key`
-- index_name (default: current index ID, already set, not required)
-
-**RedisVectorStore**
-
-Keyword arguments for RedisVectorStore(`**kwargs`):
-
-- `index_name` (default: current index ID, already set, not required)
-- any other keyword arguments provided on list
-
-You can extend list of available providers by creating custom provider and registering it on app launch.
-
-By default, you are using chat-based mode when using `Chat with files`.
-If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
-
-### Adding custom vector stores and data loaders
-
-You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to `vector_stores` keyword argument and loader instance in the `loaders` keyword argument:
-
-```python
-
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-from loaders import CustomLoader
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),
-]
-loaders = [
-    CustomLoader(),
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,  # <--- list with custom vector store providers
-    loaders=loaders  # <--- list with custom data loaders
-)
-```
-The vector store provider must be an instance of `pygpt_net.provider.vector_stores.base.BaseStore`. 
-You can review the code of the built-in providers in `pygpt_net.provider.vector_stores` and use them as examples when creating a custom provider.
-
-The data loader must be an instance of `pygpt_net.provider.loaders.base.BaseLoader`. 
-You can review the code of the built-in loaders in `pygpt_net.provider.loaders` and use them as examples when creating a custom loader.
 
 **Configuring data loaders**
 
-In the `Settings -> Llama-index -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance.
+In the `Settings -> LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
 
-In most cases, an internal Llama-index loaders are used internally. 
-You can check these base loaders e.g. here:
 
-File: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file
-
-Web: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
-
-**Tip:** to index an external data or data from the Web just ask for it, by using `Web Search` plugin, e.g. you can ask the model with `Please index the youtube video: URL to video`, etc. Data loader for a specified content will be choosen automatically.
-
-Allowed additional keyword arguments for built-in data loaders (files):
-
-**CSV Files**  (file_csv)
-
-- `concat_rows` - bool, default: `True`
-- `encoding` - str, default: `utf-8`
-
-**HTML Files**  (file_html)
-
-- `tag` - str, default: `section`
-- `ignore_no_id` - bool, default: `False`
-
-**Image (vision)**  (file_image_vision)
-
-This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
-
-**Note:** Usage of API mode consumes additional tokens in OpenAI API (for `GPT-4 Vision` model)!
-
-Local mode requires `torch`, `transformers`, `sentencepiece` and `Pillow` to be installed and uses the `Salesforce/blip2-opt-2.7b` model to describing images.
-
-- `keep_image` - bool, default: `False`
-- `local_prompt` - str, default: `Question: describe what you see in this image. Answer:`
-- `api_prompt` - str, default: `Describe what you see in this image` - Prompt to use in API
-- `api_model` - str, default: `gpt-4-vision-preview` - Model to use in API
-- `api_tokens` - int, default: `1000` - Max output tokens in API
-
-**IPYNB Notebook files**  (file_ipynb)
-
-- `parser_config` - dict, default: `None`
-- `concatenate` - bool, default: `False`
-
-**Markdown files**  (file_md)
-
-- `remove_hyperlinks` - bool, default: `True`
-- `remove_images` - bool, default: `True`
-
-**PDF documents**  (file_pdf)
-
-- `return_full_document` - bool, default: `False`
-
-**Video/Audio**  (file_video_audio)
-
-This loader can operate in two modes: local model and API.
-If the local mode is enabled, then the local `Whisper` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
-If the API mode (default) is selected, then the currently selected provider in `Audio Input` plugin will be used. If the `OpenAI Whisper` is chosen then the OpenAI API and the API Whisper model will be used. 
-
-**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for `Whisper` model)!
-
-Local mode requires `torch` and `openai-whisper` to be installed and uses the `Whisper` model locally to transcribing video and audio.
-
-- `model_version` - str, default: `base` - Whisper model to use, available models: https://github.com/openai/whisper
-
-**XML files**  (file_xml)
-
-- `tree_level_split` - int, default: `0`
-
-Allowed additional keyword arguments for built-in data loaders (Web and external content):
-
-**Bitbucket**  (web_bitbucket)
-
-- `username` - str, default: `None`
-- `api_key` - str, default: `None`
-- `extensions_to_skip` - list, default: `[]`
-
-**ChatGPT Retrieval**  (web_chatgpt_retrieval)
-
-- `endpoint_url` - str, default: `None`
-- `bearer_token` - str, default: `None`
-- `retries` - int, default: `None`
-- `batch_size` - int, default: `100`
-
-**Google Calendar** (web_google_calendar)
-
-- `credentials_path` - str, default: `credentials.json`
-- `token_path` - str, default: `token.json`
-
-**Google Docs** (web_google_docs)
-
-- `credentials_path` - str, default: `credentials.json`
-- `token_path` - str, default: `token.json`
-
-**Google Drive** (web_google_drive)
-
-- `credentials_path` - str, default: `credentials.json`
-- `token_path` - str, default: `token.json`
-- `pydrive_creds_path` - str, default: `creds.txt`
-- `client_config` - dict, default: `{}`
-
-**Google Gmail** (web_google_gmail)
-
-- `credentials_path` - str, default: `credentials.json`
-- `token_path` - str, default: `token.json`
-- `use_iterative_parser` - bool, default: `False`
-- `max_results` - int, default: `10`
-- `results_per_page` - int, default: `None`
-
-**Google Keep** (web_google_keep)
-
-- `credentials_path` - str, default: `keep_credentials.json`
-
-**Google Sheets** (web_google_sheets)
-
-- `credentials_path` - str, default: `credentials.json`
-- `token_path` - str, default: `token.json`
-
-**GitHub Issues**  (web_github_issues)
-
-- `token` - str, default: `None`
-- `verbose` - bool, default: `False`
-
-**GitHub Repository**  (web_github_repository)
-
-- `token` - str, default: `None`
-- `verbose` - bool, default: `False`
-- `concurrent_requests` - int, default: `5`
-- `timeout` - int, default: `5`
-- `retries` - int, default: `0`
-- `filter_dirs_include` - list, default: `None`
-- `filter_dirs_exclude` - list, default: `None`
-- `filter_file_ext_include` - list, default: `None`
-- `filter_file_ext_exclude` - list, default: `None`
-
-**Microsoft OneDrive**  (web_microsoft_onedrive)
-
-- `client_id` - str, default: `None`
-- `client_secret` - str, default: `None`
-- `tenant_id` - str, default: `consumers`
-
-**Sitemap (XML)**  (web_sitemap)
-
-- `html_to_text` - bool, default: `False`
-- `limit` - int, default: `10`
-
-**SQL Database**  (web_database)
-
-- `engine` - str, default: `None`
-- `uri` - str, default: `None`
-- `scheme` - str, default: `None`
-- `host` - str, default: `None`
-- `port` - str, default: `None`
-- `user` - str, default: `None`
-- `password` - str, default: `None`
-- `dbname` - str, default: `None`
-
-**Twitter/X posts**  (web_twitter)
-
-- `bearer_token` - str, default: `None`
-- `num_tweets` - int, default: `100`
-
-##  Agent (Llama-index) 
+##  Agent (LlamaIndex) 
 
 **Currently in beta version** -- introduced in `2.4.10` (2024-11-14)
 
-Mode that allows the use of agents offered by `Llama-index`.
+Mode that allows the use of agents offered by `LlamaIndex`.
 
 Includes built-in agents:
 
@@ -844,10 +649,12 @@ In the future, the list of built-in agents will be expanded.
 
 You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
 
-**Tools / Plugins**  
+**Tools and Plugins**  
+
 In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
 
-**RAG / Using indexes**  
+**RAG - using indexes**  
+
 If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
 
 Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
@@ -858,13 +665,13 @@ You can run the agent in autonomous mode, in a loop, and with evaluation of the 
 
 Setting the expected (required) score to `0%` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
 
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Llama-index agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompt used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
-##  Agent (legacy, autonomous) 
+##  Agent (Legacy, Autonomous) 
 
-This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: `Agent (Llama-index)`.
+This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: `Agent (LlamaIndex)`.
 
 **WARNING: Please use this mode with caution** - autonomous mode, when connected with other plugins, may produce unexpected results!
 
@@ -893,11 +700,11 @@ You can choose which internal mode the agent should use in the settings:
 
 ```Settings / Agent (autonomous) / Sub-mode to use```
 
-Available choices include: `chat`, `completion`, `langchain`, `vision`, `llama_index` (Chat with files).
+Available choices include: `chat`, `completion`, `langchain`, `vision`, `llama_index` (Chat with Files).
 
 Default is: `chat`.
 
-If you want to use the Llama-index mode when running the agent, you can also specify which index `Llama-index` should use with the option:
+If you want to use the LlamaIndex mode when running the agent, you can also specify which index `LlamaIndex` should use with the option:
 
 ```Settings / Agent (autonomous) / Index to use```
 
@@ -905,8 +712,6 @@ If you want to use the Llama-index mode when running the agent, you can also spe
 
 
 ##  Experts (co-op, co-operation mode)
-
-Added in version 2.2.7 (2024-05-01).
 
 **This mode is experimental.**
 
@@ -936,211 +741,6 @@ You can also ask for a list of active experts at any time:
 Give me a list of active experts.
 ```
 
-# Accessibility
-
-Since version `2.2.8`, PyGPT has added beta support for disabled people and voice control. This may be very useful for blind people.
-
-
-In the `Config / Accessibility` menu, you can turn on accessibility features such as:
-
-
-- activating voice control
-
-- translating actions and events on the screen with audio speech
-
-- setting up keyboard shortcuts for actions.
-
-
-**Using voice control**
-
-Voice control can be turned on in two ways: globally, through settings in `Config -> Accessibility`, and by using the `Voice control (inline)` plugin. Both options let you use the same voice commands, but they work a bit differently - the global option allows you to run commands outside of a conversation, anywhere, while the plugin option lets you execute commands directly during a conversation – allowing you to interact with the model and execute commands at the same time, within the conversation.
-
-In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to `Plugins -> Settings -> Voice Control (inline)`:
-
-```bash
-Magic prefix for voice commands
-```
-
-**Tip:** When the voice control is enabled via a plugin, simply provide commands while providing the content of the conversation by using the standard `Microphone` button.
-
-
-**Enabling voice control globally**
-
-
-Turn on the voice control option in `Config / Accessibility`:
-
-
-```bash
-Enable voice control (using microphone)
-```
-
-Once you enable this option, an `Voice Control` button will appear at the bottom right corner of the window. When you click on this button, the microphone will start listening; clicking it again stops listening and starts recognizing the voice command you said. You can cancel voice recording at any time with the `ESC` key. You can also set a keyboard shortcut to turn voice recording on/off.
-
-
-Voice command recognition works based on a model, so you don't have to worry about saying things perfectly.
-
-
-**Here's a list of commands you can ask for by voice:**
-
-- Get the current application status
-- Exit the application
-- Enable audio output
-- Disable audio output
-- Enable audio input
-- Disable audio input
-- Add a memo to the calendar
-- Clear memos from calendar
-- Read the calendar memos
-- Enable the camera
-- Disable the camera
-- Capture image from camera
-- Create a new context
-- Go to the previous context
-- Go to the next context
-- Go to the latest context
-- Focus on the input
-- Send the input
-- Clear the input
-- Get current conversation info
-- Get available commands list
-- Stop executing current action
-- Clear the attachments
-- Read the last conversation entry
-- Read the whole conversation
-- Rename current context
-- Search for a conversation
-- Clear the search results
-- Send the message to input
-- Append message to current input without sending it
-- Switch to chat mode
-- Switch to chat with files (llama-index) mode
-- Switch to the next mode
-- Switch to the previous mode
-- Switch to the next model
-- Switch to the previous model
-- Add note to notepad
-- Clear notepad contents
-- Read current notepad contents
-- Switch to the next preset
-- Switch to the previous preset
-- Switch to the chat tab
-- Switch to the calendar tab
-- Switch to the draw (painter) tab
-- Switch to the files tab
-- Switch to the notepad tab
-- Switch to the next tab
-- Switch to the previous tab
-- Start listening for voice input
-- Stop listening for voice input
-- Toggle listening for voice input
-
-More commands coming soon.
-
-Just ask for an action that matches one of the descriptions above. These descriptions are also known to the model, and relevant commands are assigned to them. When you voice a command that fits one of those patterns, the model will trigger the appropriate action.
-
-
-For convenience, you can enable a short sound to play when voice recording starts and stops. To do this, turn on the option:
-
-
-```bash
-Audio notify microphone listening start/stop
-```
-
-To enable a sound notification when a voice command is recognized and command execution begins, turn on the option:
-
-
-```bash
-Audio notify voice command execution
-```
-
-For voice translation of on-screen events and information about completed commands via speech synthesis, you can turn on the option:
-
-```bash
-Use voice synthesis to describe events on the screen.
-```
-
-![v2_access](https://github.com/szczyglis-dev/py-gpt/assets/61396542/02dd161b-6fb1-48f9-9217-40c658888833)
-
-
-# Attachments and files
-
-## Input attachments (upload)
-
-**PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Attachments` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
-
-![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/bd3d9840-2bc4-4ba8-a603-69724f9eb620)
-
-You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from Llama-index. You can upload any file format supported by the application through Llama-index. Supported formats include:
-
-Text-based types:
-
-- CSV files (csv)
-- Epub files (epub)
-- Excel .xlsx spreadsheets (xlsx)
-- HTML files (html, htm)
-- IPYNB Notebook files (ipynb)
-- JSON files (json)
-- Markdown files (md)
-- PDF documents (pdf)
-- Plain-text files (txt and etc.)
-- Word .docx documents (docx)
-- XML files (xml)
-
-Media-types:
-
-- Image (using vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-- Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-
-Archives:
-
-- zip
-- tar, tar.gz, tar.bz2
-
-**Note:** To use images as additional context, you must enable the option in settings: `Files and attachments -> Allow images as additional context`. Otherwise, only normal vision/handling by the vision model will be active for images.
-
-The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
-
-- `Full context`: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
-
-- `Query only`: The indexed attachment will only be queried in real-time using Llama-index. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
-
-- `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
-
-**Note:** Only text files from the list above are included in the additional context. Images will not be included in the context but will be used by the vision model in real-time. Adding image files to the context will be available in future versions.
-
-**Uploading larger files and auto-index:**
-
-To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
-
-## Files (download, code generation)
-
-**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `data` folder located within the user's working directory. To view or manage these files, users can navigate to the `Files` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
-
-This `data` directory is also where the application stores files that are generated locally by the AI, such as code files or any other data requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated `Llama-index`) and use it's contents as additional context provided to discussion.
-
-The `Files I/O` plugin takes care of file operations in the `data` directory, while the `Code Interpreter` plugin allows for the execution of code from these files.
-
-![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2ada219d-68c9-45e3-96af-86ac5bc73593)
-
-To allow the model to manage files or python code execution, the `+ Tools` option must be active, along with the above-mentioned plugins:
-
-![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
-
-# Draw (paint)
-
-Using the `Draw` tool, you can create quick sketches and submit them to the model for analysis. You can also edit opened from disk or captured from camera images, for example, by adding elements like arrows or outlines to objects. Additionally, you can capture screenshots from the system - the captured image is placed in the drawing tool and attached to the query being sent.
-
-![v2_draw](https://github.com/szczyglis-dev/py-gpt/assets/61396542/09c1de36-1241-4330-9fd7-67c6e09888fa)
-
-To capture the screenshot just click on the `Ask with screenshot` option in a tray-icon dropdown:
-
-![v2_screenshot](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7305a814-ca76-4f8f-8908-47f6a9496fa5)
-
-# Calendar
-
-Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting `Set label color`. By clicking on a particular day of the week, conversations from that day will be displayed.
-
-![v2_calendar](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c7d17375-b61f-452c-81bc-62a7d466fc18)
 
 # Context and memory
 
@@ -1175,170 +775,193 @@ In addition, all history is also saved to `.txt` files for easy reading.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
 
+# Files And Attachments
+
+## Uploading attachments
+
+**Using Your Own Files as Additional Context in Conversations**
+
+You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database, which makes them available all the time during a "Chat with Files" session, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
+
+**Attachments**
+
+**PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Attachments` tab next to the text input area specifically for managing file uploads. 
+
+![v2_file_input](https://github.com/user-attachments/assets/db8467b6-2d07-4e20-a795-430fc09443a7)
+
+You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from LlamaIndex, and then embedded into the vector store. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
+
+Text-based types:
+
+- CSV files (csv)
+- Epub files (epub)
+- Excel .xlsx spreadsheets (xlsx)
+- HTML files (html, htm)
+- IPYNB Notebook files (ipynb)
+- JSON files (json)
+- Markdown files (md)
+- PDF documents (pdf)
+- Plain-text files (txt and etc.)
+- Word .docx documents (docx)
+- XML files (xml)
+
+Media-types:
+
+- Image (using vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
+- Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
+
+Archives:
+
+- zip
+- tar, tar.gz, tar.bz2
+
+The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
+
+- `Full context`: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
+
+- `Query only`: The indexed attachment will only be queried in real-time using LlamaIndex. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
+
+- `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
+
+**Important**: When using `Full context` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the `Query only` option, which will only query the indexed attachment in the vector database to provide additional context.
+
+**Images as Additional Context**
+
+Files such as jpg, png, and similar images are a special case. By default, images are not used as additional context; they are analyzed in real-time using a vision model. If you want to use them as additional context instead, you must enable the "Allow images as additional context" option in the settings: `Files and attachments -> Allow images as additional context`.
+
+**Uploading larger files and auto-index**
+
+To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
+
+## Downloading files
+
+**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `data` folder located within the user's working directory. To view or manage these files, users can navigate to the `Files` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+
+This `data` directory is also where the application stores files that are generated locally by the AI, such as code files or any other data requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated `LlamaIndex`) and use it's contents as additional context provided to discussion.
+
+The `Files I/O` plugin takes care of file operations in the `data` directory, while the `Code Interpreter` plugin allows for the execution of code from these files.
+
+![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2ada219d-68c9-45e3-96af-86ac5bc73593)
+
+To allow the model to manage files or python code execution, the `+ Tools` option must be active, along with the above-mentioned plugins:
+
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
+
 # Presets
 
 ## What is preset?
 
-Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system message, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `Langchain`.
+Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system prompt, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `LangChain`.
 
-The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
+The application lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
-![v2_preset](https://github.com/szczyglis-dev/py-gpt/assets/61396542/88167631-feb6-45ca-a006-25a21ec2339e)
+![v2_preset](https://github.com/user-attachments/assets/b6a4a2c0-3944-4201-8674-05e86cc8a326)
 
 ## Example usage
 
 The application includes several sample presets that help you become acquainted with the mechanism of their use.
 
+# Profiles
 
-# Image generation (DALL-E 3 and DALL-E 2)
+You can create multiple profiles for an app and switch between them. Each profile uses its own configuration, settings, context history, and a separate folder for user files. This allows you to set up different environments and quickly switch between them, changing the entire setup with just one click.
 
-## DALL-E 3
+The app lets you create new profiles, edit existing ones, and duplicate current ones.
 
-**PyGPT** enables quick and easy image creation with `DALL-E 3`. 
-The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
-and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
+To create a new profile, select the option from the menu: `Config -> Profile -> New Profile...`
 
-Image generation using DALL-E is available in every mode via plugin `DALL-E 3 Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
+To edit saved profiles, choose the option from the menu: `Config -> Profile -> Edit Profiles...`
 
-If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
+To switch to a created profile, pick the profile from the menu: `Config -> Profile -> [Profile Name]`
 
-![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c288a4b3-c932-4201-b5a3-8452aea49817)
+Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration.
 
-## Multiple variants
+The name of the currently active profile is shown as (Profile Name) in the window title.
 
-You can generate up to **4 different variants** (DALL-E 2) for a given prompt in one session. DALL-E 3 allows one image.
-To select the desired number of variants to create, use the slider located in the right-hand corner at 
-the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
+# Models
 
-## Raw mode
+## Built-in models
 
-There is an option for switching prompt generation mode.
+PyGPT has built-in support for models (as of 2024-11-27):
 
-If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
-If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
-
-![v2_dalle2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/e1c30292-8ed0-4346-8b85-6d7a02d65fb6)
-
-## Image storage
-
-Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
-You also have the options to delete it or view it in full size in your web browser.
-
-**Tip:** Use presets to save your prepared prompts. 
-This lets you quickly use them again for generating new images later on.
-
-The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
-prompts for creating new images.
-
-Images are stored in ``img`` directory in **PyGPT** user data folder.
-
-# Managing models
+- `bielik-11b-v2.2-instruct:Q4_K_M`
+- `chatgpt-4o-latest`
+- `claude-3-5-sonnet-20240620`
+- `claude-3-opus-20240229`
+- `codellama`
+- `dall-e-2`
+- `dall-e-3`
+- `gemini-1.5-flash`
+- `gemini-1.5-pro`
+- `gpt-3.5-turbo`
+- `gpt-3.5-turbo-1106`
+- `gpt-3.5-turbo-16k`
+- `gpt-3.5-turbo-instruct`
+- `gpt-4`
+- `gpt-4-0125-preview`
+- `gpt-4-1106-preview`
+- `gpt-4-32k`
+- `gpt-4-turbo`
+- `gpt-4-turbo-2024-04-09`
+- `gpt-4-turbo-preview`
+- `gpt-4-vision-preview`
+- `gpt-4o`
+- `gpt-4o-2024-11-20`
+- `gpt-4o-audio-preview`
+- `gpt-4o-mini`
+- `llama2-uncensored`
+- `llama3.1`
+- `llama3.1:405b`
+- `llama3.1:70b`
+- `mistral`
+- `mistral-large`
+- `o1-mini`
+- `o1-preview`
 
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API`
-and those supported by `Langchain` and `Llama-index` to this file. Configuration for Langchain wrapper is placed in `langchain` key.
+and those supported by `LlamaIndex` or `LangChain` to this file. Configuration for LangChain wrapper is placed in `langchain` key, configuration for LlamaIndex in `llama_index` key.
 
-## Adding custom LLMs via Langchain and Llama-index
+## Adding a custom model
 
-To add a new model using the Langchain or Llama-index wrapper in **PyGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
+You can add your own models. See the section `Extending PyGPT / Adding a new model` for more info.
 
-Example of models configuration - `models.json`:
+There is built-in support for those LLM providers:
 
-```
-"gpt-3.5-turbo": {
-    "id": "gpt-3.5-turbo",
-    "name": "gpt-3.5-turbo",
-    "mode": [
-        "chat",
-        "assistant",
-        "langchain",
-        "llama_index"
-    ],
-    "langchain": {
-        "provider": "openai",
-        "mode": [
-            "chat"
-        ],
-        "args": [
-            {
-                "name": "model_name",
-                "value": "gpt-3.5-turbo",
-                "type": "str"
-            }
-        ],
-        "env": [
-            {
-                "name": "OPENAI_API_KEY",
-                "value": "{api_key}"
-            }
-        ]
-    },
-    "llama_index": {
-        "provider": "openai",
-        "mode": [
-            "chat"
-        ],
-        "args": [
-            {
-                "name": "model",
-                "value": "gpt-3.5-turbo",
-                "type": "str"
-            }
-        ],
-        "env": [
-            {
-                "name": "OPENAI_API_KEY",
-                "value": "{api_key}"
-            }
-        ]
-    },
-    "ctx": 4096,
-    "tokens": 4096,
-    "default": false
-},
-```
-
-There is built-in support for those LLMs providers:
-
-```
 - OpenAI (openai)
 - Azure OpenAI (azure_openai)
 - Google (google)
 - HuggingFace (huggingface)
 - Anthropic (anthropic)
 - Ollama (ollama)
-```
 
-## Using other models (non-GPT)
-
+## How to use local or non-GPT models
 
 ### Llama 3, Mistral, and other local models
 
 How to use locally installed Llama 3 or Mistral models:
 
-1) Choose a working mode: `Chat with files` or `Langchain`.
+1) Choose a working mode: `Chat with Files` or `LangChain`.
 
-2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the right mouse button click -> `Edit`, then configure the model parameters in the `advanced` section.
+2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the menu `Config -> Models`, then configure the model parameters in the `advanced` section.
 
 3) Download and install Ollama from here: https://github.com/ollama/ollama
 
 For example, on Linux:
 
-```curl -fsSL https://ollama.com/install.sh | sh```
+```$ curl -fsSL https://ollama.com/install.sh | sh```
 
 4) Run the model (e.g. Llama 3) locally on your machine. For example, on Linux:
 
-```ollama run llama3.1```
+```$ ollama run llama3.1```
 
 5) Return to PyGPT and select the correct model from models list to chat with selected model using Ollama running locally.
 
 **Example available models**
 
-- llama3.1
-- codellama
-- mistral
-- llama2-uncensored
+- `llama3.1`
+- `codellama`
+- `mistral`
+- `llama2-uncensored`
 
 You can add more models by editing the models list.
 
@@ -1350,13 +973,13 @@ https://github.com/ollama/ollama
 
 **IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
 
-**Using local embedding models**
+**Using local embeddings**
 
 Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
 
 You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
 
-```Config -> Settings -> Indexes (llama-index) -> Embeddings -> Embeddings provider```
+```Config -> Settings -> Indexes (LlamaIndex) -> Embeddings -> Embeddings provider```
 
 Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
 
@@ -1366,8 +989,8 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 
 ### Google Gemini and Anthropic Claude
 
-To use `Gemini` or `Claude` models, select the `Chat with files` mode in PyGPT and select a predefined model.
-Remember to configure the required parameters like API keys in the model ENV config fields (RMB click on the model name and select `Edit`).
+To use `Gemini` or `Claude` models, select the `Chat with Files` mode in PyGPT and select a predefined model.
+Remember to configure the required parameters like API keys in the model ENV config fields.
 
 **Google Gemini**
 
@@ -1389,169 +1012,10 @@ Required **kwargs:
 
 - model
 
-## Adding custom LLM providers
-
-Handling LLMs with Langchain and Llama-index is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain or Llama-index. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
-
-These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
-
-```python
-# app.py
-
-from pygpt_net.provider.llms.openai import OpenAILLM
-from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
-from pygpt_net.provider.llms.anthropic import AnthropicLLM
-from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
-from pygpt_net.provider.llms.ollama import OllamaLLM
-from pygpt_net.provider.llms.google import GoogleLLM
-
-
-def run(**kwargs):
-    """Runs the app."""
-    # Initialize the app
-    launcher = Launcher()
-    launcher.init()
-
-    # Register plugins
-    ...
-
-    # Register langchain and llama-index LLMs wrappers
-    launcher.add_llm(OpenAILLM())
-    launcher.add_llm(AzureOpenAILLM())
-    launcher.add_llm(AnthropicLLM())
-    launcher.add_llm(HuggingFaceLLM())
-    launcher.add_llm(OllamaLLM())
-    launcher.add_llm(GoogleLLM())
-
-    # Launch the app
-    launcher.run()
-```
-
-To add support for providers not included by default, you can create your own wrapper that returns a custom model to the application and then pass this custom wrapper to the launcher.
-
-Extending **PyGPT** with custom plugins and LLM wrappers is straightforward:
-
-- Pass instances of custom plugins and LLM wrappers directly to the launcher.
-
-To register custom LLM wrappers:
-
-- Provide a list of LLM wrapper instances as `llms` keyword argument.
-
-**Example:**
-
-
-```python
-# launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),  # <--- custom LLM provider (wrapper)
-]
-vector_stores = []
-
-run(
-    plugins=plugins, 
-    llms=llms, 
-    vector_stores=vector_stores,
-)
-```
-
-**Examples (tutorial files)** 
-
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
-
-- `examples/custom_launcher.py`
-
-- `examples/example_audio_input.py`
-
-- `examples/example_audio_output.py`
-
-- `examples/example_data_loader.py`
-
-- `examples/example_llm.py`  <-- use it as an example
-
-- `examples/example_plugin.py`
-
-- `examples/example_vector_store.py`
-
-- `examples/example_web_search.py`
-
-These example files can be used as a starting point for creating your own extensions for **PyGPT**.
-
-To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
-
-Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 3 components: provider for Langchain, provider for Llama-index, and provider for Embeddings.
-
-
-## Adding custom Vector Store providers
-
-**From version 2.0.114 you can also register your own Vector Store provider**:
-
-```python
-# app.py
-
-# vector stores
-from pygpt_net.provider.vector_stores.chroma import ChromaProvider
-from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
-from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
-from pygpt_net.provider.vector_stores.redis import RedisProvider
-from pygpt_net.provider.vector_stores.simple import SimpleProvider
-
-def run(**kwargs):
-    # ...
-    # register base vector store providers (llama-index)
-    launcher.add_vector_store(ChromaProvider())
-    launcher.add_vector_store(ElasticsearchProvider())
-    launcher.add_vector_store(PinecodeProvider())
-    launcher.add_vector_store(RedisProvider())
-    launcher.add_vector_store(SimpleProvider())
-
-    # register custom vector store providers (llama-index)
-    vector_stores = kwargs.get('vector_stores', None)
-    if isinstance(vector_stores, list):
-        for store in vector_stores:
-            launcher.add_vector_store(store)
-
-    # ...
-```
-
-To register your custom vector store provider just register it by passing provider instance in `vector_stores` keyword argument:
-
-```python
-
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),  # <--- custom vector store provider
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,
-)
-```
 
 # Plugins
+
+## Overview
 
 **PyGPT** can be enhanced with plugins to add new features.
 
@@ -1565,13 +1029,12 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Autonomous Agent (inline)` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 
-- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
+- `Chat with Files (LlamaIndex, inline)` - plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
 - `API calls` - plugin lets you connect the model to the external services using custom defined API calls.
 
 - `Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
-The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
 Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
@@ -1584,7 +1047,7 @@ as well as list and create directories.
 
 - `Mouse and Keyboard` - provides the ability to control the mouse and keyboard by the model.
 
-- `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
+- `Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 
 - `Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 
@@ -1603,7 +1066,6 @@ as well as list and create directories.
 - `System Prompt Extra (append)` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
-
 
 ## Audio Input
 
@@ -1885,30 +1347,30 @@ If enabled, plugin will stop after goal is reached." *Default:* `True`
 
 - `Reverse roles between iterations` *reverse_roles*
 
-Only for Completion/Langchain modes. 
+Only for Completion/LangChain modes. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
-## Chat with files (Llama-index, inline)
+## Chat with Files (LlamaIndex, inline)
 
-Plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context.
+Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context.
 
-- `Ask Llama-index first` *ask_llama_first*
+- `Ask LlamaIndex first` *ask_llama_first*
 
-When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
+When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
 
-- `Auto-prepare question before asking Llama-index first` *prepare_question*
+- `Auto-prepare question before asking LlamaIndex first` *prepare_question*
 
-When enabled, then question will be prepared before asking Llama-index first to create best query. *Default:* `False`
+When enabled, then question will be prepared before asking LlamaIndex first to create best query. *Default:* `False`
 
 - `Model for question preparation` *model_prepare_question*
 
-Model used to prepare question before asking Llama-index. *Default:* `gpt-3.5-turbo`
+Model used to prepare question before asking LlamaIndex. *Default:* `gpt-3.5-turbo`
 
 - `Max output tokens for question preparation` *prepare_question_max_tokens*
 
-Max tokens in output when preparing question before asking Llama-index. *Default:* `500`
+Max tokens in output when preparing question before asking LlamaIndex. *Default:* `500`
 
 - `Prompt for question preparation` *syntax_prepare_question*
 
@@ -1916,15 +1378,15 @@ System prompt for question preparation.
 
 - `Max characters in question` *max_question_chars*
 
-Max characters in question when querying Llama-index, 0 = no limit. *Default:* `1000`
+Max characters in question when querying LlamaIndex, 0 = no limit. *Default:* `1000`
 
 - `Append metadata to context` *append_meta*
 
-If enabled, then metadata from Llama-index will be appended to additional context. *Default:* `False`
+If enabled, then metadata from LlamaIndex will be appended to additional context. *Default:* `False`
 
 - `Model` *model_query*
 
-Model used for querying `Llama-index`. *Default:* `gpt-3.5-turbo`
+Model used for querying `LlamaIndex`. *Default:* `gpt-3.5-turbo`
 
 - `Indexes IDs` *idx*
 
@@ -1998,7 +1460,7 @@ The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the k
 
 **IPython:** Starting from version `2.4.13`, it is highly recommended to adopt the new option: `IPython`, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
-To use IPython, Docker must be installed on your system. 
+To use IPython in sandbox mode, Docker must be installed on your system. 
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
@@ -2007,21 +1469,17 @@ You can find the installation instructions here: https://docs.docker.com/engine/
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon (built into the Snap package):
 
 ```commandline
-sudo snap connect pygpt:docker-executables docker:docker-executables
+$ sudo snap connect pygpt:docker-executables docker:docker-executables
 ```
 
 ````commandline
-sudo snap connect pygpt:docker docker:docker-daemon
+$ sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
 
-**Code interpreter:** a real-time Python code interpreter is built-in. Click the `<>` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** a real-time Python Code Interpreter is built-in. Click the `<>` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/assets/61396542/793e554c-7619-402a-8370-ab89c7464fec)
-
-### Executing system commands
-
-Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
 
 **Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
@@ -2031,32 +1489,28 @@ Another feature is the ability to execute system commands and return their resul
 
 **General**
 
-- `Auto-append CWD to sys_exec` *auto_cwd*
+- `Connect to the Python Code Interpreter window` *attach_output*
 
-Automatically append current working directory to `sys_exec` command. *Default:* `True`
-
-- `Connect to the Python code interpreter window` *attach_output*
-
-Automatically attach code input/output to the Python code interpreter window. *Default:* `True`
-
-- `Enable: sys_exec` *cmd.sys_exec*
-
-Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
+Automatically attach code input/output to the Python Code Interpreter window. *Default:* `True`
 
 - `Enable: get_python_output` *cmd.get_python_output*
 
-Allows `get_python_output` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* `True`
+Allows `get_python_output` command execution. If enabled, it allows retrieval of the output from the Python Code Interpreter window. *Default:* `True`
 
 - `Enable: get_python_input` *cmd.get_python_input*
 
-Allows `get_python_input` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* `True`
+Allows `get_python_input` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python Code Interpreter window. *Default:* `True`
 
 - `Enable: clear_python_output` *cmd.clear_python_output*
 
-Allows `clear_python_output` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* `True`
+Allows `clear_python_output` command execution. If enabled, it allows clear the output of the Python Code Interpreter window. *Default:* `True`
 
 
 **IPython**
+
+- `Sandbox (docker container)` *sandbox_ipython*
+
+Executes IPython in sandbox (docker container). Docker must be installed and running.
 
 - `Dockerfile` *ipython_dockerfile*
 
@@ -2110,9 +1564,25 @@ Allows to restart IPython kernel. *Default:* `True`
 
 **Python (legacy)**
 
+- `Sandbox (docker container)` *sandbox_docker*
+
+Executes commands in sandbox (docker container). Docker must be installed and running.
+
 - `Python command template` *python_cmd_tpl*
 
 Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
+
+- `Dockerfile` *dockerfile*
+
+You can customize the Dockerfile for the image used by legacy Python by editing the configuration above and rebuilding the image via Tools -> Rebuild Python (Legacy) Docker Image.
+
+- `Docker image name` *image_name*
+
+Custom Docker image name
+
+- `Docker container name` *container_name*
+
+Custom Docker container name
 
 - `Enable: code_execute` *cmd.code_execute*
 
@@ -2226,8 +1696,8 @@ Plugin capabilities include:
 - Copying files and directories
 - Moving (renaming) files and directories
 - Reading file info
-- Indexing files and directories using Llama-index
-- Querying files using Llama-index
+- Indexing files and directories using LlamaIndex
+- Querying files using LlamaIndex
 - Searching for files and directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
@@ -2314,11 +1784,11 @@ Allows `cwd` command execution. *Default:* `True`
 
 - `Use data loaders` *use_loaders*
 
-Use data loaders from Llama-index for file reading (`read_file` command). *Default:* `True`
+Use data loaders from LlamaIndex for file reading (`read_file` command). *Default:* `True`
 
 **Indexing**
 
-- `Enable: quick query the file with Llama-index` *cmd.query_file*
+- `Enable: quick query the file with LlamaIndex` *cmd.query_file*
 
 Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
 
@@ -2328,7 +1798,7 @@ Model used for query temporary index for `query_file` command (in-memory index).
 
 - `Enable: indexing files to persistent index` *cmd.file_index*
 
-Allows `file_index` command execution. If enabled, model will be able to index file or directory using Llama-index (persistent index). *Default:* `True`
+Allows `file_index` command execution. If enabled, model will be able to index file or directory using LlamaIndex (persistent index). *Default:* `True`
 
 - `Index to use when indexing files` *idx*
 
@@ -2341,6 +1811,22 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 - `Only index reading files` *only_index*
 
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
+
+## System (OS)
+
+The plugin provides access to the operating system and executes system commands.
+
+**Options:**
+
+**General**
+
+- `Auto-append CWD to sys_exec` *auto_cwd*
+
+Automatically append current working directory to `sys_exec` command. *Default:* `True`
+
+- `Enable: sys_exec` *cmd.sys_exec*
+
+Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
 
 
 ## Mouse And Keyboard
@@ -2532,15 +2018,15 @@ Allows `web_urls` command execution. If enabled, model will be able to search th
 
 - `Enable: indexing web and external content` *cmd.web_index*
 
-Allows `web_index` command execution. If enabled, model will be able to index pages and external content using Llama-index (persistent index). *Default:* `True`
+Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
 
 - `Enable: quick query the web and external content` *cmd.web_index_query*
 
-Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using Llama-index (in-memory index). *Default:* `True`
+Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
 
-- `Auto-index all used URLs using Llama-index` *auto_index*
+- `Auto-index all used URLs using LlamaIndex` *auto_index*
 
-If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index). *Default:* `False`
+If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
 
 - `Index to use` *idx*
 
@@ -2746,7 +2232,7 @@ The prompt is used to generate a query for the `DALL-E` image generation model, 
 
 The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
-See the `Mode -> Experts` section for more details.
+See the `Work modes -> Experts` section for more details.
 
 ## GPT-4 Vision (inline)
 
@@ -2824,225 +2310,30 @@ You can create your own plugin for **PyGPT** at any time. The plugin can be writ
 
 PyGPT can be extended with:
 
-- Custom plugins
+- custom models
 
-- Custom LLMs wrappers
+- custom plugins
 
-- Custom vector store providers
+- custom LLMs wrappers
 
-- Custom data loaders
+- custom vector store providers
 
-- Custom audio input providers
+- custom data loaders
 
-- Custom audio output providers
+- custom audio input providers
 
-- Custom web search engine providers
+- custom audio output providers
 
+- custom web search engine providers
 
-**Examples (tutorial files)** 
 
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
-
-- `examples/custom_launcher.py`
-
-- `examples/example_audio_input.py`
-
-- `examples/example_audio_output.py`
-
-- `examples/example_data_loader.py`
-
-- `examples/example_llm.py`
-
-- `examples/example_plugin.py`
-
-- `examples/example_vector_store.py`
-
-- `examples/example_web_search.py`
-
-These example files can be used as a starting point for creating your own extensions for **PyGPT**.
-
-Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
-
-- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
-
-- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
-
-To register custom plugins:
-
-- Pass a list with the plugin instances as `plugins` keyword argument.
-
-To register custom LLMs wrappers:
-
-- Pass a list with the LLMs wrappers instances as `llms` keyword argument.
-
-To register custom vector store providers:
-
-- Pass a list with the vector store provider instances as `vector_stores` keyword argument.
-
-To register custom data loaders:
-
-- Pass a list with the data loader instances as `loaders` keyword argument.
-
-To register custom audio input providers:
-
-- Pass a list with the audio input provider instances as `audio_input` keyword argument.
-
-To register custom audio output providers:
-
-- Pass a list with the audio output provider instances as `audio_output` keyword argument.
-
-To register custom web providers:
-
-- Pass a list with the web provider instances as `web` keyword argument.
-
-**Example:**
-
-
-```python
-# custom_launcher.py
-
-from pygpt_net.app import run
-from plugins import CustomPlugin, OtherCustomPlugin
-from llms import CustomLLM
-from vector_stores import CustomVectorStore
-
-plugins = [
-    CustomPlugin(),
-    OtherCustomPlugin(),
-]
-llms = [
-    CustomLLM(),
-]
-vector_stores = [
-    CustomVectorStore(),
-]
-
-run(
-    plugins=plugins,
-    llms=llms,
-    vector_stores=vector_stores,
-)
-```
-
-## Handling events
-
-In the plugin, you can receive and modify dispatched events.
-To do this, create a method named `handle(self, event, *args, **kwargs)` and handle the received events like here:
-
-```python
-# custom_plugin.py
-
-from pygpt_net.core.events import Event
-
-
-def handle(self, event: Event, *args, **kwargs):
-    """
-    Handle dispatched events
-
-    :param event: event object
-    """
-    name = event.name
-    data = event.data
-    ctx = event.ctx
-
-    if name == Event.INPUT_BEFORE:
-        self.some_method(data['value'])
-    elif name == Event.CTX_BEGIN:
-        self.some_other_method(ctx)
-    else:
-    	# ...
-```
-
-**List of Events**
-
-Event names are defined in `Event` class in `pygpt_net.core.dispatcher.Event`.
-
-Syntax: `event name` - triggered on, `event data` *(data type)*:
-
-- `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
-
-- `AUDIO_INPUT_RECORD_START` - start audio input recording
-
-- `AUDIO_INPUT_RECORD_STOP` -  stop audio input recording
-
-- `AUDIO_INPUT_RECORD_TOGGLE` - toggle audio input recording
-
-- `AUDIO_INPUT_TRANSCRIBE` - on audio file transcribe, `data['path']` *(string, path to audio file)*
-
-- `AUDIO_INPUT_STOP` - force stop audio input
-
-- `AUDIO_INPUT_TOGGLE` - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
-
-- `AUDIO_OUTPUT_STOP` - force stop audio output
-
-- `AUDIO_OUTPUT_TOGGLE` - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
-
-- `AUDIO_READ_TEXT` - on text read using speech synthesis, `data['text']` *(str, text to read)*
-
-- `CMD_EXECUTE` - when a command is executed, `data['commands']` *(list, commands and arguments)*
-
-- `CMD_INLINE` - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
-
-- `CMD_SYNTAX` - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
-
-- `CMD_SYNTAX_INLINE` - when appending syntax for commands (inline mode), `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
-
-- `CTX_AFTER` - after the context item is sent, `ctx`
-
-- `CTX_BEFORE` - before the context item is sent, `ctx`
-
-- `CTX_BEGIN` - when context item create, `ctx`
-
-- `CTX_END` - when context item handling is finished, `ctx`
-
-- `CTX_SELECT` - when context is selected on list, `data['value']` *(int, ctx meta ID)*
-
-- `DISABLE` - when the plugin is disabled, `data['value']` *(string, plugin ID)*
-
-- `ENABLE` - when the plugin is enabled, `data['value']` *(string, plugin ID)*
-
-- `FORCE_STOP` - on force stop plugins
-
-- `INPUT_BEFORE` - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
-
-- `MODE_BEFORE` - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
-
-- `MODE_SELECT` - on mode select `data['value']` *(string, mode ID)*
-
-- `MODEL_BEFORE` - before the model is selected `data['value']` *(string, model ID)*
-
-- `MODEL_SELECT` - on model select `data['value']` *(string, model ID)*
-
-- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update (saving settings)
-
-- `PLUGIN_OPTION_GET` - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
-
-- `POST_PROMPT` - after preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `PRE_PROMPT` - before preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `SYSTEM_PROMPT` - when preparing a system prompt, `data['value']` *(string, system prompt)*
-
-- `UI_ATTACHMENTS` - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
-
-- `UI_VISION` - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
-
-- `USER_NAME` - when preparing a user's name, `data['value']` *(string, name of the user)*
-
-- `USER_SEND` - just before the input text is sent, `data['value']` *(string, input text)*
-
-
-You can stop the propagation of a received event at any time by setting `stop` to `True`:
-
-```
-event.stop = True
-```
-
-Events flow can be debugged by enabling the option `Config -> Settings -> Developer -> Log and debug events`.
+See the section `Extending PyGPT / Adding a custom plugin` for more details.
 
 # Functions and commands execution
 
-**INFO:** From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
+**Tip** remember to enable the `+ Tools` checkbox to enable execution of tools and commands from plugins.
+
+From version `2.2.20` PyGPT uses native API function calls by default. You can go back to internal syntax (described below) by switching off option `Config -> Settings -> Prompts -> Use native API function calls`. Native API function calls are available in Chat, Completion and Assistant modes only (using OpenAI API).
 
 In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
@@ -3132,54 +2423,80 @@ With this flow you can use both forms - OpenAI and PyGPT - to define and execute
 
 PyGPT features several useful tools, including:
 
+- Notepad
+- Painter
+- Calendar
 - Indexer
 - Media Player
 - Image viewer
 - Text editor
 - Transcribe audio/video files
-- Python code interpreter
+- Python Code Interpreter
 - HTML/JS Canvas (built-in HTML renderer)
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/assets/61396542/fb3f44af-f0de-4e18-bcac-e20389a651c9)
 
 
-### Indexer
+## Notepad
+
+The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
+
+![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f6aa0126-bad1-4e6c-ace6-72e979186433)
+
+## Painter
+
+Using the `Painter` tool, you can create quick sketches and submit them to the model for analysis. You can also edit opened from disk or captured from camera images, for example, by adding elements like arrows or outlines to objects. Additionally, you can capture screenshots from the system - the captured image is placed in the drawing tool and attached to the query being sent.
+
+![v2_draw](https://github.com/szczyglis-dev/py-gpt/assets/61396542/09c1de36-1241-4330-9fd7-67c6e09888fa)
+
+To capture the screenshot just click on the `Ask with screenshot` option in a tray-icon dropdown:
+
+![v2_screenshot](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7305a814-ca76-4f8f-8908-47f6a9496fa5)
+
+## Calendar
+
+Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting `Set label color`. By clicking on a particular day of the week, conversations from that day will be displayed.
+
+![v2_calendar](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c7d17375-b61f-452c-81bc-62a7d466fc18)
 
 
-This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the `Chat with Files` mode. Using this tool, you can manage local indexes and add new data with built-in `Llama-index` integration.
+## Indexer
+
+
+This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the `Chat with Files` mode. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
 
 ![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1caeab6e-6119-44e2-a7cb-ed34f8fe9e30)
 
-### Media Player
+## Media Player
 
 
 A simple video/audio player that allows you to play video files directly from within the app.
 
 
-### Image Viewer
+## Image Viewer
 
 
 A simple image browser that lets you preview images directly within the app.
 
 
-### Text Editor
+## Text Editor
 
 
 A simple text editor that enables you to edit text files directly within the app.
 
 
-### Transcribe Audio/Video Files
+## Transcribe Audio/Video Files
 
 
 An audio transcription tool with which you can prepare a transcript from a video or audio file. It will use a speech recognition plugin to generate the text from the file.
 
 
-### Python Code Interpreter
+## Python Code Interpreter
 
 
 This tool allows you to run Python code directly from within the app. It is integrated with the `Code Interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
 
-### HTML/JS Canvas
+## HTML/JS Canvas
 
 Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Code Interpreter` plugin.
 
@@ -3202,6 +2519,132 @@ the system prompt, any additional data, and those used within the context (the m
 After receiving a response from the model, the application displays the actual total number of tokens used for the query (received from the API).
 
 ![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c81e95b5-7c33-41a6-8910-21d674db37e5)
+
+
+# Accessibility
+
+Since version `2.2.8`, PyGPT has added beta support for disabled people and voice control. This may be very useful for blind people.
+
+In the `Config / Accessibility` menu, you can turn on accessibility features such as:
+
+
+- activating voice control
+
+- translating actions and events on the screen with audio speech
+
+- setting up keyboard shortcuts for actions.
+
+
+**Using voice control**
+
+Voice control can be turned on in two ways: globally, through settings in `Config -> Accessibility`, and by using the `Voice control (inline)` plugin. Both options let you use the same voice commands, but they work a bit differently - the global option allows you to run commands outside of a conversation, anywhere, while the plugin option lets you execute commands directly during a conversation – allowing you to interact with the model and execute commands at the same time, within the conversation.
+
+In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to `Plugins -> Settings -> Voice Control (inline)`:
+
+```bash
+Magic prefix for voice commands
+```
+
+**Tip:** When the voice control is enabled via a plugin, simply provide commands while providing the content of the conversation by using the standard `Microphone` button.
+
+
+**Enabling voice control globally**
+
+
+Turn on the voice control option in `Config / Accessibility`:
+
+
+```bash
+Enable voice control (using microphone)
+```
+
+Once you enable this option, an `Voice Control` button will appear at the bottom right corner of the window. When you click on this button, the microphone will start listening; clicking it again stops listening and starts recognizing the voice command you said. You can cancel voice recording at any time with the `ESC` key. You can also set a keyboard shortcut to turn voice recording on/off.
+
+
+Voice command recognition works based on a model, so you don't have to worry about saying things perfectly.
+
+
+**Here's a list of commands you can ask for by voice:**
+
+- Get the current application status
+- Exit the application
+- Enable audio output
+- Disable audio output
+- Enable audio input
+- Disable audio input
+- Add a memo to the calendar
+- Clear memos from calendar
+- Read the calendar memos
+- Enable the camera
+- Disable the camera
+- Capture image from camera
+- Create a new context
+- Go to the previous context
+- Go to the next context
+- Go to the latest context
+- Focus on the input
+- Send the input
+- Clear the input
+- Get current conversation info
+- Get available commands list
+- Stop executing current action
+- Clear the attachments
+- Read the last conversation entry
+- Read the whole conversation
+- Rename current context
+- Search for a conversation
+- Clear the search results
+- Send the message to input
+- Append message to current input without sending it
+- Switch to chat mode
+- Switch to chat with files (llama-index) mode
+- Switch to the next mode
+- Switch to the previous mode
+- Switch to the next model
+- Switch to the previous model
+- Add note to notepad
+- Clear notepad contents
+- Read current notepad contents
+- Switch to the next preset
+- Switch to the previous preset
+- Switch to the chat tab
+- Switch to the calendar tab
+- Switch to the draw (painter) tab
+- Switch to the files tab
+- Switch to the notepad tab
+- Switch to the next tab
+- Switch to the previous tab
+- Start listening for voice input
+- Stop listening for voice input
+- Toggle listening for voice input
+
+More commands coming soon.
+
+Just ask for an action that matches one of the descriptions above. These descriptions are also known to the model, and relevant commands are assigned to them. When you voice a command that fits one of those patterns, the model will trigger the appropriate action.
+
+
+For convenience, you can enable a short sound to play when voice recording starts and stops. To do this, turn on the option:
+
+
+```bash
+Audio notify microphone listening start/stop
+```
+
+To enable a sound notification when a voice command is recognized and command execution begins, turn on the option:
+
+
+```bash
+Audio notify voice command execution
+```
+
+For voice translation of on-screen events and information about completed commands via speech synthesis, you can turn on the option:
+
+```bash
+Use voice synthesis to describe events on the screen.
+```
+
+![v2_access](https://github.com/szczyglis-dev/py-gpt/assets/61396542/02dd161b-6fb1-48f9-9217-40c658888833)
+
 
 # Configuration
 
@@ -3295,7 +2738,7 @@ Config -> Settings...
 
 - `Search also in conversation content, not only in titles`: When enabled, context search will also consider the content of conversations, not just the titles of conversations.
 
-- `Show Llama-index sources`: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
+- `Show LlamaIndex sources`: If enabled, sources utilized will be displayed in the response (if available, it will not work in streamed chat).
 
 - `Show code interpreter output`: If enabled, output from the code interpreter in the Assistant API will be displayed in real-time (in stream mode), Default: True.
 
@@ -3335,7 +2778,7 @@ Config -> Settings...
 
 - `Context: auto-summary (user message)`: User message for context auto-summary. Placeholders: {input}, {output}
 
-- `Agent: evaluation prompt in loop (Llama-index)`: Prompt used for evaluating the response in Agents (Llama-index) mode.
+- `Agent: evaluation prompt in loop (LlamaIndex)`: Prompt used for evaluating the response in Agents (LlamaIndex) mode.
 
 - `Agent: system instruction (Legacy)`: Prompt to instruct how to handle autonomous mode.
 
@@ -3369,11 +2812,11 @@ Config -> Settings...
 
 - `Vision: Image capture quality`: Video capture image JPEG quality (%).
 
-**Indexes (Llama-index)**
+**Indexes (LlamaIndex)**
 
 - `Indexes`: List of created indexes.
 
-- `Vector Store`: Vector store to use (vector database provided by Llama-index).
+- `Vector Store`: Vector store to use (vector database provided by LlamaIndex).
 
 - `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
 
@@ -3399,7 +2842,7 @@ Config -> Settings...
 
 - `Custom metadata to append/replace to indexed documents (web)`: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
 
-- `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
+- `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
 - `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
 
@@ -3419,7 +2862,7 @@ Config -> Settings...
 
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
-**Llama-index Agents**
+**LlamaIndex Agents**
 
 - `Max steps (per iteration)` - Max steps is one iteration before goal achieved
 
@@ -3435,7 +2878,7 @@ Config -> Settings...
 
 - `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
-- `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
+- `Index to use`: Only if sub-mode is llama_index (Chat with Files), choose the index to use in both Agent and Expert modes.
 
 **Accessibility**
 
@@ -3475,7 +2918,7 @@ Config -> Settings...
 
 - `Log DALL-E usage to console`: Enables logging of DALL-E usage to console.
 
-- `Log Llama-index usage to console`: Enables logging of Llama-index usage to console.
+- `Log LlamaIndex usage to console`: Enables logging of LlamaIndex usage to console.
 
 - `Log Assistants usage to console`: Enables logging of Assistants API usage to console.
 
@@ -3490,30 +2933,6 @@ These configuration files are located in the user's work directory within the fo
 ``` ini
 {HOME_DIR}/.config/pygpt-net/
 ```
-
-# Notepad
-
-The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
-
-![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f6aa0126-bad1-4e6c-ace6-72e979186433)
-
-# Profiles
-
-You can create multiple profiles for an app and switch between them. Each profile uses its own configuration, settings, context history, and a separate folder for user files. This allows you to set up different environments and quickly switch between them, changing the entire setup with just one click.
-
-The app lets you create new profiles, edit existing ones, and duplicate current ones.
-
-To create a new profile, select the option from the menu: `Config -> Profile -> New Profile...`
-
-To edit saved profiles, choose the option from the menu: `Config -> Profile -> Edit Profiles...`
-
-To switch to a created profile, pick the profile from the menu: `Config -> Profile -> [Profile Name]`
-
-Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration.
-
-The name of the currently active profile is shown as (Profile Name) in the window title.
-
-# Advanced configuration
 
 ## Manual configuration
 
@@ -3531,7 +2950,7 @@ You can manually edit the configuration files in this directory (this is your wo
 - `capture` - a directory for captured images from camera and screenshots
 - `css` - a directory for CSS stylesheets (user override)
 - `history` - a directory for context history in `.txt` format.
-- `idx` - `Llama-index` indexes
+- `idx` - `LlamaIndex` indexes
 - `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
 - `locale` - a directory for locales (user override)
 - `data` - a directory for data files and files downloaded/generated by GPT.
@@ -3596,7 +3015,237 @@ pre {{
 }}
 ```
 
-## Debugging and Logging
+## Data Loaders
+
+**Configuring data loaders**
+
+In the `Settings -> LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance.
+
+In most cases, an internal LlamaIndex loaders are used internally. 
+You can check these base loaders e.g. here:
+
+File: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file
+
+Web: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
+
+**Tip:** to index an external data or data from the Web just ask for it, by using `Web Search` plugin, e.g. you can ask the model with `Please index the youtube video: URL to video`, etc. Data loader for a specified content will be choosen automatically.
+
+Allowed additional keyword arguments for built-in data loaders (files):
+
+**CSV Files**  (file_csv)
+
+- `concat_rows` - bool, default: `True`
+- `encoding` - str, default: `utf-8`
+
+**HTML Files**  (file_html)
+
+- `tag` - str, default: `section`
+- `ignore_no_id` - bool, default: `False`
+
+**Image (vision)**  (file_image_vision)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
+
+**Note:** Usage of API mode consumes additional tokens in OpenAI API (for `GPT-4 Vision` model)!
+
+Local mode requires `torch`, `transformers`, `sentencepiece` and `Pillow` to be installed and uses the `Salesforce/blip2-opt-2.7b` model to describing images.
+
+- `keep_image` - bool, default: `False`
+- `local_prompt` - str, default: `Question: describe what you see in this image. Answer:`
+- `api_prompt` - str, default: `Describe what you see in this image` - Prompt to use in API
+- `api_model` - str, default: `gpt-4-vision-preview` - Model to use in API
+- `api_tokens` - int, default: `1000` - Max output tokens in API
+
+**IPYNB Notebook files**  (file_ipynb)
+
+- `parser_config` - dict, default: `None`
+- `concatenate` - bool, default: `False`
+
+**Markdown files**  (file_md)
+
+- `remove_hyperlinks` - bool, default: `True`
+- `remove_images` - bool, default: `True`
+
+**PDF documents**  (file_pdf)
+
+- `return_full_document` - bool, default: `False`
+
+**Video/Audio**  (file_video_audio)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local `Whisper` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the currently selected provider in `Audio Input` plugin will be used. If the `OpenAI Whisper` is chosen then the OpenAI API and the API Whisper model will be used. 
+
+**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for `Whisper` model)!
+
+Local mode requires `torch` and `openai-whisper` to be installed and uses the `Whisper` model locally to transcribing video and audio.
+
+- `model_version` - str, default: `base` - Whisper model to use, available models: https://github.com/openai/whisper
+
+**XML files**  (file_xml)
+
+- `tree_level_split` - int, default: `0`
+
+Allowed additional keyword arguments for built-in data loaders (Web and external content):
+
+**Bitbucket**  (web_bitbucket)
+
+- `username` - str, default: `None`
+- `api_key` - str, default: `None`
+- `extensions_to_skip` - list, default: `[]`
+
+**ChatGPT Retrieval**  (web_chatgpt_retrieval)
+
+- `endpoint_url` - str, default: `None`
+- `bearer_token` - str, default: `None`
+- `retries` - int, default: `None`
+- `batch_size` - int, default: `100`
+
+**Google Calendar** (web_google_calendar)
+
+- `credentials_path` - str, default: `credentials.json`
+- `token_path` - str, default: `token.json`
+
+**Google Docs** (web_google_docs)
+
+- `credentials_path` - str, default: `credentials.json`
+- `token_path` - str, default: `token.json`
+
+**Google Drive** (web_google_drive)
+
+- `credentials_path` - str, default: `credentials.json`
+- `token_path` - str, default: `token.json`
+- `pydrive_creds_path` - str, default: `creds.txt`
+- `client_config` - dict, default: `{}`
+
+**Google Gmail** (web_google_gmail)
+
+- `credentials_path` - str, default: `credentials.json`
+- `token_path` - str, default: `token.json`
+- `use_iterative_parser` - bool, default: `False`
+- `max_results` - int, default: `10`
+- `results_per_page` - int, default: `None`
+
+**Google Keep** (web_google_keep)
+
+- `credentials_path` - str, default: `keep_credentials.json`
+
+**Google Sheets** (web_google_sheets)
+
+- `credentials_path` - str, default: `credentials.json`
+- `token_path` - str, default: `token.json`
+
+**GitHub Issues**  (web_github_issues)
+
+- `token` - str, default: `None`
+- `verbose` - bool, default: `False`
+
+**GitHub Repository**  (web_github_repository)
+
+- `token` - str, default: `None`
+- `verbose` - bool, default: `False`
+- `concurrent_requests` - int, default: `5`
+- `timeout` - int, default: `5`
+- `retries` - int, default: `0`
+- `filter_dirs_include` - list, default: `None`
+- `filter_dirs_exclude` - list, default: `None`
+- `filter_file_ext_include` - list, default: `None`
+- `filter_file_ext_exclude` - list, default: `None`
+
+**Microsoft OneDrive**  (web_microsoft_onedrive)
+
+- `client_id` - str, default: `None`
+- `client_secret` - str, default: `None`
+- `tenant_id` - str, default: `consumers`
+
+**Sitemap (XML)**  (web_sitemap)
+
+- `html_to_text` - bool, default: `False`
+- `limit` - int, default: `10`
+
+**SQL Database**  (web_database)
+
+- `engine` - str, default: `None`
+- `uri` - str, default: `None`
+- `scheme` - str, default: `None`
+- `host` - str, default: `None`
+- `port` - str, default: `None`
+- `user` - str, default: `None`
+- `password` - str, default: `None`
+- `dbname` - str, default: `None`
+
+**Twitter/X posts**  (web_twitter)
+
+- `bearer_token` - str, default: `None`
+- `num_tweets` - int, default: `100`
+
+## Vector stores
+
+**Available vector stores** (provided by `LlamaIndex`):
+
+```
+- ChromaVectorStore
+- ElasticsearchStore
+- PinecodeVectorStore
+- RedisVectorStore
+- SimpleVectorStore
+```
+
+You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> LlamaIndex` window. 
+
+Arguments provided here (on list: `Vector Store (**kwargs)` in `Advanced settings` will be passed to selected vector store provider. You can check keyword arguments needed by selected provider on LlamaIndex API reference page: 
+
+https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
+
+Which keyword arguments are passed to providers?
+
+For `ChromaVectorStore` and `SimpleVectorStore` all arguments are set by PyGPT and passed internally (you do not need to configure anything).
+
+For other providers you can provide these arguments:
+
+**ElasticsearchStore**
+
+Keyword arguments for ElasticsearchStore(`**kwargs`):
+
+- `index_name` (default: current index ID, already set, not required)
+- any other keyword arguments provided on list
+
+**PinecodeVectorStore**
+
+Keyword arguments for Pinecone(`**kwargs`):
+
+- `api_key`
+- index_name (default: current index ID, already set, not required)
+
+**RedisVectorStore**
+
+Keyword arguments for RedisVectorStore(`**kwargs`):
+
+- `index_name` (default: current index ID, already set, not required)
+- any other keyword arguments provided on list
+
+You can extend list of available providers by creating custom provider and registering it on app launch.
+
+By default, you are using chat-based mode when using `Chat with Files`.
+If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
+
+### Adding custom vector stores and data loaders
+
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
+
+See the section `Extending PyGPT / Adding custom Vector Store provider` for more details.
+
+# Updates
+
+### Updating PyGPT
+
+**PyGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
+
+To get the new version, simply download it and start using it in place of the old one. All your custom settings like configuration, presets, indexes, and past conversations will be kept and ready to use right away in the new version.
+
+# Debugging and Logging
 
 In `Settings -> Developer` dialog, you can enable the `Show debug menu` option to turn on the debugging menu. The menu allows you to inspect the status of application elements. In the debugging menu, there is a `Logger` option that opens a log window. In the window, the program's operation is displayed in real-time.
 
@@ -3624,7 +3273,7 @@ The value `1` enables the `INFO`logging level.
 
 The value `2` enables the `DEBUG` logging level (most information).
 
-## Compatibility (legacy) mode
+**Compatibility (legacy) mode**
 
 If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
 
@@ -3645,15 +3294,530 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 "render.open_gl": false,
 ```
 
-## Updates
+# Extending PyGPT
 
-### Updating PyGPT
+## Quick start
 
-**PyGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
+You can create your own extensions for **PyGPT** at any time.
 
-To get the new version, simply download it and start using it in place of the old one. All your custom settings like configuration, presets, indexes, and past conversations will be kept and ready to use right away in the new version.
+PyGPT can be extended with:
 
-## DISCLAIMER
+- custom models
+
+- custom plugins
+
+- custom LLM wrappers
+
+- custom vector store providers
+
+- custom data loaders
+
+- custom audio input providers
+
+- custom audio output providers
+
+- custom web search engine providers
+
+**Examples (tutorial files)** 
+
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+
+- `examples/custom_launcher.py`
+
+- `examples/example_audio_input.py`
+
+- `examples/example_audio_output.py`
+
+- `examples/example_data_loader.py`
+
+- `examples/example_llm.py`
+
+- `examples/example_plugin.py`
+
+- `examples/example_vector_store.py`
+
+- `examples/example_web_search.py`
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
+
+Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
+
+- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
+
+- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
+
+To register custom plugins:
+
+- Pass a list with the plugin instances as `plugins` keyword argument.
+
+To register custom LLMs wrappers:
+
+- Pass a list with the LLMs wrappers instances as `llms` keyword argument.
+
+To register custom vector store providers:
+
+- Pass a list with the vector store provider instances as `vector_stores` keyword argument.
+
+To register custom data loaders:
+
+- Pass a list with the data loader instances as `loaders` keyword argument.
+
+To register custom audio input providers:
+
+- Pass a list with the audio input provider instances as `audio_input` keyword argument.
+
+To register custom audio output providers:
+
+- Pass a list with the audio output provider instances as `audio_output` keyword argument.
+
+To register custom web providers:
+
+- Pass a list with the web provider instances as `web` keyword argument.
+
+## Adding a custom model
+
+To add a new model using the OpenAI API, LangChain, or LlamaIndex wrapper, use the editor in `Config -> Models` or manually edit the `models.json` file by inserting the model's configuration details. If you are adding a model via LangChain or LlamaIndex, ensure to include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (such as `OpenAI` or `HuggingFace`), and, if you are using an external API-based model, an optional `API KEY` along with any other necessary environment settings.
+
+Example of models configuration - `%WORKDIR%/models.json`:
+
+```
+"gpt-3.5-turbo": {
+    "id": "gpt-3.5-turbo",
+    "name": "gpt-3.5-turbo",
+    "mode": [
+        "chat",
+        "assistant",
+        "langchain",
+        "llama_index"
+    ],
+    "langchain": {
+        "provider": "openai",
+        "mode": [
+            "chat"
+        ],
+        "args": [
+            {
+                "name": "model_name",
+                "value": "gpt-3.5-turbo",
+                "type": "str"
+            }
+        ],
+        "env": [
+            {
+                "name": "OPENAI_API_KEY",
+                "value": "{api_key}"
+            }
+        ]
+    },
+    "llama_index": {
+        "provider": "openai",
+        "mode": [
+            "chat"
+        ],
+        "args": [
+            {
+                "name": "model",
+                "value": "gpt-3.5-turbo",
+                "type": "str"
+            }
+        ],
+        "env": [
+            {
+                "name": "OPENAI_API_KEY",
+                "value": "{api_key}"
+            }
+        ]
+    },
+    "ctx": 4096,
+    "tokens": 4096,
+    "default": false
+},
+```
+
+There is built-in support for those LLM providers:
+
+```
+- `OpenAI` (openai)
+- `Azure OpenAI` (azure_openai)
+- `Google` (google)
+- `HuggingFace API` (huggingface_api)
+- `Anthropic` (anthropic)
+- `Ollama` (ollama)
+```
+
+**Tip**: `{api_key}` in `models.json` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
+
+## Adding a custom plugin
+
+### Creating Your Own Plugin
+
+You can create your own plugin for **PyGPT**. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
+
+**Examples (tutorial files)** 
+
+See the example plugin in this `examples` directory:
+
+- `examples/example_plugin.py`
+
+These example file can be used as a starting point for creating your own plugin for **PyGPT**.
+
+To register a custom plugin:
+
+- Create a custom launcher for the app.
+
+- Pass a list with the custom plugin instances as `plugins` keyword argument.
+
+**Example of a custom launcher:**
+
+
+```python
+# custom_launcher.py
+
+from pygpt_net.app import run
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
+
+plugins = [
+    CustomPlugin(),
+    OtherCustomPlugin(),
+]
+llms = [
+    CustomLLM(),
+]
+vector_stores = [
+    CustomVectorStore(),
+]
+
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores,
+)
+```
+
+### Handling events
+
+In the plugin, you can receive and modify dispatched events.
+To do this, create a method named `handle(self, event, *args, **kwargs)` and handle the received events like here:
+
+```python
+# custom_plugin.py
+
+from pygpt_net.core.events import Event
+
+
+def handle(self, event: Event, *args, **kwargs):
+    """
+    Handle dispatched events
+
+    :param event: event object
+    """
+    name = event.name
+    data = event.data
+    ctx = event.ctx
+
+    if name == Event.INPUT_BEFORE:
+        self.some_method(data['value'])
+    elif name == Event.CTX_BEGIN:
+        self.some_other_method(ctx)
+    else:
+    	# ...
+```
+
+### List of Events
+
+Event names are defined in `Event` class in `pygpt_net.core.events`.
+
+Syntax: `event name` - triggered on, `event data` *(data type)*:
+
+- `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
+
+- `AUDIO_INPUT_RECORD_START` - start audio input recording
+
+- `AUDIO_INPUT_RECORD_STOP` -  stop audio input recording
+
+- `AUDIO_INPUT_RECORD_TOGGLE` - toggle audio input recording
+
+- `AUDIO_INPUT_TRANSCRIBE` - on audio file transcribe, `data['path']` *(string, path to audio file)*
+
+- `AUDIO_INPUT_STOP` - force stop audio input
+
+- `AUDIO_INPUT_TOGGLE` - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
+
+- `AUDIO_OUTPUT_STOP` - force stop audio output
+
+- `AUDIO_OUTPUT_TOGGLE` - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
+
+- `AUDIO_READ_TEXT` - on text read using speech synthesis, `data['text']` *(str, text to read)*
+
+- `CMD_EXECUTE` - when a command is executed, `data['commands']` *(list, commands and arguments)*
+
+- `CMD_INLINE` - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
+
+- `CMD_SYNTAX` - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
+
+- `CMD_SYNTAX_INLINE` - when appending syntax for commands (inline mode), `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
+
+- `CTX_AFTER` - after the context item is sent, `ctx`
+
+- `CTX_BEFORE` - before the context item is sent, `ctx`
+
+- `CTX_BEGIN` - when context item create, `ctx`
+
+- `CTX_END` - when context item handling is finished, `ctx`
+
+- `CTX_SELECT` - when context is selected on list, `data['value']` *(int, ctx meta ID)*
+
+- `DISABLE` - when the plugin is disabled, `data['value']` *(string, plugin ID)*
+
+- `ENABLE` - when the plugin is enabled, `data['value']` *(string, plugin ID)*
+
+- `FORCE_STOP` - on force stop plugins
+
+- `INPUT_BEFORE` - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
+
+- `MODE_BEFORE` - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
+
+- `MODE_SELECT` - on mode select `data['value']` *(string, mode ID)*
+
+- `MODEL_BEFORE` - before the model is selected `data['value']` *(string, model ID)*
+
+- `MODEL_SELECT` - on model select `data['value']` *(string, model ID)*
+
+- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update (saving settings)
+
+- `PLUGIN_OPTION_GET` - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
+
+- `POST_PROMPT` - after preparing a system prompt, `data['value']` *(string, system prompt)*
+
+- `PRE_PROMPT` - before preparing a system prompt, `data['value']` *(string, system prompt)*
+
+- `SYSTEM_PROMPT` - when preparing a system prompt, `data['value']` *(string, system prompt)*
+
+- `UI_ATTACHMENTS` - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
+
+- `UI_VISION` - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
+
+- `USER_NAME` - when preparing a user's name, `data['value']` *(string, name of the user)*
+
+- `USER_SEND` - just before the input text is sent, `data['value']` *(string, input text)*
+
+
+You can stop the propagation of a received event at any time by setting `stop` to `True`:
+
+```
+event.stop = True
+```
+
+Events flow can be debugged by enabling the option `Config -> Settings -> Developer -> Log and debug events`.
+
+## Adding a custom LLM provider
+
+Handling LLMs with LangChain and LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LangChain or LlamaIndex. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
+
+These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
+
+```python
+# app.py
+
+from pygpt_net.provider.llms.openai import OpenAILLM
+from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
+from pygpt_net.provider.llms.anthropic import AnthropicLLM
+from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
+from pygpt_net.provider.llms.ollama import OllamaLLM
+from pygpt_net.provider.llms.google import GoogleLLM
+
+
+def run(**kwargs):
+    """Runs the app."""
+    # Initialize the app
+    launcher = Launcher()
+    launcher.init()
+
+    # Register plugins
+    ...
+
+    # Register langchain and llama-index LLMs wrappers
+    launcher.add_llm(OpenAILLM())
+    launcher.add_llm(AzureOpenAILLM())
+    launcher.add_llm(AnthropicLLM())
+    launcher.add_llm(HuggingFaceLLM())
+    launcher.add_llm(OllamaLLM())
+    launcher.add_llm(GoogleLLM())
+
+    # Launch the app
+    launcher.run()
+```
+
+To add support for providers not included by default, you can create your own wrapper that returns a custom model to the application and then pass this custom wrapper to the launcher.
+
+Extending **PyGPT** with custom plugins and LLM wrappers is straightforward:
+
+- Pass instances of custom plugins and LLM wrappers directly to the launcher.
+
+To register custom LLM wrappers:
+
+- Provide a list of LLM wrapper instances as `llms` keyword argument.
+
+**Example:**
+
+
+```python
+# launcher.py
+
+from pygpt_net.app import run
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+
+plugins = [
+    CustomPlugin(),
+    OtherCustomPlugin(),
+]
+llms = [
+    CustomLLM(),  # <--- custom LLM provider (wrapper)
+]
+vector_stores = []
+
+run(
+    plugins=plugins, 
+    llms=llms, 
+    vector_stores=vector_stores,
+)
+```
+
+**Examples (tutorial files)** 
+
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+
+- `examples/custom_launcher.py`
+
+- `examples/example_audio_input.py`
+
+- `examples/example_audio_output.py`
+
+- `examples/example_data_loader.py`
+
+- `examples/example_llm.py`  <-- use it as an example
+
+- `examples/example_plugin.py`
+
+- `examples/example_vector_store.py`
+
+- `examples/example_web_search.py`
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
+
+To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+
+Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 3 components: provider for LangChain, provider for LlamaIndex, and provider for Embeddings.
+
+
+## Adding a custom vector store provider
+
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to `vector_stores` keyword argument and loader instance in the `loaders` keyword argument:
+
+
+```python
+# app.py
+
+# vector stores
+from pygpt_net.provider.vector_stores.chroma import ChromaProvider
+from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
+from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+from pygpt_net.provider.vector_stores.redis import RedisProvider
+from pygpt_net.provider.vector_stores.simple import SimpleProvider
+
+def run(**kwargs):
+    # ...
+    # register base vector store providers (llama-index)
+    launcher.add_vector_store(ChromaProvider())
+    launcher.add_vector_store(ElasticsearchProvider())
+    launcher.add_vector_store(PinecodeProvider())
+    launcher.add_vector_store(RedisProvider())
+    launcher.add_vector_store(SimpleProvider())
+
+    # register custom vector store providers (llama-index)
+    vector_stores = kwargs.get('vector_stores', None)
+    if isinstance(vector_stores, list):
+        for store in vector_stores:
+            launcher.add_vector_store(store)
+
+    # ...
+```
+
+To register your custom vector store provider just register it by passing provider instance in `vector_stores` keyword argument:
+
+```python
+
+# custom_launcher.py
+
+from pygpt_net.app import run
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
+
+plugins = [
+    CustomPlugin(),
+    OtherCustomPlugin(),
+]
+llms = [
+    CustomLLM(),
+]
+vector_stores = [
+    CustomVectorStore(),  # <--- custom vector store provider
+]
+
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores,
+)
+```
+
+The vector store provider must be an instance of `pygpt_net.provider.vector_stores.base.BaseStore`. 
+You can review the code of the built-in providers in `pygpt_net.provider.vector_stores` and use them as examples when creating a custom provider.
+
+### Adding a custom data loader
+
+
+```python
+
+# custom_launcher.py
+
+from pygpt_net.app import run
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
+from loaders import CustomLoader
+
+plugins = [
+    CustomPlugin(),
+    OtherCustomPlugin(),
+]
+llms = [
+    CustomLLM(),
+]
+vector_stores = [
+    CustomVectorStore(),
+]
+loaders = [
+    CustomLoader(),  # <---- custom data loader
+]
+
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores,  # <--- list with custom vector store providers
+    loaders=loaders  # <--- list with custom data loaders
+)
+```
+
+The data loader must be an instance of `pygpt_net.provider.loaders.base.BaseLoader`. 
+You can review the code of the built-in loaders in `pygpt_net.provider.loaders` and use them as examples when creating a custom loader.
+
+
+# DISCLAIMER
 
 This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
 resulting from the use of this application. It is provided "as is," without any form of warranty. 
@@ -3702,7 +3866,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added a local IPython interpreter - you can now choose between local and sandbox (Docker) in the plugin settings.
 - Added the ability to configure mapped volumes and ports for Docker containers in the plugin settings.
-- Optimized and speed-up the Llama-index plugin (inline).
+- Optimized and speed-up the LlamaIndex plugin (inline).
 - Checkboxes replaced with Toggle buttons.
 - Improved settings dialogs.
 - Slight modification of the layout.
@@ -3762,7 +3926,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.19 (2024-11-22)**
 
-- Added new LLM providers for Llama-index: HuggingFaceAPI and LocalAI.
+- Added new LLM providers for LlamaIndex: HuggingFaceAPI and LocalAI.
 - The IPython interpreter now returns local paths to generated files and images (mapped to: %workdir%/ipython/).
 - Refactored legacy Agent and Expert modes.
 - Fixed Expert mode initialization.
@@ -3823,7 +3987,7 @@ https://fonts.google.com/icons
 
 Monaspace fonts provided by GitHub: https://github.com/githubnext/monaspace
 
-Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
+Code of the LlamaIndex offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
 
 Awesome ChatGPT Prompts (used in templates): https://github.com/f/awesome-chatgpt-prompts/
 

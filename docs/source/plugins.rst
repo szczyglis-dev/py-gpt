@@ -1,6 +1,9 @@
 Plugins
 =======
 
+Overview
+-------------------------
+
 **PyGPT** can be enhanced with plugins to add new features.
 
 **Tip:** Plugins works best with GPT-4 models.
@@ -10,14 +13,14 @@ The following plugins are currently available, and model can use them instantly:
 * ``Audio Input`` - provides speech recognition.
 * ``Audio Output`` - provides voice synthesis.
 * ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
-* ``Chat with files (Llama-index, inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files).
+* ``Chat with files (LlamaIndex, inline)`` - plugin integrates LlamaIndex storage in any chat and provides additional knowledge into context (from indexed files).
 * ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
-* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
+* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 * ``Custom Commands`` - allows you to create and execute custom commands on your system.
 * ``Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
 * ``System (OS)`` - provides access to the operating system and executes system commands.
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
-* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
+* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
 * ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Context history (calendar, inline)`` - provides access to context history database.
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
@@ -36,212 +39,16 @@ You can create your own plugin for **PyGPT** at any time. The plugin can be writ
 
 PyGPT can be extended with:
 
-* Custom plugins
-* Custom LLMs wrappers
-* Custom vector store providers
-* Custom data loaders
-* Custom audio input providers
-* Custom audio output providers
-* Custom web search engine providers
+* custom plugins
+* custom LLM wrappers
+* custom vector store providers
+* custom data loaders
+* custom audio input providers
+* custom audio output providers
+* custom web search engine providers
+
+See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
 
-**Examples (tutorial files)** 
-
-See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
-
-* ``examples/custom_launcher.py``
-* ``examples/example_audio_input.py``
-* ``examples/example_audio_output.py``
-* ``examples/example_data_loader.py``
-* ``examples/example_llm.py``
-* ``examples/example_plugin.py``
-* ``examples/example_vector_store.py``
-* ``examples/example_web_search.py``
-
-These example files can be used as a starting point for creating your own extensions for **PyGPT**.
-
-Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
-
-- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
-
-- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
-
-To register custom plugins:
-
-- Pass a list with the plugin instances as ``plugins`` keyword argument.
-
-To register custom LLMs wrappers:
-
-- Pass a list with the LLMs wrappers instances as ``llms`` keyword argument.
-
-To register custom vector store providers:
-
-- Pass a list with the vector store provider instances as ``vector_stores`` keyword argument.
-
-To register custom data loaders:
-
-- Pass a list with the data loader instances as ``loaders`` keyword argument.
-
-To register custom audio input providers:
-
-- Pass a list with the audio input provider instances as ``audio_input`` keyword argument.
-
-To register custom audio output providers:
-
-- Pass a list with the audio output provider instances as ``audio_output`` keyword argument.
-
-To register custom web providers:
-
-- Pass a list with the web provider instances as ``web`` keyword argument.
-
-**Example:**
-
-.. code-block:: python
-
-   # custom_launcher.py
-
-   from pygpt_net.app import run
-   from plugins import CustomPlugin, OtherCustomPlugin
-   from llms import CustomLLM
-   from vector_stores import CustomVectorStore
-
-   plugins = [
-       CustomPlugin(),
-       OtherCustomPlugin(),
-   ]
-   llms = [
-       CustomLLM(),
-   ]
-   vector_stores = [
-       CustomVectorStore(),
-   ]
-
-   run(
-       plugins=plugins,
-       llms=llms,
-       vector_stores=vector_stores,
-   )
-
-Handling events
----------------
-
-In the plugin, you can receive and modify dispatched events.
-To do this, create a method named ``handle(self, event, *args, **kwargs)`` and handle the received events like here:
-
-.. code-block:: python
-
-   # custom_plugin.py
-
-   from pygpt_net.core.events import Event
-   
-
-   def handle(self, event: Event, *args, **kwargs):
-       """
-       Handle dispatched events
-
-       :param event: event object
-       """
-       name = event.name
-       data = event.data
-       ctx = event.ctx
-
-       if name == Event.INPUT_BEFORE:
-           self.some_method(data['value'])
-       elif name == Event.CTX_BEGIN:
-           self.some_other_method(ctx)
-       else:
-           # ...
-
-**List of Events**
-
-Event names are defined in ``Event`` class in ``pygpt_net.core.dispatcher.Event``.
-
-Syntax: ``event name`` - triggered on, ``event data`` *(data type)*:
-
-- ``AI_NAME`` - when preparing an AI name, ``data['value']`` *(string, name of the AI assistant)*
-
-- ``AUDIO_INPUT_RECORD_START`` - start audio input recording
-
-- ``AUDIO_INPUT_RECORD_STOP`` -  stop audio input recording
-
-- ``AUDIO_INPUT_RECORD_TOGGLE`` - toggle audio input recording
-
-- ``AUDIO_INPUT_TRANSCRIBE`` - on audio file transcribe, ``data['path']`` *(string, path to audio file)*
-
-- ``AUDIO_INPUT_STOP`` - force stop audio input
-
-- ``AUDIO_INPUT_TOGGLE`` - when speech input is enabled or disabled, ``data['value']`` *(bool, True/False)*
-
-- ``AUDIO_OUTPUT_STOP`` - force stop audio output
-
-- ``AUDIO_OUTPUT_TOGGLE`` - when speech output is enabled or disabled, ``data['value']`` *(bool, True/False)*
-
-- ``AUDIO_READ_TEXT`` - on text read using speech synthesis, ``data['text']`` *(str, text to read)*
-
-- ``CMD_EXECUTE`` - when a command is executed, ``data['commands']`` *(list, commands and arguments)*
-
-- ``CMD_INLINE`` - when an inline command is executed, ``data['commands']`` *(list, commands and arguments)*
-
-- ``CMD_SYNTAX`` - when appending syntax for commands, ``data['prompt'], data['syntax']`` *(string, list, prompt and list with commands usage syntax)*
-
-- ``CMD_SYNTAX_INLINE`` - when appending syntax for commands (inline mode), ``data['prompt'], data['syntax']`` *(string, list, prompt and list with commands usage syntax)*
-
-- ``CTX_AFTER`` - after the context item is sent, ``ctx``
-
-- ``CTX_BEFORE`` - before the context item is sent, ``ctx``
-
-- ``CTX_BEGIN`` - when context item create, ``ctx``
-
-- ``CTX_END`` - when context item handling is finished, ``ctx``
-
-- ``CTX_SELECT`` - when context is selected on list, ``data['value']`` *(int, ctx meta ID)*
-
-- ``DISABLE`` - when the plugin is disabled, ``data['value']`` *(string, plugin ID)*
-
-- ``ENABLE`` - when the plugin is enabled, ``data['value']`` *(string, plugin ID)*
-
-- ``FORCE_STOP`` - on force stop plugins
-
-- ``INPUT_BEFORE`` - upon receiving input from the textarea, ``data['value']`` *(string, text to be sent)*
-
-- ``MODE_BEFORE`` - before the mode is selected ``data['value'], data['prompt']`` *(string, string, mode ID)*
-
-- ``MODE_SELECT`` - on mode select ``data['value']`` *(string, mode ID)*
-
-- ``MODEL_BEFORE`` - before the model is selected ``data['value']`` *(string, model ID)*
-
-- ``MODEL_SELECT`` - on model select ``data['value']`` *(string, model ID)*
-
-- ``PLUGIN_SETTINGS_CHANGED`` - on plugin settings update (saving settings)
-
-- ``PLUGIN_OPTION_GET`` - on request for plugin option value ``data['name'], data['value']`` *(string, any, name of requested option, value)*
-
-- ``POST_PROMPT`` - after preparing a system prompt, ``data['value']`` *(string, system prompt)*
-
-- ``PRE_PROMPT`` - before preparing a system prompt, ``data['value']`` *(string, system prompt)*
-
-- ``SYSTEM_PROMPT`` - when preparing a system prompt, ``data['value']`` *(string, system prompt)*
-
-- ``UI_ATTACHMENTS`` - when the attachment upload elements are rendered, ``data['value']`` *(bool, show True/False)*
-
-- ``UI_VISION`` - when the vision elements are rendered, ``data['value']`` *(bool, show True/False)*
-
-- ``USER_NAME`` - when preparing a user's name, ``data['value']`` *(string, name of the user)*
-
-- ``USER_SEND`` - just before the input text is sent, ``data['value']`` *(string, input text)*
-
-
-You can stop the propagation of a received event at any time by setting ``stop`` to `True`:
-
-.. code-block:: python
-
-   event.stop = True
-
-
-Events flow can be debugged by enabling the option ``Config -> Settings -> Developer -> Log and debug events``.
-
-
-Plugins reference
------------------
 
 Audio Input
 ------------
@@ -518,34 +325,34 @@ If enabled, plugin will stop after goal is reached. *Default:* `True`
 
 - ``Reverse roles between iterations`` *reverse_roles*
 
-Only for Completion/Langchain modes. 
+Only for Completion/LangChain modes. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
 
-Chat with files (Llama-index, inline)
+Chat with files (LlamaIndex, inline)
 -------------------------------------
 
-Plugin integrates ``Llama-index`` storage in any chat and provides additional knowledge into context.
+Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
 
 **Options**
 
-- ``Ask Llama-index first`` *ask_llama_first*
+- ``Ask LlamaIndex first`` *ask_llama_first*
 
-When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
+When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
 
-- ``Auto-prepare question before asking Llama-index first`` *prepare_question*
+- ``Auto-prepare question before asking LlamaIndex first`` *prepare_question*
 
-When enabled, then question will be prepared before asking Llama-index first to create best query.
+When enabled, then question will be prepared before asking LlamaIndex first to create best query.
 
 - ``Model for question preparation`` *model_prepare_question*
 
-Model used to prepare question before asking Llama-index. *Default:* `gpt-3.5-turbo`
+Model used to prepare question before asking LlamaIndex. *Default:* `gpt-3.5-turbo`
 
 - ``Max output tokens for question preparation`` *prepare_question_max_tokens*
 
-Max tokens in output when preparing question before asking Llama-index. *Default:* `500`
+Max tokens in output when preparing question before asking LlamaIndex. *Default:* `500`
 
 - ``Prompt for question preparation`` *syntax_prepare_question*
 
@@ -553,15 +360,15 @@ System prompt for question preparation.
 
 - ``Max characters in question`` *max_question_chars*
 
-Max characters in question when querying Llama-index, 0 = no limit, default: `1000`
+Max characters in question when querying LlamaIndex, 0 = no limit, default: `1000`
 
 - ``Append metadata to context`` *append_meta*
 
-If enabled, then metadata from Llama-index will be appended to additional context. *Default:* `False`
+If enabled, then metadata from LlamaIndex will be appended to additional context. *Default:* `False`
 
 - ``Model`` *model_query*
 
-Model used for querying ``Llama-index``. *Default:* ``gpt-3.5-turbo``
+Model used for querying ``LlamaIndex``. *Default:* ``gpt-3.5-turbo``
 
 - ``Index name`` *idx*
 
@@ -636,7 +443,7 @@ The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with t
 
 **IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
-To use IPython, Docker must be installed on your system. 
+To use IPython in sandbox mode, Docker must be installed on your system. 
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
@@ -646,20 +453,16 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon 
 
 .. code-block:: console
 
-    sudo snap connect pygpt:docker-executables docker:docker-executables
+    $ sudo snap connect pygpt:docker-executables docker:docker-executables
 
 .. code-block:: console
 
-    sudo snap connect pygpt:docker docker:docker-daemon
+    $ sudo snap connect pygpt:docker docker:docker-daemon
 
 **Code interpreter:** a real-time Python code interpreter is built-in. Click the ``<>`` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
 .. image:: images/v2_python.png
    :width: 600
-
-**Executing system commands**
-
-Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
 **Tip:** always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
 
@@ -667,17 +470,9 @@ Another feature is the ability to execute system commands and return their resul
 
 **General**
 
-- ``Auto-append CWD to sys_exec`` *auto_cwd*
-
-Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
-
 - ``Connect to the Python code interpreter window`` *attach_output*
 
 Automatically attach code input/output to the Python code interpreter window. *Default:* ``True``
-
-- ``Enable: sys_exec`` *cmd.sys_exec*
-
-Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
 
 - ``Enable: get_python_output`` *cmd.get_python_output*
 
@@ -694,6 +489,10 @@ Allows ``clear_python_output`` command execution. If enabled, it allows clear th
 
 **IPython**
 
+- ``Sandbox (docker container)`` *sandbox_ipython*
+
+Executes IPython in sandbox (docker container). Docker must be installed and running.
+
 - ``Dockerfile`` *ipython_dockerfile*
 
 You can customize the Dockerfile for the image used by IPython by editing the configuration above and rebuilding the image via Tools -> Rebuild IPython Docker Image.
@@ -704,11 +503,11 @@ It must match the key provided in the Dockerfile.
 
 - ``Docker image name`` *ipython_image_name*
 
-Custom image name
+Custom Docker image name
 
 - ``Docker container name`` *ipython_container_name*
 
-Custom container name
+Custom Docker container name
 
 - ``Connection address`` *ipython_conn_addr*
 
@@ -734,7 +533,6 @@ Default: 5558
 
 Default: 5559
 
-
 - ``Enable: ipython_execute`` *cmd.ipython_execute*
 
 Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
@@ -744,12 +542,27 @@ Allows Python code execution in IPython interpreter (in current kernel). *Defaul
 Allows to restart IPython kernel. *Default:* ``True``
 
 
-
 **Python (legacy)**
+
+- ``Sandbox (docker container)`` *sandbox_docker*
+
+Executes commands in sandbox (docker container). Docker must be installed and running.
 
 - ``Python command template`` *python_cmd_tpl*
 
 Python command template (use {filename} as path to file placeholder). *Default:* ``python3 {filename}``
+
+- ``Dockerfile`` *dockerfile*
+
+You can customize the Dockerfile for the image used by legacy Python by editing the configuration above and rebuilding the image via Tools -> Rebuild Python (Legacy) Docker Image.
+
+- ``Docker image name`` *image_name*
+
+Custom Docker image name
+
+- ``Docker container name`` *container_name*
+
+Custom Docker container name
 
 - ``Enable: code_execute`` *cmd.code_execute*
 
@@ -870,8 +683,8 @@ Plugin capabilities include:
 * Copying files and directories
 * Moving (renaming) files and directories
 * Reading file info
-* Indexing files and directories using Llama-index
-- Querying files using Llama-index
+* Indexing files and directories using LlamaIndex
+- Querying files using LlamaIndex
 - Searching for files and directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
@@ -958,11 +771,11 @@ Allows `cwd` command execution. *Default:* `True`
 
 - ``Use data loaders`` *use_loaders*
 
-Use data loaders from Llama-index for file reading (`read_file` command). *Default:* `True`
+Use data loaders from LlamaIndex for file reading (`read_file` command). *Default:* `True`
 
 **Indexing**
 
-- ``Enable: quick query the file with Llama-index`` *cmd.query_file*
+- ``Enable: quick query the file with LlamaIndex`` *cmd.query_file*
 
 Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
 
@@ -972,7 +785,7 @@ Model used for query temporary index for `query_file` command (in-memory index).
 
 - ``Enable: indexing files to persistent index`` *cmd.file_index*
 
-Allows `file_index` command execution. If enabled, model will be able to index file or directory using Llama-index (persistent index). *Default:* `True`
+Allows `file_index` command execution. If enabled, model will be able to index file or directory using LlamaIndex (persistent index). *Default:* `True`
 
 - ``Index to use when indexing files`` *idx*
 
@@ -987,8 +800,26 @@ If enabled, every time file is read, it will be automatically indexed (persisten
 If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
 
 
+System (OS)
+-----------
+
+The plugin provides access to the operating system and executes system commands.
+
+**Options:**
+
+**General**
+
+- ``Auto-append CWD to sys_exec`` *auto_cwd*
+
+Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
+
+- ``Enable: sys_exec`` *cmd.sys_exec*
+
+Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
+
+
 Mouse And Keyboard
----------------------------
+-------------------
 
 Introduced in version: `2.4.4` (2024-11-09)
 
@@ -1185,15 +1016,15 @@ Allows `web_urls` command execution. If enabled, model will be able to search th
 
 - ``Enable: indexing web and external content`` *cmd.web_index*
 
-Allows `web_index` command execution. If enabled, model will be able to index pages and external content using Llama-index (persistent index). *Default:* `True`
+Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
 
 - ``Enable: quick query the web and external content`` *cmd.web_index_query*
 
-Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using Llama-index (in-memory index). *Default:* `True`
+Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
 
-- ``Auto-index all used URLs using Llama-index`` *auto_index*
+- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
 
-If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index). *Default:* `False`
+If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
 
 - ``Index to use`` *idx*
 
@@ -1409,7 +1240,7 @@ Experts (inline)
 
 The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
 
-See the ``Mode -> Experts`` section for more details.
+See the ``Work modes -> Experts`` section for more details.
 
 
 GPT-4 Vision (inline)

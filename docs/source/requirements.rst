@@ -1,21 +1,22 @@
-Requirements and installation
-==============================
+How to Install
+===============
 
-Compiled binary versions
-------------------------
-**PyGPT** requires a PC with Windows 10, 11 or Linux. Just download the installer or
-archive with the appropriate version from the download page and then extract it
-or install it and run the application.
+Binaries
+---------
 
-Windows 10, 11 (64-bit)
-```````````````````````
+You can download compiled binary versions for ``Linux`` and ``Windows`` (10/11). 
+
+**PyGPT** binaries require a PC with Windows 10, 11, or Linux. Simply download the installer or the archive with the appropriate version from the download page at https://pygpt.net, extract it, or install it, and then run the application. A binary version for Mac is not available, so you must run PyGPT from PyPi or from the source code on Mac. Currently, only 64-bit binaries are available.
+
+Windows 10 and 11
+`````````````````
 The application is available for 64-bit Windows 10, 11 in the form of an MSI installer.
 The installer will automatically install all required dependencies and create
 a shortcut on the desktop. Just download the installer from the download page and
 run it
 
-Linux (64-bit)
-``````````````
+Linux
+`````
 The application is available for 64-bit Linux in the form of an archive with
 all required dependencies. Just download the archive from the download page and
 extract it. Then run the application by running the ``pygpt`` binary file in the
@@ -29,28 +30,28 @@ You can install **PyGPT** directly from Snap Store:
 
 .. code-block:: console
 
-    sudo snap install pygpt
+    $ sudo snap install pygpt
 
 
 To manage future updates just use:
 
 .. code-block:: console
 
-    sudo snap refresh pygpt
+    $ sudo snap refresh pygpt
 
 
 **Using camera:** to use camera in Snap version you must connect the camera with interface:
 
 .. code-block:: console
 
-    snap connect pygpt:camera
+    $ snap connect pygpt:camera
 
 
 **Using microphone:** to use microphone in Snap version you must connect the microphone with:
 
 .. code-block:: console
 
-    sudo snap connect pygpt:audio-record :audio-record
+    $ sudo snap connect pygpt:audio-record :audio-record
 
 
 **Connecting IPython in Docker in Snap version**:
@@ -59,11 +60,11 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon 
 
 .. code-block:: console
 
-    sudo snap connect pygpt:docker-executables docker:docker-executables
+    $ sudo snap connect pygpt:docker-executables docker:docker-executables
 
 .. code-block:: console
 
-    sudo snap connect pygpt:docker docker:docker-daemon
+    $ sudo snap connect pygpt:docker docker:docker-daemon
 
 
 
@@ -72,7 +73,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon 
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (>=3.10, <3.12).
+the application using the Python interpreter (``>=3.10``, ``<3.12``).
 You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)
@@ -82,24 +83,24 @@ PyPi (pip)
 
 .. code-block:: console
 
-    python3 -m venv venv
-    source venv/bin/activate
+    $ python3 -m venv venv
+    $ source venv/bin/activate
 
 2. Install from PyPi:
 
 .. code-block:: console
 
-    pip install pygpt-net
+    $ pip install pygpt-net
 
 3. Once installed run the command to start the application:
 
 .. code-block:: console
 
-    pygpt
+    $ pygpt
 
 
-Running from GitHub source code
--------------------------------
+Running from source code
+------------------------
 
 Install with pip
 ````````````````
@@ -108,27 +109,27 @@ Install with pip
 
 .. code-block:: console
 
-    git clone https://github.com/szczyglis-dev/py-gpt.git
-    cd py-gpt
+    $ git clone https://github.com/szczyglis-dev/py-gpt.git
+    $ cd py-gpt
 
-2. Create virtual environment:
+2. Create a new virtual environment:
 
 .. code-block:: console
 
-    python3 -m venv venv
-    source venv/bin/activate
+    $ python3 -m venv venv
+    $ source venv/bin/activate
 
 3. Install requirements:
 
 .. code-block:: console
 
-    pip install -r requirements.txt
+    $ pip install -r requirements.txt
 
 4. Run the application:
 
 .. code-block:: console
 
-    python3 run.py
+    $ python3 run.py
     
 
 Install with Poetry
@@ -138,33 +139,33 @@ Install with Poetry
 
 .. code-block:: console
 
-    git clone https://github.com/szczyglis-dev/py-gpt.git
-    cd py-gpt
+    $ git clone https://github.com/szczyglis-dev/py-gpt.git
+    $ cd py-gpt
 
 2. Install Poetry (if not installed):
 
 .. code-block:: console
 
-    pip install poetry
+    $ pip install poetry
 
 3. Create a new virtual environment that uses Python 3.10:
 
 .. code-block:: console
     
-    poetry env use python3.10
-    poetry shell
+    $ poetry env use python3.10
+    $ poetry shell
 
 4. Install requirements:
 
 .. code-block:: console
 
-    poetry install
+    $ poetry install
 
 5. Run the application:
 
 .. code-block:: console
 
-    poetry run python3 run.py
+    $ poetry run python3 run.py
 
 
 **Tip**: you can use ``PyInstaller`` to create a compiled version of
@@ -172,7 +173,7 @@ the application for your system (required version >= ``6.0.0``).
 
 Troubleshooting
 ---------------
-If you have a problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+If you have a problems with ``xcb`` plugin with newer versions of PySide on Linux, e.g. like this:
 
 .. code-block:: console
 
@@ -183,19 +184,19 @@ If you have a problems with xcb plugin with newer versions of PySide on Linux, e
 
 .. code-block:: console
 
-    sudo apt install libxcb-cursor0
+    $ sudo apt install libxcb-cursor0
 
 If you have a problems with audio on Linux, then try to install ``portaudio19-dev`` and/or ``libasound2``:
 
 .. code-block:: console
 
-    sudo apt install portaudio19-dev
+    $ sudo apt install portaudio19-dev
 
 .. code-block:: console
 
-    sudo apt install libasound2
-    sudo apt install libasound2-data 
-    sudo apt install libasound2-plugins
+    $ sudo apt install libasound2
+    $ sudo apt install libasound2-data 
+    $ sudo apt install libasound2-plugins
 
 
 **Access to camera in Snap version:**
@@ -204,7 +205,7 @@ To use camera in Vision mode in Snap version you must connect the camera with:
 
 .. code-block:: console
 
-    sudo snap connect pygpt:camera
+    $ sudo snap connect pygpt:camera
 
 **Access to microphone in Snap version:**
 
@@ -212,7 +213,7 @@ To use microphone in Snap version you must connect the microphone with:
 
 .. code-block:: console
 
-    sudo snap connect pygpt:audio-record :audio-record
+    $ sudo snap connect pygpt:audio-record :audio-record
 
 
 **Problems with GLIBC on Linux**
@@ -223,7 +224,7 @@ If you encounter error:
 
     Error loading Python lib libpython3.10.so.1.0: dlopen: /lib/x86_64-linux-gnu/libm.so.6: version GLIBC_2.35 not found (required by libpython3.10.so.1.0)
 
-when trying to run the compiled version for Linux, try updating GLIBC to version `2.35`, or use a newer operating system that has at least version `2.35` of GLIBC.
+when trying to run the compiled version for Linux, try updating GLIBC to version ``2.35``, or use a newer operating system that has at least version ``2.35`` of GLIBC.
 
 
 **Windows and VC++ Redistributable**
@@ -244,13 +245,13 @@ If you have a problems with ``WebEngine / Chromium`` renderer you can force the 
 
 .. code-block:: console
 
-    python3 run.py --legacy=1
+    $ python3 run.py --legacy=1
 
 and to force disable OpenGL hardware acceleration:
 
 .. code-block:: console
 
-    python3 run.py --disable-gpu=1
+    $ python3 run.py --disable-gpu=1
 
 
 You can also manualy enable legacy mode by editing config file - open the ``%WORKDIR%/config.json`` config file in editor and set the following options:
@@ -263,9 +264,9 @@ You can also manualy enable legacy mode by editing config file - open the ``%WOR
 Other requirements
 ------------------
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
-and an active API key that must be input into the program.
+and an active API key that must be input into the program. Local models, such as ``Llama3`` do not require OpenAI account and any API keys.
 
 Debugging and logging
 ---------------------
 
-**Tip:** Go to ``Debugging and Logging`` section for instructions on how to log and diagnose issues in a more detailed manner.
+Please go to ``Debugging and Logging`` section for instructions on how to log and diagnose issues in a more detailed manner.
