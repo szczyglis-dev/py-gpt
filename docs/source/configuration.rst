@@ -323,14 +323,16 @@ Setting the Working Directory Using Command Line Arguments
 
 To set the current working directory using a command-line argument, use:
 
-```
-python3 ./run.py --workdir="/path/to/workdir"
-```
+.. code-block:: ini
+
+   python3 ./run.py --workdir="/path/to/workdir"
+
 or, for the binary version:
 
-```
-pygpt.exe --workdir="/path/to/workdir"
-```
+.. code-block:: ini
+
+   pygpt.exe --workdir="/path/to/workdir"
+   
 
 Translations / locale
 -----------------------
