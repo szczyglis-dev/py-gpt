@@ -3,6 +3,7 @@
 ## 2.4.36 (2024-11-28)
 
 - Added a new command-line argument: --workdir="/path/to/workdir" to explicitly set the current working directory.
+- Fix: start image generation in Image mode.
 
 ## 2.4.35 (2024-11-28)
 

@@ -60,6 +60,9 @@ Image generation (DALL-E)
 **PyGPT** enables quick and easy image creation with ``DALL-E 3``. 
 The older model version, ``DALL-E 2``, is also accessible. Generating images is akin to a chat conversation  - a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to ``DALL-E`` in ``Image generation`` mode or ask the model for the best prompt.
 
+.. image:: images/v3_img.png
+   :width: 800
+
 Image generation using DALL-E is available in every mode via plugin "DALL-E 3 Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
 
 .. image:: images/v3_img_chat.png
@@ -105,10 +108,7 @@ images and those found online.
 
 Vision is also integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable the plugin and use Vision in other work modes, such as Chat or Chat with Files.
 
-Vision mode also includes real-time video capture from camera. To enable capture check the option ``Camera`` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
-
-.. image:: images/v2_capture_enable.png
-   :width: 400
+Vision mode also includes real-time video capture from camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
 
 **1) Video camera real-time image capture:**
 
@@ -342,9 +342,6 @@ This is an older version of the Agent mode, still available as legacy. However, 
 The mode activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
-
-.. image:: images/v2_agent_toolbox.png
-   :width: 400
 
 **WARNING:** Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests 
 and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
