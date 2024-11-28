@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/5751a003-950f-40e7-a655-d098bbf27b0c
 
 **Screenshot** (version `2.4.35`, build `2024-11-28`):
 
-![v2_main](https://github.com/user-attachments/assets/b4d1b804-a772-4612-8da5-ff44412310f0)
+![v2_main](https://github.com/user-attachments/assets/5d1b0da4-f8b3-437f-af07-764798315253)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
 
