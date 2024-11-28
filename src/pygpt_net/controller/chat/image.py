@@ -12,6 +12,7 @@
 from PySide6.QtCore import Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.utils import trans
@@ -94,7 +95,7 @@ class Image:
         # generate image
         bridge_context = BridgeContext(
             ctx=ctx,
-            mode="image",
+            mode=MODE_IMAGE,
             model=model_data,  # model instance
             prompt=text,
         )
