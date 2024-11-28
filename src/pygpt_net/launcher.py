@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.11.20 21:00:00                  #
 # ================================================== #
-
+import os
 import sys
 import argparse
 from logging import ERROR, WARNING, INFO, DEBUG
@@ -43,6 +43,7 @@ class Launcher:
         self.force_legacy = False
         self.force_disable_gpu = False
         self.shortcut_filter = None
+        self.workdir = None
 
     def setup(self) -> dict:
         """
@@ -69,6 +70,12 @@ class Launcher:
             required=False,
             help="force disable OpenGL (1=disabled, 0=enabled)",
         )
+        parser.add_argument(
+            "-w",
+            "--workdir",
+            required=False,
+            help="force set workdir",
+        )
         args = vars(parser.parse_args())
 
         # set log level [ERROR|WARNING|INFO|DEBUG]
@@ -92,6 +99,11 @@ class Launcher:
         if "disable-gpu" in args and args["disable-gpu"] == "1":
             print("** Force disable GPU enabled")
             self.force_disable_gpu = True
+
+        # force set workdir
+        if "workdir" in args and args["workdir"] is not None:
+            # set as environment variable
+            os.environ["PYGPT_WORKDIR"] = args["workdir"]
 
         return args
 

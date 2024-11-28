@@ -2961,6 +2961,36 @@ You can manually edit the configuration files in this directory (this is your wo
 
 ---
 
+## Setting the Working Directory Using Command Line Arguments
+
+If you want to force set current workdir using command-line argument, use:
+
+```
+python3 ./run.py --workdir="/path/to/workdir"
+```
+or:
+
+```
+pygpt.exe --workdir="/path/to/workdir"
+```
+in binary version.
+
+Certainly! Here's the improved version:
+
+## Setting the Working Directory Using Command Line Arguments
+
+To set the current working directory using a command-line argument, use:
+
+```
+python3 ./run.py --workdir="/path/to/workdir"
+```
+or, for the binary version:
+
+```
+pygpt.exe --workdir="/path/to/workdir"
+```
+
+
 ## Translations / Locale
 
 Locale `.ini` files are located in the app directory:
@@ -3832,6 +3862,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.36 (2024-11-28)**
+
+- Added a new command-line argument: --workdir="/path/to/workdir" to explicitly set the current working directory.
 
 **2.4.35 (2024-11-28)**
 

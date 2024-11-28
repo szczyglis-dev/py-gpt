@@ -318,6 +318,37 @@ You can manually edit the configuration files in this directory (this is your wo
 * ``app.log`` - a file with error and debug log
 
 
+Setting the Working Directory Using Command Line Arguments
+----------------------------------------------------------
+
+If you want to force set current workdir using command-line argument, use:
+
+```
+python3 ./run.py --workdir="/path/to/workdir"
+```
+or:
+
+```
+pygpt.exe --workdir="/path/to/workdir"
+```
+in binary version.
+
+Certainly! Here's the improved version:
+
+## Setting the Working Directory Using Command Line Arguments
+
+To set the current working directory using a command-line argument, use:
+
+```
+python3 ./run.py --workdir="/path/to/workdir"
+```
+or, for the binary version:
+
+```
+pygpt.exe --workdir="/path/to/workdir"
+```
+
+
 Translations / locale
 -----------------------
 Locale `.ini` files are located in the directory:

@@ -104,6 +104,9 @@ class Config:
 
         :return: base workdir path
         """
+        if "PYGPT_WORKDIR" in os.environ:
+            print("FORCE using workdir: {}".format(os.environ["PYGPT_WORKDIR"]))
+            return os.environ["PYGPT_WORKDIR"]
         return os.path.join(Path.home(), '.config', Config.CONFIG_DIR)
 
     @staticmethod
