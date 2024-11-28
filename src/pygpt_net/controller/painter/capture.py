@@ -85,7 +85,7 @@ class Capture:
 
             # clear attachments before capture if needed
             if self.window.controller.attachment.is_capture_clear():
-                self.window.controller.attachment.clear(True, auto=True, force=True)
+                self.window.controller.attachment.clear(True, auto=True)
 
         try:
             # prepare filename
@@ -127,7 +127,7 @@ class Capture:
 
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
-            self.window.controller.attachment.clear(True, auto=True, force=True)
+            self.window.controller.attachment.clear(True, auto=True)
 
         try:
             # prepare filename
