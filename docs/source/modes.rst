@@ -164,7 +164,7 @@ To manage external vector databases, click the DB icon next to the vector databa
 You can define, using ``Expire days``, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
 
 
-The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
+The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread.
 
 
 .. image:: images/v2_assistant_stores_upload.png
@@ -332,7 +332,7 @@ You can set the limit of steps in such a loop by going to ``Settings -> Agents a
 
 You can change the prompt used for evaluating the response in ``Settings -> Prompts -> Agent: evaluation prompt in loop``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
-Agent (Legacy, Autonomous)
+Agent (Autonomous)
 --------------------------
 
 This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: ``Agent (LlamaIndex)``.

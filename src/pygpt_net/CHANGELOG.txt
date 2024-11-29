@@ -31,7 +31,7 @@
 
 - Added an option checkbox `Auto-index on upload` in the `Attachments` tab: 
 
-Tip: To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
+Tip: To use the `RAG` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `RAG` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
 
 - Added context menu options in `Uploaded attachments` tab: `Open`, `Open Source directory` and `Open Storage directory`.
 
