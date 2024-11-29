@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.11.29 23:00:00                  #
 # ================================================== #
 
 import os
@@ -261,26 +261,22 @@ class Attachment(QObject):
         """
         return self.mode
 
-    def get_context(self, ctx: CtxItem) -> str:
+    def get_context(self, ctx: CtxItem, history: list) -> str:
         """
         Get additional context for attachment
 
         :param ctx: CtxItem instance
+        :param history Context items (history)
         :return: Additional context
         """
-        content = ""
-        meta = ctx.meta
         if self.mode != self.MODE_DISABLED:
             if self.is_verbose():
                 print("\nPreparing additional context...\nContext Mode: {}".format(self.mode))
 
-        self.window.core.attachments.context.reset()
-        if self.mode == self.MODE_FULL_CONTEXT:
-            content = self.get_full_context(ctx)
-        elif self.mode == self.MODE_QUERY_CONTEXT:
-            content = self.get_query_context(meta, str(ctx.input))
-        elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
-            content = self.get_context_summary(ctx)
+        self.window.core.attachments.context.reset()  # reset used files and urls
+
+        # get additional context from attachments
+        content = self.window.core.attachments.context.get_context(self.mode, ctx, history)
 
         # append used files and urls to context
         files = self.window.core.attachments.context.get_used_files()
@@ -295,34 +291,6 @@ class Attachment(QObject):
                 print("\n--- Using additional context ---\n\n{}".format(content))
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
-
-    def get_full_context(self, ctx: CtxItem) -> str:
-        """
-        Get full context for attachment
-
-        :param ctx: CtxItem instance
-        :return: Full context
-        """
-        return self.window.core.attachments.context.get_context_text(ctx, filename=True)
-
-    def get_query_context(self, meta: CtxMeta, query: str) -> str:
-        """
-        Get query context for attachment
-
-        :param meta: CtxMeta instance
-        :param query: Query string
-        :return: Query context
-        """
-        return self.window.core.attachments.context.query_context(meta, query)
-
-    def get_context_summary(self, ctx: CtxItem) -> str:
-        """
-        Get context summary
-
-        :param ctx: CtxItem instance
-        :return: Context summary
-        """
-        return self.window.core.attachments.context.summary_context(ctx, ctx.input)
 
     def get_uploaded_attachments(self, meta: CtxMeta) -> list:
         """

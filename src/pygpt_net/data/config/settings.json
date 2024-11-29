@@ -372,6 +372,32 @@
         "step": null,
         "advanced": false
     },
+    "ctx.attachment.rag.history": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.attachment.rag.history",
+        "description": "settings.ctx.attachment.rag.history.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.attachment.rag.history.max_items": {
+        "section": "files",
+        "type": "int",
+        "slider": true,
+        "label": "settings.ctx.attachment.rag.history.max_items",
+        "description": "settings.ctx.attachment.rag.history.max_items.desc",
+        "value": 5,
+        "min": 0,
+        "max": 100,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "download.dir": {
         "section": "files",
         "type": "text",

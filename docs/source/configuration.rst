@@ -69,6 +69,16 @@ The following basic options can be modified directly within the application:
 
 * ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
 
+* ``Verbose mode``: Enabled verbose mode when using attachment as additional context.
+
+* ``Model for querying index``: Model to use for preparing query and querying the index when the RAG option is selected.
+
+* ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected.
+
+* ``Whole conversation for RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
+
+* ``RAG limit``: Only if the option ``Whole conversation for RAG query`` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
+
 **Context**
 
 * ``Context Threshold``: Sets the number of tokens reserved for the model to respond to the next prompt.
@@ -613,4 +623,4 @@ If you want to only query index (without chat) you can enable ``Query index only
 
 You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
 
-See the section ``Extending PyGPT / Adding custom Vector Store provider`` for more details.
+See the section ``Extending PyGPT / Adding a custom Vector Store provider`` for more details.

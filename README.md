@@ -603,11 +603,11 @@ Built-in file loaders:
 - Webpages (crawling any webpage content)
 - YouTube (transcriptions)
 
-You can configure data loaders in `Settings / LlamaIndex / Data Loaders` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in `Settings / Indexes (LlamaIndex) / Data Loaders` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
 LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / LlamaIndex` section.
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Indexes (LlamaIndex)` section.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
@@ -669,7 +669,7 @@ You can set the limit of steps in such a loop by going to `Settings -> Agents an
 
 You can change the prompt used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
-##  Agent (Legacy, Autonomous) 
+##  Agent (Autonomous) 
 
 This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: `Agent (LlamaIndex)`.
 
@@ -817,11 +817,13 @@ The content from the uploaded attachments will be used in the current conversati
 
 - `Full context`: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
 
-- `Query only`: The indexed attachment will only be queried in real-time using LlamaIndex. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
+- `RAG`: The indexed attachment will only be queried in real-time using LlamaIndex. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
 
 - `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
 
-**Important**: When using `Full context` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the `Query only` option, which will only query the indexed attachment in the vector database to provide additional context.
+In the `RAG` and `Summary` mode, you can enable an additional setting by going to `Settings -> Files and attachments -> Whole conversation for RAG query`. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the `RAG limit` option, you can set a limit on how many recent entries in a discussion should be considered (`0 = no limit, default: 5`).
+
+**Important**: When using `Full context` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the `RAG` option, which will only query the indexed attachment in the vector database to provide additional context.
 
 **Images as Additional Context**
 
@@ -829,7 +831,7 @@ Files such as jpg, png, and similar images are a special case. By default, image
 
 **Uploading larger files and auto-index**
 
-To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
+To use the `RAG` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `RAG` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
 
 ## Downloading files
 
@@ -2710,6 +2712,16 @@ Config -> Settings...
 
 - `Directory for file downloads`: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
 
+- `Verbose mode`: Enabled verbose mode when using attachment as additional context.
+
+- `Model for querying index`: Model to use for preparing query and querying the index when the RAG option is selected.
+
+- `Model for attachment content summary`: Model to use when generating a summary for the content of a file when the Summary option is selected.
+
+- `Whole conversation for RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
+
+- `RAG limit`: Only if the option `Whole conversation for RAG query` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
+
 **Context**
 
 - `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt.
@@ -3247,7 +3259,7 @@ If you want to only query index (without chat) you can enable `Query index only 
 
 You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
 
-See the section `Extending PyGPT / Adding custom Vector Store provider` for more details.
+See the section `Extending PyGPT / Adding a custom Vector Store provider` for more details.
 
 # Updates
 
@@ -3878,7 +3890,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added an option checkbox `Auto-index on upload` in the `Attachments` tab: 
 
-**Tip:** To use the `Query only` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `Query only` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
+**Tip:** To use the `RAG` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `RAG` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
 
 - Added context menu options in `Uploaded attachments` tab: `Open`, `Open Source directory` and `Open Storage directory`.
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.11.29 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -40,7 +40,7 @@ class Context:
         Summarize the text below by extracting the most important information, 
         especially those that may help answer the question: 
 
-        `{query}`. 
+        `{query}`
 
         If the answer to the question is not in the text to summarize, 
         simply return a summary of the entire content. 
@@ -59,25 +59,49 @@ class Context:
 
         `{content}`
         """
+        self.rag_prompt = """
+        Prepare a question for the RAG engine (vector database) asking for additional context that can help obtain 
+        extra information necessary to answer the user's question. The query should be brief and to the point, 
+        so as to be processed as effectively as possible by the RAG engine. Below is the entire conversation 
+        of the user with the AI assistant, and at the end the current user's question, for which you need to 
+        prepare DIRECT query for the RAG engine for additional context, taking into account the content of the entire 
+        discussion and its context. In your response, return only the DIRECT query for additional context, 
+        do not return anything else besides it.
 
-    def get_all(self, meta: CtxMeta) -> list:
+        # Full conversation:
+        
+        `{history}`
+        
+        # User question:
+        
+        `{query}`
+        
+        # Good RAG query example:
+        
+        `What is the capital of France?`
+        
+        # Bad RAG query example:
+        
+        `Can you tell me the capital of France?`
         """
-        Get all attachments for meta
 
-        :param meta: CtxMeta instance
-        :return: list of attachments
+    def get_context(self, mode: str, ctx: CtxItem, history: list) -> str:
         """
-        return meta.additional_ctx
+        Get context for mode
 
-    def get_dir(self, meta: CtxMeta) -> str:
+        :param mode: Context mode
+        :param ctx: CtxItem instance
+        :param history: history
+        :return: context
         """
-        Get directory for meta
-
-        :param meta: CtxMeta instance
-        :return: directory path
-        """
-        meta_uuid = str(meta.uuid)
-        return os.path.join(self.window.core.config.get_user_dir("ctx_idx"), meta_uuid)
+        content = ""
+        if mode == self.window.controller.chat.attachment.MODE_FULL_CONTEXT:
+            content = self.get_context_text(ctx, filename=True)
+        elif mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT:
+            content = self.query_context(ctx, history)
+        elif mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT_SUMMARY:
+            content = self.summary_context(ctx, history)
+        return content
 
     def get_context_text(self, ctx: CtxItem, filename: bool = False) -> str:
         """
@@ -126,14 +150,15 @@ class Context:
         self.last_used_context = context
         return context
 
-    def query_context(self, meta: CtxMeta, query: str) -> str:
+    def query_context(self, ctx: CtxItem, history: list) -> str:
         """
         Query the index for context
 
-        :param meta : CtxMeta instance
-        :param query: query string
+        :param ctx: CtxItem instance
+        :param history: history
         :return: query result
         """
+        meta = ctx.meta
         meta_path = self.get_dir(meta)
         if not os.path.exists(meta_path) or not os.path.isdir(meta_path):
             return ""
@@ -162,6 +187,7 @@ class Context:
             self.window.core.ctx.replace(meta)
             self.window.core.ctx.save(meta.id)
 
+        query = self.prepare_context_query(ctx, history)
         model, model_item = self.get_selected_model("query")
         result = self.window.core.idx.chat.query_attachment(query, idx_path, model_item)
         self.last_used_context = result
@@ -171,28 +197,12 @@ class Context:
 
         return result
 
-    def get_selected_model(self, mode: str = "summary"):
-        """
-        Get selected model for attachments
-
-        :return: model name, model item
-        """
-        model_item = None
-        model = None
-        if mode == "summary":
-            model = self.window.core.config.get("ctx.attachment.summary.model", "gpt-4o-mini")
-        elif mode == "query":
-            model = self.window.core.config.get("ctx.attachment.query.model", "gpt-4o-mini")
-        if model:
-            model_item = self.window.core.models.get(model)
-        return model, model_item
-
-    def summary_context(self, ctx: CtxItem, query: str) -> str:
+    def summary_context(self, ctx: CtxItem, history: list) -> str:
         """
         Get summary of the context
 
         :param ctx: CtxItem instance
-        :param query: query string
+        :param history: history
         :return: query result
         """
         model, model_item = self.get_selected_model("summary")
@@ -202,6 +212,7 @@ class Context:
         if self.is_verbose():
             print("Attachments: using summary model: {}".format(model))
 
+        query = self.prepare_context_query(ctx, history)
         content = self.get_context_text(ctx, filename=True)
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
@@ -227,6 +238,73 @@ class Context:
         if self.is_verbose():
             print("Attachments: summary received: {}".format(response))
         return response
+
+    def prepare_context_query(self, ctx: CtxItem, history: list) -> str:
+        """
+        Prepare context query
+
+        :param ctx: CtxItem instance
+        :param history: history
+        :return: query result
+        """
+        use_history = self.window.core.config.get("ctx.attachment.rag.history", True)
+        query = ""
+        if ctx.input:
+            query = str(ctx.input)
+
+        if use_history:
+            if self.is_verbose():
+                print("Attachments: using history for RAG query prepare...")
+
+            # use only last X items from history
+            num_items = self.window.core.config.get("ctx.attachment.rag.history.max_items", 5)
+            history_data = []
+            for item in history:
+                history_data.append({
+                    "input": item.final_input,
+                    "output": item.final_output,
+                })
+
+            # 0 = unlimited
+            if num_items > 0:
+                if self.is_verbose():
+                    print("Attachments: using last {} items from history...".format(num_items))
+
+                if len(history_data) < num_items:
+                    num_items = len(history_data)
+                history_data = history_data[-num_items:]
+
+            history_str = ""
+            for item in history_data:
+                if item['input'] is not None:
+                    history_str += "User: " + item['input'] + "\n"
+                if item['output'] is not None:
+                    history_str += "AI: " + item['output'] + "\n"
+            prompt = self.rag_prompt.format(
+                history=history_str,
+                query=query,
+            )
+            if self.is_verbose():
+                print("Attachments: query prompt: {}".format(prompt))
+
+            model, model_item = self.get_selected_model("query")
+            ctx = CtxItem()
+            bridge_context = BridgeContext(
+                ctx=ctx,
+                prompt=prompt,
+                stream=False,
+                model=model_item,
+            )
+            event = KernelEvent(KernelEvent.CALL, {
+                'context': bridge_context,
+                'extra': {},
+            })
+            self.window.dispatch(event)
+            response = event.data.get("response")
+            query = response
+            if self.is_verbose():
+                print("Attachments: RAG query in use: {}".format(response))
+        return query
 
     def upload(
             self,
@@ -395,6 +473,41 @@ class Context:
         if self.is_verbose():
             print("Attachments: indexed. Doc IDs: {}".format(doc_ids))
         return doc_ids
+
+    def get_all(self, meta: CtxMeta) -> list:
+        """
+        Get all attachments for meta
+
+        :param meta: CtxMeta instance
+        :return: list of attachments
+        """
+        return meta.additional_ctx
+
+    def get_dir(self, meta: CtxMeta) -> str:
+        """
+        Get directory for meta
+
+        :param meta: CtxMeta instance
+        :return: directory path
+        """
+        meta_uuid = str(meta.uuid)
+        return os.path.join(self.window.core.config.get_user_dir("ctx_idx"), meta_uuid)
+
+    def get_selected_model(self, mode: str = "summary"):
+        """
+        Get selected model for attachments
+
+        :return: model name, model item
+        """
+        model_item = None
+        model = None
+        if mode == "summary":
+            model = self.window.core.config.get("ctx.attachment.summary.model", "gpt-4o-mini")
+        elif mode == "query":
+            model = self.window.core.config.get("ctx.attachment.query.model", "gpt-4o-mini")
+        if model:
+            model_item = self.window.core.models.get(model)
+        return model, model_item
 
     def duplicate(self, from_meta_id: int, to_meta_id: int) -> bool:
         """

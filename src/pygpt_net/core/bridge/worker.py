@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.11.29 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -133,7 +133,7 @@ class BridgeWorker(QObject, QRunnable):
             return
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
-        ad_context = self.window.controller.chat.attachment.get_context(ctx)
+        ad_context = self.window.controller.chat.attachment.get_context(ctx, self.context.history)
         ad_mode = self.window.controller.chat.attachment.get_mode()
         if ad_context:
             self.context.prompt += "\n\n" + ad_context  # append to input text
