@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.11.29 23:00:00                  #
 # ================================================== #
 
 import json
@@ -71,7 +71,7 @@ class Plugin(BasePlugin):
             if "mode" in data:
                 self.mode = data['mode']
 
-        elif name == Event.POST_PROMPT_ASYNC:
+        elif name == Event.POST_PROMPT_END:
             if self.mode in self.ignored_modes:  # ignore
                 return
 

@@ -50,6 +50,9 @@ class BridgeWorker(QObject, QRunnable):
             # ADDITIONAL CONTEXT: append additional context from attachments
             self.handle_additional_context()
 
+            # POST PROMPT END: handle post prompt end event
+            self.handle_post_prompt_end()
+
             # Langchain
             if self.mode == MODE_LANGCHAIN:
                 result = self.window.core.chain.call(
@@ -116,6 +119,17 @@ class BridgeWorker(QObject, QRunnable):
     def handle_post_prompt_async(self):
         """Handle post prompt async event"""
         event = Event(Event.POST_PROMPT_ASYNC, {
+            'mode': self.context.mode,
+            'reply': self.context.ctx.reply,
+            'value': self.context.system_prompt,
+        })
+        event.ctx = self.context.ctx
+        self.window.dispatch(event)
+        self.context.system_prompt = event.data['value']
+
+    def handle_post_prompt_end(self):
+        """Handle post prompt end event"""
+        event = Event(Event.POST_PROMPT_END, {
             'mode': self.context.mode,
             'reply': self.context.ctx.reply,
             'value': self.context.system_prompt,

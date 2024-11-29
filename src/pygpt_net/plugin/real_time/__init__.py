@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.11.29 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -50,7 +50,7 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == Event.SYSTEM_PROMPT:
+        if name == Event.POST_PROMPT_END:
             silent = False
             if 'silent' in data and data['silent']:
                 silent = True
