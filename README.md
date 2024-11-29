@@ -3557,6 +3557,8 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 
 - `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
 
+- `AGENT_PROMPT` - on agent prompt in eval mode, `data['value']` *(string, prompt)*
+
 - `AUDIO_INPUT_RECORD_START` - start audio input recording
 
 - `AUDIO_INPUT_RECORD_STOP` -  stop audio input recording
@@ -3615,9 +3617,15 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 
 - `POST_PROMPT` - after preparing a system prompt, `data['value']` *(string, system prompt)*
 
+- `POST_PROMPT_ASYNC` - after preparing a system prompt, just before request in async thread, `data['value']` *(string, system prompt)*
+
+- `POST_PROMPT_END` - after preparing a system prompt, just before request in async thread, at the very end `data['value']` *(string, system prompt)*
+
 - `PRE_PROMPT` - before preparing a system prompt, `data['value']` *(string, system prompt)*
 
 - `SYSTEM_PROMPT` - when preparing a system prompt, `data['value']` *(string, system prompt)*
+
+- `TOOL_OUTPUT_RENDER` - when rendering extra content from tools from plugins, `data['content']` *(string, content)*
 
 - `UI_ATTACHMENTS` - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
 
