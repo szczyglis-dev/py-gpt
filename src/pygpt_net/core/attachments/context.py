@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2024.11.30 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -118,6 +118,8 @@ class Context:
             for file in meta.additional_ctx:
                 if ("type" not in file
                         or file["type"] not in ["local_file", "url"]):
+                    continue
+                if not "uuid" in file:
                     continue
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
@@ -555,17 +557,6 @@ class Context:
         if meta is not None:
             self.delete_index(meta)
 
-    def reset_by_meta_id(self, meta_id: int, delete_files: bool = False):
-        """
-        Delete all attachments for meta by id
-
-        :param meta_id: Meta id
-        :param delete_files: delete files
-        """
-        meta = self.window.core.ctx.get_meta_by_id(meta_id)
-        if meta is not None:
-            self.reset_by_meta(meta, delete_files)
-
     def reset_by_meta(self, meta: CtxMeta, delete_files: bool = False):
         """
         Delete all attachments for meta
@@ -577,6 +568,17 @@ class Context:
         self.window.core.ctx.save(meta.id)
         if delete_files:
             self.delete_index(meta)
+
+    def reset_by_meta_id(self, meta_id: int, delete_files: bool = False):
+        """
+        Delete all attachments for meta by id
+
+        :param meta_id: Meta id
+        :param delete_files: delete files
+        """
+        meta = self.window.core.ctx.get_meta_by_id(meta_id)
+        if meta is not None:
+            self.reset_by_meta(meta, delete_files)
 
     def clear(self, meta: CtxMeta, delete_files: bool = False):
         """
