@@ -1,3 +1,11 @@
+2.4.37 (2024-11-30)
+
+- The `Query only` mode in `Uploaded` tab has been renamed to `RAG`.
+- New options have been added under `Settings -> Files and Attachments`: 
+  - `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if the mode is set to RAG or Summary.
+  - `RAG limit`: This option is applicable only if 'Use history in RAG query' is enabled. It specifies the limit on how many recent entries in the conversation will be used when generating a query for RAG. A value of 0 indicates no limit.
+- Cache: dynamic parts of the system prompt (from plugins) have been moved to the very end of the prompt stack to enable the use of prompt cache mechanisms in OpenAI.
+
 2.4.36 (2024-11-28)
 
 - Added a new command-line argument: --workdir="/path/to/workdir" to explicitly set the current working directory.

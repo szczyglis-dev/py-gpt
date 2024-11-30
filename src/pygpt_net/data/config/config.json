@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.4.36",
-    "app.version": "2.4.36",
-    "updated_at": "2024-11-28T00:00:00"
+    "version": "2.4.37",
+    "app.version": "2.4.37",
+    "updated_at": "2024-11-30T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -75,7 +75,7 @@
   "ctx.attachment.img": false,
   "ctx.attachment.mode": "query",
   "ctx.attachment.rag.history": true,
-  "ctx.attachment.rag.history.max_items": 5,
+  "ctx.attachment.rag.history.max_items": 3,
   "ctx.attachment.summary.model": "gpt-4o-mini",
   "ctx.attachment.query.model": "gpt-4o-mini",
   "ctx.attachment.verbose": false,

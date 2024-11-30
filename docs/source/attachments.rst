@@ -53,7 +53,7 @@ The content from the uploaded attachments will be used in the current conversati
 
 - ``Summary``: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the ``Files and attachments`` section.
 
-In the ``RAG`` and ``Summary`` mode, you can enable an additional setting by going to ``Settings -> Files and attachments -> Whole conversation for RAG query``. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the ``RAG limit`` option, you can set a limit on how many recent entries in a discussion should be considered (``0 = no limit, default: 5``).
+In the ``RAG`` and ``Summary`` mode, you can enable an additional setting by going to ``Settings -> Files and attachments -> Use history in RAG query``. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the ``RAG limit`` option, you can set a limit on how many recent entries in a discussion should be considered (``0 = no limit, default: 3``).
 
 **Images as Additional Context**
 

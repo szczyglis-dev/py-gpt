@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.36** | build: **2024.11.28** | Python: **>=3.10, <3.12**
+Release: **2.4.37** | build: **2024.11.30** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -821,7 +821,7 @@ The content from the uploaded attachments will be used in the current conversati
 
 - `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
 
-In the `RAG` and `Summary` mode, you can enable an additional setting by going to `Settings -> Files and attachments -> Whole conversation for RAG query`. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the `RAG limit` option, you can set a limit on how many recent entries in a discussion should be considered (`0 = no limit, default: 5`).
+In the `RAG` and `Summary` mode, you can enable an additional setting by going to `Settings -> Files and attachments -> Use history in RAG query`. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the `RAG limit` option, you can set a limit on how many recent entries in a discussion should be considered (`0 = no limit, default: 3`).
 
 **Important**: When using `Full context` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the `RAG` option, which will only query the indexed attachment in the vector database to provide additional context.
 
@@ -2718,9 +2718,9 @@ Config -> Settings...
 
 - `Model for attachment content summary`: Model to use when generating a summary for the content of a file when the Summary option is selected.
 
-- `Whole conversation for RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
+- `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
 
-- `RAG limit`: Only if the option `Whole conversation for RAG query` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
+- `RAG limit`: Only if the option `Use history in RAG query` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
 
 **Context**
 
@@ -3864,6 +3864,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.37 (2024-11-30)**
+
+- The `Query only` mode in `Uploaded` tab has been renamed to `RAG`.
+- New options have been added under `Settings -> Files and Attachments`: 
+  - `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if the mode is set to RAG or Summary.
+  - `RAG limit`: This option is applicable only if 'Use history in RAG query' is enabled. It specifies the limit on how many recent entries in the conversation will be used when generating a query for RAG. A value of 0 indicates no limit.
+- Cache: dynamic parts of the system prompt (from plugins) have been moved to the very end of the prompt stack to enable the use of prompt cache mechanisms in OpenAI.
 
 **2.4.36 (2024-11-28)**
 

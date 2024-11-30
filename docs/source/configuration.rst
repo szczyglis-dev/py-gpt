@@ -75,9 +75,9 @@ The following basic options can be modified directly within the application:
 
 * ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected.
 
-* ``Whole conversation for RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
+* ``Use history in RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary.
 
-* ``RAG limit``: Only if the option ``Whole conversation for RAG query`` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
+* ``RAG limit``: Only if the option ``Use history in RAG query`` is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit.
 
 **Context**
 
