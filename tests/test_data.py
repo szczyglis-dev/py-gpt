@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 05:00:00                  #
+# Updated Date: 2024.11.30 04:00:00                  #
 # ================================================== #
-
+import configparser
+import io
 import json
 import os
 
@@ -122,3 +123,13 @@ def test_locale():
     ]
     for file in files:
         assert os.path.exists(os.path.join(path, file))
+
+    all_files = os.listdir(path)
+    # check if .ini is parsing correctly
+    for file in all_files:
+        if file.endswith(".ini"):
+            ini = configparser.ConfigParser()
+            path = os.path.join(config.get_app_path(), "data", "locale", file)
+            data = io.open(path, mode="r", encoding="utf-8")
+            ini.read_string(data.read())
+            assert len(ini) > 0
