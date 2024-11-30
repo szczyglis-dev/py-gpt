@@ -405,7 +405,9 @@ class Chat:
             self,
             query: str,
             path: str,
-            model: ModelItem = None
+            model: ModelItem = None,
+            history: list = None,
+            verbose: bool = False,
     ) -> str:
         """
         Query attachment
@@ -413,6 +415,8 @@ class Chat:
         :param query: query
         :param path: path to index
         :param model: model
+        :param history: chat history
+        :param verbose: verbose mode
         :return: response
         """
         if model is None:
@@ -424,39 +428,33 @@ class Chat:
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         response = ""
+        score = 0
         for node in nodes:
             if node.score > 0.5:
+                score = node.score
                 response = node.text
                 break
         output = ""
         if response:
             output = str(response)
+            if verbose:
+                print("Found using retrieval, {} (score: {})".format(output, score))
         else:
-            # 2. try with prepared prompt
-            prompt = """
-            # Task
-            Translate the below user prompt into a suitable, short query for the RAG engine, so it can fetch the context 
-            related to the query from the vector database. 
-            
-            # Important rules
-            1. Edit the user prompt in a way that allows for the best possible result. 
-            2. In your response, give me only the reworded query, without any additional information from yourself. 
-            
-            # User prompt:
-            ```{prompt}```
-            """.format(prompt=query)
-            response_prepare = index.as_query_engine(
+            if verbose:
+                print("Not found using retrieval, trying with query engine...")
+            history = self.context.get_messages(
+                query,
+                "",
+                history,
+            )
+            memory = self.get_memory_buffer(history, service_context.llm)
+            response = index.as_chat_engine(
                 llm=service_context.llm,
                 streaming=False,
-            ).query(prompt)
-            if response_prepare:
-                # try the final query with prepared prompt
-                final_response = index.as_query_engine(
-                    llm=service_context.llm,
-                    streaming=False,
-                ).query(response_prepare.response)
-                if final_response:
-                    output = str(final_response.response)
+                memory=memory,
+            ).chat(query)
+            if response:
+                output = str(response.response)
         return output
 
     def query_retrieval(

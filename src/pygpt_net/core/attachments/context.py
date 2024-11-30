@@ -66,15 +66,7 @@ class Context:
         of the user with the AI assistant, and at the end the current user's question, for which you need to 
         prepare DIRECT query for the RAG engine for additional context, taking into account the content of the entire 
         discussion and its context. In your response, return only the DIRECT query for additional context, 
-        do not return anything else besides it.
-
-        # Full conversation:
-        
-        `{history}`
-        
-        # User question:
-        
-        `{query}`
+        do not return anything else besides it. The response should not contain any phrases other than the query itself:
         
         # Good RAG query example:
         
@@ -83,6 +75,14 @@ class Context:
         # Bad RAG query example:
         
         `Can you tell me the capital of France?`
+
+        # Full conversation:
+        
+        `{history}`
+        
+        # User question:
+        
+        `{query}`
         """
 
     def get_context(self, mode: str, ctx: CtxItem, history: list) -> str:
@@ -160,6 +160,7 @@ class Context:
         """
         meta = ctx.meta
         meta_path = self.get_dir(meta)
+        query = str(ctx.input)
         if not os.path.exists(meta_path) or not os.path.isdir(meta_path):
             return ""
         idx_path = os.path.join(self.get_dir(meta), self.dir_index)
@@ -187,9 +188,21 @@ class Context:
             self.window.core.ctx.replace(meta)
             self.window.core.ctx.save(meta.id)
 
-        query = self.prepare_context_query(ctx, history)
+        history_data = self.prepare_context_history(history)
         model, model_item = self.get_selected_model("query")
-        result = self.window.core.idx.chat.query_attachment(query, idx_path, model_item)
+
+        verbose = False
+        if self.is_verbose():
+            verbose = True
+            print("Attachments: using query model: {}".format(model))
+
+        result = self.window.core.idx.chat.query_attachment(
+            query=query,
+            path=idx_path,
+            model=model_item,
+            history=history_data,
+            verbose=verbose,
+        )
         self.last_used_context = result
 
         if self.is_verbose():
@@ -212,7 +225,7 @@ class Context:
         if self.is_verbose():
             print("Attachments: using summary model: {}".format(model))
 
-        query = self.prepare_context_query(ctx, history)
+        query = str(ctx.input)
         content = self.get_context_text(ctx, filename=True)
         prompt = self.summary_prompt.format(
             query=str(query).strip(),
@@ -221,12 +234,14 @@ class Context:
         if self.is_verbose():
             print("Attachments: summary prompt: {}".format(prompt))
 
+        history_data = self.prepare_context_history(history)
         ctx = CtxItem()
         bridge_context = BridgeContext(
             ctx=ctx,
             prompt=prompt,
             stream=False,
             model=model_item,
+            history=history_data,
         )
         event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,
@@ -239,72 +254,34 @@ class Context:
             print("Attachments: summary received: {}".format(response))
         return response
 
-    def prepare_context_query(self, ctx: CtxItem, history: list) -> str:
+    def prepare_context_history(self, history: list) -> list:
         """
-        Prepare context query
+        Prepare context history
 
-        :param ctx: CtxItem instance
         :param history: history
-        :return: query result
+        :return: history data
         """
         use_history = self.window.core.config.get("ctx.attachment.rag.history", True)
-        query = ""
-        if ctx.input:
-            query = str(ctx.input)
-
+        history_data = []
         if use_history:
             if self.is_verbose():
-                print("Attachments: using history for RAG query prepare...")
+                print("Attachments: using history for query prepare...")
 
             # use only last X items from history
-            num_items = self.window.core.config.get("ctx.attachment.rag.history.max_items", 5)
+            num_items = self.window.core.config.get("ctx.attachment.rag.history.max_items", 3)
             history_data = []
             for item in history:
-                history_data.append({
-                    "input": item.final_input,
-                    "output": item.final_output,
-                })
+                history_data.append(item)
 
             # 0 = unlimited
             if num_items > 0:
                 if self.is_verbose():
                     print("Attachments: using last {} items from history...".format(num_items))
-
                 if len(history_data) < num_items:
                     num_items = len(history_data)
                 history_data = history_data[-num_items:]
 
-            history_str = ""
-            for item in history_data:
-                if item['input'] is not None:
-                    history_str += "User: " + item['input'] + "\n"
-                if item['output'] is not None:
-                    history_str += "AI: " + item['output'] + "\n"
-            prompt = self.rag_prompt.format(
-                history=history_str,
-                query=query,
-            )
-            if self.is_verbose():
-                print("Attachments: query prompt: {}".format(prompt))
-
-            model, model_item = self.get_selected_model("query")
-            ctx = CtxItem()
-            bridge_context = BridgeContext(
-                ctx=ctx,
-                prompt=prompt,
-                stream=False,
-                model=model_item,
-            )
-            event = KernelEvent(KernelEvent.CALL, {
-                'context': bridge_context,
-                'extra': {},
-            })
-            self.window.dispatch(event)
-            response = event.data.get("response")
-            query = response
-            if self.is_verbose():
-                print("Attachments: RAG query in use: {}".format(response))
-        return query
+        return history_data
 
     def upload(
             self,

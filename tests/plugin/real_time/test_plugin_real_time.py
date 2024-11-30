@@ -35,7 +35,7 @@ def test_handle_system_prompt(mock_window):
     plugin.setup()
     ctx = CtxItem()
     event = Event()
-    event.name = "system.prompt"
+    event.name = "post.prompt.end"
     event.data = {
         "value": "prev prompt"
     }
