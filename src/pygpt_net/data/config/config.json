@@ -68,6 +68,7 @@
   "attachments_auto_index": true,
   "attachments_send_clear": true,
   "attachments_capture_clear": true,
+  "audio.input.device": "0",
   "audio.transcribe.convert_video": true,
   "context_threshold": 200,
   "cmd": false,

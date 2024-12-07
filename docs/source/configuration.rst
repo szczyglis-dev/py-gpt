@@ -171,6 +171,8 @@ The following basic options can be modified directly within the application:
 
 **Vision**
 
+* ``Vision: Camera Input Device``: Video capture camera index (index of the camera, default: 0).
+
 * ``Vision: Camera capture width (px)``: Video capture resolution (width).
 
 * ``Vision: Camera capture height (px)``: Video capture resolution (height).
@@ -178,6 +180,10 @@ The following basic options can be modified directly within the application:
 * ``Vision: Camera IDX (number)``: Video capture camera index (number of camera).
 
 * ``Vision: Image capture quality``: Video capture image JPEG quality (%).
+
+**Audio**
+
+* ``Audio Input Device``: Selects the audio device for Microphone input.
 
 **Indexes (LlamaIndex)**
 

@@ -946,6 +946,18 @@
         "step": null,
         "advanced": true
     },
+    "vision.capture.idx": {
+        "section": "vision",
+        "type": "int",
+        "slider": true,
+        "label": "settings.vision.capture.idx",
+        "value": 0,
+        "min": 0,
+        "max": 3,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "vision.capture.width": {
         "section": "vision",
         "type": "int",
@@ -970,18 +982,6 @@
         "step": 1,
         "advanced": false
     },
-    "vision.capture.idx": {
-        "section": "vision",
-        "type": "int",
-        "slider": true,
-        "label": "settings.vision.capture.idx",
-        "value": 0,
-        "min": 0,
-        "max": 3,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
     "vision.capture.quality": {
         "section": "vision",
         "type": "int",
@@ -992,6 +992,15 @@
         "max": 100,
         "multiplier": 1,
         "step": 1,
+        "advanced": false
+    },
+    "audio.input.device": {
+        "section": "audio",
+        "type": "combo",
+        "use": "audio_input_devices",
+        "label": "settings.audio.input.device",
+        "description": "settings.audio.input.device.desc",
+        "value": 0,
         "advanced": false
     },
     "llama.idx.list": {

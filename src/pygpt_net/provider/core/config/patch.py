@@ -1739,6 +1739,8 @@ class Patch:
                 print("Migrating config from < 2.4.38...")
                 if 'theme.style' not in data:
                     data["theme.style"] = "blocks"
+                if 'audio.input.device' not in data:
+                    data["audio.input.device"] = "0"
                 self.window.core.updater.patch_css('style.light.css', True)  # force update
                 updated = True
 

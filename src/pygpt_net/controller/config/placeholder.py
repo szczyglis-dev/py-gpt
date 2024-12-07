@@ -100,8 +100,22 @@ class Placeholder:
             return self.get_speech_synthesis_actions()
         elif id == "voice_control_actions":
             return self.get_voice_control_actions()
+        elif id == "audio_input_devices":
+            return self.get_audio_input_devices()
         else:
             return []
+
+    def get_audio_input_devices(self) -> list:
+        """
+        Get audio input devices list
+
+        :return: placeholders list
+        """
+        devices = self.window.core.audio.get_input_devices()
+        data = []
+        for device in devices:
+            data.append({str(device[0]): device[1]})
+        return data
 
     def get_langchain_providers(self) -> list:
         """

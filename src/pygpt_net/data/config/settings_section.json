@@ -23,6 +23,9 @@
     "vision": {
         "label": "settings.section.vision"
     },
+    "audio": {
+        "label": "settings.section.audio"
+    },
     "llama-index": {
         "label": "settings.section.llama_index"
     },

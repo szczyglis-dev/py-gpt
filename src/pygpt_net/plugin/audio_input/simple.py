@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2024.12.08 00:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -84,11 +84,22 @@ class Simple:
                 self.timer.timeout.connect(self.stop_timeout)
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
 
+            # select audio input device
+            device_id = int(self.plugin.window.core.config.get('audio.input.device', "0"))
+            if not self.plugin.window.core.audio.is_device_compatible(device_id):
+                message = "Selected audio input device is not compatible. Please select another one."
+                self.is_recording = False
+                self.plugin.window.core.debug.log(message)
+                self.plugin.window.ui.dialogs.alert(message)
+                self.switch_btn_start()  # switch button to start
+                return
+
             self.p = pyaudio.PyAudio()
             self.stream = self.p.open(format=pyaudio.paInt16,
                                       channels=1,
                                       rate=44100,
                                       input=True,
+                                      input_device_index=device_id,
                                       frames_per_buffer=1024,
                                       stream_callback=callback)
 

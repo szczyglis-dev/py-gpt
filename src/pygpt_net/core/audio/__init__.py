@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.08 00:00:00                  #
 # ================================================== #
 
 import re
@@ -27,6 +27,50 @@ class Audio:
             "input": {},
             "output": {},
         }
+
+    def get_input_devices(self) -> list:
+        """
+        Get input devices
+
+        :return devices list: [(id, name)]
+        """
+        import pyaudio
+        devices = []
+        try:
+            p = pyaudio.PyAudio()
+            num_devices = p.get_device_count()
+            for i in range(num_devices):
+                info = p.get_device_info_by_index(i)
+                if info["maxInputChannels"] > 0:
+                    devices.append((i, info["name"]))
+                    # print(f"Device ID {i}: {info['name']}")
+            p.terminate()
+        except Exception as e:
+            print(f"Audio input devices receive error: {e}")
+        return devices
+
+    def is_device_compatible(self, device_index) -> bool:
+        """
+        Check if device is compatible
+
+        :param device_index: device index
+        :return: True if compatible
+        """
+        import pyaudio
+        p = pyaudio.PyAudio()
+        info = p.get_device_info_by_index(device_index)
+        supported = False
+        try:
+            p.is_format_supported(
+                rate=44100,
+                input_device=info['index'],
+                input_channels=1,
+                input_format=pyaudio.paInt16)
+            supported = True
+        except ValueError:
+            supported = False
+        p.terminate()
+        return supported
 
     def is_registered(self, id: str, type: str = "output") -> bool:
         """
