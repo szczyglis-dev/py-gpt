@@ -26,6 +26,11 @@ body {{
     -webkit-border-radius: 1ex;
     -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }}
+.ts {{
+    display: none;
+}}
+
+/* base */
 a {{
     text-decoration: none;
     color: #a1b5c4 !important;
@@ -38,8 +43,186 @@ p {{
     margin-top: 5px;
     margin-bottom: 5px;
 }}
+
+/* images */
+.image {{
+    max-width: 400px;
+}}
+
+/* cmd */
+.cmd {{
+    font-family: 'Lato';
+    text-decoration: none;
+    padding-bottom: 0px;
+}}
+
+/* lists, code */
+ul, ol, .list {{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}}
+pre {{
+    font-family: 'Monaspace Neon';
+    display: block;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    text-align: left;
+    padding: 0;
+}}
+code {{
+    font-family: 'Monaspace Neon';
+    word-wrap: break-word;
+}}
+.code-header-wrapper {{
+    text-align: right;
+    width: auto;
+    padding: 10px;
+    padding-top: 10px;
+    margin: 0;
+    font-size: 0.9rem;
+}}
+.code-header {{
+    text-align: right;
+    width: 90%;
+    padding: 0px;
+}}
+.code-header-lang {{
+    float: left;
+    padding-left: .25rem;
+}}
+.code-header-copy {{
+    text-align: right;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    color: #6e6e6e;
+    padding-right: .25rem;
+}}
+.code-header-copy img {{
+    vertical-align: middle;
+    padding-right: 5px;
+}}
+.code-wrapper {{
+    padding: 0px;
+    margin: 0px;
+}}
+.code-wrapper pre {{
+    padding: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+}}
+.highlight span {{
+    font-family: 'Monaspace Neon';
+}}
+
+/* action icons */
+.action-icons {{
+    margin-top: 20px;
+}}
+.action-icons a {{
+    text-decoration: none;
+}}
+.action-icons a:hover {{
+    filter: brightness(120%);
+}}
+.action-img {{
+    width: 20px;
+    height: 20px;
+}}
+.edit-icon {{
+    display: inline;
+}}
+.theme-blocks.display-timestamp .ts {{
+    display: inline;
+}}
+
+/* message box */
+.msg-box {{
+    max-width: 100%;
+    border-radius: 10px;
+    padding: 10px;
+    margin-right: 10px;
+}}
+.msg-user {{
+    white-space: pre-wrap;
+    width: auto;
+    max-width: 100%;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    margin-top: 10px;
+    margin-left: 0px;
+    margin-bottom: 5px;
+}}
+.msg-bot {{
+    white-space: pre-wrap;
+    width: auto;
+    max-width: 100%;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}}
+.msg-box:not(first-child) {{
+    margin-top: 20px !important;
+}}
+.msg-box:first-child {{
+    margin-top: 0px;
+}}
+.msg-box .name-header {{
+    display: block;
+    font-size: 0.8rem;
+}}
+.msg-box .name-header::before {{
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}}
+.msg-extra {{
+    margin-top: 10px;
+    margin-bottom: 0px;
+    color: gray;
+}}
+.msg-extra a {{
+    color: gray;
+}}
+.msg-user .msg-extra {{
+    font-weight: bold;
+    padding-top: 5px;
+}}
+.msg-box .msg {{
+    margin: 0;
+    padding: 15px;
+}}
+
+/* tool output */
+.tool-output-header {{
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: gray;
+}}
+.tool-output .content {{
+    padding: 10px;
+    color: gray !important;
+}}
+.tool-output .toggle-cmd-output {{
+    cursor: pointer;
+    padding-top: 10px;
+    display: block;
+    color: gray;
+}}
+
+/* extra source */
 .extra-src-icon {{
     padding-right: 2px;
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
 }}
 .extra-src-img-box {{
     display: inline-block;
@@ -96,171 +279,10 @@ p {{
     height: 100%;
     object-fit: cover;
 }}
-.msg-user {{
-    white-space: pre-wrap;
-    width: auto;
-    max-width: 100%;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    margin-top: 10px;
-    margin-left: 0px;
-    margin-bottom: 5px;
-}}
-.msg-bot {{
-    white-space: pre-wrap;
-    width: auto;
-    max-width: 100%;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-}}
-.msg-extra {{
-    margin-top: 10px;
-    margin-bottom: 0px;
-    color: gray;
-}}
-.msg-extra a {{
-    color: gray;
-}}
-.msg-user .msg-extra {{
-    font-weight: bold;
-    padding-top: 5px;
-}}
-.msg-box {{
-    padding: 5px;
-    max-width: 100%;
-}}
-.msg-box .msg {{
-    margin: 0;
-    padding: 15px;
-}}
-.msg-box:first-child {{
-    margin-top: 0px;
-}}
-.msg-box:last-child {{
-    border-bottom: none;
-}}
-.msg-box .name-header {{
-    display: none;
-}}
-.image {{
-    max-width: 400px;
-}}
-.cmd {{
-    font-family: 'Lato';
-    text-decoration: none;
-    padding-bottom: 0px;
-}}
-.ts {{
-    display: none;
-}}
-.tool-output-header {{
-    margin-top: 15px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: gray;
-}}
-ul, ol, .list {{
-    margin-top: 0px;
-    margin-bottom: 0px;
-}}
-pre {{
-    font-family: 'Monaspace Neon';
-    display: block;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    text-align: left;
-    padding: 0;
-}}
-code {{
-    font-family: 'Monaspace Neon';
-    word-wrap: break-word;
-}}
-.code-header-wrapper {{
-    text-align: right;
-    width: auto;
-    padding: 10px;
-    padding-top: 10px;
-    margin: 0;
-    font-size: 0.9rem;
-}}
-.code-header {{
-    text-align: right;
-    width: 90%;
-    padding: 0px;
-}}
-.code-header-lang {{
-    float: left;
-}}
-.code-header-copy {{
-    text-align: right;
-    text-decoration: none;
-    font-weight: bold;
-    display: inline-block;
-    color: #6e6e6e;
-}}
-.code-header-copy img {{
-    vertical-align: middle;
-    padding-right: 5px;
-}}
-.code-wrapper {{
-    padding: 0px;
-    margin: 0px;
-}}
-.code-wrapper pre {{
-    padding: 0;
-    padding-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 0;
-}}
-.highlight span {{
-    font-family: 'Monaspace Neon';
-}}
-.action-icons {{
-    margin-top: 10px;
-}}
-.action-icons a {{
-    text-decoration: none;
-}}
-.action-icons a:hover {{
-    filter: brightness(60%);
-}}
-.action-img {{
-    width: 20px;
-    height: 20px;
-}}
-.edit-icon {{
-    display: none;
-}}
-.display-edit-icons .edit-icon {{
-    display: inline;
-}}
-.display-timestamp .ts {{
-    display: inline;
-}}
-.display-blocks {{
-}}
-.display-blocks .msg-box {{
-    border-radius: 10px;
-    padding: 10px;
-    margin-right: 10px;
-}}
-.display-blocks .msg-box:not(first-child) {{
-    margin-top: 20px !important;
-}}
-.display-blocks .name-header {{
-    display: block;
-    font-size: 0.8rem;
-}}
-.display-blocks .name-header::before {{
-    content: '';
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-    vertical-align: middle;
+
+/* common */
+.toggle-expanded {{
+    transform: rotateX(180deg);
 }}
 .append_input {{
     margin: 0;
@@ -271,19 +293,6 @@ code {{
     padding: 0;
 }}
 .empty_list {{
-}}
-.tool-output .content {{
-    padding: 10px;
-    color: gray !important;
-}}
-.tool-output .toggle-cmd-output {{
-    cursor: pointer;
-    padding-top: 10px;
-    display: block;
-    color: gray;
-}}
-.toggle-expanded {{
-    transform: rotateX(180deg);
 }}
 .spinner {{
   display: inline-block;
@@ -300,6 +309,8 @@ code {{
   width: 100% !important;
   height: 100% !important;
 }}
+
+/* anims */
 @keyframes spin {{
   from {{
     transform: rotate(0deg);

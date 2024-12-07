@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 02:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -28,9 +28,13 @@ class Theme:
     def setup(self):
         """Setup theme menu"""
         self.window.ui.menu['theme'] = {}
+        self.window.ui.menu['theme_style'] = {}
         self.window.ui.menu['theme_syntax'] = {}
         self.window.ui.menu['theme.layout.density'] = {}
         self.window.ui.menu['menu.theme'] = QMenu(trans("menu.theme"), self.window)
+
+        # styles
+        self.window.ui.menu['theme.style'] = QMenu(trans("menu.theme.style"), self.window)
 
         # color themes
         self.window.ui.menu['theme.dark'] = QMenu(trans("menu.theme.dark"), self.window)
@@ -40,12 +44,14 @@ class Theme:
         # layout density
         self.window.ui.menu['theme.density'] = QMenu(trans("menu.theme.density"), self.window)
 
+        """
         # blocks
         self.window.ui.menu['theme.blocks'] = QAction(trans("menu.theme.blocks"), self.window, checkable=True)
         self.window.ui.menu['theme.blocks'].triggered.connect(
             lambda: self.window.controller.theme.toggle_option('render.blocks'))
         self.window.ui.menu['theme.blocks'].setCheckable(True)
         self.window.ui.menu['theme.blocks'].setChecked(self.window.core.config.get('render.blocks'))
+        """
 
         # tooltips
         self.window.ui.menu['theme.tooltips'] = QAction(trans("menu.theme.tooltips"), self.window, checkable=True)
@@ -62,10 +68,11 @@ class Theme:
         self.window.ui.menu['theme.settings'].triggered.connect(
             lambda: self.window.controller.settings.open_section('layout'))
 
+        self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.style'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.dark'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.light'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.syntax'])
         self.window.ui.menu['menu.theme'].addMenu(self.window.ui.menu['theme.density'])
-        self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.blocks'])
+        # self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.blocks'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.tooltips'])
         self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme.settings'])

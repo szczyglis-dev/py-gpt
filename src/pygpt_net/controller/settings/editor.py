@@ -63,6 +63,7 @@ class Editor:
         self.window.ui.add_hook("update.config.debug", self.hook_update)
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
         self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
+        self.window.ui.add_hook("update.config.theme.style", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -162,6 +163,11 @@ class Editor:
         if self.config_changed('render.code_syntax'):
             value = self.window.core.config.get('render.code_syntax')
             self.window.controller.theme.toggle_syntax(value, update_menu=True)
+
+        # style
+        if self.config_changed('theme.style'):
+            value = self.window.core.config.get('theme.style')
+            self.window.controller.theme.toggle_style(value)
 
         # convert lists
         if self.config_changed('ctx.convert_lists'):

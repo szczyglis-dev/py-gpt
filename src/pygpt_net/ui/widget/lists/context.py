@@ -494,3 +494,4 @@ class SectionItem(QStandardItem):
         self.setTextAlignment(QtCore.Qt.AlignRight)
         font = self.font()
         font.setBold(True)
+        self.setFont(font)

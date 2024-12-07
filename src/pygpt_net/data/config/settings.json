@@ -146,6 +146,15 @@
         "step": 1,
         "advanced": false
     },
+    "theme.style": {
+        "section": "layout",
+        "type": "combo",
+        "use": "styles",
+        "label": "settings.theme.style",
+        "description": "settings.render.web.only.desc",
+        "value": "chatgpt",
+        "advanced": false
+    },
     "render.code_syntax": {
         "section": "layout",
         "type": "combo",

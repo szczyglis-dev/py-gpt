@@ -1,0 +1,61 @@
+body {{ 
+    color: #fff;
+    background-color: #232629;
+}}
+::-webkit-scrollbar {{
+    background: #232629;
+}}
+::-webkit-scrollbar-thumb {{
+    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+::-webkit-scrollbar-corner {{
+    background: #232629;
+}}
+a {{
+    color: #a1b5c4 !important;
+}}
+a:hover {{
+    color: #b8cad7 !important;
+}}
+.msg-user {{
+    background: #303030;
+    color: #fff !important;
+}}
+.msg-bot {{
+    color: #fff;
+}}
+.cmd {{
+    color: #4d4d4d;
+}}
+.ts {{
+    color: #4d4d4d;
+}}
+.list {{
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.code-header-wrapper {{
+    background-color: #303030;
+}}
+.code-header-copy {{
+    color: silver !important;
+}}
+.code-header-copy:hover {{
+    color: #fff;
+}}
+.code-header-lang {{
+    color: #686868;
+}}
+.action-icons a:hover {{
+    filter: brightness(130%);
+}}
+.name-bot::before {{
+    background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.name-user::before {{
+    background-color: silver;
+}}

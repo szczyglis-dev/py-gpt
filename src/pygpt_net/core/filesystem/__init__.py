@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 
-from datetime import datetime
 from pathlib import PurePath
 from uuid import uuid4
 
@@ -38,18 +37,6 @@ class Filesystem:
         self.types = Types(window)
         self.url = Url(window)
         self.workdir_placeholder = "%workdir%"
-        self.styles = [
-            "style.css",
-            "style.dark.css",
-            "style.light.css",
-            "markdown.css",
-            "markdown.dark.css",
-            "markdown.light.css",
-            "web.css",
-            "web.dark.css",
-            "web.light.css",
-            "fix_windows.css",
-        ]
 
     def install(self):
         """Install provider data"""
@@ -77,9 +64,9 @@ class Filesystem:
 
         src_dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'css')
         dst_dir = os.path.join(self.window.core.config.path, 'css')
-
+        app_styles = os.listdir(src_dir)
         try:
-            for style in self.styles:
+            for style in app_styles:
                 src = os.path.join(src_dir, style)
                 dst = os.path.join(dst_dir, style)
                 if (not os.path.exists(dst) or force) and os.path.exists(src):
@@ -91,7 +78,8 @@ class Filesystem:
         """Backup user custom css styles"""
         css_dir = os.path.join(self.window.core.config.path, 'css')
         backup_file_extension = '.backup'
-        for style in self.styles:
+        user_styles = os.listdir(css_dir)
+        for style in user_styles:
             src = os.path.join(css_dir, style)
             dst = os.path.join(css_dir, style + backup_file_extension)
             if os.path.exists(src):
@@ -457,5 +445,3 @@ class Filesystem:
         else:
             files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         return files
-
-

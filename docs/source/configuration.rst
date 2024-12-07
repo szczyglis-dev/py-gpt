@@ -37,6 +37,8 @@ The following basic options can be modified directly within the application:
 
 * ``Zoom``: Adjusts the zoom in chat window (web render view). `WebEngine / Chromium` render mode only.
 
+* ``Style (chat)``: Chat style (Blocks, or ChatGPT-like, or ChatGPT-like Wide. `WebEngine / Chromium` render mode only.
+
 * ``Code syntax highlight``: Syntax highlight theme in code blocks. `WebEngine / Chromium` render mode only.
 
 * ``Font Size (chat window)``: Adjusts the font size in the chat window (plain-text) and notepads.
@@ -58,8 +60,6 @@ The following basic options can be modified directly within the application:
 * ``Store dialog window positions``: Enable or disable dialogs positions store/restore, Default: True.
 
 * ``Use theme colors in chat window``: Use color theme in chat window, Default: True.
-
-* ``Disable markdown formatting in output``: Enable plain-text display in output window, Default: False.
 
 **Files and attachments**
 

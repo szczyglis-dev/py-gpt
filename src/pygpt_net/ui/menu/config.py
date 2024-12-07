@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
+
+import os
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
@@ -42,16 +44,10 @@ class Config:
         self.window.ui.menu['config.access'] = QAction(QIcon(":/icons/accessibility.svg"),
                                                        trans("menu.config.access"), self.window)
 
-        css_files = []
-        css_files.append("style.css")
-        css_files.append("style.dark.css")
-        css_files.append("style.light.css")
-        css_files.append("markdown.css")
-        css_files.append("markdown.dark.css")
-        css_files.append("markdown.light.css")
-        css_files.append("web.css")
-        css_files.append("web.dark.css")
-        css_files.append("web.light.css")
+        css_dir = os.path.join(self.window.core.config.path, 'css')
+        css_files = os.listdir(css_dir)
+        css_files = [f for f in css_files if not f.endswith('.backup')]  # remove .backup files
+        css_files = sorted(css_files)  # sort by name
 
         json_files = []
         json_files.append("attachments.json")

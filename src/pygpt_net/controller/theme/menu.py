@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -30,6 +30,18 @@ class Menu:
         # setup themes list menu
         if self.loaded:
             return
+
+        # styles
+        styles = self.window.controller.theme.common.get_styles_list()
+        for style in styles:
+            style_id = style.lower()
+            title = style.replace('_', ' ').title()
+            self.window.ui.menu['theme_style'][style_id] = QAction(title, self.window, checkable=True)
+            self.window.ui.menu['theme_style'][style_id].triggered.connect(
+                lambda checked=None, style=style_id: self.window.controller.theme.toggle_style(style))
+            self.window.ui.menu['theme.style'].addAction(self.window.ui.menu['theme_style'][style_id])
+
+        # color themes
         themes = self.window.controller.theme.common.get_themes_list()
         for theme in themes:
             name = self.window.controller.theme.common.translate(theme)
@@ -42,6 +54,7 @@ class Menu:
                 self.window.ui.menu['theme.dark'].addAction(self.window.ui.menu['theme'][theme])
             elif theme.startswith('light'):
                 self.window.ui.menu['theme.light'].addAction(self.window.ui.menu['theme'][theme])
+
         self.loaded = True
 
     def setup_syntax(self):
@@ -86,14 +99,22 @@ class Menu:
 
     def update_list(self):
         """Update theme list menu"""
-        current = self.window.core.config.get('theme')
+        # styles
+        current_style = self.window.core.config.get('theme.style')
+        for style in self.window.ui.menu['theme_style']:
+            self.window.ui.menu['theme_style'][style].setChecked(False)
+        if current_style in self.window.ui.menu['theme_style']:
+            self.window.ui.menu['theme_style'][current_style].setChecked(True)
+
+        # color themes
+        current_theme = self.window.core.config.get('theme')
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
-        if current in self.window.ui.menu['theme']:
-            self.window.ui.menu['theme'][current].setChecked(True)
+        if current_theme in self.window.ui.menu['theme']:
+            self.window.ui.menu['theme'][current_theme].setChecked(True)
 
     def update_syntax(self):
-        """Update syntax menu"""
+        """Update code syntax highlight menu"""
         current = self.window.core.config.get('render.code_syntax')
         for style in self.window.ui.menu['theme_syntax']:
             self.window.ui.menu['theme_syntax'][style].setChecked(False)

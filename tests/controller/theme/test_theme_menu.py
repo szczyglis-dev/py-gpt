@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
@@ -20,6 +20,14 @@ def test_update_list(mock_window):
     """Test update list"""
     theme = Theme(mock_window)
     mock_window.core.config.data['theme'] = 'test'
-    mock_window.ui.menu = {'theme': {'test': MagicMock()}}
+    mock_window.core.config.data['theme.style'] = 'blocks'
+    mock_window.ui.menu = {
+        'theme': {
+            'test': MagicMock()
+        },
+        'theme_style': {
+            'blocks': MagicMock()
+        }
+    }
     theme.menu.update_list()
     theme.window.ui.menu['theme']['test'].setChecked.assert_called()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
@@ -23,6 +23,7 @@ class Markdown:
         """
         self.window = window
         self.css = {}  # external styles
+        self.web_style = ""
 
     def update(self, force: bool = False):
         """
@@ -60,7 +61,8 @@ class Markdown:
 
         :return: stylesheet
         """
-        if "web" not in self.css:
+        web_style = self.window.core.config.get("theme.style", "blocks")
+        if "web" not in self.css or self.web_style != web_style:
             self.load()
         if "web" in self.css:
             return self.css["web"]
@@ -73,31 +75,41 @@ class Markdown:
         self.window.dispatch(event)  # per current engine
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
-        data = {
+        event = RenderEvent(RenderEvent.END, {
             "meta": meta,
-        }
-        event = RenderEvent(RenderEvent.END, data)
+        })
         self.window.dispatch(event)
 
     def load(self):
         """Load markdown styles"""
-        parents = ["markdown", "web"]
+        parents = [
+            "markdown",
+            "web",
+        ]
+        web_style = self.window.core.config.get("theme.style", "blocks")
         for base_name in parents:
+            suffix = ""
+            if base_name == 'web':
+                suffix = "-" + web_style
+                self.web_style = web_style
             theme = self.window.core.config.get('theme')
             name = str(base_name)
-            color_name = str(base_name)
             if theme.startswith('light'):
-                color_name += '.light'
+                color = '.light'
             else:
-                color_name += '.dark'
+                color = '.dark'
+
+            # load CSS, app + user
+            file_base = name + suffix + '.css'
+            file_color = name + suffix + color + '.css'
             paths = []
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
+            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_base))
+            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_color))
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_base))
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_color))
             content = ''
             for path in paths:
-                if os.path.exists(path):
+                if os.path.exists(path) and os.path.isfile(path):
                     with open(path, 'r') as file:
                         content += file.read()
 

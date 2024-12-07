@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -1732,6 +1732,14 @@ class Patch:
                 if 'ctx.attachment.rag.history.max_items' not in data:
                     data["ctx.attachment.rag.history.max_items"] = self.window.core.config.get_base(
                         'ctx.attachment.rag.history.max_items')
+                updated = True
+
+            # < 2.4.38
+            if old < parse_version("2.4.38"):
+                print("Migrating config from < 2.4.38...")
+                if 'theme.style' not in data:
+                    data["theme.style"] = "blocks"
+                self.window.core.updater.patch_css('style.light.css', True)  # force update
                 updated = True
 
         # update file

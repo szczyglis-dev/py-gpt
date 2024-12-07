@@ -6,17 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
+
+from pygpt_net.core.events import RenderEvent
 
 from .common import Common
 from .markdown import Markdown
 from .menu import Menu
 from .nodes import Nodes
-from ...core.events import RenderEvent
-
 
 class Theme:
     def __init__(self, window=None):
@@ -68,10 +68,21 @@ class Theme:
         # update themes menu
         self.menu.update_list()
         self.menu.update_syntax()
-        self.window.ui.menu['theme.blocks'].setChecked(self.window.core.config.get("render.blocks"))
 
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
+
+    def toggle_style(self, name: str):
+        """
+        Toggle theme style (web)
+
+        :param name: web style name
+        """
+        self.window.core.config.set('theme.style', name)
+        self.window.core.config.save()
+        event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
+        self.window.dispatch(event)
+        self.reload()
 
     def toggle_option(self, name: str, value: any = None):
         """
@@ -120,10 +131,24 @@ class Theme:
         if update_menu:
             self.menu.update_syntax()
 
+    def update_style(self):
+        """Update style"""
+        current = self.window.core.config.get('theme.style')
+        self.toggle_style(current)
+
+    def update_theme(self, force: bool = True):
+        """
+        Update theme
+
+        :param force: force theme change (manual trigger)
+        """
+        current = self.window.core.config.get('theme')
+        self.toggle(current, force=force)
+
     def update_syntax(self):
         """Update syntax menu"""
-        curr = self.window.core.config.get('render.code_syntax')
-        self.toggle_syntax(curr, update_menu=True)
+        current = self.window.core.config.get('render.code_syntax')
+        self.toggle_syntax(current, update_menu=True)
 
     def reload(self, force: bool = True):
         """
@@ -131,8 +156,7 @@ class Theme:
 
         :param force: force theme change (manual trigger)
         """
-        current = self.window.core.config.get('theme')
-        self.toggle(current, force=force)
+        self.update_theme(force=force)
 
     def apply(self, theme: str = 'dark_teal.xml', custom: str = None):
         """
@@ -183,4 +207,5 @@ class Theme:
     def reload_all(self):
         """Reload all"""
         self.setup()
+        self.update_style()
         self.update_syntax()

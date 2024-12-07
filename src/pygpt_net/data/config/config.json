@@ -335,6 +335,7 @@
   "temperature": 1.0,
   "theme": "dark_cyan",
   "theme.markdown": true,
+  "theme.style": "chatgpt",
   "top_p": 1.0,
   "upload.store": true,
   "upload.data_dir": false,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 15:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
@@ -156,3 +156,24 @@ class Common:
                 with open(path) as file:
                     content += file.read()
         return content
+
+    def get_styles_list(self) -> list:
+        """
+        Return a list of available styles
+
+        :return: list of styles names
+        """
+        styles = []
+        app_dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'css')
+        user_dir = os.path.join(self.window.core.config.path, 'css')
+        for path in [app_dir, user_dir]:
+            if not os.path.exists(path):
+                continue
+            for file in os.listdir(path):
+                if file.startswith("web-") and file.endswith('.css'):
+                    to_replace = ['web-', '.css', '.light', '.dark']
+                    for item in to_replace:
+                        file = file.replace(item, '')
+                    if file not in styles:
+                        styles.append(file)
+        return sorted(styles)

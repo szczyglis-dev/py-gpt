@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
@@ -73,5 +73,5 @@ def test_load(mock_window):
 
         with patch('builtins.open', mock_open(read_data='test')) as mock_file:
             theme.markdown.load()
-            mock_file.assert_called_with('test', 'r')
             assert theme.markdown.css['markdown'] is not None
+            assert theme.markdown.css['web'] is not None

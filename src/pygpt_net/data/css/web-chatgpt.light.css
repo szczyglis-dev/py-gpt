@@ -1,0 +1,71 @@
+body {{ 
+    color: #000;
+    background-color: #fff;
+}}
+::-webkit-scrollbar {{
+    background: silver;
+}}
+::-webkit-scrollbar-thumb {{
+    background: gray;
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: #494949;
+}}
+::-webkit-scrollbar-corner {{
+    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+}}
+p {{ 
+    color: #000;
+}}
+a {{
+    color: #3b7097 !important;
+}}
+.msg-user {{
+    color: #000;
+}}
+.msg-user p {{
+    color: #000;
+}}
+.msg-bot {{
+    color: #000;
+}}
+.cmd {{
+    color: #4d4d4d;
+    text-decoration: none;
+}}
+.ts {{
+    color: #4d4d4d;
+}}
+code {{
+    color: #000;
+}}
+.code-wrapper {{
+    color: #fff;
+    border: 1px solid #d4d4d4;
+}}
+.code-header-wrapper {{
+    color: #fff;
+    background: #e1e1e1;
+}}
+.code-header-copy {{
+    color: #444444 !important;
+}}
+.code-header-copy:hover {{
+    color: #000;
+}}
+.code-header-lang {{
+    color: #5c5c5c;
+}}
+.msg-user {{
+    background-color: #f3f3f3;
+    color: #000;
+}}
+.name-bot::before {{
+    background-color: #6b6b6b;
+}}
+.name-user::before {{
+    background-color: silver;
+}}
+.action-icons a:hover {{
+    filter: brightness(60%);
+}}

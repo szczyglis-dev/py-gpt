@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 import os
@@ -46,21 +46,35 @@ class Body:
 
         :return: CSS styles
         """
-        dark_styles = ["dracula", "fruity", "github-dark", "gruvbox-dark", "inkpot", "material", "monokai",
-                       "native", "nord", "nord-darker", "one-dark", "paraiso-dark", "rrt", "solarized-dark",
-                       "stata-dark", "vim", "zenburn"]
-        style = self.window.core.config.get("render.code_syntax")
-        if style is None or style == "":
-            style = "default"
+        syntax_dark = [
+            "dracula",
+            "fruity",
+            "github-dark",
+            "gruvbox-dark",
+            "inkpot",
+            "material",
+            "monokai",
+            "native",
+            "nord",
+            "nord-darker",
+            "one-dark",
+            "paraiso-dark",
+            "rrt",
+            "solarized-dark",
+            "stata-dark",
+            "vim",
+            "zenburn",
+        ]
+        syntax_style = self.window.core.config.get("render.code_syntax")
+        if syntax_style is None or syntax_style == "":
+            syntax_style = "default"
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
         stylesheet = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
-        if style in dark_styles:
+        if syntax_style in syntax_dark:
             stylesheet += "pre { color: #fff; }"
         else:
             stylesheet += "pre { color: #000; }"
-        content = stylesheet + """
-        """ + self.highlight.get_style_defs()
-        return content
+        return stylesheet + " " + self.highlight.get_style_defs()
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
         """
@@ -187,9 +201,9 @@ class Body:
         """
         icon_path = os.path.join(
             self.window.core.config.get_app_path(),
-            "data", "icons", "public_filled.svg"
+            "data", "icons", "language.svg"
         )
-        icon = '<img src="file://{}" width="25" height="25" valign="middle" class="extra-src-icon">'.format(icon_path)
+        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
@@ -235,7 +249,7 @@ class Body:
             self.window.core.config.get_app_path(),
             "data", "icons", "db.svg"
         )
-        icon = '<img src="file://{}" width="25" height="25" valign="middle" class="extra-src-icon">'.format(icon_path)
+        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
         if html_sources != "":
             html += "<p>{icon}<small><b>{prefix}:</b></small></p>".format(
                 prefix=trans('chat.prefix.doc'),
@@ -259,7 +273,7 @@ class Body:
             self.window.core.config.get_app_path(),
             "data", "icons", "attachments.svg"
         )
-        icon = '<img src="file://{}" width="25" height="25" valign="middle" class="extra-src-icon">'.format(icon_path)
+        icon = '<img src="file://{}" class="extra-src-icon">'.format(icon_path)
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
@@ -319,12 +333,14 @@ class Body:
         """
         classes = []
         classes_str = ""
+        style = self.window.core.config.get("theme.style", "blocks")
         if self.window.core.config.get('render.blocks'):
             classes.append("display-blocks")
         if self.window.core.config.get('ctx.edit_icons'):
             classes.append("display-edit-icons")
         if self.is_timestamp_enabled():
             classes.append("display-timestamp")
+        classes.append("theme-" + style)
         if classes:
             classes_str = ' class="' + " ".join(classes) + '"'
 

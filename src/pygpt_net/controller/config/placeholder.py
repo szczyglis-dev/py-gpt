@@ -86,6 +86,8 @@ class Placeholder:
             return self.get_agent_providers()
         elif id == "syntax_styles":
             return self.get_syntax_styles()
+        elif id == "styles":
+            return self.get_styles()
         elif id == "idx":
             return self.get_idx()
         elif id == "keys":
@@ -270,6 +272,19 @@ class Placeholder:
         :return: placeholders list
         """
         styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
+        styles.sort()
+        data = []
+        for id in styles:
+            data.append({id: id})
+        return data
+
+    def get_styles(self) -> list:
+        """
+        Get styles list
+
+        :return: placeholders list
+        """
+        styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
         data = []
         for id in styles:

@@ -1,0 +1,326 @@
+@font-face {{
+  font-family: "Lato";
+  src: url('file:///%fonts%/Lato/Lato-Regular.ttf');
+}}
+@font-face {{
+  font-family: "Monaspace Neon";
+  src: url('file:///%fonts%/MonaspaceNeon/MonaspaceNeon-Regular.otf');
+}}
+* {{
+    font-family: 'Lato'; 
+}}
+body {{ 
+    word-wrap: break-word;
+    padding: 6px;
+    line-height: 1.25;
+    will-change: transform, opacity;
+    padding: 0;
+    margin: auto;
+    max-width: 720px;
+    border-radius: .25rem;
+}}
+::-webkit-scrollbar {{
+    height: 12px;
+    width: 12px;
+}}
+::-webkit-scrollbar-thumb {{
+    -webkit-border-radius: 1ex;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}}
+.ts {{
+    display: none;
+}}
+
+/* base */
+a {{
+    text-decoration: none;
+    color: #a1b5c4 !important;
+}}
+a:hover {{
+    cursor: pointer !important;
+    text-decoration: underline;
+}}
+p {{ 
+    margin-top: 5px;
+    margin-bottom: 5px;
+}}
+
+/* images */
+.image {{
+    max-width: 400px;
+}}
+
+/* cmd */
+.cmd {{
+    font-family: 'Lato';
+    text-decoration: none;
+    padding-bottom: 0px;
+    font-size: 0.8rem;
+}}
+
+/* lists, code */
+ul, ol, .list {{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}}
+pre {{
+    font-family: 'Monaspace Neon';
+    display: block;
+    text-align: left;
+    padding: 0;
+    overflow-y: auto;
+}}
+code {{
+    font-family: 'Monaspace Neon';
+    overflow-y: auto;
+    font-size: 0.8rem;
+}}
+.code-header-wrapper {{
+    text-align: right;
+    width: auto;
+    height: 20px;
+    padding: 10px;
+    padding-top: 10px;
+    margin: 0;
+    font-size: 0.75rem;
+}}
+.code-header {{
+    text-align: right;
+    width: 90%;
+    padding: 0px;
+    font-size: 0.75rem;
+}}
+.code-header-lang {{
+    float: left;
+    padding-top: 4px;
+    padding-left: .25rem;
+}}
+.code-header-copy {{
+    text-align: right;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    color: #6e6e6e;
+    padding-right: .25rem;
+}}
+.code-header-copy img {{
+    vertical-align: middle;
+    padding-right: 5px;
+}}
+.code-wrapper {{
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    border-radius: .25rem;
+}}
+.code-wrapper pre {{
+    padding: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    width: 100%;
+}}
+.code-wrapper code {{
+    padding: 1.5rem;
+}}
+.highlight span {{
+    font-family: 'Monaspace Neon';
+}}
+
+/* action icons */
+.action-icons {{
+    margin-top: 20px;
+}}
+.action-icons a {{
+    text-decoration: none;
+}}
+.action-icons a:hover {{
+    filter: brightness(120%);
+}}
+.action-img {{
+    width: 20px;
+    height: 20px;
+}}
+.edit-icon {{
+    display: inline;
+}}
+.theme-blocks.display-timestamp .ts {{
+    display: inline;
+}}
+
+/* message box */
+.msg-box {{
+    max-width: 100%;
+    border-radius: 10px;
+    padding: 10px;
+    margin-right: 10px;
+}}
+.msg-user {{
+    white-space: pre-wrap;
+    width: auto;
+    max-width: 50%;
+    padding: 5px;
+    padding-left: 10px;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-bottom: 5px;
+    border: none;
+}}
+.msg-bot {{
+    white-space: pre-wrap;
+    width: auto;
+    max-width: 100%;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+    background: none;
+    border: none;
+}}
+.msg-box:not(first-child) {{
+    margin-top: 20px !important;
+}}
+.msg-box:first-child {{
+    margin-top: 0px;
+}}
+.msg-box:last-child {{
+    margin-bottom: 20px !important;
+}}
+.msg-box .name-header {{
+    display: none;
+}}
+.msg-extra {{
+    margin-top: 10px;
+    margin-bottom: 0px;
+    color: gray;
+}}
+.msg-extra a {{
+    color: gray;
+}}
+.msg-user .msg-extra {{
+    display: none;
+}}
+.msg-box .msg {{
+    margin: 0;
+    padding: 5px;
+}}
+
+/* tool output */
+.tool-output-header {{
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: gray;
+}}
+.tool-output .content {{
+    padding: 10px;
+    color: gray !important;
+}}
+.tool-output .toggle-cmd-output {{
+    cursor: pointer;
+    padding-top: 10px;
+    display: block;
+    color: gray;
+}}
+
+/* extra source */
+.extra-src-icon {{
+    padding-right: 2px;
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+}}
+.extra-src-img-box {{
+    display: inline-block;
+    text-align: center;
+    padding: 5px;
+    margin: 5px;
+    max-width: 400px;
+    height: auto;
+    white-space: pre-wrap;
+    word-break: break-all !important;
+}}
+.extra-src-img-box:hover {{
+    cursor: pointer;
+}}
+.extra-src-img-box .title {{
+    width: 400px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    padding-top: 10px;
+    display: block;
+    font-size: 0.95rem;
+}}
+.extra-src-img-box .img-outer {{
+    display: flex;
+    flex-direction: column;
+}}
+.extra-src-img-box .img-wrapper {{
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #000;
+    background: #000;
+    width: 400px;
+    height: 280px;
+    margin: 0;
+    margin-bottom: 0px !important;
+    border-radius: 5px;
+    -webkit-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+    -moz-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+    box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+}}
+.extra-src-img-box .img-wrapper:hover {{
+    border: 1px solid gray;
+}}
+.extra-src-img-box img {{
+    margin-bottom: 2px;
+    padding-bottom: 0px;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}}
+
+/* common */
+.toggle-expanded {{
+    transform: rotateX(180deg);
+}}
+.append_input {{
+    margin: 0;
+    padding: 0;
+}}
+.append_output {{
+    margin: 0;
+    padding: 0;
+}}
+.empty_list {{
+}}
+.spinner {{
+  display: inline-block;
+  animation: spin 2s linear infinite;
+  margin: auto !important;
+  padding: 0 !important;
+  margin-top: 8px !important;
+  width:30px !important;
+  height:30px !important;
+}}
+.spinner .img {{
+  margin: auto;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}}
+
+/* anims */
+@keyframes spin {{
+  from {{
+    transform: rotate(0deg);
+  }}
+  to {{
+    transform: rotate(360deg);
+  }}
+}}
