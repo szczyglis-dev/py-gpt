@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 10:00:00                  #
+# Updated Date: 2024.12.07 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -32,6 +32,9 @@ class CtxSearchInput(QLineEdit):
         self.clear_action.triggered.connect(self.clear_search_string)
         self.addAction(self.clear_action, QLineEdit.TrailingPosition)
         self.clear_action.setVisible(False)
+        action = QAction(self)
+        action.setIcon(QIcon(":/icons/search.svg"))
+        self.addAction(action, QLineEdit.LeadingPosition)
 
         self.textChanged.connect(self.on_text_changed)
 
