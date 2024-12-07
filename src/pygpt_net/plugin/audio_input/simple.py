@@ -85,7 +85,9 @@ class Simple:
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
 
             # select audio input device
-            device_id = int(self.plugin.window.core.config.get('audio.input.device', "0"))
+            device_id = int(self.plugin.window.core.config.get('audio.input.device', 0))
+            rate = int(self.plugin.window.core.config.get('audio.input.rate', 44100))
+            channels = int(self.plugin.window.core.config.get('audio.input.channels', 1))
             if not self.plugin.window.core.audio.is_device_compatible(device_id):
                 message = "Selected audio input device is not compatible. Please select another one."
                 self.is_recording = False
@@ -96,8 +98,8 @@ class Simple:
 
             self.p = pyaudio.PyAudio()
             self.stream = self.p.open(format=pyaudio.paInt16,
-                                      channels=1,
-                                      rate=44100,
+                                      channels=channels,
+                                      rate=rate,
                                       input=True,
                                       input_device_index=device_id,
                                       frames_per_buffer=1024,

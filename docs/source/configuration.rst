@@ -185,6 +185,10 @@ The following basic options can be modified directly within the application:
 
 * ``Audio Input Device``: Selects the audio device for Microphone input.
 
+* ``Channels``: Input channels, default: 1
+
+* ``Sampling Rate``: Sampling rate, default: 44100
+
 **Indexes (LlamaIndex)**
 
 * ``Indexes``: List of created indexes.

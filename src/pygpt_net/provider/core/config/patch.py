@@ -1741,6 +1741,10 @@ class Patch:
                     data["theme.style"] = "blocks"
                 if 'audio.input.device' not in data:
                     data["audio.input.device"] = "0"
+                if 'audio.input.channels' not in data:
+                    data["audio.input.channels"] = 1
+                if 'audio.input.rate' not in data:
+                    data["audio.input.rate"] = 44100
                 self.window.core.updater.patch_css('style.light.css', True)  # force update
                 updated = True
 

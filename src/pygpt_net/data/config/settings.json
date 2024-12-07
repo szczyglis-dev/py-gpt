@@ -951,6 +951,7 @@
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.idx",
+        "description": "settings.vision.capture.idx.desc",
         "value": 0,
         "min": 0,
         "max": 3,
@@ -1001,6 +1002,32 @@
         "label": "settings.audio.input.device",
         "description": "settings.audio.input.device.desc",
         "value": 0,
+        "advanced": false
+    },
+    "audio.input.channels": {
+        "section": "audio",
+        "type": "int",
+        "slider": true,
+        "label": "settings.audio.input.channels",
+        "description": "settings.audio.input.channels.desc",
+        "value": 1,
+        "min": 1,
+        "max": 4,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "audio.input.rate": {
+        "section": "audio",
+        "type": "int",
+        "slider": true,
+        "label": "settings.audio.input.rate",
+        "description": "settings.audio.input.rate.desc",
+        "value": 44100,
+        "min": 8,
+        "max": 256000,
+        "multiplier": 1,
+        "step": 1,
         "advanced": false
     },
     "llama.idx.list": {
