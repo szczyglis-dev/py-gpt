@@ -51,7 +51,11 @@ code {{
     color: #444444 !important;
 }}
 .code-header-copy:hover {{
-    color: #000;
+    color: #000 !important;
+    cursor: pointer;
+}}
+.code-header-copy:hover img {{
+    filter: brightness(60%);
 }}
 .code-header-lang {{
     color: #5c5c5c;

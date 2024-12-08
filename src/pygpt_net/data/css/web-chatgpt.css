@@ -83,6 +83,12 @@ code {{
     padding-top: 10px;
     margin: 0;
     font-size: 0.75rem;
+    -webkit-border-top-left-radius: .25rem;
+    -webkit-border-top-right-radius: .25rem;
+    -moz-border-radius-topleft: .25rem;
+    -moz-border-radius-topright: .25rem;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
 }}
 .code-header {{
     text-align: right;
@@ -106,6 +112,13 @@ code {{
 .code-header-copy img {{
     vertical-align: middle;
     padding-right: 5px;
+}}
+.code-header-copy:hover {{
+    text-decoration: none;
+    cursor: pointer;
+}}
+.code-header-copy:hover img {{
+    filter: brightness(130%);
 }}
 .code-wrapper {{
     padding: 0px;
@@ -157,10 +170,12 @@ code {{
 }}
 .msg-user {{
     white-space: pre-wrap;
-    width: auto;
-    max-width: 50%;
+    width: fit-content;
+    min-width: 10px;
+    max-width: 75%;
     padding: 5px;
     padding-left: 10px;
+    padding-right: 10px;
     margin-top: 10px;
     margin-left: auto;
     margin-bottom: 5px;
@@ -202,6 +217,7 @@ code {{
 .msg-box .msg {{
     margin: 0;
     padding: 5px;
+    width: auto;
 }}
 
 /* tool output */

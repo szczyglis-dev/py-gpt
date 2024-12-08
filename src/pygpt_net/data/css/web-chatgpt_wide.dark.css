@@ -47,6 +47,9 @@ code {{
 .code-header-copy:hover {{
     color: #fff;
 }}
+.code-header-copy:hover img {{
+    filter: brightness(130%);
+}}
 .code-header-lang {{
     color: #686868;
 }}
