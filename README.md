@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.37** | build: **2024.11.30** | Python: **>=3.10, <3.12**
+Release: **2.4.38** | build: **2024.12.08** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3872,6 +3872,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.38 (2024-12-08)**
+
+- Added the ability to select a style for chat display between: Blocks, ChatGPT-like, and ChatGPT-like Wide. New option in the menu: Config -> Theme -> Style...
+- Added configuration options for audio input in Settings -> Audio -> Audio Input Device, Channels, and Sampling rate.
 
 **2.4.37 (2024-11-30)**
 
