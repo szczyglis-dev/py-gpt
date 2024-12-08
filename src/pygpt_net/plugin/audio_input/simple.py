@@ -89,7 +89,8 @@ class Simple:
             rate = int(self.plugin.window.core.config.get('audio.input.rate', 44100))
             channels = int(self.plugin.window.core.config.get('audio.input.channels', 1))
             if not self.plugin.window.core.audio.is_device_compatible(device_id):
-                message = "Selected audio input device is not compatible. Please select another one."
+                err = self.plugin.window.core.audio.get_last_error()
+                message = "Selected audio input device is not compatible. Please select another one. ERROR: " + str(err)
                 self.is_recording = False
                 self.plugin.window.core.debug.log(message)
                 self.plugin.window.ui.dialogs.alert(message)

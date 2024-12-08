@@ -10,6 +10,7 @@
 # ================================================== #
 
 import re
+from bs4 import UnicodeDammit
 
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
@@ -27,6 +28,7 @@ class Audio:
             "input": {},
             "output": {},
         }
+        self.last_error = None
 
     def get_input_devices(self) -> list:
         """
@@ -42,7 +44,8 @@ class Audio:
             for i in range(num_devices):
                 info = p.get_device_info_by_index(i)
                 if info["maxInputChannels"] > 0:
-                    devices.append((i, info["name"]))
+                    dammit = UnicodeDammit(info["name"])
+                    devices.append((i, dammit.unicode_markup))
                     # print(f"Device ID {i}: {info['name']}")
             p.terminate()
         except Exception as e:
@@ -57,17 +60,20 @@ class Audio:
         :return: True if compatible
         """
         import pyaudio
+        rate = int(self.window.core.config.get('audio.input.rate', 44100))
+        channels = int(self.window.core.config.get('audio.input.channels', 1))
         p = pyaudio.PyAudio()
         info = p.get_device_info_by_index(device_index)
         supported = False
         try:
             p.is_format_supported(
-                rate=44100,
+                rate=rate,
                 input_device=info['index'],
-                input_channels=1,
+                input_channels=channels,
                 input_format=pyaudio.paInt16)
             supported = True
-        except ValueError:
+        except ValueError as e:
+            self.last_error = str(e)
             supported = False
         p.terminate()
         return supported
@@ -136,3 +142,11 @@ class Audio:
         :return: cleaned text
         """
         return re.sub(r'~###~.*?~###~', '', str(text))
+
+    def get_last_error(self) -> str:
+        """
+        Return last error
+
+        :return: Error
+        """
+        return self.last_error
