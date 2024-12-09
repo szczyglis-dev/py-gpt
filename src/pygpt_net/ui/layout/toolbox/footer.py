@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy, QHBoxLayout
 
 from pygpt_net.ui.widget.textarea.name import NameInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
@@ -25,6 +25,7 @@ from .agent_llama import AgentLlama
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
+from ...widget.option.toggle_label import ToggleLabel
 
 
 class Footer:
@@ -74,6 +75,21 @@ class Footer:
         rows.addWidget(self.indexes.setup_options())
         rows.addWidget(self.window.ui.nodes['voice.control.btn'])
         rows.setContentsMargins(2, 0, 0, 0)
+
+        self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
+                                                          icon=":/icons/window.svg")
+        self.window.ui.nodes['layout.split'].box.stateChanged.connect(
+            lambda: self.window.controller.ui.tabs.toggle_split_screen(self.window.ui.nodes['layout.split'].box.isChecked())
+        )
+        split_layout = QHBoxLayout()
+
+        split_layout.addWidget(QLabel(""))
+        split_layout.addStretch(1)
+        split_layout.addWidget(self.window.ui.nodes['layout.split'])
+        split_layout.setContentsMargins(5, 0, 15, 0)
+        split_widget = QWidget()
+        split_widget.setLayout(split_layout)
+        rows.addWidget(split_widget)
 
         # logo
         logo_button = self.setup_logo()

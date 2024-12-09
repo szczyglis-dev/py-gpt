@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QObject, QEvent
@@ -96,6 +96,8 @@ class OutputLayout(QWidget):
         self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         for column in self.columns:
             self.splitter.addWidget(column)
+
+        self.window.ui.splitters['columns'] = self.splitter
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.splitter, stretch=1)

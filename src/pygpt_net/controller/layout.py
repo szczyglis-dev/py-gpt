@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import os
@@ -26,7 +26,7 @@ class Layout:
         """
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
-        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "calendar", "interpreter", "interpreter.columns"]
+        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "calendar", "interpreter", "interpreter.columns", "columns"]
         self.text_nodes = ["input"]
 
     def setup(self):

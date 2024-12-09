@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton
@@ -119,6 +119,14 @@ class OutputTabs(QTabWidget):
         actions['edit'].triggered.connect(
             lambda: self.rename_tab(index, column_idx)
         )
+        actions['move_right'] = QAction(QIcon(":/icons/forward"), trans('action.tab.move.right'), self)
+        actions['move_right'].triggered.connect(
+            lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 1)
+        )
+        actions['move_left'] = QAction(QIcon(":/icons/back"), trans('action.tab.move.left'), self)
+        actions['move_left'].triggered.connect(
+            lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 0)
+        )
         return actions
 
     def show_notepad_menu(self, index: int, column_idx: int, global_pos):
@@ -146,6 +154,13 @@ class OutputTabs(QTabWidget):
 
         if self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) > 1:
             context_menu.addAction(actions['close_all'])
+
+        # move
+        if column_idx != 0:
+            context_menu.addAction(actions['move_left'])
+        if column_idx != 1:
+            context_menu.addAction(actions['move_right'])
+
         context_menu.exec(global_pos)
 
     def show_chat_menu(self, index: int, column_idx: int, global_pos):
@@ -175,6 +190,12 @@ class OutputTabs(QTabWidget):
             context_menu.addAction(actions['close'])
             context_menu.addAction(actions['close_all'])
 
+        # move
+        if column_idx != 0:
+            context_menu.addAction(actions['move_left'])
+        if column_idx != 1:
+            context_menu.addAction(actions['move_right'])
+
         context_menu.exec(global_pos)
 
     def show_files_menu(self, index: int, column_idx: int, global_pos):
@@ -195,6 +216,13 @@ class OutputTabs(QTabWidget):
         context_menu.addAction(actions['add_notepad'])
         context_menu.addAction(actions['refresh'])
         context_menu.addAction(actions['edit'])
+
+        # move
+        if column_idx != 0:
+            context_menu.addAction(actions['move_left'])
+        if column_idx != 1:
+            context_menu.addAction(actions['move_right'])
+
         context_menu.exec(global_pos)
 
     def show_default_menu(self, index: int, column_idx: int, global_pos):
@@ -210,6 +238,13 @@ class OutputTabs(QTabWidget):
         context_menu.addAction(actions['add_chat'])
         context_menu.addAction(actions['add_notepad'])
         context_menu.addAction(actions['edit'])
+
+        # move
+        if column_idx != 0:
+            context_menu.addAction(actions['move_left'])
+        if column_idx != 1:
+            context_menu.addAction(actions['move_right'])
+
         context_menu.exec(global_pos)
 
     @Slot()

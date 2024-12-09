@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -93,6 +93,7 @@ class Output:
         :param tab: Tab
         :return: Meta ID or None
         """
+        self.init()
         pid = tab.pid
         col_idx = tab.column_idx
         meta_id = None
@@ -165,6 +166,7 @@ class Output:
         self.mapping = {}
         self.last_pids = {}
         self.last_pid = 0
+        self.initialized = False
 
     def get_current(self, meta: CtxMeta = None):
         """

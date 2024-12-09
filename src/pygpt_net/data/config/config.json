@@ -161,7 +161,13 @@
   "layout.dpi.scaling": true,
   "layout.dpi.factor": 1.0,
   "layout.groups": {},
-  "layout.splitters": {},
+  "layout.splitters": {
+        "columns": [
+            1,
+            0
+        ]
+    },
+  "layout.split": false,
   "layout.tabs": {},
   "layout.tooltips": true,
   "layout.tray": true,
@@ -338,7 +344,7 @@
   "temperature": 1.0,
   "theme": "dark_cyan",
   "theme.markdown": true,
-  "theme.style": "chatgpt",
+  "theme.style": "blocks",
   "top_p": 1.0,
   "upload.store": true,
   "upload.data_dir": false,

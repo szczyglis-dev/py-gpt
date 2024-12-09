@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -146,11 +146,21 @@ class Output:
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
         self.window.ui.nodes['prompt.context'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
+        self.window.ui.nodes['input.counter'] = ChatStatusLabel("")
+        self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
+        self.window.ui.nodes['input.counter'].setWordWrap(False)
+
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
 
         # schedule
         self.window.ui.plugin_addon['schedule'] = ChatStatusLabel("")
+
+        # inline vision
+        self.window.ui.nodes['inline.vision'] = HelpLabel(trans('inline.vision'))
+        self.window.ui.nodes['inline.vision'].setVisible(False)
+        self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
 
         opts_layout = QHBoxLayout()
         # opts_layout.setSpacing(2)  #
@@ -158,6 +168,7 @@ class Output:
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         # opts_layout.addWidget(self.window.ui.nodes['output.edit'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
+        opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.setAlignment(Qt.AlignLeft)
 
         left_layout = QHBoxLayout()
@@ -179,6 +190,8 @@ class Output:
         right_layout.addWidget(self.window.ui.nodes['chat.model'])
         right_layout.addWidget(QLabel("  "))
         right_layout.addWidget(self.window.ui.nodes['prompt.context'])
+        right_layout.addWidget(QLabel("  "))
+        right_layout.addWidget(self.window.ui.nodes['input.counter'])
         right_layout.setContentsMargins(0, 0, 0, 0)
 
         left_widget = QWidget()
@@ -193,14 +206,14 @@ class Output:
 
         left_layout = QHBoxLayout()
         left_layout.addWidget(left_widget)
-        left_layout.addStretch(1)
+        #left_layout.addStretch(1)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
         center_layout = QHBoxLayout()
-        center_layout.addStretch()
+        #center_layout.addStretch()
         center_layout.addWidget(self.window.ui.nodes['anim.loading'])
         center_layout.addStretch()
-        center_layout.setContentsMargins(0, 0, 0, 0)
+        center_layout.setContentsMargins(20, 0, 0, 0)
 
         right_layout = QHBoxLayout()
         right_layout.addStretch(1)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -30,12 +30,22 @@ class Tabs:
         self.appended = False
         self.current = 0
         self.column_idx = 0
+        self.tmp_column_idx = 0
+        self.locked = False
 
     def setup(self):
         """Setup tabs"""
         self.window.core.tabs.load()
         self.window.controller.notepad.load()
+        self.setup_options()
         self.initialized = True
+
+    def setup_options(self):
+        """Setup options"""
+        state = self.window.core.config.get("layout.split", False)
+        self.window.ui.nodes['layout.split'].setChecked(state)
+        if not state:
+            self.window.ui.splitters['columns'].setSizes([1, 0])
 
     def add(
             self,
@@ -216,6 +226,8 @@ class Tabs:
 
     def on_column_changed(self):
         """Column changed event"""
+        if self.locked:
+            return
         tab = self.window.core.tabs.get_tab_by_index(self.current, self.column_idx)
         if tab is None:
             return
@@ -294,12 +306,14 @@ class Tabs:
         :param force: force close
         """
         if not force:
+            self.tmp_column_idx = column_idx
             self.window.ui.dialogs.confirm(
                 type='tab.close_all',
                 id=type,
                 msg=trans('tab.close_all.confirm'),
             )
             return
+        column_idx = self.tmp_column_idx
         self.window.core.tabs.remove_all_by_type(type, column_idx)
 
     def next_tab(self):
@@ -484,3 +498,35 @@ class Tabs:
         for col_idx in data:
             tab_idx = data[col_idx]
             self.switch_tab_by_idx(int(tab_idx), int(col_idx))
+
+        # set default column to 0
+        self.column_idx = 0
+        self.on_column_changed()
+
+    def move_tab(self, idx: int, column_idx: int, new_column_idx: int):
+        """
+        Move tab to another column
+
+        :param idx: tab index
+        :param column_idx: column index
+        :param new_column_idx: new column index
+        """
+        self.locked = True
+        tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
+        self.window.core.tabs.move_tab(tab, new_column_idx)
+        self.locked = False
+
+    def toggle_split_screen(self, state):
+        """
+        Toggle split screen
+
+        :param state: state
+        """
+        if state:
+            #self.rightWidget.show()
+            self.window.ui.splitters['columns'].setSizes([1, 1])
+        else:
+            #self.rightWidget.hide()
+            self.window.ui.splitters['columns'].setSizes([1, 0])
+        self.window.core.config.set("layout.split", state)
+        self.window.core.config.save()

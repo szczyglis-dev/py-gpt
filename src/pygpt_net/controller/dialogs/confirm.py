@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -154,7 +154,7 @@ class Confirm:
 
         # tab close all
         elif type == 'tab.close_all':
-            self.window.controller.ui.tabs.close_all(id, True)  # by type
+            self.window.controller.ui.tabs.close_all(id, 0, True)  # by type
 
         # editor
         elif type == 'editor.changed.clear':

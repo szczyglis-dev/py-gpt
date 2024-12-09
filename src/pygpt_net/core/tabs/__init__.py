@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import uuid
@@ -488,6 +488,28 @@ class Tabs:
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
+
+    def move_tab(self, tab: Tab, column_idx: int):
+        """
+        Move tab to column
+
+        :param tab: Tab instance
+        :param column_idx: Column index
+        """
+        if tab is None:
+            return
+        if tab.column_idx == column_idx:
+            return
+        tab.column_idx = column_idx
+        old_column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        old_tabs = old_column.get_tabs()
+        old_tabs.removeTab(tab.idx)
+        new_column = self.window.ui.layout.get_column_by_idx(column_idx)
+        new_tabs = new_column.get_tabs()
+        tab.idx = new_tabs.addTab(tab.child, tab.title)
+        tab.parent = new_column
+        self.update()
+        self.window.core.tabs.reload_titles()
 
     def get_first_by_type(self, type: int) -> Tab or None:
         """
