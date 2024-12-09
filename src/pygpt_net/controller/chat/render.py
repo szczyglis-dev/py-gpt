@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -16,6 +16,7 @@ from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
+from pygpt_net.core.tabs import Tab
 from pygpt_net.core.text.utils import output_html2text, output_clean_html
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
@@ -67,6 +68,7 @@ class Render:
         append = data.get("append", False)
         footer = data.get("footer", False)
         initialized = data.get("initialized", False)
+        tab = data.get("tab")
 
         if name == RenderEvent.BEGIN:
             self.begin(meta, ctx, stream)
@@ -87,7 +89,7 @@ class Render:
             self.stream_end(meta, ctx)
 
         elif name == RenderEvent.ON_PAGE_LOAD:
-            self.on_page_loaded(meta)
+            self.on_page_loaded(meta, tab)
         elif name ==RenderEvent.ON_THEME_CHANGE:
             self.on_theme_change()
         elif name == RenderEvent.ON_LOAD:
@@ -375,13 +377,14 @@ class Render:
         self.instance().on_reply_submit(ctx)
         self.update()
 
-    def on_page_loaded(self, meta: CtxMeta):
+    def on_page_loaded(self, meta: CtxMeta, tab: Tab = None):
         """
         On page loaded callback
 
         :param meta: context meta
+        :param tab: Tab
         """
-        self.instance().on_page_loaded(meta)  # TODO: send ID with callback
+        self.instance().on_page_loaded(meta, tab)
         self.update()
 
     def on_theme_change(self):

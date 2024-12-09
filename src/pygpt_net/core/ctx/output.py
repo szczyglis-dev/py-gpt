@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -16,11 +16,28 @@ class Output:
     def __init__(self, window=None):
         """
         Context output mapping
+
+        :param window: Window
         """
         self.window = window
-        self.mapping = {}  # pid => meta.id
+        self.mapping = {}  # [column_idx => [pid => meta.id]]
         self.last_pids = {}  # meta.id => pid
         self.last_pid = 0 # last used PID
+        self.initialized = False
+
+    def init(self, force: bool = False):
+        """
+        Initialize mappings
+
+        :param force: Force reinitialize
+        """
+        if self.initialized and not force:
+            return
+        self.clear()
+        for n in range(0, self.window.core.tabs.NUM_COLS):
+            self.mapping[n] = {}
+            self.last_pids[n] = {}
+        self.initialized = True
 
     def store(self, meta: CtxMeta) -> int:
         """
@@ -29,30 +46,19 @@ class Output:
         :param meta: Meta
         :return: PID
         """
+        self.init()
         pid = self.window.core.tabs.get_active_pid()
-        # check if allowed tab
         tab = self.window.core.tabs.get_tab_by_pid(pid)
         if tab is None or tab.type != Tab.TAB_CHAT:
             return 0
-        self.mapping[pid] = meta.id
-        self.last_pids[meta.id] = pid
+        col_idx = tab.column_idx
+        self.mapping[col_idx][pid] = meta.id
+        self.last_pids[col_idx][meta.id] = pid
         self.last_pid = pid
         tab = self.window.core.tabs.get_tab_by_pid(pid)
         if tab is not None:
             tab.data_id = meta.id  # store meta id in tab data
         return pid
-
-    def meta_id_in_tab(self, meta_id: int) -> bool:
-        """
-        Check if meta id is in tab
-
-        :param meta_id: Meta ID
-        :return: bool
-        """
-        for pid, mid in self.mapping.items():
-            if mid == meta_id:
-                return True
-        return False
 
     def is_mapped(self, meta: CtxMeta) -> bool:
         """
@@ -61,18 +67,44 @@ class Output:
         :param meta: Meta
         :return: bool
         """
-        return meta.id in self.mapping.values()
+        self.init()
+        for col_idx in self.mapping:
+            if meta.id in self.mapping[col_idx].values():
+                return True
+        return False
 
-    def get_meta(self, pid: int) -> CtxMeta or None:
+    def get_meta(self, pid: int) -> int or None:
         """
         Get meta by PID
 
         :param pid: PID
-        :return: Meta or None
+        :return: meta ID or None
         """
-        if pid in self.mapping:
-            return self.mapping[pid]
+        self.init()
+        for col_idx in self.mapping:
+            if pid in self.mapping[col_idx]:
+                return self.mapping[col_idx][pid]
         return
+
+    def prepare_meta(self, tab: Tab) -> int or None:
+        """
+        Get meta ID by PID
+
+        :param tab: Tab
+        :return: Meta ID or None
+        """
+        pid = tab.pid
+        col_idx = tab.column_idx
+        meta_id = None
+        if pid in self.mapping[col_idx]:
+            return self.mapping[col_idx][pid]
+        if meta_id is None:
+            meta_id = tab.data_id
+            if meta_id is not None:
+                self.mapping[col_idx][pid] = meta_id
+                self.last_pids[col_idx][meta_id] = pid
+                self.last_pid = pid
+        return meta_id
 
     def get_mapped(self, meta: CtxMeta) -> int or None:
         """
@@ -81,40 +113,50 @@ class Output:
         :param meta: Meta
         :return: PID or None
         """
+        self.init()
         all = []
         pid = None
         active_pid = self.window.core.tabs.get_active_pid()
-        for pid, meta_id in self.mapping.items():
+        tab = self.window.core.tabs.get_tab_by_pid(active_pid)
+        if tab is None:
+            return None
+        col_idx = tab.column_idx
+        for pid, meta_id in self.mapping[col_idx].items():
             if meta_id == meta.id:
                 all.append(pid)
         for pid in all:
-            if pid == active_pid:  # at first check if active
+            if pid == active_pid:  # at first check for current tab
                 return pid
         return pid
 
-    def get_mapped_last(self, meta: CtxMeta) -> int or None:
+    def is_empty(self) -> bool:
         """
-        Get last PID by meta
+        Check if mapping is empty
+
+        :return: bool
+        """
+        self.init()
+        active_pid = self.window.core.tabs.get_active_pid()
+        for col_idx in list(self.mapping.keys()):
+            if active_pid in self.mapping[col_idx]:
+                return False
+        return True
+
+    def get_pid(self, meta: CtxMeta = None) -> int or None:
+        """
+        Get PID by meta
 
         :param meta: Meta
-        :return: PID or None
+        :return: PID
         """
+        self.init()
         active_pid = self.window.core.tabs.get_active_pid()
-        if self.mapping[active_pid] == meta.id:
-            return active_pid  # return active PID at first
-        if meta.id in self.last_pids:
-            return self.last_pids[meta.id]
-        return
-
-    def prepare(self, meta: CtxMeta):
-        """
-        Clear mapping
-
-        :param meta: meta to prepare
-        """
-        active_pid = self.window.core.tabs.get_active_pid()
-        if active_pid in self.mapping:
-            del self.mapping[active_pid]  # remove from mapping
+        if meta is None:
+            return None
+        if self.is_mapped(meta):
+            if active_pid == self.get_mapped(meta):  # if loaded in current tab
+                return active_pid  # return current
+        return self.store(meta)
 
     def clear(self):
         """
@@ -123,33 +165,6 @@ class Output:
         self.mapping = {}
         self.last_pids = {}
         self.last_pid = 0
-
-    def is_empty(self) -> bool:
-        """
-        Check if mapping is empty
-
-        :return: bool
-        """
-        active_pid = self.window.core.tabs.get_active_pid()
-        if active_pid in self.mapping:
-            return False
-        return True
-
-    def get_pid(self, meta: CtxMeta = None) -> int:
-        """
-        Get PID by meta
-
-        :param meta: Meta
-        :return: PID
-        """
-        if meta is None:
-            return self.window.core.tabs.get_active_pid()
-        if self.is_mapped(meta):
-            if self.window.core.tabs.get_active_pid() != self.get_mapped(meta):  # if loaded in another tab
-                return self.store(meta)  # update to current
-            return self.get_mapped_last(meta)
-        else:
-            return self.store(meta)
 
     def get_current(self, meta: CtxMeta = None):
         """

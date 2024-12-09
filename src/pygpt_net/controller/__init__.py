@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -116,6 +116,7 @@ class Controller:
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
         self.debug.post_setup()  # post setup debug after all loaded
+        self.ui.tabs.restore_data()  # restore opened tabs data
 
         # show license terms dialog
         if not self.window.core.config.get('license.accepted'):
@@ -168,6 +169,7 @@ class Controller:
         # post-reload
         self.ui.tabs.reload_after()
         self.ctx.reload_after()
+        self.ui.tabs.restore_data()  # restore opened tabs data
         self.kernel.restart()
 
         self.reloading = False  # unlock

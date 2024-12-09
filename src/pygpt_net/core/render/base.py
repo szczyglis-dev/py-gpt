@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
@@ -20,6 +21,15 @@ class BaseRenderer:
         :param window: Window instance
         """
         self.window = window
+        self.tab = None
+
+    def set_tab(self, tab: Tab):
+        """
+        Append tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def prepare(self):
         """
@@ -218,13 +228,14 @@ class BaseRenderer:
         """
         pass
 
-    def on_page_loaded(self, meta: CtxMeta = None):
+    def on_page_loaded(self, meta: CtxMeta = None, tab: Tab = None):
         """
         On page loaded callback
 
         :param meta: context meta
+        :param tab: Tab
         """
-        pass
+        self.tab = tab
 
     def on_enable_edit(self, live: bool = True):
         """

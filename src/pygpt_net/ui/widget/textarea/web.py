@@ -6,21 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import re
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtWidgets import QMenu
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
+from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
 from pygpt_net.utils import trans
+
 import pygpt_net.icons_rc
 
 
@@ -38,9 +41,46 @@ class ChatWebOutput(QWebEngineView):
         self.customContextMenuRequested.connect(self.on_context_menu)
         self.signals = WebEngineSignals()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.filter = FocusEventFilter(self, self.on_focus)
+        self.installEventFilter(self)
         self.plain = ""
         self.html_content = ""
         self.meta = None
+        self.tab = None
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if (event.type() == QEvent.ChildAdded and
+                source is self and
+                event.child().isWidgetType()):
+            self._glwidget = event.child()
+            self._glwidget.installEventFilter(self)
+        elif (event.type() == event.Type.MouseButtonPress):
+            col_idx = self.tab.column_idx
+            self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
+
+    def on_focus(self, widget):
+        """
+        On widget clicked
+
+        :param widget: widget
+        """
+        self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        self.setFocus()
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def set_meta(self, meta: CtxMeta):
         """
@@ -72,12 +112,7 @@ class ChatWebOutput(QWebEngineView):
 
         :param position: position
         """
-        menu = self.createStandardContextMenu()
-
-        # remove defaults
-        for action in menu.actions()[::-1]:
-            menu.removeAction(action)
-
+        menu = QMenu(self)
         selected_text = ""
         is_selection = self.page().hasSelection()
         if is_selection:
@@ -138,6 +173,10 @@ class ChatWebOutput(QWebEngineView):
         if self.window.core.config.has("zoom"):
             self.page().setZoomFactor(self.window.core.config.get("zoom"))
 
+    def on_focus_js(self):
+        """Focus JavaScript"""
+        self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+
     def get_zoom_value(self) -> float:
         """
         Get zoom value
@@ -165,6 +204,7 @@ class ChatWebOutput(QWebEngineView):
         if success:
             event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
                 "meta": self.meta,
+                "tab": self.tab,
             })
             self.window.dispatch(event)
 

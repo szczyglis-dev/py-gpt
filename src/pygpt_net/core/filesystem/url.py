@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 06:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -46,6 +46,10 @@ class Url:
         elif url.toString() == 'bridge://escape':
             self.window.controller.access.on_escape()
             return
+        elif url.toString() == 'bridge://focus':
+            pid = self.window.controller.ui.tabs.get_current_pid()
+            if pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][pid].on_focus_js()
 
         # -------------
 

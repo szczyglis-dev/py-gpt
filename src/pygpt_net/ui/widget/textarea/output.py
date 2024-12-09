@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.24 01:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -38,6 +38,15 @@ class ChatOutput(QTextBrowser):
         self.setOpenLinks(False)
         self.anchorClicked.connect(self.open_external_link)
         self.setWordWrapMode(QTextOption.WordWrap)
+        self.tab = None
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def open_external_link(self, url):
         """

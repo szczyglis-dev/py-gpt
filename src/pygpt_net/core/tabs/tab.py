@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 17:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -34,15 +34,22 @@ class Tab:
         self.icon = None
         self.tooltip = None
         self.data_id = None
-        self.reference = None
         self.new_idx = None
         self.custom_name = False
+        self.child = None
+        self.parent = None
+        self.column_idx = 0
 
         dt = datetime.now()
         self.created_at = dt
         self.updated_at = dt
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Convert to dict
+
+        :return: dict
+        """
         return {
             "uuid": str(self.uuid),
             "pid": self.pid,
@@ -52,9 +59,11 @@ class Tab:
             "icon": self.icon,
             "tooltip": self.tooltip,
             "data_id": self.data_id,
-            "reference": str(self.reference),
+            "child": str(self.child),  # child widget
+            "parent": str(self.parent),  # parent column
             "custom_name": self.custom_name,
             "custom_idx": self.new_idx,
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at),
+            "column_idx": self.column_idx,
         }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.08 21:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -69,6 +69,9 @@ class BaseProvider:
         pass
 
     def get_meta_indexed(self):
+        pass
+
+    def get_item_by_id(self, id: int) -> CtxItem:
         pass
 
     def dump(self, ctx: CtxItem):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
@@ -183,10 +183,11 @@ class Notepad:
             return
 
         # switch to first notepad tab if current tab is not notepad
+        tabs = self.window.ui.layout.get_active_tabs()
         if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
             idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
             if idx is not None:
-                self.window.ui.tabs['output'].setCurrentIndex(idx)
+                tabs.setCurrentIndex(idx)
 
         self.window.activateWindow()  # focus
 
@@ -209,11 +210,12 @@ class Notepad:
         """
         if idx is None:
             idx = self.get_first_notepad_tab_idx()
+        tabs = self.window.ui.layout.get_active_tabs()
         tab = self.window.core.tabs.get_tab_by_index(idx)
         if tab is not None:
-            self.window.ui.tabs['output'].setCurrentIndex(idx)
+            tabs.setCurrentIndex(idx)
         else:
-            self.window.ui.tabs['output'].setCurrentIndex(self.get_first_notepad_tab_idx())
+            tabs.setCurrentIndex(self.get_first_notepad_tab_idx())
 
     def get_first_notepad_tab_idx(self) -> int:
         """
@@ -257,11 +259,12 @@ class Notepad:
             return True
         return False
 
-    def on_open(self, tab_idx: int):
+    def on_open(self, tab_idx: int, column_idx: int = 0):
         """
         On open notepad tab
 
         :param tab_idx: current tab idx
+        :param column_idx: column idx
         """
         tab = self.window.controller.ui.tabs.get_current_tab()
         if tab is None:

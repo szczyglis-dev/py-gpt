@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -48,6 +48,8 @@ class Calendar:
 
         :param all: reload all notes
         """
+        if not self.is_loaded():
+            return
         year = self.window.ui.calendar['select'].currentYear
         month = self.window.ui.calendar['select'].currentMonth
         self.on_page_changed(year, month, all=all)  # load notes for current month

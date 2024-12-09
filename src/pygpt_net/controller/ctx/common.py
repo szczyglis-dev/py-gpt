@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -91,10 +91,11 @@ class Common:
 
     def focus_chat(self):
         """Focus chat"""
+        tabs = self.window.ui.layout.get_active_tabs()
         if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
             idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_CHAT)
             if idx is not None:
-                self.window.ui.tabs['output'].setCurrentIndex(idx)
+                tabs.setCurrentIndex(idx)
 
     def restore_display_filter(self):
         """Restore display filter"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import time
@@ -117,6 +117,15 @@ class DbSqliteProvider(BaseProvider):
         :return: last meta ID
         """
         return self.storage.get_last_meta_id()
+
+    def get_item_by_id(self, id: int) -> CtxItem:
+        """
+        Get ctx item by ID
+
+        :param id: ctx item ID
+        :return: ctx item
+        """
+        return self.storage.get_item_by_id(id)
 
     def load(self, id: int) -> list:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import re
@@ -42,6 +42,15 @@ class HtmlOutput(QWebEngineView):
         self.plain = ""
         self.html_content = ""
         self.meta = None
+        self.tab = None
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def set_meta(self, meta: CtxMeta):
         """
@@ -163,6 +172,7 @@ class HtmlOutput(QWebEngineView):
         if success:
             event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
                 "meta": self.meta,
+                "tab": self.tab,
             })
             self.window.dispatch(event)
 

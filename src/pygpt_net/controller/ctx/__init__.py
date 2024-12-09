@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 00:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -59,20 +59,6 @@ class Ctx:
             else:
                 # if no ctx then get first ctx
                 self.window.core.ctx.set_current(self.window.core.ctx.get_first())
-
-        # restore previous ctx
-        # 1) try to load from tabs data - if not exists, load from current
-        tab = self.window.core.tabs.get_first_by_type(Tab.TAB_CHAT)
-        loaded = False
-        if tab is not None:
-            meta_id = tab.data_id
-            if meta_id is not None:
-                self.load(meta_id)
-                loaded = True
-
-        # 2) load from current if not loaded yet
-        if not loaded:
-            self.load(self.window.core.ctx.get_current())
 
         # restore search string if exists
         if self.window.core.config.has("ctx.search.string"):
@@ -143,6 +129,19 @@ class Ctx:
         self.common.focus_chat()
         # update additional context attachments
         self.window.controller.chat.attachment.update()
+
+    def select_on_list_only(self, id: int):
+        """
+        Select ctx by id only on list
+
+        :param id: context meta id
+        """
+        self.window.core.ctx.select(id, restore_model=True)
+        self.window.core.ctx.set_current(id)
+        self.update_list(True)
+        self.select_by_current()
+        self.reload_config(all=False)
+        self.update()
 
     def select_by_idx(self, idx: int):
         """
@@ -348,6 +347,21 @@ class Ctx:
             event = RenderEvent(RenderEvent.ON_LOAD, data)
             self.window.dispatch(event)
 
+        self.reload_config()
+
+        # reload ctx list and select current ctx on list, without reloading all
+        self.update(reload=False, all=True)
+
+        # update tab title
+        if meta is not None:
+            self.window.controller.ui.tabs.update_title_current(meta.name)
+
+    def reload_config(self, all: bool = True):
+        """
+        Reload config
+
+        :param all: reload all
+        """
         # get current settings stored in ctx
         thread = self.window.core.ctx.get_thread()
         mode = self.window.core.ctx.get_mode()
@@ -358,8 +372,9 @@ class Ctx:
         # restore thread from ctx
         self.window.core.config.set('assistant_thread', thread)
 
-        # clear before output and append ctx to output
-        self.refresh_output()
+        if all:
+            # clear before output and append ctx to output
+            self.refresh_output()
 
         # switch mode to ctx mode
         if mode is not None:
@@ -384,15 +399,8 @@ class Ctx:
             if model is not None and self.window.core.models.has_model(mode, model):
                 self.window.controller.model.set(mode, model)
 
-        # reload ctx list and select current ctx on list, without reloading all
-        self.update(reload=False, all=True)
-
         # update current ctx label in UI
         self.common.update_label(mode, assistant_id)
-
-        # update tab title
-        if meta is not None:
-            self.window.controller.ui.tabs.update_title_current(meta.name)
 
     def update_ctx(self):
         """Update current ctx mode if allowed"""

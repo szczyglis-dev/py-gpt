@@ -6,18 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy, QPushButton, \
-    QGridLayout, QSpacerItem, QWidgetItem, QLayout
+    QGridLayout, QWidgetItem, QLayout
 
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel, HelpLabel
-from pygpt_net.ui.widget.tabs.output import OutputTabs
-from pygpt_net.ui.widget.anims.loader import Loader, Loading
+from pygpt_net.ui.widget.anims.loader import Loading
+from pygpt_net.ui.widget.tabs.layout import OutputLayout
 
 from .explorer import Explorer
 from .input import Input
@@ -26,6 +25,7 @@ from .painter import Painter
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
+
 
 
 class Output:
@@ -47,46 +47,15 @@ class Output:
 
         :return: QWidget
         """
-        # tabs
-        self.window.ui.tabs['output'] = OutputTabs(self.window)
+        # prepare columns
+        self.window.ui.layout = OutputLayout(self.window)
 
-        # Create the [+] button
-        plus_button = QPushButton(QIcon(":/icons/add.svg"), "")
-        plus_button.setFixedSize(30, 25)
-        plus_button.setFlat(True)
-        plus_button.clicked.connect(self.window.controller.ui.tabs.new_tab)
-        plus_button.setObjectName('tab-add')
-        plus_button.setProperty('tabAdd', True)
-        plus_button.setToolTip(trans('action.tab.add.chat'))
-
-        # Add the button to the top right corner of the tab bar
-        self.window.ui.tabs['output'].setCornerWidget(plus_button, corner=Qt.TopRightCorner)
-
-        # create empty tabs
+        # create empty containers for chat output
         self.window.ui.nodes['output'] = {}
         self.window.ui.nodes['output_plain'] = {}
 
-        # connect signals
-        self.window.ui.tabs['output'].currentChanged.connect(
-            self.window.controller.ui.tabs.on_tab_changed
-        )
-        self.window.ui.tabs['output'].tabBarClicked.connect(
-            self.window.controller.ui.tabs.on_tab_clicked
-        )
-        self.window.ui.tabs['output'].tabBarDoubleClicked.connect(
-            self.window.controller.ui.tabs.on_tab_dbl_clicked
-        )
-        self.window.ui.tabs['output'].tabCloseRequested.connect(
-            self.window.controller.ui.tabs.on_tab_closed
-        )
-
-        # tab bar signals
-        self.window.ui.tabs['output'].tabBar().tabMoved.connect(
-            self.window.controller.ui.tabs.on_tab_moved
-        )
-
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.tabs['output'])
+        layout.addWidget(self.window.ui.layout)
         layout.addLayout(self.setup_bottom())
         layout.setContentsMargins(0, 5, 0, 0)
 

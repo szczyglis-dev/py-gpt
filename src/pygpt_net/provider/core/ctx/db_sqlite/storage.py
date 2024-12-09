@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -188,6 +188,27 @@ class Storage:
                 unpack_meta(meta, row._asdict())
                 items[meta.id] = meta
         return items
+
+    def get_item_by_id(self, id: int) -> CtxItem:
+        """
+        Return ctx item by ID
+
+        :return: CtxItem
+        """
+        stmt = text("""
+            SELECT * FROM ctx_item WHERE id = :id
+        """).bindparams(id=id)
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            row = result.fetchone()
+            if row:
+                item = CtxItem()
+                unpack_item(item, row._asdict())
+                meta = self.get_meta_by_id(item.meta_id)  # append meta
+                item.meta = meta
+                return item
+        return None
 
     def get_meta_by_root_id_and_preset_id(self, root_id: int, preset_id: str) -> dict:
         """

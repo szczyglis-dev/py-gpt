@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import os
@@ -382,6 +382,11 @@ class Body:
             if (event.key === 'Escape') {
                 window.location.href = 'bridge://escape'; // send to bridge
                 event.preventDefault();
+            }
+        });
+        document.addEventListener('click', function(event) {
+            if (event.target.tagName !== 'A' && !event.target.closest('a')) {
+                window.location.href = 'bridge://focus';
             }
         });
         function highlightCode() {

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -490,6 +490,16 @@ class Ctx:
         for item in self.get_items():
             if item.id == id:
                 return item
+        return self.fetch_item_by_id(id)   # if no item found, try to fetch from DB
+
+    def fetch_item_by_id(self, id: int) -> CtxItem:
+        """
+        Fetch ctx item by id
+
+        :param id: item id
+        :return: context item
+        """
+        return self.provider.get_item_by_id(id)
 
     def get_meta(self, reload: bool = False) -> dict:
         """

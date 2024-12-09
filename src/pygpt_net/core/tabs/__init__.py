@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 04:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 import uuid
@@ -21,6 +21,9 @@ from pygpt_net.utils import trans
 
 
 class Tabs:
+
+    # number of columns
+    NUM_COLS = 2
 
     # types
     TAB_ADD = -1
@@ -54,14 +57,15 @@ class Tabs:
             self.TAB_TOOL_CALENDAR: "output.tab.calendar",
         }
 
-    def get_tab_by_index(self, idx: int) -> Tab or None:
+    def get_tab_by_index(self, idx: int, column_idx: int = 0) -> Tab or None:
         """
         Get tab by index
 
         :param idx: Tab index
+        :param column_idx: Column index
         :return: Tab
         """
-        tab = self.window.ui.tabs['output'].widget(idx)
+        tab = self.window.ui.layout.get_tabs_by_idx(column_idx).widget(idx)
         if tab is None:
             return None
         return tab.getOwner()
@@ -96,19 +100,28 @@ class Tabs:
 
         :return: PID
         """
-        tab = self.get_tab_by_index(self.window.ui.tabs['output'].currentIndex())
+        current_column_idx = self.window.controller.ui.tabs.get_current_column_idx()
+        tabs = self.window.ui.layout.get_tabs_by_idx(current_column_idx)
+        tab = self.get_tab_by_index(tabs.currentIndex(), current_column_idx)
         if tab is None:
             return 0
         return tab.pid
 
-    def add(self, type: int, title: str, icon=None, reference=None, data_id=None) -> Tab:
+    def add(
+            self,
+            type: int,
+            title: str,
+            icon=None,
+            child=None,
+            data_id=None
+    ) -> Tab:
         """
         Add tab
 
         :param type: Tab type
         :param title: Tab title
         :param icon: Tab icon
-        :param reference: Tab reference
+        :param child: Tab child
         :param data_id: Tab data ID
         :return: Tab
         """
@@ -120,7 +133,7 @@ class Tabs:
         tab.type = type
         tab.title = title
         tab.icon = icon
-        tab.reference = reference
+        tab.child = child
         tab.data_id = data_id
 
         if type == Tab.TAB_CHAT:
@@ -137,12 +150,18 @@ class Tabs:
         self.pids[tab.pid] = tab
         return tab
 
-    def append(self, type: int, idx: int) -> Tab:
+    def append(
+            self,
+            type: int,
+            idx: int,
+            column_idx: int = 0
+    ) -> Tab:
         """
         Append tab to the right side of the tab with the specified index
 
         :param type: tab type
         :param idx: index of the tab to the right of which the new tab will be added
+        :param column_idx: index of the column in which the tab will be added
         :return: Tab
         """
         self.last_pid += 1  # PID++, start from 0
@@ -160,6 +179,7 @@ class Tabs:
         tab.title = title
         tab.icon = icon
         tab.new_idx = idx + 1  # place on right side
+        tab.column_idx = column_idx
 
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
@@ -186,10 +206,16 @@ class Tabs:
         tab.type = data["type"]
         tab.title = data["title"]
         tab.data_id = data["data_id"]
-        tab.reference = None
+        tab.child = None
 
         if 'tooltip' in data and data['tooltip'] is not None:
             tab.tooltip = data['tooltip']
+
+        if 'custom_name' in data and data['custom_name'] is not None:
+            tab.custom_name = data['custom_name']
+
+        if 'column_idx' in data and data['column_idx'] is not None:
+            tab.column_idx = data['column_idx']
 
         if tab.type in self.icons:
             tab.icon = self.icons[tab.type]
@@ -211,13 +237,14 @@ class Tabs:
         self.pids[tab.pid] = tab
         self.last_pid = self.get_max_pid()
 
-    def remove_tab_by_idx(self, idx: int):
+    def remove_tab_by_idx(self, idx: int, column_idx: int = 0):
         """
         Remove tab by index
 
         :param idx: Tab index
+        :param column_idx: Column index
         """
-        tab = self.get_tab_by_index(idx)
+        tab = self.get_tab_by_index(idx, column_idx)
         if tab is None:
             return
         self.remove(tab.pid)
@@ -231,7 +258,8 @@ class Tabs:
         tab = self.get_tab_by_pid(pid)
         if tab is None:
             return
-        self.window.ui.tabs['output'].removeTab(tab.idx)
+        column_idx = tab.column_idx
+        self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
         del self.pids[pid]
         self.update()
 
@@ -241,15 +269,16 @@ class Tabs:
             self.remove(pid)  # delete from PIDs and UI
         self.window.core.ctx.output.clear()  # clear mapping
 
-    def remove_all_by_type(self, type: int):
+    def remove_all_by_type(self, type: int, column_idx: int = 0):
         """
         Remove all tabs by type
 
         :param type: Tab type
+        :param column_idx: Column index
         """
         for pid in list(self.pids):
             tab = self.pids[pid]
-            if tab.type == type:
+            if tab.type == type and tab.column_idx == column_idx:
                 if type == self.TAB_CHAT:
                     if self.count_by_type(type) == 1:
                         continue  # do not remove last chat tab
@@ -312,7 +341,11 @@ class Tabs:
                 count += 1
         return count
 
-    def get_order_by_idx_and_type(self, idx: int, type: int) -> int:
+    def get_order_by_idx_and_type(
+            self,
+            idx: int,
+            type: int
+    ) -> int:
         """
         Get the order of the tab by index and type
 
@@ -328,28 +361,42 @@ class Tabs:
                 return order
         return -1  # Return -1 if the tab with the specified index and type is not found
 
-    def get_min_idx_by_type(self, type: int) -> int:
+    def get_min_idx_by_type(self, type: int, column_idx: int = 0) -> int:
         """
         Get min index by type
 
         :param type: Tab type
+        :param column_idx: Column index
         :return: Min index
         """
         min = 999999
         for pid in self.pids:
             tab = self.pids[pid]
-            if tab.type == type and tab.idx < min:
+            if (tab.type == type
+                    and tab.column_idx == column_idx
+                    and tab.idx < min):
                 min = tab.idx
         return min
 
     def update(self):
-        """Update tabs data (pids) from UI"""
+        """Update tabs data (pids) from UI (all columns)"""
+        for n in range(0, self.NUM_COLS):
+            self.update_column(n)
+
+    def update_column(self, column_idx: int):
+        """
+        Update column data by index
+
+        :param column_idx: Column index
+        """
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
         for pid in self.pids:
             tab = self.pids[pid]
-            tab.idx = self.window.ui.tabs['output'].indexOf(tab.reference)
-            tab.title = self.window.ui.tabs['output'].tabText(tab.idx)
-            tab.tooltip = self.window.ui.tabs['output'].tabToolTip(tab.idx)
-            tab.updated_at = datetime.now()
+            if tab.column_idx == column_idx:
+                tab.idx = tabs.indexOf(tab.child)
+                tab.title = tabs.tabText(tab.idx)
+                tab.tooltip = tabs.tabToolTip(tab.idx)
+                tab.updated_at = datetime.now()
 
     def add_chat(self, tab: Tab):
         """
@@ -357,15 +404,18 @@ class Tabs:
 
         :param tab: Tab instance
         """
-        tab.reference = self.window.core.ctx.container.register_output(tab.pid)
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tab.parent = column
+        tab.child = self.window.core.ctx.container.get(tab)
         if tab.new_idx is not None:
-            tab.idx = self.window.ui.tabs['output'].insertTab(tab.new_idx, tab.reference, tab.title)
+            tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
         else:
-            tab.idx = self.window.ui.tabs['output'].addTab(tab.reference, tab.title)
-        tab.reference.setOwner(tab)
-        self.window.ui.tabs['output'].setTabIcon(tab.idx, QIcon(tab.icon))
+            tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.tooltip)
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
 
     def add_notepad(self, tab: Tab):
         """
@@ -374,18 +424,22 @@ class Tabs:
         :param tab: Tab instance
         """
         idx = None
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tab.parent = column
+        tab.parent = tabs.get_column()
         if tab.data_id is not None:
             idx = tab.data_id  # restore prev idx
-        tab.reference, idx = self.window.controller.notepad.create(idx)
+        tab.child, idx = self.window.controller.notepad.create(idx)
         tab.data_id = idx  # notepad idx in db, enumerated from 1
         if tab.new_idx is not None:
-            tab.idx = self.window.ui.tabs['output'].insertTab(tab.new_idx, tab.reference, tab.title)
+            tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
         else:
-            tab.idx = self.window.ui.tabs['output'].addTab(tab.reference, tab.title)
-        tab.reference.setOwner(tab)
-        self.window.ui.tabs['output'].setTabIcon(tab.idx, QIcon(tab.icon))
+            tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.tooltip)
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
 
     def add_tool_explorer(self, tab: Tab):
         """
@@ -393,12 +447,15 @@ class Tabs:
 
         :param tab: Tab instance
         """
-        tab.reference = self.window.ui.chat.output.explorer.setup()
-        tab.idx = self.window.ui.tabs['output'].addTab(tab.reference, tab.title)
-        tab.reference.setOwner(tab)
-        self.window.ui.tabs['output'].setTabIcon(tab.idx, QIcon(tab.icon))
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tab.parent = column
+        tab.child = self.window.ui.chat.output.explorer.setup()
+        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.tooltip)
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
 
     def add_tool_painter(self, tab: Tab):
         """
@@ -406,12 +463,15 @@ class Tabs:
 
         :param tab: Tab instance
         """
-        tab.reference = self.window.ui.chat.output.painter.setup()
-        tab.idx = self.window.ui.tabs['output'].addTab(tab.reference, tab.title)
-        tab.reference.setOwner(tab)
-        self.window.ui.tabs['output'].setTabIcon(tab.idx, QIcon(tab.icon))
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tab.parent = column
+        tab.child = self.window.ui.chat.output.painter.setup()
+        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.tooltip)
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
 
     def add_tool_calendar(self, tab: Tab):
         """
@@ -419,12 +479,15 @@ class Tabs:
 
         :param tab: Tab instance
         """
-        tab.reference = self.window.ui.chat.output.calendar.setup()
-        tab.idx = self.window.ui.tabs['output'].addTab(tab.reference, tab.title)
-        tab.reference.setOwner(tab)
-        self.window.ui.tabs['output'].setTabIcon(tab.idx, QIcon(tab.icon))
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tab.parent = column
+        tab.child = self.window.ui.chat.output.calendar.setup()
+        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
         if tab.tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.tooltip)
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
 
     def get_first_by_type(self, type: int) -> Tab or None:
         """
@@ -454,6 +517,7 @@ class Tabs:
             "data_id": None,
             "title": "Chat",
             "tooltip": "Chat",
+            "column_idx": 0,
         }
         data[1] = {
             "uuid": uuid.uuid4(),
@@ -463,6 +527,7 @@ class Tabs:
             "data_id": None,
             "title": "Files",
             "tooltip": "Files",
+            "column_idx": 0,
         }
         data[2] = {
             "uuid": uuid.uuid4(),
@@ -472,6 +537,7 @@ class Tabs:
             "data_id": None,
             "title": "Calendar",
             "tooltip": "Calendar",
+            "column_idx": 0,
         }
         data[3] = {
             "uuid": uuid.uuid4(),
@@ -481,6 +547,7 @@ class Tabs:
             "data_id": None,
             "title": "Painter",
             "tooltip": "Painter",
+            "column_idx": 0,
         }
         """
         data[4] = {
@@ -491,6 +558,7 @@ class Tabs:
             "data_id": 1,
             "title": "Notepad",
             "tooltip": "Notepad",
+            "column_idx": 0,
         }
         """
         # load notepads from db
@@ -507,6 +575,7 @@ class Tabs:
                     "data_id": item['data_id'],
                     "title": item['title'],
                     "tooltip": item['title'],
+                    "column_idx": 0,
                 }
                 next_idx += 1
         return data
@@ -536,6 +605,7 @@ class Tabs:
                     "title": trans(self.titles[type]),
                     "tooltip": trans(self.titles[type]),
                     "custom_name": False,
+                    "column_idx": 0,
                 }
                 tmp_pid += 1
 
@@ -564,11 +634,22 @@ class Tabs:
                 "title": tab.title,
                 "tooltip": tab.tooltip,
                 "custom_name": tab.custom_name,
+                "column_idx": tab.column_idx,
             }
+        opened_tabs = {}
+        for column_idx in range(0, self.NUM_COLS):
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            opened_tabs[column_idx] = tabs.currentIndex()
+        self.window.core.config.set("tabs.opened", opened_tabs)
         self.window.core.config.set("tabs.data", data)
         self.window.core.config.save()
 
-    def update_title(self, idx: int, title: str, tooltip: str = None):
+    def update_title(
+            self,
+            idx: int,
+            title: str,
+            tooltip: str = None
+    ):
         """
         Update tab title
 
@@ -576,37 +657,43 @@ class Tabs:
         :param title: Tab title
         :param tooltip: Tab tooltip
         """
-        tab = self.get_tab_by_index(idx)
+        column_idx = self.window.controller.ui.tabs.get_current_column_idx()
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        tab = self.get_tab_by_index(idx, column_idx)
         if tab is None:
             return
         tab.title = title
         tab.tooltip = tooltip
         tab.custom_name = True
         if title is not None:
-            self.window.ui.tabs['output'].setTabText(idx, title)
+            tabs.setTabText(idx, title)
         if tooltip is not None:
-            self.window.ui.tabs['output'].setTabToolTip(idx, tooltip)
+            tabs.setTabToolTip(idx, tooltip)
 
     def reload_titles(self):
         """Reload default tab titles"""
-        counters = {
-            self.TAB_CHAT: 1,
-            self.TAB_NOTEPAD: 1,
-            self.TAB_FILES: 1,
-            self.TAB_TOOL_PAINTER: 1,
-            self.TAB_TOOL_CALENDAR: 1,
-        }
-        for pid in self.pids:
-            tab = self.pids[pid]
-            if tab.custom_name:
-                continue  # leave custom names
-            tab.title = trans(self.titles[tab.type])
-            num_tabs = self.count_by_type(tab.type)
-            if num_tabs > 1:
-                tab.title += " {}".format(counters[tab.type])
-                counters[tab.type] += 1
-            self.window.ui.tabs['output'].setTabText(tab.idx, tab.title)
-            self.window.ui.tabs['output'].setTabToolTip(tab.idx, tab.title)
+        for column_idx in range(0, self.NUM_COLS):
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            counters = {
+                self.TAB_CHAT: 1,
+                self.TAB_NOTEPAD: 1,
+                self.TAB_FILES: 1,
+                self.TAB_TOOL_PAINTER: 1,
+                self.TAB_TOOL_CALENDAR: 1,
+            }
+            for pid in self.pids:
+                tab = self.pids[pid]
+                if tab.column_idx != column_idx:
+                    continue
+                if tab.custom_name:
+                    continue  # leave custom names
+                tab.title = trans(self.titles[tab.type])
+                num_tabs = self.count_by_type(tab.type)
+                if num_tabs > 1:
+                    tab.title += " {}".format(counters[tab.type])
+                    counters[tab.type] += 1
+                tabs.setTabText(tab.idx, tab.title)
+                tabs.setTabToolTip(tab.idx, tab.title)
 
     def from_widget(self, widget: QWidget) -> TabBody:
         """

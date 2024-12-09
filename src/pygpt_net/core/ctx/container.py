@@ -6,39 +6,44 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.07 23:00:00                  #
+# Updated Date: 2024.12.09 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout
 
 from .bag import Bag
 from pygpt_net.ui.widget.textarea.output import ChatOutput
+from ..tabs import Tab
 
 
 class Container:
     def __init__(self, window=None):
         """
-        Context container
+        Context output container
+
+        :param window: Window
         """
         self.window = window
         self.bags = {}
         self.bags[0] = Bag(window)  # always create initial bag
 
-    def register_output(self, id: int = 0):
+    def get(self, tab: Tab):
         """
-        Register output
+        Register and return output
 
-        :param id: ID
+        :param tab: Tab
         :return: Widget
         """
         # plain output
         output_plain = ChatOutput(self.window)
+        output_plain.set_tab(tab)
 
         # web
         if self.window.core.config.get("render.engine") == "web":
             from pygpt_net.ui.widget.textarea.web import ChatWebOutput, CustomWebEnginePage
             # build output
             output_html = ChatWebOutput(self.window)
+            output_html.set_tab(tab)
             output_html.setPage(
                 CustomWebEnginePage(self.window, output_html)
             )
@@ -48,13 +53,15 @@ class Container:
         else:
             # legacy
             output_html = ChatOutput(self.window)
+            output_html.set_tab(tab)
 
         if 'output_plain' not in self.window.ui.nodes:
             self.window.ui.nodes['output_plain'] = {}
         if 'output' not in self.window.ui.nodes:
             self.window.ui.nodes['output'] = {}
-        self.window.ui.nodes['output_plain'][id] = output_plain
-        self.window.ui.nodes['output'][id] = output_html
+
+        self.window.ui.nodes['output_plain'][tab.pid] = output_plain
+        self.window.ui.nodes['output'][tab.pid] = output_html
 
         # show/hide plain/html
         if self.window.core.config.get("render.plain") is True:
@@ -66,8 +73,8 @@ class Container:
 
         # build layout
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['output_plain'][id])
-        layout.addWidget(self.window.ui.nodes['output'][id])
+        layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid])
+        layout.addWidget(self.window.ui.nodes['output'][tab.pid])
         layout.setContentsMargins(0, 0, 0, 0)
         widget = self.window.core.tabs.from_layout(layout)
         return widget
