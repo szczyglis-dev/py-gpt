@@ -151,9 +151,11 @@ class Simple:
                     self.plugin.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
                 wf = wave.open(path, 'wb')
-                wf.setnchannels(1)
+                channels = int(self.plugin.window.core.config.get('audio.input.channels', 1))
+                rate = int(self.plugin.window.core.config.get('audio.input.rate', 44100))
+                wf.setnchannels(channels)
                 wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
-                wf.setframerate(44100)
+                wf.setframerate(rate)
                 wf.writeframes(b''.join(self.frames))
                 wf.close()
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
