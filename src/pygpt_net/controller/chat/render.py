@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -494,7 +494,7 @@ class Render:
         if plain:
             self.window.controller.theme.markdown.clear()
             for pid in self.window.ui.nodes['output_plain']:
-                if self.window.ui.nodes['output'][pid] is not None:
+                if self.window.ui.nodes['output_plain'][pid] is not None:
                     self.window.ui.nodes['output'][pid].setVisible(False)
                     self.window.ui.nodes['output_plain'][pid].setVisible(True)
         else:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import json
@@ -820,7 +820,7 @@ class Renderer(BaseRenderer):
         if self.pids[pid].loaded:
             return  # wait for page load
 
-        html = self.body.get_html()
+        html = self.body.get_html(pid)
         self.pids[pid].document = html
         self.get_output_node_by_pid(pid).setHtml(html, baseUrl="file://")
 

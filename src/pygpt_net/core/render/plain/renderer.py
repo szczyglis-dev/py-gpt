@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -47,8 +47,6 @@ class Renderer(BaseRenderer):
         
         :param meta: context PID
         """
-        if self.tab is not None:
-            return self.tab.pid  # get PID from tab if exists
         return self.window.core.ctx.output.get_pid(meta)
 
     def get_or_create_pid(self, meta: CtxMeta):
@@ -130,7 +128,7 @@ class Renderer(BaseRenderer):
         :param clear: True if clear all output before append
         """
         if clear:
-            self.clear_output()
+            self.clear_output(meta)
 
         i = 0
         for item in items:
@@ -401,7 +399,7 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         self.reset()
-        self.get_output_node().clear()
+        self.get_output_node(meta).clear()
 
     def clear_input(self):
         """Clear input"""

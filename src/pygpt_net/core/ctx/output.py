@@ -193,7 +193,8 @@ class Output:
         if pid in self.window.ui.nodes['output_plain']:
             return self.window.ui.nodes['output_plain'][pid]
         else:
-            return self.window.ui.nodes['output_plain'][0]
+            for pid in self.window.ui.nodes['output_plain']:
+                return self.window.ui.nodes['output_plain'][pid]
 
     def get_by_pid(self, pid = None):
         """
@@ -218,7 +219,8 @@ class Output:
         if pid in self.window.ui.nodes['output_plain']:
             return self.window.ui.nodes['output_plain'][pid]
         else:
-            return self.window.ui.nodes['output_plain'][0]
+            for pid in self.window.ui.nodes['output_plain']:
+                return self.window.ui.nodes['output_plain'][pid]
 
     def get_all(self) -> list:
         """

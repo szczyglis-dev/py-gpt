@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import os
@@ -325,7 +325,7 @@ class Body:
             html += "</div>"
         return html
 
-    def get_html(self) -> str:
+    def get_html(self, pid: int) -> str:
         """
         Build webview HTML code
 
@@ -370,13 +370,14 @@ class Body:
         let scrollTimeout = null;
         let prevScroll = 0;
         let bridge;
+        let pid = """ + str(pid) + """
         new QWebChannel(qt.webChannelTransport, function (channel) {
             bridge = channel.objects.bridge;
         });
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
-                window.location.href = 'bridge://open_find'; // send to bridge
+                window.location.href = 'bridge://open_find:' + pid; // send to bridge
                 event.preventDefault();
             }
             if (event.key === 'Escape') {
