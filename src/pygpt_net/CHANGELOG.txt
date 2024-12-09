@@ -1,3 +1,9 @@
+2.4.39 (2024-12-09)
+
+- Added "Split Screen" mode (accessible via the switch in the bottom-right corner of the screen), which allows you to work in two windows simultaneously. It is currently experimental (beta). Future updates will include Code Interpreter and Canvas running in tabs.
+
+- Fixed: Language switch.
+
 2.4.38 (2024-12-08)
 
 - Added the ability to select a style for chat display between: Blocks, ChatGPT-like, and ChatGPT-like Wide. New option in the menu: Config -> Theme -> Style...

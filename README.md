@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.38** | build: **2024.12.08** | Python: **>=3.10, <3.12**
+Release: **2.4.39** | build: **2024.12.09** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3872,6 +3872,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.39 (2024-12-09)**
+
+- Added "Split Screen" mode (accessible via the switch in the bottom-right corner of the screen), which allows you to work in two windows simultaneously. It is currently experimental (beta). Future updates will include Code Interpreter and Canvas running in tabs.
+
+- Fixed: Language switch.
 
 **2.4.38 (2024-12-08)**
 

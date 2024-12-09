@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.09 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -1746,6 +1746,13 @@ class Patch:
                 if 'audio.input.rate' not in data:
                     data["audio.input.rate"] = 44100
                 self.window.core.updater.patch_css('style.light.css', True)  # force update
+                updated = True
+
+            # < 2.4.39
+            if old < parse_version("2.4.39"):
+                print("Migrating config from < 2.4.39...")
+                if 'layout.split' not in data:
+                    data["layout.split"] = False
                 updated = True
 
         # update file
