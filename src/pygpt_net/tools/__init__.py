@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
@@ -41,6 +41,14 @@ class Tools:
         """
         if id in self.tools:
             return self.tools[id]
+
+    def get_all(self) -> dict:
+        """
+        Get all tools
+
+        :return: dict with tools
+        """
+        return self.tools
 
     def setup(self):
         """Setup tools"""

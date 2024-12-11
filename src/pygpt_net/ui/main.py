@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 import os
@@ -192,8 +192,8 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def setup(self):
         """Setup app"""
-        self.controller.setup()
         self.tools.setup()
+        self.controller.setup()
         self.controller.plugins.setup()
         self.controller.post_setup()
 

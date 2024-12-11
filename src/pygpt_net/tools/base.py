@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject
+from PySide6.QtWidgets import QWidget
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 
 class BaseTool(QObject):
@@ -25,6 +27,9 @@ class BaseTool(QObject):
         super(BaseTool, self).__init__()
         self.window = None
         self.id = ""
+        self.has_tab = False
+        self.tab_title = ""
+        self.tab_icon = ":/icons/build.svg"
 
     def setup(self):
         """Setup tool"""
@@ -80,6 +85,15 @@ class BaseTool(QObject):
 
         :param id: dialog instance ID
         :param dialog_id: dialog instance ID
+        """
+        return None
+
+    def as_tab(self, tab: Tab) -> QWidget or None:
+        """
+        Spawn and return tab instance
+
+        :param tab: Parent tab instance
+        :return: Tab widget instance
         """
         return None
 

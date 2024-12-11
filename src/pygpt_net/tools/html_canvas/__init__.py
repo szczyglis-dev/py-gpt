@@ -6,36 +6,44 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 import os
 
-from PySide6.QtCore import QTimer, Slot, QUrl
+from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QWidget
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool
-from pygpt_net.tools.html_canvas.ui.dialogs import Canvas
 from pygpt_net.utils import trans
+
+from .ui.dialogs import Canvas
+from .ui.widgets import CanvasWidget, CanvasSignals
 
 
 class HtmlCanvas(BaseTool):
     def __init__(self, *args, **kwargs):
         """
-        HTML/JS canvas
+        HTML/JS Canvas
 
         :param window: Window instance
         """
         super(HtmlCanvas, self).__init__(*args, **kwargs)
         self.id = "html_canvas"
+        self.dialog_id = "html_canvas"
+        self.has_tab = True
+        self.tab_title = "menu.tools.html_canvas"
+        self.tab_icon = ":/icons/code.svg"
         self.opened = False
         self.is_edit = False
         self.auto_clear = True
         self.dialog = None
         self.is_edit = False
         self.file_output = ".canvas.html"
+        self.signals = CanvasSignals()
 
     def setup(self):
         """Setup"""
@@ -50,16 +58,15 @@ class HtmlCanvas(BaseTool):
         """Update menu"""
         self.update_menu()
 
-    def toggle_edit(self):
+    def toggle_edit(self, widget: CanvasWidget):
         """Toggle edit mode"""
         current = self.is_edit
         self.is_edit = not self.is_edit
-        self.window.ui.nodes['html_canvas.edit'].setVisible(self.is_edit)
-        self.window.ui.nodes['html_canvas.output'].setVisible(not self.is_edit)
+        widget.edit.setVisible(self.is_edit)
+        widget.output.setVisible(not self.is_edit)
         if current:
-            self.set_output(self.window.ui.nodes['html_canvas.edit'].toPlainText())
+            self.set_output(widget.edit.toPlainText())
             self.save_output()
-        self.window.ui.nodes['html_canvas.btn.edit'].setChecked(self.is_edit)
 
     def update_menu(self):
         """Update menu"""
@@ -78,18 +85,26 @@ class HtmlCanvas(BaseTool):
         """
         return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
 
+    def get_dialog_id(self) -> str:
+        """
+        Get dialog ID
+
+        :return: Dialog ID
+        """
+        return self.dialog_id
+
     def set_output(self, output: str):
         """
         Set output HTML
 
         :param output: Output HTML code
         """
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_current_path()
         with open(path, "w", encoding="utf-8") as f:
             f.write(output)
         if os.path.exists(path):
-            self.window.ui.nodes['html_canvas.output'].setUrl(QUrl().fromLocalFile(path))
-        self.window.ui.nodes['html_canvas.edit'].setPlainText(output)
+            self.signals.reload.emit(path)
+        self.signals.update.emit(output)
 
     def reload_output(self):
         """Reload output data"""
@@ -102,11 +117,16 @@ class HtmlCanvas(BaseTool):
 
         :return: Output data
         """
-        return self.window.ui.nodes['html_canvas.edit'].toPlainText()
+        path = self.get_current_path()
+        data = ""
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data = f.read()
+        return data
 
     def load_output(self):
         """Load output data from file"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_current_path()
         data = ""
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
@@ -115,14 +135,14 @@ class HtmlCanvas(BaseTool):
 
     def save_output(self):
         """Save output data to file"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_current_path()
         data = self.get_output()
         with open(path, "w", encoding="utf-8") as f:
             f.write(data)
 
     def clear_output(self):
         """Clear output"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_current_path()
         if os.path.exists(path):
             os.remove(path)
         self.set_output("")
@@ -151,7 +171,7 @@ class HtmlCanvas(BaseTool):
         if not self.opened:
             self.opened = True
             self.load_output()
-            self.window.ui.dialogs.open('html_canvas', width=800, height=600)
+            self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
             self.update()
 
     def open_file(self):
@@ -172,7 +192,7 @@ class HtmlCanvas(BaseTool):
     def close(self):
         """Close HTML canvas dialog"""
         self.opened = False
-        self.window.ui.dialogs.close('html_canvas')
+        self.window.ui.dialogs.close(self.dialog_id)
         self.update()
 
     def toggle(self):
@@ -193,13 +213,21 @@ class HtmlCanvas(BaseTool):
         else:
             self.close()
 
+    def get_toolbar_icon(self) -> QWidget:
+        """
+        Get toolbar icon
+
+        :return: QWidget
+        """
+        return self.window.ui.nodes['icon.html_canvas']
+
     def toggle_icon(self, state: bool):
         """
         Toggle canvas icon
 
         :param state: State
         """
-        self.window.ui.nodes['icon.html_canvas'].setVisible(state)
+        self.get_toolbar_icon().setVisible(state)
 
     def get_current_output(self) -> str:
         """
@@ -207,7 +235,7 @@ class HtmlCanvas(BaseTool):
 
         :return: Output data
         """
-        return self.window.ui.nodes['html_canvas.output'].get_html_content()
+        return self.get_output()
 
     @Slot(str, str)
     def handle_save_as(self, text: str, type: str = 'txt'):
@@ -242,9 +270,23 @@ class HtmlCanvas(BaseTool):
         )
         return actions
 
+    def as_tab(self, tab: Tab) -> QWidget:
+        """
+        Spawn and return tab instance
+
+        :param tab: Parent Tab instance
+        :return: Tab widget instance
+        """
+        canvas = Canvas(window=self.window, tool=self)
+        layout = canvas.widget.setup()
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.load_output()
+        return widget
+
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.dialog = Canvas(self.window)
+        self.dialog = Canvas(window=self.window, tool=self)
         self.dialog.setup()
 
     def setup_theme(self):

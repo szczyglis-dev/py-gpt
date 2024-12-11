@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.access import Access
@@ -87,15 +87,16 @@ class Controller:
         self.chat.init()
 
         # setup layout
-        self.ui.pre_setup()
         self.layout.setup()
         self.ui.setup()
+        self.ui.tabs.setup()
 
         # setup controllers
         self.lang.setup()
         self.assistant.setup()
         self.chat.setup()
         self.agent.setup()
+        self.tools.setup()
         self.ctx.setup()
         self.presets.setup()
         self.idx.setup()
@@ -105,7 +106,8 @@ class Controller:
         self.attachment.setup()
         self.camera.setup_ui()
         self.access.setup()
-        self.tools.setup()
+
+
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""

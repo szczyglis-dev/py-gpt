@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -46,10 +46,6 @@ class UI:
         self.update_font_size()
         self.update()
         self.init_toolbox()
-
-    def pre_setup(self):
-        """Post setup UI"""
-        self.tabs.setup()
 
     def update(self):
         """Update all elements"""

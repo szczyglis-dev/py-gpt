@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -40,7 +40,7 @@ class InputTabs(QTabWidget):
 
         :param global_pos: QPoint
         """
-        context_menu = QMenu()
+        context_menu = QMenu(self)
         actions = {}
         actions['clear'] = QAction(QIcon(":/icons/delete.svg"), trans('attachments.btn.clear'), self)
         actions['clear'].triggered.connect(

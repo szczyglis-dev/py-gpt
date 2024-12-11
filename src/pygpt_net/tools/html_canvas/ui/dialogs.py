@@ -6,29 +6,32 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.11 23:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 import re
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QMenuBar
+from PySide6.QtWidgets import QMenuBar
 
-from pygpt_net.tools.html_canvas.ui.widgets import CanvasOutput, CanvasEdit
 from pygpt_net.ui.widget.dialog.base import BaseDialog
-from pygpt_net.ui.widget.element.labels import HelpLabel
-from pygpt_net.ui.widget.textarea.html import CustomWebEnginePage
 from pygpt_net.utils import trans
 
+from .widgets import CanvasWidget
+
 class Canvas:
-    def __init__(self, window=None):
+    def __init__(self, window=None, tool=None):
         """
         HTML/JS canvas dialog
 
         :param window: Window instance
+        :param tool: Tool instance
         """
         self.window = window
+        self.tool = tool  # tool instance
+        self.widget = CanvasWidget(window, tool)
+        self.layout = None
         self.menu_bar = None
         self.menu = {}
         self.actions = {}  # menu actions
@@ -45,20 +48,20 @@ class Canvas:
 
         self.actions["file.open"] = QAction(QIcon(":/icons/folder.svg"), trans("tool.html_canvas.menu.file.open"))
         self.actions["file.open"].triggered.connect(
-            lambda: self.window.tools.get("html_canvas").open_file()
+            lambda: self.tool.open_file()
         )
         self.actions["file.save_as"] = QAction(QIcon(":/icons/save.svg"), trans("tool.html_canvas.menu.file.save_as"))
         self.actions["file.save_as"].triggered.connect(
-            lambda: self.window.ui.nodes['html_canvas.output'].signals.save_as.emit(
-                re.sub(r'\n{2,}', '\n\n', self.window.ui.nodes['html_canvas.output'].html_content), 'html')
+            lambda: self.widget.output.signals.save_as.emit(
+                re.sub(r'\n{2,}', '\n\n', self.widget.output.html_content), 'html')
         )
         self.actions["file.reload"] = QAction(QIcon(":/icons/reload.svg"), trans("tool.html_canvas.menu.file.reload"))
         self.actions["file.reload"].triggered.connect(
-            lambda: self.window.tools.get("html_canvas").reload_output()
+            lambda: self.tool.reload_output()
         )
         self.actions["file.clear"] = QAction(QIcon(":/icons/close.svg"), trans("tool.html_canvas.menu.file.clear"))
         self.actions["file.clear"].triggered.connect(
-            lambda: self.window.tools.get("html_canvas").clear()
+            lambda: self.tool.clear()
         )
 
         # add actions
@@ -70,53 +73,35 @@ class Canvas:
 
     def setup(self):
         """Setup canvas dialog"""
-        self.window.ui.nodes['html_canvas.output'] = CanvasOutput(self.window)
-        self.window.ui.nodes['html_canvas.output'].setPage(
-            CustomWebEnginePage(self.window, self.window.ui.nodes['html_canvas.output'])
-        )
-        self.window.ui.nodes['html_canvas.edit'] = CanvasEdit(self.window)
-        self.window.ui.nodes['html_canvas.edit'].setVisible(False)
-        self.window.ui.nodes['html_canvas.edit'].textChanged.connect(
-            lambda: self.window.tools.get("html_canvas").save_output()
-        )
+        self.layout = self.widget.setup()
+        self.layout.setMenuBar(self.setup_menu())  # add menu bar
 
-        # edit checkbox
-        self.window.ui.nodes['html_canvas.btn.edit'] = QCheckBox(trans("html_canvas.btn.edit"))
-        self.window.ui.nodes['html_canvas.btn.edit'].stateChanged.connect(
-            lambda: self.window.tools.get("html_canvas").toggle_edit()
-        )
+        id = self.tool.get_dialog_id()
+        dialog = CanvasDialog(window=self.window, tool=self.tool)
+        dialog.setLayout(self.layout)
+        dialog.setWindowTitle(trans("dialog.html_canvas.title"))
+        dialog.resize(800, 500)
+        self.window.ui.dialog[id] = dialog
 
-        path = self.window.tools.get("html_canvas").get_current_path()
-        path_label = HelpLabel(path)
-        path_label.setMaximumHeight(30)
-        path_label.setAlignment(Qt.AlignRight)
+    def get_widget(self):
+        """
+        Get widget
 
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.ui.nodes['html_canvas.btn.edit'])
-        bottom_layout.addWidget(path_label)
+        :return: QWidget
+        """
+        return self.widget
 
-        output_layout = QVBoxLayout()
-        output_layout.addWidget(self.window.ui.nodes['html_canvas.output'])
-        output_layout.addWidget(self.window.ui.nodes['html_canvas.edit'])
-        output_layout.setContentsMargins(0, 0, 0, 0)
+    def get_tab(self):
+        """
+        Get layout
 
-        # connect signals
-        self.window.ui.nodes['html_canvas.output'].signals.save_as.connect(self.window.tools.get("html_canvas").handle_save_as)
-        self.window.ui.nodes['html_canvas.output'].signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
-
-        layout = QVBoxLayout()
-        layout.setMenuBar(self.setup_menu())  # add menu bar
-        layout.addLayout(output_layout)
-        layout.addLayout(bottom_layout)
-
-        self.window.ui.dialog['html_canvas'] = CanvasDialog(self.window)
-        self.window.ui.dialog['html_canvas'].setLayout(layout)
-        self.window.ui.dialog['html_canvas'].setWindowTitle(trans("dialog.html_canvas.title"))
-        self.window.ui.dialog['html_canvas'].resize(800, 500)
+        :return: QVBoxLayout
+        """
+        return self.layout
 
 
 class CanvasDialog(BaseDialog):
-    def __init__(self, window=None, id="html_canvas"):
+    def __init__(self, window=None, id="html_canvas", tool=None):
         """
         HTML canvas dialog
 
@@ -125,6 +110,7 @@ class CanvasDialog(BaseDialog):
         """
         super(CanvasDialog, self).__init__(window, id)
         self.window = window
+        self.tool = tool
 
     def closeEvent(self, event):
         """
@@ -151,8 +137,8 @@ class CanvasDialog(BaseDialog):
         """
         Cleanup on close
         """
-        if self.window is None:
+        if self.window is None or self.tool is None:
             return
-        self.window.tools.get("html_canvas").opened = False
-        self.window.tools.get("html_canvas").close()
-        self.window.tools.get("html_canvas").update()
+        self.tool.opened = False
+        self.tool.close()
+        self.tool.update()

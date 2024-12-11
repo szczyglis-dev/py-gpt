@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 import uuid
@@ -15,23 +15,16 @@ from datetime import datetime
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
 
-from .tab import Tab
 from pygpt_net.ui.widget.tabs.body import TabBody
 from pygpt_net.utils import trans
+
+from .tab import Tab
 
 
 class Tabs:
 
     # number of columns
     NUM_COLS = 2
-
-    # types
-    TAB_ADD = -1
-    TAB_CHAT = 0
-    TAB_NOTEPAD = 1
-    TAB_FILES = 2
-    TAB_TOOL_PAINTER = 3
-    TAB_TOOL_CALENDAR = 4
 
     def __init__(self, window=None):
         """
@@ -43,18 +36,22 @@ class Tabs:
         self.last_pid = -1
         self.pids = {}  # pid: Tab data
         self.icons = {
-            self.TAB_CHAT: ":/icons/chat.svg",
-            self.TAB_NOTEPAD: ":/icons/paste.svg",
-            self.TAB_FILES: ":/icons/folder_filled.svg",
-            self.TAB_TOOL_PAINTER: ":/icons/brush.svg",
-            self.TAB_TOOL_CALENDAR: ":/icons/calendar.svg",
+            Tab.TAB_CHAT: ":/icons/chat.svg",
+            Tab.TAB_NOTEPAD: ":/icons/paste.svg",
+            Tab.TAB_FILES: ":/icons/folder_filled.svg",
+            Tab.TAB_TOOL_PAINTER: ":/icons/brush.svg",
+            Tab.TAB_TOOL_CALENDAR: ":/icons/calendar.svg",
+            Tab.TAB_TOOL_CANVAS: ":/icons/code.svg",
+            Tab.TAB_TOOL: ":/icons/build.svg",
         }
         self.titles = {
-            self.TAB_CHAT: "output.tab.chat",
-            self.TAB_NOTEPAD: "output.tab.notepad",
-            self.TAB_FILES: "output.tab.files",
-            self.TAB_TOOL_PAINTER: "output.tab.painter",
-            self.TAB_TOOL_CALENDAR: "output.tab.calendar",
+            Tab.TAB_CHAT: "output.tab.chat",
+            Tab.TAB_NOTEPAD: "output.tab.notepad",
+            Tab.TAB_FILES: "output.tab.files",
+            Tab.TAB_TOOL_PAINTER: "output.tab.painter",
+            Tab.TAB_TOOL_CALENDAR: "output.tab.calendar",
+            Tab.TAB_TOOL_CANVAS: "CANVAS",
+            Tab.TAB_TOOL: "output.tab.tool",
         }
 
     def get_tab_by_index(self, idx: int, column_idx: int = 0) -> Tab or None:
@@ -113,7 +110,8 @@ class Tabs:
             title: str,
             icon=None,
             child=None,
-            data_id=None
+            data_id=None,
+            tool_id=None
     ) -> Tab:
         """
         Add tab
@@ -123,6 +121,7 @@ class Tabs:
         :param icon: Tab icon
         :param child: Tab child
         :param data_id: Tab data ID
+        :param tool_id: Tool ID
         :return: Tab
         """
         self.last_pid += 1  # PID++, start from 0
@@ -135,6 +134,7 @@ class Tabs:
         tab.icon = icon
         tab.child = child
         tab.data_id = data_id
+        tab.tool_id = tool_id
 
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
@@ -146,6 +146,8 @@ class Tabs:
             self.add_tool_painter(tab)
         elif type == Tab.TAB_TOOL_CALENDAR:
             self.add_tool_calendar(tab)
+        elif type == Tab.TAB_TOOL:
+            self.add_tool(tab)
 
         self.pids[tab.pid] = tab
         return tab
@@ -153,6 +155,7 @@ class Tabs:
     def append(
             self,
             type: int,
+            tool_id: str,
             idx: int,
             column_idx: int = 0
     ) -> Tab:
@@ -160,6 +163,7 @@ class Tabs:
         Append tab to the right side of the tab with the specified index
 
         :param type: tab type
+        :param tool_id: tool ID
         :param idx: index of the tab to the right of which the new tab will be added
         :param column_idx: index of the column in which the tab will be added
         :return: Tab
@@ -167,9 +171,9 @@ class Tabs:
         self.last_pid += 1  # PID++, start from 0
         title = ""
         icon = self.icons[type]
-        if type == self.TAB_CHAT:
+        if type == Tab.TAB_CHAT:
             title = trans('output.tab.chat') + " {}".format(self.count_by_type(type) + 1)
-        elif type == self.TAB_NOTEPAD:
+        elif type == Tab.TAB_NOTEPAD:
             title = trans('output.tab.notepad') + " {}".format(self.count_by_type(type) + 1)
 
         tab = Tab()
@@ -180,11 +184,14 @@ class Tabs:
         tab.icon = icon
         tab.new_idx = idx + 1  # place on right side
         tab.column_idx = column_idx
+        tab.tool_id = tool_id
 
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
         elif type == Tab.TAB_NOTEPAD:
             self.add_notepad(tab)
+        elif type == Tab.TAB_TOOL:
+            self.add_tool(tab)
 
         self.pids[tab.pid] = tab
         self.update()
@@ -217,6 +224,9 @@ class Tabs:
         if 'column_idx' in data and data['column_idx'] is not None:
             tab.column_idx = data['column_idx']
 
+        if 'tool_id' in data and data['tool_id'] is not None:
+            tab.tool_id = data['tool_id']
+
         if tab.type in self.icons:
             tab.icon = self.icons[tab.type]
 
@@ -233,6 +243,8 @@ class Tabs:
             self.add_tool_painter(tab)
         elif tab.type == Tab.TAB_TOOL_CALENDAR:  # calendar
             self.add_tool_calendar(tab)
+        elif tab.type == Tab.TAB_TOOL:  # custom tools, id 100+
+            self.add_tool(tab)
 
         self.pids[tab.pid] = tab
         self.last_pid = self.get_max_pid()
@@ -279,7 +291,7 @@ class Tabs:
         for pid in list(self.pids):
             tab = self.pids[pid]
             if tab.type == type and tab.column_idx == column_idx:
-                if type == self.TAB_CHAT:
+                if type == Tab.TAB_CHAT:
                     if self.count_by_type(type) == 1:
                         continue  # do not remove last chat tab
                 self.remove(pid)
@@ -489,6 +501,30 @@ class Tabs:
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
+    def add_tool(self, tab: Tab):
+        """
+        Add custom tool tab
+
+        :param tab: Tab instance
+        """
+        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
+        tabs = column.get_tabs()
+        tool = self.window.tools.get(tab.tool_id)
+        if tool is None:
+            raise Exception("Tool not found: {}".format(tab.tool_id))
+        widget = tool.as_tab(tab)
+        if widget is None:
+            raise Exception("Tool widget not found: {}".format(tab.tool_id))
+        tab.icon = tool.tab_icon
+        tab.title = trans(tool.tab_title)
+        tab.parent = column
+        tab.child = self.from_widget(widget)
+        tab.idx = tabs.addTab(tab.child, tab.title)
+        tab.child.setOwner(tab)
+        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
+        if tab.tooltip is not None:
+            tabs.setTabToolTip(tab.idx, tab.tooltip)
+
     def move_tab(self, tab: Tab, column_idx: int):
         """
         Move tab to column
@@ -535,7 +571,7 @@ class Tabs:
             "uuid": uuid.uuid4(),
             "pid": 0,
             "idx": 0,
-            "type": self.TAB_CHAT,
+            "type": Tab.TAB_CHAT,
             "data_id": None,
             "title": "Chat",
             "tooltip": "Chat",
@@ -545,31 +581,34 @@ class Tabs:
             "uuid": uuid.uuid4(),
             "pid": 1,
             "idx": 1,
-            "type": self.TAB_FILES,
+            "type": Tab.TAB_FILES,
             "data_id": None,
             "title": "Files",
             "tooltip": "Files",
             "column_idx": 0,
+            "tool_id": "explorer",
         }
         data[2] = {
             "uuid": uuid.uuid4(),
             "pid": 2,
             "idx": 2,
-            "type": self.TAB_TOOL_CALENDAR,
+            "type": Tab.TAB_TOOL_CALENDAR,
             "data_id": None,
             "title": "Calendar",
             "tooltip": "Calendar",
             "column_idx": 0,
+            "tool_id": "calendar",
         }
         data[3] = {
             "uuid": uuid.uuid4(),
             "pid": 3,
             "idx": 3,
-            "type": self.TAB_TOOL_PAINTER,
+            "type": Tab.TAB_TOOL_PAINTER,
             "data_id": None,
             "title": "Painter",
             "tooltip": "Painter",
             "column_idx": 0,
+            "tool_id": "painter",
         }
         """
         data[4] = {
@@ -581,6 +620,7 @@ class Tabs:
             "title": "Notepad",
             "tooltip": "Notepad",
             "column_idx": 0,
+            "tool_id": "notepad",
         }
         """
         # load notepads from db
@@ -593,11 +633,12 @@ class Tabs:
                     "uuid": uuid.uuid4(),
                     "pid": next_idx,
                     "idx": next_idx,
-                    "type": self.TAB_NOTEPAD,
+                    "type": Tab.TAB_NOTEPAD,
                     "data_id": item['data_id'],
                     "title": item['title'],
                     "tooltip": item['title'],
                     "column_idx": 0,
+                    "tool_id": "notepad",
                 }
                 next_idx += 1
         return data
@@ -628,6 +669,7 @@ class Tabs:
                     "tooltip": trans(self.titles[type]),
                     "custom_name": False,
                     "column_idx": 0,
+                    "tool_id": None,
                 }
                 tmp_pid += 1
 
@@ -657,6 +699,7 @@ class Tabs:
                 "tooltip": tab.tooltip,
                 "custom_name": tab.custom_name,
                 "column_idx": tab.column_idx,
+                "tool_id": tab.tool_id,
             }
         opened_tabs = {}
         for column_idx in range(0, self.NUM_COLS):
@@ -697,11 +740,11 @@ class Tabs:
         for column_idx in range(0, self.NUM_COLS):
             tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
             counters = {
-                self.TAB_CHAT: 1,
-                self.TAB_NOTEPAD: 1,
-                self.TAB_FILES: 1,
-                self.TAB_TOOL_PAINTER: 1,
-                self.TAB_TOOL_CALENDAR: 1,
+                Tab.TAB_CHAT: 1,
+                Tab.TAB_NOTEPAD: 1,
+                Tab.TAB_FILES: 1,
+                Tab.TAB_TOOL_PAINTER: 1,
+                Tab.TAB_TOOL_CALENDAR: 1,
             }
             for pid in self.pids:
                 tab = self.pids[pid]

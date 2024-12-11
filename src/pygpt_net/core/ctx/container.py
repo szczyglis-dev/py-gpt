@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QWidget
+
+from pygpt_net.core.tabs import Tab
+from pygpt_net.ui.widget.textarea.output import ChatOutput
 
 from .bag import Bag
-from pygpt_net.ui.widget.textarea.output import ChatOutput
-from ..tabs import Tab
-
 
 class Container:
     def __init__(self, window=None):
@@ -27,7 +27,7 @@ class Container:
         self.bags = {}
         self.bags[0] = Bag(window)  # always create initial bag
 
-    def get(self, tab: Tab):
+    def get(self, tab: Tab) -> QWidget:
         """
         Register and return output
 

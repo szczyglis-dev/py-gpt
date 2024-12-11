@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.09 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -53,7 +53,8 @@ class Tabs:
             title: str,
             icon=None,
             child=None,
-            data_id=None
+            data_id=None,
+            tool_id=None,
     ):
         """
         Add a new tab
@@ -63,31 +64,40 @@ class Tabs:
         :param icon: Tab icon
         :param child: Tab child (child widget)
         :param data_id: Tab data ID (child data ID)
+        :param tool_id: Tool ID
         """
         self.window.core.tabs.add(
             type=type,
             title=title,
             icon=icon,
             child=child,
-            data_id=data_id
+            data_id=data_id,
+            tool_id=tool_id
         )
 
     def append(
             self,
             type: int,
-            idx: int,
+            tool_id: str = None,
+            idx: int = 0,
             column_idx: int = 0
     ):
         """
         Append tab at tab index
 
         :param type: Tab type
+        :param tool_id: Tool ID
         :param idx: Tab index
         :param column_idx: Column index
         """
         self.appended = True  # lock reload in previous tab
         self.column_idx = column_idx  # switch to column
-        self.window.core.tabs.append(type, idx, column_idx)
+        self.window.core.tabs.append(
+            type=type,
+            idx=idx,
+            column_idx=column_idx,
+            tool_id=tool_id
+        )
         self.switch_tab_by_idx(idx + 1, column_idx)  # switch to new tab
 
     def reload_titles(self):
@@ -130,7 +140,6 @@ class Tabs:
                 meta = self.window.controller.ctx.new()  # new context
                 if meta is not None:
                     self.window.controller.ctx.load(meta.id)  # reload
-
 
         prev_tab = self.current
         prev_column = self.column_idx
@@ -487,7 +496,12 @@ class Tabs:
         :param column_idx: column index
         """
         idx = self.get_current_idx(column_idx)
-        self.append(Tab.TAB_CHAT, idx, column_idx)
+        self.append(
+            type=Tab.TAB_CHAT,
+            tool_id=None,
+            idx=idx,
+            column_idx=column_idx
+        )
 
     def restore_data(self):
         """Restore tab data"""
