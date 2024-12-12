@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
-# 
+
 from pygpt_net.core.events import RenderEvent
 
 
@@ -92,9 +92,6 @@ class Nodes:
                 if key == "output" and self.window.controller.chat.render.get_engine() != 'legacy':
                     continue
                 self.apply(key, type)
-
-        # self.window.interpreter.update_stylesheet(self.window.controller.theme.style('font.chat.output'))
-        # self.window.ui.nodes['interpreter.input'].update_stylesheet(self.window.controller.theme.style('font.chat.input'))
 
         # apply to notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()

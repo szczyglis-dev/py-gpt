@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -163,6 +163,14 @@ class Runner:
         :return: True if sandbox is enabled
         """
         return self.plugin.get_option_value('sandbox_docker')
+
+    def is_sandbox_ipython(self) -> bool:
+        """
+        Check if sandbox is enabled for IPython
+
+        :return: True if sandbox is enabled
+        """
+        return self.plugin.get_option_value('sandbox_ipython')
 
     def get_docker(self) -> docker.client.DockerClient:
         """
@@ -392,13 +400,14 @@ class Runner:
         :param all: execute all
         :return: response dict
         """
+        sandbox = self.is_sandbox_ipython()
         data = item["params"]['code']
         if not all:
             path = self.plugin.window.tools.get("interpreter").file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=True)
+            self.log(msg, sandbox=sandbox)
             with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
@@ -412,12 +421,13 @@ class Runner:
 
         # run code in IPython interpreter
         msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=True)
-        self.log("Connecting to IPython interpreter...", sandbox=True)
+        self.log(msg, sandbox=sandbox)
+        self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
-            self.log("Please wait...", sandbox=True)
+            self.log("Please wait...", sandbox=sandbox)
             result = self.plugin.get_interpreter().execute(data, current=False)
             result = self.handle_result_ipython(ctx, result)
+            self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
             self.error(e)
             result = str(e)
@@ -437,13 +447,14 @@ class Runner:
         :param all: execute all
         :return: response dict
         """
+        sandbox = self.is_sandbox_ipython()
         data = item["params"]['code']
         if not all:
             path = self.plugin.window.tools.get("interpreter").file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=True)
+            self.log(msg, sandbox=sandbox)
             with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
@@ -457,12 +468,13 @@ class Runner:
 
         # run code in IPython interpreter
         msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=True)
-        self.log("Connecting to IPython interpreter...", sandbox=True)
+        self.log(msg, sandbox=sandbox)
+        self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
-            self.log("Please wait...", sandbox=True)
+            self.log("Please wait...", sandbox=sandbox)
             result = self.plugin.get_interpreter().execute(data, current=True)
             result = self.handle_result_ipython(ctx, result)
+            self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
             self.error(e)
             result = str(e)
@@ -482,13 +494,14 @@ class Runner:
         :param all: execute all
         :return: response dict
         """
+        sandbox = self.is_sandbox_ipython()
         self.append_input("")
         self.send_interpreter_input("")  # send input to interpreter tool
 
         # restart IPython interpreter
-        self.log("Connecting to IPython interpreter...", sandbox=True)
+        self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
-            self.log("Restarting IPython kernel...", sandbox=True)
+            self.log("Restarting IPython kernel...", sandbox=sandbox)
             response = self.plugin.get_interpreter().restart_kernel()
         except Exception as e:
             self.error(e)
@@ -497,7 +510,7 @@ class Runner:
             result = "Kernel restarted"
         else:
             result = "Kernel not restarted"
-        self.log(result)
+        self.log(result, sandbox=sandbox)
         return {
             "request": request,
             "result": str(result),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton
@@ -227,12 +227,7 @@ class OutputTabs(QTabWidget):
         actions['close_all'].triggered.connect(
             lambda: self.close_all(Tab.TAB_NOTEPAD, column_idx)
         )
-        actions['add_canvas'] = QAction(QIcon(":/icons/add.svg"), trans('action.tab.add_canvas'), self)
-        actions['add_canvas'].triggered.connect(
-            lambda: self.add_tab(index, column_idx, Tab.TAB_TOOL_CANVAS)
-        )
         context_menu.addAction(actions['close'])
-        context_menu.addAction(actions['add_canvas'])
 
         if self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) > 1:
             context_menu.addAction(actions['close_all'])

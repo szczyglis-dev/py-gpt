@@ -6,19 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor, QAction, QIcon
+from PySide6.QtWidgets import QWidget
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.tools.base import BaseTool
-from pygpt_net.tools.code_interpreter.ui.dialogs import Interpreter
+from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+
+from .ui.widgets import PythonInput, PythonOutput, ToolWidget, ToolSignals
 
 
 class CodeInterpreter(BaseTool):
@@ -30,11 +34,15 @@ class CodeInterpreter(BaseTool):
         """
         super(CodeInterpreter, self).__init__(*args, **kwargs)
         self.id = "interpreter"
+        self.has_tab = True
+        self.tab_title = "menu.tools.interpreter"
+        self.tab_icon = ":/icons/code.svg"
         self.opened = False
         self.is_edit = False
         self.auto_clear = False
         self.dialog = None
         self.ipython = True
+        self.signals = ToolSignals()
 
         # interpreter data files in /data directory
         self.file_current = ".interpreter.current.py"
@@ -49,15 +57,15 @@ class CodeInterpreter(BaseTool):
 
         # restore
         if self.window.core.config.has("interpreter.input"):
-            self.window.ui.nodes['interpreter.input'].setPlainText(self.window.core.config.get("interpreter.input"))
+            self.signals.update_input.emit(self.window.core.config.get("interpreter.input"))
         if self.window.core.config.has("interpreter.execute_all"):
-            self.window.ui.nodes['interpreter.all'].setChecked(self.window.core.config.get("interpreter.execute_all"))
+            self.signals.set_checkbox_all.emit(self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
-            self.window.ui.nodes['interpreter.auto_clear'].setChecked(self.window.core.config.get("interpreter.auto_clear"))
+            self.signals.set_checkbox_auto_clear.emit(self.window.core.config.get("interpreter.auto_clear"))
         if self.window.core.config.has("interpreter.ipython"):
-            self.window.ui.nodes['interpreter.ipython'].setChecked(self.window.core.config.get("interpreter.ipython"))
+            self.signals.set_checkbox_ipython.emit(self.window.core.config.get("interpreter.ipython"))
         if self.ipython:
-            self.window.ui.nodes['interpreter.all'].setVisible(False)
+            self.signals.toggle_all_visible.emit(False)
 
         # set initial size
         if not self.window.core.config.has("interpreter.dialog.initialized"):
@@ -119,28 +127,62 @@ class CodeInterpreter(BaseTool):
         :param type: Output type
         :param kwargs: Additional parameters
         """
-        area = self.window.interpreter
-        if type == "stdin":
-            data = ">> "  + str(output)
-        else:
-            data = str(output)
-        cur = area.textCursor()
-        cur.movePosition(QTextCursor.End)
-        s = data + "\n"
-        while s:
-            head, sep, s = s.partition("\n")
-            cur.insertText(head)
-            if sep:  # New line if LF
-                cur.insertText("\n")
-        area.setTextCursor(cur)
+        self.signals.update.emit(output, type)
         self.save_output()
         self.load_history()
+
+    def get_path_input(self) -> str:
+        """
+        Get input path
+
+        :return: Input path
+        """
+        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+
+    def get_path_output(self) -> str:
+        """
+        Get output path
+
+        :return: Output path
+        """
+        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+
+    def get_widget(self) -> ToolWidget:
+        """
+        Get tool widget
+
+        :return: ToolWidget instance
+        """
+        return self.dialog.widget
+
+    def get_widget_history(self) -> PythonOutput:
+        """
+        Get history widget
+
+        :return: PythonOutput widget
+        """
+        return self.dialog.widget.history
+
+    def get_widget_output(self) -> PythonOutput:
+        """
+        Get output widget
+
+        :return: PythonOutput widget
+        """
+        return self.dialog.widget.output
+
+    def get_widget_input(self) -> PythonInput:
+        """
+        Get input widget
+
+        :return: PythonInput widget
+        """
+        return self.dialog.widget.input
 
     def load_history(self):
         """Load history data from file"""
         data = self.get_history()
-        self.window.ui.nodes['interpreter.code'].setPlainText(data)
-        self.cursor_to_end()
+        self.signals.update_history.emit(data)
 
     def get_output(self) -> str:
         """
@@ -149,7 +191,7 @@ class CodeInterpreter(BaseTool):
         :return: Output data
         """
         data = ""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_path_output()
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 try:
@@ -161,13 +203,13 @@ class CodeInterpreter(BaseTool):
     def load_output(self):
         """Load output data from file"""
         data = self.get_output()
-        self.window.interpreter.setPlainText(data)
-        self.window.ui.nodes['interpreter.input'].setFocus()
+        self.signals.update.emit(data, "stdout")
+        self.signals.focus_input.emit()
 
     def save_output(self):
         """Save output data to file"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
-        data = self.window.interpreter.toPlainText()
+        path = self.get_path_output()
+        data = self.get_widget_output().toPlainText()
         with open(path, "w", encoding="utf-8") as f:
             f.write(data)
 
@@ -178,7 +220,7 @@ class CodeInterpreter(BaseTool):
         :return: History data
         """
         data = ""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        path = self.get_path_input()
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 try:
@@ -193,23 +235,23 @@ class CodeInterpreter(BaseTool):
 
         :param input: Input data
         """
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        path = self.get_path_input()
         with open(path , "w", encoding="utf-8") as f:
             f.write(input)
 
     def clear_history(self):
         """Clear input"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_input)
+        path = self.get_path_input()
         if os.path.exists(path):
             os.remove(path)
-        self.window.ui.nodes['interpreter.code'].clear()
+        self.signals.clear_history.emit()
 
     def clear_output(self):
         """Clear output"""
-        path = os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
+        path = self.get_path_output()
         if os.path.exists(path):
             os.remove(path)
-        self.window.interpreter.clear()
+        self.signals.clear_output.emit()
 
     def clear(self, force: bool = False):
         """
@@ -248,15 +290,32 @@ class CodeInterpreter(BaseTool):
         })
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)
-        self.window.ui.nodes['interpreter.input'].setFocus()
+        self.signals.focus_input.emit()
 
-    def send_input(self):
-        """Send input to interpreter"""
-        self.store_history()
+    def send_input(self, widget: ToolWidget):
+        """
+        Send input to interpreter
+
+        :param widget: PythonInput widget
+        """
+        self.store_history(widget)
         if self.auto_clear:
             self.clear_output()
 
-        input = str(self.window.ui.nodes['interpreter.input'].toPlainText())
+        input_textarea = widget.input
+        input = str(input_textarea.toPlainText()).strip()
+
+        if input == "/restart":
+            self.restart_kernel()
+            input_textarea.clear()
+            input_textarea.setFocus()
+            return
+        elif input == "/clear":
+            self.clear(force=True)
+            input_textarea.clear()
+            input_textarea.setFocus()
+            return
+
         if self.is_all():
             cmd = "code_execute_all"
         else:
@@ -284,12 +343,12 @@ class CodeInterpreter(BaseTool):
         })
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)
-        self.window.ui.nodes['interpreter.input'].clear()
-        self.window.ui.nodes['interpreter.input'].setFocus()
+        input_textarea.clear()
+        input_textarea.setFocus()
 
     def update_input(self):
         """Update input data"""
-        data = self.window.ui.nodes['interpreter.input'].toPlainText()
+        data = self.get_widget_input().toPlainText()
         self.window.core.config.set("interpreter.input", data)
 
     def append_to_input(self, data: str):
@@ -298,11 +357,7 @@ class CodeInterpreter(BaseTool):
 
         :param data: Data
         """
-        current = self.window.ui.nodes['interpreter.input'].toPlainText()
-        if current:
-            current += "\n"
-        current += data
-        self.window.ui.nodes['interpreter.input'].setPlainText(current)
+        self.signals.append_input.emit(data)
 
     def append_to_edit(self, data: str):
         """
@@ -317,9 +372,15 @@ class CodeInterpreter(BaseTool):
         self.save_history(prev)
         self.load_history()
 
-    def store_history(self):
-        """Save history data to file"""
-        data = self.window.ui.nodes['interpreter.code'].toPlainText()
+    def store_history(self, widget: ToolWidget):
+        """
+        Save history data to file
+
+        :param widget: ToolWidget
+        """
+        if not widget.history:
+            return
+        data = widget.history.toPlainText()
         self.save_history(data)
 
     def open(self):
@@ -328,7 +389,7 @@ class CodeInterpreter(BaseTool):
         self.load_history()
         self.load_output()
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
-        self.window.ui.nodes['interpreter.input'].setFocus()
+        self.get_widget_input().setFocus()
         self.cursor_to_end()
         self.scroll_to_bottom()
         self.update()
@@ -341,11 +402,11 @@ class CodeInterpreter(BaseTool):
 
     def scroll_to_bottom(self):
         """Scroll down"""
-        self.window.ui.nodes['interpreter.code'].verticalScrollBar().setValue(
-            self.window.ui.nodes['interpreter.code'].verticalScrollBar().maximum()
+        self.get_widget_history().verticalScrollBar().setValue(
+            self.get_widget_history().verticalScrollBar().maximum()
         )
-        self.window.interpreter.verticalScrollBar().setValue(
-            self.window.interpreter.verticalScrollBar().maximum()
+        self.get_widget_output().verticalScrollBar().setValue(
+            self.get_widget_output().verticalScrollBar().maximum()
         )
 
     def toggle(self):
@@ -366,31 +427,55 @@ class CodeInterpreter(BaseTool):
         else:
             self.close()
 
+    def get_toolbar_icon(self) -> QWidget:
+        """
+        Get toolbar icon
+
+        :return: QWidget
+        """
+        return self.window.ui.nodes['icon.interpreter']
+
     def toggle_icon(self, state: bool):
         """
         Toggle interpreter icon
 
         :param state: State
         """
-        self.window.ui.nodes['icon.interpreter'].setVisible(state)
+        self.get_toolbar_icon().setVisible(state)
 
-    def toggle_auto_clear(self):
-        """Toggle auto clear"""
-        self.auto_clear = self.window.ui.nodes['interpreter.auto_clear'].isChecked()
+    def toggle_auto_clear(self, widget: ToolWidget):
+        """
+        Toggle auto clear
+
+        :param widget: ToolWidget instance
+        """
+        self.auto_clear = widget.checkbox_auto_clear.isChecked()
         self.window.core.config.set("interpreter.auto_clear", self.auto_clear)
+        self.signals.set_checkbox_auto_clear.emit(self.auto_clear)
 
-    def toggle_ipython(self):
-        """Toggle ipython"""
-        self.ipython = self.window.ui.nodes['interpreter.ipython'].isChecked()
+    def toggle_ipython(self, widget: ToolWidget):
+        """
+        Toggle ipython
+
+        :param widget: ToolWidget instance
+        """
+        self.ipython = widget.checkbox_ipython.isChecked()
         self.window.core.config.set("interpreter.ipython", self.ipython)
+        self.signals.set_checkbox_ipython.emit(self.ipython)
         if self.ipython:
-            self.window.ui.nodes['interpreter.all'].setVisible(False)
+            self.signals.toggle_all_visible.emit(False)
         else:
-            self.window.ui.nodes['interpreter.all'].setVisible(True)
+            self.signals.toggle_all_visible.emit(True)
 
-    def toggle_all(self):
-        """Toggle execute all"""
-        self.window.core.config.set("interpreter.execute_all", self.window.ui.nodes['interpreter.all'].isChecked())
+    def toggle_all(self, widget: ToolWidget):
+        """
+        Toggle execute all
+
+        :param widget: ToolWidget instance
+        """
+        state = widget.checkbox_all.isChecked()
+        self.window.core.config.set("interpreter.execute_all", state)
+        self.signals.set_checkbox_all.emit(state)
 
     def get_current_output(self) -> str:
         """
@@ -398,7 +483,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Output data
         """
-        return self.window.interpreter.toPlainText()
+        return self.get_widget_output().toPlainText()
 
     def get_current_history(self) -> str:
         """
@@ -406,7 +491,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Edit code
         """
-        return self.window.ui.nodes['interpreter.code'].toPlainText()
+        return self.get_widget_history().toPlainText()
 
     def is_all(self) -> bool:
         """
@@ -414,13 +499,13 @@ class CodeInterpreter(BaseTool):
 
         :return: True if execute all is enabled
         """
-        return self.window.ui.nodes['interpreter.all'].isChecked()
+        return self.get_widget().checkbox_all.isChecked()
 
     def cursor_to_end(self):
         """Move cursor to end"""
-        cur = self.window.ui.nodes['interpreter.code'].textCursor()
+        cur = self.get_widget_history().textCursor()
         cur.movePosition(QTextCursor.End)
-        self.window.ui.nodes['interpreter.code'].setTextCursor(cur)
+        self.get_widget_history().setTextCursor(cur)
 
     def setup_menu(self) -> dict:
         """
@@ -440,15 +525,29 @@ class CodeInterpreter(BaseTool):
         )
         return actions
 
+    def as_tab(self, tab: Tab) -> QWidget:
+        """
+        Spawn and return tab instance
+
+        :param tab: Parent Tab instance
+        :return: Tab widget instance
+        """
+        tool = Tool(window=self.window, tool=self)
+        layout = tool.widget.setup(all=False)
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.load_history()
+        self.load_output()
+        return widget
+
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.dialog = Interpreter(self.window)
+        self.dialog = Tool(self.window, self)
         self.dialog.setup()
 
     def setup_theme(self):
         """Setup theme"""
-        size = self.window.core.config.get('font_size')
-        self.window.interpreter.value = size
+        self.get_widget_output().value = self.window.core.config.get('font_size')
 
     def get_lang_mappings(self) -> dict:
         """

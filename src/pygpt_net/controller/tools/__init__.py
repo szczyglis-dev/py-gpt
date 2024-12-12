@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -75,7 +75,7 @@ class Tools:
             title = trans(tool.tab_title)
             action = QAction(QIcon(icon), title, parent)
             action.triggered.connect(
-                lambda: parent.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
+                lambda idx=idx, column_idx=column_idx, id=id: parent.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
             )
             submenu.addAction(action)
         return submenu

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 import uuid
@@ -353,6 +353,20 @@ class Tabs:
                 count += 1
         return count
 
+    def get_max_data_id_by_type(self, type: int) -> int:
+        """
+        Get max data ID by type
+
+        :param type: Tab type
+        :return: Max data ID
+        """
+        max = 0
+        for pid in self.pids:
+            tab = self.pids[pid]
+            if tab.type == type and tab.data_id > max:
+                max = tab.data_id
+        return max
+
     def get_order_by_idx_and_type(
             self,
             idx: int,
@@ -442,8 +456,8 @@ class Tabs:
         tab.parent = tabs.get_column()
         if tab.data_id is not None:
             idx = tab.data_id  # restore prev idx
-        tab.child, idx = self.window.controller.notepad.create(idx)
-        tab.data_id = idx  # notepad idx in db, enumerated from 1
+        tab.child, idx, data_id = self.window.controller.notepad.create(idx)
+        tab.data_id = data_id  # notepad idx in db, enumerated from 1
         if tab.new_idx is not None:
             tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
         else:
@@ -755,7 +769,10 @@ class Tabs:
                 tab.title = trans(self.titles[tab.type])
                 num_tabs = self.count_by_type(tab.type)
                 if num_tabs > 1:
-                    tab.title += " {}".format(counters[tab.type])
+                    if tab.type in counters:
+                        tab.title += " {}".format(counters[tab.type])
+                    else:
+                        counters[tab.type] = 1
                     counters[tab.type] += 1
                 tabs.setTabText(tab.idx, tab.title)
                 tabs.setTabToolTip(tab.idx, tab.title)

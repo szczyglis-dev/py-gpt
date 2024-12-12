@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -165,6 +165,8 @@ class Tabs:
         if prev_tab != idx or prev_column != column_idx:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
+        self.window.controller.ui.update()
+
     def get_current_idx(self, column_idx: int = 0) -> int:
         """
         Get current tab index
@@ -243,6 +245,7 @@ class Tabs:
         current_ctx = self.window.core.ctx.get_current()
         if current_ctx is not None and current_ctx != tab.data_id:
             self.window.controller.ctx.select_on_list_only(tab.data_id)
+        self.window.controller.ui.update()
 
     def on_tab_clicked(self, idx: int, column_idx: int = 0):
         """
@@ -509,6 +512,9 @@ class Tabs:
         if not data:
             self.switch_tab_by_idx(0, 0)
             return
+
+        # reverse order, second column is first
+        data = dict(reversed(list(data.items())))
         for col_idx in data:
             tab_idx = data[col_idx]
             self.switch_tab_by_idx(int(tab_idx), int(col_idx))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
@@ -38,13 +38,14 @@ class Notepad:
         """
         if idx is None:
             idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
-        self.window.ui.notepad[idx] = NotepadWidget(self.window)
-        self.window.ui.notepad[idx].id = idx
-        self.window.ui.notepad[idx].textarea.id = idx
+        data_id = idx
+        self.window.ui.notepad[data_id] = NotepadWidget(self.window)
+        self.window.ui.notepad[data_id].id = idx
+        self.window.ui.notepad[data_id].textarea.id = idx
         title = trans('output.tab.notepad')
         title += " " + str(idx)
-        children = self.window.core.tabs.from_widget(self.window.ui.notepad[idx])
-        return children, idx
+        children = self.window.core.tabs.from_widget(self.window.ui.notepad[data_id])
+        return children, idx, data_id
 
     def load(self):
         """Load all notepads contents"""
