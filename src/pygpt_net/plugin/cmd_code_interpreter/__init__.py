@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 import os
@@ -118,42 +118,6 @@ class Plugin(BasePlugin):
                                            "directory is mapped as volume in host machine to: {}").format(legacy_data)
                 data['cmd'].append(cmd)  # append command
 
-    @Slot(object, str)
-    def handle_interpreter_output(self, data, type):
-        """
-        Handle interpreter output
-
-        :param data: output data
-        :param type: output type
-        """
-        if not self.get_option_value("attach_output"):
-            return
-        self.window.tools.get("interpreter").append_output(data, type)
-
-    @Slot()
-    def handle_interpreter_clear(self):
-        """Handle interpreter clear"""
-        self.window.tools.get("interpreter").clear_all()
-
-    @Slot(object)
-    def handle_html_output(self, data):
-        """
-        Handle HTML/JS canvas output
-
-        :param data: HTML/JS code
-        """
-        self.window.tools.get("html_canvas").set_output(data)
-        self.window.tools.get("html_canvas").open()
-    def get_interpreter(self):
-        """
-        Get interpreter
-
-        :return: interpreter
-        """
-        if self.get_option_value("sandbox_ipython"):
-            return self.ipython_docker
-        else:
-            return self.ipython_local
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
@@ -270,3 +234,41 @@ class Plugin(BasePlugin):
         self.window.tools.get("interpreter").append_output(cleaned_data)
         if self.window.tools.get("interpreter").opened:
             self.window.update_status("")
+
+    @Slot(object, str)
+    def handle_interpreter_output(self, data, type):
+        """
+        Handle interpreter output
+
+        :param data: output data
+        :param type: output type
+        """
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").append_output(data, type)
+
+    @Slot()
+    def handle_interpreter_clear(self):
+        """Handle interpreter clear"""
+        self.window.tools.get("interpreter").clear_all()
+
+    @Slot(object)
+    def handle_html_output(self, data):
+        """
+        Handle HTML/JS canvas output
+
+        :param data: HTML/JS code
+        """
+        self.window.tools.get("html_canvas").set_output(data)
+        self.window.tools.get("html_canvas").auto_open()
+        
+    def get_interpreter(self):
+        """
+        Get interpreter
+
+        :return: interpreter
+        """
+        if self.get_option_value("sandbox_ipython"):
+            return self.ipython_docker
+        else:
+            return self.ipython_local

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.12 01:00:00                  #
 # ================================================== #
 
 import os
@@ -42,6 +42,7 @@ class HtmlCanvas(BaseTool):
         self.auto_clear = True
         self.dialog = None
         self.is_edit = False
+        self.auto_opened = False
         self.file_output = ".canvas.html"
         self.signals = CanvasSignals()
 
@@ -173,6 +174,14 @@ class HtmlCanvas(BaseTool):
             self.load_output()
             self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
             self.update()
+
+    def auto_open(self):
+        """Auto open canvas dialog"""
+        if self.window.controller.ui.tabs.is_current_tool(self.id):
+            return # do not open if already opened in tab
+        if not self.auto_opened:
+            self.auto_opened = True
+            self.open()
 
     def open_file(self):
         """Open file dialog"""
