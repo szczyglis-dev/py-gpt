@@ -218,12 +218,12 @@ class CtxList:
             is_important = True
         if data.additional_ctx and len(data.additional_ctx) > 0:
             is_attachment = True
-        data = {
+        custom_data = {
             "label": label,
             "is_important": is_important,
             "is_attachment": is_attachment,
         }
-        item.setData(data, QtCore.Qt.ItemDataRole.UserRole)
+        item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
         item.setData(name)
         return item
 
