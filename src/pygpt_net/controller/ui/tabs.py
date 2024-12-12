@@ -32,6 +32,7 @@ class Tabs:
         self.column_idx = 0
         self.tmp_column_idx = 0
         self.locked = False
+        self.col = {}
 
     def setup(self):
         """Setup tabs"""
@@ -104,6 +105,15 @@ class Tabs:
         """Reload tab titles"""
         self.window.core.tabs.reload_titles()
 
+    def update_current(self):
+        """Update current tab"""
+        curr_tab = self.get_current_tab()
+        curr_column = self.get_current_column_idx()
+        if curr_column not in self.col:
+            self.col[curr_column] = -1
+        if curr_tab is not None:
+            self.col[curr_column] = curr_tab.pid
+
     def reload(self):
         """Reload tabs"""
         self.window.core.tabs.reload()
@@ -166,6 +176,7 @@ class Tabs:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
         self.window.controller.ui.update()
+        self.update_current()
 
     def get_current_idx(self, column_idx: int = 0) -> int:
         """
@@ -246,6 +257,7 @@ class Tabs:
         if current_ctx is not None and current_ctx != tab.data_id:
             self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
+        self.update_current()
 
     def on_tab_clicked(self, idx: int, column_idx: int = 0):
         """
@@ -257,6 +269,7 @@ class Tabs:
         self.current = idx
         self.column_idx = column_idx
         self.on_column_changed()
+        self.update_current()
 
     def on_column_focus(self, idx: int):
         """
@@ -266,6 +279,7 @@ class Tabs:
         """
         self.column_idx = idx
         self.on_column_changed()
+        self.update_current()
 
     def on_tab_dbl_clicked(self, idx: int, column_idx: int = 0):
         """
@@ -276,6 +290,7 @@ class Tabs:
         """
         self.column_idx = column_idx
         self.on_tab_changed(idx, column_idx)
+        self.update_current()
 
     def on_tab_closed(self, idx: int, column_idx: int = 0):
         """
@@ -285,6 +300,7 @@ class Tabs:
         :param column_idx: column index
         """
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
+        self.update_current()
 
     def on_tab_moved(self, idx: int, column_idx: int = 0):
         """
@@ -294,6 +310,7 @@ class Tabs:
         :param column_idx: column index
         """
         self.window.core.tabs.update()
+        self.update_current()
 
     def close(self, idx: int, column_idx: int = 0):
         """
@@ -303,6 +320,7 @@ class Tabs:
         :param column_idx: column index
         """
         self.on_tab_closed(idx, column_idx)
+        self.update_current()
 
     def close_all(
             self,
@@ -327,6 +345,7 @@ class Tabs:
             return
         column_idx = self.tmp_column_idx
         self.window.core.tabs.remove_all_by_type(type, column_idx)
+        self.update_current()
 
     def next_tab(self):
         """Switch to next tab"""
@@ -548,10 +567,36 @@ class Tabs:
         :param state: state
         """
         if state:
-            #self.rightWidget.show()
+            # self.rightWidget.show()
             self.window.ui.splitters['columns'].setSizes([1, 1])
         else:
-            #self.rightWidget.hide()
+            # self.rightWidget.hide()
             self.window.ui.splitters['columns'].setSizes([1, 0])
         self.window.core.config.set("layout.split", state)
         self.window.core.config.save()
+
+    def is_current_by_type(self, type: int) -> bool:
+        """
+        Check if current tab is of given type
+
+        :param type: tab type
+        :return: is current tab
+        """
+        for col in self.col:
+            pid = self.col[col]
+            tab = self.window.core.tabs.get_tab_by_pid(pid, col)
+            if tab is not None and tab.type == type:
+                return True
+
+    def is_current_tool(self, tool_id: str) -> bool:
+        """
+        Check if current tab is of given tool ID
+
+        :param tool_id: tool ID
+        :return: is current tab
+        """
+        for col in self.col:
+            pid = self.col[col]
+            tab = self.window.core.tabs.get_tab_by_pid(pid, col)
+            if tab is not None and tab.tool_id == tool_id:
+                return True
