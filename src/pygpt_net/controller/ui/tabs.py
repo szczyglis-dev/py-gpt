@@ -536,6 +536,11 @@ class Tabs:
         self.window.core.tabs.move_tab(tab, new_column_idx)
         self.locked = False
 
+        # switch to new tab and column
+        self.column_idx = new_column_idx
+        self.on_column_changed()
+        self.switch_tab_by_idx(tab.idx, new_column_idx)
+
     def toggle_split_screen(self, state):
         """
         Toggle split screen
