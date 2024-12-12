@@ -41,7 +41,6 @@ class Tabs:
             Tab.TAB_FILES: ":/icons/folder_filled.svg",
             Tab.TAB_TOOL_PAINTER: ":/icons/brush.svg",
             Tab.TAB_TOOL_CALENDAR: ":/icons/calendar.svg",
-            Tab.TAB_TOOL_CANVAS: ":/icons/code.svg",
             Tab.TAB_TOOL: ":/icons/build.svg",
         }
         self.titles = {
@@ -50,7 +49,6 @@ class Tabs:
             Tab.TAB_FILES: "output.tab.files",
             Tab.TAB_TOOL_PAINTER: "output.tab.painter",
             Tab.TAB_TOOL_CALENDAR: "output.tab.calendar",
-            Tab.TAB_TOOL_CANVAS: "CANVAS",
             Tab.TAB_TOOL: "output.tab.tool",
         }
 
