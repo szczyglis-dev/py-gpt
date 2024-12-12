@@ -483,7 +483,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Output data
         """
-        return self.get_widget_output().toPlainText()
+        return self.get_output()
 
     def get_current_history(self) -> str:
         """
@@ -491,7 +491,7 @@ class CodeInterpreter(BaseTool):
 
         :return: Edit code
         """
-        return self.get_widget_history().toPlainText()
+        return self.get_history()
 
     def is_all(self) -> bool:
         """
