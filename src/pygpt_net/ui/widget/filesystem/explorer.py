@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -17,7 +17,7 @@ from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
     QPushButton, QSizePolicy
 
-from pygpt_net.core.tabs import Tab
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans

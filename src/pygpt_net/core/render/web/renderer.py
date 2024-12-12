@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 import json
@@ -19,7 +19,7 @@ from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
-from pygpt_net.core.tabs import Tab
+from pygpt_net.core.tabs.tab import Tab
 
 from .body import Body
 from .helpers import Helpers

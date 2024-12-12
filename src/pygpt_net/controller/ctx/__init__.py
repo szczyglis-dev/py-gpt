@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QModelIndex
@@ -19,7 +19,7 @@ from .summarizer import Summarizer
 from .extra import Extra
 
 from pygpt_net.utils import trans
-from pygpt_net.core.tabs import Tab
+from pygpt_net.core.tabs.tab import Tab
 
 
 class Ctx:

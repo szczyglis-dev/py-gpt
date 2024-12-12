@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -16,7 +16,7 @@ from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
-from pygpt_net.core.tabs import Tab
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_html2text, output_clean_html
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
