@@ -77,7 +77,7 @@ class Footer:
         rows.setContentsMargins(2, 0, 0, 0)
 
         self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
-                                                          icon=":/icons/window.svg")
+                                                          icon=":/icons/split_screen.svg")
         self.window.ui.nodes['layout.split'].box.stateChanged.connect(
             lambda: self.window.controller.ui.tabs.toggle_split_screen(self.window.ui.nodes['layout.split'].box.isChecked())
         )
