@@ -93,13 +93,13 @@ class Tabs:
         """
         self.appended = True  # lock reload in previous tab
         self.column_idx = column_idx  # switch to column
-        self.window.core.tabs.append(
+        tab = self.window.core.tabs.append(
             type=type,
             idx=idx,
             column_idx=column_idx,
             tool_id=tool_id
         )
-        self.switch_tab_by_idx(idx + 1, column_idx)  # switch to new tab
+        self.switch_tab_by_idx(tab.idx, column_idx)  # switch to new tab
 
     def reload_titles(self):
         """Reload tab titles"""
