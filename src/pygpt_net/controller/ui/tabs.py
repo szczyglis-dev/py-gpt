@@ -562,9 +562,9 @@ class Tabs:
 
     def toggle_split_screen(self, state):
         """
-        Toggle split screen
+        Toggle split screen mode
 
-        :param state: state
+        :param state: True if split screen is enabled
         """
         if state:
             # self.rightWidget.show()
@@ -572,31 +572,49 @@ class Tabs:
         else:
             # self.rightWidget.hide()
             self.window.ui.splitters['columns'].setSizes([1, 0])
+            # set to first column
+            self.column_idx = 0
+            self.on_column_changed()
         self.window.core.config.set("layout.split", state)
         self.window.core.config.save()
 
     def is_current_by_type(self, type: int) -> bool:
         """
-        Check if current tab is of given type
+        Check if one of current tabs is of given type
 
         :param type: tab type
-        :return: is current tab
+        :return: True if one of tab is of given type
         """
         for col in self.col:
             pid = self.col[col]
-            tab = self.window.core.tabs.get_tab_by_pid(pid, col)
+            tab = self.window.core.tabs.get_tab_by_pid(pid)
             if tab is not None and tab.type == type:
                 return True
 
     def is_current_tool(self, tool_id: str) -> bool:
         """
-        Check if current tab is of given tool ID
+        Check if one of current tabs is of given tool ID
 
         :param tool_id: tool ID
-        :return: is current tab
+        :return: True if one of tab is of given tool ID
         """
         for col in self.col:
             pid = self.col[col]
-            tab = self.window.core.tabs.get_tab_by_pid(pid, col)
+            tab = self.window.core.tabs.get_tab_by_pid(pid)
             if tab is not None and tab.tool_id == tool_id:
                 return True
+
+    def switch_to_first_chat(self):
+        """Switch to first chat tab"""
+        if self.is_current_by_type(Tab.TAB_CHAT):
+            return
+        # abort if active tab is chat
+        if self.get_current_type() == Tab.TAB_CHAT:
+            return
+        # find first chat tab
+        for col in self.col:
+            pid = self.col[col]
+            tab = self.window.core.tabs.get_tab_by_pid(pid)
+            if tab is not None and tab.type == Tab.TAB_CHAT:
+                self.switch_tab_by_idx(tab.idx, col)
+                return
