@@ -751,6 +751,7 @@ class Tabs:
 
     def reload_titles(self):
         """Reload default tab titles"""
+        processed = []
         for column_idx in range(0, self.NUM_COLS):
             tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
             counters = {
@@ -762,10 +763,10 @@ class Tabs:
             }
             for pid in self.pids:
                 tab = self.pids[pid]
-                if tab.column_idx != column_idx:
+                if tab.pid in processed:
                     continue
-                if tab.custom_name:
-                    continue  # leave custom names
+                if tab.custom_name or tab.type == Tab.TAB_TOOL:
+                    continue  # leave custom names and tools
                 tab.title = trans(self.titles[tab.type])
                 num_tabs = self.count_by_type(tab.type)
                 if num_tabs > 1:
@@ -776,6 +777,7 @@ class Tabs:
                     counters[tab.type] += 1
                 tabs.setTabText(tab.idx, tab.title)
                 tabs.setTabToolTip(tab.idx, tab.title)
+                processed.append(tab.pid)
 
     def from_widget(self, widget: QWidget) -> TabBody:
         """
