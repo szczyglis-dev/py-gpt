@@ -548,16 +548,16 @@ class Tabs:
             return
         if tab.column_idx == column_idx:
             return
-        tab.column_idx = column_idx
+
         old_column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
         old_tabs = old_column.get_tabs()
         old_tabs.removeTab(tab.idx)
         new_column = self.window.ui.layout.get_column_by_idx(column_idx)
         new_tabs = new_column.get_tabs()
-        tab.idx = new_tabs.addTab(tab.child, tab.title)
+        tab.idx = new_tabs.addTab(tab.child, QIcon(tab.icon), tab.title)
         tab.parent = new_column
+        tab.column_idx = column_idx
         self.update()
-        self.window.core.tabs.reload_titles()
 
     def get_first_by_type(self, type: int) -> Tab or None:
         """
@@ -749,6 +749,7 @@ class Tabs:
 
     def reload_titles(self):
         """Reload default tab titles"""
+        return
         processed = []
         for column_idx in range(0, self.NUM_COLS):
             tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
@@ -775,7 +776,7 @@ class Tabs:
                     counters[tab.type] += 1
                 tabs.setTabText(tab.idx, tab.title)
                 tabs.setTabToolTip(tab.idx, tab.title)
-                processed.append(tab.pid)
+                processed.append(pid)
 
     def from_widget(self, widget: QWidget) -> TabBody:
         """

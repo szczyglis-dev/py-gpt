@@ -299,6 +299,8 @@ class Tabs:
         :param idx: tab index
         :param column_idx: column index
         """
+        if self.locked:
+            return
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
         self.update_current()
 
@@ -309,6 +311,8 @@ class Tabs:
         :param idx: tab index
         :param column_idx: column index
         """
+        if self.locked:
+            return
         self.window.core.tabs.update()
         self.update_current()
 
@@ -554,10 +558,10 @@ class Tabs:
         tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
         self.window.core.tabs.move_tab(tab, new_column_idx)
         self.locked = False
-
-        # switch to new tab and column
+        # switch to new column
         self.column_idx = new_column_idx
         self.on_column_changed()
+        # switch to new tab
         self.switch_tab_by_idx(tab.idx, new_column_idx)
 
     def toggle_split_screen(self, state):

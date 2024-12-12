@@ -21,7 +21,6 @@ class Tab:
     TAB_FILES = 2
     TAB_TOOL_PAINTER = 3
     TAB_TOOL_CALENDAR = 4
-    TAB_TOOL_CANVAS = 5
     TAB_TOOL = 100
 
     def __init__(self):
