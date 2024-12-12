@@ -996,7 +996,7 @@ User agent to use when making requests. *Default:* `Mozilla/5.0`.
 
 - ``Max result length`` *max_result_length*
 
-Max length of summarized result (characters). *Default:* `10000`
+Max length of the summarized or raw result (characters). *Default:* `50000`
 
 - ``Max summary tokens`` *summary_max_tokens*
 

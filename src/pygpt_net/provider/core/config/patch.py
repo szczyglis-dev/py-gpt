@@ -1760,7 +1760,7 @@ class Patch:
                 print("Migrating config from < 2.4.40...")
                 if 'cmd_web' in data['plugins'] \
                         and 'max_result_length' in data['plugins']['cmd_web']:
-                    # remove/reset to 10000
+                    # remove/reset
                     del data['plugins']['cmd_web']['max_result_length']
                 updated = True
 

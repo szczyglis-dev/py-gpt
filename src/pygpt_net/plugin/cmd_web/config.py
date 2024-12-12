@@ -62,7 +62,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "raw",
             type="bool",
-            value=False,
+            value=True,
             label="Use raw content (without summarization)",
             description="Return raw content from web search instead of summarized content",
             tooltip="Use raw content for search",
@@ -94,7 +94,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "max_result_length",
             type="int",
-            value=1500,
+            value=50000,
             label="Max result length",
             description="Max length of summarized result (characters)",
             min=0,
