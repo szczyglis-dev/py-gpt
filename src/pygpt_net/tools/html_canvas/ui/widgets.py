@@ -20,10 +20,10 @@ import pygpt_net.icons_rc
 from pygpt_net.utils import trans
 
 
-class CanvasWidget:
+class ToolWidget:
     def __init__(self, window=None, tool=None):
         """
-        HTML/JS canvas dialog
+        HTML/JS canvas widget
 
         :param window: Window instance
         :param tool: Tool instance
@@ -130,6 +130,6 @@ class CanvasEdit(BaseCodeEditor):
         self.setStyleSheet(self.default_stylesheet)
 
 
-class CanvasSignals(QObject):
+class ToolSignals(QObject):
     update = Signal(str)  # data
     reload = Signal(str)  # path

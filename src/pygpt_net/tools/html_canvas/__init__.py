@@ -20,8 +20,8 @@ from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.utils import trans
 
-from .ui.dialogs import Canvas
-from .ui.widgets import CanvasWidget, CanvasSignals
+from .ui.dialogs import Tool
+from .ui.widgets import ToolWidget, ToolSignals
 
 
 class HtmlCanvas(BaseTool):
@@ -44,7 +44,7 @@ class HtmlCanvas(BaseTool):
         self.is_edit = False
         self.auto_opened = False
         self.file_output = ".canvas.html"
-        self.signals = CanvasSignals()
+        self.signals = ToolSignals()
 
     def setup(self):
         """Setup"""
@@ -59,8 +59,12 @@ class HtmlCanvas(BaseTool):
         """Update menu"""
         self.update_menu()
 
-    def toggle_edit(self, widget: CanvasWidget):
-        """Toggle edit mode"""
+    def toggle_edit(self, widget: ToolWidget):
+        """
+        Toggle edit mode
+
+        :param widget: Canvas widget
+        """
         current = self.is_edit
         self.is_edit = not self.is_edit
         widget.edit.setVisible(self.is_edit)
@@ -286,7 +290,7 @@ class HtmlCanvas(BaseTool):
         :param tab: Parent Tab instance
         :return: Tab widget instance
         """
-        canvas = Canvas(window=self.window, tool=self)
+        canvas = Tool(window=self.window, tool=self)
         layout = canvas.widget.setup()
         widget = QWidget()
         widget.setLayout(layout)
@@ -295,7 +299,7 @@ class HtmlCanvas(BaseTool):
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
-        self.dialog = Canvas(window=self.window, tool=self)
+        self.dialog = Tool(window=self.window, tool=self)
         self.dialog.setup()
 
     def setup_theme(self):

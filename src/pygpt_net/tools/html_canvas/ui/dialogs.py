@@ -13,14 +13,14 @@ import re
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenuBar
+from PySide6.QtWidgets import QMenuBar, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
-from .widgets import CanvasWidget
+from .widgets import ToolWidget
 
-class Canvas:
+class Tool:
     def __init__(self, window=None, tool=None):
         """
         HTML/JS canvas dialog
@@ -30,7 +30,7 @@ class Canvas:
         """
         self.window = window
         self.tool = tool  # tool instance
-        self.widget = CanvasWidget(window, tool)
+        self.widget = ToolWidget(window, tool)
         self.layout = None
         self.menu_bar = None
         self.menu = {}
@@ -77,21 +77,21 @@ class Canvas:
         self.layout.setMenuBar(self.setup_menu())  # add menu bar
 
         id = self.tool.get_dialog_id()
-        dialog = CanvasDialog(window=self.window, tool=self.tool)
+        dialog = ToolDialog(window=self.window, tool=self.tool)
         dialog.setLayout(self.layout)
         dialog.setWindowTitle(trans("dialog.html_canvas.title"))
         dialog.resize(800, 500)
         self.window.ui.dialog[id] = dialog
 
-    def get_widget(self):
+    def get_widget(self) -> ToolWidget:
         """
         Get widget
 
-        :return: QWidget
+        :return: ToolWidget
         """
         return self.widget
 
-    def get_tab(self):
+    def get_tab(self) -> QVBoxLayout:
         """
         Get layout
 
@@ -100,7 +100,7 @@ class Canvas:
         return self.layout
 
 
-class CanvasDialog(BaseDialog):
+class ToolDialog(BaseDialog):
     def __init__(self, window=None, id="html_canvas", tool=None):
         """
         HTML canvas dialog
@@ -108,7 +108,7 @@ class CanvasDialog(BaseDialog):
         :param window: main window
         :param id: logger id
         """
-        super(CanvasDialog, self).__init__(window, id)
+        super(ToolDialog, self).__init__(window, id)
         self.window = window
         self.tool = tool
 
@@ -119,7 +119,7 @@ class CanvasDialog(BaseDialog):
         :param event: close event
         """
         self.cleanup()
-        super(CanvasDialog, self).closeEvent(event)
+        super(ToolDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """
@@ -131,12 +131,10 @@ class CanvasDialog(BaseDialog):
             self.cleanup()
             self.close()  # close dialog when the Esc key is pressed.
         else:
-            super(CanvasDialog, self).keyPressEvent(event)
+            super(ToolDialog, self).keyPressEvent(event)
 
     def cleanup(self):
-        """
-        Cleanup on close
-        """
+        """Cleanup on close"""
         if self.window is None or self.tool is None:
             return
         self.tool.opened = False

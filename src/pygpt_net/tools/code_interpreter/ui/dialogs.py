@@ -78,13 +78,13 @@ class Tool:
         self.layout = self.widget.setup(all=True)
         self.layout.setMenuBar(self.setup_menu())  # add menu bar
 
-        self.window.ui.dialog['interpreter'] = InterpreterDialog(self.window)
+        self.window.ui.dialog['interpreter'] = ToolDialog(self.window)
         self.window.ui.dialog['interpreter'].setLayout(self.layout)
         self.window.ui.dialog['interpreter'].setWindowTitle(trans("dialog.interpreter.title"))
         self.window.ui.dialog['interpreter'].resize(800, 500)
 
 
-class InterpreterDialog(BaseDialog):
+class ToolDialog(BaseDialog):
     def __init__(self, window=None, id="interpreter"):
         """
         Interpreter dialog
@@ -92,7 +92,7 @@ class InterpreterDialog(BaseDialog):
         :param window: main window
         :param id: logger id
         """
-        super(InterpreterDialog, self).__init__(window, id)
+        super(ToolDialog, self).__init__(window, id)
         self.window = window
 
     def closeEvent(self, event):
@@ -102,7 +102,7 @@ class InterpreterDialog(BaseDialog):
         :param event: close event
         """
         self.cleanup()
-        super(InterpreterDialog, self).closeEvent(event)
+        super(ToolDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """
@@ -114,7 +114,7 @@ class InterpreterDialog(BaseDialog):
             self.cleanup()
             self.close()  # close dialog when the Esc key is pressed.
         else:
-            super(InterpreterDialog, self).keyPressEvent(event)
+            super(ToolDialog, self).keyPressEvent(event)
 
     def cleanup(self):
         """
