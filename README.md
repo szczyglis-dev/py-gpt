@@ -1998,7 +1998,7 @@ User agent to use when making requests. *Default:* `Mozilla/5.0`.
 
 - `Max result length` *max_result_length*
 
-Max length of summarized result (characters). *Default:* `10000`
+Max length of the summarized or raw result (characters). *Default:* `50000`
 
 - `Max summary tokens` *summary_max_tokens*
 
@@ -3882,7 +3882,10 @@ may consume additional tokens that are not displayed in the main window.
 - Enhanced Split Screen mode, now promoted from beta to stable.
 - Python Code Interpreter tool added to the Tabs.
 - HTML/JS Canvas tool added to the Tabs.
-- Added attachment indicators to the context list.
+- Added attachment icon to the context list if context has attachments.
+- Added a thumbnail image to web search results.
+- Added the option "Use raw content (without summarization)" to the web search plugin, which provides a more detailed result to the main model.
+- Extended the default maximum result characters to 50,000 in the web search plugin.
 
 **2.4.39 (2024-12-09)**
 

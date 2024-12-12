@@ -3,7 +3,10 @@
 - Enhanced Split Screen mode, now promoted from beta to stable.
 - Python Code Interpreter tool added to the Tabs.
 - HTML/JS Canvas tool added to the Tabs.
-- Added attachment indicators to the context list.
+- Added attachment icon to the context list if context has attachments.
+- Added a thumbnail image to web search results.
+- Added the option "Use raw content (without summarization)" to the web search plugin, which provides a more detailed result to the main model.
+- Extended the default maximum result characters to 50,000 in the web search plugin.
 
 2.4.39 (2024-12-09)
 
