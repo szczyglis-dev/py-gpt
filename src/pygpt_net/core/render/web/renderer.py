@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.12 20:00:00                  #
 # ================================================== #
 
 import json
@@ -407,8 +407,8 @@ class Renderer(BaseRenderer):
                 if image is None:
                     continue
                 # don't append if it is an external url
-                if image.startswith("http"):
-                    continue
+                # if image.startswith("http"):
+                    # continue
                 if image in appended or image in self.pids[pid].images_appended:
                     continue
                 try:

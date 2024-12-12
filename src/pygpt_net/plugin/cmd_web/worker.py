@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.12.12 20:00:00                  #
 # ================================================== #
 
 import json
@@ -91,7 +91,7 @@ class Worker(BaseWorker):
             prompt = self.get_param(item, "summarize_prompt")
 
         query = self.get_param(item, "query", "")
-        content, total_found, current, url = self.websearch.make_query(
+        content, total_found, current, url, img = self.websearch.make_query(
             query,
             page,
             prompt,
@@ -106,6 +106,9 @@ class Worker(BaseWorker):
         }
         if url:
             self.ctx.urls.append(url)
+        if img:
+            result["thumb_img"] = img
+            self.ctx.images_before.append(img)
 
         return self.make_response(item, result)
 
@@ -122,7 +125,7 @@ class Worker(BaseWorker):
         url = self.get_param(item, "url", "")
 
         self.msg = "Opening Web URL: '{}'".format(url)
-        content, url = self.websearch.open_url(
+        content, url, img = self.websearch.open_url(
             url,
             prompt,
         )
@@ -133,6 +136,9 @@ class Worker(BaseWorker):
         context = "From: " + url + ":\n--------------------------------\n" + content
         if url:
             self.ctx.urls.append(url)
+        if img:
+            result["thumb_img"] = img
+            self.ctx.images_before.append(img)
 
         extra = {
             "context": context,
@@ -148,7 +154,7 @@ class Worker(BaseWorker):
         """
         url = self.get_param(item, "url", "")
         self.msg = "Opening Web URL: '{}'".format(url)
-        content, url = self.websearch.open_url_raw(
+        content, url, img  = self.websearch.open_url_raw(
             url,
         )
         result = {
@@ -158,6 +164,9 @@ class Worker(BaseWorker):
         context = "From: " + url + ":\n--------------------------------\n" + content
         if url:
             self.ctx.urls.append(url)
+        if img:
+            result["thumb_img"] = img
+            self.ctx.images_before.append(img)
 
         extra = {
             "context": context,
