@@ -982,6 +982,10 @@ Per-page content chunk size (max characters per chunk). *Default:* `20000`
 
 Disables SSL verification when crawling web pages. *Default:* `False`
 
+- ``Use raw content (without summarization)`` *raw*
+
+Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
+
 - ``Timeout`` *timeout*
 
 Connection timeout (seconds). *Default:* `5`
@@ -992,7 +996,7 @@ User agent to use when making requests. *Default:* `Mozilla/5.0`.
 
 - ``Max result length`` *max_result_length*
 
-Max length of summarized result (characters). *Default:* `1500`
+Max length of summarized result (characters). *Default:* `10000`
 
 - ``Max summary tokens`` *summary_max_tokens*
 

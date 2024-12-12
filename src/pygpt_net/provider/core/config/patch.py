@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.12 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -1753,6 +1753,15 @@ class Patch:
                 print("Migrating config from < 2.4.39...")
                 if 'layout.split' not in data:
                     data["layout.split"] = False
+                updated = True
+
+            # < 2.4.40
+            if old < parse_version("2.4.40"):
+                print("Migrating config from < 2.4.40...")
+                if 'cmd_web' in data['plugins'] \
+                        and 'max_result_length' in data['plugins']['cmd_web']:
+                    # remove/reset to 10000
+                    del data['plugins']['cmd_web']['max_result_length']
                 updated = True
 
         # update file

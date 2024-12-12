@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.12 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -329,7 +329,12 @@ class BasePlugin(QObject):
         }))
 
     @Slot(object, object, dict)
-    def handle_finished(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
+    def handle_finished(
+            self,
+            response: dict,
+            ctx: CtxItem = None,
+            extra_data: dict = None
+    ):
         """
         Handle finished response signal
 
@@ -354,7 +359,12 @@ class BasePlugin(QObject):
             self.window.dispatch(event)
 
     @Slot(object, object, dict)
-    def handle_finished_more(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):
+    def handle_finished_more(
+            self,
+            responses: list,
+            ctx: CtxItem = None,
+            extra_data: dict = None
+    ):
         """
         Handle finished response signal
 
@@ -379,7 +389,11 @@ class BasePlugin(QObject):
         })
         self.window.dispatch(event)
 
-    def prepare_reply_ctx(self, response: dict, ctx: CtxItem = None) -> dict:
+    def prepare_reply_ctx(
+            self,
+            response: dict,
+            ctx: CtxItem = None
+    ) -> dict:
         """
         Prepare reply context
 
