@@ -1,3 +1,10 @@
+2.4.40 (2024-12-12)
+
+- Enhanced Split Screen mode, now promoted from beta to stable.
+- Python Code Interpreter tool added to the Tabs.
+- HTML/JS Canvas tool added to the Tabs.
+- Added attachment indicators to the context list.
+
 2.4.39 (2024-12-09)
 
 - Added "Split Screen" mode (accessible via the switch in the bottom-right corner of the screen), which allows you to work in two windows simultaneously. It is currently experimental (beta). Future updates will include Code Interpreter and Canvas running in tabs.

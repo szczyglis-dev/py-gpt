@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.39** | build: **2024.12.09** | Python: **>=3.10, <3.12**
+Release: **2.4.40** | build: **2024.12.12** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3872,6 +3872,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.40 (2024-12-12)**
+
+- Enhanced Split Screen mode, now promoted from beta to stable.
+- Python Code Interpreter tool added to the Tabs.
+- HTML/JS Canvas tool added to the Tabs.
+- Added attachment indicators to the context list.
 
 **2.4.39 (2024-12-09)**
 
