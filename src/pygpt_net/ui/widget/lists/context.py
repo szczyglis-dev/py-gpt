@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 17:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -402,11 +402,32 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         super(ImportantItemDelegate, self).paint(painter, option, index)
 
         # pin (>= 10)
-        if index.data(QtCore.Qt.ItemDataRole.UserRole) and index.data(QtCore.Qt.ItemDataRole.UserRole) > 0:
-            label = index.data(QtCore.Qt.ItemDataRole.UserRole)
+        if index.data(QtCore.Qt.ItemDataRole.UserRole):
+            data = index.data(QtCore.Qt.ItemDataRole.UserRole)
+            label = 0
+            is_important = False
+            is_attachment = False
+            if "label" in data:
+                label = data["label"]
+            if "is_important" in data and data["is_important"]:
+                is_important = True
+            if "is_attachment" in data and data["is_attachment"]:
+                is_attachment = True
+
             painter.save()
 
-            if label >= 10:
+            if is_attachment:
+                icon = QtGui.QIcon(":/icons/attachment.svg")
+                icon_size = option.decorationSize or QtCore.QSize(16, 16)
+                icon_rect = QtCore.QRect(
+                    option.rect.right() - icon_size.width(),
+                    option.rect.top() + (option.rect.height() - icon_size.height()) / 2,
+                    icon_size.width(),
+                    icon_size.height()
+                )
+                icon.paint(painter, icon_rect, QtCore.Qt.AlignCenter)
+
+            if is_important:
                 color = self.get_color_for_status(3)
                 square_size = 3
                 square_margin = 0
@@ -426,7 +447,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                 )
                 painter.drawRect(square_rect)
 
-                label = label - 10  # remove pin status
+                #label = label - 10  # remove pin status
 
             # label (0-9)
             if label > 0:

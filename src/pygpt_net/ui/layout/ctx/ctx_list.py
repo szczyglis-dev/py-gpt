@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -211,10 +211,19 @@ class CtxList:
         item.dt = dt
         item.isPinned = data.important
         item.setData(tooltip_text, QtCore.Qt.ToolTipRole)
+        is_important = False
+        is_attachment = False
+        label = data.label
         if data.important:
-            item.setData(data.label + 10, QtCore.Qt.ItemDataRole.UserRole)
-        else:
-            item.setData(data.label, QtCore.Qt.ItemDataRole.UserRole)
+            is_important = True
+        if data.additional_ctx and len(data.additional_ctx) > 0:
+            is_attachment = True
+        data = {
+            "label": label,
+            "is_important": is_important,
+            "is_attachment": is_attachment,
+        }
+        item.setData(data, QtCore.Qt.ItemDataRole.UserRole)
         item.setData(name)
         return item
 

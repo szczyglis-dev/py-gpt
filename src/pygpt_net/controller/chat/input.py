@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.12 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.bridge import BridgeContext
@@ -52,6 +52,7 @@ class Input:
         """
         self.window.controller.agent.experts.unlock()  # unlock experts
         self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
+        self.window.controller.ui.tabs.switch_to_first_chat()  # switch to first active chat tab
 
         # get text from input
         text = self.window.ui.nodes['input'].toPlainText().strip()
