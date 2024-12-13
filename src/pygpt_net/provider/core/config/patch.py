@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -1760,8 +1760,16 @@ class Patch:
                 print("Migrating config from < 2.4.40...")
                 if 'cmd_web' in data['plugins'] \
                         and 'max_result_length' in data['plugins']['cmd_web']:
-                    # remove/reset
                     del data['plugins']['cmd_web']['max_result_length']
+                if 'cmd_web' in data['plugins'] \
+                        and 'cmd.web_search' in data['plugins']['cmd_web']:
+                    del data['plugins']['cmd_web']['cmd.web_search']
+                if 'cmd_web' in data['plugins'] \
+                        and 'cmd.web_url_open' in data['plugins']['cmd_web']:
+                    del data['plugins']['cmd_web']['cmd.web_url_open']
+                if 'cmd_web' in data['plugins'] \
+                        and 'cmd.web_url_raw' in data['plugins']['cmd_web']:
+                    del data['plugins']['cmd_web']['cmd.web_url_raw']
                 updated = True
 
         # update file

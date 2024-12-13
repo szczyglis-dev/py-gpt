@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -1385,7 +1385,8 @@ class Ctx:
         prev_ctx.output_name = copy.deepcopy(ctx.output_name)
 
         ctx.clear_reply()  # clear current reply result
-        ctx.from_previous()  # get result from previous if exists
+        if len(ctx.cmds) == 0:
+            ctx.from_previous()  # get result from previous if exists
         return prev_ctx
 
     def dump(self, ctx: CtxItem) -> str:

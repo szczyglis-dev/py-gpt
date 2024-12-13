@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import ssl
@@ -271,6 +271,7 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
+        max_urls = self.get_option_value("max_open_urls")
         is_summary = True
         if self.get_option_value("raw"):
             is_summary = False
@@ -279,18 +280,18 @@ class Plugin(BasePlugin):
             if not self.has_cmd(option):
                 continue
 
-            # special case for web_index
             if option == "web_index":
                 data['cmd'].append(self.prepare_idx_syntax())  # prepare params
                 continue
             elif option == "web_index_query":
                 data['cmd'].append(self.prepare_idx_query_syntax())  # prepare params
                 continue
-            elif option == "web_search":
-                max_pages = self.get_option_value("num_pages")
+            elif option == "web_url_open":
                 cmd = self.get_cmd(option)
                 try:
-                    cmd["instruction"] = cmd["instruction"].format(max_pages=max_pages)
+                    cmd["instruction"] = cmd["instruction"].format(
+                        max_urls=max_urls,
+                    )
                     if not is_summary:
                         for param in list(cmd["params"]):
                             if param["name"] == "summarize_prompt":
@@ -299,16 +300,36 @@ class Plugin(BasePlugin):
                     continue
                 except Exception as e:
                     pass
-
-            # remove summarize_prompt if summary is disabled
-            if not is_summary:
-                if option in ["web_url_raw", "web_url_open"]:
-                    cmd = self.get_cmd(option)
-                    for param in list(cmd["params"]):
-                        if param["name"] == "summarize_prompt":
-                            cmd["params"].remove(param)
+            elif option == "web_url_raw":
+                cmd = self.get_cmd(option)
+                try:
+                    cmd["instruction"] = cmd["instruction"].format(
+                        max_urls=max_urls,
+                    )
+                    if not is_summary:
+                        for param in list(cmd["params"]):
+                            if param["name"] == "summarize_prompt":
+                                cmd["params"].remove(param)
                     data['cmd'].append(cmd)
                     continue
+                except Exception as e:
+                    pass
+            elif option == "web_search":
+                max_pages = self.get_option_value("num_pages")
+                cmd = self.get_cmd(option)
+                try:
+                    cmd["instruction"] = cmd["instruction"].format(
+                        max_pages=max_pages,
+                        max_urls=max_urls,
+                    )
+                    if not is_summary:
+                        for param in list(cmd["params"]):
+                            if param["name"] == "summarize_prompt":
+                                cmd["params"].remove(param)
+                    data['cmd'].append(cmd)
+                    continue
+                except Exception as e:
+                    pass
 
             data['cmd'].append(self.get_cmd(option))  # append command
 
@@ -410,8 +431,6 @@ class Plugin(BasePlugin):
                     req,
                     timeout=self.get_option_value('timeout'),
                 ).read()
-        except HTTPError as e:
-            data = str(e)
         except Exception as e:
-            raise e
+            data = str(e)
         return data

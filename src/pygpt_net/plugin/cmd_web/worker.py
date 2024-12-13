@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import json
 
 from PySide6.QtCore import Slot
+
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -40,7 +41,7 @@ class Worker(BaseWorker):
             response = None
             try:
                 if item["cmd"] == "web_search":
-                    response = self.cmd_web_search(item)
+                    response = self.cmd_web_urls(item)  # return URLs
 
                 elif item["cmd"] == "web_url_open":
                     response = self.cmd_web_url_open(item)
@@ -116,6 +117,7 @@ class Worker(BaseWorker):
             result["thumb_img"] = img
             self.ctx.images_before.append(img)
 
+        self.ctx.save_reply = True  # leave links in context
         return self.make_response(item, result)
 
     def cmd_web_url_open(self, item: dict) -> dict:
@@ -139,7 +141,7 @@ class Worker(BaseWorker):
             'url': url,
             'content': content,
         }
-        context = "From: " + url + ":\n--------------------------------\n" + content
+        context = "From: " + url + ":\n--------------------------------\n" + str(content)
         if url:
             self.ctx.urls_before.append(url)
         if img:
@@ -167,7 +169,7 @@ class Worker(BaseWorker):
             'url': url,
             'content': content,
         }
-        context = "From: " + url + ":\n--------------------------------\n" + content
+        context = "From: " + url + ":\n--------------------------------\n" + str(content)
         if url:
             self.ctx.urls_before.append(url)
         if img:

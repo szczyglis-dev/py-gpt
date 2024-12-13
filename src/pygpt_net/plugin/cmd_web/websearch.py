@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 00:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import re
 
-import requests
 from bs4 import BeautifulSoup
 
 from pygpt_net.core.events import KernelEvent
@@ -259,7 +258,9 @@ class WebSearch:
 
             # if result then stop
             if result is not None and result != "":
-                img = self.plugin.window.core.web.get_main_image(url)
+                # get thumbnail image
+                if self.plugin.get_option_value("img_thumbnail"):
+                    img = self.plugin.window.core.web.get_main_image(url)
                 self.log("Summary generated (chars: {})".format(len(result)))
                 # index webpage if auto-index is enabled
                 self.index_url(url)
@@ -297,7 +298,6 @@ class WebSearch:
         :return: result, url, thumb image
         """
         self.log("Using URL: " + url)
-
         # get options
         is_summary = True
         if self.plugin.get_option_value("raw"):
@@ -335,7 +335,9 @@ class WebSearch:
             # no summary
             result = str(content)
 
-        img = self.plugin.window.core.web.get_main_image(url)
+        # get thumbnail image
+        if self.plugin.get_option_value("img_thumbnail"):
+            img = self.plugin.window.core.web.get_main_image(url)
 
         if result is not None and result != "":
             self.log("Summary generated (chars: {})".format(len(result)))
@@ -374,7 +376,8 @@ class WebSearch:
         img = None
         # index webpage if auto-index is enabled
         if result:
-            img = self.plugin.window.core.web.get_main_image(url)
+            if self.plugin.get_option_value("img_thumbnail"):
+                img = self.plugin.window.core.web.get_main_image(url)
             self.index_url(url)
 
         # strip if too long

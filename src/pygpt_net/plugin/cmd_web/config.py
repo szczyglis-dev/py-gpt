@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -38,6 +38,15 @@ class Config(BaseConfig):
             value=10,
             label="Number of pages to search",
             description="Number of max pages to search per query",
+            min=1,
+            max=None,
+        )
+        plugin.add_option(
+            "max_open_urls",
+            type="int",
+            value=1,
+            label="Number of max URLs to open at once",
+            description="Number of max URLs to open at once",
             min=1,
             max=None,
         )
@@ -76,6 +85,14 @@ class Config(BaseConfig):
             tooltip="Disable SSL verify",
         )
         plugin.add_option(
+            "img_thumbnail",
+            type="bool",
+            value=True,
+            label="Show thumbnail images",
+            description="Enable fetching thumbnails from opened websites",
+            tooltip="Enable fetching thumbnails from opened websites",
+        )
+        plugin.add_option(
             "timeout",
             type="int",
             value=5,
@@ -112,10 +129,10 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_tmp_query",
             type="combo",
-            value="gpt-3.5-turbo",
+            value="gpt-4o-mini",
             label="Model for query in-memory index",
             description="Model used for query in-memory index for `web_index_query` command, "
-                        "default: gpt-3.5-turbo",
+                        "default: gpt-4o-mini",
             tooltip="Query model",
             use="models",
             tab="indexing",
@@ -142,10 +159,11 @@ class Config(BaseConfig):
         )
         plugin.add_option(
             "summary_model",
-            type="text",
-            value="gpt-3.5-turbo-1106",
+            type="combo",
+            value="gpt-4o-mini",
             label="Model used for web page summarize",
             description="Model used for web page summarize, default: gpt-3.5-turbo-1106",
+            use="models",
             advanced=True,
         )
         plugin.add_option(
@@ -172,38 +190,8 @@ class Config(BaseConfig):
 
         # commands
         plugin.add_cmd(
-            "web_search",
-            instruction="search the Web for more info, prepare a query for the search engine itself, start from page 1. "
-                        "If no results, then try the next page. "
-                        "Use a custom summary prompt if necessary, otherwise, a default summary will be used. "
-                        "Max pages: {max_pages}",
-            params=[
-                {
-                    "name": "query",
-                    "type": "str",
-                    "description": "search query",
-                    "required": True,
-                },
-                {
-                    "name": "page",
-                    "type": "int",
-                    "description": "page number",
-                    "required": False,
-                },
-                {
-                    "name": "summarize_prompt",
-                    "type": "str",
-                    "description": "summary prompt",
-                    "required": False,
-                },
-            ],
-            enabled=True,
-            description="If enabled, model will be able to search the Web",
-        )
-        plugin.add_cmd(
             "web_url_open",
-            instruction="read and get summarized content from ANY website URL. Use a custom summary prompt if necessary, "
-                        "otherwise default summary will be used",
+            instruction="read and get text content from ANY website URL. Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
                     "name": "url",
@@ -211,19 +199,13 @@ class Config(BaseConfig):
                     "description": "URL to website",
                     "required": True,
                 },
-                {
-                    "name": "summarize_prompt",
-                    "type": "str",
-                    "description": "summary prompt",
-                    "required": False,
-                },
             ],
             enabled=True,
-            description="If enabled, model will be able to open URL and summarize content",
+            description="If enabled, model will be able to open URL and read text content from it",
         )
         plugin.add_cmd(
             "web_url_raw",
-            instruction="read and get raw HTML/txt content (not summarized) from ANY website URL",
+            instruction="read and get raw HTML body from ANY website URL. Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
                     "name": "url",
@@ -233,12 +215,14 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="If enabled, model will be able to open specified URL and get raw content",
+            description="If enabled, model will be able to open specified URL and get raw HTML body from it",
         )
         plugin.add_cmd(
-            "web_urls",
+            "web_search",
             instruction="search the Web for list of URLs, prepare search query itself, list of "
-                        "URLs will be returned, 10 links per page max.",
+                        "URLs will be returned, 10 links per page max. After receiving the list of URLs, "
+                        "choose the best matched URLs and use the `web_url_open` command to read the content. "
+                        "Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
                     "name": "query",
