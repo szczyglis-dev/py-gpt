@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -49,7 +51,11 @@ class Settings:
             self.config_initialized = True
         if not self.config_dialog:
             self.init()
-            self.window.ui.dialogs.open('plugin_settings', width=self.width, height=self.height)
+            self.window.ui.dialogs.open(
+                'plugin_settings',
+                width=self.width,
+                height=self.height
+            )
             self.config_dialog = True
 
     def open_plugin(self, id: str):
@@ -161,7 +167,7 @@ class Settings:
         self.init()
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 
-    def get_option(self, id: str, key: str) -> any:
+    def get_option(self, id: str, key: str) -> Any:
         """
         Get plugin option
 

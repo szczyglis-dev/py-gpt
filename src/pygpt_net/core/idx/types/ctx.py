@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
+
 
 class Ctx:
     def __init__(self, window=None, provider=None):
@@ -43,7 +46,12 @@ class Ctx:
             doc_id=doc_id,
         )
 
-    def exists(self, store_id: str, idx: str, meta_id: int) -> bool:
+    def exists(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> bool:
         """
         Check if ctx meta is indexed
 
@@ -58,7 +66,12 @@ class Ctx:
             meta_id=meta_id,
         )
 
-    def get_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
+    def get_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> str:
         """
         Get indexed document id by meta id
 
@@ -73,7 +86,11 @@ class Ctx:
             meta_id=meta_id,
         )
 
-    def update(self, meta_id: int, doc_id: str) -> bool:
+    def update(
+            self,
+            meta_id: int,
+            doc_id: str
+    ) -> bool:
         """
         Update timestamp of indexed ctx meta
 
@@ -86,7 +103,12 @@ class Ctx:
             doc_id=doc_id,
         )
 
-    def remove(self, store_id: str, idx: str, meta_id: str):
+    def remove(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: str
+    ):
         """
         Remove document from index db
 
@@ -100,7 +122,11 @@ class Ctx:
             meta_id=meta_id,
         )
 
-    def truncate(self, store_id: str = None, idx: str = None):
+    def truncate(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ):
         """
         Truncate ctx meta from index db
 

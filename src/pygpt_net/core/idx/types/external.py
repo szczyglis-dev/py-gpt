@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import time
+from typing import Optional
 
 
 class External:
@@ -54,7 +55,13 @@ class External:
             data=data,
         )
 
-    def get_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
+    def get_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> str:
         """
         Get indexed document id by content
 
@@ -71,7 +78,13 @@ class External:
             type=type,
         )
 
-    def exists(self, store_id: str, idx: str, content: str, type: str) -> bool:
+    def exists(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> bool:
         """
         Check if content is indexed
 
@@ -88,7 +101,13 @@ class External:
             type=type,
         )
 
-    def update(self, content: str, type: str, doc_id: str, ts: int) -> bool:
+    def update(
+            self,
+            content: str,
+            type: str,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update timestamp of indexed external content
 
@@ -105,7 +124,12 @@ class External:
             ts=ts,
         )
 
-    def remove(self, store_id: str, idx: str, doc_id: str):
+    def remove(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove document from index
 
@@ -119,7 +143,11 @@ class External:
             doc_id=doc_id,
         )
 
-    def truncate(self, store_id: str = None, idx: str = None):
+    def truncate(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ):
         """
         Truncate external data from index
 
@@ -131,7 +159,13 @@ class External:
             idx=idx,
         )
 
-    def set_indexed(self, content: str, type: str, idx: str, doc_id: str) -> bool:
+    def set_indexed(
+            self,
+            content: str,
+            type: str,
+            idx: str,
+            doc_id: str
+    ) -> bool:
         """
         Set external content as indexed
 

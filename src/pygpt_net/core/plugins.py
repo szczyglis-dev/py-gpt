@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import configparser
 import io
 import os
+from typing import Optional
 
 from pygpt_net.provider.core.plugin_preset.json_file import JsonFileProvider
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -64,7 +65,7 @@ class Plugins:
         """
         return list(self.plugins.keys())
 
-    def get(self, id: str) -> BasePlugin or None:
+    def get(self, id: str) -> Optional[BasePlugin]:
         """
         Get plugin by id
 
@@ -276,7 +277,7 @@ class Plugins:
             tooltip = trans('plugin.description', domain=domain)
         return tooltip
 
-    def dump_locale(self, plugin, path: str):
+    def dump_locale(self, plugin: BasePlugin, path: str):
         """
         Dump locale
 
@@ -430,7 +431,7 @@ class Plugins:
         if updated:
             self.save_presets()
 
-    def update_preset_values(self, plugin_id:str, key: str, value: any):
+    def update_preset_values(self, plugin_id: str, key: str, value: any):
         """
         Update preset value
 

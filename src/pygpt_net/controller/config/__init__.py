@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from .field.checkbox import Checkbox
 from .field.combo import Combo
@@ -36,7 +38,11 @@ class Config:
         self.slider = Slider(window)
         self.textarea = Textarea(window)
 
-    def load_options(self, parent_id: str, options: dict):
+    def load_options(
+            self,
+            parent_id: str,
+            options: dict
+    ):
         """
         Load options
 
@@ -47,7 +53,12 @@ class Config:
             option = options[key]
             self.apply(parent_id, key, option)
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply option to field handler based on type
 
@@ -73,7 +84,13 @@ class Config:
         elif option['type'] == 'cmd':
             self.cmd.apply(parent_id, key, option)
 
-    def apply_value(self, parent_id: str, key: str, option: dict, value):
+    def apply_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: Any
+    ):
         """
         Apply value to option
 
@@ -85,7 +102,13 @@ class Config:
         option['value'] = value
         self.apply(parent_id, key, option)
 
-    def get_value(self, parent_id: str, key: str, option: dict, idx: bool = False) -> any:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            idx: bool = False
+    ) -> Any:
         """
         Get value from field handler based on type
 
@@ -113,7 +136,11 @@ class Config:
         elif option['type'] == 'cmd':
             return self.cmd.get_value(parent_id, key, option)
 
-    def update_combo(self, parent_id: str, key: str, items: dict):
+    def update_combo(
+            self,
+            parent_id: str,
+            key: str, items: dict
+    ):
         """
         Update combo items
 

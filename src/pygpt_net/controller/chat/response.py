@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -29,7 +29,12 @@ class Response:
         super(Response, self).__init__()
         self.window = window
 
-    def handle(self, context: BridgeContext, extra: dict, status: bool):
+    def handle(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            status: bool
+    ):
         """
         Handle Bridge success
 
@@ -92,7 +97,11 @@ class Response:
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 
-    def begin(self, context: BridgeContext, extra: dict):
+    def begin(
+            self,
+            context: BridgeContext,
+            extra: dict
+    ):
         """
         Handle Bridge begin
 
@@ -104,7 +113,11 @@ class Response:
         if msg:
             self.window.update_status(msg)
 
-    def append(self, context: BridgeContext, extra: dict):
+    def append(
+            self,
+            context: BridgeContext,
+            extra: dict
+    ):
         """
         Handle Bridge append (agent mode)
 
@@ -204,7 +217,11 @@ class Response:
         if ctx.extra is not None and (type(ctx.extra) == dict and "agent_finish" in ctx.extra):
             self.window.controller.agent.llama.on_finish(ctx)  # evaluate response and continue if needed
 
-    def end(self, context: BridgeContext, extra: dict):
+    def end(
+            self,
+            context: BridgeContext,
+            extra: dict
+    ):
         """
         Handle Bridge end
 
@@ -223,7 +240,11 @@ class Response:
             "id": "chat",
         }))
 
-    def failed(self, context: BridgeContext, extra: dict):
+    def failed(
+            self,
+            context: BridgeContext,
+            extra: dict
+    ):
         """
         Handle Bridge failed
 
@@ -240,7 +261,11 @@ class Response:
             "id": "chat",
         }))
 
-    def update_status(self, context: BridgeContext, extra: dict):
+    def update_status(
+            self,
+            context: BridgeContext,
+            extra: dict
+    ):
         """
         Handle Bridge evaluate
 

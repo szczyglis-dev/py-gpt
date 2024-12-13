@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.13 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
+from typing import List
 
 from llama_index.core.schema import Document
 
@@ -24,7 +25,7 @@ class Metadata:
         """
         self.window = window
 
-    def append_file_metadata(self, docs: list[Document], path: str):
+    def append_file_metadata(self, docs: List[Document], path: str):
         """
         Append custom meta to documents (file)
 
@@ -81,7 +82,7 @@ class Metadata:
                             self.window.core.debug.log(e)
                 doc.metadata = meta
 
-    def append_web_metadata(self, docs: list[Document], type: str, args: dict):
+    def append_web_metadata(self, docs: List[Document], type: str, args: dict):
         """
         Append custom meta to documents (web)
 

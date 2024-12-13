@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.19 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 class Types:
@@ -59,7 +59,8 @@ class Types:
 
         :return: list with video extensions
         """
-        return ['.mp4', '.avi', '.mkv', '.webm', '.mov', '.flv', '.wmv', '.3gp', '.ogg', '.ogv', '.mpg', '.mpeg', '.m4v']
+        return ['.mp4', '.avi', '.mkv', '.webm', '.mov', '.flv', '.wmv',
+                '.3gp', '.ogg', '.ogv', '.mpg', '.mpeg', '.m4v']
 
     def get_audio_ext(self) -> list:
         """
@@ -67,7 +68,8 @@ class Types:
 
         :return: list with audio extensions
         """
-        return ['.mp3', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.aac', '.aiff', '.alac', '.dsd', '.pcm', '.mpc']
+        return ['.mp3', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.aac',
+                '.aiff', '.alac', '.dsd', '.pcm', '.mpc']
 
     def get_excluded_extensions(self) -> list[str]:
         """

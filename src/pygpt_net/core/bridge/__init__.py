@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -39,7 +40,11 @@ class Bridge:
         self.sync_modes = [MODE_ASSISTANT, MODE_EXPERT]
         self.worker = None
 
-    def request(self, context: BridgeContext, extra: dict = None) -> bool:
+    def request(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Make request to provider
 
@@ -135,7 +140,11 @@ class Bridge:
         self.window.threadpool.start(self.worker)
         return True
 
-    def request_next(self, context: BridgeContext, extra: dict = None) -> bool:
+    def request_next(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Make next call to provider (loop next step)
 
@@ -158,7 +167,11 @@ class Bridge:
         self.window.threadpool.start(self.worker)
         return True
 
-    def call(self, context: BridgeContext, extra: dict = None) -> str:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> str:
         """
         Make quick call to provider and get response content
 
@@ -221,7 +234,7 @@ class Bridge:
             extra=extra,
         )
 
-    def get_worker(self):
+    def get_worker(self) -> BridgeWorker:
         """
         Prepare async worker
 

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import datetime
 import uuid
+from typing import Optional, Tuple
 
 from packaging.version import Version
 
@@ -97,104 +98,250 @@ class Ctx:
         self.current_sys_prompt = ""
         self.groups_loaded = False
 
-    def get_items(self):
-        # print(self.container.count_items())
+    def get_items(self) -> list:
+        """
+        Get context items
+
+        :return: context items
+        """
         return self.container.get_items()
 
-    def set_items(self, items):
+    def set_items(self, items: list):
+        """
+        Set context items
+
+        :param items: context items
+        """
         self.container.set_items(items)
 
     def clear_items(self):
+        """Clear context items"""
         self.container.clear_items()
 
-    def count_items(self):
+    def count_items(self) -> int:
+        """
+        Count context items
+        :return: context items count
+        """
         return self.container.count_items()
 
-    def get_current(self):
+    def get_current(self) -> int:
+        """
+        Get current context ID
+
+        :return: current context ID
+        """
         return self.current
 
-    def set_current(self, current):
+    def set_current(self, current: int):
+        """
+        Set current context ID
+
+        :param current: current context ID
+        """
         self.current = current
 
     def clear_current(self):
+        """Clear current context ID"""
         self.current = None
 
-    def get_last_item(self):
+    def get_last_item(self) -> Optional[CtxItem]:
+        """
+        Get last item
+
+        :return: last item
+        """
         return self.last_item
 
-    def set_last_item(self, last_item):
+    def set_last_item(self, last_item: Optional[CtxItem]):
+        """
+        Set last item
+
+        :param last_item: last item
+        """
         self.last_item = last_item
 
-    def get_assistant(self):
+    def get_assistant(self) -> str:
+        """
+        Get assistant name
+
+        :return: assistant name
+        """
         return self.assistant
 
-    def set_assistant(self, assistant):
+    def set_assistant(self, assistant: str):
+        """
+        Set assistant name
+
+        :param assistant: assistant name
+        :return: assistant name
+        """
         self.assistant = assistant
 
-    def get_mode(self):
+    def get_mode(self) -> str:
+        """
+        Get mode
+
+        :return: mode
+        """
         return self.mode
 
-    def set_mode(self, mode):
+    def set_mode(self, mode: str):
+        """
+        Set mode
+
+        :param mode: mode
+        """
         self.mode = mode
 
-    def get_model(self):
+    def get_model(self) -> str:
+        """
+        Get model name
+        :return: model name
+        """
         return self.model
 
-    def set_model(self, model):
+    def set_model(self, model: str):
+        """
+        Set model name
+
+        :param model: model name
+        """
         self.model = model
 
-    def get_preset(self):
+    def get_preset(self) -> str:
+        """
+        Get preset name
+        :return: preset
+        """
         return self.preset
 
-    def set_preset(self, preset):
+    def set_preset(self, preset: str):
+        """
+        Set preset name
+
+        :param preset: preset name
+        """
         self.preset = preset
 
-    def get_run(self):
+    def get_run(self) -> str:
+        """
+        Get run ID
+
+        :return: run ID
+        """
         return self.run
 
-    def set_status(self, status):
+    def set_status(self, status: int):
+        """
+        Set status (label color)
+
+        :param status: status
+        """
         self.status = status
 
-    def get_status(self):
+    def get_status(self) -> int:
+        """
+        Get status (label color)
+
+        :return: status
+        """
         return self.status
 
-    def set_run(self, run):
+    def set_run(self, run: str):
+        """
+        Set run ID
+
+        :param run: run ID
+        """
         self.preset = run
 
-    def get_thread(self):
+    def get_thread(self) -> str:
+        """
+        Get thread ID
+
+        :return: thread ID
+        """
         return self.thread
 
-    def set_thread(self, thread):
+    def set_thread(self, thread: str):
+        """
+        Set thread ID
+
+        :param thread: thread ID
+        """
         self.thread = thread
 
     def clear_thread(self):
+        """Clear thread ID"""
         self.thread = None
 
-    def get_last_mode(self):
+    def get_last_mode(self) -> str:
+        """
+        Get last mode
+
+        :return: last mode
+        """
         return self.last_mode
 
-    def set_last_mode(self, last_mode):
+    def set_last_mode(self, last_mode: str):
+        """
+        Set last mode
+
+        :param last_mode: last mode
+        """
         self.last_mode = last_mode
 
-    def get_last_model(self):
+    def get_last_model(self) -> str:
+        """
+        Get last model name
+
+        :return: last model
+        """
         return self.last_model
 
-    def set_last_model(self, last_model):
+    def set_last_model(self, last_model: str):
+        """
+        Set last model name
+
+        :param last_model: last model name
+        """
         self.last_model = last_model
 
-    def get_tmp_meta(self):
+    def get_tmp_meta(self) -> Optional[CtxMeta]:
+        """
+        Get temporary meta
+
+        :return: temporary meta
+        """
         return self.tmp_meta
 
-    def set_tmp_meta(self, tmp_meta):
+    def set_tmp_meta(self, tmp_meta: Optional[CtxMeta]):
+        """
+        Set temporary meta
+
+        :param tmp_meta: temporary meta
+        """
         self.tmp_meta = tmp_meta
 
-    def get_search_string(self):
+    def get_search_string(self) -> Optional[str]:
+        """
+        Get search string
+
+        :return: search string
+        """
         return self.search_string
 
-    def set_search_string(self, search_string):
+    def set_search_string(self, search_string: Optional[str]):
+        """
+        Set search string
+
+        :param search_string: search string
+        """
         self.search_string = search_string
 
     def clear_search_string(self):
+        """Clear search string"""
         self.search_string = None
 
     def install(self):
@@ -254,7 +401,7 @@ class Ctx:
 
             self.set_items(self.load(id))
 
-    def new(self, group_id: int = None) -> CtxMeta or None:
+    def new(self, group_id: Optional[int] = None) -> Optional[CtxMeta]:
         """
         Create new ctx and set as current
 
@@ -294,7 +441,7 @@ class Ctx:
         meta.initialized = False
         return meta
 
-    def create(self, group_id: int = None) -> CtxMeta:
+    def create(self, group_id: Optional[int] = None) -> CtxMeta:
         """
         Send created meta to provider and return new ID
 
@@ -308,7 +455,7 @@ class Ctx:
         meta.id = id
         return meta
 
-    def add(self, item: CtxItem, parent_id: int = None):
+    def add(self, item: CtxItem, parent_id: Optional[int] = None):
         """
         Add CtxItem to contexts and saves context
 
@@ -333,7 +480,7 @@ class Ctx:
                 if not result:
                     self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
 
-    def add_to_meta(self, item: CtxItem, meta_id: int = None):
+    def add_to_meta(self, item: CtxItem, meta_id: Optional[int] = None):
         """
         Add CtxItem to custom meta
 
@@ -512,7 +659,7 @@ class Ctx:
             self.load_meta()
         return self.meta
 
-    def get_current_meta(self) -> CtxMeta or None:
+    def get_current_meta(self) -> Optional[CtxMeta]:
         """
         Get current meta
 
@@ -565,7 +712,7 @@ class Ctx:
         if id in self.meta:
             return self.meta[id]
 
-    def get_last(self) -> CtxItem or None:
+    def get_last(self) -> Optional[CtxItem]:
         """
         Return last item from ctx
 
@@ -597,7 +744,7 @@ class Ctx:
             return self.get_items()[-1].id == item_id
         return False
 
-    def get_previous_item(self, item_id: int) -> CtxItem or None:
+    def get_previous_item(self, item_id: int) -> Optional[CtxItem]:
         """
         Get previous item from ctx
 
@@ -643,7 +790,7 @@ class Ctx:
         """
         return len(self.meta)
 
-    def all(self, meta_id: int = None) -> list:
+    def all(self, meta_id: Optional[int] = None) -> list:
         """
         Return ctx items (current or by meta_id if provided)
 
@@ -768,7 +915,7 @@ class Ctx:
         slave.id = id
         return slave
 
-    def get_prev(self) -> int or None:
+    def get_prev(self) -> Optional[int]:
         """
         Get previous context
 
@@ -781,7 +928,7 @@ class Ctx:
             if idx > 0:
                 return self.get_id_by_idx(idx - 1)
 
-    def get_next(self) -> int or None:
+    def get_next(self) -> Optional[int]:
         """
         Get next context
 
@@ -794,7 +941,7 @@ class Ctx:
             if idx < self.count_meta() - 1:
                 return self.get_id_by_idx(idx + 1)
 
-    def get_last_meta(self) -> int or None:
+    def get_last_meta(self) -> Optional[int]:
         """
         Get last context
 
@@ -809,7 +956,7 @@ class Ctx:
             mode: str,
             used_tokens: int = 100,
             max_tokens: int = 1000
-    ) -> (int, int):
+    ) -> Tuple[int, int]:
         """
         Count ctx items to add to prompt
 
@@ -877,7 +1024,7 @@ class Ctx:
             mode: str,
             used_tokens: int = 100,
             max_tokens: int = 1000
-    ) -> (int, int):
+    ) -> Tuple[int, int]:
         """
         Count ctx items to add to prompt
 
@@ -1208,7 +1355,7 @@ class Ctx:
             self.groups_loaded = True
         return self.groups
 
-    def get_group_by_id(self, id: int) -> CtxGroup or None:
+    def get_group_by_id(self, id: int) -> Optional[CtxGroup]:
         """
         Get group by ID
 

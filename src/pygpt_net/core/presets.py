@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import uuid
+from typing import Optional, Tuple
 
 from packaging.version import Version
 from pygpt_net.core.types import (
@@ -47,7 +48,11 @@ class Presets:
         self.provider.install()
 
     def patch(self, app_version: Version):
-        """Patch provider data"""
+        """
+        Patch provider data
+
+        :param app_version: app version
+        """
         self.provider.patch(app_version)
 
     def build(self) -> PresetItem:
@@ -197,7 +202,7 @@ class Presets:
         if id in self.items:
             self.items[id].enabled = False
 
-    def get_first_mode(self, id: str) -> str or None:
+    def get_first_mode(self, id: str) -> Optional[str]:
         """
         Return first mode for preset
 
@@ -253,7 +258,7 @@ class Presets:
         presets = self.get_by_mode(mode)
         return list(presets.keys())[idx]
 
-    def get_by_id(self, mode: str, id: str) -> PresetItem or None:
+    def get_by_id(self, mode: str, id: str) -> Optional[PresetItem]:
         """
         Return preset by id
 
@@ -266,7 +271,7 @@ class Presets:
             return presets[id]
         return None
 
-    def get_by_uuid(self, uuid: str) -> PresetItem or None:
+    def get_by_uuid(self, uuid: str) -> Optional[PresetItem]:
         """
         Return preset by UUID
 
@@ -317,7 +322,7 @@ class Presets:
             i += 1
         return 0
 
-    def get_default(self, mode: str) -> str or None:
+    def get_default(self, mode: str) -> Optional[str]:
         """
         Return default preset for mode
 
@@ -329,7 +334,7 @@ class Presets:
             return None
         return list(presets.keys())[0]
 
-    def get_duplicate_name(self, id: str) -> (str, str):
+    def get_duplicate_name(self, id: str) -> Tuple[str, str]:
         """
         Prepare name for duplicated preset
 
@@ -423,8 +428,12 @@ class Presets:
             self.items[id] = base[id]
             self.save(id)
 
-    def load_base(self):
-        """Load base presets"""
+    def load_base(self) -> dict:
+        """
+        Load base presets
+
+        :return: base presets
+        """
         return self.provider.load_base()
 
     def load(self):

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from logging import ERROR, WARNING, INFO, DEBUG
+from typing import Any
 
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QTextCursor
@@ -145,7 +146,7 @@ class Debug(QObject):
         self.log(data, window=True)
 
     @Slot(object)
-    def handle_log(self, data: any):
+    def handle_log(self, data: Any):
         """
         Handle log message
 
@@ -153,7 +154,7 @@ class Debug(QObject):
         """
         self.log(data)
 
-    def log(self, data: any, window: bool = True):
+    def log(self, data: Any, window: bool = True):
         """
         Log message to console or logger window
 

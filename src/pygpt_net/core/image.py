@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -34,7 +34,12 @@ class Image(QObject):
             os.makedirs(img_dir, exist_ok=True)
 
     @Slot(object, list, str)
-    def handle_finished(self, ctx: CtxItem, paths: list, prompt: str):
+    def handle_finished(
+            self,
+            ctx: CtxItem,
+            paths: list,
+            prompt: str
+    ):
         """
         Handle finished image generation
 
@@ -45,7 +50,12 @@ class Image(QObject):
         self.window.controller.chat.image.handle_response(ctx, paths, prompt)
 
     @Slot(object, list, str)
-    def handle_finished_inline(self, ctx: CtxItem, paths: list, prompt: str):
+    def handle_finished_inline(
+            self,
+            ctx: CtxItem,
+            paths: list,
+            prompt: str
+    ):
         """
         Handle finished image generation
 
@@ -86,7 +96,7 @@ class Image(QObject):
         self.window.update_status(msg)
         self.window.core.debug.log(msg)
 
-    def save_image(self, path: str, image: any) -> bool:
+    def save_image(self, path: str, image: bytes) -> bool:
         """
         Save image to file
 

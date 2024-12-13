@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional, Tuple
 
 from PySide6.QtGui import QTextCursor
 
@@ -16,6 +18,7 @@ from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.ui.widget.tabs.body import TabBody
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.utils import trans
+
 import pygpt_net.icons_rc
 
 
@@ -29,7 +32,10 @@ class Notepad:
         self.window = window
         self.opened_once = False
 
-    def create(self, idx: int = None) -> (TabBody, int):
+    def create(
+            self,
+            idx: Optional[int] = None
+    ) -> Tuple[TabBody, int, int]:
         """
         Create notepad widget
 
@@ -203,7 +209,7 @@ class Notepad:
         self.load()
         self.window.core.notepad.locked = False
 
-    def switch_to_tab(self, idx: int = None):
+    def switch_to_tab(self, idx: Optional[int] = None):
         """
         Switch to notepad tab
 

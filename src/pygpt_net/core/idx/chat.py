@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
+from typing import Optional
 
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
@@ -37,7 +38,11 @@ class Chat:
         self.storage = storage
         self.context = Context(window)
 
-    def call(self, context: BridgeContext, extra: dict = None) -> bool:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Call chat, complete or query mode
 
@@ -69,7 +74,11 @@ class Chat:
                 extra=extra,
             )  # if not, use query mode
 
-    def raw_query(self, context: BridgeContext, extra: dict = None) -> bool:
+    def raw_query(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Raw query mode
 
@@ -82,7 +91,11 @@ class Chat:
             extra=extra,
         )
 
-    def query(self, context: BridgeContext, extra: dict = None) -> bool:
+    def query(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Query index mode (no chat, only single query) and append results to context
 
@@ -150,7 +163,11 @@ class Chat:
             return True
         return False
 
-    def chat(self, context: BridgeContext, extra: dict = None) -> bool:
+    def chat(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Chat mode (conversation, using context from index) and append result to the context
 
@@ -291,7 +308,7 @@ class Chat:
             ctx: CtxItem,
             path: str,
             query: str,
-            model: ModelItem = None
+            model: Optional[ModelItem] = None
     ) -> str:
         """
         Query file using temp index (created on the fly)
@@ -345,7 +362,7 @@ class Chat:
             url: str,
             args: dict,
             query: str,
-            model: ModelItem = None
+            model: Optional[ModelItem] = None
     ) -> str:
         """
         Query web using temp index (created on the fly)
@@ -405,8 +422,8 @@ class Chat:
             self,
             query: str,
             path: str,
-            model: ModelItem = None,
-            history: list = None,
+            model: Optional[ModelItem] = None,
+            history: Optional[list] = None,
             verbose: bool = False,
     ) -> str:
         """
@@ -461,7 +478,7 @@ class Chat:
             self,
             query: str,
             idx: str,
-            model: ModelItem = None
+            model: Optional[ModelItem] = None
     ) -> str:
         """
         Query attachment
@@ -499,7 +516,7 @@ class Chat:
             llm=llm,
         )
 
-    def get_custom_prompt(self, prompt: str = None) -> ChatPromptTemplate or None:
+    def get_custom_prompt(self, prompt: Optional[str] = None) -> Optional[ChatPromptTemplate]:
         """
         Get custom prompt template if sys prompt is not empty
 

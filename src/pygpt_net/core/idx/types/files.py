@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
+from typing import Optional
 
 
 class Files:
@@ -67,7 +68,12 @@ class Files:
         path = path.replace("\\", "/").strip(r'\/')
         return path
 
-    def get_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
+    def get_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> str:
         """
         Get indexed document id by file
 
@@ -82,7 +88,12 @@ class Files:
             file_id=file_id,
         )
 
-    def exists(self, store_id: str, idx: str, file_id: str) -> bool:
+    def exists(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> bool:
         """
         Check if file is indexed
 
@@ -97,7 +108,12 @@ class Files:
             file_id=file_id,
         )
 
-    def update(self, id: int, doc_id: str, ts: int) -> bool:
+    def update(
+            self,
+            id: int,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update timestamp of indexed file
 
@@ -112,7 +128,12 @@ class Files:
             ts=ts,
         )
 
-    def remove(self, store_id: str, idx: str, doc_id: str):
+    def remove(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove document from index
 
@@ -126,7 +147,11 @@ class Files:
             doc_id=doc_id,
         )
 
-    def truncate(self, store_id: str = None, idx: str = None):
+    def truncate(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ):
         """
         Truncate files from index
 

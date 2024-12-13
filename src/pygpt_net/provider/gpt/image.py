@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+from typing import Optional
+
 import requests
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -31,7 +33,12 @@ class Image:
         self.window = window
         self.worker = None
 
-    def generate(self, context: BridgeContext, extra: dict = None, sync: bool = True):
+    def generate(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None,
+            sync: bool = True
+    ):
         """
         Call images API
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from PySide6.QtCore import Slot, QTimer
 
@@ -150,7 +152,12 @@ class Render:
         """
         return self.instance().get_pid(meta)
 
-    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render begin
 
@@ -161,7 +168,12 @@ class Render:
         self.instance().begin(meta, ctx, stream)
         self.update()
 
-    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end
 
@@ -172,7 +184,12 @@ class Render:
         self.instance().end(meta, ctx, stream)
         self.update()
 
-    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end extra
         
@@ -183,7 +200,11 @@ class Render:
         self.instance().end_extra(meta, ctx, stream)
         self.update()
 
-    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream begin
         
@@ -193,7 +214,11 @@ class Render:
         self.instance().stream_begin(meta, ctx)
         self.update()
 
-    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream end
         
@@ -203,7 +228,10 @@ class Render:
         self.instance().stream_end(meta, ctx)
         self.update()
 
-    def clear_output(self, meta: CtxMeta = None):
+    def clear_output(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         Clear current active output
 
@@ -216,7 +244,10 @@ class Render:
         """Clear input"""
         self.instance().clear_input()
 
-    def on_load(self, meta: CtxMeta = None):
+    def on_load(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         On load (meta)
 
@@ -226,7 +257,10 @@ class Render:
         self.update()
         self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
 
-    def reset(self, meta: CtxMeta = None):
+    def reset(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         Reset current meta
 
@@ -240,7 +274,12 @@ class Render:
         self.instance().reload()  # TODO: or all outputs?
         self.update()
 
-    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
+    def append_context(
+            self,
+            meta: CtxMeta,
+            items: list,
+            clear: bool = True
+    ):
         """
         Append all context to output
 
@@ -251,7 +290,13 @@ class Render:
         self.instance().append_context(meta, items, clear)
         self.update()
 
-    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
+    def append_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            flush: bool = True,
+            append: bool = False
+    ):
         """
         Append text input to output
         
@@ -263,7 +308,11 @@ class Render:
         self.instance().append_input(meta, ctx, flush=flush, append=append)
         self.update()
 
-    def append_output(self, meta: CtxMeta, ctx: CtxItem):
+    def append_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Append text output to output
         
@@ -273,7 +322,12 @@ class Render:
         self.instance().append_output(meta, ctx)
         self.update()
 
-    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False):
+    def append_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            footer: bool = False
+    ):
         """
         Append extra data (images, files, etc.) to output
         
@@ -284,7 +338,13 @@ class Render:
         self.instance().append_extra(meta, ctx, footer)
         self.update()
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
         """
         Append output stream chunk to output
         
@@ -377,7 +437,11 @@ class Render:
         self.instance().on_reply_submit(ctx)
         self.update()
 
-    def on_page_loaded(self, meta: CtxMeta, tab: Tab = None):
+    def on_page_loaded(
+            self,
+            meta: CtxMeta,
+            tab: Optional[Tab] = None
+    ):
         """
         On page loaded callback
 
@@ -431,7 +495,11 @@ class Render:
         self.instance().clear_all()
         self.update()
 
-    def tool_output_append(self, meta: CtxMeta, content: str):
+    def tool_output_append(
+            self,
+            meta: CtxMeta,
+            content: str
+    ):
         """
         Add tool output (append)
 
@@ -441,7 +509,11 @@ class Render:
         self.instance().tool_output_append(meta, content)
         self.update()
 
-    def tool_output_update(self, meta: CtxMeta, content: str):
+    def tool_output_update(
+            self,
+            meta: CtxMeta,
+            content: str
+    ):
         """
         Replace tool output
 
@@ -521,7 +593,11 @@ class Render:
                 return self.markdown_renderer
 
     @Slot(str, str)
-    def handle_save_as(self, text: str, type: str = 'txt'):
+    def handle_save_as(
+            self,
+            text: str,
+            type: str = 'txt'
+    ):
         """
         Handle save as signal  # TODO: move to another class
 

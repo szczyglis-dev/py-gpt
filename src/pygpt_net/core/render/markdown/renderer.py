@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import re
 from datetime import datetime
+from typing import Optional
+
 from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
 
 from pygpt_net.core.render.base import BaseRenderer
@@ -76,7 +78,12 @@ class Renderer(BaseRenderer):
         if pid is not None:
             self.pids[pid] = PidData(pid, meta)
 
-    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render begin
         
@@ -86,7 +93,12 @@ class Renderer(BaseRenderer):
         """
         self.parser.reset()
 
-    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end
             
@@ -97,7 +109,12 @@ class Renderer(BaseRenderer):
         if stream:
             self.reload()  # reload ctx items only if stream
 
-    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end extra
         
@@ -107,7 +124,11 @@ class Renderer(BaseRenderer):
         """
         self.to_end(meta)
 
-    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream begin
 
@@ -116,7 +137,11 @@ class Renderer(BaseRenderer):
         """
         pass  # do nothing
 
-    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream end
         
@@ -125,7 +150,12 @@ class Renderer(BaseRenderer):
         """
         pass  # do nothing
 
-    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
+    def append_context(
+            self,
+            meta: CtxMeta,
+            items: list,
+            clear: bool = True
+    ):
         """
         Append all context to output
         
@@ -144,7 +174,13 @@ class Renderer(BaseRenderer):
             self.append_context_item(meta, ctx)
             i += 1
 
-    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
+    def append_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            flush: bool = True,
+            append: bool = False
+    ):
         """
         Append text input to output
         
@@ -186,7 +222,11 @@ class Renderer(BaseRenderer):
 
         self.append_raw(meta, ctx, text.strip(), "msg-user")
 
-    def append_output(self, meta: CtxMeta, ctx: CtxItem):
+    def append_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Append text output to output
         
@@ -207,7 +247,12 @@ class Renderer(BaseRenderer):
             text = "{}".format(ctx.output)
         self.append_raw(meta, ctx, text.strip(), "msg-bot")
 
-    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False):
+    def append_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            footer: bool = False
+    ):
         """
         Append extra data (images, files, etc.) to output
         
@@ -294,7 +339,13 @@ class Renderer(BaseRenderer):
         if len(appended) > 0:
             self.to_end(meta)
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
         """
         Append output chunk to output
 
@@ -353,7 +404,12 @@ class Renderer(BaseRenderer):
         cursor.insertBlock(block_format)
         node.setTextCursor(cursor)
 
-    def append_html_chunk(self, meta: CtxMeta, ctx: CtxItem, html: str):
+    def append_html_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            html: str
+    ):
         """
         Append HTML chunk to output
         
@@ -377,7 +433,13 @@ class Renderer(BaseRenderer):
         node.setTextCursor(cursor)
         node.append(html.replace("\n", "<br>"))
 
-    def append_raw(self, meta: CtxMeta, ctx: CtxItem, text: str, type: str = "msg-bot"):
+    def append_raw(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text: str,
+            type: str = "msg-bot"
+    ):
         """
         Append and format raw text to output
         
@@ -402,7 +464,11 @@ class Renderer(BaseRenderer):
         self.get_output_node(meta).append(text)
         self.to_end(meta)
 
-    def append_chunk_start(self, meta: CtxMeta, ctx: CtxItem):
+    def append_chunk_start(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Append start of chunk to output
         
@@ -414,7 +480,11 @@ class Renderer(BaseRenderer):
         cursor.movePosition(QTextCursor.End)
         node.setTextCursor(cursor)
 
-    def append_context_item(self, meta: CtxMeta, ctx: CtxItem):
+    def append_context_item(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Append context item to output
     
@@ -425,7 +495,13 @@ class Renderer(BaseRenderer):
         self.append_output(meta, ctx)
         self.append_extra(meta, ctx, footer=True)
 
-    def append(self, meta: CtxMeta, ctx: CtxItem, text: str, end: str = "\n"):
+    def append(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text: str,
+            end: str = "\n"
+    ):
         """
         Append text to output
         
@@ -445,7 +521,12 @@ class Renderer(BaseRenderer):
                 cur.insertHtml("<br>")
         node.setTextCursor(cur)  # Update visible cursor
 
-    def append_timestamp(self, ctx: CtxItem, text: str, type: str = None) -> str:
+    def append_timestamp(
+            self,
+            ctx: CtxItem,
+            text: str,
+            type: Optional[str] = None
+    ) -> str:
         """
         Append timestamp to text
         
@@ -467,8 +548,15 @@ class Renderer(BaseRenderer):
                 text = '<span class="ts">{}:</span> {}'.format(hour, text)
         return text
 
-    def reset(self, meta: CtxMeta = None):
-        """Reset"""
+    def reset(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
+        """
+        Reset
+
+        :param meta: context meta
+        """
         pid = self.get_or_create_pid(meta)
         if pid is not None:
             self.pids[pid].images_appended = []
@@ -480,8 +568,15 @@ class Renderer(BaseRenderer):
         """
         self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
 
-    def clear_output(self, meta: CtxMeta = None):
-        """Clear output"""
+    def clear_output(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
+        """
+        Clear output
+
+        :param meta: context meta
+        """
         self.reset(meta)
         self.get_output_node(meta).clear()
 
@@ -512,7 +607,7 @@ class Renderer(BaseRenderer):
         """
         Get output node
         
-       :param meta: context meta
+        :param meta: context meta
         :return: output node
         """
         return self.window.core.ctx.output.get_current(meta)

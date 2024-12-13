@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from PySide6.QtCore import Slot
 
@@ -30,8 +32,8 @@ class Image:
     def send(
             self,
             text: str,
-            prev_ctx: CtxItem = None,
-            parent_id: int = None,
+            prev_ctx: Optional[CtxItem] = None,
+            parent_id: Optional[int] = None,
     ) -> CtxItem:
         """
         Send prompt for image generate
@@ -116,7 +118,12 @@ class Image:
         return ctx
 
     @Slot(object, list, str)
-    def handle_response(self, ctx: CtxItem, paths: list, prompt: str):
+    def handle_response(
+            self,
+            ctx: CtxItem,
+            paths: list,
+            prompt: str
+    ):
         """
         Handle response
 
@@ -161,7 +168,12 @@ class Image:
         self.window.controller.chat.common.unlock_input()  # unlock input
 
     @Slot(object, list, str)
-    def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
+    def handle_response_inline(
+            self,
+            ctx: CtxItem,
+            paths: list,
+            prompt: str
+    ):
         """
         Handle inline response
 

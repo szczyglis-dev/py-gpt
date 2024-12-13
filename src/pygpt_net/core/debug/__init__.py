@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,7 @@ import traceback
 import logging
 
 from pathlib import Path
+from typing import Any, Tuple
 
 from pygpt_net.config import Config
 
@@ -125,7 +126,7 @@ class Debug:
         else:
             return "unknown"
 
-    def info(self, message: any = None, console: bool = True):
+    def info(self, message: Any = None, console: bool = True):
         """
         Handle info message
 
@@ -139,7 +140,7 @@ class Debug:
             console=console,
         )
 
-    def debug(self, message: any = None, console: bool = True):
+    def debug(self, message: Any = None, console: bool = True):
         """
         Handle debug message
 
@@ -152,7 +153,7 @@ class Debug:
             console=console,
         )
 
-    def warning(self, message: any = None, console: bool = True):
+    def warning(self, message: Any = None, console: bool = True):
         """
         Handle warning message
 
@@ -165,7 +166,7 @@ class Debug:
             console=console,
         )
 
-    def error(self, message: any = None, console: bool = True):
+    def error(self, message: Any = None, console: bool = True):
         """
         Handle error message
 
@@ -178,7 +179,7 @@ class Debug:
             console=console,
         )
 
-    def log(self, message: any = None, level: int = logging.ERROR, console: bool = True):
+    def log(self, message: Any = None, level: int = logging.ERROR, console: bool = True):
         """
         Handle logger message (by level), default level is ERROR
 
@@ -227,7 +228,7 @@ class Debug:
         except Exception as e:
             pass
 
-    def parse_exception(self, e = None, limit: int = 4) -> (bool, str):
+    def parse_exception(self, e: Any = None, limit: int = 4) -> Tuple[bool, str]:
         """
         Parse exception traceback
 
@@ -268,7 +269,7 @@ class Debug:
 
         return is_sys, data
 
-    def parse_alert(self, msg: any) -> str:
+    def parse_alert(self, msg: Any) -> str:
         """
         Parse alert message
 
@@ -317,7 +318,7 @@ class Debug:
         """
         self.window.controller.dialogs.debug.end(id)
 
-    def add(self, id: str, k: str, v: any):
+    def add(self, id: str, k: str, v: Any):
         """
         Append debug entry (debug window)
 

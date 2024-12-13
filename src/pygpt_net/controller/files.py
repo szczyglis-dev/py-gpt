@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import shutil
+from typing import Optional
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
@@ -62,7 +63,12 @@ class Files:
             self.window.core.debug.log(e)
             print("Error deleting directory: {} - {}".format(path, e))
 
-    def touch_file(self, path: str, name: str = None, force: bool = False):
+    def touch_file(
+            self,
+            path: str,
+            name: Optional[str] = None,
+            force: bool = False
+    ):
         """
         Touch empty file
 
@@ -123,7 +129,12 @@ class Files:
                 self.window.core.debug.log(e)
                 print("Error deleting file: {} - {}".format(path, e))
 
-    def duplicate_local(self, path: str, name: str, force: bool = False):
+    def duplicate_local(
+            self,
+            path: str,
+            name: str,
+            force: bool = False
+    ):
         """
         Duplicate file or directory
 
@@ -198,7 +209,7 @@ class Files:
                     self.window.core.debug.log(e)
                     print("Error downloading file: {} - {}".format(path, e))
 
-    def upload_local(self, parent_path: str = None):
+    def upload_local(self, parent_path: Optional[str] = None):
         """
         Upload local file(s) to directory
 
@@ -341,7 +352,7 @@ class Files:
         self.window.ui.dialog['create'].show()
         self.window.ui.dialog['create'].input.setFocus()
 
-    def make_dir(self, path: str, name: str = None):
+    def make_dir(self, path: str, name: Optional[str] = None):
         """
         Make directory
 

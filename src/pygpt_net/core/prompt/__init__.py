@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -41,6 +41,12 @@ class Prompt:
         return ""
 
     def build_final_system_prompt(self, prompt: str) -> str:
+        """
+        Build final system prompt
+
+        :param prompt: prompt
+        :return: final system prompt
+        """
         # tmp dispatch event: system prompt
         event = Event(Event.SYSTEM_PROMPT, {
             'mode': self.window.core.config.get('mode'),
@@ -88,7 +94,7 @@ class Prompt:
             internal: bool,
             is_expert: bool = False,
             disable_native_tool_calls: bool = False,
-    ):
+    ) -> str:
         """
         Prepare system prompt
 

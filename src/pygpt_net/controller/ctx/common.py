@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from PySide6.QtWidgets import QApplication
 
@@ -53,7 +55,7 @@ class Common:
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
 
-    def update_label(self, mode: str, assistant_id: str = None):
+    def update_label(self, mode: str, assistant_id: Optional[str] = None):
         """
         Update ctx label
 

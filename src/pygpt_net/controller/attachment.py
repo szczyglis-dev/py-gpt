@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
 from datetime import datetime
+from typing import Optional
 from urllib.parse import urlparse
 
 from PySide6.QtGui import QImage
@@ -112,7 +113,12 @@ class Attachment:
         # TODO: implement this
         pass
 
-    def delete(self, idx: int, force: bool = False, remove_local: bool = False):
+    def delete(
+            self,
+            idx: int,
+            force: bool = False,
+            remove_local: bool = False
+    ):
         """
         Delete attachment
 
@@ -196,7 +202,11 @@ class Attachment:
         self.window.ui.dialog['rename'].close()
         self.update()
 
-    def add(self, mode: str, attachment: AttachmentItem):
+    def add(
+            self,
+            mode: str,
+            attachment: AttachmentItem
+    ):
         """
         Add attachment item to list
 
@@ -210,7 +220,12 @@ class Attachment:
         self.is_consumed = False  # reset consumed flag
         self.update()
 
-    def clear(self, force: bool = False, remove_local=False, auto: bool = False):
+    def clear(
+            self,
+            force: bool = False,
+            remove_local=False,
+            auto: bool = False
+    ):
         """
         Clear attachments list
 
@@ -407,9 +422,13 @@ class Attachment:
                 self.window.core.config.get_user_dir('data'),
                 file_name,
             )
-        return path
+        return str(path)
 
-    def download(self, file_id: str, ext: str = None) -> str or None:
+    def download(
+            self,
+            file_id: str,
+            ext: Optional[str] = None
+    ) -> Optional[str]:
         """
         Download file
 

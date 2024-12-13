@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import uuid
+from typing import Optional
 
 from packaging.version import Version
 
@@ -49,7 +50,7 @@ class Notepad:
         """Reset provider data"""
         self.items = {}
 
-    def get_by_id(self, idx: int) -> NotepadItem or None:
+    def get_by_id(self, idx: int) -> Optional[NotepadItem]:
         """
         Get notepad by idx
 
@@ -136,8 +137,12 @@ class Notepad:
         """Save all notepads"""
         self.provider.save_all(self.items)
 
-    def import_from_db(self) -> dict or None:
-        """Import notepad tabs from database"""
+    def import_from_db(self) -> Optional[dict]:
+        """
+        Import notepad tabs from database
+
+        :return: dict with tabs
+        """
         self.load_all()
         items = self.get_all()
         if len(items) == 0:

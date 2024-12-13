@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,8 @@ import os.path
 import time
 
 from pathlib import Path
+from typing import Optional, Tuple, List
+
 from sqlalchemy import text
 
 from llama_index.core.indices.base import BaseIndex
@@ -267,8 +269,8 @@ class Indexing:
             path: str,
             force: bool = False,
             silent: bool = False,
-            loader_kwargs: dict = None,
-    ) -> list[Document]:
+            loader_kwargs: Optional[dict] = None,
+    ) -> List[Document]:
         """
         Get documents from path using data loaders
 
@@ -330,7 +332,7 @@ class Indexing:
         self.window.core.idx.metadata.append_file_metadata(documents, path)
         return documents
 
-    def read_text_content(self, path: str, loader_kwargs: dict = None) -> str:
+    def read_text_content(self, path: str, loader_kwargs: Optional[dict] = None) -> str:
         """
         Get content from file using loaders
 
@@ -353,7 +355,7 @@ class Indexing:
             self,
             url: str,
             type: str = "webpage",
-            extra_args: dict = None
+            extra_args: Optional[dict] = None
     ) -> str:
         """
         Get content from external resource
@@ -373,8 +375,8 @@ class Indexing:
             self,
             url: str,
             type: str = "webpage",
-            extra_args: dict = None,
-    ) -> list[Document]:
+            extra_args: Optional[dict] = None,
+    ) -> List[Document]:
         """
         Read data from external resource
 
@@ -423,11 +425,11 @@ class Indexing:
             self,
             idx: str,
             index: BaseIndex,
-            path: str = None,
+            path: Optional[str] = None,
             is_tmp: bool = False,
-            replace: bool = None,
-            recursive: bool = None
-    ) -> tuple:
+            replace: Optional[bool] = None,
+            recursive: Optional[bool] = None
+    ) -> Tuple[dict, list]:
         """
         Index all files in directory
 
@@ -494,10 +496,10 @@ class Indexing:
             self,
             idx: str,
             index: BaseIndex,
-            path: str = None,
+            path: Optional[str] = None,
             is_tmp: bool = False,
-            replace: bool = None
-    ) -> tuple:
+            replace: Optional[bool] = None
+    ) -> Tuple[dict, list]:
         """
         Index all files in directory and subdirectories recursively.
 
@@ -688,7 +690,13 @@ class Indexing:
                 documents.append(doc)
         return documents
 
-    def index_db_by_meta_id(self, idx: str, index: BaseIndex, id: int = 0, from_ts: int = 0) -> (int, list):
+    def index_db_by_meta_id(
+            self,
+            idx: str,
+            index: BaseIndex,
+            id: int = 0,
+            from_ts: int = 0
+    ) -> Tuple[int, list]:
         """
         Index data from database by meta id
 
@@ -724,7 +732,12 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_db_from_updated_ts(self, idx: str, index: BaseIndex, from_ts: int = 0) -> (int, list):
+    def index_db_from_updated_ts(
+            self,
+            idx: str,
+            index: BaseIndex,
+            from_ts: int = 0
+    ) -> Tuple[int, list]:
         """
         Index data from database from timestamp
 
@@ -752,10 +765,10 @@ class Indexing:
             index: BaseIndex,
             url: str,
             type="webpage",
-            extra_args: dict = None,
+            extra_args: Optional[dict] = None,
             is_tmp: bool = False,
-            replace: bool = None
-    ) -> (int, list):
+            replace: Optional[bool] = None
+    ) -> Tuple[int, list]:
         """
         Index data from external (remote) resource
 
@@ -838,9 +851,9 @@ class Indexing:
             index: BaseIndex,
             urls: list,
             type="webpage",
-            extra_args: dict = None,
+            extra_args: Optional[dict] = None,
             is_tmp: bool = False
-    ) -> (int, list):
+    ) -> Tuple[int, list]:
         """
         Index data from URLs
 
@@ -878,7 +891,12 @@ class Indexing:
             errors.extend(errs)
         return n, errors
 
-    def remove_old_meta_id(self, idx: str, id: int = 0, force: bool = False) -> bool:
+    def remove_old_meta_id(
+            self,
+            idx: str,
+            id: int = 0,
+            force: bool = False
+    ) -> bool:
         """
         Remove old meta id from index
 
@@ -906,7 +924,12 @@ class Indexing:
                 return True
         return False
 
-    def remove_old_file(self, idx: str, file_id: str, force: bool = False):
+    def remove_old_file(
+            self,
+            idx: str,
+            file_id: str,
+            force: bool = False
+    ) -> bool:
         """
         Remove old file from index
 
@@ -934,7 +957,13 @@ class Indexing:
                 return True
         return False
 
-    def remove_old_external(self, idx: str, content: str, type: str, force: bool = False):
+    def remove_old_external(
+            self,
+            idx: str,
+            content: str,
+            type: str,
+            force: bool = False
+    ) -> bool:
         """
         Remove old file from index
 
@@ -983,8 +1012,8 @@ class Indexing:
             self,
             file_path: str,
             index_path: str,
-            model: ModelItem = None,
-            documents: list = None,
+            model: Optional[ModelItem] = None,
+            documents: Optional[list] = None,
     ) -> list:
         """
         Index context attachment
@@ -1021,8 +1050,8 @@ class Indexing:
             self,
             url: str,
             index_path: str,
-            model: ModelItem = None,
-            documents: list = None,
+            model: Optional[ModelItem] = None,
+            documents: Optional[list] = None,
     ) -> list:
         """
         Index context attachment

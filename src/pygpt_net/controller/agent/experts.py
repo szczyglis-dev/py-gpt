@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -61,7 +63,12 @@ class Experts:
             return True
         return False
 
-    def append_prompts(self, mode: str, sys_prompt: str, parent_id: str = None):
+    def append_prompts(
+            self,
+            mode: str,
+            sys_prompt: str,
+            parent_id: Optional[str] = None
+    ):
         """
         Append prompt to the window
 
@@ -151,7 +158,7 @@ class Experts:
                             return num_calls  # abort continue if expert call detected
         return num_calls
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

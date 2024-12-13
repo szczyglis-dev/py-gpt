@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
+from typing import Optional
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -227,7 +228,12 @@ class Idx:
                 return True
         return False
 
-    def on_ctx_end(self, ctx: CtxItem = None, mode: str = None, sync: bool = False):
+    def on_ctx_end(
+            self,
+            ctx: Optional[CtxItem] = None,
+            mode: Optional[str] = None,
+            sync: bool = False
+    ):
         """
         After context item updated (request + response received)
 
@@ -255,7 +261,7 @@ class Idx:
                 if meta is not None:
                     self.indexer.index_ctx_realtime(meta, idx, sync=sync)
 
-    def after_index(self, idx: str = None):
+    def after_index(self, idx: Optional[str] = None):
         """
         Called after index (update things, etc...)
 

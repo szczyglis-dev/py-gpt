@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import re
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -137,7 +138,7 @@ class Command:
             pass
         return cmds
 
-    def extract_cmd(self, chunk: str) -> dict or None:
+    def extract_cmd(self, chunk: str) -> Optional[dict]:
         """
         Extract command from text chunk (JSON string)
 
@@ -343,7 +344,7 @@ class Command:
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
 
-    def get_functions(self, parent_id: str = None) -> list:
+    def get_functions(self, parent_id: Optional[str] = None) -> list:
         """
         Get current functions list
 
@@ -358,7 +359,7 @@ class Command:
             func_user = []
         return func + func_user  # merge both
 
-    def as_native_functions(self, all: bool = False, parent_id: str = None) -> list:
+    def as_native_functions(self, all: bool = False, parent_id: Optional[str] = None) -> list:
         """
         Convert internal functions to native API format
         
@@ -374,7 +375,8 @@ class Command:
         functions = [
         {
             "name": "get_delivery_date",
-            "description": "Get the delivery date for a customer's order. Call this whenever you need to know the delivery date, for example when a customer asks 'Where is my package'",
+            "description": "Get the delivery date for a customer's order. Call this whenever you need to know 
+            the delivery date, for example when a customer asks 'Where is my package'",
             "params": {
                 "type": "object",
                 "properties": {

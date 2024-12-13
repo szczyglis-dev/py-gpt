@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
+from typing import Optional
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.ctx import CtxItem
@@ -37,7 +38,7 @@ class Assistants:
         """
         return self.window.core.gpt.get_client()
 
-    def log(self, msg: str, callback: callable = None):
+    def log(self, msg: str, callback: Optional[callable] = None):
         """
         Log message
 
@@ -140,7 +141,7 @@ class Assistants:
         thread_messages = client.beta.threads.messages.list(thread_id)
         return thread_messages.data
 
-    def msg_send(self, id: str, text: str, file_ids: list = None):
+    def msg_send(self, id: str, text: str, file_ids: Optional[list] = None):
         """
         Send message to thread
 
@@ -226,8 +227,8 @@ class Assistants:
             self,
             thread_id: str,
             assistant_id: str,
-            model: str = None,
-            instructions: str = None
+            model: Optional[str] = None,
+            instructions: Optional[str] = None
     ):
         """
         Create assistant run
@@ -259,8 +260,8 @@ class Assistants:
             ctx: CtxItem,
             thread_id: str,
             assistant_id: str,
-            model: str = None,
-            instructions: str = None
+            model: Optional[str] = None,
+            instructions: Optional[str] = None
     ):
         """
         Create assistant run (stream)
@@ -377,8 +378,8 @@ class Assistants:
             items: dict,
             order: str = "asc",
             limit: int = 100,
-            after: str = None,
-            callback: callable = None
+            after: Optional[str] = None,
+            callback: Optional[callable] = None
     ) -> dict:
         """
         Import assistants from API (all, paginated)

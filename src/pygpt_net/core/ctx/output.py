@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.core.tabs.tab import Tab
@@ -73,7 +75,7 @@ class Output:
                 return True
         return False
 
-    def get_meta(self, pid: int) -> int or None:
+    def get_meta(self, pid: int) -> Optional[int]:
         """
         Get meta by PID
 
@@ -86,7 +88,7 @@ class Output:
                 return self.mapping[col_idx][pid]
         return
 
-    def prepare_meta(self, tab: Tab) -> int or None:
+    def prepare_meta(self, tab: Tab) -> Optional[int]:
         """
         Get meta ID by PID
 
@@ -107,7 +109,7 @@ class Output:
                 self.last_pid = pid
         return meta_id
 
-    def get_mapped(self, meta: CtxMeta) -> int or None:
+    def get_mapped(self, meta: CtxMeta) -> Optional[int]:
         """
         Get PID by meta
 
@@ -143,7 +145,7 @@ class Output:
                 return False
         return True
 
-    def get_pid(self, meta: CtxMeta = None) -> int or None:
+    def get_pid(self, meta: Optional[CtxMeta] = None) -> Optional[int]:
         """
         Get PID by meta
 
@@ -168,7 +170,7 @@ class Output:
         self.last_pid = 0
         self.initialized = False
 
-    def get_current(self, meta: CtxMeta = None):
+    def get_current(self, meta: Optional[CtxMeta] = None):
         """
         Get current output node by meta
 
@@ -182,7 +184,7 @@ class Output:
             for pid in self.window.ui.nodes['output']:
                 return self.window.ui.nodes['output'][pid]  # get first available
 
-    def get_current_plain(self, meta: CtxMeta = None):
+    def get_current_plain(self, meta: Optional[CtxMeta] = None):
         """
         Get current output plain node by meta
 
@@ -196,7 +198,7 @@ class Output:
             for pid in self.window.ui.nodes['output_plain']:
                 return self.window.ui.nodes['output_plain'][pid]
 
-    def get_by_pid(self, pid = None):
+    def get_by_pid(self, pid: Optional[int] = None):
         """
         Get output node by PID
 
@@ -209,7 +211,7 @@ class Output:
             for pid in self.window.ui.nodes['output']:
                 return self.window.ui.nodes['output'][pid]  # get first available
 
-    def get_by_pid_plain(self, pid = None):
+    def get_by_pid_plain(self, pid: Optional[int] = None):
         """
         Get output plain node by PID
 

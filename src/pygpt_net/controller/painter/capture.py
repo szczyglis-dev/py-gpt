@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -45,7 +45,13 @@ class Capture:
         image = QImage(frame.data, width, height, bytes, QImage.Format_RGB888)
         self.window.ui.painter.set_image(image)
 
-    def capture_screen_with_custom_cursor(self, save_path) -> str:
+    def capture_screen_with_custom_cursor(self, save_path: str) -> str:
+        """
+        Capture screen with custom cursor
+
+        :param save_path: Save path
+        :return: Save path
+        """
         cursor_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "cursor.png")
 
         with mss.mss() as sct:
@@ -72,7 +78,11 @@ class Capture:
         img.save(save_path)
         return save_path
 
-    def screenshot(self, attach_cursor: bool = False, silent: bool = False) -> str:
+    def screenshot(
+            self,
+            attach_cursor: bool = False,
+            silent: bool = False
+    ) -> str:
         """
         Make screenshot and append to attachments
 
@@ -152,7 +162,13 @@ class Capture:
             print("Image capture exception", e)
             self.window.core.debug.log(e)
 
-    def attach(self, name: str, path: str, type: str = 'drawing', silent: bool = False):
+    def attach(
+            self,
+            name: str,
+            path: str,
+            type: str = 'drawing',
+            silent: bool = False
+    ):
         """
         Attach image to attachments
 

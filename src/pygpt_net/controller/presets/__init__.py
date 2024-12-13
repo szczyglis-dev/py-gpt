@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import re
+from typing import Optional
 
 from PySide6.QtGui import QTextCursor
 
@@ -57,7 +58,7 @@ class Presets:
         self.window.controller.model.select_current()
         self.window.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
 
-    def get_current(self) -> PresetItem or None:
+    def get_current(self) -> Optional[PresetItem]:
         """
         Get current preset
 
@@ -327,7 +328,7 @@ class Presets:
         else:
             self.window.core.config.set('prompt', None)
 
-    def get_current_functions(self) -> list or None:
+    def get_current_functions(self) -> Optional[list]:
         """
         Get current preset functions
 
@@ -404,7 +405,7 @@ class Presets:
         filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
         return filename
 
-    def duplicate(self, idx: int = None):
+    def duplicate(self, idx: Optional[int] = None):
         """
         Duplicate preset
 
@@ -422,7 +423,7 @@ class Presets:
                     self.editor.edit(idx)
                     self.window.update_status(trans('status.preset.duplicated'))
 
-    def enable(self, idx: int = None):
+    def enable(self, idx: Optional[int] = None):
         """
         Enable preset
 
@@ -436,7 +437,7 @@ class Presets:
                     self.window.core.presets.enable(preset_id)
                     self.refresh()
 
-    def disable(self, idx: int = None):
+    def disable(self, idx: Optional[int] = None):
         """
         Disable preset
 
@@ -486,7 +487,7 @@ class Presets:
         if mode == MODE_ASSISTANT:
             self.window.core.assistants.load()
 
-    def delete(self, idx: int = None, force: bool = False):
+    def delete(self, idx: Optional[int] = None, force: bool = False):
         """
         Delete preset
 
@@ -533,7 +534,7 @@ class Presets:
         self.window.core.presets.restore(mode)
         self.refresh()
 
-    def is_current(self, idx: int = None) -> bool:
+    def is_current(self, idx: Optional[int] = None) -> bool:
         """
         Check if preset is current
 

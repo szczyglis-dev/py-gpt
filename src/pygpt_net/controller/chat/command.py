@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -79,7 +81,7 @@ class Command:
             })
             self.window.dispatch(event)
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

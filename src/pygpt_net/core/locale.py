@@ -6,18 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 10:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
 import configparser
 import io
+from typing import Optional
 
 from pygpt_net.config import Config
 
 
 class Locale:
-    def __init__(self, domain: str = None, config=None):
+    def __init__(
+            self,
+            domain: Optional[str] = None,
+            config: Optional[Config] = None
+    ):
         """
         Locale loader
 
@@ -47,7 +52,7 @@ class Locale:
             self.lang = self.config.get_lang()
         self.load(self.lang)
 
-    def reload(self, domain: str = None):
+    def reload(self, domain: Optional[str] = None):
         """
         Reload translations for domain
 
@@ -70,7 +75,11 @@ class Locale:
         ini.read_string(data.read())
         return dict(ini.items(self.ini_key))
 
-    def load_by_lang(self, lang: str, domain: str = None):
+    def load_by_lang(
+            self,
+            lang: str,
+            domain: Optional[str] = None
+    ):
         """
         Load translation data by language code
 
@@ -96,7 +105,11 @@ class Locale:
         except Exception as e:
             print(e)
 
-    def load(self, lang: str, domain: str = None):
+    def load(
+            self,
+            lang: str,
+            domain: Optional[str] = None
+    ):
         """
         Load translation data
 
@@ -109,7 +122,12 @@ class Locale:
             self.load_by_lang(self.fallback, domain)  # load fallback first
         self.load_by_lang(lang, domain)
 
-    def get(self, key: str, domain: str = None, params: dict = None) -> str:
+    def get(
+            self,
+            key: str,
+            domain: Optional[str] = None,
+            params: Optional[dict] = None
+    ) -> str:
         """
         Return translation for key and domain
 
@@ -133,7 +151,11 @@ class Locale:
         else:
             return key
 
-    def get_base_path(self, domain: str, lang: str) -> str:
+    def get_base_path(
+            self,
+            domain: str,
+            lang: str
+    ) -> str:
         """
         Get base path for locale file
 
@@ -143,7 +165,11 @@ class Locale:
         """
         return os.path.join(self.config.get_app_path(), 'data', 'locale', domain + '.' + lang + '.ini')
 
-    def get_user_path(self, domain: str, lang: str) -> str:
+    def get_user_path(
+            self,
+            domain: str,
+            lang: str
+    ) -> str:
         """
         Get user path for locale file (overwrites base path)
 

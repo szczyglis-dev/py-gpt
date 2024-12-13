@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from PySide6.QtCore import QObject, Slot
 
@@ -234,7 +235,7 @@ class BasePlugin(QObject):
         """
         return
 
-    def trans(self, text: str = None) -> str:
+    def trans(self, text: Optional[str] = None) -> str:
         """
         Translate text using plugin domain
 
@@ -264,7 +265,12 @@ class BasePlugin(QObject):
         """
         self.window.core.debug.info(data)
 
-    def reply(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
+    def reply(
+            self,
+            response: dict,
+            ctx: Optional[CtxItem] = None,
+            extra_data: Optional[dict] = None
+    ):
         """
         Send reply from plugin (command response)
 
@@ -332,8 +338,8 @@ class BasePlugin(QObject):
     def handle_finished(
             self,
             response: dict,
-            ctx: CtxItem = None,
-            extra_data: dict = None
+            ctx: Optional[CtxItem] = None,
+            extra_data: Optional[dict] = None
     ):
         """
         Handle finished response signal
@@ -362,8 +368,8 @@ class BasePlugin(QObject):
     def handle_finished_more(
             self,
             responses: list,
-            ctx: CtxItem = None,
-            extra_data: dict = None
+            ctx: Optional[CtxItem] = None,
+            extra_data: Optional[dict] = None
     ):
         """
         Handle finished response signal
@@ -392,7 +398,7 @@ class BasePlugin(QObject):
     def prepare_reply_ctx(
             self,
             response: dict,
-            ctx: CtxItem = None
+            ctx: Optional[CtxItem] = None
     ) -> dict:
         """
         Prepare reply context

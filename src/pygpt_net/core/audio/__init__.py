@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.08 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import re
+from typing import Union, Optional
+
 from bs4 import UnicodeDammit
 
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
@@ -52,7 +54,7 @@ class Audio:
             print(f"Audio input devices receive error: {e}")
         return devices
 
-    def is_device_compatible(self, device_index) -> bool:
+    def is_device_compatible(self, device_index: int) -> bool:
         """
         Check if device is compatible
 
@@ -112,7 +114,11 @@ class Audio:
             return list(self.providers[type].keys())
         return []
 
-    def get(self, id: str, type: str = "output") -> InputBaseProvider or OutputBaseProvider:
+    def get(
+            self,
+            id: str,
+            type: str = "output"
+    ) -> Optional[Union[InputBaseProvider, OutputBaseProvider]]:
         """
         Get provider instance
 
@@ -124,7 +130,11 @@ class Audio:
             return self.providers[type][id]
         return None
 
-    def register(self, provider: InputBaseProvider or OutputBaseProvider, type: str = "output"):
+    def register(
+            self,
+            provider: Union[InputBaseProvider, OutputBaseProvider],
+            type: str = "output"
+    ):
         """
         Register provider
 

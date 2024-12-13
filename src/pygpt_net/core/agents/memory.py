@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import List
 
 from llama_index.core.llms import ChatMessage, MessageRole
 from pygpt_net.core.bridge.context import BridgeContext
@@ -22,7 +24,10 @@ class Memory:
         """
         self.window = window
 
-    def prepare(self, context: BridgeContext) -> list[ChatMessage]:
+    def prepare(
+            self,
+            context: BridgeContext
+    ) -> List[ChatMessage]:
         """
         Prepare history for agent
 

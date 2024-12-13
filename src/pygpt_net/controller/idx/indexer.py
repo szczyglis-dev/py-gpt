@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+from typing import Any
 
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtWidgets import QApplication
@@ -218,8 +219,8 @@ class Indexer(QObject):
             self,
             path: str,
             idx: str = "base",
-            replace: bool = None,
-            recursive: bool = None
+            replace: bool = False,
+            recursive: bool = False
     ):
         """
         Index all files in path (threaded)
@@ -228,7 +229,6 @@ class Indexer(QObject):
         :param idx: index name
         :param replace: replace index
         :param recursive: recursive indexing
-        :param silent: silent mode
         """
         self.window.update_status(trans('idx.status.indexing'))
         self.worker = IndexWorker()
@@ -247,8 +247,8 @@ class Indexer(QObject):
             self,
             paths: list,
             idx: str = "base",
-            replace: bool = None,
-            recursive: bool = None
+            replace: bool = False,
+            recursive: bool = False
     ):
         """
         Index all files in path (threaded)
@@ -542,7 +542,7 @@ class Indexer(QObject):
         self.window.tools.get("indexer").refresh()
 
     @Slot(object)
-    def handle_error(self, err: any):
+    def handle_error(self, err: Any):
         """
         Handle thread error signal
 

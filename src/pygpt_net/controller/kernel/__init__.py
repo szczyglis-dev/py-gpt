@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import time
+from typing import Any
+
 from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.types import (
@@ -117,7 +119,12 @@ class Kernel(QObject):
 
         event.data["response"] = response  # update response
 
-    def input(self, context: BridgeContext, extra: dict, event: KernelEvent) -> any:
+    def input(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            event: KernelEvent
+    ) -> Any:
         """
         Input message to kernel
 
@@ -135,7 +142,12 @@ class Kernel(QObject):
         ]:
             return self.window.controller.chat.input.send(context, extra)
 
-    def queue(self, context: BridgeContext, extra: dict, event: KernelEvent) -> any:
+    def queue(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            event: KernelEvent
+    ) -> Any:
         """
         Queue messages to kernel
 
@@ -170,7 +182,12 @@ class Kernel(QObject):
         elif event.name == KernelEvent.CALL:
             return self.call(context, extra, event)
 
-    def call(self, context: BridgeContext, extra: dict, event: KernelEvent) -> any:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            event: KernelEvent
+    ) -> Any:
         """
         Execute message
 
@@ -189,7 +206,12 @@ class Kernel(QObject):
         elif event.name == KernelEvent.CALL:
             return self.window.core.bridge.call(context, extra)
 
-    def reply(self, context: BridgeContext, extra: dict, event: KernelEvent) -> any:
+    def reply(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            event: KernelEvent
+    ) -> Any:
         """
         Queue reply message
 
@@ -206,7 +228,12 @@ class Kernel(QObject):
         elif event.name == KernelEvent.REPLY_RETURN:
             return self.input(context, extra, KernelEvent(KernelEvent.INPUT_SYSTEM))
 
-    def output(self, context: BridgeContext, extra: dict, event: KernelEvent) -> any:
+    def output(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            event: KernelEvent
+    ) -> Any:
         """
         Handle output from kernel
 

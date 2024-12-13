@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Tuple
 
 import tiktoken
 
@@ -280,7 +282,10 @@ class Tokens:
 
         return num
 
-    def get_current(self, input_prompt: str) -> (int, int, int, int, int, int, int, int, int):
+    def get_current(
+            self,
+            input_prompt: str
+    ) -> Tuple[int, int, int, int, int, int, int, int, int]:
         """
         Return current number of used tokens
 
@@ -390,7 +395,7 @@ class Tokens:
         return tokens
 
     @staticmethod
-    def get_config(model: str) -> (str, int, int):
+    def get_config(model: str) -> Tuple[str, int, int]:
         """
         Return tokens config values
 

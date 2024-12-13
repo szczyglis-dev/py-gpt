@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
+
 
 class Combo:
     def __init__(self, window=None):
@@ -45,7 +48,7 @@ class Combo:
             parent_id: str,
             key: str,
             option: dict,
-            value: any,
+            value: Any,
             hooks: bool = True
     ):
         """
@@ -88,7 +91,12 @@ class Combo:
         else:
             return self.window.ui.config[parent_id][key].combo.currentData()
 
-    def update_list(self, parent_id: str, key: str, items: dict):
+    def update_list(
+            self,
+            parent_id: str,
+            key: str,
+            items: dict
+    ):
         """
         Update combobox items
 

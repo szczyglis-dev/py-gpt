@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any, Optional
 
 from PySide6.QtCore import QTimer
 
@@ -52,10 +54,10 @@ class Tabs:
             self,
             type: int,
             title: str,
-            icon=None,
-            child=None,
-            data_id=None,
-            tool_id=None,
+            icon: Optional[str] = None,
+            child: Any = None,
+            data_id: Optional[int] = None,
+            tool_id: Optional[str] = None,
     ):
         """
         Add a new tab
@@ -79,7 +81,7 @@ class Tabs:
     def append(
             self,
             type: int,
-            tool_id: str = None,
+            tool_id: Optional[str] = None,
             idx: int = 0,
             column_idx: int = 0
     ):
@@ -195,7 +197,7 @@ class Tabs:
         """
         return self.column_idx
 
-    def get_current_tab(self) -> Tab or None:
+    def get_current_tab(self) -> Optional[Tab]:
         """
         Get current tab
 
@@ -203,7 +205,7 @@ class Tabs:
         """
         return self.window.core.tabs.get_tab_by_index(self.get_current_idx(), self.column_idx)
 
-    def get_current_type(self) -> int or None:
+    def get_current_type(self) -> Optional[int]:
         """
         Get current tab type
 
@@ -214,7 +216,7 @@ class Tabs:
             return None
         return tab.type
 
-    def get_current_pid(self) -> int or None:
+    def get_current_pid(self) -> Optional[int]:
         """
         Get current tab PID
 
@@ -225,7 +227,7 @@ class Tabs:
             return None
         return tab.pid
 
-    def get_type_by_idx(self, idx: int) -> int or None:
+    def get_type_by_idx(self, idx: int) -> Optional[int]:
         """
         Get tab type by index
 
@@ -237,7 +239,7 @@ class Tabs:
             return None
         return tab.type
 
-    def get_first_idx_by_type(self, type: int) -> int or None:
+    def get_first_idx_by_type(self, type: int) -> Optional[int]:
         """
         Get first tab index by type
 
@@ -546,7 +548,12 @@ class Tabs:
         self.column_idx = 0
         self.on_column_changed()
 
-    def move_tab(self, idx: int, column_idx: int, new_column_idx: int):
+    def move_tab(
+            self,
+            idx: int,
+            column_idx: int,
+            new_column_idx: int
+    ):
         """
         Move tab to another column
 

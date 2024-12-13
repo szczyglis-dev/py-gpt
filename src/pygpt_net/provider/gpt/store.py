@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from pygpt_net.item.assistant import AssistantStoreItem
 
@@ -31,7 +32,7 @@ class Store:
         """
         return self.window.core.gpt.get_client()
 
-    def log(self, msg: str, callback: callable = None):
+    def log(self, msg: str, callback: Optional[callable] = None):
         """
         Log message
 
@@ -57,7 +58,7 @@ class Store:
             self,
             path: str,
             purpose: str = "assistants"
-    ) -> str or None:
+    ) -> Optional[str]:
         """
         Upload file to assistant
 
@@ -98,7 +99,7 @@ class Store:
             items: list,
             order: str = "asc",
             limit: int = 100,
-            after: str = None,
+            after: Optional[str] = None,
     ) -> list:
         """
         Get all vector store IDs
@@ -148,7 +149,7 @@ class Store:
                     items.append(id)
         return items
 
-    def remove_files(self, callback: callable = None) -> int:
+    def remove_files(self, callback: Optional[callable] = None) -> int:
         """
         Remove all files
 
@@ -167,7 +168,7 @@ class Store:
                 self.log(msg, callback)
         return num
 
-    def remove_store_files(self, store_id: str, callback: callable = None) -> int:
+    def remove_store_files(self, store_id: str, callback: Optional[callable] = None) -> int:
         """
         Remove all files from store
 
@@ -192,8 +193,8 @@ class Store:
             items: dict,
             order: str = "asc",
             limit: int = 100,
-            after: str = None,
-            callback: callable = None
+            after: Optional[str] = None,
+            callback: Optional[callable] = None
     ) -> dict:
         """
         Import vector stores from API
@@ -318,7 +319,7 @@ class Store:
             items: list,
             order: str = "asc",
             limit: int = 100,
-            after: str = None,
+            after: Optional[str] = None,
     ) -> list:
         """
         Get all vector stores IDs
@@ -358,7 +359,7 @@ class Store:
             items: list,
             order: str = "asc",
             limit: int = 100,
-            after: str = None,
+            after: Optional[str] = None,
     ) -> list:
         """
         Get all vector store files IDs
@@ -426,7 +427,7 @@ class Store:
             num += 1
         return num
 
-    def remove_all(self, callback: callable = None) -> int:
+    def remove_all(self, callback: Optional[callable] = None) -> int:
         """
         Remove all vector stores
 
@@ -495,7 +496,7 @@ class Store:
         if vector_store_file is not None:
             return vector_store_file
 
-    def import_stores_files(self, callback: callable = None) -> int:
+    def import_stores_files(self, callback: Optional[callable] = None) -> int:
         """
         Import all vector stores files
 
@@ -525,7 +526,7 @@ class Store:
             order: str = "asc",
             limit: int = 100,
             after: str = None,
-            callback: callable = None
+            callback: Optional[callable] = None
     ) -> list:
         """
         Import and get all vector store files IDs

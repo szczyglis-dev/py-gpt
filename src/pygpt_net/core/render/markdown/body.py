@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -26,7 +27,12 @@ class Body:
         self.window = window
         self.img_width = 400
 
-    def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_image_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get image HTML
 
@@ -47,7 +53,12 @@ class Body:
                    img_width=self.img_width,
                    num=num_str)
 
-    def get_url_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_url_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get URL HTML
 
@@ -100,7 +111,12 @@ class Body:
             html += "</div> "
         return html
 
-    def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_file_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get file HTML
 
@@ -119,7 +135,11 @@ class Body:
                    path=path,
                    num=num_str)
 
-    def get_action_icons(self, ctx: CtxItem, all: bool = False) -> list:
+    def get_action_icons(
+            self,
+            ctx: CtxItem,
+            all: bool = False
+    ) -> list:
         """
         Get action icons for context item
 
@@ -177,7 +197,7 @@ class Body:
                     )
         return icons
 
-    def get_icon(self, icon: str, title: str = None) -> str:
+    def get_icon(self, icon: str, title: Optional[str] = None) -> str:
         """
         Get icon
 

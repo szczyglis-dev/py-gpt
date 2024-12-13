@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from pygpt_net.core.events import Event, BaseEvent
 from pygpt_net.item.ctx import CtxItem
@@ -155,7 +156,7 @@ class Audio:
         else:
             self.window.ui.menu['audio.control.global'].setChecked(False)
 
-    def read_text(self, text: str, cache_file: str = None):
+    def read_text(self, text: str, cache_file: Optional[str] = None):
         """
         Read text using audio output plugins
 
@@ -218,7 +219,7 @@ class Audio:
         if path:
             self.play_audio(path)
 
-    def play_event(self, text: str, event: BaseEvent = None):
+    def play_event(self, text: str, event: Optional[BaseEvent] = None):
         """
         Play event (read text or play cached audio file)
 

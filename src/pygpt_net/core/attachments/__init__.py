@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from packaging.version import Version
 
@@ -83,7 +84,7 @@ class Attachments:
 
         return list(self.items[mode].keys())
 
-    def get_id_by_idx(self, mode: str, idx: int) -> str or None:
+    def get_id_by_idx(self, mode: str, idx: int) -> Optional[str]:
         """
         Get ID by index in mode
 
@@ -97,7 +98,7 @@ class Attachments:
                 return id
             i += 1
 
-    def get_by_id(self, mode: str, id: str) -> AttachmentItem or None:
+    def get_by_id(self, mode: str, id: str) -> Optional[AttachmentItem]:
         """
         Return attachment by ID in mode
 
@@ -111,7 +112,7 @@ class Attachments:
         if id in self.items[mode]:
             return self.items[mode][id]
 
-    def get_by_idx(self, mode: str, idx: int) -> AttachmentItem or None:
+    def get_by_idx(self, mode: str, idx: int) -> Optional[AttachmentItem]:
         """
         Return item by index in mode
 
@@ -174,8 +175,8 @@ class Attachments:
     def new(
             self,
             mode: str,
-            name: str = None,
-            path: str = None,
+            name: Optional[str] = None,
+            path: Optional[str] = None,
             auto_save: bool = True,
             type: str = AttachmentItem.TYPE_FILE,
     ) -> AttachmentItem:
@@ -280,7 +281,13 @@ class Attachments:
             del self.items[mode][id]
             self.save()
 
-    def delete_all(self, mode: str, remove_local: bool = False, auto: bool = False, force: bool = False):
+    def delete_all(
+            self,
+            mode: str,
+            remove_local: bool = False,
+            auto: bool = False,
+            force: bool = False
+    ):
         """
         Delete all attachments
 

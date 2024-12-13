@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -37,9 +39,9 @@ class Text:
             text: str,
             reply: bool = False,
             internal: bool = False,
-            prev_ctx: CtxItem = None,
-            parent_id: str = None,
-            multimodal_ctx: MultimodalContext = None,
+            prev_ctx: Optional[CtxItem] = None,
+            parent_id: Optional[str] = None,
+            multimodal_ctx: Optional[MultimodalContext] = None,
     ) -> CtxItem:
         """
         Send text message

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -185,7 +185,7 @@ class Presets:
         self.toggle(id)
         self.update_menu()
 
-    def delete_by_idx(self, idx: int, force:bool = False):
+    def delete_by_idx(self, idx: int, force: bool = False):
         """
         Delete preset by index
 

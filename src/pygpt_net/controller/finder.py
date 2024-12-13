@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 
 class Finder:
@@ -86,7 +88,7 @@ class Finder:
         """
         return self.window.ui.nodes['dialog.find.input'].text()
 
-    def set(self, parent):
+    def set(self, parent: Any):
         """
         Set current parent for the finder
 
@@ -94,7 +96,7 @@ class Finder:
         """
         self.parent = parent
 
-    def unset(self, parent):
+    def unset(self, parent: Any):
         """
         Unset parent from the finder
 
@@ -103,7 +105,7 @@ class Finder:
         if self.parent == parent:
             self.parent = None
 
-    def open(self, parent):
+    def open(self, parent: Any):
         """
         Open finder dialog
 

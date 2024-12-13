@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -45,7 +45,8 @@ class Actions:
         :param path: path to file
         :return: True if file has preview
         """
-        return self.window.core.filesystem.types.is_image(path) or self.window.core.filesystem.types.is_video(path)
+        return (self.window.core.filesystem.types.is_image(path)
+                or self.window.core.filesystem.types.is_video(path))
 
     def get_preview(self, parent: QWidget, path: str) -> list:
         """
@@ -56,7 +57,8 @@ class Actions:
         :return: list of context menu actions
         """
         actions = []
-        if self.window.core.filesystem.types.is_video(path) or self.window.core.filesystem.types.is_audio(path):
+        if (self.window.core.filesystem.types.is_video(path)
+                or self.window.core.filesystem.types.is_audio(path)):
             action = QAction(
                 QIcon(":/icons/video.svg"),
                 trans('action.video.play'),

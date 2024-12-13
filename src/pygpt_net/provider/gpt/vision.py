@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import base64
 import os
 import re
+from typing import Optional, Union
 
 from pygpt_net.core.types import (
     MODE_VISION,
@@ -77,8 +78,8 @@ class Vision:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
-            history: list = None,
-            attachments: dict = None,
+            history: Optional[list] = None,
+            attachments: Optional[dict] = None,
     ) -> list:
         """
         Build chat messages list
@@ -160,8 +161,8 @@ class Vision:
 
     def build_content(
             self,
-            content: str or list,
-            attachments: dict = None,
+            content: Union[str, list],
+            attachments: Optional[dict] = None,
     ) -> list:
         """
         Build vision content

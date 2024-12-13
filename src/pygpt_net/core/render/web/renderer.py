@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
 from datetime import datetime
+from typing import Optional
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -60,7 +61,11 @@ class Renderer(BaseRenderer):
         node.set_meta(meta)
         self.reset(meta)
 
-    def on_page_loaded(self, meta: CtxMeta = None, tab: Tab = None):
+    def on_page_loaded(
+            self,
+            meta: Optional[CtxMeta] = None,
+            tab: Optional[Tab] = None
+    ):
         """
         On page loaded callback from WebEngine widget
 
@@ -122,7 +127,12 @@ class Renderer(BaseRenderer):
         else:
             self.clear_chunks(pid)
 
-    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render begin
 
@@ -135,7 +145,12 @@ class Renderer(BaseRenderer):
         self.reset_names(meta)
         self.tool_output_end()  # reset tools
 
-    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end
 
@@ -150,7 +165,12 @@ class Renderer(BaseRenderer):
             self.append_context_item(meta, self.pids[pid].item)
             self.pids[pid].item = None
 
-    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end extra
         
@@ -160,7 +180,11 @@ class Renderer(BaseRenderer):
         """
         self.to_end(ctx)
 
-    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream begin
         
@@ -169,7 +193,11 @@ class Renderer(BaseRenderer):
         """
         pass
 
-    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream end
         
@@ -282,8 +310,8 @@ class Renderer(BaseRenderer):
             meta: CtxMeta,
             ctx: CtxItem,
             flush: bool = True,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ):
         """
         Append text output to output
@@ -399,8 +427,8 @@ class Renderer(BaseRenderer):
             ctx: CtxItem,
             html: str,
             type: int = 1,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ):
         """
         Append and format raw text to output
@@ -453,8 +481,8 @@ class Renderer(BaseRenderer):
             self,
             meta: CtxMeta,
             ctx: CtxItem,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ):
         """
         Append context item to output
@@ -578,7 +606,7 @@ class Renderer(BaseRenderer):
             self,
             ctx: CtxItem,
             text: str,
-            type: int = None
+            type: Optional[int] = None
     ) -> str:
         """
         Append timestamp to text
@@ -602,7 +630,7 @@ class Renderer(BaseRenderer):
 
     def reset(
             self,
-            meta: CtxMeta = None
+            meta: Optional[CtxMeta] = None
     ):
         """
         Reset
@@ -640,7 +668,7 @@ class Renderer(BaseRenderer):
         """Clear input"""
         self.get_input_node().clear()
 
-    def clear_output(self, meta: CtxMeta = None):
+    def clear_output(self, meta: Optional[CtxMeta] = None):
         """
         Clear output
 
@@ -715,8 +743,8 @@ class Renderer(BaseRenderer):
             ctx: CtxItem,
             html: str,
             type: int = 1,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Prepare node HTML
@@ -752,8 +780,8 @@ class Renderer(BaseRenderer):
             pid,
             ctx: CtxItem,
             html: str,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Prepare input node
@@ -812,8 +840,8 @@ class Renderer(BaseRenderer):
             meta: CtxMeta,
             ctx: CtxItem,
             html: str,
-            prev_ctx: CtxItem = None,
-            next_ctx: CtxItem = None
+            prev_ctx: Optional[CtxItem] = None,
+            next_ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Prepare output node
@@ -973,7 +1001,7 @@ class Renderer(BaseRenderer):
         self.pids[pid].document = html
         self.get_output_node_by_pid(pid).setHtml(html, baseUrl="file://")
 
-    def get_output_node(self, meta: CtxMeta = None):
+    def get_output_node(self, meta: Optional[CtxMeta] = None):
         """
         Get output node
 
@@ -1256,7 +1284,12 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_debug(self, ctx: CtxItem, pid, title: str = None) -> str:
+    def append_debug(
+            self,
+            ctx: CtxItem,
+            pid,
+            title: Optional[str] = None
+    ) -> str:
         """
         Append debug info
 

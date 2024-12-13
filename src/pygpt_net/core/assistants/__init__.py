@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
@@ -58,7 +60,7 @@ class Assistants:
         assistants = self.get_all()
         return list(assistants.keys())[idx]
 
-    def get_by_id(self, id: str) -> AssistantItem | None:
+    def get_by_id(self, id: str) -> Optional[AssistantItem]:
         """
         Return assistant by ID
 
@@ -143,7 +145,7 @@ class Assistants:
             del assistant.attachments[old_id]
             self.save()
 
-    def get_default_assistant(self) -> str | None:
+    def get_default_assistant(self) -> Optional[str]:
         """
         Return default assistant ID or None
 

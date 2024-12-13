@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -87,7 +87,7 @@ class Mode:
             self.window.controller.ctx.common.update_label_by_current()
         self.locked = False
 
-    def select_on_list(self, mode):
+    def select_on_list(self, mode: str):
         """
         Select mode on the list
 
@@ -142,7 +142,7 @@ class Mode:
                                                        hooks=False)  # disable hooks to prevent circular update
         '''
 
-    def hook_global_temperature(self, key, value, caller, *args, **kwargs):
+    def hook_global_temperature(self, key: str, value, caller, *args, **kwargs):
         """
         Hook: on update current temperature global field
         """
@@ -158,7 +158,12 @@ class Mode:
                 preset.temperature = temperature
                 self.window.core.presets.save(preset_id)
 
-    def switch_inline(self, mode: str, ctx: CtxItem, prompt: str) -> str:
+    def switch_inline(
+            self,
+            mode: str,
+            ctx: CtxItem,
+            prompt: str
+    ) -> str:
         """
         Switch inline mode
 

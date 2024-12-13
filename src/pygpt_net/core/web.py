@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
 import os
 import uuid
+from typing import Optional
 
 import requests
 
@@ -65,7 +67,7 @@ class Web:
             return list(self.providers[type].keys())
         return []
 
-    def get(self, id: str, type: str = "search_engine") -> BaseProvider or None:
+    def get(self, id: str, type: str = "search_engine") -> Optional[BaseProvider]:
         """
         Get provider instance
 
@@ -89,7 +91,7 @@ class Web:
             if t in self.providers:
                 self.providers[t][id] = provider
 
-    def get_main_image(self, url: str) -> str or None:
+    def get_main_image(self, url: str) -> Optional[str]:
         """
         Get main image from URL
 

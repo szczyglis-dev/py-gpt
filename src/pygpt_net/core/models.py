@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from packaging.version import Version
 
@@ -258,7 +259,7 @@ class Models:
         items = self.get_by_mode(mode)
         return model in items
 
-    def get_default(self, mode: str) -> str | None:
+    def get_default(self, mode: str) -> Optional[str]:
         """
         Return default model for mode
 
@@ -295,7 +296,7 @@ class Models:
             return self.items[model].ctx
         return 4096
 
-    def restore_default(self, model: str = None):
+    def restore_default(self, model: Optional[str] = None):
         """Restore default models"""
         # restore all models
         if model is None:

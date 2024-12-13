@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from PySide6.QtWidgets import QApplication
 
@@ -64,7 +65,7 @@ class Files:
                 num += 1  # increment uploaded files counter if file is not uploaded yet
         return num
 
-    def import_files(self, store_id: str = None):
+    def import_files(self, store_id: Optional[str] = None):
         """
         Import assistant files from API
 
@@ -334,7 +335,11 @@ class Files:
 
         return num
 
-    def append(self, assistant: AssistantItem, attachment: AttachmentItem):
+    def append(
+            self,
+            assistant: AssistantItem,
+            attachment: AttachmentItem
+    ):
         """
         Append attachment to assistant
 
@@ -375,7 +380,7 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_received_ids(self, ids: list, ext: str = None) -> list:
+    def handle_received_ids(self, ids: list, ext: Optional[str] = None) -> list:
         """
         Handle (download) received message files
 

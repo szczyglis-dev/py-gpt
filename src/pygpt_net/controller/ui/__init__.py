@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from PySide6.QtGui import QColor
 
@@ -145,7 +147,7 @@ class UI:
             model_str = str(model)
         self.window.ui.nodes['chat.model'].setText(model_str)
 
-    def update_ctx_label(self, label: str = None):
+    def update_ctx_label(self, label: Optional[str] = None):
         """
         Update ctx label
 

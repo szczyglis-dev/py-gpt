@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from llama_index.core.tools import FunctionTool
@@ -67,7 +67,7 @@ class Evaluation:
         - Do not repeat the suggested improvements if they have already been correctly included in the agent's response.
         """
 
-    def get_last_user_input(self, history) -> str:
+    def get_last_user_input(self, history: list) -> str:
         """
         Get the last user input from the history
 
@@ -84,7 +84,7 @@ class Evaluation:
                     input = ctx.input
         return input
 
-    def get_main_task(self, history) -> str:
+    def get_main_task(self, history: list) -> str:
         """
         Get the main task from the history
 
@@ -97,7 +97,7 @@ class Evaluation:
             task = first.input
         return task
 
-    def get_final_response(self, history) -> str:
+    def get_final_response(self, history: list) -> str:
         """
         Get the final response from the agent
 
@@ -111,7 +111,7 @@ class Evaluation:
                     output = ctx.output
         return output
 
-    def get_prompt(self, history) -> str:
+    def get_prompt(self, history: list) -> str:
         """
         Return the evaluation prompt
 

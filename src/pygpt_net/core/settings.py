@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import os
 import shutil
+from typing import Optional
 
 from pygpt_net.core.events import RenderEvent
 
@@ -37,7 +38,7 @@ class Settings:
         for id in self.ids:
             self.active[id] = False
 
-    def get_options(self, id: str = None) -> dict:
+    def get_options(self, id: Optional[str] = None) -> dict:
         """
         Return options for given id
 
@@ -51,7 +52,7 @@ class Settings:
         if id in self.options:
             return self.options[id]
 
-    def get_sections(self, id: str = None) -> dict:
+    def get_sections(self, id: Optional[str] = None) -> dict:
         """
         Return sections for given id
 
@@ -130,7 +131,11 @@ class Settings:
             self.load_editor(file, path)
             self.window.update_status("Restored from app defaults: {}".format(basename))
 
-    def load_editor(self, file: str = None, path: str = None):
+    def load_editor(
+            self,
+            file: Optional[str] = None,
+            path: Optional[str] = None
+    ):
         """
         Load file to editor
 

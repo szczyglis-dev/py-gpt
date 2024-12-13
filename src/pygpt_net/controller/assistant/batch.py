@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
+from typing import Optional, Any
 
 from PySide6.QtWidgets import QApplication, QFileDialog
 
@@ -95,7 +96,11 @@ class Batch:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
 
-    def import_store_files(self, store_id: str, force: bool = False):
+    def import_store_files(
+            self,
+            store_id: str,
+            force: bool = False
+    ):
         """
         Sync files with API (store)
 
@@ -299,7 +304,7 @@ class Batch:
         self.window.update_status("OK. Imported assistants: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
-    def handle_imported_assistants_failed(self, error: any):
+    def handle_imported_assistants_failed(self, error: Any):
         """
         Handle error on importing assistants
 
@@ -322,7 +327,7 @@ class Batch:
         self.window.ui.dialogs.alert(trans("status.finished"))
         self.window.update_status("OK. All stores refreshed.")
 
-    def handle_refreshed_stores_failed(self, error: any):
+    def handle_refreshed_stores_failed(self, error: Any):
         """
         Handle error on refreshing stores
 
@@ -347,7 +352,7 @@ class Batch:
         # alert on files import after stores
         # self.window.ui.dialogs.alert(trans("status.finished"))
 
-    def handle_imported_stores_failed(self, error: any):
+    def handle_imported_stores_failed(self, error: Any):
         """
         Handle error on importing stores
 
@@ -375,7 +380,7 @@ class Batch:
         self.window.update_status("OK. Removed stores: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
-    def handle_truncated_stores_failed(self, error: any):
+    def handle_truncated_stores_failed(self, error: Any):
         """
         Handle error on truncating stores
 
@@ -398,7 +403,7 @@ class Batch:
         self.window.update_status("OK. Imported files: " + str(num) + ".")
         self.window.ui.dialogs.alert(trans("status.finished"))
 
-    def handle_imported_files_failed(self, error: any):
+    def handle_imported_files_failed(self, error: Any):
         """
         Handle error on importing files
 
@@ -423,7 +428,7 @@ class Batch:
         self.window.controller.assistant.files.update()
         self.window.ui.dialogs.alert(trans("status.finished"))
 
-    def handle_truncated_files_failed(self, error: any):
+    def handle_truncated_files_failed(self, error: Any):
         """
         Handle error on truncated files
 
@@ -536,7 +541,7 @@ class Batch:
         self.window.update_status("OK. Uploaded files: " + str(num) + ".")
         self.window.ui.dialogs.alert("OK. Uploaded files: " + str(num) + ".")
 
-    def handle_uploaded_files_failed(self, error: any):
+    def handle_uploaded_files_failed(self, error: Any):
         """
         Handle error on uploading files
 

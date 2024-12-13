@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
 import time
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -36,7 +37,7 @@ class Chat:
     def send(
             self,
             context: BridgeContext,
-            extra: dict = None
+            extra: Optional[dict] = None
     ):
         """
         Call OpenAI API for chat
@@ -151,11 +152,11 @@ class Chat:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
-            history: list = None,
-            attachments: dict = None,
-            ai_name: str = None,
-            user_name: str = None,
-            multimodal_ctx: MultimodalContext = None,
+            history: Optional[list] = None,
+            attachments: Optional[dict] = None,
+            ai_name: Optional[str] = None,
+            user_name: Optional[str] = None,
+            multimodal_ctx: Optional[MultimodalContext] = None,
     ) -> list:
         """
         Build list of chat messages

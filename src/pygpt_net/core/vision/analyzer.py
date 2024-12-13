@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
 import os
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -24,7 +25,12 @@ class Analyzer:
         """
         self.window = window
 
-    def send(self, ctx: CtxItem, prompt: str, files: dict) -> str:
+    def send(
+            self,
+            ctx: CtxItem,
+            prompt: str,
+            files: dict
+    ) -> str:
         """
         Send text from user input (called from UI)
 
@@ -56,7 +62,11 @@ class Analyzer:
         self.window.controller.attachment.unlock()
         return output
 
-    def from_screenshot(self, ctx: CtxItem, prompt: str) -> str:
+    def from_screenshot(
+            self,
+            ctx: CtxItem,
+            prompt: str
+    ) -> str:
         """
         Image analysis from screenshot
 
@@ -75,7 +85,11 @@ class Analyzer:
         }
         return self.send(ctx, prompt, files)
 
-    def from_camera(self, ctx: CtxItem, prompt: str) -> str:
+    def from_camera(
+            self,
+            ctx: CtxItem,
+            prompt: str
+    ) -> str:
         """
         Image analysis from camera
 
@@ -94,7 +108,12 @@ class Analyzer:
         else:
             return "FAILED: There was a problem with capturing the image."
 
-    def from_path(self, ctx: CtxItem, prompt: str, path: str) -> str:
+    def from_path(
+            self,
+            ctx: CtxItem,
+            prompt: str,
+            path: str
+    ) -> str:
         """
         Image analysis from path
 
@@ -116,7 +135,11 @@ class Analyzer:
         }
         return self.send(ctx, prompt, files)
 
-    def from_current_attachments(self, ctx: CtxItem, prompt: str) -> str:
+    def from_current_attachments(
+            self,
+            ctx: CtxItem,
+            prompt: str
+    ) -> str:
         """
         Image analysis from current attachments
 

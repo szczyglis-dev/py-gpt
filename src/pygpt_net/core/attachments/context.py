@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.30 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,6 +15,7 @@ import shutil
 import uuid
 
 from shutil import copyfile
+from typing import Optional
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
@@ -85,7 +86,12 @@ class Context:
         `{query}`
         """
 
-    def get_context(self, mode: str, ctx: CtxItem, history: list) -> str:
+    def get_context(
+            self,
+            mode: str,
+            ctx: CtxItem,
+            history: list
+    ) -> str:
         """
         Get context for mode
 
@@ -103,7 +109,11 @@ class Context:
             content = self.summary_context(ctx, history)
         return content
 
-    def get_context_text(self, ctx: CtxItem, filename: bool = False) -> str:
+    def get_context_text(
+            self,
+            ctx: CtxItem,
+            filename: bool = False
+    ) -> str:
         """
         Get raw text context for meta
 
@@ -152,7 +162,11 @@ class Context:
         self.last_used_context = context
         return context
 
-    def query_context(self, ctx: CtxItem, history: list) -> str:
+    def query_context(
+            self,
+            ctx: CtxItem,
+            history: list
+    ) -> str:
         """
         Query the index for context
 
@@ -212,7 +226,11 @@ class Context:
 
         return result
 
-    def summary_context(self, ctx: CtxItem, history: list) -> str:
+    def summary_context(
+            self,
+            ctx: CtxItem,
+            history: list
+    ) -> str:
         """
         Get summary of the context
 
@@ -291,7 +309,7 @@ class Context:
             attachment: AttachmentItem,
             prompt: str,
             auto_index: bool = False,
-            real_path: str = None
+            real_path: Optional[str] = None
     ) -> dict:
         """
         Upload attachment for context
@@ -376,7 +394,12 @@ class Context:
 
         return result
 
-    def read_content(self, attachment: AttachmentItem, path: str, prompt: str) -> str:
+    def read_content(
+            self,
+            attachment: AttachmentItem,
+            path: str,
+            prompt: str
+    ) -> str:
         """
         Read content from attachment
 
@@ -401,7 +424,11 @@ class Context:
 
         return content
 
-    def store_content(self, attachment: AttachmentItem, dir: str) -> str:
+    def store_content(
+            self,
+            attachment: AttachmentItem,
+            dir: str
+    ) -> str:
         """
         Prepare content for attachment
 
@@ -433,7 +460,13 @@ class Context:
                 f.write(content)
         return path
 
-    def index_attachment(self, type: str, source: str, idx_path: str, documents: list = None) -> list:
+    def index_attachment(
+            self,
+            type: str,
+            source: str,
+            idx_path: str,
+            documents: Optional[list] = None
+    ) -> list:
         """
         Index attachment
 
@@ -488,7 +521,11 @@ class Context:
             model_item = self.window.core.models.get(model)
         return model, model_item
 
-    def duplicate(self, from_meta_id: int, to_meta_id: int) -> bool:
+    def duplicate(
+            self,
+            from_meta_id: int,
+            to_meta_id: int
+    ) -> bool:
         """
         Duplicate attachments from one meta to another
 
@@ -524,7 +561,12 @@ class Context:
         """
         return len(meta.additional_ctx)
 
-    def delete(self, meta: CtxMeta, item: dict, delete_files: bool = False):
+    def delete(
+            self,
+            meta: CtxMeta,
+            item: dict,
+            delete_files: bool = False
+    ):
         """
         Delete attachment
 
@@ -557,7 +599,11 @@ class Context:
         if meta is not None:
             self.delete_index(meta)
 
-    def reset_by_meta(self, meta: CtxMeta, delete_files: bool = False):
+    def reset_by_meta(
+            self,
+            meta: CtxMeta,
+            delete_files: bool = False
+    ):
         """
         Delete all attachments for meta
 
@@ -569,7 +615,11 @@ class Context:
         if delete_files:
             self.delete_index(meta)
 
-    def reset_by_meta_id(self, meta_id: int, delete_files: bool = False):
+    def reset_by_meta_id(
+            self,
+            meta_id: int,
+            delete_files: bool = False
+    ):
         """
         Delete all attachments for meta by id
 
@@ -580,7 +630,11 @@ class Context:
         if meta is not None:
             self.reset_by_meta(meta, delete_files)
 
-    def clear(self, meta: CtxMeta, delete_files: bool = False):
+    def clear(
+            self,
+            meta: CtxMeta,
+            delete_files: bool = False
+    ):
         """
         Clear all attachments by ctx meta
 

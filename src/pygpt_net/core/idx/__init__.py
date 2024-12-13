@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
+from typing import Optional, Tuple
+
 from packaging.version import Version
 
 from pygpt_net.item.index import IndexItem
@@ -98,7 +100,11 @@ class Idx:
         """
         self.storage.store(idx)
 
-    def remove_index(self, idx: str = "base", truncate: bool = False) -> bool:
+    def remove_index(
+            self,
+            idx: str = "base",
+            truncate: bool = False
+    ) -> bool:
         """
         Truncate index
 
@@ -125,10 +131,10 @@ class Idx:
     def index_files(
             self,
             idx: str = "base",
-            path: str = None,
-            replace: bool = None,
-            recursive: bool = None,
-    ) -> (dict, list):
+            path: Optional[str] = None,
+            replace: Optional[bool] = None,
+            recursive: Optional[bool] = None,
+    ) -> Tuple[dict, list]:
         """
         Index file or directory of files
 
@@ -165,7 +171,7 @@ class Idx:
             idx: str = "base",
             id: int = 0,
             from_ts: int = 0
-    ) -> (int, list):
+    ) -> Tuple[int, list]:
         """
         Index records from db by meta id
 
@@ -199,7 +205,7 @@ class Idx:
             self,
             idx: str = "base",
             from_ts: int = 0
-    ) -> (int, list):
+    ) -> Tuple[int, list]:
         """
         Index records from db by meta id
 
@@ -230,10 +236,10 @@ class Idx:
     def index_urls(
             self,
             idx: str = "base",
-            urls: list = None,
+            urls: Optional[list] = None,
             type: str = "webpage",
-            extra_args: dict = None
-    ) -> (dict, list):
+            extra_args: Optional[dict] = None
+    ) -> Tuple[int, list]:
         """
         Index URLs
 
@@ -269,10 +275,10 @@ class Idx:
             self,
             idx: str = "base",
             type: str = "webpage",
-            params: dict = None,
-            config: dict = None,
-            replace: bool = None,
-    ) -> (dict, list):
+            params: Optional[dict] = None,
+            config: Optional[dict] = None,
+            replace: Optional[bool] = None,
+    ) -> Tuple[int, list]:
         """
         Index URLs
 
@@ -310,7 +316,7 @@ class Idx:
             self.log("Error: " + str(errors))
         return n, errors
 
-    def get_idx_data(self, idx: str = None) -> dict:
+    def get_idx_data(self, idx: Optional[str] = None) -> dict:
         """
         Get indexed files data
 
@@ -329,7 +335,7 @@ class Idx:
                     indexes[idx] = self.items[store_id][idx].items
         return indexes
 
-    def get_by_idx(self, idx: int) -> str:
+    def get_by_idx(self, idx: int) -> Optional[str]:
         """
         Return idx by list index
 
@@ -341,7 +347,7 @@ class Idx:
             if idx < len(items):
                 return items[idx]['id']
 
-    def get_idx_by_name(self, name: str) -> int:
+    def get_idx_by_name(self, name: str) -> Optional[int]:
         """
         Return idx on list by name
 
@@ -354,7 +360,7 @@ class Idx:
                 if item['id'] == name:
                     return idx
 
-    def get_default_idx(self) -> str:
+    def get_default_idx(self) -> Optional[str]:
         """
         Return default idx
 
@@ -375,7 +381,7 @@ class Idx:
             return idx in self.items[store_id]
         return False
 
-    def get(self, idx: str) -> IndexItem:
+    def get(self, idx: str) -> Optional[IndexItem]:
         """
         Return index data from current storage
 

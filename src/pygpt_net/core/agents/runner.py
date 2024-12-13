@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
@@ -408,7 +410,12 @@ class Runner:
 
         return True
 
-    def copy_step_results(self, step_ctx: CtxItem, ctx: CtxItem, tools_output: list):
+    def copy_step_results(
+            self,
+            step_ctx: CtxItem,
+            ctx: CtxItem,
+            tools_output: list
+    ):
         """
         Copy step results from base context item
 
@@ -433,7 +440,12 @@ class Runner:
             if k != "agent_input":
                 del ctx.extra[k]
 
-    def run_once(self, input: str, tools: list, model_name) -> str:
+    def run_once(
+            self,
+            input: str,
+            tools: list,
+            model_name: Optional[str] = None
+    ) -> str:
         """
         Run agent once (quick call to ReAct agent)
 
@@ -460,7 +472,12 @@ class Runner:
         agent = provider.get_agent(self.window, kwargs)
         return agent.chat(self.prepare_input(input))
 
-    def run_next(self, context: BridgeContext, extra: dict, signals: BridgeSignals) -> bool:
+    def run_next(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            signals: BridgeSignals
+    ) -> bool:
         """
         Evaluate a response and run next step
 
@@ -484,7 +501,13 @@ class Runner:
         self.run_once(prompt, tools, ctx.model)  # tool will update evaluation
         return self.handle_evaluation(ctx, self.next_instruction, self.prev_score, signals)
 
-    def handle_evaluation(self, ctx: CtxItem, instruction: str, score: int, signals: BridgeSignals):
+    def handle_evaluation(
+            self,
+            ctx: CtxItem,
+            instruction: str,
+            score: int,
+            signals: BridgeSignals
+    ):
         """
         Handle evaluation
 
@@ -548,7 +571,10 @@ class Runner:
         context.model = self.window.core.models.get(self.window.core.config.get('model'))
         return self.call(context, extra, signals)
 
-    def add_ctx(self, from_ctx: CtxItem) -> CtxItem:
+    def add_ctx(
+            self,
+            from_ctx: CtxItem
+    ) -> CtxItem:
         """
         Add context item
 
@@ -568,7 +594,13 @@ class Runner:
         ctx.live = True
         return ctx
 
-    def send_response(self, ctx: CtxItem, signals: BridgeSignals, event_name: str, **kwargs):
+    def send_response(
+            self,
+            ctx: CtxItem,
+            signals: BridgeSignals,
+            event_name: str,
+            **kwargs
+    ):
         """
         Send async response to chat window (BridgeSignals)
 
@@ -585,7 +617,11 @@ class Runner:
         })
         signals.response.emit(event)
 
-    def set_busy(self, signals: BridgeSignals, **kwargs):
+    def set_busy(
+            self,
+            signals: BridgeSignals,
+            **kwargs
+    ):
         """
         Set busy status
 
@@ -600,7 +636,11 @@ class Runner:
         data.update(kwargs)
         signals.response.emit(event)
 
-    def set_idle(self, signals: BridgeSignals, **kwargs):
+    def set_idle(
+            self,
+            signals: BridgeSignals,
+            **kwargs
+    ):
         """
         Set idle status
 
@@ -614,7 +654,11 @@ class Runner:
         data.update(kwargs)
         signals.response.emit(event)
 
-    def set_status(self, signals: BridgeSignals, msg: str):
+    def set_status(
+            self,
+            signals: BridgeSignals,
+            msg: str
+    ):
         """
         Set busy status
 
@@ -647,7 +691,7 @@ class Runner:
         """
         return self.window.controller.kernel.stopped()
 
-    def get_error(self) -> Exception or None:
+    def get_error(self) -> Optional[Exception]:
         """
         Get last error
 

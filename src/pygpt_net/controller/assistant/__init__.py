@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
+from typing import Optional
 import webbrowser
 
 from pygpt_net.item.assistant import AssistantItem
@@ -22,7 +23,7 @@ from .threads import Threads
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.utils import trans
 from pygpt_net.item.ctx import CtxItem
-from ...core.events import RenderEvent
+from pygpt_net.core.events import RenderEvent
 
 
 class Assistant:
@@ -244,7 +245,7 @@ class Assistant:
         self.window.update_status(trans('status.assistant.cleared'))
         self.update()
 
-    def delete(self, idx: int = None, force: bool = False):
+    def delete(self, idx: Optional[int] = None, force: bool = False):
         """
         Delete assistant
 

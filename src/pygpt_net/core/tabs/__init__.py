@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import uuid
 from datetime import datetime
+from typing import Optional, Any
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
@@ -52,7 +53,11 @@ class Tabs:
             Tab.TAB_TOOL: "output.tab.tool",
         }
 
-    def get_tab_by_index(self, idx: int, column_idx: int = 0) -> Tab or None:
+    def get_tab_by_index(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ) -> Optional[Tab]:
         """
         Get tab by index
 
@@ -65,7 +70,7 @@ class Tabs:
             return None
         return tab.getOwner()
 
-    def get_tab_by_pid(self, pid: int) -> Tab or None:
+    def get_tab_by_pid(self, pid: int) -> Optional[Tab]:
         """
         Get tab by PID
 
@@ -76,7 +81,7 @@ class Tabs:
             return self.pids[pid]
         return None
 
-    def get_first_tab_by_type(self, type: int) -> Tab or None:
+    def get_first_tab_by_type(self, type: int) -> Optional[Tab]:
         """
         Get first tab by type
 
@@ -89,7 +94,7 @@ class Tabs:
                 return tab
         return None
 
-    def get_active_pid(self) -> int or None:
+    def get_active_pid(self) -> Optional[int]:
         """
         Get PID by active tab
 
@@ -106,10 +111,10 @@ class Tabs:
             self,
             type: int,
             title: str,
-            icon=None,
-            child=None,
-            data_id=None,
-            tool_id=None
+            icon: Optional[str] = None,
+            child: Any = None,
+            data_id: Optional[int] = None,
+            tool_id: Optional[str] = None
     ) -> Tab:
         """
         Add tab
@@ -247,7 +252,11 @@ class Tabs:
         self.pids[tab.pid] = tab
         self.last_pid = self.get_max_pid()
 
-    def remove_tab_by_idx(self, idx: int, column_idx: int = 0):
+    def remove_tab_by_idx(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Remove tab by index
 
@@ -279,7 +288,11 @@ class Tabs:
             self.remove(pid)  # delete from PIDs and UI
         self.window.core.ctx.output.clear()  # clear mapping
 
-    def remove_all_by_type(self, type: int, column_idx: int = 0):
+    def remove_all_by_type(
+            self,
+            type: int,
+            column_idx: int = 0
+    ):
         """
         Remove all tabs by type
 
@@ -385,7 +398,11 @@ class Tabs:
                 return order
         return -1  # Return -1 if the tab with the specified index and type is not found
 
-    def get_min_idx_by_type(self, type: int, column_idx: int = 0) -> int:
+    def get_min_idx_by_type(
+            self,
+            type: int,
+            column_idx: int = 0
+    ) -> int:
         """
         Get min index by type
 
@@ -559,7 +576,7 @@ class Tabs:
         tab.column_idx = column_idx
         self.update()
 
-    def get_first_by_type(self, type: int) -> Tab or None:
+    def get_first_by_type(self, type: int) -> Optional[Tab]:
         """
         Get first tab by type
 
@@ -725,7 +742,7 @@ class Tabs:
             self,
             idx: int,
             title: str,
-            tooltip: str = None
+            tooltip: Optional[str] = None
     ):
         """
         Update tab title

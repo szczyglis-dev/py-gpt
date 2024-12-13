@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.09 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
 import os
 from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 
@@ -44,7 +45,7 @@ class Profile:
             self.load()
             self.update_path()
 
-    def set_base_workdir(self, workdir):
+    def set_base_workdir(self, workdir: str):
         """
         Set base workdir
 
@@ -188,7 +189,7 @@ class Profile:
         """
         return self.current
 
-    def get(self, uuid: str) -> dict or None:
+    def get(self, uuid: str) -> Optional[dict]:
         """
         Get profile by uuid
 

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from pygpt_net.utils import trans
 
@@ -387,7 +388,7 @@ class Editor:
             i += 1
         return model_idx
 
-    def get_model_by_tab_idx(self, idx: int) -> str or None:
+    def get_model_by_tab_idx(self, idx: int) -> Optional[str]:
         """
         Get model key by list index
 

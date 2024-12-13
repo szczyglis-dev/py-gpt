@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import os
+
+from typing import Optional
 
 
 class Editor:
@@ -63,7 +65,7 @@ class Editor:
         """
         return self.window.ui.dialog[dialog_id].is_changed()
 
-    def load(self, dialog_id: str, file: str = None):
+    def load(self, dialog_id: str, file: Optional[str] = None):
         """
         Load file to editor
 
@@ -87,7 +89,7 @@ class Editor:
             self.window.core.debug.log(e)
             self.window.update_status("Error loading file: {}".format(e))
 
-    def save(self, dialog_id: str, path: str = None):
+    def save(self, dialog_id: str, path: Optional[str] = None):
         """
         Save file to disk
 

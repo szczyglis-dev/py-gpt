@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.item.model import ModelItem
@@ -94,7 +96,12 @@ class Model:
         })
         self.window.dispatch(event)
 
-    def select_on_list(self, model):
+    def select_on_list(self, model: str):
+        """
+        Select model on list
+
+        :param model: model ID
+        """
         self.window.ui.nodes["prompt.model"].set_value(model)
 
     def select_current(self):
@@ -122,7 +129,11 @@ class Model:
                 # or set default model
                 self.window.core.config.set('model', self.window.core.models.get_default(mode))
 
-    def switch_inline(self, mode: str, model: ModelItem = None) -> ModelItem:
+    def switch_inline(
+            self,
+            mode: str,
+            model: Optional[ModelItem] = None
+    ) -> ModelItem:
         """
         Switch inline model instance (force change model if needed)
 

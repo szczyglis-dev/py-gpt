@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 
 from pathlib import PurePath
+from typing import Tuple, Any, Union
 from uuid import uuid4
 
 from PySide6.QtCore import QUrl
@@ -120,7 +121,7 @@ class Filesystem:
                 result.append(self.make_local(path))
         return result
 
-    def get_url(self, url) -> QUrl:
+    def get_url(self, url: str) -> QUrl:
         """
         Make current OS-specific URL to open file or directory
 
@@ -134,7 +135,7 @@ class Filesystem:
         else:
             return QUrl.fromLocalFile(url)
 
-    def get_path(self, path) -> str:
+    def get_path(self, path: str) -> str:
         """
         Prepare current OS-specific path from given path
 
@@ -143,10 +144,10 @@ class Filesystem:
         """
         parts = PurePath(path).parts
         if len(parts) > 1:
-            return os.path.join(*parts)  # rebuild OS directory separators
+            return str(os.path.join(*parts))  # rebuild OS directory separators
         return path
 
-    def to_workdir(self, path) -> str:
+    def to_workdir(self, path: str) -> str:
         """
         Replace user path with current workdir
 
@@ -177,7 +178,7 @@ class Filesystem:
         parts = path[dir_index:]
         return os.path.join(work_dir, parts)
 
-    def extract_local_url(self, path) -> (str, str):
+    def extract_local_url(self, path: str) -> Tuple[str, str]:
         """
         Extract local url and path from url
 
@@ -238,7 +239,7 @@ class Filesystem:
         shutil.copyfile(path, upload_path)
         return upload_path
 
-    def remove_upload(self, path: str) -> None:
+    def remove_upload(self, path: str):
         """
         Delete uploaded file
 
@@ -258,7 +259,7 @@ class Filesystem:
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
 
-    def sizeof_fmt(self, num, suffix='B'):
+    def sizeof_fmt(self, num: Any, suffix='B'):
         """
         Convert numbers to human-readable unit formats.
 
@@ -274,7 +275,11 @@ class Filesystem:
             num /= 1024.0
         return "{:.1f} {}{}".format(num, 'Yi', suffix).replace('.', ',')
 
-    def get_directory_size(self, directory : str, human_readable: bool = True) -> str or int:
+    def get_directory_size(
+            self,
+            directory: str,
+            human_readable: bool = True
+    ) -> Union[str, int]:
         """
         Calculate the total size of the given directory
 
@@ -296,7 +301,11 @@ class Filesystem:
             return self.sizeof_fmt(total_size)
         return total_size
 
-    def get_datadir_size(self, path: str, human_readable: bool = True) -> str or int:
+    def get_datadir_size(
+            self,
+            path: str,
+            human_readable: bool = True
+    ) -> Union[str, int]:
         """
         Calculate the total size of the given data directory
 
@@ -307,7 +316,11 @@ class Filesystem:
         data_dir = os.path.join(path, 'data')
         return self.get_directory_size(data_dir, human_readable)
 
-    def get_db_size(self, path: str, human_readable: bool = True) -> str or int:
+    def get_db_size(
+            self,
+            path: str,
+            human_readable: bool = True
+    ) -> Union[str, int]:
         """
         Calculate the total size of the given database
 
@@ -325,7 +338,11 @@ class Filesystem:
             return self.sizeof_fmt(total_size)
         return total_size
 
-    def get_free_disk_space(self, directory: str, human_readable: bool = True) -> str or int:
+    def get_free_disk_space(
+            self,
+            directory: str,
+            human_readable: bool = True
+    ) -> Union[str, int]:
         """
         Check free disk space in the given directory
 
@@ -338,7 +355,13 @@ class Filesystem:
             return self.sizeof_fmt(free)
         return free
 
-    def copy_workdir(self, path: str, new_path: str, copy_db: bool = True, copy_datadir: bool = True) -> bool:
+    def copy_workdir(
+            self,
+            path: str,
+            new_path: str,
+            copy_db: bool = True,
+            copy_datadir: bool = True
+    ) -> bool:
         """
         Copy working directory
 
@@ -377,7 +400,12 @@ class Filesystem:
             os.remove(profile_file)
         return True
 
-    def clear_workdir(self, path: str, remove_db: bool = True, remove_datadir: bool = True) -> bool:
+    def clear_workdir(
+            self,
+            path: str,
+            remove_db: bool = True,
+            remove_datadir: bool = True
+    ) -> bool:
         """
         Clear working directory
 
@@ -425,7 +453,11 @@ class Filesystem:
         """
         return len(os.listdir(path)) == 0
 
-    def get_files_from_dir(self, path: str, recursive: bool = True) -> list:
+    def get_files_from_dir(
+            self,
+            path: str,
+            recursive: bool = True
+    ) -> list:
         """
         Get files from directory
 

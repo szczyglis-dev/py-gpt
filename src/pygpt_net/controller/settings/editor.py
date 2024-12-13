@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional, Any
 
 from pygpt_net.utils import trans
 
@@ -94,7 +95,7 @@ class Editor:
         if initialize:
             self.initialized = True
 
-    def save(self, id: str = None):
+    def save(self, id: Optional[str] = None):
         """
         Save settings
 
@@ -212,7 +213,7 @@ class Editor:
             return True
         return False
 
-    def hook_update(self, key, value, caller, *args, **kwargs):
+    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
         """
         Hook: on settings update
 
@@ -307,7 +308,7 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.debug.toggle_menu()
 
-    def toggle_collapsed(self, id: str, value: any, section: str):
+    def toggle_collapsed(self, id: str, value: Any, section: str):
         """
         Toggle collapsed state of section
 
@@ -400,7 +401,10 @@ class Editor:
         """
         return self.sections
 
-    def get_options(self, section: str = None) -> dict:
+    def get_options(
+            self,
+            section: Optional[str] = None
+    ) -> dict:
         """
         Return settings options dict
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -26,9 +28,17 @@ class Output:
         :param window: Window instance
         """
         self.window = window
-        self.not_stream_modes = [MODE_ASSISTANT, MODE_IMAGE]
+        self.not_stream_modes = [
+            MODE_ASSISTANT,
+            MODE_IMAGE,
+        ]
 
-    def handle(self, ctx: CtxItem, mode: str, stream_mode: bool = False):
+    def handle(
+            self,
+            ctx: CtxItem,
+            mode: str,
+            stream_mode: bool = False
+    ):
         """
         Handle response from LLM
 
@@ -133,7 +143,8 @@ class Output:
             mode: str,
             stream: bool = False,
             reply: bool = False,
-            internal: bool = False):
+            internal: bool = False
+    ):
         """
         Post handle results
 
@@ -178,7 +189,11 @@ class Output:
                 self.log("Calling for prepare context name...")
                 self.window.controller.ctx.prepare_name(ctx)  # async
 
-    def handle_end(self, ctx: CtxItem, mode: str):
+    def handle_end(
+            self,
+            ctx: CtxItem,
+            mode: str
+    ):
         """
         Handle context end (finish output)
 
@@ -231,7 +246,7 @@ class Output:
             event = RenderEvent(RenderEvent.RELOAD)
             self.window.dispatch(event)  # reload chat window
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

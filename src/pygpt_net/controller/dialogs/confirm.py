@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any, Optional
+
 
 class Confirm:
     def __init__(self, window=None):
@@ -18,7 +21,12 @@ class Confirm:
         """
         self.window = window
 
-    def accept(self, type: str, id: any = None, parent_object=None):
+    def accept(
+            self,
+            type: str,
+            id: Optional[str] = None,
+            parent_object: Any = None
+    ):
         """
         Confirm dialog accept
 
@@ -264,7 +272,7 @@ class Confirm:
         elif type == 'prompt.custom.delete':
             self.window.controller.presets.delete_prompt(id, True)
 
-    def dismiss(self, type: str, id: any):
+    def dismiss(self, type: str, id: Any):
         """
         Confirm dialog dismiss
 
@@ -283,7 +291,7 @@ class Confirm:
 
         self.window.ui.dialog['confirm'].close()
 
-    def accept_rename(self, type: str, id: any, name: str):
+    def accept_rename(self, type: str, id: Any, name: str):
         """
         Update name of object
 

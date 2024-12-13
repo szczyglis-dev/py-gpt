@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import json
+from typing import Optional
 
 from PySide6.QtWidgets import QApplication
 
@@ -65,7 +66,7 @@ class VectorStore:
         """
         return self.options
 
-    def get_option(self, key: str) -> dict or None:
+    def get_option(self, key: str) -> Optional[dict]:
         """
         Get option by key
 
@@ -301,7 +302,11 @@ class VectorStore:
         self.restore_selection()
         self.refresh_by_store_id(store.id)
 
-    def delete_by_idx(self, idx: int, force: bool = False):
+    def delete_by_idx(
+            self,
+            idx: int,
+            force: bool = False
+    ):
         """
         Delete store by idx
 
@@ -311,7 +316,11 @@ class VectorStore:
         store_id = self.get_by_tab_idx(idx)
         self.delete(store_id, force=force)
 
-    def delete(self, store_id: str = None, force: bool = False):
+    def delete(
+            self,
+            store_id: Optional[str] = None,
+            force: bool = False
+    ):
         """
         Delete store by idx
 
@@ -413,7 +422,7 @@ class VectorStore:
             i += 1
         return idx
 
-    def get_by_tab_idx(self, idx: int) -> str or None:
+    def get_by_tab_idx(self, idx: int) -> Optional[str]:
         """
         Get key by list index (including hidden)
 
@@ -429,7 +438,7 @@ class VectorStore:
             store_idx += 1
         return None
 
-    def get_first_visible(self) -> str or None:
+    def get_first_visible(self) -> Optional[str]:
         """
         Get first visible store ID (including hidden)
 

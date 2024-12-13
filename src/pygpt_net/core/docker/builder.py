@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from PySide6.QtCore import Signal, Slot, QObject
 
@@ -48,13 +50,19 @@ class Builder(QObject):
 
 
     @Slot(object)
-    def handle_build_failed(self, error):
-        """Handle build failed"""
+    def handle_build_failed(self, error: Any):
+        """
+        Handle build failed
+
+        :param error: error
+        """
         self.plugin.window.ui.dialogs.alert(str(error))
         self.plugin.window.update_status(str(error))
         self.plugin.window.controller.kernel.stop()
         event = RenderEvent(RenderEvent.END)
         self.plugin.window.dispatch(event)
+
+
 class WorkerSignals(BaseSignals):
     build_finished = Signal()
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
@@ -95,7 +97,7 @@ class Debug:
         self.initialized[id] = True
         self.window.ui.debug[id].on_data_end()
 
-    def add(self, id: str, k: str, v: any):
+    def add(self, id: str, k: str, v: Any):
         """
         Append debug entry
 

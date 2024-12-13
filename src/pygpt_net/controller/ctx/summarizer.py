@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -27,7 +27,11 @@ class Summarizer:
         """
         self.window = window
 
-    def summarize(self, id: int, ctx: CtxItem):
+    def summarize(
+            self,
+            id: int,
+            ctx: CtxItem
+    ):
         """
         Summarize context
 
@@ -39,7 +43,13 @@ class Summarizer:
         ctx_copy.from_dict(ctx.to_dict())
         self.start_worker(id, ctx_copy)
 
-    def summarizer(self, id: int, ctx: CtxItem, window, updated_signal: Signal):
+    def summarizer(
+            self,
+            id: int,
+            ctx: CtxItem,
+            window,
+            updated_signal: Signal
+    ):
         """
         Summarize worker callback
 
@@ -52,7 +62,11 @@ class Summarizer:
         if title:
             updated_signal.emit(id, ctx, title)
 
-    def start_worker(self, id: int, ctx: CtxItem):
+    def start_worker(
+            self,
+            id: int,
+            ctx: CtxItem
+    ):
         """
         Handle worker thread
 
@@ -69,7 +83,12 @@ class Summarizer:
         self.window.threadpool.start(worker)
 
     @Slot(int, object, str)
-    def handle_update(self, id: int, ctx: CtxItem, title: str):
+    def handle_update(
+            self,
+            id: int,
+            ctx: CtxItem,
+            title: str
+    ):
         """
         Handle update signal (make update)
 

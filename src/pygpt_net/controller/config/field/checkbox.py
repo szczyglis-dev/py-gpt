@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any
+
 
 class Checkbox:
     def __init__(self, window=None):
@@ -42,7 +45,7 @@ class Checkbox:
             parent_id: str,
             key: str,
             option: dict,
-            value: any,
+            value: Any,
             hooks: bool = True
     ):
         """

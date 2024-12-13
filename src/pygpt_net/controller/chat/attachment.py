@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from PySide6.QtCore import Slot, QObject
 
@@ -74,7 +75,11 @@ class Attachment(QObject):
         """Reload attachments"""
         self.setup()
 
-    def handle(self, mode: str, text: str):
+    def handle(
+            self,
+            mode: str,
+            text: str
+    ):
         """
         Handle attachment upload
 
@@ -104,7 +109,12 @@ class Attachment(QObject):
                 return True
         return False
 
-    def upload(self, meta: CtxMeta, mode: str, prompt: str) -> bool:
+    def upload(
+            self,
+            meta: CtxMeta,
+            mode: str,
+            prompt: str
+    ) -> bool:
         """
         Upload attachments for meta
 
@@ -364,7 +374,12 @@ class Attachment(QObject):
         """Hide uploaded attachments"""
         self.window.ui.tabs['input'].setTabVisible(self.uploaded_tab_idx, False)
 
-    def delete_by_idx(self, idx: int, force: bool = False, remove_local=True):
+    def delete_by_idx(
+            self,
+            idx: int,
+            force: bool = False,
+            remove_local: bool = True
+    ):
         """
         Delete attachment by index
 
@@ -388,7 +403,12 @@ class Attachment(QObject):
             self.window.core.attachments.context.delete(meta, item, delete_files=remove_local)
             self.update_list(meta)
 
-    def clear(self, force: bool = False, remove_local=False, auto: bool = False):
+    def clear(
+            self,
+            force: bool = False,
+            remove_local: bool = False,
+            auto: bool = False
+    ):
         """
         Clear attachments list
 

@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional, Any
+
 import docker
 import io
 import tarfile
@@ -65,8 +67,12 @@ class Docker:
         tar_stream.seek(0)
         return tar_stream
 
-    def is_image(self):
-        """Check if the Docker image exists."""
+    def is_image(self) -> bool:
+        """
+        Check if the Docker image exists.
+
+        :return: True if the image exists.
+        """
         client = self.get_docker_client()
         try:
             client.images.get(self.get_image_name())
@@ -334,7 +340,7 @@ class Docker:
         """
         return self.plugin.get_option_value('docker_entrypoint')
 
-    def execute(self, cmd: str) -> bytes or None:
+    def execute(self, cmd: str) -> Optional[bytes]:
         """
         Execute command in Docker container.
 
@@ -394,7 +400,7 @@ class Docker:
         """
         self.signals = signals
 
-    def log(self, msg):
+    def log(self, msg: Any):
         """
         Log the message.
 

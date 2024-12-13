@@ -6,9 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
 import datetime
+from typing import Optional
 
 from packaging.version import Version
 
@@ -97,7 +99,7 @@ class Store:
         """
         return id in self.items
 
-    def create(self) -> AssistantStoreItem or None:
+    def create(self) -> Optional[AssistantStoreItem]:
         """
         Create new store
 
@@ -115,7 +117,7 @@ class Store:
         self.items[store.id] = store
         return store
 
-    def update(self, store: AssistantStoreItem) -> AssistantStoreItem or None:
+    def update(self, store: AssistantStoreItem) -> Optional[AssistantStoreItem]:
         """
         Update store
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional, Any
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.bridge.context import MultimodalContext
@@ -149,13 +151,13 @@ class Input:
 
     def execute(
             self,
-            text: str = None,
+            text: str,
             force: bool = False,
             reply: bool = False,
             internal: bool = False,
-            prev_ctx: CtxItem = None,
-            parent_id: int = None,
-            multimodal_ctx: MultimodalContext = None,
+            prev_ctx: Optional[CtxItem] = None,
+            parent_id: Optional[int] = None,
+            multimodal_ctx: Optional[MultimodalContext] = None,
     ):
         """
         Execute send input text to API
@@ -266,7 +268,7 @@ class Input:
                 multimodal_ctx=multimodal_ctx,
             )  # text mode: OpenAI, Langchain, Llama, etc.
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

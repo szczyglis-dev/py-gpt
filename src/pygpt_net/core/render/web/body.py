@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional
 
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
@@ -155,7 +156,12 @@ class Body:
                 )
         return icons
 
-    def get_icon(self, icon: str, title: str = None, item: CtxItem = None) -> str:
+    def get_icon(
+            self,
+            icon: str,
+            title: Optional[str] = None,
+            item: Optional[CtxItem] = None
+    ) -> str:
         """
         Get icon
 
@@ -168,7 +174,12 @@ class Body:
         return '<img src="file://{}" class="action-img" title="{}" alt="{}" data-id="{}">'.format(
             icon, title, title, item.id)
 
-    def get_image_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_image_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get image HTML
 
@@ -190,7 +201,12 @@ class Body:
                    path=path,
                    num=num_str)
 
-    def get_url_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_url_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get URL HTML
 
@@ -260,7 +276,12 @@ class Body:
             html += "</div> "
         return html
 
-    def get_file_html(self, url: str, num: int = None, num_all: int = None) -> str:
+    def get_file_html(
+            self,
+            url: str,
+            num: Optional[int] = None,
+            num_all: Optional[int] = None
+    ) -> str:
         """
         Get file HTML
 

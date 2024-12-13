@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+from typing import Any, Optional
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -212,7 +213,14 @@ class Editor:
             self.get_option(key),
         )
 
-    def hook_update(self, key, value, caller, *args, **kwargs):
+    def hook_update(
+            self,
+            key: str,
+            value: Any,
+            caller,
+            *args,
+            **kwargs
+    ):
         """
         Hook: on settings update in real-time (prompt)
 
@@ -230,7 +238,7 @@ class Editor:
             else:
                 self.window.controller.presets.from_global()  # update current preset
 
-    def edit(self, idx: int = None):
+    def edit(self, idx: Optional[int] = None):
         """
         Open preset editor
 
@@ -243,7 +251,7 @@ class Editor:
         self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx, width=800)
 
-    def init(self, id: str = None):
+    def init(self, id: Optional[str] = None):
         """
         Initialize preset editor
 
@@ -337,7 +345,11 @@ class Editor:
         self.window.ui.config[self.id]['name'].setFocus()
         self.show_hide_by_mode()
 
-    def save(self, force: bool = False, close: bool = True):
+    def save(
+            self,
+            force: bool = False,
+            close: bool = True
+    ):
         """
         Save ore create preset
 
@@ -559,8 +571,13 @@ class Editor:
             value=self.window.core.config.get('model'),
         )
 
-    def update_from_global(self, key, value):
-        """Update field from global config"""
+    def update_from_global(self, key: str, value: Any):
+        """
+        Update field from global config
+
+        :param key: field key
+        :param value: field value
+        """
         preset_id = self.window.core.config.get('preset')
         if preset_id is not None and preset_id != "":
             if preset_id in self.window.core.presets.items:

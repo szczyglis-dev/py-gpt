@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_COMPLETION,
@@ -30,10 +32,10 @@ class Completion:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
-            history: list = None,
+            history: Optional[list] = None,
             stream: bool = False,
-            ai_name: str = None,
-            user_name: str = None
+            ai_name: Optional[str] = None,
+            user_name: Optional[str] = None
     ):
         """
         Chat with LLM
@@ -88,9 +90,9 @@ class Completion:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
-            history: list = None,
-            ai_name: str = None,
-            user_name: str = None
+            history: Optional[list] = None,
+            ai_name: Optional[str] = None,
+            user_name: Optional[str] = None
     ) -> str:
         """
         Build completion string

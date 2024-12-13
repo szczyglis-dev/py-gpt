@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -32,7 +34,11 @@ class Chain:
         self.chat = Chat(window)
         self.completion = Completion(window)
 
-    def call(self, context: BridgeContext, extra: dict = None) -> bool:
+    def call(
+            self,
+            context: BridgeContext,
+            extra: Optional[dict] = None
+    ) -> bool:
         """
         Call LLM using Langchain
 

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import time
+from typing import Any
 
 import cv2
 
@@ -464,7 +465,7 @@ class Camera(QObject):
         self.window.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
 
     @Slot(object)
-    def handle_error(self, err):
+    def handle_error(self, err: Any):
         """
         Handle thread error signal
 

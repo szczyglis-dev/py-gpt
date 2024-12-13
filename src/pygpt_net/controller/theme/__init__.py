@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
+from typing import Any, Optional
 
 from pygpt_net.core.events import RenderEvent
 
@@ -84,7 +85,7 @@ class Theme:
         self.window.dispatch(event)
         self.reload()
 
-    def toggle_option(self, name: str, value: any = None):
+    def toggle_option(self, name: str, value: Any = None):
         """
         Toggle theme menu option
 
@@ -158,7 +159,11 @@ class Theme:
         """
         self.update_theme(force=force)
 
-    def apply(self, theme: str = 'dark_teal.xml', custom: str = None):
+    def apply(
+            self,
+            theme: str = 'dark_teal.xml',
+            custom: Optional[str] = None
+    ):
         """
         Update material theme and apply custom CSS
 

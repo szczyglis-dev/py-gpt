@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
+from typing import Optional
 
 from sqlalchemy import text
 
@@ -26,11 +27,11 @@ class Viewer:
             columns: list,
             sort_by: str,
             order: str,
-            search_query: str = None,
-            search_column: str = None,
+            search_query: Optional[str] = None,
+            search_column: Optional[str] = None,
             offset: int = 0,
             limit: int = 100,
-            filters: dict = None
+            filters: Optional[dict] = None
     ) -> list:
         """
         Fetch data from the database with the given parameters.
@@ -87,9 +88,9 @@ class Viewer:
     def count_rows(
             self,
             table: str,
-            search_query: str = None,
-            search_column: str = None,
-            filters: dict = None
+            search_query: Optional[str] = None,
+            search_column: Optional[str] = None,
+            filters: Optional[dict] = None
     ) -> int:
         """
         Count the number of rows in the table with an optional search query.

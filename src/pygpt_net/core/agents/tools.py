@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
+from typing import List
 
 from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
@@ -29,7 +30,12 @@ class Tools:
         self.cmd_blacklist = []
         self.verbose = False
 
-    def prepare(self, context: BridgeContext, extra: dict, verbose: bool = False) -> list[BaseTool]:
+    def prepare(
+            self,
+            context: BridgeContext,
+            extra: dict,
+            verbose: bool = False
+    ) -> List[BaseTool]:
         """
         Prepare tools for agent
 
@@ -66,7 +72,11 @@ class Tools:
                 tools.extend(query_engine_tools)
         return tools
 
-    def get_plugin_functions(self, ctx: CtxItem, verbose: bool = False) -> list:
+    def get_plugin_functions(
+            self,
+            ctx: CtxItem,
+            verbose: bool = False
+    ) -> list:
         """
         Parse plugin functions
 
@@ -114,7 +124,10 @@ class Tools:
                 print(e)
         return tools
 
-    def export_sources(self, response: AgentChatResponse) -> list[dict]:
+    def export_sources(
+            self,
+            response: AgentChatResponse
+    ) -> List[dict]:
         """
         Export sources from response
 
@@ -149,6 +162,11 @@ class PluginToolMetadata(ToolMetadata):
         self.schema = None
 
     def get_parameters_dict(self) -> dict:
+        """
+        Get parameters dictionary
+
+        :return: parameters
+        """
         parameters = {
             k: v
             for k, v in self.schema.items()

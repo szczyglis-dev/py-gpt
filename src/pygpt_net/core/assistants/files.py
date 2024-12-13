@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from packaging.version import Version
 
@@ -103,7 +105,7 @@ class Files:
             file_id: str,
             name: str,
             path: str,
-            size: int) -> AssistantFileItem or None:
+            size: int) -> Optional[AssistantFileItem]:
         """
         Create new file
 
@@ -128,7 +130,10 @@ class Files:
         self.items[file.id] = file
         return file
 
-    def update(self, file: AssistantFileItem) -> AssistantFileItem or None:
+    def update(
+            self,
+            file: AssistantFileItem
+    ) -> Optional[AssistantFileItem]:
         """
         Update file
 
@@ -171,7 +176,12 @@ class Files:
         """
         return self.provider.count_by_store_or_thread(store_id, thread_id)
 
-    def get_file_by_idx(self, idx: int, store_id: str, thread_id: str) -> AssistantFileItem or None:
+    def get_file_by_idx(
+            self,
+            idx: int,
+            store_id: str,
+            thread_id: str
+    ) -> Optional[AssistantFileItem]:
         """
         Get file by list index
 
@@ -185,7 +195,12 @@ class Files:
             return None
         return list(files.values())[idx]
 
-    def get_file_id_by_idx(self, idx: int, store_id: str, thread_id: str) -> str or None:
+    def get_file_id_by_idx(
+            self,
+            idx: int,
+            store_id: str,
+            thread_id: str
+    ) -> Optional[str]:
         """
         Get file by list index
 
@@ -259,7 +274,7 @@ class Files:
             self.items[record_id].name = name
         return True
 
-    def truncate(self, store_id: str = None) -> bool:
+    def truncate(self, store_id: Optional[str] = None) -> bool:
         """
         Truncate all files
 
@@ -272,7 +287,7 @@ class Files:
             self.window.core.gpt.store.remove_from_stores()  # remove files from all vector stores
         return self.truncate_local(store_id)  # truncate files in DB
 
-    def truncate_local(self, store_id: str = None) -> bool:
+    def truncate_local(self, store_id: Optional[str] = None) -> bool:
         """
         Truncate all files (local only)
 

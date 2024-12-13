@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
 import re
+from typing import Optional
 
 from pygpt_net.core.bridge.context import BridgeContext
 
@@ -152,7 +153,7 @@ class Voice:
 
         return prompt.strip()
 
-    def get_inline_prompt(self, prefix: str = None) -> str:
+    def get_inline_prompt(self, prefix: Optional[str] = None) -> str:
         """
         Get prompt for inline voice command recognition
 

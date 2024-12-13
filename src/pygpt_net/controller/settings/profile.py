@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
 import os
 from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 from PySide6.QtGui import QAction
@@ -40,7 +41,12 @@ class Profile:
             self.window.profiles.setup()  # widget dialog
             self.dialog_initialized = True
 
-    def switch(self, uuid: str, force: bool = False, save_current: bool = True):
+    def switch(
+            self,
+            uuid: str,
+            force: bool = False,
+            save_current: bool = True
+    ):
         """
         Switch profile
 
@@ -158,7 +164,13 @@ class Profile:
         else:
             self.open()
 
-    def handle_update(self, mode: str, name: str, path: str, uuid: str = None):
+    def handle_update(
+            self,
+            mode: str,
+            name: str,
+            path: str,
+            uuid: Optional[str] = None
+    ):
         """
         Handle new/edit profile dialog
 
@@ -356,7 +368,12 @@ class Profile:
                 self.update_list()
                 self.update_menu()
 
-    def duplicate(self, uuid: str, new_name: str, new_path: str):
+    def duplicate(
+            self,
+            uuid: str,
+            new_name: str,
+            new_path: str
+    ):
         """
         Duplicate profile
 

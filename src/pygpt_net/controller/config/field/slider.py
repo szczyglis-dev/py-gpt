@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Any, Optional
+
 
 class Slider:
     def __init__(self, window=None):
@@ -90,8 +93,8 @@ class Slider:
             parent_id: str,
             key: str,
             option: dict,
-            value: any,
-            type: str = None,
+            value: Any,
+            type: Optional[str] = None,
             hooks: bool = True
     ):
         """

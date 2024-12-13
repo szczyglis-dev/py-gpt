@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from PySide6.QtWidgets import QApplication
 
@@ -133,7 +134,7 @@ class Editor:
             value="",
         )
 
-    def get_selected_store_id(self) -> str or None:
+    def get_selected_store_id(self) -> Optional[str]:
         """
         Return current selected vector store ID
 
@@ -166,7 +167,7 @@ class Editor:
             i += 1
         return 0  # none
 
-    def edit(self, idx: int = None):
+    def edit(self, idx: Optional[int] = None):
         """
         Open assistant editor
 
@@ -183,7 +184,7 @@ class Editor:
         """Close assistant editor"""
         self.window.ui.dialogs.close('editor.assistants')
 
-    def init(self, id: str = None):
+    def init(self, id: Optional[str] = None):
         """
         Initialize assistant editor
 

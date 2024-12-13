@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
 import csv
+from typing import Optional
 
 from PySide6.QtGui import QAction
 from pygpt_net.utils import trans
@@ -62,7 +63,12 @@ class Template:
         self.prompts = dict(sorted(self.prompts.items(), key=lambda item: item[1]['name']))
 
     def to_menu_options(self, menu, parent: str = "global"):
-        """Convert prompts to menu options"""
+        """
+        Convert prompts to menu options
+
+        :param menu: Menu
+        :param parent: Parent menu
+        """
         self.init()
         menu.addSeparator()
         submenu = menu.addMenu(trans("preset.prompt.paste_template"))
@@ -82,7 +88,7 @@ class Template:
             action.setToolTip(value['prompt'])
             letter_submenus[letter].addAction(action)
 
-    def get_by_id(self, id: int) -> dict or None:
+    def get_by_id(self, id: int) -> Optional[dict]:
         """
         Get prompt by id
 

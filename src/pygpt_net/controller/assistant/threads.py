@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 00:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import json
 import time
+from typing import Optional, Any
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
@@ -46,7 +47,11 @@ class Threads(QObject):
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
 
-    def handle_output_message(self, ctx: CtxItem, stream: bool = False):
+    def handle_output_message(
+            self,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Handle output message (not stream ONLY)
 
@@ -92,7 +97,12 @@ class Threads(QObject):
 
         self.log("Handled output message.")
 
-    def handle_message_data(self, ctx: CtxItem, msg, stream: bool = False):
+    def handle_message_data(
+            self,
+            ctx: CtxItem,
+            msg,
+            stream: bool = False
+    ):
         """
         Handle message data (files, images, text) - stream and not-stream
 
@@ -316,7 +326,12 @@ class Threads(QObject):
         ctx.tool_calls = self.tool_calls  # set previous tool calls
         return self.window.core.command.get_tool_calls_outputs(ctx)
 
-    def handle_run_created(self, ctx: CtxItem, run, stream: bool = False):
+    def handle_run_created(
+            self,
+            ctx: CtxItem,
+            run,
+            stream: bool = False
+    ):
         """
         Handle run created (stream and not stream)
 
@@ -330,7 +345,7 @@ class Threads(QObject):
         self.window.core.ctx.append_run(ctx.run_id)  # get run ID and store in ctx
         self.handle_run(ctx, run, stream)  # handle assistant run
 
-    def handle_run_error(self, ctx: CtxItem, err):
+    def handle_run_error(self, ctx: CtxItem, err: Any):
         """
         Handle run created (stream and not stream)
 
@@ -354,7 +369,12 @@ class Threads(QObject):
         self.window.controller.chat.common.unlock_input()  # unlock input
         # self.handle_stream_end(ctx)
 
-    def handle_run(self, ctx: CtxItem, run, stream: bool = False):
+    def handle_run(
+            self,
+            ctx: CtxItem,
+            run,
+            stream: bool = False
+    ):
         """
         Handle assistant's run (not stream ONLY)
 

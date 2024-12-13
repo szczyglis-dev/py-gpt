@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional
+
 
 class LLM:
     def __init__(self, window=None):
@@ -19,7 +22,7 @@ class LLM:
         self.window = window
         self.llms = {}
 
-    def get_ids(self, type: str = None) -> list:
+    def get_ids(self, type: Optional[str] = None) -> list:
         """
         Get providers ids
 

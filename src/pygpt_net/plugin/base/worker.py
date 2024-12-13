@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
+
+from typing import Optional, Any
 
 from PySide6.QtCore import QObject, QRunnable
 from typing_extensions import deprecated
@@ -17,7 +19,7 @@ from .signals import BaseSignals
 
 
 class BaseWorker(QObject, QRunnable):
-    def __init__(self, plugin: BasePlugin = None, *args, **kwargs):
+    def __init__(self, plugin: Optional[BasePlugin] = None, *args, **kwargs):
         QObject.__init__(self)
         QRunnable.__init__(self)
         self.plugin = plugin
@@ -63,7 +65,11 @@ class BaseWorker(QObject, QRunnable):
             self.signals.log.emit(msg)
 
     @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
-    def response(self, response: dict, extra_data: dict = None):
+    def response(
+            self,
+            response: dict,
+            extra_data: Optional[dict] = None
+    ):
         """
         Emit finished signal (deprecated)
 
@@ -74,7 +80,11 @@ class BaseWorker(QObject, QRunnable):
         self.debug("BaseWorker.response is deprecated from 2.1.29, use BaseWorker.reply instead")
         self.reply(response, extra_data)
 
-    def reply(self, response: dict, extra_data: dict = None):
+    def reply(
+            self,
+            response: dict,
+            extra_data: Optional[dict] = None
+    ):
         """
         Emit finished signal (on reply from command output)
 
@@ -89,7 +99,11 @@ class BaseWorker(QObject, QRunnable):
         if self.signals is not None and hasattr(self.signals, "finished"):
             self.signals.finished.emit(response, self.ctx, extra_data)
 
-    def reply_more(self, responses: list, extra_data: dict = None):
+    def reply_more(
+            self,
+            responses: list,
+            extra_data: Optional[dict] = None
+    ):
         """
         Emit finished_more signal (on reply from command output, multiple responses)
 
@@ -161,7 +175,12 @@ class BaseWorker(QObject, QRunnable):
         """
         return {"cmd": item["cmd"]}
 
-    def make_response(self, item: dict, result: any, extra: dict = None) -> dict:
+    def make_response(
+            self,
+            item: dict,
+            result: any,
+            extra: Optional[dict] = None
+    ) -> dict:
         """
         Prepare response item
 
@@ -190,7 +209,11 @@ class BaseWorker(QObject, QRunnable):
         self.log(msg)
         return msg
 
-    def has_param(self, item: dict, param: str) -> bool:
+    def has_param(
+            self,
+            item: dict,
+            param: str
+    ) -> bool:
         """
         Check if item has parameter
 
@@ -202,7 +225,12 @@ class BaseWorker(QObject, QRunnable):
             return False
         return "params" in item and param in item["params"]
 
-    def get_param(self, item: dict, param: str, default: any = None) -> any:
+    def get_param(
+            self,
+            item: dict,
+            param: str,
+            default: Any = None
+    ) -> any:
         """
         Get parameter value from item
 
@@ -215,7 +243,7 @@ class BaseWorker(QObject, QRunnable):
             return item["params"][param]
         return default
 
-    def is_stopped(self):
+    def is_stopped(self) -> bool:
         """
         Check if worker is stopped
 

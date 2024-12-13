@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 import time
+from typing import Optional, Any
 
 from sqlalchemy import create_engine, text
 
@@ -402,7 +403,7 @@ class Database:
             self.set_param_exec("db_version", migration_version, conn)
             print("[DB] Executed DB migration: {}".format(migration.__class__.__name__).replace('Version', ''))
 
-    def has_migrations_to_apply(self, migrations) -> bool:
+    def has_migrations_to_apply(self, migrations: list) -> bool:
         """
         Check if there are any migrations to apply
         
@@ -417,7 +418,7 @@ class Database:
                 break
         return has_migrations
 
-    def make_backup(self) -> str or None:
+    def make_backup(self) -> Optional[str]:
         """
         Make backup of database before migration
 
@@ -446,7 +447,7 @@ class Database:
                 for migration in sorted_migrations:
                     self.apply_migration(migration, conn, db_version)
 
-    def get_param(self, key: str) -> str or None:
+    def get_param(self, key: str) -> Optional[str]:
         """
         Get parameter from database
 
@@ -460,7 +461,7 @@ class Database:
             result = conn.execute(sel_stmt).fetchone()
             return result[0] if result else None
 
-    def set_param(self, key: str, value: any):
+    def set_param(self, key: str, value: Any):
         """
         Insert or update parameter in database
 
@@ -471,7 +472,7 @@ class Database:
         with self.engine.begin() as conn:
             self.set_param_exec(key, value, conn)
 
-    def set_param_exec(self, key: str, value: any, conn):
+    def set_param_exec(self, key: str, value: Any, conn):
         """
         Insert or update parameter in database
 

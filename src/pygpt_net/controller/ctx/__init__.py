@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
+from typing import Optional
+
 from PySide6.QtCore import QModelIndex
+from PySide6.QtGui import QStandardItem
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
@@ -75,7 +78,12 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
 
-    def update(self, reload: bool = True, all: bool = True, select: bool = True):
+    def update(
+            self,
+            reload: bool = True,
+            all: bool = True,
+            select: bool = True
+    ):
         """
         Update ctx list
 
@@ -108,7 +116,11 @@ class Ctx:
         # update additional context attachments
         self.window.controller.chat.attachment.update()
 
-    def select(self, id: int, force: bool = False):
+    def select(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Select ctx by id
 
@@ -188,7 +200,7 @@ class Ctx:
         self.set_group(None)
         self.window.ui.nodes['ctx.list'].clearSelection()
 
-    def set_group(self, group_id: int = None):
+    def set_group(self, group_id: Optional[int] = None):
         """
         Set current selected group
 
@@ -206,7 +218,7 @@ class Ctx:
         self.group_id = None
         self.new()
 
-    def new(self, force: bool = False, group_id: int = None):
+    def new(self, force: bool = False, group_id: Optional[int] = None):
         """
         Create new ctx
 
@@ -734,7 +746,7 @@ class Ctx:
         """
         return self.window.controller.chat.input.generating
 
-    def select_index_by_id(self, id):
+    def select_index_by_id(self, id: int):
         """
         Select item by ID on context list
 
@@ -745,7 +757,7 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
         self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
-    def find_index_by_id(self, item, id):
+    def find_index_by_id(self, item, id: int) -> QModelIndex:
         """
         Return index of item with given ID, searching recursively through the model.
 
@@ -761,7 +773,7 @@ class Ctx:
                 return found_index
         return QModelIndex()
 
-    def find_parent_index_by_id(self, item, id):
+    def find_parent_index_by_id(self, item, id: int) -> QModelIndex:
         """
         Return index of item with given ID, searching recursively through the model.
 
@@ -777,7 +789,7 @@ class Ctx:
                 return found_index
         return QModelIndex()
 
-    def get_parent_index_by_id(self, id):
+    def get_parent_index_by_id(self, id: int) -> QModelIndex:
         """
         Return QModelIndex of parent item based on its ID.
 
@@ -788,7 +800,11 @@ class Ctx:
         root = model.invisibleRootItem()
         return self.find_parent_index_by_id(root, id)
 
-    def get_children_index_by_id(self, parent_id, child_id):
+    def get_children_index_by_id(
+            self,
+            parent_id: int,
+            child_id: int
+    ) -> QModelIndex:
         """
         Return QModelIndex of child item based on its ID and parent ID.
 
@@ -805,7 +821,11 @@ class Ctx:
         parent_item = model.itemFromIndex(parent_index)
         return self.find_index_by_id(parent_item, child_id)
 
-    def find_child_index_by_id(self, root_item, child_id):
+    def find_child_index_by_id(
+            self,
+            root_item: QStandardItem,
+            child_id: int
+    ) -> QModelIndex:
         """
         Find and return QModelIndex of child based on its ID, recursively searching through the model.
 
@@ -822,7 +842,7 @@ class Ctx:
                 return child_index
         return QModelIndex()
 
-    def get_child_index_by_id(self, child_id):
+    def get_child_index_by_id(self, child_id: int) -> QModelIndex:
         """
         Return QModelIndex of child item based on its ID.
 
@@ -856,7 +876,12 @@ class Ctx:
         """Save visible ctx list items"""
         self.store_expanded_groups()
 
-    def move_to_group(self, meta_id, group_id, update: bool = True):
+    def move_to_group(
+            self,
+            meta_id: int,
+            group_id: int,
+            update: bool = True
+    ):
         """
         Move ctx to group
 

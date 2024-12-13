@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 05:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Optional
 
 from PySide6.QtGui import QAction, QIcon
 from packaging.version import Version
@@ -70,7 +71,7 @@ class Custom:
         """
         return list(self.items.keys())
 
-    def get_id_by_idx(self, idx: int) -> str or None:
+    def get_id_by_idx(self, idx: int) -> Optional[str]:
         """
         Get ID by index
 
@@ -83,7 +84,7 @@ class Custom:
                 return id
             i += 1
 
-    def get_by_id(self, id: str) -> PromptItem or None:
+    def get_by_id(self, id: str) -> Optional[PromptItem]:
         """
         Return prompt by ID
 
@@ -93,7 +94,7 @@ class Custom:
         if id in self.items:
             return self.items[id]
 
-    def get_by_idx(self, idx: int) -> PromptItem or None:
+    def get_by_idx(self, idx: int) -> Optional[PromptItem]:
         """
         Return item by index
 
@@ -114,8 +115,8 @@ class Custom:
 
     def new(
             self,
-            name: str = None,
-            content: str = None,
+            name: Optional[str] = None,
+            content: Optional[str] = None,
             auto_save: bool = True
     ) -> PromptItem:
         """

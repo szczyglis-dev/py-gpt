@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.12.14 00:00:00                  #
 # ================================================== #
 
 import time
+from typing import Optional
 
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.provider.core.ctx.base import BaseProvider
@@ -79,7 +80,13 @@ class Idx:
         """
         return self.get_provider().clear_meta_indexed_all()
 
-    def remove_meta_from_indexed(self, store: str, id: int, idx: str, doc_id: str = None) -> bool:
+    def remove_meta_from_indexed(
+            self,
+            store: str,
+            id: int,
+            idx: str,
+            doc_id: Optional[str] = None
+    ) -> bool:
         """
         Remove ctx meta from indexed
 
@@ -114,7 +121,12 @@ class Idx:
             self.clear_meta_indexed_by_id(id)
         return True
 
-    def set_meta_as_indexed(self, id: int, idx: str, doc_id: str) -> bool:
+    def set_meta_as_indexed(
+            self,
+            id: int,
+            idx: str,
+            doc_id: str
+    ) -> bool:
         """
         Set ctx meta as indexed
 
@@ -157,7 +169,13 @@ class Idx:
         self.get_provider().update_meta_indexes_by_id(id, meta)
         return True
 
-    def store_idx_data_in_meta(self, ctx: CtxMeta, store_id: str, idx: str, doc_id: str):
+    def store_idx_data_in_meta(
+            self,
+            ctx: CtxMeta,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Append index data to ctx meta object
 
@@ -176,7 +194,13 @@ class Idx:
         current[store_id][idx][doc_id] = int(time.time())  # key = doc_id, value = last indexed timestamp
         ctx.indexes = current  # update ctx meta object
 
-    def remove_idx_data_from_meta(self, ctx: CtxMeta, store_id: str, idx: str, doc_id: str = None):
+    def remove_idx_data_from_meta(
+            self,
+            ctx: CtxMeta,
+            store_id: str,
+            idx: str,
+            doc_id: Optional[str] = None
+    ):
         """
         Remove index data from ctx meta object
 
@@ -209,7 +233,11 @@ class Idx:
 
         ctx.indexes = current  # update ctx meta object
 
-    def truncate_indexed(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_indexed(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate ctx meta indexed timestamps and statuses
 
