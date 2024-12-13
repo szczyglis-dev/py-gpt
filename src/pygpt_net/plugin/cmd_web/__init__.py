@@ -269,6 +269,10 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
+        is_summary = True
+        if self.get_option_value("raw"):
+            is_summary = False
+
         for option in self.allowed_cmds:
             if not self.has_cmd(option):
                 continue
@@ -285,10 +289,25 @@ class Plugin(BasePlugin):
                 cmd = self.get_cmd(option)
                 try:
                     cmd["instruction"] = cmd["instruction"].format(max_pages=max_pages)
+                    if not is_summary:
+                        for param in list(cmd["params"]):
+                            if param["name"] == "summarize_prompt":
+                                cmd["params"].remove(param)
                     data['cmd'].append(cmd)
                     continue
                 except Exception as e:
                     pass
+
+            # remove summarize_prompt if summary is disabled
+            if not is_summary:
+                if option in ["web_url_raw", "web_url_open"]:
+                    cmd = self.get_cmd(option)
+                    for param in list(cmd["params"]):
+                        if param["name"] == "summarize_prompt":
+                            cmd["params"].remove(param)
+                    data['cmd'].append(cmd)
+                    continue
+
             data['cmd'].append(self.get_cmd(option))  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list):
