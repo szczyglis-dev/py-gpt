@@ -105,7 +105,7 @@ class Worker(BaseWorker):
             'total_found': total_found,
         }
         if url:
-            self.ctx.urls.append(url)
+            self.ctx.urls_before.append(url)
         if img:
             result["thumb_img"] = img
             self.ctx.images_before.append(img)
@@ -135,7 +135,7 @@ class Worker(BaseWorker):
         }
         context = "From: " + url + ":\n--------------------------------\n" + content
         if url:
-            self.ctx.urls.append(url)
+            self.ctx.urls_before.append(url)
         if img:
             result["thumb_img"] = img
             self.ctx.images_before.append(img)
@@ -163,7 +163,7 @@ class Worker(BaseWorker):
         }
         context = "From: " + url + ":\n--------------------------------\n" + content
         if url:
-            self.ctx.urls.append(url)
+            self.ctx.urls_before.append(url)
         if img:
             result["thumb_img"] = img
             self.ctx.images_before.append(img)
@@ -210,7 +210,7 @@ class Worker(BaseWorker):
         }
         if urls:
             for url in urls:
-                self.ctx.urls.append(url)
+                self.ctx.urls_before.append(url)
 
         return self.make_response(item, result)
 
@@ -256,7 +256,7 @@ class Worker(BaseWorker):
             'errors': errors,
         }
         if url and (url.startswith("http://") or url.startswith("https://")):
-            self.ctx.urls.append(url)
+            self.ctx.urls_before.append(url)
 
         extra = {
             "url": url,
@@ -336,7 +336,7 @@ class Worker(BaseWorker):
 
         # add URL to context
         if url and (url.startswith("http://") or url.startswith("https://")):
-            self.ctx.urls.append(url)
+            self.ctx.urls_before.append(url)
 
         extra = {
             "context": context,

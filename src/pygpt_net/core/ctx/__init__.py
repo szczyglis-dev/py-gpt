@@ -1371,10 +1371,13 @@ class Ctx:
         """
         prev_ctx = CtxItem()
         prev_ctx.urls = copy.deepcopy(ctx.urls)
+        prev_ctx.urls_before = copy.deepcopy(ctx.urls_before)
         prev_ctx.images = copy.deepcopy(ctx.images)
         prev_ctx.images_before = copy.deepcopy(ctx.images_before)
         prev_ctx.files = copy.deepcopy(ctx.files)
+        prev_ctx.files_before = copy.deepcopy(ctx.files_before)
         prev_ctx.attachments = copy.deepcopy(ctx.attachments)
+        prev_ctx.attachments_before = copy.deepcopy(ctx.attachments_before)
         prev_ctx.results = copy.deepcopy(ctx.results)
         prev_ctx.index_meta = copy.deepcopy(ctx.index_meta)
         prev_ctx.doc_ids = copy.deepcopy(ctx.doc_ids)

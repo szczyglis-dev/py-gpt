@@ -31,10 +31,13 @@ class CtxItem:
         self.cmds_before = []
         self.results = []
         self.urls = []
+        self.urls_before = []
         self.images = []
         self.images_before = []
         self.files = []
+        self.files_before = []
         self.attachments = []
+        self.attachments_before = []
         self.additional_ctx = []
         self.reply = False
         self.input = None
@@ -110,12 +113,21 @@ class CtxItem:
         """Clear current reply output"""
         if self.reply:
             self.urls = []
+            self.urls_before = []
 
     def from_previous(self):
         """Copy data from previous context reply to current context"""
         if self.prev_ctx is not None:
             self.urls = copy.deepcopy(self.prev_ctx.urls)
-            self.images = copy.deepcopy(self.prev_ctx.images_before)
+            self.images = copy.deepcopy(self.prev_ctx.images)
+            if self.prev_ctx.images_before:
+                self.images = copy.deepcopy(self.prev_ctx.images_before)
+            if self.prev_ctx.files_before:
+                self.files = copy.deepcopy(self.prev_ctx.files_before)
+            if self.prev_ctx.attachments_before:
+                self.attachments = copy.deepcopy(self.prev_ctx.attachments_before)
+            if self.prev_ctx.urls_before:
+                self.urls = copy.deepcopy(self.prev_ctx.urls_before)
 
     def has_commands(self) -> bool:
         """
@@ -183,12 +195,16 @@ class CtxItem:
             "external_id": self.external_id,
             # "stream": self.stream,  #  <-- do not dump stream response object
             "cmds": self.cmds,
+            "cmds_before": self.cmds_before,
             "results": self.results,
             "urls": self.urls,
+            "urls_before": self.urls_before,
             "images": self.images,
             "images_before": self.images_before,
             "files": self.files,
+            "files_before": self.files_before,
             "attachments": self.attachments,
+            "attachments_before": self.attachments_before,
             "reply": self.reply,
             "input": self.input,
             "output": self.output,
@@ -240,10 +256,13 @@ class CtxItem:
         self.cmds = data.get("cmds", [])
         self.results = data.get("results", [])
         self.urls = data.get("urls", [])
+        self.urls_before = data.get("urls_before", [])
         self.images = data.get("images", [])
         self.images_before = data.get("images_before", [])
         self.files = data.get("files", [])
+        self.files_before = data.get("files_before", [])
         self.attachments = data.get("attachments", [])
+        self.attachments_before = data.get("attachments_before", [])
         self.reply = data.get("reply", False)
         self.input = data.get("input", None)
         self.output = data.get("output", None)
