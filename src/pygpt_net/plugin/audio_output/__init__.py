@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -130,9 +130,11 @@ class Plugin(BasePlugin):
             self.on_generate(ctx, event)
 
         elif name == Event.AUDIO_READ_TEXT:
+            self.stop_audio()
             self.on_generate(ctx, event)
 
         elif name == Event.AUDIO_PLAYBACK:
+            self.stop_audio()
             self.on_playback(ctx, event)
 
         elif name == Event.AUDIO_OUTPUT_STOP:

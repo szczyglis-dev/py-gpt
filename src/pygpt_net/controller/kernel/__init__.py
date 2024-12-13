@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import time
@@ -251,6 +251,7 @@ class Kernel(QObject):
         """
         self.halt = True
         self.window.controller.chat.common.stop(exit=exit)  # it stops legacy agent also
+        self.window.controller.audio.stop_audio()
         if not exit:
             self.window.dispatch(KernelEvent(KernelEvent.STOP))
             self.set_state(KernelEvent(KernelEvent.STATE_IDLE, {"msg": trans("status.stopped")}))

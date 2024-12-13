@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import os
@@ -198,6 +198,14 @@ class Audio:
         event.data = {
             'audio_file': path,
         }
+        self.window.dispatch(event, all=True)
+
+    def stop_audio(self):
+        """Stop audio playback"""
+        ctx = CtxItem()
+        event = Event(Event.AUDIO_OUTPUT_STOP)
+        event.ctx = ctx
+        event.data = {}
         self.window.dispatch(event, all=True)
 
     def play_sound(self, filename: str):
