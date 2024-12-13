@@ -207,7 +207,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        return """{icon}<b>{num}</b> <a href="{url}" title="{url}">{url}</a>""". \
+        return """{icon}<a href="{url}" title="{url}">{url}</a> <small>{num}</small>""". \
             format(url=url,
                    num=num_str,
                    icon=icon,
