@@ -3877,7 +3877,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.4.40 (2024-12-12)**
+**2.4.40 (2024-12-13)**
 
 - Enhanced Split Screen mode, now promoted from beta to stable.
 - Python Code Interpreter tool added to the Tabs.
