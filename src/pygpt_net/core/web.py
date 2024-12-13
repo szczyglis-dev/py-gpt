@@ -8,6 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.12.13 00:00:00                  #
 # ================================================== #
+import os
+import uuid
 
 import requests
 
@@ -112,14 +114,12 @@ class Web:
         images = soup.find_all('img')
         if images:
             images = [img for img in images if 'logo' not in (img.get('src') or '').lower()]
-
             largest_image = None
             max_area = 0
             for img in images:
                 src = img.get('src')
                 if not src:
                     continue
-
                 src = requests.compat.urljoin(url, src)
                 try:
                     img_response = requests.get(src, stream=True, timeout=5)
@@ -134,10 +134,8 @@ class Web:
                         largest_image = src
                 except:
                     continue
-
             if largest_image:
                 return largest_image
-
         return None
 
     def get_links(self, url: str) -> list:
@@ -183,22 +181,29 @@ class Web:
         images = []
         for img in soup.find_all('img'):
             try:
-                # src
                 address = img.get('src')
                 if address:
                     address = urljoin(url, address)
                     if address not in images:
                         images.append(address)
-
-                # srcset
-                srcset = img.get('srcset')
-                if srcset:
-                    srcset = srcset.split(',')
-                    for src in srcset:
-                        src = src.split(' ')[0]
-                        src = urljoin(url, src)
-                        if src not in images:
-                            images.append(src)
             except:
                 continue
         return images
+
+    def download_image(self, img: str) -> str:
+        """
+        Download image from URL
+
+        :param img: URL to download image from
+        :return: local path to image
+        """
+        dir = self.window.core.config.get_user_dir("img")
+        response = requests.get(img, stream=True)
+        name = img.replace("http://", "").replace("https://", "").replace("/", "_")
+        path = os.path.join(dir, name)
+        if os.path.exists(path):
+            name = name + uuid.uuid4().hex[:6].upper()
+        download_path = os.path.join(dir, name)
+        with open(download_path, 'wb', ) as f:
+            f.write(response.content)
+        return self.window.core.filesystem.make_local(download_path)

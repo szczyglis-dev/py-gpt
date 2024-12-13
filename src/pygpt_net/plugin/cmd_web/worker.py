@@ -389,6 +389,11 @@ class Worker(BaseWorker):
         }
         if images and download:
             for img in images:
-                self.ctx.images_before.append(img)
+                try:
+                    path = self.plugin.window.core.web.download_image(img)
+                    if path:
+                        self.ctx.images_before.append(path)
+                except Exception as e:
+                    print(e)
         self.ctx.urls_before.append(url)
         return self.make_response(item, result)
