@@ -73,3 +73,10 @@ code {{
 .display-blocks .name-user::before {{
     background-color: silver;
 }}
+.msg-extra a {{
+    color: #4d4d4d !important;
+}}
+.msg-extra a:hover {{
+    text-decoration: none;
+    color: #000 !important;
+}}

@@ -54,6 +54,7 @@ p {{
     font-family: 'Lato';
     text-decoration: none;
     padding-bottom: 0px;
+    font-size: 0.9rem;
 }}
 
 /* lists, code */
@@ -89,6 +90,7 @@ code {{
 .code-header-lang {{
     float: left;
     padding-left: .25rem;
+    padding-top: 4px;
 }}
 .code-header-copy {{
     text-align: right;
@@ -101,6 +103,13 @@ code {{
 .code-header-copy img {{
     vertical-align: middle;
     padding-right: 5px;
+}}
+.code-header-copy:hover {{
+    text-decoration: none;
+    cursor: pointer;
+}}
+.code-header-copy:hover img {{
+    filter: brightness(130%);
 }}
 .code-wrapper {{
     padding: 0px;
@@ -209,6 +218,7 @@ code {{
 .tool-output .content {{
     padding: 10px;
     color: gray !important;
+    font-size: 0.9rem;
 }}
 .tool-output .toggle-cmd-output {{
     cursor: pointer;

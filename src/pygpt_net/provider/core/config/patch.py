@@ -1770,6 +1770,8 @@ class Patch:
                 if 'cmd_web' in data['plugins'] \
                         and 'cmd.web_url_raw' in data['plugins']['cmd_web']:
                     del data['plugins']['cmd_web']['cmd.web_url_raw']
+                self.window.core.updater.patch_css('web-blocks.css', True)  # force update
+                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force update
                 updated = True
 
         # update file
