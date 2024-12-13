@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import json
@@ -558,6 +558,8 @@ class Renderer(BaseRenderer):
 
         :pid: context PID
         """
+        if pid is None:
+            return
         if not self.pids[pid].loaded:
             js = "var element = document.getElementById('_append_input_');"
             js += "if (element) { element.innerHTML = ''; }"
