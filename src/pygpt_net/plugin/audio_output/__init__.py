@@ -127,6 +127,7 @@ class Plugin(BasePlugin):
         elif name == Event.CTX_AFTER:
             if mode == MODE_AUDIO:
                 return  # skip if audio mode
+            self.stop_audio()
             self.on_generate(ctx, event)
 
         elif name == Event.AUDIO_READ_TEXT:
