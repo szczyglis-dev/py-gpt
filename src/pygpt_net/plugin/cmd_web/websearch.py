@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 20:00:00                  #
+# Updated Date: 2024.12.13 00:00:00                  #
 # ================================================== #
 
 import re
@@ -259,7 +259,7 @@ class WebSearch:
 
             # if result then stop
             if result is not None and result != "":
-                img = self.get_main_image(url)
+                img = self.plugin.window.core.web.get_main_image(url)
                 self.log("Summary generated (chars: {})".format(len(result)))
                 # index webpage if auto-index is enabled
                 self.index_url(url)
@@ -306,11 +306,12 @@ class WebSearch:
         chunk_size = int(self.plugin.get_option_value("chunk_size"))
         max_result_size = int(self.plugin.get_option_value("max_result_length"))
 
+        img = None
         self.log("URL: " + url)
         content = self.query_url(url)
 
         if content is None:
-            return None, url
+            return None, url, img
 
         self.log("Content found (chars: {}). Please wait...".format(len(content)))
 
@@ -334,7 +335,7 @@ class WebSearch:
             # no summary
             result = str(content)
 
-        img = self.get_main_image(url)
+        img = self.plugin.window.core.web.get_main_image(url)
 
         if result is not None and result != "":
             self.log("Summary generated (chars: {})".format(len(result)))
@@ -373,7 +374,7 @@ class WebSearch:
         img = None
         # index webpage if auto-index is enabled
         if result:
-            img = self.get_main_image(url)
+            img = self.plugin.window.core.web.get_main_image(url)
             self.index_url(url)
 
         # strip if too long
@@ -409,59 +410,6 @@ class WebSearch:
                 self.error("Failed to index URL: " + url)
         except Exception as e:
             self.error(e)
-
-    def get_main_image(self, url: str) -> str or None:
-        """
-        Get main image from URL
-
-        :param url: URL to get image from
-        :return: image URL
-        """
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        og_image = soup.find('meta', property='og:image')
-        if og_image and og_image.get('content'):
-            return og_image['content']
-
-        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
-        if twitter_image and twitter_image.get('content'):
-            return twitter_image['content']
-
-        link_image = soup.find('link', rel='image_src')
-        if link_image and link_image.get('href'):
-            return link_image['href']
-
-        images = soup.find_all('img')
-        if images:
-            images = [img for img in images if 'logo' not in (img.get('src') or '').lower()]
-
-            largest_image = None
-            max_area = 0
-            for img in images:
-                src = img.get('src')
-                if not src:
-                    continue
-
-                src = requests.compat.urljoin(url, src)
-                try:
-                    img_response = requests.get(src, stream=True, timeout=5)
-                    img_response.raw.decode_content = True
-
-                    from PIL import Image
-                    image = Image.open(img_response.raw)
-                    width, height = image.size
-                    area = width * height
-                    if area > max_area:
-                        max_area = area
-                        largest_image = src
-                except:
-                    continue
-
-            if largest_image:
-                return largest_image
-
-        return None
 
     def error(self, err: any):
         """
