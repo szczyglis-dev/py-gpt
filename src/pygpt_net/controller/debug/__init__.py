@@ -15,6 +15,8 @@ from logging import ERROR, WARNING, INFO, DEBUG
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QTextCursor
 
+from pygpt_net.core.events import RenderEvent
+
 
 class Debug(QObject):
     def __init__(self, window=None):
@@ -53,8 +55,17 @@ class Debug(QObject):
 
     def toggle_menu(self):
         """Toggle debug menu"""
-        stage = self.window.core.config.get('debug')
-        self.window.ui.menu['menu.debug'].menuAction().setVisible(stage)
+        state = self.window.core.config.get('debug')
+        self.window.ui.menu['menu.debug'].menuAction().setVisible(state)
+
+    def toggle_render(self):
+        """Toggle render debug"""
+        value = self.window.ui.menu['debug.render'].isChecked()
+        self.window.core.config.set('debug.render', value)
+        self.window.core.config.save()
+        event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
+        self.window.dispatch(event)
+        self.window.controller.ctx.refresh()
 
     def set_log_level(self, level: str = 'error'):
         """

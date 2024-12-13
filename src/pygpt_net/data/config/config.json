@@ -134,6 +134,7 @@
     "expert": ""
   },
   "debug": false,
+  "debug.render": false,
   "download.dir": "download",
   "experts.mode": "chat",
   "font_size": 12,

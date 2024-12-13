@@ -329,3 +329,11 @@ code {{
     transform: rotate(360deg);
   }}
 }}
+
+/* debug */
+.debug {{
+    color: orange !important;
+    background: #0d1117;
+    padding: 10px;
+    font-size: 0.9rem;
+}}

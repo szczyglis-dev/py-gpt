@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.13 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -190,10 +190,28 @@ class CtxItem:
         """
         return {
             "id": self.id,
-            "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
             "meta_id": self.meta_id,
+            "idx": self.idx,
+            "first": self.first,
+            "live": self.live,
+            "hidden": False,
+            "internal": self.internal,
             "external_id": self.external_id,
             # "stream": self.stream,  #  <-- do not dump stream response object
+            "reply": self.reply,
+            "current": self.current,
+            "stopped": self.stopped,
+            "is_audio": self.is_audio,
+            "is_vision": self.is_vision,
+            "agent_call": self.agent_call,
+            "tool_calls": self.tool_calls,
+            "index_meta": self.index_meta,
+            "doc_ids": self.doc_ids,
+            "sub_calls": 0,
+            "sub_call": False,
+            "sub_reply": False,
+            "extra": self.extra,
+            "extra_ctx": self.extra_ctx,
             "cmds": self.cmds,
             "cmds_before": self.cmds_before,
             "results": self.results,
@@ -205,9 +223,7 @@ class CtxItem:
             "files_before": self.files_before,
             "attachments": self.attachments,
             "attachments_before": self.attachments_before,
-            "reply": self.reply,
-            "input": self.input,
-            "output": self.output,
+            "pid": self.pid,
             "mode": self.mode,
             "model": self.model,
             "thread": self.thread,
@@ -215,31 +231,18 @@ class CtxItem:
             "run_id": self.run_id,
             "audio_id": self.audio_id,
             "audio_expires_ts": self.audio_expires_ts,
+            "input": self.input,
+            "output": self.output,
+            'hidden_input': self.hidden_input,
+            'hidden_output': self.hidden_output,
             "input_name": self.input_name,
             "output_name": self.output_name,
             "input_timestamp": self.input_timestamp,
             "output_timestamp": self.output_timestamp,
-            'hidden_input': self.hidden_input,
-            'hidden_output': self.hidden_output,
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
-            "extra": self.extra,
-            "extra_ctx": self.extra_ctx,
-            "current": self.current,
-            "internal": self.internal,
-            "is_vision": self.is_vision,
-            "idx": self.idx,
-            "first": self.first,
-            "agent_call": self.agent_call,
-            "tool_calls": self.tool_calls,
-            "index_meta": self.index_meta,
-            "doc_ids": self.doc_ids,
-            "sub_calls": 0,
-            "sub_call": False,
-            "sub_reply": False,
-            "hidden": False,
-            "live": self.live,
+            "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
         }
 
     def from_dict(self, data: dict):

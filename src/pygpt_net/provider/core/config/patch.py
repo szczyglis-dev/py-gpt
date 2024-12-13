@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.13 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -1772,6 +1772,8 @@ class Patch:
                     del data['plugins']['cmd_web']['cmd.web_url_raw']
                 self.window.core.updater.patch_css('web-blocks.css', True)  # force update
                 self.window.core.updater.patch_css('web-blocks.light.css', True)  # force update
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force update
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
         # update file

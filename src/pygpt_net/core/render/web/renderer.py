@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.13 19:00:00                  #
 # ================================================== #
 
 import json
@@ -167,7 +167,7 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param ctx: context item
         """
-        pass  # do nothing
+        pass
 
     def stream_end(self, meta: CtxMeta, ctx: CtxItem):
         """
@@ -291,6 +291,12 @@ class Renderer(BaseRenderer):
         self.update_names(meta, ctx)
         raw_chunk = str(text_chunk)
         if begin:
+            # debug
+            debug = ""
+            if self.is_debug():
+                debug = self.append_debug(ctx, pid, "stream")
+            if debug:
+                raw_chunk = debug + raw_chunk
             self.pids[pid].buffer = ""  # reset buffer
             self.pids[pid].is_cmd = False  # reset command flag
             self.clear_chunks_output(pid)
@@ -648,6 +654,11 @@ class Renderer(BaseRenderer):
         if type(ctx.extra) is dict and "agent_evaluate" in ctx.extra:
             name = trans("msg.name.evaluation")
 
+        # debug
+        debug = ""
+        if self.is_debug():
+            debug = self.append_debug(ctx, pid, "input")
+
         extra = ""
         if ctx.extra is not None and "footer" in ctx.extra:
             extra = ctx.extra["footer"]
@@ -657,6 +668,7 @@ class Renderer(BaseRenderer):
             '<div class="msg">'
             '{html}'
             '<div class="msg-extra">{extra}</div>'
+            '{debug}'
             '</div>'
             '</div>'
         ).format(
@@ -664,6 +676,7 @@ class Renderer(BaseRenderer):
             name=name,
             html=html,
             extra=extra,
+            debug=debug,
         )
 
         return html
@@ -770,16 +783,21 @@ class Renderer(BaseRenderer):
         )
         tool_extra = self.body.prepare_tool_extra(ctx)
 
+        # debug
+        debug = ""
+        if self.is_debug():
+            debug = self.append_debug(ctx, pid, "output")
+
         html = (
             '<div class="msg-box msg-bot" id="{msg_id}">'
             '<div class="name-header name-bot">{name_bot}</div>'
             '<div class="msg">'
             '{html}'
-            
             '<div class="msg-tool-extra">{tool_extra}</div>'
             '{html_tools}'
             '<div class="msg-extra">{extra}</div>'
             '{footer}'
+            '{debug}'
             '</div>'
             '</div>'
         ).format(
@@ -790,6 +808,7 @@ class Renderer(BaseRenderer):
             extra=extra,
             footer=footer,
             tool_extra=tool_extra,
+            debug=debug,
         )
 
         return html
@@ -1108,3 +1127,24 @@ class Renderer(BaseRenderer):
             self.get_output_node().page().runJavaScript(f"endToolOutput();")
         except Exception as e:
             pass
+
+    def append_debug(self, ctx: CtxItem, pid, title: str = None) -> str:
+        """
+        Append debug info
+
+        :param ctx: context item
+        :param pid: context PID
+        :param title: debug title
+        """
+        if title is None:
+            title = "debug"
+        debug = "<b>" +title+ ":</b> pid: "+str(pid)+", ctx: " + str(ctx.to_dict())
+        return "<div class='debug'>" + debug + "</div>"
+
+    def is_debug(self) -> bool:
+        """
+        Check if debug mode is enabled
+
+        :return: True if debug mode is enabled
+        """
+        return self.window.core.config.get("debug.render", False)

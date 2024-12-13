@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 18:00:00                  #
+# Updated Date: 2024.12.13 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -41,6 +41,7 @@ class Debug:
         self.window.ui.menu['debug.logger'] = QAction(trans("menu.debug.logger"), self.window, checkable=True)
         self.window.ui.menu['debug.app.log'] = QAction(trans("menu.debug.app.log"), self.window, checkable=True)
         self.window.ui.menu['debug.kernel'] = QAction(trans("menu.debug.kernel"), self.window, checkable=True)
+        self.window.ui.menu['debug.render'] = QAction(trans("menu.debug.render"), self.window, checkable=True)
 
         self.window.ui.menu['debug.config'].triggered.connect(
             lambda: self.window.controller.debug.toggle('config'))
@@ -74,9 +75,12 @@ class Debug:
             lambda: self.window.controller.debug.toggle('db'))
         self.window.ui.menu['debug.kernel'].triggered.connect(
             lambda: self.window.controller.debug.toggle('kernel'))
+        self.window.ui.menu['debug.render'].triggered.connect(
+            lambda: self.window.controller.debug.toggle_render())
 
         self.window.ui.menu['menu.debug'] = self.window.menuBar().addMenu(trans("menu.debug"))
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.render'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.db'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.app.log'])
         self.window.ui.menu['menu.debug'].addSeparator()
@@ -93,5 +97,11 @@ class Debug:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.presets'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.tabs'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.ui'])
+
+        # restore state
+        if self.window.core.config.get('debug.render'):
+            self.window.ui.menu['debug.render'].setChecked(True)
+        else:
+            self.window.ui.menu['debug.render'].setChecked(False)
 
 
