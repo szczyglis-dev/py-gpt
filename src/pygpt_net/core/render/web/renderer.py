@@ -182,7 +182,12 @@ class Renderer(BaseRenderer):
                 self.append_context_item(meta, self.pids[pid].item)
                 self.pids[pid].item = None
 
-    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
+    def append_context(
+            self,
+            meta: CtxMeta,
+            items: list,
+            clear: bool = True
+    ):
         """
         Append all context to output
         
@@ -203,22 +208,37 @@ class Renderer(BaseRenderer):
 
         self.pids[pid].use_buffer = True
         self.pids[pid].html = ""
+        prev_ctx = None
         for item in items:
             self.update_names(meta, item)
             item.idx = i
             if i == 0:
                 item.first = True
             next_item = items[i + 1] if i + 1 < len(items) else None   # append next item if exists
-            self.append_context_item(meta, item, next_item)  # to html buffer
+            self.append_context_item(
+                meta,
+                item,
+                prev_ctx=prev_ctx,
+                next_ctx=next_item
+            )  # to html buffer
+            prev_ctx = item
             i += 1
         self.pids[pid].use_buffer = False
 
         # flush
         if self.pids[pid].html != "":
-            self.append(pid, self.pids[pid].html,
-                        flush=True)  # flush buffer if page loaded, otherwise it will be flushed on page load
+            self.append(
+                pid,
+                self.pids[pid].html,
+                flush=True
+            )  # flush buffer if page loaded, otherwise it will be flushed on page load
 
-    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
+    def append_input(
+            self, meta: CtxMeta,
+            ctx: CtxItem,
+            flush: bool = True,
+            append: bool = False
+    ):
         """
         Append text input to output
 
@@ -250,29 +270,49 @@ class Renderer(BaseRenderer):
                 text = re.sub(r'^user: ', '> ', ctx.input)
 
         if flush:  # to chunk buffer
-            content = self.prepare_node(meta, ctx, text.strip(), self.NODE_INPUT)
             if self.is_stream() and not append:
+                content = self.prepare_node(meta, ctx, text.strip(), self.NODE_INPUT)
                 self.append_chunk_input(meta, ctx, content, False)
-            else:
-                self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
-        else:
-            self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
+                return
 
-    def append_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, next_ctx: CtxItem = None):
+        self.append_node(meta, ctx, text.strip(), self.NODE_INPUT)
+
+    def append_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            flush: bool = True,
+            prev_ctx: CtxItem = None,
+            next_ctx: CtxItem = None
+    ):
         """
         Append text output to output
         
         :param meta: context meta
         :param ctx: context item
         :param flush: flush HTML
+        :param prev_ctx: previous context
         :param next_ctx: next context
         """
         self.tool_output_end()  # reset tools
         if ctx.output is None or ctx.output == "":
             return
-        self.append_node(meta, ctx, ctx.output.strip(), self.NODE_OUTPUT, next_ctx)
+        self.append_node(
+            meta=meta,
+            ctx=ctx,
+            html=ctx.output.strip(),
+            type=self.NODE_OUTPUT,
+            prev_ctx=prev_ctx,
+            next_ctx=next_ctx
+        )
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
         """
         Append output chunk to output
         
@@ -324,7 +364,13 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_chunk_input(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
         """
         Append output chunk to output
 
@@ -347,7 +393,15 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def append_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1, next_ctx: CtxItem = None):
+    def append_node(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            html: str,
+            type: int = 1,
+            prev_ctx: CtxItem = None,
+            next_ctx: CtxItem = None
+    ):
         """
         Append and format raw text to output
 
@@ -355,15 +409,31 @@ class Renderer(BaseRenderer):
         :param html: text to append
         :param type: type of message
         :param ctx: CtxItem instance
+        :param prev_ctx: previous context item
         :param next_ctx: next context item
         """
         if ctx.hidden:
             return
 
         pid = self.get_or_create_pid(meta)
-        self.append(pid, self.prepare_node(meta, ctx, html, type, next_ctx))
+        self.append(
+            pid,
+            self.prepare_node(
+                meta=meta,
+                ctx=ctx,
+                html=html,
+                type=type,
+                prev_ctx=prev_ctx,
+                next_ctx=next_ctx
+            )
+        )
 
-    def append(self, pid, html: str, flush: bool = False):
+    def append(
+            self,
+            pid,
+            html: str,
+            flush: bool = False
+    ):
         """
         Append text to output
         
@@ -379,18 +449,41 @@ class Renderer(BaseRenderer):
             if not flush:
                 self.pids[pid].html += html  # to buffer
 
-    def append_context_item(self, meta: CtxMeta, ctx: CtxItem, next_ctx: CtxItem = None):
+    def append_context_item(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            prev_ctx: CtxItem = None,
+            next_ctx: CtxItem = None
+    ):
         """
         Append context item to output
 
         :param meta: context meta
         :param ctx: context item
+        :param prev_ctx: previous context item
         :param next_ctx: next context item
         """
-        self.append_input(meta, ctx, flush=False)
-        self.append_output(meta, ctx, flush=False, next_ctx=next_ctx)  # + extra
+        self.append_input(
+            meta,
+            ctx,
+            flush=False
+        )
+        self.append_output(
+            meta,
+            ctx,
+            flush=False,
+            prev_ctx=prev_ctx,
+            next_ctx=next_ctx
+        )  # + extra
 
-    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False, render: bool = True) -> str:
+    def append_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            footer: bool = False,
+            render: bool = True
+    ) -> str:
         """
         Append extra data (images, files, etc.) to output
         
@@ -481,7 +574,12 @@ class Renderer(BaseRenderer):
 
         return html
 
-    def append_timestamp(self, ctx: CtxItem, text: str, type: int = None) -> str:
+    def append_timestamp(
+            self,
+            ctx: CtxItem,
+            text: str,
+            type: int = None
+    ) -> str:
         """
         Append timestamp to text
 
@@ -502,7 +600,10 @@ class Renderer(BaseRenderer):
                 text = '<span class="ts">{}: </span>{}'.format(hour, text)
         return text
 
-    def reset(self, meta: CtxMeta = None):
+    def reset(
+            self,
+            meta: CtxMeta = None
+    ):
         """
         Reset
 
@@ -608,7 +709,15 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def prepare_node(self, meta: CtxMeta, ctx: CtxItem, html: str, type: int = 1, next_ctx: CtxItem = None) -> str:
+    def prepare_node(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            html: str,
+            type: int = 1,
+            prev_ctx: CtxItem = None,
+            next_ctx: CtxItem = None
+    ) -> str:
         """
         Prepare node HTML
         
@@ -616,20 +725,35 @@ class Renderer(BaseRenderer):
         :param ctx: CtxItem instance
         :param html: html text
         :param type: type of message
+        :param prev_ctx: previous context item
         :param next_ctx: next context item
         :return: prepared HTML
         """
         pid = self.get_or_create_pid(meta)
         if type == self.NODE_OUTPUT:
-            return self.prepare_node_output(meta, ctx, html, next_ctx)
+            return self.prepare_node_output(
+                meta=meta,
+                ctx=ctx,
+                html=html,
+                prev_ctx=prev_ctx,
+                next_ctx=next_ctx
+            )
         elif type == self.NODE_INPUT:
-            return self.prepare_node_input(pid, ctx, html)
+            return self.prepare_node_input(
+                pid=pid,
+                ctx=ctx,
+                html=html,
+                prev_ctx=prev_ctx,
+                next_ctx=next_ctx
+            )
 
     def prepare_node_input(
             self,
             pid,
             ctx: CtxItem,
-            html: str
+            html: str,
+            prev_ctx: CtxItem = None,
+            next_ctx: CtxItem = None
     ) -> str:
         """
         Prepare input node
@@ -637,6 +761,8 @@ class Renderer(BaseRenderer):
         :param pid: context PID
         :param ctx: CtxItem instance
         :param html: html text
+        :param prev_ctx: previous context item
+        :param next_ctx: next context item
         :return: prepared HTML
         """
         msg_id = "msg-user-" + str(ctx.id) if ctx is not None else ""
@@ -686,6 +812,7 @@ class Renderer(BaseRenderer):
             meta: CtxMeta,
             ctx: CtxItem,
             html: str,
+            prev_ctx: CtxItem = None,
             next_ctx: CtxItem = None
     ) -> str:
         """
@@ -694,7 +821,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param ctx: CtxItem instance
         :param html: html text
-        :param next_ctx: previous context item
+        :param prev_ctx: previous context item
+        :param next_ctx: next context item
         :return: prepared HTML
         """
         is_cmd = False
@@ -706,8 +834,8 @@ class Renderer(BaseRenderer):
             is_cmd = True
         pid = self.get_or_create_pid(meta)
         msg_id = "msg-bot-" + str(ctx.id) if ctx is not None else ""
-        #if is_cmd:
-            #html = self.helpers.format_cmd_text(html)
+        # if is_cmd:
+        # html = self.helpers.format_cmd_text(html)
         html = self.helpers.pre_format_text(html)
         html = self.append_timestamp(ctx, html, type=self.NODE_OUTPUT)
         html = self.parser.parse(html)
@@ -747,7 +875,7 @@ class Renderer(BaseRenderer):
 
         # check if agent step and results in current ctx
         elif ctx.results is not None and len(ctx.results) > 0 \
-            and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
+                and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
             tool_output = self.helpers.format_cmd_text(str(ctx.input))
         else:
             # loading spinner
