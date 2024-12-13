@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.13 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
     MODE_COMPLETION,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
+    MODE_AUDIO,
 )
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
@@ -537,6 +538,7 @@ class Command:
             MODE_LLAMA_INDEX,
             MODE_LANGCHAIN,
             MODE_COMPLETION,
+            MODE_AUDIO,
         ]
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:
