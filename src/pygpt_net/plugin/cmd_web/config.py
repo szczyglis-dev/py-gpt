@@ -263,6 +263,40 @@ class Config(BaseConfig):
             description="If enabled, model will be able to search the Web and get founded URLs list",
         )
         plugin.add_cmd(
+            "web_extract_links",
+            instruction="open webpage and get list of all links from it",
+            params=[
+                {
+                    "name": "url",
+                    "type": "str",
+                    "description": "URL to website",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to open URL and get list of all links from it",
+        )
+        plugin.add_cmd(
+            "web_extract_images",
+            instruction="open webpage and get list of all images from it",
+            params=[
+                {
+                    "name": "url",
+                    "type": "str",
+                    "description": "URL to website",
+                    "required": True,
+                },
+                {
+                    "name": "download",
+                    "type": "bool",
+                    "description": "Download images to disk if user wants to, default: False",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to open URL and get list of all images from it",
+        )
+        plugin.add_cmd(
             "web_index",
             instruction="",
             params=[],  # prepared dynamically

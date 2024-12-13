@@ -7,6 +7,7 @@
 - HTML/JS Canvas tool added to the Tabs.
 - Added attachment icon to the context list if context has attachments.
 - Added a thumbnail image to web search results.
+- Added a new commands to web search: "extract_images" and "extract_links".
 - Added the option "Use raw content (without summarization)" to the web search plugin, which provides a more detailed result to the main model.
 - Extended the default maximum result characters to 50,000 in the web search plugin.
 

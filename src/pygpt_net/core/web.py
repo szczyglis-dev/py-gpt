@@ -10,7 +10,9 @@
 # ================================================== #
 
 import requests
+
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 from pygpt_net.provider.web.base import BaseProvider
 
@@ -137,3 +139,66 @@ class Web:
                 return largest_image
 
         return None
+
+    def get_links(self, url: str) -> list:
+        """
+        Get links from URL
+
+        :param url: URL to get links from
+        :return: links list
+        """
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        links = []
+        urls = []
+        for link in soup.find_all('a'):
+            try:
+                name = link.get_text(strip=True)
+                address = link.get('href')
+                if address:
+                    address = urljoin(url, address)
+                    if not name:
+                        title = link.get('title')
+                        if title:
+                            name = title
+                        else:
+                            name = address
+                    if address not in urls:
+                        urls.append(address)
+                        links.append({name: address})
+            except:
+                continue
+        return links
+
+
+    def get_images(self, url: str) -> list:
+        """
+        Get images from URL
+
+        :param url: URL to get images from
+        :return: images list
+        """
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        images = []
+        for img in soup.find_all('img'):
+            try:
+                # src
+                address = img.get('src')
+                if address:
+                    address = urljoin(url, address)
+                    if address not in images:
+                        images.append(address)
+
+                # srcset
+                srcset = img.get('srcset')
+                if srcset:
+                    srcset = srcset.split(',')
+                    for src in srcset:
+                        src = src.split(' ')[0]
+                        src = urljoin(url, src)
+                        if src not in images:
+                            images.append(src)
+            except:
+                continue
+        return images

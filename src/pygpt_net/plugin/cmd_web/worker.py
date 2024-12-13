@@ -57,6 +57,12 @@ class Worker(BaseWorker):
                 elif item["cmd"] == "web_index_query":
                     response = self.cmd_web_index_query(item)
 
+                elif item["cmd"] == "web_extract_links":
+                    response = self.cmd_web_extract_links(item)
+
+                elif item["cmd"] == "web_extract_images":
+                    response = self.cmd_web_extract_images(item)
+
                 if response:
                     responses.append(response)
 
@@ -342,3 +348,47 @@ class Worker(BaseWorker):
             "context": context,
         }
         return self.make_response(item, result, extra=extra)
+
+    def cmd_web_extract_links(self, item: dict) -> dict:
+        """
+        Web extract links command
+
+        :param item: command item
+        :return: response item
+        """
+        url = ""
+        if self.has_param(item, "url"):
+            url = self.get_param(item, "url")
+        if not url:
+            return self.make_response(item, "No URL provided")
+        links = self.plugin.window.core.web.get_links(url)
+        result = {
+            'links': links,
+        }
+        self.ctx.urls_before.append(url)
+        return self.make_response(item, result)
+
+    def cmd_web_extract_images(self, item: dict) -> dict:
+        """
+        Web extract images command
+
+        :param item: command item
+        :return: response item
+        """
+        download = False
+        url = ""
+        if self.has_param(item, "url"):
+            url = self.get_param(item, "url")
+        if self.has_param(item, "download"):
+            download = bool(self.get_param(item, "download"))
+        if not url:
+            return self.make_response(item, "No URL provided")
+        images = self.plugin.window.core.web.get_images(url)
+        result = {
+            'images': images,
+        }
+        if images and download:
+            for img in images:
+                self.ctx.images_before.append(img)
+        self.ctx.urls_before.append(url)
+        return self.make_response(item, result)

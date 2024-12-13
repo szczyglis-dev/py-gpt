@@ -40,6 +40,8 @@ class Plugin(BasePlugin):
             "web_url_raw",
             "web_index",
             "web_index_query",
+            "web_extract_links",
+            "web_extract_images",
         ]
         self.order = 100
         self.use_locale = True
