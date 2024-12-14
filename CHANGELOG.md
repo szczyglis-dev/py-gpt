@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.4.41 (2024-12-14)
+
+- Improved switching between columns on a split screen.
+- Added visual identification of the active column.
+
 ## 2.4.40 (2024-12-13)
 
 - Enhanced Split Screen mode, now promoted from beta to stable.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.40** | build: **2024.12.13** | Python: **>=3.10, <3.12**
+Release: **2.4.41** | build: **2024.12.14** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3877,6 +3877,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.41 (2024-12-14)**
+
+- Improved switching between columns on a split screen.
+- Added visual identification of the active column.
+
 **2.4.40 (2024-12-13)**
 
 - Enhanced Split Screen mode, now promoted from beta to stable.
@@ -3908,118 +3913,6 @@ may consume additional tokens that are not displayed in the main window.
   - `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if the mode is set to RAG or Summary.
   - `RAG limit`: This option is applicable only if 'Use history in RAG query' is enabled. It specifies the limit on how many recent entries in the conversation will be used when generating a query for RAG. A value of 0 indicates no limit.
 - Cache: dynamic parts of the system prompt (from plugins) have been moved to the very end of the prompt stack to enable the use of prompt cache mechanisms in OpenAI.
-
-**2.4.36 (2024-11-28)**
-
-- Added a new command-line argument: --workdir="/path/to/workdir" to explicitly set the current working directory.
-- Fix: start image generation in Image mode.
-
-**2.4.35 (2024-11-28)**
-
-- Docker removed from dependencies in Snap version #82
-- Refactored documentation.
-- Fix: toggles real-time update hook.
-- Fix: missing edit icons.
-- Added tokens from attachments to counters if mode == Full context.
-
-**2.4.34 (2024-11-26)**
-
-- Added a new mode: `Chat with Audio`, with built-in multimodal support for audio input/output. Currently in `beta`, the execution of commands and tools in this mode is temporarily unavailable.
-- Added new models: `gpt-4o-audio-preview`, `gpt-4o-2024-11-20`, `chatgpt-4o-latest`.
-- Force disabled integration with the native system menu.
-
-**2.4.33 (2024-11-26)**
-
-- Improved CSS and rendering of file and image lists.
-- Added displaying of used attachments in the chat window.
-
-**2.4.32 (2024-11-26)**
-
-- The "Add URL" option added to the "Attachments" tab allows users to include content from a given website as additional context. Currently, it only supports standard web pages and video transcription for YouTube links. More "web" options will be added in the future.
-- Added UTF-8 as default in attachments content text read/write.
-
-**2.4.31 (2024-11-25)**
-
-- Added an option checkbox `Auto-index on upload` in the `Attachments` tab: 
-
-**Tip:** To use the `RAG` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the `Auto-index on upload` option in the `Attachments` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the `Full context` option, which does not use the index, you can disable the `Auto-index` option to speed up the upload of the attachment. In this case, it will only be indexed when the `RAG` option is called for the first time, and until then, attachment will be available in the form of `Full context` and `Summary`.
-
-- Added context menu options in `Uploaded attachments` tab: `Open`, `Open Source directory` and `Open Storage directory`.
-
-**2.4.30 (2024-11-25)**
-
-- Added instruction to model about mapped data directory in both legacy and IPython code interepreter.
-- Updated locales for plugins.
-
-**2.4.29 (2024-11-25)**
-
-- Added a local IPython interpreter - you can now choose between local and sandbox (Docker) in the plugin settings.
-- Added the ability to configure mapped volumes and ports for Docker containers in the plugin settings.
-- Optimized and speed-up the LlamaIndex plugin (inline).
-- Checkboxes replaced with Toggle buttons.
-- Improved settings dialogs.
-- Slight modification of the layout.
-- Fix: Dockerfile formatting in Code Interpreter config.
-- Fix: experts inline plugin execution.
-
-**2.4.28 (2024-11-24)**
-
-- Fix: issue #78
-
-**2.4.27 (2024-11-24)**
-
-- Profile switch fix.
-
-**2.4.26 (2024-11-24)**
-
-- Fix: issue #77
-
-**2.4.25 (2024-11-24)**
-
-- Added new plugin: System (OS), with optional sandbox support.
-- Execution of system commands moved to the System plugin.
-- Improved sandbox/Docker management.
-- Enhanced plugin settings.
-- Commands renamed to Tools, simplified layout.
-- Fix: handling of the Mouse and Keyboard plugin.
-- Fix: switching to a new context from a non-chat tab.
-- Fix: camera screenshots when the camera is not started.
-
-**2.4.24 (2024-11-23)**
-
-- Added the ability to use ZIP and TAR archives as attachments (they are now unpacked "on the fly").
-- Added the ability to index ZIP and TAR archives (it may be necessary to remove .zip and .tar from the blacklist in the settings).
-- Fix: error when uploading to the /data directory using the Upload files button.
-
-**2.4.23 (2024-11-23)**
-
-- Condensed layout widgets margins.
-- Added filename info to provided additional context from attachments.
-- Fixed auto-clear in attachments in Assistants mode.
-
-**2.4.22 (2024-11-23)**
-
-- Added the ability to use attachments with images, audio, and video as additional context. Tip: to enable the use of images as additional context, you need to enable the option: `Files and attachments -> Allow images as additional context`.
-- Edit icons in the chat window are enabled by default.
-
-**2.4.21 (2024-11-23)**
-
-- Added the ability to send additional context from attachments without needing to activate the "Chat with Files" mode. Now, you just need to attach a file, and the additional context from the file will be available in the conversation. More information can be found in the "Files and attachments" section of the documentation.
-
-- Fixed the issue with restarting the agent after it has been forcefully stopped.
-
-**2.4.20 (2024-11-22)**
-
-- Fixed freeze in Windows installer. #75
-- Small fixes.
-
-**2.4.19 (2024-11-22)**
-
-- Added new LLM providers for LlamaIndex: HuggingFaceAPI and LocalAI.
-- The IPython interpreter now returns local paths to generated files and images (mapped to: %workdir%/ipython/).
-- Refactored legacy Agent and Expert modes.
-- Fixed Expert mode initialization.
-- Added an option in Settings -> Layout to disable animations.
 
 
 # Credits and links
