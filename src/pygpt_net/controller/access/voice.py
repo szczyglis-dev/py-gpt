@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Optional, List, Dict, Any
 
 import pyaudio
 import wave
@@ -185,7 +187,11 @@ class Voice:
             self.enable_voice_control()
 
     def is_voice_control_enabled(self) -> bool:
-        """Check if voice control is enabled"""
+        """
+        Check if voice control is enabled
+
+        :return: True if enabled
+        """
         return self.window.core.config.get("access.voice_control")
 
     def toggle_recording(self):
@@ -342,7 +348,7 @@ class Voice:
         self.window.tools.get("transcriber").on_transcribe(path, text)
 
     @Slot(object, object)
-    def handle_input(self, text: str, ctx: CtxItem = None):
+    def handle_input(self, text: str, ctx: Optional[CtxItem] = None):
         """
         Insert text to input and send
 
@@ -356,7 +362,7 @@ class Voice:
         commands = self.window.core.access.voice.recognize_commands(text)
         self.handle_commands(commands)
 
-    def handle_commands(self, commands: list):
+    def handle_commands(self, commands: List[Dict[str, Any]]):
         """
         Handle commands
 

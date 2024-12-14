@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -134,7 +134,12 @@ class Debug(QObject):
             signals.js_message.connect(self.handle_js_message)
 
     @Slot(int, str, str)
-    def handle_js_message(self, line_number: int, message: str, source_id: str):
+    def handle_js_message(
+            self,
+            line_number: int,
+            message: str,
+            source_id: str
+    ):
         """
         Handle JS message
 
@@ -154,7 +159,11 @@ class Debug(QObject):
         """
         self.log(data)
 
-    def log(self, data: Any, window: bool = True):
+    def log(
+            self,
+            data: Any,
+            window: bool = True
+    ):
         """
         Log message to console or logger window
 

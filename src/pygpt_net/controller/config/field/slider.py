@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict, Union
 
 
 class Slider:
@@ -25,8 +25,8 @@ class Slider:
             self,
             parent_id: str,
             key: str,
-            option: dict,
-            type: str = None
+            option: Dict[str, Any],
+            type: Optional[str] = None
     ):
         """
         Apply value to slider
@@ -92,7 +92,7 @@ class Slider:
             self,
             parent_id: str,
             key: str,
-            option: dict,
+            option: Dict[str, Any],
             value: Any,
             type: Optional[str] = None,
             hooks: bool = True
@@ -124,8 +124,8 @@ class Slider:
             self,
             parent_id: str,
             key: str,
-            option: dict
-    ) -> any:
+            option: Dict[str, Any]
+    ) -> Union[int, float]:
         """
         Get slider value
 

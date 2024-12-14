@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -111,7 +111,7 @@ class Legacy:
         self.window.ui.nodes['status.agent'].setText(status)
         self.window.controller.agent.common.toggle_status()
 
-    def get_functions(self) -> list:
+    def get_functions(self) -> List[Dict[str, Any]]:
         """
         Append goal commands
 
@@ -288,7 +288,7 @@ class Legacy:
     def on_cmd(
             self,
             ctx: CtxItem,
-            cmds: list,
+            cmds: List[Dict[str, Any]],
     ):
         """
         Event: On commands
@@ -302,7 +302,7 @@ class Legacy:
     def cmd(
             self,
             ctx: CtxItem,
-            cmds: list,
+            cmds: List[Dict[str, Any]],
     ):
         """
         Event: On command
@@ -380,7 +380,7 @@ class Legacy:
                 mode="agent",
             )
 
-    def hook_update(self, key, value, caller, *args, **kwargs):
+    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
         """
         Hook: on option update
 

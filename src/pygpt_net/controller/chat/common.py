@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
@@ -113,7 +113,11 @@ class Common:
         self.window.ui.nodes['input'].setFocus()
         self.initialized = True
 
-    def append_to_input(self, text: str, separator: str = "\n"):
+    def append_to_input(
+            self,
+            text: str,
+            separator: str = "\n"
+    ):
         """
         Append text to input
 
@@ -222,7 +226,6 @@ class Common:
         if ctx.has_commands():
             unlock = False
         return unlock
-
 
     def stop(self, exit: bool = False):
         """
@@ -358,7 +361,11 @@ class Common:
         else:
             self.img_enable_raw()
 
-    def save_text(self, text: str, type: str = "txt"):
+    def save_text(
+            self,
+            text: str,
+            type: str = "txt"
+    ):
         """
         Save text to file
 

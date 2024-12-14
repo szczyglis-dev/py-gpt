@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -56,7 +56,8 @@ class Prompt:
         self.window.dispatch(event)
         prompt = event.data['value']
 
-        if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
+        if (self.window.core.config.get('cmd')
+                or self.window.controller.plugins.is_type_enabled("cmd.inline")):
 
             # abort if native func call enabled
             if self.window.core.command.is_native_enabled():

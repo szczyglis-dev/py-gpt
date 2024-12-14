@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 from llama_index.core.llms import ChatMessage, MessageRole
+
+from pygpt_net.item.ctx import CtxItem
 
 
 class Context:
@@ -27,7 +29,7 @@ class Context:
             self,
             input_prompt: str,
             system_prompt: str,
-            history: Optional[list] = None,
+            history: Optional[List[CtxItem]] = None,
             multimodal: bool = False
     ):
         """

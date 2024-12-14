@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Dict, List
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -80,7 +82,7 @@ class Tools:
             submenu.addAction(action)
         return submenu
 
-    def get_tab_tools(self) -> dict:
+    def get_tab_tools(self) -> Dict[str, List[str]]:
         """
         Get tab tools
 

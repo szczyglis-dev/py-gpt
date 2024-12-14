@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Tuple
@@ -50,7 +50,10 @@ class Tokens:
         self.window = window
 
     @staticmethod
-    def from_str(string: str, model: str = "gpt-4") -> int:
+    def from_str(
+            string: str,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from string
 
@@ -93,7 +96,11 @@ class Tokens:
         return 3
 
     @staticmethod
-    def from_prompt(text: str, name: str, model: str = "gpt-4") -> int:
+    def from_prompt(
+            text: str,
+            name: str,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from prompt
 
@@ -118,7 +125,10 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_text(text: str, model: str = "gpt-4") -> int:
+    def from_text(
+            text: str,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from text, without any extra tokens
 
@@ -140,7 +150,10 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_messages(messages: list, model: str = "gpt-4") -> int:
+    def from_messages(
+            messages: list,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from messages list
 
@@ -168,7 +181,10 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_langchain_messages(messages: list, model: str = "gpt-4") -> int:
+    def from_langchain_messages(
+            messages: list,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from prompt
 
@@ -185,7 +201,11 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_llama_messages(query: str, messages: list, model: str = "gpt-4") -> int:
+    def from_llama_messages(
+            query: str,
+            messages: list,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from prompt
 
@@ -204,7 +224,11 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_ctx(ctx: CtxItem, mode: str = MODE_CHAT, model: str = "gpt-4") -> int:
+    def from_ctx(
+            ctx: CtxItem,
+            mode: str = MODE_CHAT,
+            model: str = "gpt-4"
+    ) -> int:
         """
         Return number of tokens from context ctx
 
@@ -369,7 +393,11 @@ class Tokens:
         return input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
                sum_tokens, max_current, threshold
 
-    def from_user(self, system_prompt: str, input_prompt: str) -> int:
+    def from_user(
+            self,
+            system_prompt: str,
+            input_prompt: str
+    ) -> int:
         """
         Count per-user used tokens
 

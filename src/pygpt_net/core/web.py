@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
 import uuid
-from typing import Optional
+from typing import Optional, List, Dict
 
 import requests
 
@@ -140,7 +140,7 @@ class Web:
                 return largest_image
         return None
 
-    def get_links(self, url: str) -> list:
+    def get_links(self, url: str) -> List[Dict[str, str]]:
         """
         Get links from URL
 
@@ -171,7 +171,7 @@ class Web:
         return links
 
 
-    def get_images(self, url: str) -> list:
+    def get_images(self, url: str) -> List[str]:
         """
         Get images from URL
 

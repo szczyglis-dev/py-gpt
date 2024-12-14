@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -35,7 +37,7 @@ class Legacy:
             MODE_AUDIO,
         ]
 
-    def get_allowed_modes(self) -> list:
+    def get_allowed_modes(self) -> List[str]:
         """
         Get allowed modes
 

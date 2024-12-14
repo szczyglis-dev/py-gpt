@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import time
-from typing import Any
+from typing import Any, Dict, Optional, Union, List
 
 from PySide6.QtCore import QObject, Slot
 
@@ -122,16 +122,15 @@ class Kernel(QObject):
     def input(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             event: KernelEvent
-    ) -> Any:
+    ):
         """
         Input message to kernel
 
         :param context: bridge context
         :param extra: extra data
         :param event: kernel event
-        :return: response
         """
         if self.stopped() and event.name != KernelEvent.INPUT_USER:
             return
@@ -145,9 +144,9 @@ class Kernel(QObject):
     def queue(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             event: KernelEvent
-    ) -> Any:
+    ) -> Optional[Union[bool, str, List[Dict]]]:
         """
         Queue messages to kernel
 
@@ -185,9 +184,9 @@ class Kernel(QObject):
     def call(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             event: KernelEvent
-    ) -> Any:
+    ) -> Optional[Union[bool, str]]:
         """
         Execute message
 
@@ -209,9 +208,9 @@ class Kernel(QObject):
     def reply(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             event: KernelEvent
-    ) -> Any:
+    ) -> Optional[List[Dict]]:
         """
         Queue reply message
 
@@ -231,16 +230,15 @@ class Kernel(QObject):
     def output(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             event: KernelEvent
-    ) -> Any:
+    ):
         """
         Handle output from kernel
 
         :param context: bridge context
         :param extra: extra data
         :param event: kernel event
-        :return: response
         """
         if self.stopped():
             return

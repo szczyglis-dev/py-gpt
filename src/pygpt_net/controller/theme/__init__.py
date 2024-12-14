@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
@@ -48,7 +48,11 @@ class Theme:
         # apply current theme to nodes
         self.reload(force=False)
 
-    def toggle(self, name: str, force: bool = True):
+    def toggle(
+            self,
+            name: str,
+            force: bool = True
+    ):
         """
         Toggle theme by name
 
@@ -85,7 +89,11 @@ class Theme:
         self.window.dispatch(event)
         self.reload()
 
-    def toggle_option(self, name: str, value: Any = None):
+    def toggle_option(
+            self,
+            name: str,
+            value: Any = None
+    ):
         """
         Toggle theme menu option
 
@@ -118,7 +126,11 @@ class Theme:
         self.window.core.config.save()
         self.nodes.apply_all()
 
-    def toggle_syntax(self, name: str, update_menu: bool = False):
+    def toggle_syntax(
+            self,
+            name: str,
+            update_menu: bool = False
+    ):
         """
         Toggle syntax highlight
 

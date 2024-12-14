@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 
 from pathlib import PurePath
-from typing import Tuple, Any, Union
+from typing import Tuple, Any, Union, List
 from uuid import uuid4
 
 from PySide6.QtCore import QUrl
@@ -107,7 +107,7 @@ class Filesystem:
         """
         return [self.make_local(path) for path in paths]
 
-    def make_local_list_img(self, paths: list) -> list:
+    def make_local_list_img(self, paths: List[str]) -> List[str]:
         """
         Make local placeholder paths for images
 
@@ -259,7 +259,7 @@ class Filesystem:
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
 
-    def sizeof_fmt(self, num: Any, suffix='B'):
+    def sizeof_fmt(self, num: Any, suffix: str = 'B'):
         """
         Convert numbers to human-readable unit formats.
 

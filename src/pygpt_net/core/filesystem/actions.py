@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
+from typing import List
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget
@@ -48,7 +49,7 @@ class Actions:
         return (self.window.core.filesystem.types.is_image(path)
                 or self.window.core.filesystem.types.is_video(path))
 
-    def get_preview(self, parent: QWidget, path: str) -> list:
+    def get_preview(self, parent: QWidget, path: str) -> List[QAction]:
         """
         Get preview actions for context menu
 
@@ -102,7 +103,7 @@ class Actions:
                 actions.append(action)
         return actions
 
-    def get_use(self, parent: QWidget, path: str) -> list:
+    def get_use(self, parent: QWidget, path: str) -> List[QAction]:
         """
         Get use actions for context menu
 

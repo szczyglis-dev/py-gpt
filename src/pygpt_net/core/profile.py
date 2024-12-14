@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 from uuid import uuid4
 
 
@@ -163,7 +163,12 @@ class Profile:
             return True
         return False
 
-    def update_profile(self, uuid: str, name: str, workdir: str) -> bool:
+    def update_profile(
+            self,
+            uuid: str,
+            name: str,
+            workdir: str
+    ) -> bool:
         """
         Update profile
 
@@ -200,7 +205,7 @@ class Profile:
             return self.profiles[uuid]
         return None
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, Dict]:
         """
         Get all profiles
 
@@ -223,7 +228,7 @@ class Profile:
                 return tmp_dir
         return self.base_workdir
 
-    def append(self, uuid: str, profile: dict):
+    def append(self, uuid: str, profile: Dict):
         """
         Append profile
 

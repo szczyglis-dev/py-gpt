@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 import time
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from sqlalchemy import create_engine, text
 
@@ -321,7 +321,7 @@ class Database:
             self.db_path = os.path.join(self.window.core.config.path, self.db_name)
             self.prepare()
 
-    def get_tables(self) -> dict:
+    def get_tables(self) -> Dict[str, Dict[str, Any]]:
         """
         Get tables configuration
 

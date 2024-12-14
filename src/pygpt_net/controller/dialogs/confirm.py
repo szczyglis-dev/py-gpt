@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -272,7 +272,11 @@ class Confirm:
         elif type == 'prompt.custom.delete':
             self.window.controller.presets.delete_prompt(id, True)
 
-    def dismiss(self, type: str, id: Any):
+    def dismiss(
+            self,
+            type: str,
+            id: Any
+    ):
         """
         Confirm dialog dismiss
 
@@ -291,7 +295,12 @@ class Confirm:
 
         self.window.ui.dialog['confirm'].close()
 
-    def accept_rename(self, type: str, id: Any, name: str):
+    def accept_rename(
+            self,
+            type: str,
+            id: Any,
+            name: str
+    ):
         """
         Update name of object
 
@@ -333,7 +342,12 @@ class Confirm:
         elif type == 'prompt.custom.new':
             self.window.controller.presets.save_prompt(name, True)
 
-    def accept_create(self, type: str, id: any, name: str):
+    def accept_create(
+            self,
+            type: str,
+            id: any,
+            name: str
+    ):
         """
         Create new object
 
@@ -357,7 +371,12 @@ class Confirm:
         elif type == 'ctx.group':
             self.window.controller.ctx.create_group(name, id)
 
-    def accept_url(self, type: str, id: any, url: str):
+    def accept_url(
+            self,
+            type: str,
+            id: any,
+            url: str
+    ):
         """
         Update URL provided
 

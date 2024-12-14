@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,7 +14,7 @@ import os.path
 import time
 
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict, Any
 
 from sqlalchemy import text
 
@@ -101,7 +101,11 @@ class Indexing:
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
 
-    def update_loader_args(self, loader: str, args: dict):
+    def update_loader_args(
+            self,
+            loader: str,
+            args: Dict[str, Any]
+    ):
         """
         Update loader arguments
 
@@ -144,7 +148,7 @@ class Indexing:
             self.register_loader(loader)
         self.window.core.idx.log("Data loaders reloaded.")
 
-    def get_external_instructions(self) -> dict:
+    def get_external_instructions(self) -> Dict[str, Any]:
         """
         Get external instructions
 
@@ -152,7 +156,7 @@ class Indexing:
         """
         return self.external_instructions
 
-    def get_external_config(self) -> dict:
+    def get_external_config(self) -> Dict[str, Any]:
         """
         Get external config
 
@@ -179,7 +183,7 @@ class Indexing:
             if ext in extensions:
                 return loader["loader"]
 
-    def get_data_providers(self) -> dict:
+    def get_data_providers(self) -> Dict[str, BaseLoader]:
         """
         Get data providers
 
@@ -187,7 +191,11 @@ class Indexing:
         """
         return self.data_providers
 
-    def get_loader_arguments(self, id: str, type: str = "file") -> dict:
+    def get_loader_arguments(
+            self,
+            id: str,
+            type: str = "file"
+    ) -> Dict[str, Any]:
         """
         Get keyword arguments for loader
 
@@ -269,7 +277,7 @@ class Indexing:
             path: str,
             force: bool = False,
             silent: bool = False,
-            loader_kwargs: Optional[dict] = None,
+            loader_kwargs: Optional[Dict[str, Any]] = None,
     ) -> List[Document]:
         """
         Get documents from path using data loaders
@@ -332,7 +340,11 @@ class Indexing:
         self.window.core.idx.metadata.append_file_metadata(documents, path)
         return documents
 
-    def read_text_content(self, path: str, loader_kwargs: Optional[dict] = None) -> str:
+    def read_text_content(
+            self,
+            path: str,
+            loader_kwargs: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Get content from file using loaders
 
@@ -355,7 +367,7 @@ class Indexing:
             self,
             url: str,
             type: str = "webpage",
-            extra_args: Optional[dict] = None
+            extra_args: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Get content from external resource
@@ -375,7 +387,7 @@ class Indexing:
             self,
             url: str,
             type: str = "webpage",
-            extra_args: Optional[dict] = None,
+            extra_args: Optional[Dict[str, Any]] = None,
     ) -> List[Document]:
         """
         Read data from external resource
@@ -696,7 +708,7 @@ class Indexing:
             index: BaseIndex,
             id: int = 0,
             from_ts: int = 0
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index data from database by meta id
 
@@ -737,7 +749,7 @@ class Indexing:
             idx: str,
             index: BaseIndex,
             from_ts: int = 0
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index data from database from timestamp
 
@@ -765,10 +777,10 @@ class Indexing:
             index: BaseIndex,
             url: str,
             type="webpage",
-            extra_args: Optional[dict] = None,
+            extra_args: Optional[Dict[str, Any]] = None,
             is_tmp: bool = False,
             replace: Optional[bool] = None
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index data from external (remote) resource
 
@@ -851,9 +863,9 @@ class Indexing:
             index: BaseIndex,
             urls: list,
             type="webpage",
-            extra_args: Optional[dict] = None,
+            extra_args: Optional[Dict[str, Any]] = None,
             is_tmp: bool = False
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index data from URLs
 
@@ -992,7 +1004,11 @@ class Indexing:
                 return True
         return False
 
-    def index_document(self, index: BaseIndex, doc: Document):
+    def index_document(
+            self,
+            index: BaseIndex,
+            doc: Document
+    ):
         """
         Index document
 
@@ -1013,7 +1029,7 @@ class Indexing:
             file_path: str,
             index_path: str,
             model: Optional[ModelItem] = None,
-            documents: Optional[list] = None,
+            documents: Optional[List[Document]] = None,
     ) -> list:
         """
         Index context attachment
@@ -1051,7 +1067,7 @@ class Indexing:
             url: str,
             index_path: str,
             model: Optional[ModelItem] = None,
-            documents: Optional[list] = None,
+            documents: Optional[List[Document]] = None,
     ) -> list:
         """
         Index context attachment
@@ -1106,7 +1122,11 @@ class Indexing:
         print("Selected web data loader: {}".format(type))
         return type
 
-    def remove_attachment(self, index_path: str, doc_id: str) -> bool:
+    def remove_attachment(
+            self,
+            index_path: str,
+            doc_id: str
+    ) -> bool:
         """
         Remove document from index
 

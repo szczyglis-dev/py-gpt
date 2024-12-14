@@ -6,8 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List
+
+from pygpt_net.provider.agents.base import BaseAgent
+
 
 class Provider:
     def __init__(self, window=None):
@@ -19,7 +24,7 @@ class Provider:
         self.window = window
         self.agents = {}
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Get agent providers ids
 
@@ -36,7 +41,7 @@ class Provider:
         """
         return id in self.agents
 
-    def get(self, id: str):
+    def get(self, id: str) -> BaseAgent:
         """
         Get agent provider
 
@@ -54,7 +59,7 @@ class Provider:
         """
         self.agents[id] = agent
 
-    def get_providers(self) -> list:
+    def get_providers(self) -> List[str]:
         """
         Get agent providers list
 

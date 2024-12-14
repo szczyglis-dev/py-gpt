@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from .base import BaseEvent
 
@@ -73,8 +75,8 @@ class ControlEvent(BaseEvent):
 
     def __init__(
             self,
-            name: str = None,
-            data: dict = None,
+            name: Optional[str] = None,
+            data: Optional[dict] = None,
     ):
         """
         Event object class

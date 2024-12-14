@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
-from typing import Optional
+from typing import Optional, Dict
 
 from packaging.version import Version
 
@@ -34,7 +34,11 @@ class Calendar:
         self.provider.install()
 
     def patch(self, app_version: Version):
-        """Patch provider data"""
+        """
+        Patch provider data
+
+        :param app_version: app version
+        """
         self.provider.patch(app_version)
 
     def get_by_date(
@@ -57,7 +61,7 @@ class Calendar:
             return self.items[dt_key]
         return None
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, CalendarNoteItem]:
         """
         Get all notes
 
@@ -103,7 +107,12 @@ class Calendar:
         self.save(note.year, note.month, note.day)
         return True
 
-    def load(self, year: int, month: int, day: int):
+    def load(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         Load note by idx
 
@@ -115,7 +124,12 @@ class Calendar:
         dt_key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
         self.items[dt_key] = self.provider.load(year, month, day)
 
-    def load_note(self, year: int, month: int, day: int) -> str:
+    def load_note(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ) -> str:
         """
         Load note by idx
 
@@ -129,7 +143,13 @@ class Calendar:
             return str(note.content)
         return ""
 
-    def append_to_note(self, year: int, month: int, day: int, text: str) -> bool:
+    def append_to_note(
+            self,
+            year: int,
+            month: int,
+            day: int,
+            text: str
+    ) -> bool:
         """
         Append to note
 
@@ -154,7 +174,13 @@ class Calendar:
         self.load(year, month, day)
         return True
 
-    def update_note(self, year: int, month: int, day: int, text: str) -> bool:
+    def update_note(
+            self,
+            year: int,
+            month: int,
+            day: int,
+            text: str
+    ) -> bool:
         """
         Append to note
 
@@ -175,7 +201,12 @@ class Calendar:
         self.load(year, month, day)
         return True
 
-    def remove_note(self, year: int, month: int, day: int) -> bool:
+    def remove_note(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ) -> bool:
         """
         Remove note by date
 
@@ -204,7 +235,11 @@ class Calendar:
         """
         self.items = self.provider.load_by_month(year, month)
 
-    def get_notes_existence_by_day(self, year, month) -> dict:
+    def get_notes_existence_by_day(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, Dict[int, int]]:
         """
         Get notes existence by day
 
@@ -214,7 +249,12 @@ class Calendar:
         """
         return self.provider.get_notes_existence_by_day(year, month)
 
-    def save(self, year: int, month: int, day: int) -> bool:
+    def save(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ) -> bool:
         """
         Save note by date
 

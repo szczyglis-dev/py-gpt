@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
 import configparser
 import io
 import os
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 from pygpt_net.provider.core.plugin_preset.json_file import JsonFileProvider
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -143,7 +143,7 @@ class Plugins:
         if removed:
             self.window.core.config.save()
 
-    def register_options(self, id: str, options: dict):
+    def register_options(self, id: str, options: Dict[str, dict]):
         """
         Register plugin options
 
@@ -357,7 +357,7 @@ class Plugins:
         """
         return self.presets
 
-    def reset_options(self, plugin_id: str, keys: list):
+    def reset_options(self, plugin_id: str, keys: List[str]):
         """
         Reset plugin options
 
@@ -431,7 +431,7 @@ class Plugins:
         if updated:
             self.save_presets()
 
-    def update_preset_values(self, plugin_id: str, key: str, value: any):
+    def update_preset_values(self, plugin_id: str, key: str, value: Any):
         """
         Update preset value
 

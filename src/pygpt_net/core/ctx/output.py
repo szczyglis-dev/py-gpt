@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.core.tabs.tab import Tab
@@ -224,7 +224,7 @@ class Output:
             for pid in self.window.ui.nodes['output_plain']:
                 return self.window.ui.nodes['output_plain'][pid]
 
-    def get_all(self) -> list:
+    def get_all(self) -> List:
         """
         Get all output nodes
 
@@ -235,7 +235,7 @@ class Output:
             nodes.append(node)
         return nodes
 
-    def get_all_plain(self) -> list:
+    def get_all_plain(self) -> List:
         """
         Get all output plain nodes
 

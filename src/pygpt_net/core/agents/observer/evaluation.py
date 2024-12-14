@@ -6,10 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
+from typing import List
+
 from llama_index.core.tools import FunctionTool
+
+from pygpt_net.item.ctx import CtxItem
 
 
 class Evaluation:
@@ -67,7 +71,7 @@ class Evaluation:
         - Do not repeat the suggested improvements if they have already been correctly included in the agent's response.
         """
 
-    def get_last_user_input(self, history: list) -> str:
+    def get_last_user_input(self, history: List[CtxItem]) -> str:
         """
         Get the last user input from the history
 
@@ -84,7 +88,7 @@ class Evaluation:
                     input = ctx.input
         return input
 
-    def get_main_task(self, history: list) -> str:
+    def get_main_task(self, history: List[CtxItem]) -> str:
         """
         Get the main task from the history
 
@@ -97,7 +101,7 @@ class Evaluation:
             task = first.input
         return task
 
-    def get_final_response(self, history: list) -> str:
+    def get_final_response(self, history: List[CtxItem]) -> str:
         """
         Get the final response from the agent
 
@@ -111,7 +115,7 @@ class Evaluation:
                     output = ctx.output
         return output
 
-    def get_prompt(self, history: list) -> str:
+    def get_prompt(self, history: List[CtxItem]) -> str:
         """
         Return the evaluation prompt
 
@@ -128,7 +132,7 @@ class Evaluation:
             output=final_response
         )
 
-    def get_tools(self) -> list:
+    def get_tools(self) -> List[FunctionTool]:
         """
         Get the tools for evaluating the result
 
@@ -144,7 +148,11 @@ class Evaluation:
         tools.append(tool)
         return tools
 
-    def handle_evaluation(self, instruction: str, score: int):
+    def handle_evaluation(
+            self,
+            instruction: str,
+            score: int
+    ):
         """
         Update the evaluation values of the agent response
 

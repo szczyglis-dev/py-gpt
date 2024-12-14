@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List, Dict
 
 from pygpt_net.core.events import ControlEvent, AppEvent
 
@@ -21,7 +23,7 @@ class Actions:
         """
         self.window = window
 
-    def get_access_choices(self) -> list:
+    def get_access_choices(self) -> List[Dict[str, str]]:
         """
         Get app access events choices
 
@@ -74,7 +76,7 @@ class Actions:
             choices.append({event: f"event.control.{event}"})
         return choices
 
-    def get_speech_synthesis_choices(self) -> list:
+    def get_speech_synthesis_choices(self) -> List[Dict[str, str]]:
         """
         Get app access events choices
 
@@ -115,7 +117,7 @@ class Actions:
             choices.append({event: f"event.audio.{event}"})
         return choices
 
-    def get_voice_control_choices(self) -> list:
+    def get_voice_control_choices(self) -> List[Dict[str, str]]:
         """
         Get voice control choices
 

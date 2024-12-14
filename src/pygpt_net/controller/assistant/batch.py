@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any
@@ -128,7 +128,7 @@ class Batch:
         """
         Truncate all files in API
 
-        :param force: if true, imports without confirmation
+        :param force: if True, imports without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -147,7 +147,7 @@ class Batch:
         Truncate all files in API (store)
 
         :param idx: store index
-        :param force: if true, imports without confirmation
+        :param force: if True, imports without confirmation
         """
         store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
         self.truncate_store_files(store_id, force)
@@ -157,7 +157,7 @@ class Batch:
         Truncate all files in API (store)
 
         :param store_id: store ID
-        :param force: if true, imports without confirmation
+        :param force: if True, imports without confirmation
         """
         if store_id is None:
             self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
@@ -175,22 +175,30 @@ class Batch:
         QApplication.processEvents()
         self.window.core.gpt.assistants.importer.truncate_files(store_id)  # remove all files from API
 
-    def clear_store_files_by_idx(self, idx: int, force: bool = False):
+    def clear_store_files_by_idx(
+            self,
+            idx: int,
+            force: bool = False
+    ):
         """
         Clear files (store, local only)
 
         :param idx: store index
-        :param force: if true, clears without confirmation
+        :param force: if True, clears without confirmation
         """
         store_id = self.window.controller.assistant.store.get_by_tab_idx(idx)
         self.clear_store_files(store_id, force)
 
-    def clear_store_files(self, store_id: str = None, force: bool = False):
+    def clear_store_files(
+            self,
+            store_id: Optional[str] = None,
+            force: bool = False
+    ):
         """
         Clear files (store, local only)
 
         :param store_id: store ID
-        :param force: if true, clears without confirmation
+        :param force: if True, clears without confirmation
         """
         if store_id is None:
             self.window.ui.dialogs.alert(trans("dialog.assistant.store.alert.select"))
@@ -214,7 +222,7 @@ class Batch:
         """
         Clear files (all, local only)
 
-        :param force: if true, clears without confirmation
+        :param force: if True, clears without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -234,7 +242,7 @@ class Batch:
         """
         Clear vector stores (local only)
 
-        :param force: if true, clears without confirmation
+        :param force: if True, clears without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -256,7 +264,7 @@ class Batch:
         """
         Truncate vector stores in API
 
-        :param force: if true, truncates without confirmation
+        :param force: if True, truncates without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -279,7 +287,7 @@ class Batch:
         """
         Refresh all vector stores
 
-        :param force: if true, refresh without confirmation
+        :param force: if True, refresh without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm(
@@ -415,7 +423,11 @@ class Batch:
         self.window.update_status("Error importing files.")
         self.window.ui.dialogs.alert(error)
 
-    def handle_truncated_files(self, store_id: str = None, num: int = 0):
+    def handle_truncated_files(
+            self,
+            store_id: Optional[str] = None,
+            num: int = 0
+    ):
         """
         Handle truncated (in API) files
 

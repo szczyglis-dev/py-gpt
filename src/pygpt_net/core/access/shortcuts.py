@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
+from typing import List, Dict
 
 from PySide6 import QtCore
 from PySide6.QtCore import QObject, QEvent
@@ -26,7 +27,7 @@ class Shortcuts:
         """
         self.window = window
 
-    def get_keys_choices(self) -> list:
+    def get_keys_choices(self) -> List[Dict[str, str]]:
         """
         Get keys choices with identical key and value.
 
@@ -43,7 +44,7 @@ class Shortcuts:
         keys.extend([{name: name} for name in symbols])
         return keys
 
-    def get_modifiers_choices(self) -> list:
+    def get_modifiers_choices(self) -> List[Dict[str, str]]:
         """
         Get modifiers choices with identical key and value.
 

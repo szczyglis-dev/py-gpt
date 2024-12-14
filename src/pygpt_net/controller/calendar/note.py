@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
+from typing import Dict
 
 from PySide6.QtGui import QTextCursor
 
@@ -55,7 +56,12 @@ class Note:
 
         self.refresh_num(year, month)  # update note cells when note is changed
 
-    def update_content(self, year: int, month: int, day: int):
+    def update_content(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         Update content
 
@@ -71,7 +77,12 @@ class Note:
             self.window.ui.calendar['note'].setPlainText(note.content)
             self.window.ui.calendar['note'].on_update()
 
-    def update_label(self, year: int, month: int, day: int):
+    def update_label(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         Update label
 
@@ -89,7 +100,13 @@ class Note:
         day = self.window.ui.calendar['select'].currentDay
         self.update_label(year, month, day)
 
-    def update_status(self, status: str, year: int, month: int, day: int):
+    def update_status(
+            self,
+            status: str,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         Update status label
 
@@ -109,7 +126,11 @@ class Note:
 
         self.refresh_num(year, month)  # update note cells when note is changed
 
-    def get_counts_around_month(self, year: int, month: int) -> dict:
+    def get_counts_around_month(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, int]:
         """
         Get counts around month
 
@@ -139,7 +160,11 @@ class Note:
         )
         return {**last, **current, **next}  # combine counters
 
-    def get_labels_counts_around_month(self, year: int, month: int) -> dict:
+    def get_labels_counts_around_month(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, Dict[int, int]]:
         """
         Get counts around month
 
@@ -169,7 +194,11 @@ class Note:
         )
         return {**last, **current, **next}  # combine counters
 
-    def get_ctx_counters(self, year: int, month: int) -> dict:
+    def get_ctx_counters(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, int]:
         """
         Get ctx counters
 
@@ -197,7 +226,11 @@ class Note:
             search_content=search_content,
         )
 
-    def get_ctx_labels_counters(self, year: int, month: int) -> dict:
+    def get_ctx_labels_counters(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, Dict[int, int]]:
         """
         Get ctx labels counters
 
@@ -225,7 +258,11 @@ class Note:
             search_content=search_content,
         )
 
-    def refresh_ctx(self, year: int, month: int):
+    def refresh_ctx(
+            self,
+            year: int,
+            month: int
+    ):
         """
         Update calendar ctx cells
 
@@ -236,7 +273,12 @@ class Note:
         labels = self.get_labels_counts_around_month(year, month)
         self.window.ui.calendar['select'].update_ctx(count, labels)
 
-    def create(self, year: int, month: int, day: int) -> CalendarNoteItem:
+    def create(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ) -> CalendarNoteItem:
         """
         Create empty note
 
@@ -251,7 +293,11 @@ class Note:
         note.day = day
         return note
 
-    def get_notes_existence_around_month(self, year: int, month: int) -> dict:
+    def get_notes_existence_around_month(
+            self,
+            year: int,
+            month: int
+    ) -> Dict[str, Dict[int, int]]:
         """
         Get notes existence around month
 

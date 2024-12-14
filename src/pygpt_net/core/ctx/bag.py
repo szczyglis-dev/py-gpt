@@ -6,8 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List
+
+from pygpt_net.item.ctx import CtxItem
+
 
 class Bag:
     def __init__(self, window=None):
@@ -19,14 +24,30 @@ class Bag:
         self.tab_id = 0
         self.items = []
 
-    def get_items(self):
+    def get_items(self) -> List[CtxItem]:
+        """
+        Return ctx items
+
+        :return: ctx items
+        """
         return self.items
 
-    def set_items(self, items):
+    def set_items(self, items: List[CtxItem]):
+        """
+        Set ctx items
+
+        :param items: ctx items
+        """
         self.items = items
 
     def clear_items(self):
+        """Clear items"""
         self.items = []
 
-    def count_items(self):
+    def count_items(self) -> int:
+        """
+        Count ctx items
+
+        :return: items count
+        """
         return len(self.items)

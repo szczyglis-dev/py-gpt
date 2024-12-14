@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -81,7 +81,12 @@ class Calendar:
         month = self.window.ui.calendar['select'].currentMonth
         self.window.core.calendar.load_by_month(year, month)
 
-    def on_page_changed(self, year: int, month: int, all: bool = True):
+    def on_page_changed(
+            self,
+            year: int,
+            month: int,
+            all: bool = True
+    ):
         """
         On calendar page changed
 
@@ -94,7 +99,12 @@ class Calendar:
         self.note.refresh_ctx(year, month)
         self.note.refresh_num(year, month)
 
-    def on_day_select(self, year: int, month: int, day: int):
+    def on_day_select(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         On day select
 
@@ -108,7 +118,12 @@ class Calendar:
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
 
-    def on_ctx_select(self, year: int, month: int, day: int):
+    def on_ctx_select(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
         """
         On ctx select
 

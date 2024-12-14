@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -55,7 +55,11 @@ class Common:
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
 
-    def update_label(self, mode: str, assistant_id: Optional[str] = None):
+    def update_label(
+            self,
+            mode: str,
+            assistant_id: Optional[str] = None
+    ):
         """
         Update ctx label
 
@@ -162,7 +166,11 @@ class Common:
         self.window.controller.chat.common.append_to_input(value, separator=" ")
         QApplication.clipboard().setText(value)
 
-    def reset(self, meta_id: int, force: bool = False):
+    def reset(
+            self,
+            meta_id: int,
+            force: bool = False
+    ):
         """
         Reset by meta id
 

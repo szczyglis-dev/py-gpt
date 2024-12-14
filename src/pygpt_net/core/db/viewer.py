@@ -6,17 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from sqlalchemy import text
 
 
 class Viewer:
     def __init__(self, database):
+        """
+        Database viewer.
+
+        :param database: Database instance
+        """
         self.database = database
         self.tables = {}
         self.auto_backup = True
@@ -24,7 +29,7 @@ class Viewer:
     def fetch_data(
             self,
             table: str,
-            columns: list,
+            columns: List[str],
             sort_by: str,
             order: str,
             search_query: Optional[str] = None,
@@ -90,7 +95,7 @@ class Viewer:
             table: str,
             search_query: Optional[str] = None,
             search_column: Optional[str] = None,
-            filters: Optional[dict] = None
+            filters: Optional[Dict[str, Any]] = None
     ) -> int:
         """
         Count the number of rows in the table with an optional search query.
@@ -143,7 +148,7 @@ class Viewer:
         """
         return self.database.window.ui.debug["db"].browser.is_auto_backup()
 
-    def delete_row(self, data: dict):
+    def delete_row(self, data: Dict[str, Any]):
         """
         Delete row from the database.
 
@@ -166,7 +171,7 @@ class Viewer:
             self.log(msg)
         self.database.window.ui.debug["db"].browser.update_table_view()
 
-    def update_row(self, data: dict):
+    def update_row(self, data: Dict[str, Any]):
         """
         Update row in the database.
 
@@ -217,7 +222,7 @@ class Viewer:
             self.log(msg)
         self.database.window.ui.debug["db"].browser.update_table_view()
 
-    def truncate_table(self, data: dict, reset: bool = False):
+    def truncate_table(self, data: Dict[str, Any], reset: bool = False):
         """
         Truncate table in the database.
 

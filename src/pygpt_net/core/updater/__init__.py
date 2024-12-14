@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 02:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,6 +15,7 @@ import shutil
 import json
 import ssl
 import time
+from typing import Tuple
 
 from urllib.request import urlopen, Request
 
@@ -134,7 +135,11 @@ class Updater:
         if self.window.core.notepad.patch(version):
             print("Migrated notepad. [OK]")
 
-    def patch_dir(self, dir_name: str = "", force: bool = False):
+    def patch_dir(
+            self,
+            dir_name: str = "",
+            force: bool = False
+    ):
         """
         Patch directory (replace all files)
 
@@ -154,7 +159,11 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch_file(self, filename: str = "", force: bool = False):
+    def patch_file(
+            self,
+            filename: str = "",
+            force: bool = False
+    ):
         """
         Patch file
 
@@ -175,7 +184,11 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch_css(self, filename: str = "", force: bool = False):
+    def patch_css(
+            self,
+            filename: str = "",
+            force: bool = False
+    ):
         """
         Patch css file
 
@@ -212,7 +225,7 @@ class Updater:
         """
         return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
 
-    def get_thanks(self) -> (str, str, str):
+    def get_thanks(self) -> Tuple[str, str, str]:
         """
         Get contributors, donates and sponsors
 
@@ -237,7 +250,7 @@ class Updater:
 
         return self.thanks
 
-    def get_fetch_thanks(self) -> (str, str, str):
+    def get_fetch_thanks(self) -> Tuple[str, str, str]:
         """
         Get contributors, donates and sponsors
 
@@ -247,7 +260,7 @@ class Updater:
             return self.get_thanks()
         return self.thanks
 
-    def check_silent(self) -> (bool, str, str, str, str, str):
+    def check_silent(self) -> Tuple[bool, str, str, str, str, str]:
         """
         Check version in background
 

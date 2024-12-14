@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any
 
 from pygpt_net.utils import trans
 
@@ -25,7 +27,7 @@ class Cmd:
             self,
             parent_id: str,
             key: str,
-            option: dict
+            option: Dict[str, Any]
     ):
         """
         Apply values to command fields
@@ -57,7 +59,7 @@ class Cmd:
             self,
             parent_id: str,
             key: str,
-            values: dict,
+            values: Dict[str, Any],
             idx: int
     ):
         """
@@ -77,7 +79,7 @@ class Cmd:
             self,
             parent_id: str,
             key: str,
-            option: dict
+            option: Dict[str, Any]
     ) -> dict:
         """
         Get command values
@@ -97,7 +99,7 @@ class Cmd:
     def to_options(
             self,
             parent_id: str,
-            option: dict
+            option: Dict[str, Any]
     ) -> dict:
         """
         Convert dictionary items option to options

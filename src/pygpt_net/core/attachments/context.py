@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,7 @@ import shutil
 import uuid
 
 from shutil import copyfile
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
@@ -90,7 +90,7 @@ class Context:
             self,
             mode: str,
             ctx: CtxItem,
-            history: list
+            history: List[CtxItem]
     ) -> str:
         """
         Get context for mode
@@ -165,7 +165,7 @@ class Context:
     def query_context(
             self,
             ctx: CtxItem,
-            history: list
+            history: List[CtxItem]
     ) -> str:
         """
         Query the index for context
@@ -229,7 +229,7 @@ class Context:
     def summary_context(
             self,
             ctx: CtxItem,
-            history: list
+            history: List[CtxItem]
     ) -> str:
         """
         Get summary of the context
@@ -274,7 +274,10 @@ class Context:
             print("Attachments: summary received: {}".format(response))
         return response
 
-    def prepare_context_history(self, history: list) -> list:
+    def prepare_context_history(
+            self,
+            history: List[CtxItem]
+    ) -> List[CtxItem]:
         """
         Prepare context history
 
@@ -564,14 +567,14 @@ class Context:
     def delete(
             self,
             meta: CtxMeta,
-            item: dict,
+            item: Dict[str, Any],
             delete_files: bool = False
     ):
         """
         Delete attachment
 
         :param meta: CtxMeta instance
-        :param item: AttachmentItem instance
+        :param item: Attachment item dict
         :param delete_files: delete files
         """
         meta.additional_ctx.remove(item)
@@ -658,7 +661,11 @@ class Context:
             if self.is_verbose():
                 print("Attachment deleted dir: {}".format(meta_path))
 
-    def delete_local(self, meta: CtxMeta, item: dict):
+    def delete_local(
+            self,
+            meta: CtxMeta,
+            item: Dict[str, Any]
+    ):
         """
         Delete local attachment
 
@@ -702,7 +709,7 @@ class Context:
         self.last_files = []
         self.last_urls = []
 
-    def get_used_files(self) -> list:
+    def get_used_files(self) -> List[str]:
         """
         Get last used files
 
@@ -710,7 +717,7 @@ class Context:
         """
         return self.last_files
 
-    def get_used_urls(self) -> list:
+    def get_used_urls(self) -> List[str]:
         """
         Get last used URLs
 

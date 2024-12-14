@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
@@ -15,6 +17,8 @@ from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 
 from .bag import Bag
+from ...item.ctx import CtxItem
+
 
 class Container:
     def __init__(self, window=None):
@@ -109,29 +113,29 @@ class Container:
             self.bags[tab_id] = Bag(self.window)  # crate new empty bag if not exists
         return self.bags[tab_id]
 
-    def get_items(self) -> list:
+    def get_items(self) -> List[CtxItem]:
         """
-        Get items
+        Get ctx items
 
         :return: Items
         """
         return self.get_active_bag().get_items()
 
-    def set_items(self, items: list):
+    def set_items(self, items: List[CtxItem]):
         """
-        Set items
+        Set ctx items
 
         :param items: Items
         """
         self.get_active_bag().set_items(items)
 
     def clear_items(self):
-        """Clear items"""
+        """Clear ctx items"""
         self.get_active_bag().clear_items()
 
     def count_items(self) -> int:
         """
-        Count items
+        Count ctx items
 
         :return: Items count
         """

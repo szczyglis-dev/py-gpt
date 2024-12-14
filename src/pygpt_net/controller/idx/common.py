@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.25 04:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List, Dict
 
 
 class Common:
@@ -23,7 +25,7 @@ class Common:
         """Set up UI"""
         pass
 
-    def get_loaders_choices(self) -> list:
+    def get_loaders_choices(self) -> List[Dict[str, str]]:
         """
         Get available loaders choices
 

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List, Dict
 
 from pygpt_net.utils import trans
 
@@ -69,7 +69,7 @@ class Body:
                    url=url,
                    num=num_str)
 
-    def get_docs_html(self, docs: list) -> str:
+    def get_docs_html(self, docs: List[Dict]) -> str:
         """
         Get Llama-index doc metadata HTML
 

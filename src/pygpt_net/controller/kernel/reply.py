@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -32,8 +32,8 @@ class Reply:
     def add(
             self,
             context: BridgeContext,
-            extra: dict
-    ) -> list:
+            extra: Dict[str, Any] = None
+    ) -> List[Dict]:
         """
         Send reply from plugins to model
 
@@ -137,7 +137,7 @@ class Reply:
     def run_post_response(
             self,
             ctx: CtxItem,
-            extra_data: Optional[dict] = None
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Run post-response operations

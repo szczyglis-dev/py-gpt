@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -144,7 +144,11 @@ class Extra:
         self.window.controller.ctx.edit_meta_id = None
         self.edit_hide()
 
-    def replay_item(self, item_id: int, force: bool = False):
+    def replay_item(
+            self,
+            item_id: int,
+            force: bool = False
+    ):
         """
         Regenerate ctx item
 
@@ -203,7 +207,11 @@ class Extra:
                     self.window.controller.audio.on_stop()
                     self.audio_play_id = None
 
-    def join_item(self, item_id: int, force: bool = False):
+    def join_item(
+            self,
+            item_id: int,
+            force: bool = False
+    ):
         """
         Join ctx items
 

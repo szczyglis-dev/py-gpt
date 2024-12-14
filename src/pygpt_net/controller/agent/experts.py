@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any
@@ -46,9 +46,7 @@ class Experts:
         return self.is_stop
 
     def unlock(self):
-        """
-        Unlock experts
-        """
+        """Unlock experts"""
         self.is_stop = False
 
     def enabled(self) -> bool:

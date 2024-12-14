@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
@@ -223,7 +223,7 @@ class Attachment:
     def clear(
             self,
             force: bool = False,
-            remove_local=False,
+            remove_local: bool = False,
             auto: bool = False
     ):
         """
@@ -255,9 +255,7 @@ class Attachment:
             self.window.dispatch(AppEvent(AppEvent.CTX_ATTACHMENTS_CLEAR))
 
     def clear_silent(self):
-        """
-        Clear attachments list
-        """
+        """Clear attachments list without confirmation"""
         # delete all from attachments for current mode
         mode = self.window.core.config.get('mode')
         self.window.core.attachments.delete_all(
@@ -520,6 +518,8 @@ class Attachment:
     def from_clipboard_image(self, image):
         """
         Handle image from clipboard
+
+        :param image: image data
         """
         now = datetime.now()
         dt = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -528,7 +528,7 @@ class Attachment:
         image.save(path, "PNG")
         self.from_clipboard_url(path)
 
-    def from_clipboard_url(self, url, all: bool = False):
+    def from_clipboard_url(self, url: str, all: bool = False):
         """
         Handle image from clipboard url
 

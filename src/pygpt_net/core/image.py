@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
+from typing import List
 
 from PySide6.QtCore import Slot, QObject
 
@@ -37,7 +38,7 @@ class Image(QObject):
     def handle_finished(
             self,
             ctx: CtxItem,
-            paths: list,
+            paths: List[str],
             prompt: str
     ):
         """
@@ -53,7 +54,7 @@ class Image(QObject):
     def handle_finished_inline(
             self,
             ctx: CtxItem,
-            paths: list,
+            paths: List[str],
             prompt: str
     ):
         """

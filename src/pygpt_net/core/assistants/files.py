@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List, Dict
 
 from packaging.version import Version
 
@@ -51,7 +51,7 @@ class Files:
         if id in self.items:
             return self.items[id]
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Return all loaded file IDs
 
@@ -60,7 +60,7 @@ class Files:
         return list(self.items.keys())
 
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, AssistantFileItem]:
         """
         Return all files
 
@@ -144,7 +144,7 @@ class Files:
         self.provider.save(file)
         return file
 
-    def get_names(self) -> dict:
+    def get_names(self) -> Dict[str, str]:
         """
         Get file name mapping id <> name
 
@@ -156,7 +156,11 @@ class Files:
             names[id] = file.name
         return names
 
-    def get_by_store_or_thread(self, store_id: str, thread_id: str) -> dict:
+    def get_by_store_or_thread(
+            self,
+            store_id: str,
+            thread_id: str
+    ) -> Dict[str, AssistantFileItem]:
         """
         Get files by store or thread
 
@@ -166,7 +170,11 @@ class Files:
         """
         return self.provider.get_by_store_or_thread(store_id, thread_id)
 
-    def count_by_store_or_thread(self, store_id: str, thread_id: str) -> int:
+    def count_by_store_or_thread(
+            self,
+            store_id: str,
+            thread_id: str
+    ) -> int:
         """
         Count files by store or thread
 

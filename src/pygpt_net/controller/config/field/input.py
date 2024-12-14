@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Any
+from typing import Any, Dict, Optional, Union
 
 
 class Input:
@@ -25,7 +25,7 @@ class Input:
             self,
             parent_id: str,
             key: str,
-            option: dict
+            option: Dict[str, Any]
     ):
         """
         Apply value to input
@@ -63,7 +63,7 @@ class Input:
             self,
             parent_id: str,
             key: str,
-            option: dict,
+            option: Dict[str, Any],
             value: Any,
             hooks: bool = True
     ):
@@ -93,8 +93,8 @@ class Input:
             self,
             parent_id: str,
             key: str,
-            option: dict
-    ) -> any:
+            option: Dict[str, Any]
+    ) -> Optional[Union[int, float, str]]:
         """
         Get value from input
 

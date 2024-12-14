@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
 import uuid
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 from packaging.version import Version
 from pygpt_net.core.types import (
@@ -283,7 +283,7 @@ class Presets:
                 return self.items[id]
         return None
 
-    def get_by_mode(self, mode: str) -> dict:
+    def get_by_mode(self, mode: str) -> Dict[str, PresetItem]:
         """
         Return presets for mode
 

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -37,13 +37,16 @@ class Bridge:
         self.last_call = None  # last API call time, for throttling
         self.last_context = None  # last context
         self.last_context_quick = None  # last context for quick call
-        self.sync_modes = [MODE_ASSISTANT, MODE_EXPERT]
+        self.sync_modes = [
+            MODE_ASSISTANT,
+            MODE_EXPERT,
+        ]
         self.worker = None
 
     def request(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Make request to provider
@@ -143,7 +146,7 @@ class Bridge:
     def request_next(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Make next call to provider (loop next step)
@@ -170,7 +173,7 @@ class Bridge:
     def call(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Make quick call to provider and get response content

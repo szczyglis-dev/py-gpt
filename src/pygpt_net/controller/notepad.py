@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -266,7 +266,11 @@ class Notepad:
             return True
         return False
 
-    def on_open(self, tab_idx: int, column_idx: int = 0):
+    def on_open(
+            self,
+            tab_idx: int,
+            column_idx: int = 0
+    ):
         """
         On open notepad tab
 

@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
@@ -41,7 +41,7 @@ class Chat:
     def call(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Call chat, complete or query mode
@@ -77,7 +77,7 @@ class Chat:
     def raw_query(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Raw query mode
@@ -94,7 +94,7 @@ class Chat:
     def query(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Query index mode (no chat, only single query) and append results to context
@@ -166,7 +166,7 @@ class Chat:
     def chat(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None
+            extra: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Chat mode (conversation, using context from index) and append result to the context
@@ -423,7 +423,7 @@ class Chat:
             query: str,
             path: str,
             model: Optional[ModelItem] = None,
-            history: Optional[list] = None,
+            history: Optional[List[CtxItem]] = None,
             verbose: bool = False,
     ) -> str:
         """
@@ -503,7 +503,11 @@ class Chat:
             output = str(response)
         return output
 
-    def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
+    def get_memory_buffer(
+            self,
+            history: List[ChatMessage],
+            llm = None
+    ) -> ChatMemoryBuffer:
         """
         Get memory buffer
 
@@ -516,7 +520,10 @@ class Chat:
             llm=llm,
         )
 
-    def get_custom_prompt(self, prompt: Optional[str] = None) -> Optional[ChatPromptTemplate]:
+    def get_custom_prompt(
+            self,
+            prompt: Optional[str] = None
+    ) -> Optional[ChatPromptTemplate]:
         """
         Get custom prompt template if sys prompt is not empty
 
@@ -545,12 +552,12 @@ class Chat:
         ]
         return ChatPromptTemplate(qa_msgs)
 
-    def get_index(self, idx, model):
+    def get_index(self, idx: str, model: ModelItem):
         """
         Get index instance
 
         :param idx: idx name (id)
-        :param model: model name
+        :param model: model instance
         :return:
         """
         # check if index exists
@@ -566,7 +573,7 @@ class Chat:
         index = self.storage.get(idx, service_context=service_context)  # get index
         return index, service_context
 
-    def get_metadata(self, source_nodes: list):
+    def get_metadata(self, source_nodes: Optional[list]) -> Dict[str, Any]:
         """
         Get metadata from source nodes
 
@@ -594,7 +601,7 @@ class Chat:
                             break
         return metadata
 
-    def parse_metadata(self, metadata: dict):
+    def parse_metadata(self, metadata: Optional[Dict]) -> Dict[str, Any]:
         """
         Parse metadata
 

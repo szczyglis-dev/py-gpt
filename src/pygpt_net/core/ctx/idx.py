@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import time
@@ -33,7 +33,12 @@ class Idx:
         """
         return self.window.core.ctx.get_provider()
 
-    def set_meta_indexed_by_id(self, id: int, doc_id: str, ts: int) -> bool:
+    def set_meta_indexed_by_id(
+            self,
+            id: int,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update ctx meta indexed timestamp
 
@@ -44,7 +49,11 @@ class Idx:
         """
         return self.get_provider().set_meta_indexed_by_id(id, ts)
 
-    def update_meta_indexed_by_id(self, id: int, doc_id: str) -> bool:
+    def update_meta_indexed_by_id(
+            self,
+            id: int,
+            doc_id: str
+    ) -> bool:
         """
         Update ctx meta indexed timestamp
 

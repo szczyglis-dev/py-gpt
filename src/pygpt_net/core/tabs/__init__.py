@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import uuid
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
@@ -112,7 +112,7 @@ class Tabs:
             type: int,
             title: str,
             icon: Optional[str] = None,
-            child: Any = None,
+            child: Optional[TabBody] = None,
             data_id: Optional[int] = None,
             tool_id: Optional[str] = None
     ) -> Tab:
@@ -122,7 +122,7 @@ class Tabs:
         :param type: Tab type
         :param title: Tab title
         :param icon: Tab icon
-        :param child: Tab child
+        :param child: Tab child (TabBody)
         :param data_id: Tab data ID
         :param tool_id: Tool ID
         :return: Tab
@@ -589,7 +589,7 @@ class Tabs:
                 return tab
         return None
 
-    def from_defaults(self) -> dict:
+    def from_defaults(self) -> Dict[int, Any]:
         """
         Prepare default tabs data
 

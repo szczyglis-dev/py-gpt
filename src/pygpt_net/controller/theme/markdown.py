@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
@@ -119,8 +119,12 @@ class Markdown:
             except KeyError as e:  # ignore missing env vars
                 pass
 
-    def get_default(self):
-        """Set default markdown CSS"""
+    def get_default(self) -> str:
+        """
+        Set default markdown CSS
+
+        :return: default CSS
+        """
         colors = {
             "dark": {
                 "a": "#fff",

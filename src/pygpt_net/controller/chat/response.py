@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -32,7 +34,7 @@ class Response:
     def handle(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             status: bool
     ):
         """
@@ -100,7 +102,7 @@ class Response:
     def begin(
             self,
             context: BridgeContext,
-            extra: dict
+            extra: Dict[str, Any]
     ):
         """
         Handle Bridge begin
@@ -116,7 +118,7 @@ class Response:
     def append(
             self,
             context: BridgeContext,
-            extra: dict
+            extra: Dict[str, Any]
     ):
         """
         Handle Bridge append (agent mode)
@@ -220,7 +222,7 @@ class Response:
     def end(
             self,
             context: BridgeContext,
-            extra: dict
+            extra: Dict[str, Any]
     ):
         """
         Handle Bridge end
@@ -243,7 +245,7 @@ class Response:
     def failed(
             self,
             context: BridgeContext,
-            extra: dict
+            extra: Dict[str, Any]
     ):
         """
         Handle Bridge failed
@@ -264,7 +266,7 @@ class Response:
     def update_status(
             self,
             context: BridgeContext,
-            extra: dict
+            extra: Dict[str, Any]
     ):
         """
         Handle Bridge evaluate

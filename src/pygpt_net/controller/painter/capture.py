@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
 import math
 import os
+from typing import Optional, Union
+
 import mss
 import mss.tools
 from PIL import Image, ImageDraw
@@ -82,12 +84,13 @@ class Capture:
             self,
             attach_cursor: bool = False,
             silent: bool = False
-    ) -> str:
+    ) -> Optional[Union[str, bool]]:
         """
         Make screenshot and append to attachments
 
         :param attach_cursor: True to with custom cursor
         :param silent: Silent mode
+        :return: Path to screenshot or False if failed
         """
         if not silent:
             # switch to vision mode if needed

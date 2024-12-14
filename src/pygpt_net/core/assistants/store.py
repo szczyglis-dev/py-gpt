@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from packaging.version import Version
 
@@ -52,7 +52,7 @@ class Store:
         if id in self.items:
             return self.items[id]
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Return all loaded store IDs
 
@@ -61,7 +61,7 @@ class Store:
         return list(self.items.keys())
 
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, AssistantStoreItem]:
         """
         Return all stores
 
@@ -144,7 +144,7 @@ class Store:
             status = self.parse_status(data)
         return status, data
 
-    def parse_status(self, store) -> dict:
+    def parse_status(self, store) -> Dict[str, Any]:
         """
         Parse store status
 
@@ -187,7 +187,11 @@ class Store:
         self.append_status(store, status)  # append to store
         self.update(store)  # save to db
 
-    def append_status(self, store: AssistantStoreItem, status: dict):
+    def append_status(
+            self,
+            store: AssistantStoreItem,
+            status: Dict[str, Any]
+    ):
         """
         Append status to store
 
@@ -210,7 +214,7 @@ class Store:
         if "expires_after" in status:
             store.expire_days = int(status["expires_after"]["days"] or 0)
 
-    def get_names(self) -> dict:
+    def get_names(self) -> Dict[str, str]:
         """
         Get store name mapping id <> name
 
@@ -237,7 +241,7 @@ class Store:
             return True
         return False
 
-    def import_items(self, items: dict):
+    def import_items(self, items: Dict[str, AssistantStoreItem]):
         """
         Insert items
 
@@ -288,5 +292,9 @@ class Store:
         self.provider.save_all(self.items)
 
     def get_version(self) -> str:
-        """Get config version"""
+        """
+        Get config version
+
+        :return: version
+        """
         return self.provider.get_version()

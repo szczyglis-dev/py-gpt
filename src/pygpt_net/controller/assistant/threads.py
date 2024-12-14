@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
 import time
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
@@ -296,7 +296,10 @@ class Threads(QObject):
             })
             self.window.dispatch(event)
 
-    def handle_tool_outputs(self, ctx: CtxItem) -> list:
+    def handle_tool_outputs(
+            self,
+            ctx: CtxItem
+    ) -> List[Dict[str, Any]]:
         """
         Handle tool outputs
 
@@ -314,7 +317,10 @@ class Threads(QObject):
         return tools_outputs
 
 
-    def apply_outputs(self, ctx: CtxItem) -> list:
+    def apply_outputs(
+            self,
+            ctx: CtxItem
+    ) -> List[Dict[str, Any]]:
         """
         Apply tool call outputs
 

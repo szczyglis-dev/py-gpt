@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
-from typing import Optional
+from typing import Optional, List, Dict
 
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
@@ -77,7 +77,10 @@ class Body:
             stylesheet += "pre { color: #000; }"
         return stylesheet + " " + self.highlight.get_style_defs()
 
-    def prepare_action_icons(self, ctx: CtxItem) -> str:
+    def prepare_action_icons(
+            self,
+            ctx: CtxItem
+    ) -> str:
         """
         Append action icons
 
@@ -93,7 +96,11 @@ class Body:
             html += extra
         return html
 
-    def get_action_icons(self, ctx: CtxItem, all: bool = False) -> list:
+    def get_action_icons(
+            self,
+            ctx: CtxItem,
+            all: bool = False
+    ) -> List[str]:
         """
         Get action icons for context item
 
@@ -229,7 +236,7 @@ class Body:
                    icon=icon,
             )
 
-    def get_docs_html(self, docs: list) -> str:
+    def get_docs_html(self, docs: List[Dict]) -> str:
         """
         Get Llama-index doc metadata HTML
 

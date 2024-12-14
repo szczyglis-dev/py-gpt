@@ -6,9 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
+from typing import Dict, Any, List
+
+from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.utils import trans
 
 
@@ -25,7 +28,7 @@ class Dictionary:
             self,
             parent_id: str,
             key: str,
-            option: dict
+            option: Dict[str, Any]
     ):
         """
         Apply values to dictionary
@@ -44,7 +47,7 @@ class Dictionary:
             self,
             parent_id: str,
             key: str,
-            values: dict,
+            values: Dict[str, Any],
             idx: int
     ):
         """
@@ -64,8 +67,8 @@ class Dictionary:
             self,
             parent_id: str,
             key: str,
-            option: dict
-    ) -> list:
+            option: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Get dictionary values
 
@@ -78,7 +81,7 @@ class Dictionary:
 
     def delete_item(
             self,
-            parent_object,
+            parent_object: OptionDict,
             id: str,
             force: bool = False,
             hooks: bool = True
@@ -117,8 +120,8 @@ class Dictionary:
     def to_options(
             self,
             parent_id: str,
-            option: dict
-    ) -> dict:
+            option: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Convert dictionary items option to options
 
@@ -145,8 +148,8 @@ class Dictionary:
     def append_editor(
             self,
             id: str,
-            option: dict,
-            data: dict
+            option: Dict[str, Any],
+            data: Dict[str, Any]
     ):
         """
         Apply dict item option sub-values to dict editor
@@ -173,7 +176,7 @@ class Dictionary:
             self,
             option_key: str,
             parent: str,
-            fields: dict,
+            fields: Dict[str, Dict[str, Any]],
             hooks: bool = True
     ):
         """

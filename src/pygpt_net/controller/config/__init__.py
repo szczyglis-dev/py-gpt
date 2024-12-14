@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Any
+from typing import Any, Dict
 
 from .field.checkbox import Checkbox
 from .field.combo import Combo
@@ -41,7 +41,7 @@ class Config:
     def load_options(
             self,
             parent_id: str,
-            options: dict
+            options: Dict[str, Dict[str, Any]]
     ):
         """
         Load options
@@ -57,7 +57,7 @@ class Config:
             self,
             parent_id: str,
             key: str,
-            option: dict
+            option: Dict[str, Any]
     ):
         """
         Apply option to field handler based on type
@@ -88,7 +88,7 @@ class Config:
             self,
             parent_id: str,
             key: str,
-            option: dict,
+            option: Dict[str, Any],
             value: Any
     ):
         """
@@ -106,7 +106,7 @@ class Config:
             self,
             parent_id: str,
             key: str,
-            option: dict,
+            option: Dict[str, Any],
             idx: bool = False
     ) -> Any:
         """
@@ -139,7 +139,8 @@ class Config:
     def update_combo(
             self,
             parent_id: str,
-            key: str, items: dict
+            key: str,
+            items: Dict[str, str]
     ):
         """
         Update combo items

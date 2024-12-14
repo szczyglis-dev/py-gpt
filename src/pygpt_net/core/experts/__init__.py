@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
+from typing import Dict, List
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -90,7 +91,7 @@ class Experts:
         """
         return self.window.core.presets.get_by_id(MODE_EXPERT, id)
 
-    def get_experts(self) -> dict:
+    def get_experts(self) -> Dict[str, str]:
         """
         Get experts names with keys
 
@@ -191,7 +192,7 @@ class Experts:
         prompt = prompt.replace("{presets}", "\n".join(experts_list))
         return prompt
 
-    def extract_calls(self, ctx: CtxItem) -> dict:
+    def extract_calls(self, ctx: CtxItem) -> Dict[str, str]:
         """
         Extract expert calls from context output
 
@@ -456,7 +457,7 @@ class Experts:
         })
         self.window.dispatch(event)
 
-    def get_functions(self) -> list:
+    def get_functions(self) -> List[Dict[str, str]]:
         """
         Append call the expert commands
 

@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
-from typing import Optional
+from typing import List, Dict, Any
 
 from PySide6.QtCore import Slot, QObject
 
@@ -271,7 +271,11 @@ class Attachment(QObject):
         """
         return self.mode
 
-    def get_context(self, ctx: CtxItem, history: list) -> str:
+    def get_context(
+            self,
+            ctx: CtxItem,
+            history: List[CtxItem]
+    ) -> str:
         """
         Get additional context for attachment
 
@@ -302,7 +306,10 @@ class Attachment(QObject):
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
 
-    def get_uploaded_attachments(self, meta: CtxMeta) -> list:
+    def get_uploaded_attachments(
+            self,
+            meta: CtxMeta
+    ) -> List[Dict[str, Any]]:
         """
         Get uploaded attachments for meta
 

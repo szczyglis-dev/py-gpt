@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
 import json
+from typing import Optional, Dict, Any
 
 from pygpt_net.item.ctx import CtxItem
 
 class BaseEvent:
     def __init__(
             self,
-            name: str = None,
-            data: dict = None,
+            name: Optional[str] = None,
+            data: Optional[dict] = None,
             ctx: CtxItem = None
     ):
         """
@@ -39,10 +41,14 @@ class BaseEvent:
 
     @property
     def full_name(self) -> str:
-        """Get full event name"""
+        """
+        Get full event name
+
+        :return: Full event name
+        """
         return self.id + ": " + self.name
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Dump event to dict"""
         return {
             'name': self.name,

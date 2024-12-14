@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
+from typing import List
 
 from pygpt_net.utils import trans
 
@@ -108,7 +109,7 @@ class Common:
         elif element == "font.toolbox":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size.toolbox'))
 
-    def get_themes_list(self) -> list:
+    def get_themes_list(self) -> List[str]:
         """
         Return a list of available themes
 
@@ -157,7 +158,7 @@ class Common:
                     content += file.read()
         return content
 
-    def get_styles_list(self) -> list:
+    def get_styles_list(self) -> List[str]:
         """
         Return a list of available styles
 

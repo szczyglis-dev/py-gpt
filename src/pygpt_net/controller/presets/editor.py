@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -30,7 +30,6 @@ from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
 from .experts import Experts
-
 
 class Editor:
     def __init__(self, window=None):
@@ -161,7 +160,7 @@ class Editor:
         self.id = "preset"
         self.current = None
 
-    def get_options(self) -> dict:
+    def get_options(self) -> Dict[str, Dict[str, Any]]:
         """
         Get preset options
 
@@ -169,7 +168,7 @@ class Editor:
         """
         return self.options
 
-    def get_option(self, id: str) -> dict:
+    def get_option(self, id: str) -> Dict[str, Any]:
         """
         Get preset option
 

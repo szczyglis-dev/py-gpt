@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtCore import QModelIndex
 from PySide6.QtGui import QStandardItem
@@ -218,7 +218,11 @@ class Ctx:
         self.group_id = None
         self.new()
 
-    def new(self, force: bool = False, group_id: Optional[int] = None):
+    def new(
+            self,
+            force: bool = False,
+            group_id: Optional[int] = None
+    ):
         """
         Create new ctx
 
@@ -337,7 +341,11 @@ class Ctx:
         event = RenderEvent(RenderEvent.CTX_APPEND, data)
         self.window.dispatch(event)
 
-    def load(self, id: int, restore_model: bool = True):
+    def load(
+            self,
+            id: int,
+            restore_model: bool = True
+    ):
         """
         Load ctx data
 
@@ -366,7 +374,7 @@ class Ctx:
 
         # update tab title
         if meta is not None:
-            self.window.controller.ui.tabs.update_title_current(meta.name)
+            self.window.controller.ui.tabs.on_load_ctx(meta)
 
     def reload_config(self, all: bool = True):
         """
@@ -435,7 +443,11 @@ class Ctx:
         # update ctx label
         self.common.update_label(mode, id)
 
-    def delete(self, id: int, force: int = False):
+    def delete(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Delete ctx by idx
 
@@ -489,7 +501,11 @@ class Ctx:
                 for idx in list(meta.indexes[store_id]):
                     self.window.core.ctx.idx.remove_meta_from_indexed(store_id, id, idx)
 
-    def delete_item(self, id: int, force: bool = False):
+    def delete_item(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Delete ctx item by id
 
@@ -587,7 +603,11 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def set_important(self, id: int, value: bool = True):
+    def set_important(
+            self,
+            id: int,
+            value: bool = True
+    ):
         """
         Set as important
 
@@ -613,7 +633,11 @@ class Ctx:
             return meta.important
         return False
 
-    def set_label(self, id: int, label_id: int):
+    def set_label(
+            self,
+            id: int,
+            label_id: int
+    ):
         """
         Set color label for ctx by idx
 
@@ -714,7 +738,7 @@ class Ctx:
         self.window.ui.nodes['ctx.search'].setText(text)
         self.search_string_change(text)  # make search
 
-    def label_filters_changed(self, labels: list):
+    def label_filters_changed(self, labels: List[int]):
         """
         Filters labels change
 
@@ -757,7 +781,11 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
         self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
-    def find_index_by_id(self, item, id: int) -> QModelIndex:
+    def find_index_by_id(
+            self,
+            item: QStandardItem,
+            id: int
+    ) -> QModelIndex:
         """
         Return index of item with given ID, searching recursively through the model.
 
@@ -773,7 +801,11 @@ class Ctx:
                 return found_index
         return QModelIndex()
 
-    def find_parent_index_by_id(self, item, id: int) -> QModelIndex:
+    def find_parent_index_by_id(
+            self,
+            item: QStandardItem,
+            id: int
+    ) -> QModelIndex:
         """
         Return index of item with given ID, searching recursively through the model.
 
@@ -904,7 +936,10 @@ class Ctx:
         self.group_id = None
         self.update()
 
-    def new_group(self, meta_id = None):
+    def new_group(
+            self,
+            meta_id: Optional[int] = None
+    ):
         """
         Open new group dialog
 
@@ -916,7 +951,11 @@ class Ctx:
         self.window.ui.dialog['create'].show()
         self.window.ui.dialog['create'].input.setFocus()
 
-    def create_group(self, name: str = None, meta_id = None):
+    def create_group(
+            self,
+            name: Optional[str] = None,
+            meta_id: Optional[int] = None
+    ):
         """
         Make directory
 
@@ -943,7 +982,11 @@ class Ctx:
             self.select_group(id)
             self.group_id = id
 
-    def rename_group(self, id: int, force: bool = False):
+    def rename_group(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Rename group
 
@@ -959,7 +1002,12 @@ class Ctx:
             self.window.ui.dialog['rename'].current = id
             self.window.ui.dialog['rename'].show()
 
-    def update_group_name(self, id: int, name: str, close: bool = True):
+    def update_group_name(
+            self,
+            id: int,
+            name: str,
+            close: bool = True
+    ):
         """
         Update group name
 
@@ -1000,7 +1048,11 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].setCurrentIndex(index)
         self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
-    def delete_group(self, id: int, force: bool = False):
+    def delete_group(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Delete group only
 
@@ -1021,7 +1073,11 @@ class Ctx:
                 self.group_id = None
             self.update()
 
-    def delete_group_all(self, id: int, force: bool = False):
+    def delete_group_all(
+            self,
+            id: int,
+            force: bool = False
+    ):
         """
         Delete group with all items
 

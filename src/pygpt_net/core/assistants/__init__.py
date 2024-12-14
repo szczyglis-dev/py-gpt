@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, Dict
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
@@ -72,7 +72,7 @@ class Assistants:
             return None
         return assistants[id]
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, AssistantItem]:
         """
         Return assistants
 

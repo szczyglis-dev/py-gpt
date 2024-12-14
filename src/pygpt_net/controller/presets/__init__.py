@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import re
-from typing import Optional
+from typing import Optional, List, Dict
 
 from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -93,7 +94,11 @@ class Presets:
             self.window.ui.nodes['preset.prompt'].toPlainText()
         )
 
-    def paste_prompt(self, idx: int, parent: str = "global"):
+    def paste_prompt(
+            self,
+            idx: int,
+            parent: str = "global"
+    ):
         """
         Paste prompt from template
 
@@ -110,7 +115,11 @@ class Presets:
         elif parent == "editor":
             self.paste_to_textarea(self.window.ui.config["preset"]["prompt"], template['prompt'])
 
-    def paste_custom_prompt(self, idx: int, parent: str = "global"):
+    def paste_custom_prompt(
+            self,
+            idx: int,
+            parent: str = "global"
+    ):
         """
         Paste prompt from custom template
 
@@ -127,7 +136,11 @@ class Presets:
         elif parent == "editor":
             self.paste_to_textarea(self.window.ui.config["preset"]["prompt"], template.content)
 
-    def save_prompt(self, name: str = "", force: bool = False):
+    def save_prompt(
+            self,
+            name: str = "",
+            force: bool = False
+    ):
         """
         Save prompt to file
 
@@ -148,7 +161,12 @@ class Presets:
         self.window.core.prompt.custom.new(name, content)
         self.window.update_status("Prompt saved")
 
-    def rename_prompt(self, uuid: str, name: str = "", force: bool = False):
+    def rename_prompt(
+            self,
+            uuid: str,
+            name: str = "",
+            force: bool = False
+    ):
         """
         Rename prompt
 
@@ -170,7 +188,11 @@ class Presets:
         self.window.core.prompt.custom.save()
         self.window.update_status("Prompt renamed")
 
-    def delete_prompt(self, uuid: str, force: bool = False):
+    def delete_prompt(
+            self,
+            uuid: str,
+            force: bool = False
+    ):
         """
         Delete prompt
 
@@ -190,7 +212,11 @@ class Presets:
         self.window.core.prompt.custom.delete(uuid)
         self.window.update_status("Prompt deleted")
 
-    def paste_to_textarea(self, textarea, text: str):
+    def paste_to_textarea(
+            self,
+            textarea: QTextEdit,
+            text: str
+    ):
         """
         Paste text to textarea
 
@@ -214,7 +240,11 @@ class Presets:
         textarea.setTextCursor(cur)
         textarea.setFocus()
 
-    def set(self, mode: str, preset_id: str):
+    def set(
+            self,
+            mode: str,
+            preset_id: str
+    ):
         """
         Set preset
 
@@ -228,7 +258,11 @@ class Presets:
             self.window.core.config.data['current_preset'] = {}
         self.window.core.config.data['current_preset'][mode] = preset_id
 
-    def set_by_idx(self, mode: str, idx: int):
+    def set_by_idx(
+            self,
+            mode: str,
+            idx: int
+    ):
         """
         Set preset by index
 
@@ -328,7 +362,7 @@ class Presets:
         else:
             self.window.core.config.set('prompt', None)
 
-    def get_current_functions(self) -> Optional[list]:
+    def get_current_functions(self) -> Optional[List[Dict]]:
         """
         Get current preset functions
 
@@ -487,7 +521,11 @@ class Presets:
         if mode == MODE_ASSISTANT:
             self.window.core.assistants.load()
 
-    def delete(self, idx: Optional[int] = None, force: bool = False):
+    def delete(
+            self,
+            idx: Optional[int] = None,
+            force: bool = False
+    ):
         """
         Delete preset
 

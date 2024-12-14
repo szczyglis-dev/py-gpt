@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List
+
 
 class Types:
     def __init__(self, window=None):
@@ -45,7 +48,7 @@ class Types:
         """
         return str(path).lower().endswith(tuple(self.get_audio_ext()))
 
-    def get_img_ext(self) -> list:
+    def get_img_ext(self) -> List[str]:
         """
         Get image extensions
 
@@ -53,7 +56,7 @@ class Types:
         """
         return ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp']
 
-    def get_video_ext(self) -> list:
+    def get_video_ext(self) -> List[str]:
         """
         Get video extensions
 
@@ -62,7 +65,7 @@ class Types:
         return ['.mp4', '.avi', '.mkv', '.webm', '.mov', '.flv', '.wmv',
                 '.3gp', '.ogg', '.ogv', '.mpg', '.mpeg', '.m4v']
 
-    def get_audio_ext(self) -> list:
+    def get_audio_ext(self) -> List[str]:
         """
         Get audio extensions
 
@@ -71,7 +74,7 @@ class Types:
         return ['.mp3', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.aac',
                 '.aiff', '.alac', '.dsd', '.pcm', '.mpc']
 
-    def get_excluded_extensions(self) -> list[str]:
+    def get_excluded_extensions(self) -> List[str]:
         """
         Get excluded extensions if no loader is available
 

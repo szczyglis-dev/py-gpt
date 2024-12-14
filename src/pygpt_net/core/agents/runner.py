@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, Dict, Any, List
+
+from llama_index.core.tools import FunctionTool
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
@@ -34,7 +36,7 @@ class Runner:
     def call(
             self,
             context: BridgeContext,
-            extra: dict,
+            extra: Dict[str, Any],
             signals: BridgeSignals
     ) -> bool:
         """
@@ -106,7 +108,7 @@ class Runner:
 
     def run_steps(
             self,
-            agent,
+            agent: Any,
             ctx: CtxItem,
             prompt: str,
             signals: BridgeSignals,
@@ -204,7 +206,7 @@ class Runner:
 
     def run_assistant(
             self,
-            agent,
+            agent: Any,
             ctx: CtxItem,
             prompt: str,
             signals: BridgeSignals,
@@ -252,7 +254,7 @@ class Runner:
 
     def run_plan(
             self,
-            agent,
+            agent: Any,
             ctx: CtxItem,
             prompt: str,
             signals: BridgeSignals,
@@ -414,7 +416,7 @@ class Runner:
             self,
             step_ctx: CtxItem,
             ctx: CtxItem,
-            tools_output: list
+            tools_output: List[Dict[str, Any]]
     ):
         """
         Copy step results from base context item
@@ -443,7 +445,7 @@ class Runner:
     def run_once(
             self,
             input: str,
-            tools: list,
+            tools: List[FunctionTool],
             model_name: Optional[str] = None
     ) -> str:
         """

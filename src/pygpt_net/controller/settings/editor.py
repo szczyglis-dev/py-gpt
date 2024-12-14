@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from pygpt_net.utils import trans
 
@@ -213,7 +213,14 @@ class Editor:
             return True
         return False
 
-    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
+    def hook_update(
+            self,
+            key: str,
+            value: Any,
+            caller,
+            *args,
+            **kwargs
+    ):
         """
         Hook: on settings update
 
@@ -308,7 +315,12 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.debug.toggle_menu()
 
-    def toggle_collapsed(self, id: str, value: Any, section: str):
+    def toggle_collapsed(
+            self,
+            id: str,
+            value: Any,
+            section: str
+    ):
         """
         Toggle collapsed state of section
 
@@ -393,7 +405,7 @@ class Editor:
             return
         self.window.core.settings.load_default_editor_app()
 
-    def get_sections(self) -> dict:
+    def get_sections(self) -> Dict[str, dict]:
         """
         Return settings sections dict
 
@@ -404,7 +416,7 @@ class Editor:
     def get_options(
             self,
             section: Optional[str] = None
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """
         Return settings options dict
 
@@ -421,7 +433,7 @@ class Editor:
                     options[key] = self.options[key]
             return options
 
-    def get_option(self, key: str) -> dict:
+    def get_option(self, key: str) -> Dict[str, Any]:
         """
         Return settings option
 

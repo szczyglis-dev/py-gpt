@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -39,7 +39,11 @@ class Files:
         # TODO: implement this
         pass
 
-    def delete_recursive(self, path: str, force: bool = False):
+    def delete_recursive(
+            self,
+            path: str,
+            force: bool = False
+    ):
         """
         Delete directory with all files
 
@@ -96,7 +100,11 @@ class Files:
             self.window.core.debug.log(e)
             print("Error creating file: {} - {}".format(path, e))
 
-    def delete(self, path: str, force: bool = False):
+    def delete(
+            self,
+            path: str,
+            force: bool = False
+    ):
         """
         Delete file or directory
 
@@ -209,7 +217,10 @@ class Files:
                     self.window.core.debug.log(e)
                     print("Error downloading file: {} - {}".format(path, e))
 
-    def upload_local(self, parent_path: Optional[str] = None):
+    def upload_local(
+            self,
+            parent_path: Optional[str] = None
+    ):
         """
         Upload local file(s) to directory
 
@@ -274,7 +285,11 @@ class Files:
         self.window.ui.dialog['rename'].show()
         self.window.ui.dialog['rename'].input.setFocus()
 
-    def update_name(self, path: str, name: str):
+    def update_name(
+            self,
+            path: str,
+            name: str
+    ):
         """
         Update name of file or directory
 
@@ -294,7 +309,11 @@ class Files:
         self.window.ui.dialog['rename'].close()
         self.update_explorer()
 
-    def open_dir(self, path: str, select: bool = False):
+    def open_dir(
+            self,
+            path: str,
+            select: bool = False
+    ):
         """
         Open file or directory in file manager
 
@@ -319,7 +338,11 @@ class Files:
             else:
                 subprocess.run(['xdg-open', path])
 
-    def open_in_file_manager(self, path: str, select: bool = False):
+    def open_in_file_manager(
+            self,
+            path: str,
+            select: bool = False
+    ):
         """
         Open in file manager
 
@@ -352,7 +375,11 @@ class Files:
         self.window.ui.dialog['create'].show()
         self.window.ui.dialog['create'].input.setFocus()
 
-    def make_dir(self, path: str, name: Optional[str] = None):
+    def make_dir(
+            self,
+            path: str,
+            name: Optional[str] = None
+    ):
         """
         Make directory
 

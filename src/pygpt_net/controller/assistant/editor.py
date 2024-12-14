@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -150,7 +150,7 @@ class Editor:
             return self.window.ui.config[self.id]['vector_store'].combo.itemData(idx)
         return None
 
-    def get_choice_idx_by_id(self, store_id) -> int:
+    def get_choice_idx_by_id(self, store_id: str) -> int:
         """
         Return combo choice index by vector store ID
 
@@ -380,7 +380,7 @@ class Editor:
         """
         Assign data from fields to assistant
 
-        :param assistant: assistant
+        :param assistant: assistant item
         """
         model = self.window.controller.config.get_value(
             parent_id=self.id,

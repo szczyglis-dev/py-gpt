@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional
+from typing import Optional, List, Dict
 
 from packaging.version import Version
 
@@ -124,7 +124,11 @@ class Attachments:
         if id is not None:
             return self.items[mode][id]
 
-    def get_all(self, mode: str, only_files: bool = True) -> dict:
+    def get_all(
+            self,
+            mode: str,
+            only_files: bool = True
+    ) -> dict:
         """
         Return all items in mode
 
@@ -142,7 +146,11 @@ class Attachments:
                 current[attachment.id] = attachment
         return current
 
-    def get_from_meta_ctx(self, mode: str, meta: CtxMeta) -> list:
+    def get_from_meta_ctx(
+            self,
+            mode: str,
+            meta: CtxMeta
+    ) -> List[AttachmentItem]:
         """
         Get attachments from meta context
 
@@ -234,7 +242,11 @@ class Attachments:
         attachment.id = id
         return attachment
 
-    def add(self, mode: str, item: AttachmentItem):
+    def add(
+            self,
+            mode: str,
+            item: AttachmentItem
+    ):
         """
         Add item to attachments
 
@@ -262,7 +274,12 @@ class Attachments:
 
         return len(self.items[mode]) > 0
 
-    def delete(self, mode: str, id: str, remove_local: bool = False):
+    def delete(
+            self,
+            mode: str,
+            id: str,
+            remove_local: bool = False
+    ):
         """
         Delete attachment by file_id
 
@@ -309,7 +326,11 @@ class Attachments:
             del self.items[mode][id]
             self.save()
 
-    def clear(self, mode: str, remove_local: bool = False):
+    def clear(
+            self,
+            mode: str,
+            remove_local: bool = False
+    ):
         """
         Clear all attachments in mode
 
@@ -362,7 +383,10 @@ class Attachments:
         data.name = name
         self.save()
 
-    def make_json_list(self, attachments: dict) -> dict:
+    def make_json_list(
+            self,
+            attachments: Dict[str, AttachmentItem]
+    ) -> Dict[str, dict]:
         """
         Make json list
 
@@ -378,7 +402,11 @@ class Attachments:
             }
         return result
 
-    def from_files(self, mode: str, files: dict):
+    def from_files(
+            self,
+            mode: str,
+            files: Dict[str, dict]
+    ):
         """
         Load current from assistant files
 
@@ -403,7 +431,11 @@ class Attachments:
             item.send = True
             self.add(mode, item)
 
-    def from_attachments(self, mode: str, attachments: dict):
+    def from_attachments(
+            self,
+            mode: str,
+            attachments: Dict[str, AttachmentItem]
+    ):
         """
         Load current from attachments
 

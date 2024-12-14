@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import List, Dict, Any
 
 from PySide6.QtGui import QAction
 
@@ -368,7 +370,11 @@ class Plugins:
         self.window.ui.nodes['chat.plugins'].setText(count_str)
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
-    def apply_cmds_all(self, ctx: CtxItem, cmds: list):
+    def apply_cmds_all(
+            self,
+            ctx: CtxItem,
+            cmds: List[Dict[str, Any]]
+    ):
         """
         Apply all commands (inline or not)
 
@@ -381,7 +387,11 @@ class Plugins:
         else:
             return self.apply_cmds_inline(ctx, cmds)
 
-    def apply_cmds(self, ctx: CtxItem, cmds: list):
+    def apply_cmds(
+            self,
+            ctx: CtxItem,
+            cmds: List[Dict[str, Any]]
+    ):
         """
         Apply commands
 
@@ -418,7 +428,11 @@ class Plugins:
 
         return ctx.results
 
-    def apply_cmds_inline(self, ctx: CtxItem, cmds: list):
+    def apply_cmds_inline(
+            self,
+            ctx: CtxItem,
+            cmds: List[Dict[str, Any]]
+    ):
         """
         Apply inline commands
 
@@ -462,7 +476,7 @@ class Plugins:
         self.settings.setup()
         self.update()
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

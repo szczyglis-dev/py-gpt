@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
 
@@ -147,7 +147,7 @@ class Renderer(BaseRenderer):
     def append_context(
             self,
             meta: CtxMeta,
-            items: list,
+            items: List[CtxItem],
             clear: bool = True
     ):
         """
@@ -389,7 +389,11 @@ class Renderer(BaseRenderer):
         cursor.movePosition(QTextCursor.End)
         node.setTextCursor(cursor)
 
-    def append_context_item(self, meta: CtxMeta, item: CtxItem):
+    def append_context_item(
+            self,
+            meta: CtxMeta,
+            item: CtxItem
+    ):
         """
         Append context item to output
         
@@ -493,7 +497,10 @@ class Renderer(BaseRenderer):
         """
         return self.window.core.config.get('output_timestamp')
 
-    def get_output_node(self, meta: Optional[CtxMeta] = None) -> ChatOutput:
+    def get_output_node(
+            self,
+            meta: Optional[CtxMeta] = None
+    ) -> ChatOutput:
         """
         Get output node for current context
         

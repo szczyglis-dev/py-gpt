@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -105,7 +105,11 @@ class Renderer(BaseRenderer):
                 self.pid_create(pid, meta)
             return pid
 
-    def pid_create(self, pid, meta: CtxMeta):
+    def pid_create(
+            self,
+            pid: Optional[int],
+            meta: CtxMeta
+    ):
         """
         Create PID data
         
@@ -115,7 +119,7 @@ class Renderer(BaseRenderer):
         if pid is not None:
             self.pids[pid] = PidData(pid, meta)
 
-    def init(self, pid):
+    def init(self, pid: Optional[int]):
         """
         Initialize renderer
 
@@ -213,7 +217,7 @@ class Renderer(BaseRenderer):
     def append_context(
             self,
             meta: CtxMeta,
-            items: list,
+            items: List[CtxItem],
             clear: bool = True
     ):
         """
@@ -647,7 +651,7 @@ class Renderer(BaseRenderer):
                 pid = self.get_or_create_pid(meta)
                 self.reset_by_pid(pid)
 
-    def reset_by_pid(self, pid):
+    def reset_by_pid(self, pid: Optional[int]):
         """
         Reset by PID
 
@@ -668,7 +672,10 @@ class Renderer(BaseRenderer):
         """Clear input"""
         self.get_input_node().clear()
 
-    def clear_output(self, meta: Optional[CtxMeta] = None):
+    def clear_output(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         Clear output
 
@@ -687,7 +694,10 @@ class Renderer(BaseRenderer):
         self.clear_chunks_input(pid)
         self.clear_chunks_output(pid)
 
-    def clear_chunks_input(self, pid):
+    def clear_chunks_input(
+            self,
+            pid: Optional[int]
+    ):
         """
         Clear chunks from input
 
@@ -705,7 +715,10 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def clear_chunks_output(self, pid):
+    def clear_chunks_output(
+            self,
+            pid: Optional[int]
+    ):
         """
         Clear chunks from output
 
@@ -721,7 +734,10 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def clear_nodes(self, pid):
+    def clear_nodes(
+            self,
+            pid: Optional[int]
+    ):
         """
         Clear nodes from output
 
@@ -969,7 +985,11 @@ class Renderer(BaseRenderer):
 
         return html
 
-    def flush_output(self, pid, html: str):
+    def flush_output(
+            self,
+            pid: Optional[int],
+            html: str
+    ):
         """
         Flush output
 
@@ -988,7 +1008,11 @@ class Renderer(BaseRenderer):
         """Reload output, called externally only on theme change to redraw content"""
         self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
 
-    def flush(self, pid):
+    def flush(
+            self,
+            pid:
+            Optional[int]
+    ):
         """
         Flush output
 
@@ -1001,7 +1025,10 @@ class Renderer(BaseRenderer):
         self.pids[pid].document = html
         self.get_output_node_by_pid(pid).setHtml(html, baseUrl="file://")
 
-    def get_output_node(self, meta: Optional[CtxMeta] = None):
+    def get_output_node(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         Get output node
 
@@ -1010,7 +1037,10 @@ class Renderer(BaseRenderer):
         """
         return self.window.core.ctx.output.get_current(meta)
 
-    def get_output_node_by_pid(self, pid):
+    def get_output_node_by_pid(
+            self,
+            pid: Optional[int]
+    ):
         """
         Get output node by PID
 
@@ -1027,7 +1057,10 @@ class Renderer(BaseRenderer):
         """
         return self.window.ui.nodes['input']
 
-    def get_document(self, plain: bool = False):
+    def get_document(
+            self,
+            plain: bool = False
+    ):
         """
         Get document content (plain or HTML)
 
@@ -1074,7 +1107,7 @@ class Renderer(BaseRenderer):
         pid = self.get_or_create_pid(meta)
         self.reset_names_by_pid(pid)
 
-    def reset_names_by_pid(self, pid):
+    def reset_names_by_pid(self, pid: int):
         """
         Reset names by PID
 
@@ -1161,7 +1194,11 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def update_names(self, meta: CtxMeta, ctx: CtxItem):
+    def update_names(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Update names
         
@@ -1229,7 +1266,11 @@ class Renderer(BaseRenderer):
                 self.reload_css()
                 return
 
-    def tool_output_append(self, meta: CtxMeta, content: str):
+    def tool_output_append(
+            self,
+            meta: CtxMeta,
+            content: str
+    ):
         """
         Add tool output (append)
 
@@ -1242,7 +1283,11 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
-    def tool_output_update(self, meta: CtxMeta, content: str):
+    def tool_output_update(
+            self,
+            meta: CtxMeta,
+            content: str
+    ):
         """
         Replace tool output
 

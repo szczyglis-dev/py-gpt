@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 15:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Tuple, Optional, Dict, List
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor
@@ -22,7 +24,7 @@ class Common:
         """
         self.window = window
 
-    def convert_to_size(self, canvas_size: str) -> tuple:
+    def convert_to_size(self, canvas_size: str) -> Tuple[int, int]:
         """
         Convert string to size
 
@@ -64,7 +66,7 @@ class Common:
             self.window.core.config.set('painter.brush.mode', "erase")
             self.window.core.config.save()
 
-    def change_canvas_size(self, selected=None):
+    def change_canvas_size(self, selected: Optional[str] = None):
         """
         Change the canvas size
 
@@ -79,7 +81,7 @@ class Common:
             self.window.core.config.set('painter.canvas.size', selected)
             self.window.core.config.save()
 
-    def change_brush_size(self, size):
+    def change_brush_size(self, size: int):
         """
         Change the brush size
 
@@ -143,7 +145,7 @@ class Common:
                 self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
         )
 
-    def get_colors(self) -> dict:
+    def get_colors(self) -> Dict[str, QColor]:
         """
         Get colors dict
 
@@ -161,7 +163,7 @@ class Common:
             "Violet": QColor('violet')
         }
 
-    def get_sizes(self) -> list:
+    def get_sizes(self) -> List[str]:
         """
         Get brush sizes
 
@@ -169,7 +171,7 @@ class Common:
         """
         return ['1', '2', '3', '5', '8', '12', '15', '20', '25', '30', '50', '100', '200']
 
-    def get_canvas_sizes(self) -> list:
+    def get_canvas_sizes(self) -> List[str]:
         """
         Get canvas sizes
 

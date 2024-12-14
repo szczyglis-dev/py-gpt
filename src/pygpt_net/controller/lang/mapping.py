@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Dict
 
 from pygpt_net.utils import trans
 
@@ -69,7 +71,7 @@ class Mapping:
             if k in self.window.ui.menu:
                 self.window.ui.menu[k].setText(trans("output.tab." + self.window.controller.tools.get_tab_tools()[k][0]))
 
-    def get_mapping(self) -> dict:
+    def get_mapping(self) -> Dict[str, Dict[str, str]]:
         """
         Get nodes => locale keys mapping
 

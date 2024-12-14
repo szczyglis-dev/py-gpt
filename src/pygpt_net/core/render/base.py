@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Optional, List
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -53,7 +55,12 @@ class BaseRenderer:
         """
         return self.window.core.config.get("stream")
 
-    def begin(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render begin
         
@@ -63,7 +70,12 @@ class BaseRenderer:
         """
         pass
 
-    def end(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end
         
@@ -73,7 +85,12 @@ class BaseRenderer:
         """
         pass
 
-    def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False):
+    def end_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            stream: bool = False
+    ):
         """
         Render end extra
         
@@ -83,7 +100,11 @@ class BaseRenderer:
         """
         pass
 
-    def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_begin(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream begin
         
@@ -92,7 +113,11 @@ class BaseRenderer:
         """
         pass  # do nothing
 
-    def stream_end(self, meta: CtxMeta, ctx: CtxItem):
+    def stream_end(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Render stream end
         
@@ -101,7 +126,10 @@ class BaseRenderer:
         """
         pass  # do nothing    
 
-    def clear_output(self, meta: CtxMeta = None):
+    def clear_output(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
         """
         Clear output
 
@@ -125,7 +153,12 @@ class BaseRenderer:
         """Reload all outputs, called externally only on theme change to redraw content"""
         pass
 
-    def append_context(self, meta: CtxMeta, items: list, clear: bool = True):
+    def append_context(
+            self,
+            meta: CtxMeta,
+            items: List[CtxItem],
+            clear: bool = True
+    ):
         """
         Append all context to output
         
@@ -135,7 +168,13 @@ class BaseRenderer:
         """
         pass
 
-    def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
+    def append_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            flush: bool = True,
+            append: bool = False
+    ):
         """
         Append text input to output
         
@@ -146,7 +185,11 @@ class BaseRenderer:
         """
         pass
 
-    def append_output(self, meta: CtxMeta, ctx: CtxItem):
+    def append_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem
+    ):
         """
         Append text output to output
         
@@ -155,7 +198,12 @@ class BaseRenderer:
         """
         pass
 
-    def append_extra(self, meta: CtxMeta, ctx: CtxItem, footer: bool = False):
+    def append_extra(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            footer: bool = False
+    ):
         """
         Append extra data (images, files, etc.) to output
         
@@ -165,7 +213,13 @@ class BaseRenderer:
         """
         pass
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
         """
         Append output chunk to output
         
@@ -228,7 +282,10 @@ class BaseRenderer:
         """
         pass
 
-    def on_page_loaded(self, meta: CtxMeta = None, tab: Tab = None):
+    def on_page_loaded(
+            self,
+            meta: Optional[CtxMeta] = None,
+            tab: Optional[Tab] = None):
         """
         On page loaded callback
 
@@ -237,7 +294,10 @@ class BaseRenderer:
         """
         self.tab = tab
 
-    def on_enable_edit(self, live: bool = True):
+    def on_enable_edit(
+            self,
+            live: bool = True
+    ):
         """
         On enable edit icons
 
@@ -246,7 +306,10 @@ class BaseRenderer:
         if live:  # default behavior
             self.window.controller.ctx.refresh()
 
-    def on_disable_edit(self, live: bool = True):
+    def on_disable_edit(
+            self,
+            live: bool = True
+    ):
         """
         On disable edit icons
 
@@ -255,7 +318,10 @@ class BaseRenderer:
         if live:  # default behavior
             self.window.controller.ctx.refresh()
 
-    def on_enable_timestamp(self, live: bool = True):
+    def on_enable_timestamp(
+            self,
+            live: bool = True
+    ):
         """
         On enable timestamp
 
@@ -264,7 +330,10 @@ class BaseRenderer:
         if live:  # default behavior
             self.window.controller.ctx.refresh()
 
-    def on_disable_timestamp(self, live: bool = True):
+    def on_disable_timestamp(
+            self,
+            live: bool = True
+    ):
         """
         On disable timestamp
 
@@ -293,7 +362,12 @@ class BaseRenderer:
         """
         pass
 
-    def tool_output_append(self, meta: CtxMeta, content: str):
+    def tool_output_append(
+            self,
+            meta:
+            CtxMeta,
+            content: str
+    ):
         """
         Add tool output (append)
 
@@ -302,7 +376,11 @@ class BaseRenderer:
         """
         pass
 
-    def tool_output_update(self, meta: CtxMeta, content: str):
+    def tool_output_update(
+            self,
+            meta: CtxMeta,
+            content: str
+    ):
         """
         Replace tool output
 
@@ -311,7 +389,10 @@ class BaseRenderer:
         """
         pass
 
-    def tool_output_clear(self, meta: CtxMeta):
+    def tool_output_clear(
+            self,
+            meta: CtxMeta
+    ):
         """
         Clear tool output
 
@@ -319,7 +400,10 @@ class BaseRenderer:
         """
         pass
 
-    def tool_output_begin(self, meta: CtxMeta):
+    def tool_output_begin(
+            self,
+            meta: CtxMeta
+    ):
         """
         Begin tool output
 

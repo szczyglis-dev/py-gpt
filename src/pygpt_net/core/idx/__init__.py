@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List, Dict, Any
 
 from packaging.version import Version
 
@@ -134,7 +134,7 @@ class Idx:
             path: Optional[str] = None,
             replace: Optional[bool] = None,
             recursive: Optional[bool] = None,
-    ) -> Tuple[dict, list]:
+    ) -> Tuple[Dict, List[str]]:
         """
         Index file or directory of files
 
@@ -171,7 +171,7 @@ class Idx:
             idx: str = "base",
             id: int = 0,
             from_ts: int = 0
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index records from db by meta id
 
@@ -205,7 +205,7 @@ class Idx:
             self,
             idx: str = "base",
             from_ts: int = 0
-    ) -> Tuple[int, list]:
+    ) -> Tuple[int, List[str]]:
         """
         Index records from db by meta id
 
@@ -236,10 +236,10 @@ class Idx:
     def index_urls(
             self,
             idx: str = "base",
-            urls: Optional[list] = None,
+            urls: Optional[List[str]] = None,
             type: str = "webpage",
-            extra_args: Optional[dict] = None
-    ) -> Tuple[int, list]:
+            extra_args: Optional[Dict[str, Any]] = None
+    ) -> Tuple[int, List[str]]:
         """
         Index URLs
 
@@ -275,8 +275,8 @@ class Idx:
             self,
             idx: str = "base",
             type: str = "webpage",
-            params: Optional[dict] = None,
-            config: Optional[dict] = None,
+            params: Optional[Dict[str, Any]] = None,
+            config: Optional[Dict[str, Any]] = None,
             replace: Optional[bool] = None,
     ) -> Tuple[int, list]:
         """
@@ -316,7 +316,10 @@ class Idx:
             self.log("Error: " + str(errors))
         return n, errors
 
-    def get_idx_data(self, idx: Optional[str] = None) -> dict:
+    def get_idx_data(
+            self,
+            idx: Optional[str] = None
+    ) -> Dict[str, Dict]:
         """
         Get indexed files data
 
@@ -392,7 +395,7 @@ class Idx:
         if store_id in self.items and idx in self.items[store_id]:
             return self.items[store_id][idx]
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, IndexItem]:
         """
         Return all indexes in current store
 
@@ -403,12 +406,12 @@ class Idx:
             return self.items[store_id]
         return {}
 
-    def append(self, idx: str, files: dict):
+    def append(self, idx: str, files: Dict[str, str]):
         """
         Append indexed files to index
 
         :param idx: index name
-        :param files: dict of indexed files
+        :param files: dict of indexed files (path -> doc_id)
         """
         # create store if not exists
         store_id = self.get_current_store()
@@ -514,7 +517,7 @@ class Idx:
                     self.items[store_id][idx].id = idx
                     self.items[store_id][idx].name = idx
 
-    def get_idx_ids(self) -> list:
+    def get_idx_ids(self) -> List[str]:
         """
         Get list of indexes
 
@@ -538,7 +541,7 @@ class Idx:
             self.items[store_id][idx].items = {}
         self.get_provider().truncate(store_id, idx)
 
-    def get_counters(self, type: str) -> dict:
+    def get_counters(self, type: str) -> Dict[str, Dict[str, int]]:
         """
         Get counters (stats, count items by type [file, ctx, external])
 

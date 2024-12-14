@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtCore import Slot, QTimer
 
@@ -277,7 +277,7 @@ class Render:
     def append_context(
             self,
             meta: CtxMeta,
-            items: list,
+            items: List[CtxItem],
             clear: bool = True
     ):
         """

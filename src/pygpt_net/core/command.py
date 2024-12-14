@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import re
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -36,7 +36,10 @@ class Command:
         """
         self.window = window
 
-    def append_syntax(self, data: dict) -> str:
+    def append_syntax(
+            self,
+            data: Dict[str, Any]
+    ) -> str:
         """
         Append command syntax to the system prompt
 
@@ -57,7 +60,10 @@ class Command:
         prompt += cmd_prompt.strip().replace("{extra}", extra).replace("{schema}", schema)
         return prompt
 
-    def extract_syntax(self, cmds: list) -> str:
+    def extract_syntax(
+            self,
+            cmds: List[Dict[str, Any]]
+    ) -> str:
         """
         Extract syntax from commands
 
@@ -119,7 +125,7 @@ class Command:
         regex_cmd = r'~###~\s*{.*}\s*~###~'
         return bool(re.search(regex_cmd, text))
 
-    def extract_cmds(self, text: str) -> list:
+    def extract_cmds(self, text: str) -> List[Dict[str, Any]]:
         """
         Extract commands from text
 
@@ -138,7 +144,7 @@ class Command:
             pass
         return cmds
 
-    def extract_cmd(self, chunk: str) -> Optional[dict]:
+    def extract_cmd(self, chunk: str) -> Optional[Dict[str, Any]]:
         """
         Extract command from text chunk (JSON string)
 
@@ -172,7 +178,10 @@ class Command:
                 pass
         return cmd
 
-    def from_commands(self, cmds: list) -> list:
+    def from_commands(
+            self,
+            cmds: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Unpack commands to execution list
 
@@ -185,7 +194,10 @@ class Command:
                 commands.append(cmd)
         return commands
 
-    def unpack_tool_calls(self, tool_calls: list) -> list:
+    def unpack_tool_calls(
+            self,
+            tool_calls: List
+    ) -> List[Dict[str, Any]]:
         """
         Unpack tool calls from OpenAI response
 
@@ -210,7 +222,11 @@ class Command:
                 print("Error parsing tool call: " + str(e))
         return parsed
 
-    def unpack_tool_calls_chunks(self, ctx: CtxItem, tool_calls: list):
+    def unpack_tool_calls_chunks(
+            self,
+            ctx: CtxItem,
+            tool_calls: List[Dict[str, Any]]
+    ):
         """
         Handle / unpack tool calls
 
@@ -233,7 +249,10 @@ class Command:
                 print("Error parsing tool call JSON arguments: ", tool_call["function"]["arguments"])
         ctx.tool_calls = tmp_calls
 
-    def unpack_tool_calls_from_llama(self, tool_calls: list) -> list:
+    def unpack_tool_calls_from_llama(
+            self,
+            tool_calls: List
+    ) -> List[Dict[str, Any]]:
         """
         Unpack tool calls from Llama-index response
 
@@ -258,7 +277,10 @@ class Command:
                 print("Error parsing tool call: " + str(e))
         return parsed
 
-    def tool_call_to_cmd(self, tool_call: dict) -> dict:
+    def tool_call_to_cmd(
+            self,
+            tool_call: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Convert tool call to command
 
@@ -270,7 +292,10 @@ class Command:
             "params": tool_call["function"]["arguments"]
         }
 
-    def tool_calls_to_cmds(self, tool_calls: list) -> list:
+    def tool_calls_to_cmds(
+            self,
+            tool_calls: List[Dict[str, Any]]
+    ) -> list:
         """
         Convert tool calls to commands
 
@@ -282,7 +307,10 @@ class Command:
             cmds.append(self.tool_call_to_cmd(tool_call))
         return cmds
 
-    def pack_cmds(self, cmds: list) -> str:
+    def pack_cmds(
+            self,
+            cmds: List[Dict[str, Any]]
+    ) -> str:
         """
         Pack commands to string
 
@@ -344,7 +372,10 @@ class Command:
         ctx.extra["tool_calls_outputs"] = outputs
         return outputs
 
-    def get_functions(self, parent_id: Optional[str] = None) -> list:
+    def get_functions(
+            self,
+            parent_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get current functions list
 
@@ -359,7 +390,11 @@ class Command:
             func_user = []
         return func + func_user  # merge both
 
-    def as_native_functions(self, all: bool = False, parent_id: Optional[str] = None) -> list:
+    def as_native_functions(
+            self,
+            all: bool = False,
+            parent_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Convert internal functions to native API format
         
@@ -413,7 +448,10 @@ class Command:
             func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())  # agent functions
         return func_plugins + func_agent + func_experts
 
-    def cmds_to_functions(self, cmds: list) -> list:
+    def cmds_to_functions(
+            self,
+            cmds: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Convert commands to functions (native API format)
 
@@ -436,7 +474,10 @@ class Command:
                 )
         return functions
 
-    def extract_params(self, cmd: dict) -> dict:
+    def extract_params(
+            self,
+            cmd: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Extract parameters from command (to native API JSON schema format)
 

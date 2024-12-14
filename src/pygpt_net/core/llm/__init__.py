@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 
 class LLM:
@@ -22,7 +22,10 @@ class LLM:
         self.window = window
         self.llms = {}
 
-    def get_ids(self, type: Optional[str] = None) -> list:
+    def get_ids(
+            self,
+            type: Optional[str] = None
+    ) -> List[str]:
         """
         Get providers ids
 
@@ -33,7 +36,11 @@ class LLM:
             return [id for id in self.llms.keys() if type in self.llms[id].type]
         return list(self.llms.keys())
 
-    def register(self, id: str, llm):
+    def register(
+            self,
+            id: str,
+            llm
+    ):
         """
         Register LLM provider
 

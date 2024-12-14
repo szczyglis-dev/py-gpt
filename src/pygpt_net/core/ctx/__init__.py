@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
 import datetime
 import uuid
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List, Dict
 
 from packaging.version import Version
 
@@ -98,7 +98,7 @@ class Ctx:
         self.current_sys_prompt = ""
         self.groups_loaded = False
 
-    def get_items(self) -> list:
+    def get_items(self) -> List[CtxItem]:
         """
         Get context items
 
@@ -106,7 +106,7 @@ class Ctx:
         """
         return self.container.get_items()
 
-    def set_items(self, items: list):
+    def set_items(self, items: List[CtxItem]):
         """
         Set context items
 
@@ -365,7 +365,11 @@ class Ctx:
         """
         return self.provider
 
-    def select(self, id: int, restore_model: bool = True):
+    def select(
+            self,
+            id: int,
+            restore_model: bool = True
+    ):
         """
         Select ctx meta by ID and load ctx items
 
@@ -401,7 +405,10 @@ class Ctx:
 
             self.set_items(self.load(id))
 
-    def new(self, group_id: Optional[int] = None) -> Optional[CtxMeta]:
+    def new(
+            self,
+            group_id: Optional[int] = None
+    ) -> Optional[CtxMeta]:
         """
         Create new ctx and set as current
 
@@ -441,7 +448,10 @@ class Ctx:
         meta.initialized = False
         return meta
 
-    def create(self, group_id: Optional[int] = None) -> CtxMeta:
+    def create(
+            self,
+            group_id: Optional[int] = None
+    ) -> CtxMeta:
         """
         Send created meta to provider and return new ID
 
@@ -455,7 +465,11 @@ class Ctx:
         meta.id = id
         return meta
 
-    def add(self, item: CtxItem, parent_id: Optional[int] = None):
+    def add(
+            self,
+            item: CtxItem,
+            parent_id: Optional[int] = None
+    ):
         """
         Add CtxItem to contexts and saves context
 
@@ -480,7 +494,11 @@ class Ctx:
                 if not result:
                     self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
 
-    def add_to_meta(self, item: CtxItem, meta_id: Optional[int] = None):
+    def add_to_meta(
+            self,
+            item: CtxItem,
+            meta_id: Optional[int] = None
+    ):
         """
         Add CtxItem to custom meta
 
@@ -790,7 +808,10 @@ class Ctx:
         """
         return len(self.meta)
 
-    def all(self, meta_id: Optional[int] = None) -> list:
+    def all(
+            self,
+            meta_id: Optional[int] = None
+    ) -> List[CtxItem]:
         """
         Return ctx items (current or by meta_id if provided)
 
@@ -824,7 +845,11 @@ class Ctx:
                 self.provider.remove_item(id)
                 break
 
-    def remove_items_from(self, meta_id: int, item_id: int):
+    def remove_items_from(
+            self,
+            meta_id: int,
+            item_id: int
+    ):
         """
         Remove ctx items from meta_id
 
@@ -888,7 +913,11 @@ class Ctx:
             self.meta[self.current].status = self.status
             self.save(self.current)
 
-    def get_or_create_slave_meta(self, master_ctx: CtxItem, preset_id: str) -> CtxMeta:
+    def get_or_create_slave_meta(
+            self,
+            master_ctx: CtxItem,
+            preset_id: str
+    ) -> CtxMeta:
         """
         Get or create slave meta
 
@@ -951,7 +980,7 @@ class Ctx:
 
     def count_history(
             self,
-            history_items: list,
+            history_items: List[CtxItem],
             model: str,
             mode: str,
             used_tokens: int = 100,
@@ -983,7 +1012,7 @@ class Ctx:
 
     def get_history(
             self,
-            history_items: list,
+            history_items: List[CtxItem],
             model: str,
             mode: str = MODE_CHAT,
             used_tokens: int = 100,
@@ -1164,7 +1193,11 @@ class Ctx:
         """
         self.filters = filters
 
-    def is_allowed_for_mode(self, mode: str, check_assistant: bool = True) -> bool:
+    def is_allowed_for_mode(
+            self,
+            mode: str,
+            check_assistant: bool = True
+    ) -> bool:
         """
         Check if ctx is allowed for this mode
 
@@ -1316,7 +1349,7 @@ class Ctx:
             }
         return filters
 
-    def load(self, id: int) -> list:
+    def load(self, id: int) -> List[CtxItem]:
         """
         Load ctx items from provider and append meta to each item
 
@@ -1344,7 +1377,7 @@ class Ctx:
             return True
         return False
 
-    def get_groups(self) -> dict:
+    def get_groups(self) -> Dict[int, CtxGroup]:
         """
         Get groups
 
@@ -1369,7 +1402,11 @@ class Ctx:
             return None
         return self.groups[id]
 
-    def remove_group(self, group: CtxGroup, all: bool = False):
+    def remove_group(
+            self,
+            group: CtxGroup,
+            all: bool = False
+    ):
         """
         Remove group
 
@@ -1430,9 +1467,9 @@ class Ctx:
         self.provider.update_meta_group_id(id, group_id)
         self.load_groups()
 
-    def get_items_by_id(self, id: int) -> list:
+    def get_items_by_id(self, id: int) -> List[str]:
         """
-        Get ctx items by id
+        Get ctx items by id as string list
 
         :param id: ctx id
         :return: ctx items list
@@ -1444,7 +1481,11 @@ class Ctx:
             data.append("Human: " + str(item.input) + "\n" + "Assistant: " + str(item.output) + "\n")
         return data
 
-    def get_list_in_date_range(self, search_string, limit: int = 0) -> list:
+    def get_list_in_date_range(
+            self,
+            search_string: Optional[str] = None,
+            limit: int = 0
+    ) -> List[Dict[str, Dict]]:
         """
         Get ctx list in date range
 

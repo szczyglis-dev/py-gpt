@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any, List
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -26,7 +28,7 @@ class Placeholder:
         """
         self.window = window
 
-    def apply(self, option: dict):
+    def apply(self, option: Dict[str, Any]):
         """
         Apply placeholders to option
 
@@ -52,7 +54,7 @@ class Placeholder:
             if "use" in option and option["use"] is not None:
                 option["keys"] = self.apply_by_id(option["use"])
 
-    def apply_by_id(self, id: str) -> list:
+    def apply_by_id(self, id: str) -> List[Dict[str, str]]:
         """
         Apply placeholders by id
 
@@ -105,7 +107,7 @@ class Placeholder:
         else:
             return []
 
-    def get_audio_input_devices(self) -> list:
+    def get_audio_input_devices(self) -> List[Dict[str, str]]:
         """
         Get audio input devices list
 
@@ -117,7 +119,7 @@ class Placeholder:
             data.append({str(device[0]): device[1]})
         return data
 
-    def get_langchain_providers(self) -> list:
+    def get_langchain_providers(self) -> List[Dict[str, str]]:
         """
         Get Langchain LLM provider placeholders list
 
@@ -129,7 +131,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_llama_index_providers(self) -> list:
+    def get_llama_index_providers(self) -> List[Dict[str, str]]:
         """
         Get Llama-index LLM provider placeholders list
 
@@ -141,7 +143,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_agent_providers(self) -> list:
+    def get_agent_providers(self) -> List[Dict[str, str]]:
         """
         Get Llama-index agent provider placeholders list
 
@@ -153,7 +155,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_embeddings_providers(self) -> list:
+    def get_embeddings_providers(self) -> List[Dict[str, str]]:
         """
         Get embeddings placeholders list
 
@@ -165,7 +167,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_llama_index_chat_modes(self) -> list:
+    def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """
         Get llama chat modes list
 
@@ -181,7 +183,7 @@ class Placeholder:
             {"openai": "openai"},
         ]
 
-    def get_llama_index_loaders(self, type: str = "all") -> list:
+    def get_llama_index_loaders(self, type: str = "all") -> List[Dict[str, str]]:
         """
         Get data loaders placeholders list
 
@@ -203,7 +205,7 @@ class Placeholder:
                     data.append(choice)
         return data
 
-    def get_vector_storage(self) -> list:
+    def get_vector_storage(self) -> List[Dict[str, str]]:
         """
         Get vector storage placeholders list
 
@@ -215,7 +217,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_var_types(self) -> list:
+    def get_var_types(self) -> List[Dict[str, str]]:
         """
         Get langchain placeholders list
 
@@ -227,7 +229,7 @@ class Placeholder:
             data.append({type: type})
         return data
 
-    def get_presets(self) -> list:
+    def get_presets(self) -> List[Dict[str, str]]:
         """
         Get presets placeholders list
 
@@ -242,7 +244,7 @@ class Placeholder:
             data.append({id: id})  # TODO: name
         return data
 
-    def get_models(self) -> list:
+    def get_models(self) -> List[Dict[str, str]]:
         """
         Get models placeholders list
 
@@ -254,7 +256,7 @@ class Placeholder:
             data.append({id: id})  # TODO: name
         return data
 
-    def get_agent_modes(self) -> list:
+    def get_agent_modes(self) -> List[Dict[str, str]]:
         """
         Get agent/expert modes placeholders list
 
@@ -266,7 +268,7 @@ class Placeholder:
             data.append({id: id})  # TODO: name
         return data
 
-    def get_idx(self) -> list:
+    def get_idx(self) -> List[Dict[str, str]]:
         """
         Get indexes placeholders list
 
@@ -279,7 +281,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_syntax_styles(self) -> list:
+    def get_syntax_styles(self) -> List[Dict[str, str]]:
         """
         Get highlighter styles list
 
@@ -292,7 +294,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_styles(self) -> list:
+    def get_styles(self) -> List[Dict[str, str]]:
         """
         Get styles list
 
@@ -305,7 +307,7 @@ class Placeholder:
             data.append({id: id})
         return data
 
-    def get_keys(self) -> list:
+    def get_keys(self) -> List[Dict[str, str]]:
         """
         Get keys
 
@@ -313,7 +315,7 @@ class Placeholder:
         """
         return self.window.core.access.shortcuts.get_keys_choices()
 
-    def get_modifiers(self) -> list:
+    def get_modifiers(self) -> List[Dict[str, str]]:
         """
         Get modifiers
 
@@ -321,7 +323,7 @@ class Placeholder:
         """
         return self.window.core.access.shortcuts.get_modifiers_choices()
 
-    def get_access_actions(self) -> list:
+    def get_access_actions(self) -> List[Dict[str, str]]:
         """
         Get access actions list
 
@@ -336,7 +338,7 @@ class Placeholder:
         translated_choices.sort(key=lambda x: list(x.values())[0])
         return translated_choices
 
-    def get_speech_synthesis_actions(self) -> list:
+    def get_speech_synthesis_actions(self) -> List[Dict[str, str]]:
         """
         Get speech actions list
 
@@ -351,7 +353,7 @@ class Placeholder:
         translated_choices.sort(key=lambda x: list(x.values())[0])
         return translated_choices
 
-    def get_voice_control_actions(self) -> list:
+    def get_voice_control_actions(self) -> List[Dict[str, str]]:
         """
         Get voice control actions list
 

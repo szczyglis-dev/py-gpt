@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
+from typing import Optional, Dict, Any
 
 from pygpt_net.item.ctx import CtxItem
 from .base import BaseEvent
@@ -61,9 +62,9 @@ class Event(BaseEvent):
 
     def __init__(
             self,
-            name: str = None,
-            data: dict = None,
-            ctx: CtxItem = None
+            name: Optional[str] = None,
+            data: Optional[dict] = None,
+            ctx: Optional[CtxItem] = None
     ):
         """
         Event object class
@@ -84,8 +85,12 @@ class Event(BaseEvent):
         # internal event, not called from user
         # internal event is handled synchronously, ctx item has internal flag
 
-    def to_dict(self) -> dict:
-        """Dump event to dict"""
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Dump event to dict
+
+        :return: Event dict
+        """
         return {
             'name': self.name,
             'data': self.data,
@@ -106,5 +111,10 @@ class Event(BaseEvent):
             pass
         return ""
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation of event
+
+        :return: Event string
+        """
         return self.dump()

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import json
 import re
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 from pygpt_net.core.bridge.context import BridgeContext
 
@@ -97,7 +97,7 @@ class Voice:
             AppEvent.TAB_SELECTED,  # notepad tabs can have custom names
         ]
 
-    def get_commands(self) -> dict:
+    def get_commands(self) -> Dict[str, str]:
         """
         Get available commands
 
@@ -175,7 +175,7 @@ class Voice:
 
         return prompt.strip()
 
-    def extract_json(self, text: str) -> list:
+    def extract_json(self, text: str) -> List[Dict[str, Any]]:
         """
         Extract JSON from text
 
@@ -207,7 +207,7 @@ class Voice:
                     self.window.core.debug.log(e)
         return cmds
 
-    def recognize_commands(self, text: str) -> list:
+    def recognize_commands(self, text: str) -> List[Dict[str, Any]]:
         """
         Recognize voice command
 

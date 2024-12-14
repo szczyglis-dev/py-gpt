@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -262,7 +262,11 @@ class Editor:
         self.set_by_tab(idx)
         self.init()
 
-    def delete_by_idx(self, idx: int, force: bool = False):
+    def delete_by_idx(
+            self,
+            idx: int,
+            force: bool = False
+    ):
         """
         Delete model by idx
 

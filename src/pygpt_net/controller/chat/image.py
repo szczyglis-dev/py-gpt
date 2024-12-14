@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtCore import Slot
 
@@ -121,7 +121,7 @@ class Image:
     def handle_response(
             self,
             ctx: CtxItem,
-            paths: list,
+            paths: List[str],
             prompt: str
     ):
         """
@@ -171,7 +171,7 @@ class Image:
     def handle_response_inline(
             self,
             ctx: CtxItem,
-            paths: list,
+            paths: List[str],
             prompt: str
     ):
         """

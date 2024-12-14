@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
@@ -134,7 +136,7 @@ class Llama:
         """Update agent status"""
         pass
 
-    def hook_update(self, key, value, caller, *args, **kwargs):
+    def hook_update(self, key: str, value: Any, caller, *args, **kwargs):
         """
         Hook: on option update
 

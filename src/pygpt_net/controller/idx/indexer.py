@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-from typing import Any
+from typing import Any, List, Dict
 
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtWidgets import QApplication
@@ -245,7 +245,7 @@ class Indexer(QObject):
 
     def index_paths(
             self,
-            paths: list,
+            paths: List[str],
             idx: str = "base",
             replace: bool = False,
             recursive: bool = False
@@ -380,8 +380,8 @@ class Indexer(QObject):
             self,
             idx: str,
             loader: str,
-            params: dict,
-            config: dict,
+            params: Dict[str, Any],
+            config: Dict[str, Any],
             replace: bool = True,
     ):
         """
@@ -456,7 +456,11 @@ class Indexer(QObject):
         idx_name = self.window.core.idx.get_by_idx(idx)
         self.clear(idx_name)
 
-    def clear(self, idx: str, force: bool = False):
+    def clear(
+            self,
+            idx: str,
+            force: bool = False
+    ):
         """
         Clear index data
 
@@ -497,7 +501,11 @@ class Indexer(QObject):
 
         self.window.tools.get("indexer").refresh()
 
-    def truncate(self, idx: str, force: bool = False):
+    def truncate(
+            self,
+            idx: str,
+            force: bool = False
+    ):
         """
         Truncate index data
 
@@ -560,7 +568,7 @@ class Indexer(QObject):
             self,
             idx: str,
             num: int,
-            errors: list,
+            errors: List[str],
             silent: bool = False
     ):
         """
@@ -600,7 +608,7 @@ class Indexer(QObject):
             self,
             idx: str,
             num: int,
-            errors: list,
+            errors: List[str],
             silent: bool = False
     ):
         """
@@ -631,8 +639,8 @@ class Indexer(QObject):
     def handle_finished_file(
             self,
             idx: str,
-            files: dict,
-            errors: list,
+            files: Dict[str, str],
+            errors: List[str],
             silent: bool = False
     ):
         """
@@ -667,7 +675,7 @@ class Indexer(QObject):
             self,
             idx: str,
             num: int,
-            errors: list,
+            errors: List[str],
             silent: bool = False
     ):
         """

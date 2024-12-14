@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -32,7 +32,12 @@ class Info:
     def setup(self):
         pass
 
-    def toggle(self, id: str, width: int = 400, height: int = 400):
+    def toggle(
+            self,
+            id: str,
+            width: int = 400,
+            height: int = 400
+    ):
         """
         Toggle info dialog
 

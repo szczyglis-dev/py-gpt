@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import datetime
+from typing import Dict, Any
 
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QLayout
 
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
@@ -35,7 +36,12 @@ class Settings:
         """
         return ["update"]
 
-    def append(self, content: dict, widgets: dict, options: dict):
+    def append(
+            self,
+            content: Dict[str, QLayout],
+            widgets: Dict[str, Any],
+            options: Dict[str, Any],
+    ):
         """
         Append extra settings to settings dialog (section: llama-index)
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
+
+from typing import Any
 
 from PySide6.QtWidgets import QApplication
 
@@ -118,7 +120,7 @@ class Stack:
             self.execute(self.current)
             self.processed = True
 
-    def waiting(self):
+    def waiting(self) -> bool:
         """
         Check if reply stack is waiting
 
@@ -126,7 +128,7 @@ class Stack:
         """
         return self.has() and not self.is_locked()
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log data to debug
 

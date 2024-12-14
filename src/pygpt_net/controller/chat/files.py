@@ -6,9 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
+from typing import Dict
+
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -22,7 +25,11 @@ class Files:
         """
         self.window = window
 
-    def send(self, mode: str, ctx: CtxItem):
+    def send(
+            self,
+            mode: str,
+            ctx: CtxItem
+    ):
         """
         Send attachments
 
@@ -37,7 +44,7 @@ class Files:
             self.window.controller.chat.log("Uploaded attachments (Assistant): {}".format(len(attachments)))
         return attachments
 
-    def upload(self, mode: str) -> dict:
+    def upload(self, mode: str) -> Dict[str, AttachmentItem]:
         """
         Upload attachments
 

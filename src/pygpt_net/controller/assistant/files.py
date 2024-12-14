@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os
-from typing import Optional
+from typing import Optional, Dict, List
 
 from PySide6.QtWidgets import QApplication
 
@@ -51,7 +51,10 @@ class Files:
         file_id = self.window.core.assistants.files.get_file_id_by_idx(idx, assistant.vector_store, thread_id)
         self.window.core.assistants.current_file = file_id
 
-    def count_upload(self, attachments: dict) -> int:
+    def count_upload(
+            self,
+            attachments: Dict[str, AttachmentItem]
+    ) -> int:
         """
         Count attachments for upload
 
@@ -240,11 +243,15 @@ class Files:
         self.window.core.assistants.save()
         self.update()
 
-    def upload(self, mode: str, attachments: dict) -> int:
+    def upload(
+            self,
+            mode: str,
+            attachments: Dict[str, AttachmentItem]
+    ) -> int:
         """
         Upload attachments to assistant
 
-        :param mode: mode
+        :param mode: work mode
         :param attachments: attachments dict
         :return: number of uploaded files
         """
@@ -380,7 +387,11 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_received_ids(self, ids: list, ext: Optional[str] = None) -> list:
+    def handle_received_ids(
+            self,
+            ids: List[str],
+            ext: Optional[str] = None
+    ) -> list:
         """
         Handle (download) received message files
 

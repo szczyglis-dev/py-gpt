@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import os.path
-from typing import Optional
+from typing import Optional, Union
 
 from llama_index.core.llms.llm import BaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM
@@ -42,7 +42,11 @@ class Llm:
         os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
         os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
 
-    def get(self, model: Optional[ModelItem] = None, multimodal: bool = False) -> BaseLLM or MultiModalLLM:
+    def get(
+            self,
+            model: Optional[ModelItem] = None,
+            multimodal: bool = False
+    ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
 
@@ -118,7 +122,10 @@ class Llm:
             config=args,
         )
 
-    def get_service_context(self, model: Optional[ModelItem] = None) -> ServiceContext:
+    def get_service_context(
+            self,
+            model: Optional[ModelItem] = None
+    ) -> ServiceContext:
         """
         Get service context + embeddings provider
 

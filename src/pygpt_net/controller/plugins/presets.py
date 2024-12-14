@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
 import copy
+from typing import Dict
 from uuid import uuid4
 
 from PySide6.QtGui import QAction
@@ -156,7 +157,7 @@ class Presets:
         self.update_list()
         self.update_menu()
 
-    def store(self, presets: dict):
+    def store(self, presets: Dict[str, Dict]):
         """
         Store presets
 
@@ -185,7 +186,11 @@ class Presets:
         self.toggle(id)
         self.update_menu()
 
-    def delete_by_idx(self, idx: int, force: bool = False):
+    def delete_by_idx(
+            self,
+            idx: int,
+            force: bool = False
+    ):
         """
         Delete preset by index
 
@@ -241,7 +246,11 @@ class Presets:
                 self.toggle(id)
             self.window.update_status("Preset cleared: " + presets[id]['name'])
 
-    def reset_by_idx(self, idx: int, force: bool = False):
+    def reset_by_idx(
+            self,
+            idx: int,
+            force: bool = False
+    ):
         """
         Reset preset by index
 
@@ -258,7 +267,7 @@ class Presets:
         id = self.get_id_by_idx(idx)
         self.reset(id)
 
-    def get_preset(self, id: str) -> dict:
+    def get_preset(self, id: str) -> Dict:
         """
         Get preset by id
 
@@ -269,7 +278,7 @@ class Presets:
         if id in presets:
             return presets[id]
 
-    def get_presets(self) -> dict:
+    def get_presets(self) -> Dict[str, Dict]:
         """
         Get presets dict
 
