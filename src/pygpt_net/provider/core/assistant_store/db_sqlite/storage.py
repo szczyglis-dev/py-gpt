@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This store is a part of PYGPT package               #
+# This store is a part of PYGPT package              #
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import time
+from typing import Dict
 
 from sqlalchemy import text
 
 from pygpt_net.item.assistant import AssistantStoreItem
+
 from .utils import pack_item_value, unpack_store
 
 class Storage:
@@ -33,7 +35,7 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, AssistantStoreItem]:
         """
         Return dict with AssistantStoreItem objects, indexed by ID
 

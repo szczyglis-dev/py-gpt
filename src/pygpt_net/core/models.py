@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional
+from typing import Optional, List, Dict
 
 from packaging.version import Version
 
@@ -92,7 +92,7 @@ class Models:
         if key in self.items:
             return self.items[key]
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Return models ids
 
@@ -118,7 +118,11 @@ class Models:
         """
         return model in self.items
 
-    def is_allowed(self, model: str, mode: str) -> bool:
+    def is_allowed(
+            self,
+            model: str,
+            mode: str
+    ) -> bool:
         """
         Check if model is allowed for mode
 
@@ -130,7 +134,10 @@ class Models:
             return mode in self.items[model].mode
         return False
 
-    def get_id(self, key: str) -> str:
+    def get_id(
+            self,
+            key: str
+    ) -> str:
         """
         Return model internal ID
 
@@ -140,7 +147,11 @@ class Models:
         if key in self.items:
             return self.items[key].id
 
-    def get_by_idx(self, idx: int, mode: str) -> str:
+    def get_by_idx(
+            self,
+            idx: int,
+            mode: str
+    ) -> str:
         """
         Return model by index
 
@@ -151,7 +162,10 @@ class Models:
         items = self.get_by_mode(mode)
         return list(items.keys())[idx]
 
-    def get_by_mode(self, mode: str) -> dict:
+    def get_by_mode(
+            self,
+            mode: str
+    ) -> Dict[str, ModelItem]:
         """
         Return models for mode
 
@@ -164,7 +178,11 @@ class Models:
                 items[key] = self.items[key]
         return items
 
-    def get_next(self, model: str, mode: str) -> str:
+    def get_next(
+            self,
+            model: str,
+            mode: str
+    ) -> str:
         """
         Return next model
 
@@ -179,7 +197,11 @@ class Models:
             return keys[idx + 1]
         return keys[0]
 
-    def get_prev(self, model: str, mode: str) -> str:
+    def get_prev(
+            self,
+            model: str,
+            mode: str
+    ) -> str:
         """
         Return previous model
 
@@ -218,7 +240,7 @@ class Models:
         self.items[id] = model
         return model
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, ModelItem]:
         """
         Return all models
 
@@ -248,7 +270,11 @@ class Models:
         if model in self.items:
             del self.items[model]
 
-    def has_model(self, mode: str, model: str) -> bool:
+    def has_model(
+            self,
+            mode: str,
+            model: str
+    ) -> bool:
         """
         Check if model exists for mode
 
@@ -296,8 +322,15 @@ class Models:
             return self.items[model].ctx
         return 4096
 
-    def restore_default(self, model: Optional[str] = None):
-        """Restore default models"""
+    def restore_default(
+            self,
+            model: Optional[str] = None
+    ):
+        """
+        Restore default models
+
+        :param model: model name
+        """
         # restore all models
         if model is None:
             self.load_base()
@@ -308,8 +341,12 @@ class Models:
         if model in items:
             self.items[model] = items[model]
 
-    def get_base(self) -> dict:
-        """Get base models"""
+    def get_base(self) -> Dict[str, ModelItem]:
+        """
+        Get base models
+
+        :return: base models
+        """
         return self.provider.load_base()
 
     def load_base(self):
@@ -330,7 +367,11 @@ class Models:
         """Save models"""
         self.provider.save(self.items)
 
-    def get_supported_mode(self, model: ModelItem, mode: str) -> str:
+    def get_supported_mode(
+            self,
+            model: ModelItem,
+            mode: str
+    ) -> str:
         """
         Get supported mode
 
@@ -353,5 +394,9 @@ class Models:
         return mode
 
     def get_version(self) -> str:
-        """Get config version"""
+        """
+        Get config version
+
+        :return: config version
+        """
         return self.provider.get_version()

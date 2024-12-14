@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional, List, Dict
 
 from langchain_community.chat_models import ChatOllama
 
@@ -33,7 +34,12 @@ class OllamaLLM(BaseLLM):
         self.id = "ollama"
         self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
-    def completion(self, window, model: ModelItem, stream: bool = False):
+    def completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
         """
         Return LLM provider instance for completion
 
@@ -44,7 +50,12 @@ class OllamaLLM(BaseLLM):
         """
         return None
 
-    def chat(self, window, model: ModelItem, stream: bool = False):
+    def chat(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
         """
         Return LLM provider instance for chat
 
@@ -56,7 +67,12 @@ class OllamaLLM(BaseLLM):
         args = self.parse_args(model.langchain)
         return ChatOllama(**args)
 
-    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
 
@@ -69,7 +85,11 @@ class OllamaLLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         return Ollama(**args)
 
-    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 
@@ -84,7 +104,11 @@ class OllamaLLM(BaseLLM):
             })
         return OllamaEmbedding(**args)
 
-    def init_embeddings(self, window, env: list):
+    def init_embeddings(
+            self,
+            window,
+            env: Optional[List[Dict]] = None
+    ):
         """
         Initialize embeddings provider
 

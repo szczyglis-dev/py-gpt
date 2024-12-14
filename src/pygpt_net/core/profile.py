@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
@@ -120,7 +120,11 @@ class Profile:
         with open(f, 'w', encoding='utf-8') as f:
             f.write(json_data)
 
-    def add(self, name: str, workdir: str) -> str:
+    def add(
+            self,
+            name: str,
+            workdir: str
+    ) -> str:
         """
         Add new profile
 
@@ -228,7 +232,11 @@ class Profile:
                 return tmp_dir
         return self.base_workdir
 
-    def append(self, uuid: str, profile: Dict):
+    def append(
+            self,
+            uuid: str,
+            profile: Dict
+    ):
         """
         Append profile
 

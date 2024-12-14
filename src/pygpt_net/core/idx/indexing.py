@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -600,7 +600,10 @@ class Indexing:
 
         return indexed, errors
 
-    def get_db_data_from_ts(self, updated_ts: int = 0) -> list:
+    def get_db_data_from_ts(
+            self,
+            updated_ts: int = 0
+    ) -> List[Document]:
         """
         Get data from database from timestamp
 
@@ -640,7 +643,10 @@ class Indexing:
                 documents.append(doc)
         return documents
 
-    def get_db_meta_ids_from_ts(self, updated_ts: int = 0) -> list:
+    def get_db_meta_ids_from_ts(
+            self,
+            updated_ts: int = 0
+    ) -> List[int]:
         """
         Get IDs of meta from database from timestamp
 
@@ -664,7 +670,11 @@ class Indexing:
                 ids.append(data["id"])
         return ids
 
-    def get_db_data_by_id(self, id: int = 0, updated_ts: int = 0) -> list:
+    def get_db_data_by_id(
+            self,
+            id: int = 0,
+            updated_ts: int = 0
+    ) -> List[Document]:
         """
         Get data from database by meta id
 
@@ -726,7 +736,8 @@ class Indexing:
                 self.window.core.idx.log("Indexing documents from database by meta id: {}".format(id))
                 self.remove_old_meta_id(idx, id)
             elif from_ts > 0:
-                self.window.core.idx.log("Indexing documents from database by meta id: {} from timestamp: {}".format(id, from_ts))
+                self.window.core.idx.log("Indexing documents from database by meta id: {} from timestamp: {}".
+                                         format(id, from_ts))
 
             # get items from database
             documents = self.get_db_data_by_id(id, from_ts)
@@ -736,7 +747,8 @@ class Indexing:
 
                 self.index_document(index, d)
                 doc_id = d.id_
-                self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
+                self.window.core.idx.log("Inserted ctx DB document: {} / {}, id: {}, metadata: {}".
+                                         format(n+1, len(documents), d.id_, d.metadata))
                 self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
@@ -850,7 +862,8 @@ class Indexing:
                         idx=idx,
                         doc_id=doc_id,
                     )  # update external index
-                self.window.core.idx.log("Inserted web document: {} / {}, id: {}, metadata: {}".format(n+1, len(documents), d.id_, d.metadata))
+                self.window.core.idx.log("Inserted web document: {} / {}, id: {}, metadata: {}".
+                                         format(n+1, len(documents), d.id_, d.metadata))
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -1044,7 +1057,10 @@ class Indexing:
             model = self.window.core.models.from_defaults()
 
         service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.window.core.idx.storage.get_ctx_idx(index_path, service_context=service_context)  # get or create ctx index
+        index = self.window.core.idx.storage.get_ctx_idx(
+            index_path,
+            service_context=service_context
+        )  # get or create ctx index
 
         idx = "tmp:{}".format(index_path)  # tmp index id
         self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))

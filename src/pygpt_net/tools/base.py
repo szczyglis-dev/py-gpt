@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
+from typing import Optional, Dict
+
 from PySide6.QtCore import QObject
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QWidget
 
 from pygpt_net.core.tabs.tab import Tab
@@ -63,13 +66,13 @@ class BaseTool(QObject):
         """
         self.window = window
 
-    def setup_menu(self) -> list:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
-        :return list with menu actions
+        :return dict with menu actions
         """
-        return []
+        return {}
 
     def setup_dialogs(self):
         """Setup dialogs (static)"""
@@ -79,16 +82,20 @@ class BaseTool(QObject):
         """Setup theme"""
         pass
 
-    def get_instance(self, id: str, dialog_id: str = None) -> BaseDialog or None:
+    def get_instance(
+            self,
+            type_id: str,
+            dialog_id: Optional[str] = None
+    ) -> Optional[BaseDialog]:
         """
         Spawn and return dialog instance
 
-        :param id: dialog instance ID
+        :param type_id: dialog instance ID
         :param dialog_id: dialog instance ID
         """
         return None
 
-    def as_tab(self, tab: Tab) -> QWidget or None:
+    def as_tab(self, tab: Tab) -> Optional[QWidget]:
         """
         Spawn and return tab instance
 
@@ -97,7 +104,7 @@ class BaseTool(QObject):
         """
         return None
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

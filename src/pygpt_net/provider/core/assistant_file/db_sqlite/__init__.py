@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -67,7 +68,7 @@ class DbSqliteProvider(BaseProvider):
             file.record_id = self.storage.insert(file)
         return file.record_id
 
-    def load_all(self) -> dict:
+    def load_all(self) -> Dict[str, AssistantFileItem]:
         """
         Load files from DB
 
@@ -96,7 +97,7 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving filed: {}".format(str(e)))
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[str, AssistantFileItem]):
         """
         Save all files to DB
 

@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
+from typing import Optional, Dict, Any
+
 from packaging.version import Version
 
 from pygpt_net.provider.core.model.base import BaseProvider
@@ -38,7 +40,7 @@ class JsonFileProvider(BaseProvider):
             src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
-    def get_version(self) -> str | None:
+    def get_version(self) -> Optional[str]:
         """
         Get data version
 
@@ -52,7 +54,7 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load_base(self) -> dict | None:
+    def load_base(self) -> Optional[Dict[str, ModelItem]]:
         """
         Load base models config from base JSON file
 
@@ -61,7 +63,7 @@ class JsonFileProvider(BaseProvider):
         path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
         return self.load(path)
 
-    def load(self, path: str = None) -> dict | None:
+    def load(self, path: Optional[str] = None) -> Optional[Dict[str, ModelItem]]:
         """
         Load models config from JSON file
         """
@@ -106,7 +108,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, ModelItem]):
         """
         Save models config to JSON file
 
@@ -147,7 +149,7 @@ class JsonFileProvider(BaseProvider):
         return self.patcher.execute(version)
 
     @staticmethod
-    def serialize(item: ModelItem) -> dict:
+    def serialize(item: ModelItem) -> Dict[str, Any]:
         """
         Serialize item to dict
 
@@ -167,7 +169,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, item: ModelItem):
+    def deserialize(data: Dict[str, Any], item: ModelItem):
         """
         Deserialize item from dict
 

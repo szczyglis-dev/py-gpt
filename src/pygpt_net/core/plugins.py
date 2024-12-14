@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -49,7 +49,7 @@ class Plugins:
         """
         return id in self.plugins
 
-    def all(self) -> dict:
+    def all(self) -> Dict[str, BasePlugin]:
         """
         Get all plugins
 
@@ -57,7 +57,7 @@ class Plugins:
         """
         return self.plugins
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Get all plugins ids
 
@@ -76,7 +76,7 @@ class Plugins:
             return self.plugins[id]
         return None
 
-    def get_option(self, id: str, key: str) -> any:
+    def get_option(self, id: str, key: str) -> Any:
         """
         Get plugin option
 
@@ -172,7 +172,7 @@ class Plugins:
 
     def enable(self, id: str):
         """
-        Enable plugin
+        Enable plugin by ID
 
         :param id: plugin id
         """
@@ -183,7 +183,7 @@ class Plugins:
 
     def disable(self, id: str):
         """
-        Disable plugin
+        Disable plugin by ID
 
         :param id: plugin id
         """
@@ -318,7 +318,7 @@ class Plugins:
         """
         return id in self.presets
 
-    def get_preset(self, id: str) -> dict:
+    def get_preset(self, id: str) -> Dict[str, Any]:
         """
         Get preset by id
 
@@ -328,7 +328,7 @@ class Plugins:
         if self.has_preset(id):
             return self.presets[id]
 
-    def set_preset(self, id: str, preset: dict):
+    def set_preset(self, id: str, preset: Dict[str, Any]):
         """
         Set config value
 
@@ -337,7 +337,7 @@ class Plugins:
         """
         self.presets[id] = preset
 
-    def replace_presets(self, presets: dict):
+    def replace_presets(self, presets: Dict[str, Any]):
         """
         Replace presets
 
@@ -349,7 +349,7 @@ class Plugins:
         """Load presets"""
         self.presets = self.provider.load()
 
-    def get_presets(self) -> dict:
+    def get_presets(self) -> Dict[str, Any]:
         """
         Return all presets
 
@@ -357,7 +357,11 @@ class Plugins:
         """
         return self.presets
 
-    def reset_options(self, plugin_id: str, keys: List[str]):
+    def reset_options(
+            self,
+            plugin_id: str,
+            keys: List[str]
+    ):
         """
         Reset plugin options
 
@@ -408,7 +412,11 @@ class Plugins:
             self.save_presets()
             print("[FIX] Removed invalid keys from plugin presets.")
 
-    def remove_preset_values(self, plugin_id:str, key: str):
+    def remove_preset_values(
+            self,
+            plugin_id: str,
+            key: str
+    ):
         """
         Update preset value
 
@@ -431,7 +439,12 @@ class Plugins:
         if updated:
             self.save_presets()
 
-    def update_preset_values(self, plugin_id: str, key: str, value: Any):
+    def update_preset_values(
+            self,
+            plugin_id: str,
+            key: str,
+            value: Any
+    ):
         """
         Update preset value
 
@@ -471,9 +484,7 @@ class Plugins:
             self.dump_locale(self.plugins[id], path)
 
     def dump_locales(self):
-        """
-        Dump all locales
-        """
+        """Dump all locales"""
         langs = ['en', 'pl']
         for id in self.plugins:
             domain = 'plugin.' + id

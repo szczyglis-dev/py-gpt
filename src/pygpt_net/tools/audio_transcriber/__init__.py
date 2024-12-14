@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Dict
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
@@ -255,7 +256,7 @@ class AudioTranscriber(BaseTool):
         self.window.ui.nodes['audio.transcribe.status'].setText("")
         self.store("")
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -278,7 +279,7 @@ class AudioTranscriber(BaseTool):
         self.dialog = AudioTranscribe(self.window)
         self.dialog.setup()
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

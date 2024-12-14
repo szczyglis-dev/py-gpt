@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import time
+from typing import Dict
 
 from sqlalchemy import text
 
@@ -34,7 +35,7 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, CalendarNoteItem]:
         """
         Return dict with CalendarNoteItem objects, indexed by YYYY-MM-DD
 
@@ -54,7 +55,7 @@ class Storage:
                 items[dt] = note
         return items
 
-    def get_by_month(self, year: int, month: int) -> dict:
+    def get_by_month(self, year: int, month: int) -> Dict[str, CalendarNoteItem]:
         """
         Return dict with CalendarNoteItem objects, indexed by YYYY-MM-DD
 
@@ -96,7 +97,7 @@ class Storage:
                 self.unpack(notepad, row._asdict())
         return notepad
 
-    def get_notes_existence_by_day(self, year: int, month: int) -> dict:
+    def get_notes_existence_by_day(self, year: int, month: int) -> Dict[str, Dict[int, int]]:
         """
         Return a dict of days with the count of notes for the given year and month.
 

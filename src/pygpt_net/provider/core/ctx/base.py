@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import List, Dict, Optional
 
 from packaging.version import Version
 
@@ -29,46 +31,46 @@ class BaseProvider:
     def patch(self, version: Version) -> bool:
         pass
 
-    def append_item(self, meta: CtxMeta, item: CtxItem):
+    def append_item(self, meta: CtxMeta, item: CtxItem) -> bool:
         pass
 
-    def update_item(self, item: CtxItem):
+    def update_item(self, item: CtxItem) -> bool:
         pass
 
-    def create(self, meta: CtxMeta):
+    def create(self, meta: CtxMeta) -> int:
         pass
 
-    def load(self, id) -> list:
+    def load(self, id: int) -> List[CtxItem]:
         return []
 
-    def save(self, id, meta: CtxMeta, items: list):
+    def save(self, id: int, meta: CtxMeta, items: List[CtxItem]) -> bool:
         pass
 
-    def remove(self, id):
+    def remove(self, id: int) -> bool:
         pass
 
-    def remove_item(self, id):
+    def remove_item(self, id: int) -> bool:
         pass
 
-    def remove_items_from(self, meta_id: int, item_id: int):
+    def remove_items_from(self, meta_id: int, item_id: int) -> bool:
         pass
 
-    def truncate(self):
+    def truncate(self) -> bool:
         pass
 
     def get_meta(
             self,
-            search_string: str = None,
-            order_by: str = None,
-            order_direction: str = None,
-            limit: int = None,
-            offset: int = None,
-            filters: dict = None,
+            search_string: Optional[str] = None,
+            order_by: Optional[str] = None,
+            order_direction: Optional[str] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False
-    ):
+    ) -> Dict[int, CtxMeta]:
         pass
 
-    def get_meta_indexed(self):
+    def get_meta_indexed(self) -> Dict[int, CtxMeta]:
         pass
 
     def get_item_by_id(self, id: int) -> CtxItem:
@@ -95,25 +97,25 @@ class BaseProvider:
     def clear_meta_indexed_all(self) -> bool:
         pass
 
-    def get_groups(self) -> dict:
+    def get_groups(self) -> Dict[int, CtxGroup]:
         pass
 
-    def insert_group(self, group: CtxGroup):
+    def insert_group(self, group: CtxGroup) -> int:
         pass
 
-    def update_group(self, group: CtxGroup):
+    def update_group(self, group: CtxGroup) -> bool:
         pass
 
-    def remove_group(self, id: int, all: bool = False):
+    def remove_group(self, id: int, all: bool = False) -> bool:
         pass
 
-    def truncate_groups(self):
+    def truncate_groups(self) -> bool:
         pass
 
-    def update_meta_group_id(self, meta_id: int, group_id: int):
+    def update_meta_group_id(self, meta_id: int, group_id: int) -> bool:
         pass
 
-    def clear_meta(self, meta_id: int):
+    def clear_meta(self, meta_id: int) -> bool:
         pass
 
 

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
 import shutil
+from typing import Optional
 
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.service_context import ServiceContext
@@ -31,7 +32,12 @@ class BaseStore:
         self.prefix = ""  # prefix for index directory
         self.indexes = {}
 
-    def index_from_store(self, vector_store, storage_context: StorageContext, service_context: ServiceContext = None):
+    def index_from_store(
+            self,
+            vector_store,
+            storage_context: StorageContext,
+            service_context: Optional[ServiceContext] = None
+    ):
         """
         Get index instance
 
@@ -74,7 +80,10 @@ class BaseStore:
             self.prefix + id,
         )
 
-    def exists(self, id: str = None) -> bool:
+    def exists(
+            self,
+            id: Optional[str] = None
+    ) -> bool:
         """
         Check if index with id exists
 
@@ -94,7 +103,11 @@ class BaseStore:
         """
         pass
 
-    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
+    def get(
+            self,
+            id: str,
+            service_context: Optional[ServiceContext] = None
+    ) -> BaseIndex:
         """
         Get index instance
 
@@ -104,7 +117,11 @@ class BaseStore:
         """
         pass
 
-    def store(self, id: str, index: BaseIndex = None):
+    def store(
+            self,
+            id: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store/persist index
 
@@ -113,7 +130,10 @@ class BaseStore:
         """
         pass
 
-    def remove(self, id: str) -> bool:
+    def remove(
+            self,
+            id: str
+    ) -> bool:
         """
         Clear index
 
@@ -127,7 +147,10 @@ class BaseStore:
             shutil.rmtree(path)
         return True
 
-    def truncate(self, id: str) -> bool:
+    def truncate(
+            self,
+            id: str
+    ) -> bool:
         """
         Truncate index
 
@@ -136,7 +159,11 @@ class BaseStore:
         """
         return self.remove(id)
 
-    def remove_document(self, id: str, doc_id: str) -> bool:
+    def remove_document(
+            self,
+            id: str,
+            doc_id: str
+    ) -> bool:
         """
         Remove document from index
 

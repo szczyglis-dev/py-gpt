@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import re
+from typing import Optional, Tuple, Any, List
 
 from bs4 import BeautifulSoup
 
@@ -32,7 +33,7 @@ class WebSearch:
             query: str,
             num: int,
             offset: int = 1
-    ) -> list:
+    ) -> List[str]:
         """
         Execute search query and return list of urls
 
@@ -43,7 +44,7 @@ class WebSearch:
         """
         return self.plugin.get_provider().search(query, num, offset)
 
-    def get_urls(self, query: str) -> list:
+    def get_urls(self, query: str) -> List[str]:
         """
         Search the web and returns URLs
 
@@ -104,7 +105,7 @@ class WebSearch:
             self,
             text: str,
             chunk_size: int
-    ) -> list:
+    ) -> List[str]:
         """
         Split text into chunks
 
@@ -120,7 +121,7 @@ class WebSearch:
             self,
             chunks: list,
             query: str,
-            summarize_prompt: str = None
+            summarize_prompt: Optional[str] = None
     ) -> str:
         """
         Get summarized text from chunks
@@ -195,7 +196,7 @@ class WebSearch:
             query: str,
             page_no: int = 1,
             summarize_prompt: str = ""
-    ) -> (str, int, int, str, str):
+    ) -> Tuple[str, int, int, str, str]:
         """
         Get result from search query
 
@@ -289,7 +290,11 @@ class WebSearch:
             url, \
             img
 
-    def open_url(self, url: str, summarize_prompt: str = "") -> (str, str, str):
+    def open_url(
+            self,
+            url: str,
+            summarize_prompt: str = ""
+    ) -> Tuple[Optional[str], str, Optional[str]]:
         """
         Get result from specified URL
 
@@ -357,7 +362,10 @@ class WebSearch:
 
         return result, url, img
 
-    def open_url_raw(self, url: str) -> (str, str, str):
+    def open_url_raw(
+            self,
+            url: str
+    ) -> Tuple[str, str, Optional[str]]:
         """
         Get raw content from specified URL
 
@@ -414,7 +422,7 @@ class WebSearch:
         except Exception as e:
             self.error(e)
 
-    def error(self, err: any):
+    def error(self, err: Any):
         """
         Log error message
 

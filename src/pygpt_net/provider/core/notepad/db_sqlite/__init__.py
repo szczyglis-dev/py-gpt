@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -49,7 +50,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return str(uuid.uuid4())
 
-    def create(self, notepad: NotepadItem) -> str:
+    def create(self, notepad: NotepadItem) -> int:
         """
         Create new and return its ID
 
@@ -60,7 +61,7 @@ class DbSqliteProvider(BaseProvider):
             notepad.id = self.storage.insert(notepad)
         return notepad.id
 
-    def load_all(self) -> dict:
+    def load_all(self) -> Dict[int, NotepadItem]:
         """
         Load notepads from DB
 
@@ -89,7 +90,7 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[int, NotepadItem]):
         """
         Save all notepads to DB
 

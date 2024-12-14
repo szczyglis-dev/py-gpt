@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
+from typing import Optional, Dict
 
 from pygpt_net.provider.core.mode.base import BaseProvider
 from pygpt_net.item.mode import ModeItem
@@ -26,7 +27,7 @@ class JsonFileProvider(BaseProvider):
         self.type = "mode"
         self.config_file = 'modes.json'
 
-    def get_version(self) -> str | None:
+    def get_version(self) -> Optional[str]:
         """
         Get data version
 
@@ -40,7 +41,7 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self) -> dict | None:
+    def load(self) -> Optional[Dict[str, ModeItem]]:
         """
         Load modes config from JSON file
 
@@ -69,7 +70,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, ModeItem]):
         """
         Save modes config to JSON file
 
@@ -101,7 +102,7 @@ class JsonFileProvider(BaseProvider):
         pass
 
     @staticmethod
-    def serialize(item: ModeItem) -> dict:
+    def serialize(item: ModeItem) -> Dict[str, str]:
         """
         Serialize item to dict
 
@@ -116,7 +117,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, item: ModeItem):
+    def deserialize(data: Dict[str, str], item: ModeItem):
         """
         Deserialize item from dict
 

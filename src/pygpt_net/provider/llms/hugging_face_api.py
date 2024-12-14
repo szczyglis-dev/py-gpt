@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional, List, Dict
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -28,7 +29,12 @@ class HuggingFaceApiLLM(BaseLLM):
         self.id = "huggingface_api"
         self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
-    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
 
@@ -40,7 +46,11 @@ class HuggingFaceApiLLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         return HuggingFaceInferenceAPI(**args)
 
-    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 
@@ -55,7 +65,11 @@ class HuggingFaceApiLLM(BaseLLM):
             })
         return HuggingFaceAPIEmbedding(**args)
 
-    def init_embeddings(self, window, env: list):
+    def init_embeddings(
+            self,
+            window,
+            env: Optional[List[Dict]] = None
+    ):
         """
         Initialize embeddings provider
 

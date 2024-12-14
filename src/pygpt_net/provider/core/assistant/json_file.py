@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import uuid
+from typing import Dict, Any
 
 from packaging.version import Version
 
@@ -48,7 +49,7 @@ class JsonFileProvider(BaseProvider):
             assistant.id = self.create_id()
         return assistant.id
 
-    def load(self) -> dict:
+    def load(self) -> Dict[str, AssistantItem]:
         """
         Load assistants from file
 
@@ -75,9 +76,11 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, AssistantItem]):
         """
         Save assistants to file
+
+        :param items: dict of assistants
         """
         try:
             # update assistants
@@ -122,7 +125,7 @@ class JsonFileProvider(BaseProvider):
         return False
 
     @staticmethod
-    def serialize(item: AssistantItem) -> dict:
+    def serialize(item: AssistantItem) -> Dict[str, Any]:
         """
         Serialize item to dict
 
@@ -149,7 +152,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, item: AssistantItem):
+    def deserialize(data: Dict[str, Any], item: AssistantItem):
         """
         Deserialize item from dict
 

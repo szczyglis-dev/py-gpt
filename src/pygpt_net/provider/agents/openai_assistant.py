@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any
 
 from llama_index.agent.openai import OpenAIAssistantAgent as Agent
 
@@ -21,7 +23,7 @@ class OpenAIAssistantAgent(BaseAgent):
         self.id = "openai_assistant"
         self.mode = "assistant"  # step|plan|...
 
-    def get_agent(self, window, kwargs: dict):
+    def get_agent(self, window, kwargs: Dict[str, Any]):
         """
         Return Agent provider instance
 

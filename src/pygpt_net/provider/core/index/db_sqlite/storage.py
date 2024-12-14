@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import uuid
 import time
+from typing import Dict, Optional
 
 from sqlalchemy import text
+from traitlets import Any
 
 from pygpt_net.item.index import IndexItem
 from .utils import unpack_file_item
@@ -35,7 +37,10 @@ class Storage:
         """
         self.window = window
 
-    def get_items(self, store_id: str) -> dict:
+    def get_items(
+            self,
+            store_id: str
+    ) -> Dict[str, IndexItem]:
         """
         Return idx items by store ID
 
@@ -65,7 +70,12 @@ class Storage:
 
         return indexes
 
-    def insert_file(self, store_id: str, idx: str, data: dict) -> int:
+    def insert_file(
+            self,
+            store_id: str,
+            idx: str,
+            data: Dict[str, Any]
+    ) -> int:
         """
         Insert file to index
 
@@ -114,7 +124,13 @@ class Storage:
 
         return id
 
-    def insert_ctx_meta(self, store_id: str, idx: str, meta_id: int, doc_id: str) -> int:
+    def insert_ctx_meta(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int,
+            doc_id: str
+    ) -> int:
         """
         Insert ctx meta to index
 
@@ -162,7 +178,12 @@ class Storage:
 
         return id
 
-    def insert_external(self, store_id: str, idx: str, data: dict) -> int:
+    def insert_external(
+            self,
+            store_id: str,
+            idx: str,
+            data: Dict[str, Any]
+    ) -> int:
         """
         Insert external data to index
 
@@ -211,7 +232,12 @@ class Storage:
 
         return id
 
-    def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
+    def is_meta_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> bool:
         """
         Check if context meta is indexed
 
@@ -238,7 +264,12 @@ class Storage:
             data = row._asdict()
             return int(data['count']) > 0
 
-    def is_file_indexed(self, store_id: str, idx: str, file_id: str) -> bool:
+    def is_file_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> bool:
         """
         Check if file is indexed
 
@@ -265,7 +296,13 @@ class Storage:
             data = row._asdict()
             return int(data['count']) > 0
 
-    def is_external_indexed(self, store_id: str, idx: str, content: str, type: str) -> bool:
+    def is_external_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> bool:
         """
         Check if external is indexed
 
@@ -295,7 +332,12 @@ class Storage:
             data = row._asdict()
             return int(data['count']) > 0
 
-    def get_meta_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
+    def get_meta_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> str:
         """
         Get indexed document id by meta id
 
@@ -322,7 +364,12 @@ class Storage:
             data = row._asdict()
             return data['doc_id']
 
-    def get_file_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
+    def get_file_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> str:
         """
         Get indexed document id by file id
 
@@ -349,7 +396,13 @@ class Storage:
             data = row._asdict()
             return data['doc_id']
 
-    def get_external_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
+    def get_external_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> str:
         """
         Get indexed document id by external
 
@@ -379,7 +432,12 @@ class Storage:
             data = row._asdict()
             return data['doc_id']
 
-    def update_file(self, id: int, doc_id: str, ts: int) -> bool:
+    def update_file(
+            self,
+            id: int,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update timestamp of file in index
 
@@ -403,7 +461,11 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def update_ctx_meta(self, meta_id: int, doc_id: str) -> bool:
+    def update_ctx_meta(
+            self,
+            meta_id: int,
+            doc_id: str
+    ) -> bool:
         """
         Update timestamp of ctx meta in index
 
@@ -427,7 +489,13 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def update_external(self, content: str, type: str, doc_id: str, ts: int) -> bool:
+    def update_external(
+            self,
+            content: str,
+            type: str,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update timestamp of external data in index
 
@@ -454,7 +522,12 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def remove_file(self, store_id: str, idx: str, doc_id: str):
+    def remove_file(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove file from index
 
@@ -471,7 +544,12 @@ class Storage:
                     doc_id=doc_id,
                 ))
 
-    def remove_ctx_meta(self, store_id: str, idx: str, meta_id: str):
+    def remove_ctx_meta(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: str
+    ):
         """
         Remove file from index
 
@@ -488,7 +566,12 @@ class Storage:
                     meta_id=meta_id,
                 ))
 
-    def remove_external(self, store_id: str, idx: str, doc_id: str):
+    def remove_external(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove file from index
 
@@ -505,7 +588,11 @@ class Storage:
                     doc_id=doc_id,
                 ))
 
-    def truncate_all(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_all(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate all idx tables in database (all stores)
 
@@ -518,7 +605,11 @@ class Storage:
         self.truncate_external(store_id, idx)
         return True
 
-    def truncate_files(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_files(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate files table in database
 
@@ -528,7 +619,11 @@ class Storage:
         """
         return self.truncate_by_db_table("idx_file", store_id, idx)
 
-    def truncate_ctx(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_ctx(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate context table in database
 
@@ -538,7 +633,11 @@ class Storage:
         """
         return self.truncate_by_db_table("idx_ctx", store_id, idx)
 
-    def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_external(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate external table in database
 
@@ -548,7 +647,12 @@ class Storage:
         """
         return self.truncate_by_db_table("idx_external", store_id, idx)
 
-    def truncate_by_db_table(self, tbl: str, store_id: str = None, idx: str = None) -> bool:
+    def truncate_by_db_table(
+            self,
+            tbl: str,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate external table in database
 
@@ -574,7 +678,10 @@ class Storage:
                 text(query).bindparams(**params))
         return True
 
-    def get_counters(self, type: str) -> dict:
+    def get_counters(
+            self,
+            type: str
+    ) -> Dict[str, Dict[str, int]]:
         """
         Get counters (stats, count items by type [file, ctx, external])
 

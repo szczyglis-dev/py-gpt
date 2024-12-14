@@ -6,11 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any, Optional
 
 from packaging.version import Version
 
+from pygpt_net.item.index import IndexItem
 from pygpt_net.provider.core.index.base import BaseProvider
 from .patch import Patch
 from .storage import Storage
@@ -42,7 +45,10 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.patcher.execute(version)
 
-    def load(self, store_id: str) -> dict:
+    def load(
+            self,
+            store_id: str
+    ) -> Dict[str, IndexItem]:
         """
         Load items for index provider
 
@@ -51,7 +57,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_items(store_id)
 
-    def append_file(self, store_id: str, idx: str, data: dict) -> int:
+    def append_file(
+            self,
+            store_id: str,
+            idx: str,
+            data: Dict[str, Any]
+    ) -> int:
         """
         Append file to index
 
@@ -62,7 +73,13 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_file(store_id, idx, data)
 
-    def append_ctx_meta(self, store_id: str, idx: str, meta_id: int, doc_id: str) -> int:
+    def append_ctx_meta(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int,
+            doc_id: str
+    ) -> int:
         """
         Append context meta to index
 
@@ -74,7 +91,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_ctx_meta(store_id, idx, meta_id, doc_id)
 
-    def append_external(self, store_id: str, idx: str, data: dict) -> int:
+    def append_external(
+            self,
+            store_id: str,
+            idx: str,
+            data: Dict[str, Any]
+    ) -> int:
         """
         Append external data to index
 
@@ -85,7 +107,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_external(store_id, idx, data)
 
-    def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
+    def is_meta_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> bool:
         """
         Check if context meta is indexed
 
@@ -96,7 +123,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.is_meta_indexed(store_id, idx, meta_id)
 
-    def is_file_indexed(self, store_id: str, idx: str, file_id: str) -> bool:
+    def is_file_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> bool:
         """
         Check if file is indexed
 
@@ -107,7 +139,13 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.is_file_indexed(store_id, idx, file_id)
 
-    def is_external_indexed(self, store_id: str, idx: str, content: str, type: str) -> bool:
+    def is_external_indexed(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> bool:
         """
         Check if external data is indexed
 
@@ -119,7 +157,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.is_external_indexed(store_id, idx, content, type)
 
-    def get_meta_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
+    def get_meta_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: int
+    ) -> str:
         """
         Get indexed document id by meta id
 
@@ -130,7 +173,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_meta_doc_id(store_id, idx, meta_id)
 
-    def get_file_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
+    def get_file_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            file_id: str
+    ) -> str:
         """
         Get indexed document id by file id
 
@@ -141,7 +189,13 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_file_doc_id(store_id, idx, file_id)
 
-    def get_external_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
+    def get_external_doc_id(
+            self,
+            store_id: str,
+            idx: str,
+            content: str,
+            type: str
+    ) -> str:
         """
         Get indexed document id by file id
 
@@ -153,7 +207,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_external_doc_id(store_id, idx, content, type)
 
-    def update_file(self, id: int, doc_id: str, ts: int) -> bool:
+    def update_file(
+            self,
+            id: int,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update indexed timestamp of indexed file
 
@@ -163,7 +222,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.update_file(id, doc_id, ts)
 
-    def update_ctx_meta(self, meta_id: int, doc_id: str) -> bool:
+    def update_ctx_meta(
+            self,
+            meta_id: int,
+            doc_id: str
+    ) -> bool:
         """
         Update indexed timestamp of indexed context meta
 
@@ -172,7 +235,13 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.update_ctx_meta(meta_id, doc_id)
 
-    def update_external(self, content: str, type: str, doc_id: str, ts: int) -> bool:
+    def update_external(
+            self,
+            content: str,
+            type: str,
+            doc_id: str,
+            ts: int
+    ) -> bool:
         """
         Update indexed timestamp of indexed external
 
@@ -183,7 +252,12 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.update_external(content, type, doc_id, ts)
 
-    def remove_file(self, store_id: str, idx: str, doc_id: str):
+    def remove_file(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove file from index
 
@@ -193,7 +267,12 @@ class DbSqliteProvider(BaseProvider):
         """
         self.storage.remove_file(store_id, idx, doc_id)
 
-    def remove_ctx_meta(self, store_id: str, idx: str, meta_id: str):
+    def remove_ctx_meta(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: str
+    ):
         """
         Remove file from index
 
@@ -203,7 +282,12 @@ class DbSqliteProvider(BaseProvider):
         """
         self.storage.remove_ctx_meta(store_id, idx, meta_id)
 
-    def remove_external(self, store_id: str, idx: str, doc_id: str):
+    def remove_external(
+            self,
+            store_id: str,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove external from index
 
@@ -213,7 +297,11 @@ class DbSqliteProvider(BaseProvider):
         """
         self.storage.remove_external(store_id, idx, doc_id)
 
-    def truncate(self, store_id: str, idx: str) -> bool:
+    def truncate(
+            self,
+            store_id: str,
+            idx: str
+    ) -> bool:
         """
         Truncate idx (remove all items)
 
@@ -223,7 +311,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_all(store_id, idx)
 
-    def truncate_all(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_all(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate idx (remove all items) - all store and indexes
 
@@ -233,7 +325,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_all(store_id, idx)
 
-    def truncate_files(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_files(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate files idx (remove all items) - all store and indexes
 
@@ -243,7 +339,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_files(store_id, idx)
 
-    def truncate_ctx(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_ctx(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate context meta idx (remove all items) - all store and indexes
 
@@ -253,7 +353,11 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_ctx(store_id, idx)
 
-    def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_external(
+            self,
+            store_id: Optional[str] = None,
+            idx: Optional[str] = None
+    ) -> bool:
         """
         Truncate external idx (remove all items) - all store and indexes
 
@@ -263,7 +367,10 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_external(store_id, idx)
 
-    def get_counters(self, type: str) -> dict:
+    def get_counters(
+            self,
+            type: str
+    ) -> Dict[str, Dict[str, int]]:
         """
         Get counters (stats, count items by type [file, ctx, external])
 

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Dict
 
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor, QAction, QIcon
@@ -507,7 +508,7 @@ class CodeInterpreter(BaseTool):
         cur.movePosition(QTextCursor.End)
         self.get_widget_history().setTextCursor(cur)
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -549,7 +550,7 @@ class CodeInterpreter(BaseTool):
         """Setup theme"""
         self.get_widget_output().value = self.window.core.config.get('font_size')
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

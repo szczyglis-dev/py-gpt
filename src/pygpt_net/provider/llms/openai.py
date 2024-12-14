@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Optional, List, Dict
 
 from langchain_openai import OpenAI
 from langchain_openai import ChatOpenAI
@@ -33,7 +35,12 @@ class OpenAILLM(BaseLLM):
         self.id = "openai"
         self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
-    def completion(self, window, model: ModelItem, stream: bool = False):
+    def completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
         """
         Return LLM provider instance for completion
 
@@ -45,7 +52,12 @@ class OpenAILLM(BaseLLM):
         args = self.parse_args(model.langchain)
         return OpenAI(**args)
 
-    def chat(self, window, model: ModelItem, stream: bool = False):
+    def chat(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
         """
         Return LLM provider instance for chat
 
@@ -57,7 +69,12 @@ class OpenAILLM(BaseLLM):
         args = self.parse_args(model.langchain)
         return ChatOpenAI(**args)
 
-    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama
 
@@ -69,7 +86,12 @@ class OpenAILLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         return LlamaOpenAI(**args)
 
-    def llama_multimodal(self, window, model: ModelItem, stream: bool = False) -> LlamaMultiModalLLM:
+    def llama_multimodal(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaMultiModalLLM:
         """
         Return multimodal LLM provider instance for llama
 
@@ -81,7 +103,11 @@ class OpenAILLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         return LlamaOpenAIMultiModal(**args)
 
-    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 

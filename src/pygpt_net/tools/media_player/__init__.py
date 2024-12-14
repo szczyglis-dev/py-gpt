@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
 import shutil
+from typing import Dict
 
 from PySide6.QtGui import QAction, QIcon
 
@@ -165,7 +166,7 @@ class MediaPlayer(BaseTool):
         else:
             self.close()
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -188,7 +189,7 @@ class MediaPlayer(BaseTool):
         self.dialog = VideoPlayer(self.window)
         self.dialog.setup()
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

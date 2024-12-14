@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -46,7 +47,7 @@ class JsonFileProvider(BaseProvider):
             prompt.id = self.create_id()
         return prompt.id
 
-    def load(self) -> dict:
+    def load(self) -> Dict[str, PromptItem]:
         """
         Load prompts from file
 
@@ -73,7 +74,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, PromptItem]):
         """
         Save prompts to file
         """
@@ -108,7 +109,11 @@ class JsonFileProvider(BaseProvider):
         pass
 
     def truncate(self, mode: str):
-        """Delete all"""
+        """
+        Delete all
+
+        :param mode: mode
+        """
         path = os.path.join(self.window.core.config.path, self.config_file)
         data = {'__meta__': self.window.core.config.append_meta(), 'items': {}}
         try:
@@ -128,7 +133,7 @@ class JsonFileProvider(BaseProvider):
         return False
 
     @staticmethod
-    def serialize(prompt: PromptItem) -> dict:
+    def serialize(prompt: PromptItem) -> Dict[str, str]:
         """
         Serialize item to dict
 
@@ -141,7 +146,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, prompt: PromptItem):
+    def deserialize(data: Dict[str, str], prompt: PromptItem):
         """
         Deserialize item from dict
 

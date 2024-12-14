@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
-from typing import Optional
+from typing import Optional, List, Dict
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.ctx import CtxItem
@@ -38,7 +38,11 @@ class Assistants:
         """
         return self.window.core.gpt.get_client()
 
-    def log(self, msg: str, callback: Optional[callable] = None):
+    def log(
+            self,
+            msg: str,
+            callback: Optional[callable] = None
+    ):
         """
         Log message
 
@@ -141,7 +145,12 @@ class Assistants:
         thread_messages = client.beta.threads.messages.list(thread_id)
         return thread_messages.data
 
-    def msg_send(self, id: str, text: str, file_ids: Optional[list] = None):
+    def msg_send(
+            self,
+            id: str,
+            text: str,
+            file_ids: Optional[list] = None
+    ):
         """
         Send message to thread
 
@@ -176,7 +185,7 @@ class Assistants:
         if message is not None:
             return message
 
-    def get_tools(self, assistant: AssistantItem) -> list:
+    def get_tools(self, assistant: AssistantItem) -> List[dict]:
         """
         Get assistant tools
 
@@ -208,7 +217,7 @@ class Assistants:
                 )
         return tools
 
-    def get_tool_resources(self, assistant: AssistantItem) -> dict:
+    def get_tool_resources(self, assistant: AssistantItem) -> Dict[str, dict]:
         """
         Get assistant tool resources
 

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict
 
 from pygpt_net.item.mode import ModeItem
 
@@ -24,10 +26,10 @@ class BaseProvider:
     def create(self, mode: ModeItem) -> str:
         pass
 
-    def load(self) -> dict:
+    def load(self) -> Dict[str, str]:
         pass
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, str]):
         pass
 
     def remove(self, id: str):

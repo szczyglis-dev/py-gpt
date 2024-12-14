@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -46,7 +47,7 @@ class JsonFileProvider(BaseProvider):
             attachment.id = self.create_id()
         return attachment.id
 
-    def load(self) -> dict:
+    def load(self) -> Dict[str, Dict[str, AttachmentItem]]:
         """
         Load attachments from file
 
@@ -74,7 +75,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items: dict):
+    def save(self, items: Dict[str, Dict[str, AttachmentItem]]):
         """
         Save attachments to file
         """

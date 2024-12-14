@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import copy
 import json
 import os
 import shutil
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import RenderEvent
 
@@ -38,7 +38,7 @@ class Settings:
         for id in self.ids:
             self.active[id] = False
 
-    def get_options(self, id: Optional[str] = None) -> dict:
+    def get_options(self, id: Optional[str] = None) -> Dict[str, Any]:
         """
         Return options for given id
 
@@ -52,7 +52,7 @@ class Settings:
         if id in self.options:
             return self.options[id]
 
-    def get_sections(self, id: Optional[str] = None) -> dict:
+    def get_sections(self, id: Optional[str] = None) -> Dict[str, Any]:
         """
         Return sections for given id
 
@@ -66,7 +66,7 @@ class Settings:
         if id in self.sections:
             return self.sections[id]
 
-    def get_persist_options(self) -> list:
+    def get_persist_options(self) -> List[str]:
         """
         Return persist options keys (options that should be persisted when loading defaults)
 

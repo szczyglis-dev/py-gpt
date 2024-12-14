@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 16:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import time
+from typing import Dict
 
 from sqlalchemy import text
 
@@ -34,7 +35,7 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, AssistantFileItem]:
         """
         Return dict with AssistantFileItem objects, indexed by ID
 

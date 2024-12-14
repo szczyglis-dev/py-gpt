@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
@@ -360,7 +360,7 @@ class Chat:
             ctx: CtxItem,
             type: str,
             url: str,
-            args: dict,
+            args: Dict[str, Any],
             query: str,
             model: Optional[ModelItem] = None
     ) -> str:
@@ -552,7 +552,11 @@ class Chat:
         ]
         return ChatPromptTemplate(qa_msgs)
 
-    def get_index(self, idx: str, model: ModelItem):
+    def get_index(
+            self,
+            idx: str,
+            model: ModelItem
+    ):
         """
         Get index instance
 
@@ -573,7 +577,10 @@ class Chat:
         index = self.storage.get(idx, service_context=service_context)  # get index
         return index, service_context
 
-    def get_metadata(self, source_nodes: Optional[list]) -> Dict[str, Any]:
+    def get_metadata(
+            self,
+            source_nodes: Optional[list]
+    ) -> Dict[str, Any]:
         """
         Get metadata from source nodes
 
@@ -601,7 +608,10 @@ class Chat:
                             break
         return metadata
 
-    def parse_metadata(self, metadata: Optional[Dict]) -> Dict[str, Any]:
+    def parse_metadata(
+            self,
+            metadata: Optional[Dict]
+    ) -> Dict[str, Any]:
         """
         Parse metadata
 

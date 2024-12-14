@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Optional, List, Dict
 
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
@@ -30,7 +31,13 @@ class BaseLLM:
         self.type = []  # langchain, llama_index, embeddings
         self.description = ""
 
-    def init(self, window, model: ModelItem, mode: str, sub_mode: str = None):
+    def init(
+            self,
+            window,
+            model: ModelItem,
+            mode: str,
+            sub_mode: str = None
+    ):
         """
         Initialize provider
 
@@ -53,7 +60,11 @@ class BaseLLM:
                 except Exception as e:
                     pass
 
-    def init_embeddings(self, window, env: list):
+    def init_embeddings(
+            self,
+            window,
+            env: Optional[List[Dict]] = None
+    ):
         """
         Initialize embeddings provider
 
@@ -69,7 +80,10 @@ class BaseLLM:
                 except Exception as e:
                     pass
 
-    def parse_args(self, options: dict) -> dict:
+    def parse_args(
+            self,
+            options: dict
+    ) -> dict:
         """
         Parse extra args
 
@@ -82,7 +96,12 @@ class BaseLLM:
                 args = parse_args(options['args'])
         return args
 
-    def completion(self, window, model: ModelItem, stream: bool = False) -> any:
+    def completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> any:
         """
         Return LLM provider instance for completion in langchain mode
 
@@ -93,7 +112,12 @@ class BaseLLM:
         """
         pass
 
-    def chat(self, window, model: ModelItem, stream: bool = False) -> any:
+    def chat(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> any:
         """
         Return LLM provider instance for chat in langchain mode
 
@@ -104,7 +128,12 @@ class BaseLLM:
         """
         pass
 
-    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
         """
         Return LLM provider instance for llama index query and chat
 
@@ -115,7 +144,12 @@ class BaseLLM:
         """
         pass
 
-    def llama_multimodal(self, window, model: ModelItem, stream: bool = False) -> LlamaMultiModalLLM:
+    def llama_multimodal(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaMultiModalLLM:
         """
         Return multimodal LLM provider instance for llama
 
@@ -126,7 +160,11 @@ class BaseLLM:
         """
         pass
 
-    def get_embeddings_model(self, window, config: list = None) -> BaseEmbedding:
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
         """
         Return provider instance for embeddings
 

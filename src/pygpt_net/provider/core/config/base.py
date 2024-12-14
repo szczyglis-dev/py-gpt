@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict, Any, Optional
 
 from packaging.version import Version
 
@@ -30,19 +32,19 @@ class BaseProvider:
     def patch(self, version: Version) -> bool:
         pass
 
-    def load(self, all: bool = False) -> dict:
+    def load(self, all: bool = False) -> Optional[Dict[str, Any]]:
         pass
 
-    def load_base(self) -> dict:
+    def load_base(self) -> Optional[Dict[str, Any]]:
         pass
 
-    def save(self, items: dict, filename: str = 'config.json'):
+    def save(self, items: Dict[str, Any], filename: str = 'config.json'):
         pass
 
-    def get_options(self) -> dict:
+    def get_options(self) -> Optional[Dict[str, Any]]:
         pass
 
-    def get_sections(self) -> dict:
+    def get_sections(self) -> Optional[Dict[str, Any]]:
         pass
 
     def get_version(self) -> str:

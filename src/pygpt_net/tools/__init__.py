@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict, Optional
+
+from PySide6.QtGui import QAction
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from .base import BaseTool
@@ -42,7 +46,7 @@ class Tools:
         if id in self.tools:
             return self.tools[id]
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, BaseTool]:
         """
         Get all tools
 
@@ -83,7 +87,7 @@ class Tools:
         for id in self.tools:
             self.tools[id].on_reload()
 
-    def setup_menu_actions(self) -> dict:
+    def setup_menu_actions(self) -> Dict[str, QAction]:
         """
         Setup Tools menu actions
 
@@ -110,7 +114,11 @@ class Tools:
         for id in self.tools:
             self.tools[id].setup_theme()
 
-    def get_instance(self, type_id: str, dialog_id: str = None) -> BaseDialog:
+    def get_instance(
+            self,
+            type_id: str,
+            dialog_id: Optional[str] = None
+    ) -> Optional[BaseDialog]:
         """
         Spawn and return dialog instance
 
@@ -123,7 +131,7 @@ class Tools:
             if instance is not None:
                 return instance
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, dict]:
         """
         Get language mappings
 

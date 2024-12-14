@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Optional
 
 from packaging.version import Version
 
@@ -27,7 +29,7 @@ class BaseProvider:
     def patch(self, version: Version) -> bool:
         pass
 
-    def load(self, all: bool = False) -> dict:
+    def load(self, all: bool = False) -> Optional[dict]:
         pass
 
     def save(self, items: dict):

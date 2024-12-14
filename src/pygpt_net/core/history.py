@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 05:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+from typing import List
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.core.history.txt_file import TxtFileProvider
@@ -46,7 +47,7 @@ class History:
         # delete all txt history files from history dir
         self.provider.truncate()
 
-    def remove_items(self, items: list):
+    def remove_items(self, items: List[CtxItem]):
         """
         Remove items from history (txt files)
 

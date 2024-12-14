@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -65,7 +66,7 @@ class DbSqliteProvider(BaseProvider):
             note.id = self.storage.insert(note)
         return note.id
 
-    def load_all(self) -> dict:
+    def load_all(self) -> Dict[str, CalendarNoteItem]:
         """
         Load notes from DB
 
@@ -73,7 +74,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_all()
 
-    def load_by_month(self, year: int, month: int) -> dict:
+    def load_by_month(self, year: int, month: int) -> Dict[str, CalendarNoteItem]:
         """
         Load notes from DB
 
@@ -92,7 +93,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_by_date(year, month, day)
 
-    def get_notes_existence_by_day(self, year, month) -> dict:
+    def get_notes_existence_by_day(self, year, month) -> Dict[str, Dict[int, int]]:
         """
         Get notes existence by day
 
@@ -114,7 +115,7 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving note: {}".format(str(e)))
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[str, CalendarNoteItem]):
         """
         Save all notes to DB
 

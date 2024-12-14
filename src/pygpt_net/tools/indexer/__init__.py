@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import json
+from typing import Dict, Any, List
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QAction, QIcon, QTextCursor
@@ -200,7 +201,7 @@ class IndexerTool(BaseTool):
                 last_str = datetime.datetime.fromtimestamp(last_ts).strftime('%Y-%m-%d %H:%M:%S')
         self.window.ui.nodes['tool.indexer.ctx.last_auto'].setText(last_str)
 
-    def update_tab_files(self):
+    def update_tab_files(self) -> List[str]:
         """
         Update files tab
 
@@ -420,7 +421,7 @@ class IndexerTool(BaseTool):
         self.refresh()
 
     @Slot(object)
-    def handle_log(self, data: any):
+    def handle_log(self, data: Any):
         """
         Handle log message
 
@@ -428,7 +429,7 @@ class IndexerTool(BaseTool):
         """
         self.log(data)
 
-    def log(self, data: any):
+    def log(self, data: Any):
         """
         Log message to console or logger window
 
@@ -451,7 +452,7 @@ class IndexerTool(BaseTool):
         """Clear log"""
         self.window.ui.nodes["tool.indexer.status"].clear()
 
-    def get_tables(self) -> dict:
+    def get_tables(self) -> Dict[str, Dict]:
         """
         Get tables configuration
 
@@ -513,7 +514,7 @@ class IndexerTool(BaseTool):
         }
         return tables
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu (Tools)
 
@@ -536,7 +537,7 @@ class IndexerTool(BaseTool):
         self.dialog = DialogBuilder(self.window)
         self.dialog.setup()
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

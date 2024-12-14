@@ -6,17 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional
+from typing import Optional, Any, Dict, List
 
 from PySide6.QtCore import QObject, Slot
 
-from pygpt_net.core.types import (
-    MODE_AGENT_LLAMA,
-)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
@@ -43,7 +40,7 @@ class BasePlugin(QObject):
         self.use_locale = False
         self.order = 0
 
-    def setup(self) -> dict:
+    def setup(self) -> Dict[str, Any]:
         """
         Return available config options
 
@@ -51,7 +48,12 @@ class BasePlugin(QObject):
         """
         return self.options
 
-    def add_option(self, name: str, type: str, **kwargs) -> dict:
+    def add_option(
+            self,
+            name: str,
+            type: str,
+            **kwargs
+    ) -> Dict[str, Any]:
         """
         Add plugin configuration option
 
@@ -84,7 +86,11 @@ class BasePlugin(QObject):
         self.options[name] = option
         return option
 
-    def add_cmd(self, cmd: str, **kwargs) -> dict:
+    def add_cmd(
+            self,
+            cmd: str,
+            **kwargs
+    ) -> Dict[str, Any]:
         """
         Add plugin command
 
@@ -125,7 +131,10 @@ class BasePlugin(QObject):
 
         return self.add_option(name, "cmd", **kwargs)
 
-    def has_cmd(self, cmd: str) -> bool:
+    def has_cmd(
+            self,
+            cmd: str
+    ) -> bool:
         """
         Check if command exists
 
@@ -138,7 +147,10 @@ class BasePlugin(QObject):
                 return self.options[key]["value"]["enabled"]
         return False
 
-    def cmd_allowed(self, cmd: str) -> bool:
+    def cmd_allowed(
+            self,
+            cmd: str
+    ) -> bool:
         """
         Check if command allowed
 
@@ -157,7 +169,10 @@ class BasePlugin(QObject):
         """
         return self.window.core.config.get("cmd")
 
-    def get_cmd(self, cmd: str) -> dict:
+    def get_cmd(
+            self,
+            cmd: str
+    ) -> Dict[str, Any]:
         """
         Return command
 
@@ -170,7 +185,10 @@ class BasePlugin(QObject):
             data = {"cmd": cmd, **data}
             return data
 
-    def has_option(self, name: str) -> bool:
+    def has_option(
+            self,
+            name: str
+    ) -> bool:
         """
         Check if option exists
 
@@ -179,7 +197,10 @@ class BasePlugin(QObject):
         """
         return name in self.options
 
-    def get_option(self, name: str) -> dict:
+    def get_option(
+            self,
+            name: str
+    ) -> Dict[str, Any]:
         """
         Return option
 
@@ -189,7 +210,10 @@ class BasePlugin(QObject):
         if self.has_option(name):
             return self.options[name]
 
-    def get_option_value(self, name: str) -> any:
+    def get_option_value(
+            self,
+            name: str
+    ) -> Any:
         """
         Return option value
 
@@ -207,7 +231,12 @@ class BasePlugin(QObject):
         """
         self.window = window
 
-    def handle(self, event: Event, *args, **kwargs):
+    def handle(
+            self,
+            event: Event,
+            *args,
+            **kwargs
+    ):
         """
         Handle event
 
@@ -235,7 +264,10 @@ class BasePlugin(QObject):
         """
         return
 
-    def trans(self, text: Optional[str] = None) -> str:
+    def trans(
+            self,
+            text: Optional[str] = None
+    ) -> str:
         """
         Translate text using plugin domain
 
@@ -247,7 +279,7 @@ class BasePlugin(QObject):
         domain = 'plugin.{}'.format(self.id)
         return trans(text, False, domain)
 
-    def error(self, err: any):
+    def error(self, err: Any):
         """
         Send error message to logger and alert dialog
 
@@ -257,7 +289,7 @@ class BasePlugin(QObject):
         msg = self.window.core.debug.parse_alert(err)
         self.window.ui.dialogs.alert("{}: {}".format(self.name, msg))
 
-    def debug(self, data: any):
+    def debug(self, data: Any):
         """
         Send debug message to logger window
 
@@ -337,9 +369,9 @@ class BasePlugin(QObject):
     @Slot(object, object, dict)
     def handle_finished(
             self,
-            response: dict,
+            response: Dict[str, Any],
             ctx: Optional[CtxItem] = None,
-            extra_data: Optional[dict] = None
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Handle finished response signal
@@ -367,9 +399,9 @@ class BasePlugin(QObject):
     @Slot(object, object, dict)
     def handle_finished_more(
             self,
-            responses: list,
+            responses: List[Dict[str, Any]],
             ctx: Optional[CtxItem] = None,
-            extra_data: Optional[dict] = None
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Handle finished response signal
@@ -397,9 +429,9 @@ class BasePlugin(QObject):
 
     def prepare_reply_ctx(
             self,
-            response: dict,
+            response: Dict[str, Any],
             ctx: Optional[CtxItem] = None
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """
         Prepare reply context
 
@@ -454,7 +486,7 @@ class BasePlugin(QObject):
         self.window.update_status(str(data))
 
     @Slot(object)
-    def handle_error(self, err: any):
+    def handle_error(self, err: Any):
         """
         Handle thread error signal
 
@@ -463,7 +495,7 @@ class BasePlugin(QObject):
         self.error(err)
 
     @Slot(object)
-    def handle_debug(self, msg: any):
+    def handle_debug(self, msg: Any):
         """
         Handle debug message signal
 

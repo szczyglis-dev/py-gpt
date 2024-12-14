@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
+from typing import Optional
+
 from packaging.version import Version
 
 from pygpt_net.provider.core.plugin_preset.base import BaseProvider
@@ -35,7 +37,7 @@ class JsonFileProvider(BaseProvider):
             self.save({})
             print("Installed: {}".format(dst))
 
-    def get_version(self) -> str | None:
+    def get_version(self) -> Optional[str]:
         """
         Get config file version
 
@@ -50,7 +52,7 @@ class JsonFileProvider(BaseProvider):
                 if '__meta__' in data and 'version' in data['__meta__']:
                     return data['__meta__']['version']
 
-    def load(self, all: bool = False) -> dict | None:
+    def load(self, all: bool = False) -> Optional[dict]:
         """
         Load config from JSON file
 

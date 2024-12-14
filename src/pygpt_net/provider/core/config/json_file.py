@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
+from typing import Optional, Dict, Any
+
 from packaging.version import Version
 
 from pygpt_net.provider.core.config.base import BaseProvider
@@ -38,7 +40,7 @@ class JsonFileProvider(BaseProvider):
             src = os.path.join(self.path_app, 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
-    def get_version(self) -> str | None:
+    def get_version(self) -> Optional[str]:
         """
         Get config file version
 
@@ -52,7 +54,7 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self, all: bool = False) -> dict | None:
+    def load(self, all: bool = False) -> Optional[Dict[str, Any]]:
         """
         Load config from JSON file
 
@@ -72,7 +74,7 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def load_base(self) -> dict | None:
+    def load_base(self) -> Optional[Dict[str, Any]]:
         """
         Load config from JSON file
 
@@ -90,7 +92,7 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def save(self, data: dict, filename: str = 'config.json'):
+    def save(self, data: Dict[str, Any], filename: str = 'config.json'):
         """
         Save config to JSON file
 
@@ -106,7 +108,7 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             print("FATAL ERROR: {}".format(e))
 
-    def get_options(self) -> dict | None:
+    def get_options(self) -> Optional[Dict[str, Any]]:
         """
         Load config settings options from JSON file
 
@@ -124,7 +126,7 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def get_sections(self) -> dict | None:
+    def get_sections(self) -> Optional[Dict[str, Any]]:
         """
         Load config sections from JSON file
 

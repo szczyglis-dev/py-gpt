@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import hashlib
 import os
+from typing import Dict, Optional
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.text_editor.ui.dialogs import DialogSpawner
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
 
@@ -47,7 +49,13 @@ class TextEditor(BaseTool):
         """
         return 'file_editor_' + hashlib.md5(file.encode('utf-8')).hexdigest()
 
-    def open_file(self, id: str, auto_close: bool = True, force: bool = False, save: bool = False):
+    def open_file(
+            self,
+            id: str,
+            auto_close: bool = True,
+            force: bool = False,
+            save: bool = False
+    ):
         """
         Open text file dialog
 
@@ -73,7 +81,12 @@ class TextEditor(BaseTool):
         if path:
             self.open(path, id, auto_close)
 
-    def clear(self, id: str = None, force: bool = False, save: bool = False):
+    def clear(
+            self,
+            id: str = None,
+            force: bool = False,
+            save: bool = False
+    ):
         """
         Clear current instance
 
@@ -101,8 +114,8 @@ class TextEditor(BaseTool):
 
     def open(
             self,
-            file: str = None,
-            current_id: str = None,
+            file: Optional[str] = None,
+            current_id: Optional[str] = None,
             auto_close: bool = True,
             force: bool = False):
         """
@@ -153,7 +166,11 @@ class TextEditor(BaseTool):
         else:
             self.window.core.filesystem.editor.clear(id)  # clear editor if no file
 
-    def close(self, id: str, save: bool = False):
+    def close(
+            self,
+            id: str,
+            save: bool = False
+    ):
         """
         Close file editor
 
@@ -180,7 +197,12 @@ class TextEditor(BaseTool):
             id = self.save_as_file(id)
         return id
 
-    def restore(self, id: str, force: bool = False, save: bool = False):
+    def restore(
+            self,
+            id: str,
+            force: bool = False,
+            save: bool = False
+    ):
         """
         Restore file content
 
@@ -225,7 +247,7 @@ class TextEditor(BaseTool):
             self.window.core.filesystem.editor.save(id, path)
         return id
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -243,7 +265,11 @@ class TextEditor(BaseTool):
         )
         return actions
 
-    def get_instance(self, type_id: str, dialog_id: str = None):
+    def get_instance(
+            self,
+            type_id: str,
+            dialog_id: Optional[str] = None
+    ) -> Optional[BaseDialog]:
         """
         Spawn and return dialog instance
 
@@ -254,7 +280,7 @@ class TextEditor(BaseTool):
         if type_id == "text_editor":
             return self.spawner.setup(dialog_id)
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

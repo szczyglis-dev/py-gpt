@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict
 
 from packaging.version import Version
 
@@ -35,13 +37,13 @@ class BaseProvider:
     def load(self, id) -> NotepadItem:
         pass
 
-    def load_all(self) -> dict:
+    def load_all(self) -> Dict[int, NotepadItem]:
         pass
 
     def save(self, notepad: NotepadItem):
         pass
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[int, NotepadItem]):
         pass
 
     def remove(self, id):

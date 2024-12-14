@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
+from typing import Dict
 
 from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
@@ -265,7 +266,7 @@ class HtmlCanvas(BaseTool):
         # fix: QTimer required here to prevent crash if signal emitted from WebEngine window
         QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text, type))
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -306,7 +307,7 @@ class HtmlCanvas(BaseTool):
         """Setup theme"""
         pass
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

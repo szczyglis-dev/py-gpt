@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import hashlib
+from typing import Optional, Tuple, List
 
+from llama_index.core.indices.service_context import ServiceContext
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
@@ -31,7 +33,7 @@ class Storage:
         self.indexes = {}
         self.tmp_storage = TempProvider(window=window)
 
-    def get_storage(self) -> BaseStore or None:
+    def get_storage(self) -> Optional[BaseStore]:
         """
         Get current vector store provider
 
@@ -44,7 +46,7 @@ class Storage:
             return None
         return self.storages[current]
 
-    def get_tmp_storage(self) -> BaseStore or None:
+    def get_tmp_storage(self) -> Optional[TempProvider]:
         """
         Get temp vector store provider
 
@@ -52,16 +54,19 @@ class Storage:
         """
         return self.tmp_storage
 
-    def get_ctx_idx_storage(self, path: str) -> BaseStore or None:
+    def get_ctx_idx_storage(self, path: str) -> CtxAttachmentProvider:
         """
         Get temp vector store provider
         
         :param path: Path to index on disk
         :return: vector store provider instance
         """
-        return CtxAttachmentProvider(window=self.window, path=path)
+        return CtxAttachmentProvider(
+            window=self.window,
+            path=path
+        )
 
-    def register(self, name: str, storage=None):
+    def register(self, name: str, storage: BaseStore):
         """
         Register vector store provider
 
@@ -71,7 +76,7 @@ class Storage:
         storage.attach(window=self.window)
         self.storages[name] = storage
 
-    def get_ids(self) -> list:
+    def get_ids(self) -> List[str]:
         """
         Return all vector store providers IDs
 
@@ -79,7 +84,7 @@ class Storage:
         """
         return list(self.storages.keys())
 
-    def exists(self, id: str = None) -> bool:
+    def exists(self, id: Optional[str] = None) -> bool:
         """
         Check if index exists
 
@@ -102,7 +107,11 @@ class Storage:
             raise Exception('Storage engine not found!')
         storage.create(id)
 
-    def get(self, id: str, service_context=None) -> BaseIndex:
+    def get(
+            self,
+            id: str,
+            service_context: Optional[ServiceContext]
+    ) -> BaseIndex:
         """
         Get index instance
 
@@ -118,7 +127,11 @@ class Storage:
             service_context=service_context,
         )
 
-    def store(self, id: str, index: BaseIndex = None):
+    def store(
+            self,
+            id: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store index
 
@@ -173,7 +186,11 @@ class Storage:
             doc_id=doc_id,
         )
 
-    def get_tmp(self, identifier: str, service_context=None) -> (str, BaseIndex):
+    def get_tmp(
+            self,
+            identifier: str,
+            service_context: Optional[ServiceContext] = None
+    ) -> Tuple[str, BaseIndex]:
         """
         Get tmp index instance
 
@@ -191,7 +208,11 @@ class Storage:
             service_context=service_context,
         )
 
-    def store_tmp(self, id: str, index: BaseIndex = None):
+    def store_tmp(
+            self,
+            id: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store index
 
@@ -228,7 +249,11 @@ class Storage:
             raise Exception('Storage engine not found!')
         storage.clean(id)
 
-    def get_ctx_idx(self, path: str, service_context=None) -> (str, BaseIndex):
+    def get_ctx_idx(
+            self,
+            path: str,
+            service_context: Optional[ServiceContext] = None
+    ) -> BaseIndex:
         """
         Get context index instance
 
@@ -241,10 +266,15 @@ class Storage:
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.get(
+            id="",
             service_context=service_context,
         )
 
-    def store_ctx_idx(self, path: str, index: BaseIndex = None):
+    def store_ctx_idx(
+            self,
+            path: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store context index
 
@@ -255,6 +285,7 @@ class Storage:
         if storage is None:
             raise Exception('Storage engine not found!')
         storage.store(
+            id="",
             index=index,
         )
 

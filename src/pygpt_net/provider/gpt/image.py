@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import requests
 
@@ -36,7 +36,7 @@ class Image:
     def generate(
             self,
             context: BridgeContext,
-            extra: Optional[dict] = None,
+            extra: Optional[Dict[str, Any]] = None,
             sync: bool = True
     ):
         """

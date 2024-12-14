@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os
-from typing import Optional
+from typing import Optional, List
 
 from pygpt_net.item.assistant import AssistantStoreItem
 
@@ -32,7 +32,11 @@ class Store:
         """
         return self.window.core.gpt.get_client()
 
-    def log(self, msg: str, callback: Optional[callable] = None):
+    def log(
+            self,
+            msg: str,
+            callback: Optional[callable] = None
+    ):
         """
         Log message
 
@@ -133,7 +137,7 @@ class Store:
                 )
         return items
 
-    def get_files_ids(self) -> list:
+    def get_files_ids(self) -> List[str]:
         """
         Get all files IDs
 
@@ -149,7 +153,10 @@ class Store:
                     items.append(id)
         return items
 
-    def remove_files(self, callback: Optional[callable] = None) -> int:
+    def remove_files(
+            self,
+            callback: Optional[callable] = None
+    ) -> int:
         """
         Remove all files
 
@@ -168,7 +175,11 @@ class Store:
                 self.log(msg, callback)
         return num
 
-    def remove_store_files(self, store_id: str, callback: Optional[callable] = None) -> int:
+    def remove_store_files(
+            self,
+            store_id: str,
+            callback: Optional[callable] = None
+    ) -> int:
         """
         Remove all files from store
 
@@ -240,7 +251,11 @@ class Store:
                 )
         return items
 
-    def create_store(self, name: str, expire_days: int = 0):
+    def create_store(
+            self,
+            name: str,
+            expire_days: int = 0
+    ):
         """
         Create vector store
 
@@ -262,7 +277,12 @@ class Store:
         if vector_store is not None:
             return vector_store
 
-    def update_store(self, id: str, name: str, expire_days: int = 0):
+    def update_store(
+            self,
+            id: str,
+            name: str,
+            expire_days: int = 0
+    ):
         """
         Update vector store
 
@@ -427,7 +447,10 @@ class Store:
             num += 1
         return num
 
-    def remove_all(self, callback: Optional[callable] = None) -> int:
+    def remove_all(
+            self,
+            callback: Optional[callable] = None
+    ) -> int:
         """
         Remove all vector stores
 
@@ -446,7 +469,11 @@ class Store:
                 self.log(msg, callback)
         return num
 
-    def add_file(self, store_id: str, file_id: str):
+    def add_file(
+            self,
+            store_id: str,
+            file_id: str
+    ):
         """
         Add file to vector store
 
@@ -480,7 +507,11 @@ class Store:
             if deleted_file is not None:
                 return deleted_file.id
 
-    def delete_store_file(self, store_id: str, file_id: str):
+    def delete_store_file(
+            self,
+            store_id: str,
+            file_id: str
+    ):
         """
         Delete file from vector store
 
@@ -496,7 +527,10 @@ class Store:
         if vector_store_file is not None:
             return vector_store_file
 
-    def import_stores_files(self, callback: Optional[callable] = None) -> int:
+    def import_stores_files(
+            self,
+            callback: Optional[callable] = None
+    ) -> int:
         """
         Import all vector stores files
 

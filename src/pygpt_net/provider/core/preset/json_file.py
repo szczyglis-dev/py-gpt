@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
+from typing import Dict, Optional, Any
+
 from packaging.version import Version
 
 from pygpt_net.core.types import (
@@ -42,9 +44,7 @@ class JsonFileProvider(BaseProvider):
         self.type = "preset"
 
     def install(self):
-        """
-        Install provider data
-        """
+        """Install provider data"""
         # install presets
         presets_dir = self.window.core.config.get_user_dir('presets')
         src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets')
@@ -58,7 +58,7 @@ class JsonFileProvider(BaseProvider):
                 if not os.path.exists(dst_file):
                     shutil.copyfile(src_file, dst_file)
 
-    def load(self) -> dict | None:
+    def load(self) -> Optional[Dict[str, PresetItem]]:
         """
         Load presets from JSON files
 
@@ -82,7 +82,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def load_base(self) -> dict | None:
+    def load_base(self) -> Optional[Dict[str, PresetItem]]:
         """
         Load base presets from JSON files
 
@@ -126,7 +126,7 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[str, PresetItem]):
         """
         Save all presets to JSON files
 
@@ -171,7 +171,7 @@ class JsonFileProvider(BaseProvider):
         return self.patcher.execute(version)
 
     @staticmethod
-    def serialize(item: PresetItem) -> dict:
+    def serialize(item: PresetItem) -> Dict[str, Any]:
         """
         Serialize item to dict
 
@@ -207,7 +207,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data: dict, item: PresetItem):
+    def deserialize(data: Dict[str, Any], item: PresetItem):
         """
         Deserialize item from dict
 

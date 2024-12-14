@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import uuid
-from typing import Optional
+from typing import Optional, Dict
 
 from packaging.version import Version
 
@@ -61,7 +61,7 @@ class Notepad:
             return self.items[idx]
         return None
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[int, NotepadItem]:
         """
         Get all notepads
 
@@ -137,7 +137,7 @@ class Notepad:
         """Save all notepads"""
         self.provider.save_all(self.items)
 
-    def import_from_db(self) -> Optional[dict]:
+    def import_from_db(self) -> Optional[Dict[int, dict]]:
         """
         Import notepad tabs from database
 

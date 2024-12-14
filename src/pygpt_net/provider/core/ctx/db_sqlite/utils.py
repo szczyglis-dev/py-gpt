@@ -6,18 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
 import re
+
 from datetime import datetime, timedelta
+from typing import List, Tuple, Any, Dict
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from pygpt_net.utils import unpack_var
 
 
-def search_by_date_string(search_string: str) -> list:
+def search_by_date_string(search_string: str) -> List[Tuple[Any, Any]]:
     """
     Prepare date ranges from search string if @date() syntax is used
 
@@ -64,7 +66,7 @@ def search_by_date_string(search_string: str) -> list:
     return date_ranges
 
 
-def get_month_start_end_timestamps(year: int, month: int) -> (int, int):
+def get_month_start_end_timestamps(year: int, month: int) -> Tuple[int, int]:
     """
     Get start and end timestamps for given month
 
@@ -82,7 +84,7 @@ def get_month_start_end_timestamps(year: int, month: int) -> (int, int):
     return start_timestamp, end_timestamp
 
 
-def get_year_start_end_timestamps(year: int) -> (int, int):
+def get_year_start_end_timestamps(year: int) -> Tuple[int, int]:
     """
     Get start and end timestamps for given year
 
@@ -96,7 +98,7 @@ def get_year_start_end_timestamps(year: int) -> (int, int):
     return start_timestamp, end_timestamp
 
 
-def pack_item_value(value: any) -> str:
+def pack_item_value(value: Any) -> str:
     """
     Pack item value to JSON
 
@@ -108,7 +110,7 @@ def pack_item_value(value: any) -> str:
     return value
 
 
-def unpack_item_value(value: any) -> any:
+def unpack_item_value(value: Any) -> Any:
     """
     Unpack item value from JSON
 
@@ -123,7 +125,7 @@ def unpack_item_value(value: any) -> any:
         return value
 
 
-def unpack_item(item: CtxItem, row: dict) -> CtxItem:
+def unpack_item(item: CtxItem, row: Dict[str, Any]) -> CtxItem:
     """
     Unpack context item from DB row
 
@@ -183,7 +185,7 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     return item
 
 
-def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
+def unpack_meta(meta: CtxMeta, row: Dict[str, Any]) -> CtxMeta:
     """
     Unpack context meta data from DB row
 
@@ -222,7 +224,7 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     return meta
 
 
-def unpack_group(group: CtxGroup, row: dict) -> CtxGroup:
+def unpack_group(group: CtxGroup, row: Dict[str, Any]) -> CtxGroup:
     """
     Unpack context group data from DB row
 

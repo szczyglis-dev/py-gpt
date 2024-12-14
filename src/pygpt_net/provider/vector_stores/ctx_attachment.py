@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import os.path
+from typing import Optional
 
 from llama_index.core import StorageContext, load_index_from_storage
 from llama_index.core.indices.base import BaseIndex
@@ -32,7 +33,7 @@ class CtxAttachmentProvider(BaseStore):
         self.id = "CtxAttachmentVectorStore"
         self.index = None
 
-    def get_path(self) -> str:
+    def get_path(self, id: str) -> str:
         """
         Get database path
 
@@ -40,7 +41,10 @@ class CtxAttachmentProvider(BaseStore):
         """
         return self.path
 
-    def exists(self) -> bool:
+    def exists(
+            self,
+            id: Optional[str] = None
+    ) -> bool:
         """
         Check if index exists
 
@@ -53,27 +57,37 @@ class CtxAttachmentProvider(BaseStore):
                 return True
         return False
 
-    def create(self):
-        """Create empty index"""
-        path = self.get_path()
+    def create(self, id: str):
+        """
+        Create empty index
+
+        :param id: index name (not used)
+        """
+        path = self.get_path(id)
         if not os.path.exists(path):
             index = self.index_from_empty()  # create empty index
             self.store(
+                id=id,
                 index=index,
             )
         else:
             self.index = self.index_from_empty()
 
-    def get(self, service_context: ServiceContext = None) -> BaseIndex:
+    def get(
+            self,
+            id: str,
+            service_context: Optional[ServiceContext] = None
+    ) -> BaseIndex:
         """
         Get index
 
+        :param id: index name (not used)
         :param service_context: Service context
         :return: index instance
         """
         if not self.exists():
-            self.create()
-        path = self.get_path()
+            self.create(id)
+        path = self.get_path(id)
         storage_context = StorageContext.from_defaults(
             persist_dir=path,
         )
@@ -84,13 +98,18 @@ class CtxAttachmentProvider(BaseStore):
 
         return self.index
 
-    def store(self, index: BaseIndex = None):
+    def store(
+            self,
+            id: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store index
 
+        :param id: index name (not used)
         :param index: index instance
         """
-        path = self.get_path()
+        path = self.get_path(id)
         index.storage_context.persist(
             persist_dir=path,
         )
@@ -99,6 +118,6 @@ class CtxAttachmentProvider(BaseStore):
     def clean(self):
         """Clean index"""
         self.index = None
-        path = self.get_path()
+        path = self.get_path("")
         if os.path.exists(path):
             os.remove(path)

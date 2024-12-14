@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import hashlib
 import os
 import shutil
+from typing import Dict, Optional
 
 from PySide6 import QtGui, QtCore
 from PySide6.QtGui import QAction, QIcon
@@ -19,6 +20,7 @@ from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.image_viewer.ui.dialogs import DialogSpawner
+from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
 
@@ -255,7 +257,7 @@ class ImageViewer(BaseTool):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def setup_menu(self) -> dict:
+    def setup_menu(self) -> Dict[str, QAction]:
         """
         Setup main menu
 
@@ -273,7 +275,11 @@ class ImageViewer(BaseTool):
         )
         return actions
 
-    def get_instance(self, type_id: str, dialog_id: str = None):
+    def get_instance(
+            self,
+            type_id: str,
+            dialog_id: Optional[str] = None
+    ) -> Optional[BaseDialog]:
         """
         Spawn and return dialog instance
 
@@ -284,7 +290,7 @@ class ImageViewer(BaseTool):
         if type_id == "image_viewer":
             return self.spawner.setup(dialog_id)
 
-    def get_lang_mappings(self) -> dict:
+    def get_lang_mappings(self) -> Dict[str, Dict]:
         """
         Get language mappings
 

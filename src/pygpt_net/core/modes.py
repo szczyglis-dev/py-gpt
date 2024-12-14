@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import Dict, List
 
 from pygpt_net.provider.core.mode.json_file import JsonFileProvider
 from pygpt_net.core.types import (
@@ -51,7 +53,7 @@ class Modes:
         ]
         self.items = {}
 
-    def get_by_idx(self, idx):
+    def get_by_idx(self, idx) -> str:
         """
         Return mode by index
 
@@ -61,7 +63,7 @@ class Modes:
         modes = self.get_all()
         return list(modes.keys())[idx]
 
-    def get_idx_by_name(self, name):
+    def get_idx_by_name(self, name) -> int:
         """
         Return mode index by name
 
@@ -71,7 +73,7 @@ class Modes:
         modes = self.get_all()
         return list(modes.keys()).index(name)
 
-    def get_all(self):
+    def get_all(self) -> Dict[str, List[str]]:
         """
         Return modes
 
@@ -79,7 +81,7 @@ class Modes:
         """
         return self.items
 
-    def get_default(self):
+    def get_default(self) -> str:
         """
         Return default mode name
 
@@ -89,7 +91,7 @@ class Modes:
             if self.items[id].default:
                 return id
 
-    def get_next(self, mode: str):
+    def get_next(self, mode: str) -> str:
         """
         Return next mode
 
@@ -103,7 +105,7 @@ class Modes:
             return keys[idx + 1]
         return keys[0]
 
-    def get_prev(self, mode: str):
+    def get_prev(self, mode: str) -> str:
         """
         Return previous mode
 
@@ -118,13 +120,9 @@ class Modes:
         return keys[-1]
 
     def load(self):
-        """
-        Load modes
-        """
+        """Load modes"""
         self.items = self.provider.load()
 
     def save(self):
-        """
-        Save modes
-        """
+        """Save modes"""
         self.provider.save(self.items)

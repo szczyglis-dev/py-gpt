@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
-from typing import Tuple
+from typing import Tuple, List
 
 import tiktoken
+
+from langchain_core.messages import ChatMessage as ChatMessageLangchain
+from llama_index.core.base.llms.types import ChatMessage as ChatMessageLlama
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -38,7 +41,6 @@ CHAT_MODES = [
     MODE_EXPERT,
     MODE_AUDIO,
 ]
-
 
 class Tokens:
     def __init__(self, window=None):
@@ -151,7 +153,7 @@ class Tokens:
 
     @staticmethod
     def from_messages(
-            messages: list,
+            messages: List[dict],
             model: str = "gpt-4"
     ) -> int:
         """
@@ -182,7 +184,7 @@ class Tokens:
 
     @staticmethod
     def from_langchain_messages(
-            messages: list,
+            messages: List[ChatMessageLangchain],
             model: str = "gpt-4"
     ) -> int:
         """
@@ -203,7 +205,7 @@ class Tokens:
     @staticmethod
     def from_llama_messages(
             query: str,
-            messages: list,
+            messages: List[ChatMessageLlama],
             model: str = "gpt-4"
     ) -> int:
         """

@@ -6,18 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import base64
 import os
 import re
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any, List
 
 from pygpt_net.core.types import (
     MODE_VISION,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
@@ -34,7 +35,11 @@ class Vision:
         self.urls = []
         self.input_tokens = 0
 
-    def send(self, context: BridgeContext, extra: dict = None):
+    def send(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ):
         """
         Call OpenAI API for chat with vision
 
@@ -78,9 +83,9 @@ class Vision:
             prompt: str,
             system_prompt: str,
             model: ModelItem,
-            history: Optional[list] = None,
-            attachments: Optional[dict] = None,
-    ) -> list:
+            history: Optional[List[CtxItem]] = None,
+            attachments: Optional[Dict[str, AttachmentItem]] = None,
+    ) -> List[dict]:
         """
         Build chat messages list
 
@@ -162,8 +167,8 @@ class Vision:
     def build_content(
             self,
             content: Union[str, list],
-            attachments: Optional[dict] = None,
-    ) -> list:
+            attachments: Optional[Dict[str, AttachmentItem]] = None,
+    ) -> List[dict]:
         """
         Build vision content
 
@@ -219,7 +224,7 @@ class Vision:
 
         return content
 
-    def extract_urls(self, text: str) -> list:
+    def extract_urls(self, text: str) -> List[str]:
         """
         Extract img urls from text
 
@@ -261,7 +266,7 @@ class Vision:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
-    def get_attachments(self) -> dict:
+    def get_attachments(self) -> Dict[str, str]:
         """
         Get attachments
 
@@ -269,7 +274,7 @@ class Vision:
         """
         return self.attachments
 
-    def get_urls(self) -> list:
+    def get_urls(self) -> List[str]:
         """
         Get urls
 

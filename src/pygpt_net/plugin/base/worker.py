@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
-from typing import Optional, Any
+from typing import Optional, Any, Dict, List
 
 from PySide6.QtCore import QObject, QRunnable
 from typing_extensions import deprecated
@@ -44,7 +44,7 @@ class BaseWorker(QObject, QRunnable):
         if self.signals is not None and hasattr(self.signals, "destroyed"):
             self.signals.destroyed.emit()
 
-    def error(self, err: any):
+    def error(self, err: Any):
         """
         Emit error signal
 
@@ -67,8 +67,8 @@ class BaseWorker(QObject, QRunnable):
     @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
     def response(
             self,
-            response: dict,
-            extra_data: Optional[dict] = None
+            response: Dict[str, Any],
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Emit finished signal (deprecated)
@@ -82,8 +82,8 @@ class BaseWorker(QObject, QRunnable):
 
     def reply(
             self,
-            response: dict,
-            extra_data: Optional[dict] = None
+            response: Dict[str, Any],
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Emit finished signal (on reply from command output)
@@ -101,8 +101,8 @@ class BaseWorker(QObject, QRunnable):
 
     def reply_more(
             self,
-            responses: list,
-            extra_data: Optional[dict] = None
+            responses: List[Dict[str, Any]],
+            extra_data: Optional[Dict[str, Any]] = None
     ):
         """
         Emit finished_more signal (on reply from command output, multiple responses)
@@ -166,7 +166,10 @@ class BaseWorker(QObject, QRunnable):
         self.signals.status.connect(parent.handle_status)
         self.signals.error.connect(parent.handle_error)
 
-    def from_request(self, item: dict) -> dict:
+    def from_request(
+            self,
+            item: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Prepare request item for result
 
@@ -177,10 +180,10 @@ class BaseWorker(QObject, QRunnable):
 
     def make_response(
             self,
-            item: dict,
-            result: any,
-            extra: Optional[dict] = None
-    ) -> dict:
+            item: Dict[str, Any],
+            result: Any,
+            extra: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Prepare response item
 
@@ -211,7 +214,7 @@ class BaseWorker(QObject, QRunnable):
 
     def has_param(
             self,
-            item: dict,
+            item: Dict[str, Any],
             param: str
     ) -> bool:
         """
@@ -227,10 +230,10 @@ class BaseWorker(QObject, QRunnable):
 
     def get_param(
             self,
-            item: dict,
+            item: Dict[str, Any],
             param: str,
             default: Any = None
-    ) -> any:
+    ) -> Any:
         """
         Get parameter value from item
 

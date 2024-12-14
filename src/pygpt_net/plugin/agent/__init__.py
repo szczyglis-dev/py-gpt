@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -57,7 +57,12 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        always_events = [Event.FORCE_STOP, Event.PLUGIN_SETTINGS_CHANGED, Event.ENABLE, Event.DISABLE]
+        always_events = [
+            Event.FORCE_STOP,
+            Event.PLUGIN_SETTINGS_CHANGED,
+            Event.ENABLE,
+            Event.DISABLE
+        ]
 
         if not self.is_allowed() and name != Event.DISABLE:
             return

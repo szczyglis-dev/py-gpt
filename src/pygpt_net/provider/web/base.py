@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
+
+from typing import List, Dict
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 
@@ -45,7 +47,12 @@ class BaseProvider:
         """Initialize provider options (for plugin settings)"""
         pass
 
-    def search(self, query, limit: int = 10, offset: int = 0):
+    def search(
+            self,
+            query,
+            limit: int = 10,
+            offset: int = 0
+    ) -> List[str]:
         """
         Execute search query and return list of urls
 
@@ -56,7 +63,7 @@ class BaseProvider:
         """
         pass
 
-    def is_configured(self, cmds: list) -> bool:
+    def is_configured(self, cmds: List[Dict]) -> bool:
         """
         Check if provider is configured
 

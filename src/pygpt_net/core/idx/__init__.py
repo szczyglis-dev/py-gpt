@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -406,7 +406,11 @@ class Idx:
             return self.items[store_id]
         return {}
 
-    def append(self, idx: str, files: Dict[str, str]):
+    def append(
+            self,
+            idx: str,
+            files: Dict[str, str]
+    ):
         """
         Append indexed files to index
 
@@ -454,7 +458,11 @@ class Idx:
                 self.items[store_id][idx].items[file_id]["id"] = doc_id
                 self.items[store_id][idx].items[file_id]["indexed_ts"] = ts
 
-    def remove_doc(self, idx: str, doc_id: str):
+    def remove_doc(
+            self,
+            idx: str,
+            doc_id: str
+    ):
         """
         Remove document from index
 
@@ -465,7 +473,11 @@ class Idx:
         if self.storage.remove_document(idx, doc_id):
             self.log("Removed document from index: " + idx + " - " + doc_id)
 
-    def remove_file(self, idx: str, file: str):
+    def remove_file(
+            self,
+            idx: str,
+            file: str
+    ):
         """
         Remove file from index
 

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import time
+from typing import List, Dict, Optional
 from uuid import uuid4
 from packaging.version import Version
 
@@ -29,6 +30,11 @@ class DbSqliteProvider(BaseProvider):
         self.type = "ctx"
 
     def attach(self, window):
+        """
+        Attach window
+
+        :param window: Window instance
+        """
         self.window = window
         self.storage.attach(window)
 
@@ -68,14 +74,14 @@ class DbSqliteProvider(BaseProvider):
 
     def get_meta(
             self,
-            search_string: str = None,
-            order_by: str = None,
-            order_direction: str = None,
-            limit: int = None,
-            offset: int = None,
-            filters: dict = None,
+            search_string: Optional[str] = None,
+            order_by: Optional[str] = None,
+            order_direction: Optional[str] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[int, CtxMeta]:
         """
         Return dict of ctx meta, TODO: add order, limit, offset, etc.
 
@@ -102,7 +108,7 @@ class DbSqliteProvider(BaseProvider):
             search_content=search_content,
         )
 
-    def get_meta_indexed(self) -> dict:
+    def get_meta_indexed(self) -> Dict[int, CtxMeta]:
         """
         Return dict of ctx meta indexed by ID
 
@@ -118,7 +124,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_last_meta_id()
 
-    def get_item_by_id(self, id: int) -> CtxItem:
+    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
         """
         Get ctx item by ID
 
@@ -127,7 +133,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_item_by_id(id)
 
-    def load(self, id: int) -> list:
+    def load(self, id: int) -> List[CtxItem]:
         """
         Load items for ctx ID
 
@@ -137,13 +143,14 @@ class DbSqliteProvider(BaseProvider):
         return self.storage.get_items(id)
 
     def get_ctx_count_by_day(
-            self, year: int,
-            month: int = None,
-            day: int = None,
-            search_string: str = None,
-            filters: dict = None,
+            self,
+            year: int,
+            month: Optional[int] = None,
+            day: Optional[int] = None,
+            search_string: Optional[str] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[str, int]:
         """
         Get ctx count by day or by month if only year is provided
 
@@ -165,13 +172,14 @@ class DbSqliteProvider(BaseProvider):
         )
 
     def get_ctx_labels_count_by_day(
-            self, year: int,
-            month: int = None,
-            day: int = None,
-            search_string: str = None,
-            filters: dict = None,
+            self,
+            year: int,
+            month: Optional[int] = None,
+            day: Optional[int] = None,
+            search_string: Optional[str] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[str, Dict[int, int]]:
         """
         Get ctx labels count by day or by month if only year is provided
 
@@ -213,7 +221,7 @@ class DbSqliteProvider(BaseProvider):
         self.storage.update_meta_ts(item.meta_id)
         return self.storage.update_item(item) is not None
 
-    def save(self, id: int, meta: CtxMeta, items: list) -> bool:
+    def save(self, id: int, meta: CtxMeta, items: List[CtxItem]) -> bool:
         """
         Save ctx
 
@@ -225,7 +233,7 @@ class DbSqliteProvider(BaseProvider):
         if self.storage.update_meta(meta):
             return True  # update only meta, items are appended separately
 
-    def save_all(self, id: int, meta: CtxMeta, items: list) -> bool:
+    def save_all(self, id: int, meta: CtxMeta, items: List[CtxItem]) -> bool:
         """
         Save ctx
 
@@ -255,7 +263,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.delete_item_by_id(id)
 
-    def remove_items_from(self, meta_id: int, item_id: int):
+    def remove_items_from(self, meta_id: int, item_id: int) -> bool:
         """
         Remove ctx items from meta_id
 
@@ -328,7 +336,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.clear_meta_indexed_all()
 
-    def get_groups(self) -> dict:
+    def get_groups(self) -> Dict[int, CtxGroup]:
         """
         Return dict of groups
 
@@ -336,7 +344,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_groups()
 
-    def get_meta_by_id(self, id: int) -> CtxMeta or None:
+    def get_meta_by_id(self, id: int) -> Optional[CtxMeta]:
         """
         Get meta by ID
 
@@ -353,15 +361,16 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_meta_by_root_id_and_preset_id(root_id, preset_id)
 
-    def insert_group(self, group: CtxGroup):
+    def insert_group(self, group: CtxGroup) -> int:
         """
         Insert group
 
         :param group: CtxGroup
+        :return: group ID
         """
         return self.storage.insert_group(group)
 
-    def update_group(self, group: CtxGroup):
+    def update_group(self, group: CtxGroup) -> bool:
         """
         Update group
 
@@ -369,32 +378,39 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.update_group(group)
 
-    def remove_group(self, id: int, all: bool = False):
+    def remove_group(self, id: int, all: bool = False) -> bool:
         """
         Remove group by ID
 
         :param id: group ID
         :param all: remove items
+        :return: True if removed
         """
         return self.storage.delete_group(id, all=all)
 
-    def truncate_groups(self):
-        """Remove groups"""
+    def truncate_groups(self) -> bool:
+        """
+        Remove groups
+
+        :return: True if removed
+        """
         return self.storage.truncate_groups()
 
-    def update_meta_group_id(self, id: int, group_id: int):
+    def update_meta_group_id(self, id: int, group_id: int) -> bool:
         """
         Update meta group ID
 
         :param id: ctx ID
         :param group_id: group ID
+        :return: True if updated
         """
         return self.storage.update_meta_group_id(id, group_id)
 
-    def clear_meta(self, id: int):
+    def clear_meta(self, id: int) -> bool:
         """
         Clear meta by ID
 
         :param id: ctx ID
+        :return: True if cleared
         """
         return self.storage.clear_meta(id)

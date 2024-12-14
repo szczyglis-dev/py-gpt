@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import json
+from typing import List, Dict
 from urllib.parse import quote
 
 import requests
@@ -60,7 +61,12 @@ class MicrosoftBingSearch(BaseProvider):
             tab="microsoft_bing",
         )
 
-    def search(self, query: str, limit: int = 10, offset: int = 0) -> list:
+    def search(
+            self,
+            query: str,
+            limit: int = 10,
+            offset: int = 0
+    ) -> List[str]:
         """
         Execute search query and return list of urls
 
@@ -97,7 +103,7 @@ class MicrosoftBingSearch(BaseProvider):
             print('Error:', response.status_code, response.text)
         return urls
 
-    def is_configured(self, cmds: list) -> bool:
+    def is_configured(self, cmds: List[Dict]) -> bool:
         """
         Check if provider is configured (required API keys, etc.)
 

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 import re
 import time
+from typing import Dict, Optional, Tuple, List
 
 from sqlalchemy import text
 
@@ -46,11 +47,11 @@ class Storage:
 
     def prepare_query(
             self,
-            search_string: str = None,
-            filters: dict = None,
+            search_string: Optional[str] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
             append_date_ranges: bool = True,
-    ):
+    ) -> Tuple[str, str, dict]:
         """
         Prepare query for search_string and filters
 
@@ -122,14 +123,14 @@ class Storage:
 
     def get_meta(
             self,
-            search_string: str = None,
-            order_by: str = None,
-            order_direction: str = None,
-            limit: int = None,
-            offset: int = None,
-            filters: dict = None,
+            search_string: Optional[str] = None,
+            order_by: Optional[str] = None,
+            order_direction: Optional[str] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[int, CtxMeta]:
         """
         Return dict with CtxMeta objects, indexed by ID
 
@@ -169,7 +170,7 @@ class Storage:
 
         return items
 
-    def get_meta_indexed(self) -> dict:
+    def get_meta_indexed(self) -> Dict[int, CtxMeta]:
         """
         Return dict with indexed CtxMeta objects, indexed by ID
 
@@ -189,7 +190,7 @@ class Storage:
                 items[meta.id] = meta
         return items
 
-    def get_item_by_id(self, id: int) -> CtxItem:
+    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
         """
         Return ctx item by ID
 
@@ -210,7 +211,11 @@ class Storage:
                 return item
         return None
 
-    def get_meta_by_root_id_and_preset_id(self, root_id: int, preset_id: str) -> dict:
+    def get_meta_by_root_id_and_preset_id(
+            self,
+            root_id: int,
+            preset_id: str
+    ) -> Dict[int, CtxMeta]:
         """
         Return dict with indexed CtxMeta objects, indexed by ID
 
@@ -233,7 +238,7 @@ class Storage:
                 items[meta.id] = meta
         return items
 
-    def get_meta_by_id(self, id: int) -> CtxMeta or None:
+    def get_meta_by_id(self, id: int) -> Optional[CtxMeta]:
         """
         Return ctx meta by ID
 
@@ -269,7 +274,7 @@ class Storage:
                 return int(row.id)
         return 0
 
-    def get_items(self, id: int) -> list:
+    def get_items(self, id: int) -> List[CtxItem]:
         """
         Return ctx items list by ctx meta ID
 
@@ -428,7 +433,11 @@ class Storage:
             conn.execute(stmt)
             return True
 
-    def update_meta_all(self, meta: CtxMeta, items: list) -> bool:
+    def update_meta_all(
+            self,
+            meta: CtxMeta,
+            items: List[CtxItem]
+    ) -> bool:
         """
         Update all, meta and items
 
@@ -891,12 +900,12 @@ class Storage:
     def get_ctx_count_by_day(
             self,
             year: int,
-            month: int = None,
-            day: int = None,
-            search_string: str = None,
-            filters: dict = None,
+            month: Optional[int] = None,
+            day: Optional[int] = None,
+            search_string: Optional[str] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[str, int]:
         """
         Return ctx counters by day for given year and month
 
@@ -987,12 +996,12 @@ class Storage:
     def get_ctx_labels_count_by_day(
             self,
             year: int,
-            month: int = None,
-            day: int = None,
-            search_string: str = None,
-            filters: dict = None,
+            month: Optional[int] = None,
+            day: Optional[int] = None,
+            search_string: Optional[str] = None,
+            filters: Optional[dict] = None,
             search_content: bool = False,
-    ) -> dict:
+    ) -> Dict[str, Dict[int, int]]:
         """
         Return ctx counters by day for given year and month
 
@@ -1116,7 +1125,7 @@ class Storage:
 
                 return result_dict
 
-    def get_groups(self) -> dict:
+    def get_groups(self) -> Dict[int, CtxGroup]:
         """
         Return dict with CtxGroup objects, indexed by ID
 
@@ -1189,16 +1198,17 @@ class Storage:
             conn.execute(text("DELETE FROM sqlite_sequence WHERE name='ctx_group'"))
         return True
 
-    def clear_meta(self, meta_id: int):
+    def clear_meta(self, meta_id: int) -> bool:
         """
         Delete all items with meta ID
 
         :param meta_id: meta ID
-        :return:
+        :return: True if cleared
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(text(f"DELETE FROM ctx_item WHERE meta_id = {meta_id}"))
+        return True
 
     def update_group(self, group: CtxGroup) -> bool:
         """
@@ -1258,12 +1268,13 @@ class Storage:
             group.id = result.lastrowid
             return group.id
 
-    def update_meta_group_id(self, meta_id: int, group_id: int = None):
+    def update_meta_group_id(self, meta_id: int, group_id: int = None) -> bool:
         """
         Update meta group ID
 
         :param meta_id: ctx meta ID
         :param group_id: ctx group ID
+        :return: True if updated
         """
         db = self.window.core.db.get_db()
         stmt = text("""

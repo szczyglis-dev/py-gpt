@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.14 05:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
+from typing import Optional
 
 from llama_index.core import StorageContext
 from llama_index.core.indices.base import BaseIndex
@@ -67,7 +68,11 @@ class RedisProvider(BaseStore):
             **additional_args
         )
 
-    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
+    def get(
+            self,
+            id: str,
+            service_context: Optional[ServiceContext] = None
+    ) -> BaseIndex:
         """
         Get index
 
@@ -84,7 +89,11 @@ class RedisProvider(BaseStore):
         self.indexes[id] = self.index_from_store(vector_store, storage_context, service_context)
         return self.indexes[id]
 
-    def store(self, id: str, index: BaseIndex = None):
+    def store(
+            self,
+            id: str,
+            index: Optional[BaseIndex] = None
+    ):
         """
         Store index
 

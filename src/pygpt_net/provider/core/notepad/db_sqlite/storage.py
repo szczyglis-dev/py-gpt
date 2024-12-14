@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import time
+from typing import Dict, Any
 
 from sqlalchemy import text
 
@@ -33,7 +34,7 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[int, NotepadItem]:
         """
         Return dict with NotepadItem objects, indexed by ID
 
@@ -207,7 +208,7 @@ class Storage:
             notepad.id = result.lastrowid
             return notepad.id
 
-    def unpack(self, notepad: NotepadItem, row: dict) -> NotepadItem:
+    def unpack(self, notepad: NotepadItem, row: Dict[str, Any]) -> NotepadItem:
         """
         Unpack notepad item from DB row
 

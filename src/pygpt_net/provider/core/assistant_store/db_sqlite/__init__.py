@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
-# This store is a part of PYGPT package               #
+# This store is a part of PYGPT package              #
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.26 23:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import uuid
+from typing import Dict
 
 from packaging.version import Version
 
@@ -62,7 +63,7 @@ class DbSqliteProvider(BaseProvider):
             store.record_id = self.storage.insert(store)
         return store.record_id
 
-    def load_all(self) -> dict:
+    def load_all(self) -> Dict[str, AssistantStoreItem]:
         """
         Load stores from DB
 
@@ -91,7 +92,7 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving stored: {}".format(str(e)))
 
-    def save_all(self, items: dict):
+    def save_all(self, items: Dict[str, AssistantStoreItem]):
         """
         Save all stores to DB
 

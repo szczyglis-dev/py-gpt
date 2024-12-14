@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -193,6 +193,7 @@ class Presets:
         """
         if id in self.items:
             self.items[id].enabled = True
+
     def disable(self, id: str):
         """
         Disable preset
@@ -366,7 +367,11 @@ class Presets:
         self.sort_by_name()
         return id
 
-    def remove(self, id: str, remove_file: bool = True):
+    def remove(
+            self,
+            id: str,
+            remove_file: bool = True
+    ):
         """
         Delete preset
 
@@ -381,9 +386,7 @@ class Presets:
             # self.load_presets()
 
     def sort_by_name(self):
-        """
-        Sort presets by name
-        """
+        """Sort presets by name"""
         self.items = dict(
             sorted(
                 self.items.items(),
@@ -408,7 +411,7 @@ class Presets:
         self.items[preset.filename] = preset
         self.save(preset.filename)
 
-    def get_all(self) -> dict:
+    def get_all(self) -> Dict[str, PresetItem]:
         """
         Return all presets
 
@@ -428,7 +431,7 @@ class Presets:
             self.items[id] = base[id]
             self.save(id)
 
-    def load_base(self) -> dict:
+    def load_base(self) -> Dict[str, PresetItem]:
         """
         Load base presets
 
@@ -460,7 +463,11 @@ class Presets:
         """Save all presets"""
         self.provider.save_all(self.items)
 
-    def add_expert(self, agent_uuid: str, expert_uuid: str):
+    def add_expert(
+            self,
+            agent_uuid: str,
+            expert_uuid: str
+    ):
         """
         Add expert to agent
 
@@ -474,7 +481,11 @@ class Presets:
             agent.experts.append(expert_uuid)
         self.save(agent.filename)
 
-    def remove_expert(self, agent_uuid: str, expert_uuid: str):
+    def remove_expert(
+            self,
+            agent_uuid: str,
+            expert_uuid: str
+    ):
         """
         Remove expert from agent
         :param agent_uuid: agent uuid
