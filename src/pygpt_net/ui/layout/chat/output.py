@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -192,7 +192,7 @@ class Output:
         right_layout.addWidget(self.window.ui.nodes['prompt.context'])
         right_layout.addWidget(QLabel("  "))
         right_layout.addWidget(self.window.ui.nodes['input.counter'])
-        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setContentsMargins(0, 8, 20, 0)
 
         left_widget = QWidget()
         left_widget.setLayout(left_layout)
