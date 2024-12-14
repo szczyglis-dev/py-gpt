@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
 import json
@@ -363,7 +363,7 @@ class Worker(BaseWorker):
             url = self.get_param(item, "url")
         if not url:
             return self.make_response(item, "No URL provided")
-        links = self.plugin.window.core.web.get_links(url)
+        links = self.plugin.window.core.web.helpers.get_links(url)
         result = {
             'links': links,
         }
@@ -385,14 +385,14 @@ class Worker(BaseWorker):
             download = bool(self.get_param(item, "download"))
         if not url:
             return self.make_response(item, "No URL provided")
-        images = self.plugin.window.core.web.get_images(url)
+        images = self.plugin.window.core.web.helpers.get_images(url)
         result = {
             'images': images,
         }
         if images and download:
             for img in images:
                 try:
-                    path = self.plugin.window.core.web.download_image(img)
+                    path = self.plugin.window.core.web.helpers.download_image(img)
                     if path:
                         self.ctx.images_before.append(path)
                 except Exception as e:

@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
 import ssl
 from urllib.request import Request, urlopen
-
-from requests import HTTPError
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.web.base import BaseProvider
@@ -96,7 +94,7 @@ class Plugin(BasePlugin):
 
         :return: providers dict
         """
-        return self.window.core.web.get_providers("search_engine")
+        return self.window.core.web.get_providers(self.window.core.web.PROVIDER_SEARCH_ENGINE)
 
     def get_provider_options(self) -> list:
         """Get provider options"""
