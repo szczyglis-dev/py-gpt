@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 07:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -15,6 +15,7 @@ from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.utils import trans
 
 
@@ -133,7 +134,11 @@ class Tabs:
                 self.window.ui.nodes['output'][pid].setVisible(True)
         #self.switch_tab(Tab.TAB_CHAT)
 
-    def on_tab_changed(self, idx: int, column_idx: int = 0):
+    def on_tab_changed(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Output tab changed
 
@@ -212,6 +217,7 @@ class Tabs:
         :return: tab type
         """
         tab = self.window.core.tabs.get_tab_by_index(self.get_current_idx(), self.column_idx)
+
         if tab is None:
             return None
         return tab.type
@@ -252,16 +258,30 @@ class Tabs:
         """Column changed event"""
         if self.locked:
             return
+        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
+        tabs.set_active(True)
+
+        if self.column_idx == 0:
+            second_tabs = self.window.ui.layout.get_tabs_by_idx(1)
+        else:
+            second_tabs = self.window.ui.layout.get_tabs_by_idx(0)
+        second_tabs.set_active(False)
+        idx = tabs.currentIndex()
+        self.current = idx
         tab = self.window.core.tabs.get_tab_by_index(self.current, self.column_idx)
         if tab is None:
             return
         current_ctx = self.window.core.ctx.get_current()
-        if current_ctx is not None and current_ctx != tab.data_id:
+        if (current_ctx is not None and current_ctx != tab.data_id) or current_ctx is None:
             self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
         self.update_current()
 
-    def on_tab_clicked(self, idx: int, column_idx: int = 0):
+    def on_tab_clicked(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Tab click event
 
@@ -283,7 +303,11 @@ class Tabs:
         self.on_column_changed()
         self.update_current()
 
-    def on_tab_dbl_clicked(self, idx: int, column_idx: int = 0):
+    def on_tab_dbl_clicked(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Tab double click event
 
@@ -294,7 +318,11 @@ class Tabs:
         self.on_tab_changed(idx, column_idx)
         self.update_current()
 
-    def on_tab_closed(self, idx: int, column_idx: int = 0):
+    def on_tab_closed(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Tab close event
 
@@ -306,7 +334,11 @@ class Tabs:
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
         self.update_current()
 
-    def on_tab_moved(self, idx: int, column_idx: int = 0):
+    def on_tab_moved(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Tab moved event
 
@@ -318,7 +350,11 @@ class Tabs:
         self.window.core.tabs.update()
         self.update_current()
 
-    def close(self, idx: int, column_idx: int = 0):
+    def close(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Close tab
 
@@ -383,7 +419,11 @@ class Tabs:
         if idx is not None:
             self.switch_tab_by_idx(idx)
 
-    def switch_tab_by_idx(self, idx: int, column_idx: int = 0):
+    def switch_tab_by_idx(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Switch tab by index
 
@@ -436,7 +476,11 @@ class Tabs:
         tabs = self.window.ui.layout.get_active_tabs()
         tabs.setTabToolTip(self.current, tooltip)
 
-    def rename(self, idx: int, column_idx: int = 0):
+    def rename(
+            self,
+            idx: int,
+            column_idx: int = 0
+    ):
         """
         Rename tab (show dialog)
 
@@ -506,6 +550,18 @@ class Tabs:
         :param title: new title
         """
         self.update_title(self.current, title)
+
+    def on_load_ctx(self, meta: CtxMeta):
+        """
+        Load context
+
+        :param meta: context meta
+        """
+        # get current tab
+        tab = self.get_current_tab()
+        if tab is not None and tab.type == Tab.TAB_CHAT:
+            tab.data_id = meta.id
+        self.update_title_current(meta.name)
 
     def open_by_type(self, type: int):
         """

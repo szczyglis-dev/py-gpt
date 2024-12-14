@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2024.12.14 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton
@@ -89,11 +89,20 @@ class OutputTabs(QTabWidget):
     def __init__(self, window=None, column=None):
         super(OutputTabs, self).__init__(window)
         self.window = window
+        self.active = True
         self.column = column
         self.setMinimumHeight(1)
         self.owner = None
         self.setMovable(True)
         self.init()
+
+    def set_active(self, active: bool):
+        """Set the active state of the tab bar."""
+        self.active = active
+        if self.active:
+            self.setStyleSheet("QTabBar::tab { border-bottom-width: 2px; }")
+        else:
+            self.setStyleSheet("QTabBar::tab { border-bottom-width: 0px; }")
 
     def init(self):
         """Initialize"""
