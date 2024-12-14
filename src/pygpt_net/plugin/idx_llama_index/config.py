@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 19:00:00                  #
+# Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -71,7 +71,7 @@ class Config(BaseConfig):
             "model_prepare_question",
             type="combo",
             use="models",
-            value="gpt-3.5-turbo",
+            value="gpt-4o-mini",
             label="Model for question preparation",
             description="Model used to prepare question before asking Llama-index, default: gpt-3.5-turbo",
             tooltip="Model",
@@ -88,7 +88,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_query",
             type="combo",
-            value="gpt-3.5-turbo",
+            value="gpt-4o-mini",
             label="Model",
             description="Model used for querying Llama-index, default: gpt-3.5-turbo",
             tooltip="Query model",
