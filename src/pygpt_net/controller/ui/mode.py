@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -189,8 +189,12 @@ class Mode:
                 self.window.ui.tabs['input'].setTabVisible(2, False)
                 self.window.ui.tabs['input'].setTabVisible(3, False)
 
-        # toggle chat footer
-        if not self.is_chat_tab():
+        # chat footer
+        self.toggle_chat_footer()
+
+    def toggle_chat_footer(self):
+        """Toggle chat footer"""
+        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
             self.hide_chat_footer()
         else:
             self.show_chat_footer()
@@ -200,18 +204,12 @@ class Mode:
         Check if vision is allowed
 
         :param mode: current mode
+        :return: True if vision is allowed
         """
-        if mode == MODE_VISION:
+        if self.window.controller.ui.vision.has_vision():
             return True
 
-        allowed = self.window.controller.painter.is_active()
-        if allowed:
-            return True
-
-        if mode in [MODE_IMAGE, MODE_ASSISTANT]:
-            return False
-
-        if self.window.controller.ui.vision.is_vision_model():
+        if self.window.controller.painter.is_active():
             return True
 
         # event: UI: vision
@@ -224,7 +222,12 @@ class Mode:
         return event.data['value']
 
     def are_attachments(self, mode: str) -> bool:
-        """Check if attachments are allowed"""
+        """
+        Check if attachments are allowed
+
+        :param mode: current mode
+        :return: True if attachments are allowed
+        """
         if mode in [MODE_VISION, MODE_ASSISTANT]:
             return True
 
@@ -242,14 +245,6 @@ class Mode:
         })
         self.window.dispatch(event)
         return event.data['value']
-
-    def is_chat_tab(self) -> bool:
-        """
-        Check if current tab is chat
-
-        :return: True if chat tab
-        """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
 
     def show_chat_footer(self):
         """Show chat footer"""

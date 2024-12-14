@@ -19,9 +19,6 @@ import cv2
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QImage, QPixmap, Qt
 
-from pygpt_net.core.types import (
-    MODE_VISION,
-)
 from pygpt_net.core.events import AppEvent, KernelEvent
 from pygpt_net.core.camera import CaptureWorker
 from pygpt_net.utils import trans
@@ -508,15 +505,9 @@ class Camera(QObject):
 
         :return: True if capture is allowed
         """
-        mode = self.window.core.config.get('mode')
         if self.window.controller.painter.is_active():
             return True
-        if (mode != MODE_VISION
-                and mode not in self.window.controller.chat.vision.allowed_modes):
-            return False
-        if self.window.controller.plugins.is_type_enabled('vision'):
-            return True
-        if self.window.controller.ui.vision.is_vision_model():
+        if self.window.controller.ui.vision.has_vision():
             return True
         return False
 
