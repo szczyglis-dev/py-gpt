@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 19:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 import os
@@ -26,14 +26,6 @@ class OpenAITextToSpeech(BaseProvider):
         self.plugin = kwargs.get("plugin")
         self.id = "openai_tts"
         self.name = "OpenAI TTS"
-        self.allowed_voices = [
-            'alloy',
-            'echo',
-            'fable',
-            'onyx',
-            'nova',
-            'shimmer',
-        ]
         self.allowed_models = [
             'tts-1',
             'tts-1-hd',
@@ -52,10 +44,11 @@ class OpenAITextToSpeech(BaseProvider):
         )
         self.plugin.add_option(
             "openai_voice",
-            type="text",
+            type="combo",
             value="alloy",
             label="Voice",
             tab="openai_tts",
+            use="audio_tts_whisper_voices",
             description="Specify voice, available voices: "
                         "alloy, echo, fable, onyx, nova, shimmer",
         )
@@ -71,9 +64,10 @@ class OpenAITextToSpeech(BaseProvider):
         output_file = self.plugin.output_file
         voice = self.plugin.get_option_value('openai_voice')
         model = self.plugin.get_option_value('openai_model')
+        allowed_voices = self.plugin.window.core.audio.whisper.get_voices()
         if model not in self.allowed_models:
             model = 'tts-1'
-        if voice not in self.allowed_voices:
+        if voice not in allowed_voices:
             voice = 'alloy'
         path = os.path.join(
             self.plugin.window.core.config.path,

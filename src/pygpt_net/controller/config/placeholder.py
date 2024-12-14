@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -104,8 +104,22 @@ class Placeholder:
             return self.get_voice_control_actions()
         elif id == "audio_input_devices":
             return self.get_audio_input_devices()
+        elif id == "audio_tts_whisper_voices":
+            return self.get_audio_tts_whisper_voices()
         else:
             return []
+
+    def get_audio_tts_whisper_voices(self) -> List[Dict[str, str]]:
+        """
+        Get audio TTS whisper voices list
+
+        :return: placeholders list
+        """
+        voices = self.window.core.audio.whisper.get_voices()
+        data = []
+        for voice in voices:
+            data.append({voice: voice})
+        return data
 
     def get_audio_input_devices(self) -> List[Dict[str, str]]:
         """

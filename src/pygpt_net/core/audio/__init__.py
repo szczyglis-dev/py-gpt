@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 import re
@@ -17,6 +17,8 @@ from bs4 import UnicodeDammit
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
 
+from .whisper import Whisper
+
 
 class Audio:
     def __init__(self, window=None):
@@ -26,6 +28,7 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
+        self.whisper = Whisper(window)
         self.providers = {
             "input": {},
             "output": {},
