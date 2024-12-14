@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 19:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -20,7 +20,7 @@ class CtxItem:
         """
         Context item
 
-        :param mode: Mode (completion, chat, img, vision, langchain, assistant, llama_index, agent)
+        :param mode: Mode (completion, chat, img, vision, langchain, assistant, llama_index, agent, expert)
         """
         self.id = None
         self.meta = None  # CtxMeta object
@@ -136,6 +136,17 @@ class CtxItem:
         :return: True if commands are present
         """
         return len(self.cmds) > 0 or len(self.tool_calls) > 0
+
+    def audio_read_allowed(self) -> bool:
+        """
+        Check if audio read allowed
+
+        :return: True if audio read allowed
+        """
+        allowed = True
+        if self.has_commands() or '~###~{"cmd":' in self.output:
+            allowed = False
+        return allowed
 
     def add_doc_meta(self, meta: dict):
         """

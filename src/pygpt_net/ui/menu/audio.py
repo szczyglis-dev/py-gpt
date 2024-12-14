@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -52,6 +52,13 @@ class Audio:
             checkable=False,
         )
 
+        self.window.ui.menu['audio.stop'] = QAction(
+            QIcon(":/icons/mute.svg"),
+            trans("menu.audio.stop"),
+            self.window,
+            checkable=False,
+        )
+
         self.window.ui.menu['audio.output'].triggered.connect(
             lambda: self.window.controller.plugins.toggle('audio_output')
         )
@@ -67,6 +74,9 @@ class Audio:
         self.window.ui.menu['audio.cache.clear'].triggered.connect(
             lambda: self.window.controller.audio.clear_cache()
         )
+        self.window.ui.menu['audio.stop'].triggered.connect(
+            lambda: self.window.controller.audio.stop_audio()
+        )
 
         self.window.ui.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
         self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.input'])
@@ -76,3 +86,4 @@ class Audio:
         self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.control.global'])
         self.window.ui.menu['menu.audio'].addSeparator()
         self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.cache.clear'])
+        self.window.ui.menu['menu.audio'].addAction(self.window.ui.menu['audio.stop'])

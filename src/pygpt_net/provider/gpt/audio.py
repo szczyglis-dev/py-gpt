@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 import base64
-from typing import Optional
+from typing import Optional, Union, List, Dict, Any
 
 from pygpt_net.core.bridge.context import MultimodalContext
 
@@ -26,11 +26,11 @@ class Audio:
 
     def build_content(
             self,
-            content,
+            content: Optional[Union[str, list]] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
-    ) -> list:
+    ) -> List[Dict[str, Any]]:
         """
-        Build audio content
+        Build audio content from multimodal context
 
         :param content: previous content or input prompt
         :param multimodal_ctx: multimodal context

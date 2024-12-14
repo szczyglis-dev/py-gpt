@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.14 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -167,6 +167,11 @@ class Plugin(BasePlugin):
         cache_file = None
         if event.data is not None and isinstance(event.data, dict) and "cache_file" in event.data:
             cache_file = event.data["cache_file"]
+
+        # check for audio read allowed. Prevents reading audio in commands, results, etc.
+        if name == Event.CTX_AFTER:
+            if not ctx.audio_read_allowed():
+                return # abort if audio read is not allowed (commands, results, etc.)
         
         try:
             if text is not None and len(text) > 0:
