@@ -50,7 +50,7 @@ class CtxAttachmentProvider(BaseStore):
 
         :return: True if exists
         """
-        path = self.get_path()
+        path = self.get_path("")
         if os.path.exists(path):
             store = os.path.join(path, "docstore.json")
             if os.path.exists(store):

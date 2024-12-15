@@ -180,7 +180,7 @@ class Attachment(QObject):
             if tmp_path:
                 for root, dirs, files in os.walk(tmp_path):
                     for file in files:
-                        path = os.path.join(root, file)
+                        path = str(os.path.join(root, file))
                         sub_attachment = AttachmentItem()
                         sub_attachment.path = path
                         sub_attachment.name = os.path.basename(path)
@@ -197,11 +197,9 @@ class Attachment(QObject):
                                 auto_index=auto_index,
                             )
                             if item:
-                                item["path"] = os.path.basename(attachment.path) + "/" + path_relative
+                                item["path"] = os.path.basename(attachment.path) + "/" + str(path_relative)
                                 item["size"] = os.path.getsize(path)
-                                if meta.additional_ctx is None:
-                                    meta.additional_ctx = []
-                                meta.additional_ctx.append(item)
+                                self.append_to_meta(meta, item)
                                 uploaded = True
                                 sub_attachment.consumed = True
                                 attachment.consumed = True
@@ -215,13 +213,26 @@ class Attachment(QObject):
                 auto_index=auto_index,
             )
             if item:
-                if meta.additional_ctx is None:
-                    meta.additional_ctx = []
-                meta.additional_ctx.append(item)
+                self.append_to_meta(meta, item)
                 attachment.consumed = True  # allow for deletion
                 uploaded = True
-
         return uploaded
+
+    def append_to_meta(self, meta: CtxMeta, item: Dict[str, Any]):
+        """
+        Append item to meta
+
+        :param meta: CtxMeta instance
+        :param item: Attachment item
+        """
+        if meta.group:
+            if meta.group.additional_ctx is None:
+                meta.group.additional_ctx = []
+            meta.group.additional_ctx.append(item)
+            return
+        if meta.additional_ctx is None:
+            meta.additional_ctx = []
+        meta.additional_ctx.append(item)
 
     def upload_web(
             self,
@@ -248,9 +259,9 @@ class Attachment(QObject):
         :param meta: CtxMeta
         :return: True if has context
         """
-        if meta is None or meta.additional_ctx is None:
+        if meta is None:
             return False
-        return len(meta.additional_ctx) > 0
+        return meta.has_additional_ctx()
 
     def current_has_context(self) -> bool:
         """
@@ -334,7 +345,7 @@ class Attachment(QObject):
         :param meta: CtxMeta instance
         """
         # update list of attachments
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             items = []
         else:
             items = self.window.core.attachments.context.get_all(meta)
@@ -347,7 +358,7 @@ class Attachment(QObject):
 
         :param meta: CtxMeta instance
         """
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             num_files = 0
         else:
             num_files = self.window.core.attachments.context.count(meta)
@@ -402,13 +413,14 @@ class Attachment(QObject):
             )
             return
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
             item = items[idx]
             self.window.core.attachments.context.delete(meta, item, delete_files=remove_local)
             self.update_list(meta)
+            self.window.controller.ctx.update()
 
     def clear(
             self,
@@ -432,10 +444,11 @@ class Attachment(QObject):
             return
 
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return
         self.window.core.attachments.context.clear(meta, delete_files=remove_local)
         self.update_list(meta)
+        self.window.controller.ctx.update()
 
     def select(self, idx: int):
         """
@@ -452,7 +465,7 @@ class Attachment(QObject):
         :param idx: Index on list
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -471,7 +484,7 @@ class Attachment(QObject):
         :param idx: Index on list
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -491,7 +504,7 @@ class Attachment(QObject):
         :param idx: Index on list
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -510,7 +523,7 @@ class Attachment(QObject):
         :return: True if has file
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return False
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -529,7 +542,7 @@ class Attachment(QObject):
         :return: True if has source directory
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return False
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -549,7 +562,7 @@ class Attachment(QObject):
         :return: True if has destination directory
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or meta.additional_ctx is None:
+        if meta is None or not meta.has_additional_ctx():
             return False
         items = self.window.core.attachments.context.get_all(meta)
         if idx < len(items):
@@ -570,10 +583,10 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None:
             return 0
-        if meta.additional_ctx is None:
+        if not meta.has_additional_ctx():
             return 0
         tokens = 0
-        for item in meta.additional_ctx:
+        for item in meta.get_additional_ctx():
             if "tokens" in item:
                 try:
                     tokens += int(item["tokens"])

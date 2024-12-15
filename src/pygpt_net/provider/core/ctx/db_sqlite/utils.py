@@ -125,7 +125,10 @@ def unpack_item_value(value: Any) -> Any:
         return value
 
 
-def unpack_item(item: CtxItem, row: Dict[str, Any]) -> CtxItem:
+def unpack_item(
+        item: CtxItem,
+        row: Dict[str, Any]
+) -> CtxItem:
     """
     Unpack context item from DB row
 
@@ -185,9 +188,12 @@ def unpack_item(item: CtxItem, row: Dict[str, Any]) -> CtxItem:
     return item
 
 
-def unpack_meta(meta: CtxMeta, row: Dict[str, Any]) -> CtxMeta:
+def unpack_meta(
+        meta: CtxMeta,
+        row: Dict[str, Any]
+) -> CtxMeta:
     """
-    Unpack context meta data from DB row
+    Unpack context meta-data from DB row
 
     :param meta: Context meta (CtxMeta)
     :param row: DB row
@@ -221,20 +227,38 @@ def unpack_meta(meta: CtxMeta, row: Dict[str, Any]) -> CtxMeta:
 
     if meta.additional_ctx is None:
         meta.additional_ctx = []
+
+    # add group if exists
+    if meta.group_id:
+        group = CtxGroup()
+        group.id = meta.group_id
+        group.uuid = row['group_uuid']
+        group.name = row['group_name']
+        group.additional_ctx = unpack_item_value(row['group_additional_ctx_json'])
+        if group.additional_ctx is None:
+            group.additional_ctx = []
+        meta.group = group
+
     return meta
 
 
-def unpack_group(group: CtxGroup, row: Dict[str, Any]) -> CtxGroup:
+def unpack_group(
+        group: CtxGroup,
+        row: Dict[str, Any]
+) -> CtxGroup:
     """
     Unpack context group data from DB row
 
     :param group: Context group (CtxGroup)
     :param row: DB row
-    :return: context meta
+    :return: context group
     """
     group.id = unpack_var(row['id'], 'int')
     group.uuid = row['uuid']
     group.created = unpack_var(row['created_ts'], 'int')
     group.updated = unpack_var(row['updated_ts'], 'int')
     group.name = row['name']
+    group.additional_ctx = unpack_item_value(row['additional_ctx_json'])
+    if group.additional_ctx is None:
+        group.additional_ctx = []
     return group

@@ -125,7 +125,7 @@ class Context:
         meta_path = self.get_dir(meta)
         context = ""
         if os.path.exists(meta_path) and os.path.isdir(meta_path):
-            for file in meta.additional_ctx:
+            for file in meta.get_additional_ctx():
                 if ("type" not in file
                         or file["type"] not in ["local_file", "url"]):
                     continue
@@ -183,7 +183,7 @@ class Context:
 
         indexed = False
         # index files if not indexed by auto_index
-        for i, file in enumerate(meta.additional_ctx):
+        for i, file in enumerate(meta.get_additional_ctx()):
             if "indexed" not in file or not file["indexed"]:
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
@@ -496,7 +496,7 @@ class Context:
         :param meta: CtxMeta instance
         :return: list of attachments
         """
-        return meta.additional_ctx
+        return meta.get_additional_ctx()
 
     def get_dir(self, meta: CtxMeta) -> str:
         """
@@ -506,6 +506,8 @@ class Context:
         :return: directory path
         """
         meta_uuid = str(meta.uuid)
+        if meta.group:
+            meta_uuid = str(meta.group.uuid)
         return os.path.join(self.window.core.config.get_user_dir("ctx_idx"), meta_uuid)
 
     def get_selected_model(self, mode: str = "summary"):
@@ -562,7 +564,7 @@ class Context:
         :param meta: CtxMeta instance
         :return: number of attachments
         """
-        return len(meta.additional_ctx)
+        return len(meta.get_additional_ctx())
 
     def delete(
             self,
@@ -577,11 +579,11 @@ class Context:
         :param item: Attachment item dict
         :param delete_files: delete files
         """
-        meta.additional_ctx.remove(item)
+        meta.remove_additional_ctx(item)
         self.window.core.ctx.save(meta.id)
         if delete_files:
             self.delete_local(meta, item)
-        if len(meta.additional_ctx) == 0:
+        if len(meta.get_additional_ctx()) == 0:
             self.delete_index(meta)
 
     def delete_by_meta(self, meta: CtxMeta):
@@ -613,7 +615,7 @@ class Context:
         :param meta: CtxMeta instance
         :param delete_files: delete files
         """
-        meta.additional_ctx = []
+        meta.reset_additional_ctx()
         self.window.core.ctx.save(meta.id)
         if delete_files:
             self.delete_index(meta)
@@ -644,7 +646,7 @@ class Context:
         :param meta: CtxMeta instance
         :param delete_files: delete files
         """
-        meta.additional_ctx = []
+        meta.reset_additional_ctx()
         self.window.core.ctx.save(meta.id)
         if delete_files:
             self.delete_index(meta)

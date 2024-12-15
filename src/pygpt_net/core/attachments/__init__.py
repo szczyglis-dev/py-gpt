@@ -161,7 +161,7 @@ class Attachments:
         if meta is None:
             return []
         attachments = []
-        for attachment in meta.additional_ctx:
+        for attachment in meta.get_additional_ctx():
             item = AttachmentItem()
             if 'uuid' not in attachment:
                 continue

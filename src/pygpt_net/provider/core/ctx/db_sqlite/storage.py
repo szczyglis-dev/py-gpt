@@ -68,6 +68,9 @@ class Storage:
         # only base by default
         where_clauses.append("(m.root_id IS NULL OR m.root_id = 0)")
 
+        # join group
+        join_clauses.append("LEFT JOIN ctx_group g ON m.group_id = g.id")
+
         # search_string
         if search_string:
             date_ranges = search_by_date_string(search_string)
@@ -106,15 +109,16 @@ class Storage:
                     continue
                 mode = filter.get('mode', '=')
                 value = filter.get('value', '')
+                key_name = 'm.' + key
                 if isinstance(value, int):
-                    where_clauses.append(f"{key} {mode} :{key}")
+                    where_clauses.append(f"{key_name} {mode} :{key}")
                     bind_params[key] = value
                 elif isinstance(value, str):
-                    where_clauses.append(f"{key} {mode} :{key}")
+                    where_clauses.append(f"{key_name} {mode} :{key}")
                     bind_params[key] = f"%{value}%"
                 elif isinstance(value, list):
                     values = "(" + ",".join([str(x) for x in value]) + ")"
-                    where_clauses.append(f"{key} {mode} {values}")
+                    where_clauses.append(f"{key_name} {mode} {values}")
 
         where_statement = " AND ".join(where_clauses) if where_clauses else "1"
         join_statement = " ".join(join_clauses) if join_clauses else ""
@@ -154,8 +158,18 @@ class Storage:
             append_date_ranges=True,
         )
         stmt_text = f"""
-            SELECT m.* FROM ctx_meta m {join_statement} WHERE {where_statement}
-            ORDER BY m.updated_ts DESC {limit_suffix}
+            SELECT 
+                m.*,
+                g.name as group_name,
+                g.uuid as group_uuid,
+                g.additional_ctx_json as group_additional_ctx_json
+            FROM 
+                ctx_meta m 
+                {join_statement} 
+            WHERE 
+                {where_statement}
+            ORDER BY 
+                m.updated_ts DESC {limit_suffix}
         """
         stmt = text(stmt_text).bindparams(**bind_params)
 
@@ -177,7 +191,17 @@ class Storage:
         :return: dict of CtxMeta
         """
         stmt_text = f"""
-            SELECT * FROM ctx_meta WHERE indexed_ts > 0
+            SELECT 
+                m.*, 
+                g.name as group_name,
+                g.uuid as group_uuid,
+                g.additional_ctx_json as group_additional_ctx_json 
+            FROM 
+                ctx_meta m 
+            LEFT JOIN 
+                ctx_group g ON m.group_id = g.id
+            WHERE 
+                indexed_ts > 0
         """
         stmt = text(stmt_text)
         items = {}
@@ -431,7 +455,26 @@ class Storage:
         )
         with db.begin() as conn:
             conn.execute(stmt)
-            return True
+
+        # update group
+        if meta.group:
+            stmt = text("""
+                UPDATE ctx_group
+                SET
+                    name = :name,
+                    additional_ctx_json = :additional_ctx_json,
+                    updated_ts = :updated_ts
+                WHERE id = :id
+            """).bindparams(
+                id=meta.group.id,
+                name=meta.group.name,
+                additional_ctx_json=pack_item_value(meta.group.additional_ctx),
+                updated_ts=int(time.time()),
+            )
+            with db.begin() as conn:
+                conn.execute(stmt)
+
+        return True
 
     def update_meta_all(
             self,

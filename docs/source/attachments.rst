@@ -16,6 +16,8 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in ``ChatGPT``. There's a separate ``Attachments`` tab next to the text input area specifically for managing file uploads. 
 
+**Tip: Attachments uploaded in group are available in all contexts in group**.
+
 .. image:: images/v2_file_input.png
    :width: 800
 

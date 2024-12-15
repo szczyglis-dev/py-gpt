@@ -46,6 +46,9 @@ def test_get_meta(mock_window):
         'indexes_json': {},
         'additional_ctx_json': [],
         'group_id': 1,
+        'group_name': 'group_name',
+        'group_uuid': 'group_uuid',
+        'group_additional_ctx_json': [],
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
@@ -293,6 +296,9 @@ def test_unpack_meta(mock_window):
         'indexes_json': {},
         'additional_ctx_json': [],
         'group_id': 1,
+        'group_name': 'group_name',
+        'group_uuid': 'group_uuid',
+        'group_additional_ctx_json': [],
     }
     meta = CtxMeta()
     unpack_meta(meta, row)

@@ -362,10 +362,57 @@ class CtxMeta:
         self.label = 0  # label color
         self.indexes = {}  # indexes data
         self.additional_ctx = [] # additional context data
+        self.group = None  # parent group
         self.group_id = None
         self.root_id = None
         self.parent_id = None
         self.owner_uuid = None
+
+    def has_additional_ctx(self) -> bool:
+        """
+        Check if additional context data is attached
+
+        :return: True if additional context data is present
+        """
+        if self.additional_ctx is not None and len(self.additional_ctx) > 0:
+            return True
+        if self.group:
+            if self.group.additional_ctx is not None and len(self.group.additional_ctx) > 0:
+                return True
+        return False
+
+    def get_additional_ctx(self) -> list:
+        """
+        Get additional context data
+
+        :return: list
+        """
+        if self.group:
+            if self.group.additional_ctx:
+                return self.group.additional_ctx
+        if self.additional_ctx:
+            return self.additional_ctx
+        return []
+
+    def reset_additional_ctx(self):
+        """Delete additional context data"""
+        if self.group:
+            self.group.additional_ctx = []
+        else:
+            self.additional_ctx = []
+
+    def remove_additional_ctx(self, item: dict):
+        """
+        Remove additional context data item
+
+        :param item: dict
+        """
+        if self.group:
+            if item in self.group.additional_ctx:
+                self.group.additional_ctx.remove(item)
+        else:
+            if item in self.additional_ctx:
+                self.additional_ctx.remove(item)
 
     def to_dict(self) -> dict:
         """
@@ -373,7 +420,7 @@ class CtxMeta:
 
         :return: dict
         """
-        return {
+        data = {
             "id": self.id,
             "external_id": self.external_id,
             "uuid": self.uuid,
@@ -404,6 +451,9 @@ class CtxMeta:
             "parent_id": self.parent_id,
             "owner_uuid": self.owner_uuid,
         }
+        if self.group:
+            data["__group__"] = self.group.to_dict()
+        return data
 
     def from_dict(self, data: dict):
         """
@@ -458,6 +508,7 @@ class CtxGroup:
         self.items = []
         self.created = int(time.time())
         self.updated = int(time.time())
+        self.additional_ctx = []
         self.count = 0
 
     def to_dict(self) -> dict:
@@ -471,6 +522,7 @@ class CtxGroup:
             "uuid": self.uuid,
             "name": self.name,
             "items": self.items,
+            "additional_ctx": self.additional_ctx,
             "created": self.created,
             "updated": self.updated,
             "count": self.count,

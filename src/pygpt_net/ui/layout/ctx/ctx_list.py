@@ -216,7 +216,7 @@ class CtxList:
         label = data.label
         if data.important:
             is_important = True
-        if data.additional_ctx and len(data.additional_ctx) > 0:
+        if data.has_additional_ctx():
             is_attachment = True
         custom_data = {
             "label": label,
