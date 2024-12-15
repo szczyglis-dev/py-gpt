@@ -128,7 +128,7 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "get_email_body",
             instruction="Retrieve the complete email content from the inbox. Use this to access the message body. "
-                        "To obtain email IDs, use the 'receive_emails' function first.",
+                        "To obtain email IDs, use the 'get_emails' function first.",
             params=[
                 {
                     "name": "id",
