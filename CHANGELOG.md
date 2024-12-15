@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.4.43 (2024-12-15)
+
+- Fix: Bug on attachment upload.
+- Added: Attachments uploaded in groups are now available for all contexts in the group (beta).
+
 ## 2.4.42 (2024-12-15)
 
 - Added Mailer plugin, which allows sending and retrieving emails from the server, and reading them. It currently supports only SMTP.
