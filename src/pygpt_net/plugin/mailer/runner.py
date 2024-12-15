@@ -130,6 +130,11 @@ class Runner:
         username = self.plugin.get_option_value("smtp_user")
         password = self.plugin.get_option_value("smtp_password")
         msg = "Receiving emails from: {}".format(server)
+        order = "desc"
+        if "order" in item["params"]:
+            tmp_order = item["params"]["order"].lower()
+            if tmp_order in ["asc", "desc"]:
+                order = tmp_order
         self.log(msg)
 
         messages = []
@@ -145,29 +150,52 @@ class Runner:
             pop3.pass_(password)
 
             message_count, mailbox_size = pop3.stat()
+            total = message_count
             print(f'Num of messages: {message_count}, Inbox size: {mailbox_size} bytes')
 
-            if offset > 0:
-                message_count -= offset
-            if message_count < limit:
-                limit = message_count
-            range_max = message_count - limit
-            if limit == 0:
-                range_max = 0
+            if order == "desc":
+                if offset > 0:
+                    message_count -= offset
+                if message_count < limit:
+                    limit = message_count
+                range_max = message_count - limit
+                if limit == 0:
+                    range_max = 0
+                for i in range(message_count, range_max, -1):
+                    response, lines, octets = pop3.top(i, 0)
+                    msg_content = b'\r\n'.join(lines)
+                    msg = BytesParser().parsebytes(msg_content)
+                    msg_body = {
+                        "ID": i,
+                        "From": msg["From"],
+                        "Subject": msg["Subject"],
+                        "Date": msg["Date"],
+                    }
+                    messages.append(msg_body)
+            else:
+                if limit == 0:
+                    limit = message_count
+                else:
+                    limit += offset
+                if limit > message_count:
+                    limit = message_count
+                for i in range(offset + 1, limit + 1):
+                    response, lines, octets = pop3.top(i, 0)
+                    msg_content = b'\r\n'.join(lines)
+                    msg = BytesParser().parsebytes(msg_content)
+                    msg_body = {
+                        "ID": i,
+                        "From": msg["From"],
+                        "Subject": msg["Subject"],
+                        "Date": msg["Date"],
+                    }
+                    messages.append(msg_body)
 
-            for i in range(message_count, range_max, -1):
-                response, lines, octets = pop3.top(i, 0)
-                msg_content = b'\r\n'.join(lines)
-                msg = BytesParser().parsebytes(msg_content)
-                msg_body = {
-                    "ID": i,
-                    "From": msg["From"],
-                    "Subject": msg["Subject"],
-                    "Date": msg["Date"],
-                }
-                messages.append(msg_body)
             pop3.quit()
-            result = messages
+            result = {
+                "total": total,
+                "messages": messages,
+            }
         except Exception as e:
             self.error(e)
             result = "Error: {}".format(str(e))
