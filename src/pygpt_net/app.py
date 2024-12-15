@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2024.12.15 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -32,6 +32,7 @@ from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.agent import Plugin as AgentPlugin
+from pygpt_net.plugin.mailer import Plugin as MailerPlugin
 
 # agents (Llama-index)
 from pygpt_net.provider.agents.openai import OpenAIAgent
@@ -320,6 +321,7 @@ def run(**kwargs):
     launcher.add_plugin(OpenAIDallePlugin())
     launcher.add_plugin(OpenAIVisionPlugin())
     launcher.add_plugin(IdxLlamaIndexPlugin())
+    launcher.add_plugin(MailerPlugin())
     launcher.add_plugin(CrontabPlugin())
 
     # register custom plugins

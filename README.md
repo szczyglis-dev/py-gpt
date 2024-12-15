@@ -1067,6 +1067,8 @@ as well as list and create directories.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
 
+- `Mailer` - provides the ability to send emails.
+
 ## Audio Input
 
 The plugin facilitates speech recognition (by default using the `Whisper` model from OpenAI, `Google` and `Bing` are also available). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
@@ -2277,6 +2279,49 @@ Allows `capture` command execution. If enabled, model will be able to capture im
 - `Tool: making screenshots` *cmd.make_screenshot*
 
 Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
+
+## Mailer
+
+Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
+
+**Options**
+
+- `From (email)` *from_email*
+
+From (email), e.g. me@domain.com
+
+- `Tool: send_mail` *cmd.send_mail*
+
+Allows `send_mail` command execution. If enabled, model will be able to sending emails.
+
+- `Tool: receive_emails` *cmd.receive_emails*
+
+Allows `receive_emails` command execution. If enabled, model will be able to receive emails from the server.
+
+- `Tool: get_email_body` *cmd.get_email_body*
+
+Allows `get_email_body` command execution. If enabled, model will be able to receive message body from the server.
+
+- `SMTP Host` *smtp_host*
+
+SMTP Host, e.g. smtp.domain.com
+
+- `SMTP Port (Inbox)` *smtp_port_inbox*
+
+SMTP Port, default: 995
+
+- `SMTP Port (Outbox)` *smtp_port_outbox*
+
+SMTP Port, default: 465
+
+- `SMTP User` *smtp_user*
+
+SMTP User, e.g. user@domain.com
+
+- `SMTP Password` *smtp_password*
+
+SMTP Password.
+
 
 ## Real Time
 
