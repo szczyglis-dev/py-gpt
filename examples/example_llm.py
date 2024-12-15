@@ -101,7 +101,7 @@ class ExampleLlm(BaseLLM):
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         """
-        Return Llama-index LLM provider instance for 'Chat with files' (llama_index) mode.
+        Return LlamaIndex LLM provider instance for 'Chat with Files' (llama_index) mode.
 
         This method is used for Llama-Index mode when getting provider to handle chat with files.
         It must return an instance of the Llama-Index LLM which will be used in service context.

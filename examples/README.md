@@ -10,13 +10,13 @@ There are example files here that can serve as tutorial and starting points for 
 
 - `example_audio_output.py`  - example audio output provider (speech synthesis)
 
-- `example_data_loader.py`  - example data loader for Llama-index
+- `example_data_loader.py`  - example data loader for LlamaIndex
 
-- `example_llm.py`  - example LLM wrapper for Langchain and Llama-index
+- `example_llm.py`  - example LLM wrapper for LangChain and LlamaIndex
 
 - `example_plugin.py`  - example plugin
 
-- `example_vector_store.py`  - example vector store provider for Llama-index
+- `example_vector_store.py`  - example vector store provider for LlamaIndex
 
 - `example_web_search.py`  - example web search engine
 

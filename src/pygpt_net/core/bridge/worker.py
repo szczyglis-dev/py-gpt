@@ -60,14 +60,14 @@ class BridgeWorker(QObject, QRunnable):
                     extra=self.extra,
                 )
 
-            # Llama-index: chat with files
+            # LlamaIndex: chat with files
             elif self.mode == MODE_LLAMA_INDEX:
                 result = self.window.core.idx.chat.call(
                     context=self.context,
                     extra=self.extra,
                 )
 
-            # Llama-index: agents
+            # LlamaIndex: agents
             elif self.mode == MODE_AGENT_LLAMA:
                 result = self.window.core.agents.runner.call(
                     context=self.context,

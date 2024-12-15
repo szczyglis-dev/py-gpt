@@ -12,13 +12,13 @@
 <Application_OS_Support>Linux 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
-<Program_Description_Short>Desktop AI Assistant powered by o1, GPT-4, GPT-4V, GPT-3.5, Llama3, Mistral, Gemini, Claude, DALL-E 3, Langchain LLMs, Llama-index, Whisper and more with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more</Program_Description_Short>
-<Program_Description_Long><![CDATA[PyGPT is all-in-one Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs, like Llama3, Mistral, Gemini, Claude, etc., by utilizing Langchain and Llama-index.
+<Program_Description_Short>Desktop AI Assistant powered by o1, GPT-4, GPT-4V, GPT-3.5, Llama3, Mistral, Gemini, Claude, DALL-E 3, LangChain LLMs, LlamaIndex, Whisper and more with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more</Program_Description_Short>
+<Program_Description_Long><![CDATA[PyGPT is all-in-one Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs, like Llama3, Mistral, Gemini, Claude, etc., by utilizing LangChain and LlamaIndex.
 
 Features
 - Desktop AI Assistant for Windows and Linux, written in Python.
-- 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files, Experts and Autonomous Agents.
-- Supports multiple models: GPT-4, GPT-3.5, and any model accessible through Langchain and Llama-index, like Llama 3, Mistral, Google Gemini, Anthropic Claude, etc.
+- 9 modes of operation: Chat, Vision, Completion, Assistant, Image generation, LangChain, Chat with files, Experts and Autonomous Agents.
+- Supports multiple models: GPT-4, GPT-3.5, and any model accessible through LangChain and LlamaIndex, like Llama 3, Mistral, Google Gemini, Anthropic Claude, etc.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode.
 - Internet access via Google and Microsoft Bing.
@@ -26,8 +26,8 @@ Features
 - Speech recognition via OpenAI Whisper, Google, Google Cloud and Microsoft Bing.
 - Image analysis via GPT-4 Vision.
 - Crontab / Task scheduler included.
-- Integrated Langchain support (you can connect to any LLM, e.g., on HuggingFace).
-- Integrated Llama-index support: chat with txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to model.
+- Integrated LangChain support (you can connect to any LLM, e.g., on HuggingFace).
+- Integrated LlamaIndex support: chat with txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to model.
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution.
 - Manages files and attachments with options to upload, download, and organize.
