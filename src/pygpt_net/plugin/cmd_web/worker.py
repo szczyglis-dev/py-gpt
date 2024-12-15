@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2024.12.15 01:00:00                  #
 # ================================================== #
 
 import json
@@ -63,6 +63,9 @@ class Worker(BaseWorker):
 
                 elif item["cmd"] == "web_extract_images":
                     response = self.cmd_web_extract_images(item)
+
+                elif item["cmd"] == "web_request":
+                    response = self.cmd_web_request(item)
 
                 if response:
                     responses.append(response)
@@ -397,5 +400,65 @@ class Worker(BaseWorker):
                         self.ctx.images_before.append(path)
                 except Exception as e:
                     print(e)
+        self.ctx.urls_before.append(url)
+        return self.make_response(item, result)
+
+    def cmd_web_request(self, item: dict) -> dict:
+        """
+        Web request command
+
+        :param item: command item
+        :return: response item
+        """
+        url = ""
+        method = "GET"
+        data = None
+        raw = None
+        json = None
+        headers = None
+        params = None
+        cookies = None
+        files = None
+
+        if self.has_param(item, "url"):
+            url = self.get_param(item, "url")
+        if not url:
+            return self.make_response(item, "No URL provided")
+        if self.has_param(item, "method"):
+            method = self.get_param(item, "method")
+        if self.has_param(item, "data_form"):
+            data = self.get_param(item, "data_form")
+        if self.has_param(item, "data"):
+            raw = self.get_param(item, "data")
+        if self.has_param(item, "data_json"):
+            json = self.get_param(item, "data_json")
+        if self.has_param(item, "headers"):
+            headers = self.get_param(item, "headers")
+        if self.has_param(item, "params"):
+            params = self.get_param(item, "params")
+        if self.has_param(item, "cookies"):
+            cookies = self.get_param(item, "cookies")
+        if self.has_param(item, "files"):
+            files = self.get_param(item, "files")
+
+        code, response = self.window.core.web.helpers.request(
+            url=url,
+            method=method,
+            headers=headers,
+            params=params,
+            data=data if data else raw,
+            json=json,
+            cookies=cookies,
+            files=files,
+            timeout=self.plugin.get_option_value("timeout"),
+            disable_ssl_verify=self.plugin.get_option_value("disable_ssl"),
+            allow_redirects=True,
+            stream=False,
+            user_agent=self.plugin.get_option_value("user_agent"))
+        result = {
+            'url': url,
+            'code': code,
+            'response': response,
+        }
         self.ctx.urls_before.append(url)
         return self.make_response(item, result)

@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2024.12.15 01:00:00                  #
 # ================================================== #
 
 import os
 import uuid
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple, Union
 
 import requests
 
@@ -29,6 +29,95 @@ class Helpers:
         :param window: Window instance
         """
         self.window = window
+
+    def request(
+            self,
+            url: str = "",
+            method: str = "GET",
+            headers: Optional[dict] = None,
+            params: Optional[dict] = None,
+            data: Optional[Union[str, dict]] = None,
+            json: Optional[dict] = None,
+            files: Optional[dict] = None,
+            cookies: Optional[dict] = None,
+            timeout: int = 10,
+            disable_ssl_verify: bool = False,
+            allow_redirects: bool = True,
+            stream: bool = False,
+            user_agent: Optional[str] = None,
+    ) -> Tuple[Optional[int], Optional[str]]:
+        """
+        Make HTTP request
+
+        :param url: URL
+        :param method: HTTP method
+        :param headers: Headers
+        :param params: GET parameters
+        :param data: POST data
+        :param json: JSON data
+        :param files: Files
+        :param cookies: Cookies
+        :param timeout: Timeout
+        :param disable_ssl_verify: Disable SSL verification
+        :param allow_redirects: Allow redirects
+        :param stream: Stream
+        :param user_agent: User agent
+        :return: status code, response text
+        """
+        upload = {}
+        try:
+            method = method.upper()
+            session = requests.Session()
+            args = {}
+
+            if data:
+                args['data'] = data
+            if json:
+                args['json'] = json
+            if cookies:
+                args['cookies'] = cookies
+            if params:
+                args['params'] = params
+            if headers:
+                args['headers'] = headers
+
+            args['timeout'] = timeout
+            if disable_ssl_verify:
+                args['verify'] = False
+            if not allow_redirects:
+                args['allow_redirects'] = False
+            if stream:
+                args['stream'] = True
+            if user_agent:
+                if 'headers' not in args:
+                    args['headers'] = {}
+                args['headers']['User-Agent'] = user_agent
+
+            if files:
+                for key, value in files.items():
+                    if os.path.exists(value) and os.path.isfile(value):
+                        upload[key] = open(value, 'rb')
+                args['files'] = upload
+
+            if method == 'GET':
+                response = session.get(url, **args)
+            elif method == 'POST':
+                response = session.post(url, **args)
+            elif method == 'PUT':
+                response = session.put(url, **args)
+            elif method == 'DELETE':
+                response = session.delete(url, **args)
+            elif method == 'PATCH':
+                response = session.patch(url, **args)
+            else:
+                return None, f'Invalid HTTP method: {method}'
+            for k in upload:
+                upload[k].close()  # close files if opened
+            return response.status_code, response.text
+        except Exception as e:
+            for k in upload:
+                upload[k].close()  # close files if opened
+            return None, f'Error: {e}'
 
     def get_main_image(self, url: str) -> Optional[str]:
         """

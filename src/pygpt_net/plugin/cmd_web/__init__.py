@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2024.12.15 01:00:00                  #
 # ================================================== #
 
 import ssl
@@ -36,6 +36,7 @@ class Plugin(BasePlugin):
             "web_urls",
             "web_url_open",
             "web_url_raw",
+            "web_request",
             "web_index",
             "web_index_query",
             "web_extract_links",

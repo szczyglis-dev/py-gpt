@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 08:00:00                  #
+# Updated Date: 2024.12.15 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -245,6 +245,73 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="If enabled, model will be able to search the Web and get founded URLs list",
+        )
+        plugin.add_cmd(
+            "web_request",
+            instruction="send HTTP request to specified URL or API endpoint, using `requests` library. Tip: to "
+                        "send raw data, use `data` parameter. To send data in `application/x-www-form-urlencoded` format, "
+                        "use `data_form` parameter. To send data in `application/json` format, use `data_json` parameter. "
+                        "Sending data in `data_form` and `data_json` parameters will automatically set `Content-Type`. To "
+                        "upload files, use `files` parameter. To send cookies, use `cookies` parameter. To set custom headers, "
+                        "use `headers` parameter. You can combine all parameters.",
+            params=[
+                {
+                    "name": "url",
+                    "type": "str",
+                    "description": "URL to website or API endpoint",
+                    "required": True,
+                },
+                {
+                    "name": "method",
+                    "type": "str",
+                    "description": "HTTP method, default: GET",
+                    "required": False,
+                },
+                {
+                    "name": "headers",
+                    "type": "dict",
+                    "description": "HTTP headers",
+                    "required": False,
+                },
+                {
+                    "name": "params",
+                    "type": "dict",
+                    "description": "GET parameters",
+                    "required": False,
+                },
+                {
+                    "name": "data",
+                    "type": "str",
+                    "description": "raw data to send in POST requests",
+                    "required": False,
+                },
+                {
+                    "name": "data_form",
+                    "type": "dict",
+                    "description": "data to send in POST `application/x-www-form-urlencoded` requests",
+                    "required": False,
+                },
+                {
+                    "name": "data_json",
+                    "type": "dict",
+                    "description": "JSON data to send in POST `application/json` requests",
+                    "required": False,
+                },
+                {
+                    "name": "cookies",
+                    "type": "dict",
+                    "description": "Cookies",
+                    "required": False,
+                },
+                {
+                    "name": "files",
+                    "type": "dict",
+                    "description": "Files to upload, key is form field name, value is absolute path to file",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="If enabled, model will be able to send any HTTP request to specified URL or API endpoint",
         )
         plugin.add_cmd(
             "web_extract_links",

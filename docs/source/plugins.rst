@@ -474,15 +474,15 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 Automatically attach code input/output to the Python code interpreter window. *Default:* ``True``
 
-- ``Enable: get_python_output`` *cmd.get_python_output*
+- ``Tool: get_python_output`` *cmd.get_python_output*
 
 Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* ``True``
 
-- ``Enable: get_python_input`` *cmd.get_python_input*
+- ``Tool: get_python_input`` *cmd.get_python_input*
 
 Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* ``True``
 
-- ``Enable: clear_python_output`` *cmd.clear_python_output*
+- ``Tool: clear_python_output`` *cmd.clear_python_output*
 
 Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* ``True``
 
@@ -533,11 +533,11 @@ Default: 5558
 
 Default: 5559
 
-- ``Enable: ipython_execute`` *cmd.ipython_execute*
+- ``Tool: ipython_execute`` *cmd.ipython_execute*
 
 Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
 
-- ``Enable: python_kernel_restart`` *cmd.ipython_kernel_restart*
+- ``Tool: python_kernel_restart`` *cmd.ipython_kernel_restart*
 
 Allows to restart IPython kernel. *Default:* ``True``
 
@@ -564,26 +564,26 @@ Custom Docker image name
 
 Custom Docker container name
 
-- ``Enable: code_execute`` *cmd.code_execute*
+- ``Tool: code_execute`` *cmd.code_execute*
 
 Allows ``code_execute`` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* ``True``
 
-- ``Enable: code_execute_all`` *cmd.code_execute_all*
+- ``Tool: code_execute_all`` *cmd.code_execute_all*
 
 Allows ``code_execute_all`` command execution. If enabled, provides execution of all the Python code in interpreter window. *Default:* ``True``
 
-- ``Enable: code_execute_file`` *cmd.code_execute_file*
+- ``Tool: code_execute_file`` *cmd.code_execute_file*
 
 Allows ``code_execute_file`` command execution. If enabled, provides Python code execution from existing .py file. *Default:* ``True``
 
 
 **HTML Canvas**
 
-- ``Enable: render_html_output`` *cmd.render_html_output*
+- ``Tool: render_html_output`` *cmd.render_html_output*
 
 Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-it HTML/JS browser (HTML Canvas). *Default:* ``True``
 
-- ``Enable: get_html_output`` *cmd.get_html_output*
+- ``Tool: get_html_output`` *cmd.get_html_output*
 
 Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
 
@@ -693,79 +693,79 @@ If a file being created (with the same name) already exists, a prefix including 
 
 **General**
 
-- ``Enable: send (upload) file as attachment`` *cmd.send_file*
+- ``Tool: send (upload) file as attachment`` *cmd.send_file*
 
 Allows `send_file` command execution. *Default:* `True`
 
-- ``Enable: read file`` *cmd.read_file*
+- ``Tool: read file`` *cmd.read_file*
 
 Allows `read_file` command execution. *Default:* `True`
 
-- ``Enable: append to file`` *cmd.append_file*
+- ``Tool: append to file`` *cmd.append_file*
 
 Allows `append_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- ``Enable: save file`` *cmd.save_file*
+- ``Tool: save file`` *cmd.save_file*
 
 Allows `save_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- ``Enable: delete file`` *cmd.delete_file*
+- ``Tool: delete file`` *cmd.delete_file*
 
 Allows `delete_file` command execution. *Default:* `True`
 
-- ``Enable: list files (ls)`` *cmd.list_files*
+- ``Tool: list files (ls)`` *cmd.list_files*
 
 Allows `list_dir` command execution. *Default:* `True`
 
-- ``Enable: list files in dirs in directory (ls)`` *cmd.list_dir*
+- ``Tool: list files in dirs in directory (ls)`` *cmd.list_dir*
 
 Allows `mkdir` command execution. *Default:* `True`
 
-- ``Enable: downloading files`` *cmd.download_file*
+- ``Tool: downloading files`` *cmd.download_file*
 
 Allows `download_file` command execution. *Default:* `True`
 
-- ``Enable: removing directories`` *cmd.rmdir*
+- ``Tool: removing directories`` *cmd.rmdir*
 
 Allows `rmdir` command execution. *Default:* `True`
 
-- ``Enable: copying files`` *cmd.copy_file*
+- ``Tool: copying files`` *cmd.copy_file*
 
 Allows `copy_file` command execution. *Default:* `True`
 
-- ``Enable: copying directories (recursive)`` *cmd.copy_dir*
+- ``Tool: copying directories (recursive)`` *cmd.copy_dir*
 
 Allows `copy_dir` command execution. *Default:* `True`
 
-- ``Enable: move files and directories (rename)`` *cmd.move*
+- ``Tool: move files and directories (rename)`` *cmd.move*
 
 Allows `move` command execution. *Default:* `True`
 
-- ``Enable: check if path is directory`` *cmd.is_dir*
+- ``Tool: check if path is directory`` *cmd.is_dir*
 
 Allows `is_dir` command execution. *Default:* `True`
 
-- ``Enable: check if path is file`` *cmd.is_file*
+- ``Tool: check if path is file`` *cmd.is_file*
 
 Allows `is_file` command execution. *Default:* `True`
 
-- ``Enable: check if file or directory exists`` *cmd.file_exists*
+- ``Tool: check if file or directory exists`` *cmd.file_exists*
 
 Allows `file_exists` command execution. *Default:* `True`
 
-- ``Enable: get file size`` *cmd.file_size*
+- ``Tool: get file size`` *cmd.file_size*
 
 Allows `file_size` command execution. *Default:* `True`
 
-- ``Enable: get file info`` *cmd.file_info*
+- ``Tool: get file info`` *cmd.file_info*
 
 Allows `file_info` command execution. *Default:* `True`
 
-- ``Enable: find file or directory`` *cmd.find*
+- ``Tool: find file or directory`` *cmd.find*
 
 Allows `find` command execution. *Default:* `True`
 
-- ``Enable: get current working directory`` *cmd.cwd*
+- ``Tool: get current working directory`` *cmd.cwd*
 
 Allows `cwd` command execution. *Default:* `True`
 
@@ -775,7 +775,7 @@ Use data loaders from LlamaIndex for file reading (`read_file` command). *Defaul
 
 **Indexing**
 
-- ``Enable: quick query the file with LlamaIndex`` *cmd.query_file*
+- ``Tool: quick query the file with LlamaIndex`` *cmd.query_file*
 
 Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
 
@@ -783,7 +783,7 @@ Allows `query_file` command execution (in-memory index). If enabled, model will 
 
 Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-3.5-turbo`
 
-- ``Enable: indexing files to persistent index`` *cmd.file_index*
+- ``Tool: indexing files to persistent index`` *cmd.file_index*
 
 Allows `file_index` command execution. If enabled, model will be able to index file or directory using LlamaIndex (persistent index). *Default:* `True`
 
@@ -813,7 +813,7 @@ The plugin provides access to the operating system and executes system commands.
 
 Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
 
-- ``Enable: sys_exec`` *cmd.sys_exec*
+- ``Tool: sys_exec`` *cmd.sys_exec*
 
 Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
 
@@ -866,35 +866,35 @@ Allows keyboard typing. *Default:* `True`
 
 Allows making screenshots. *Default:* `True`
 
-- ``Enable: mouse_get_pos`` *cmd.mouse_get_pos*
+- ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
 
 Allows ``mouse_get_pos`` command execution. *Default:* `True`
 
-- ``Enable: mouse_set_pos`` *cmd.mouse_set_pos*
+- ``Tool: mouse_set_pos`` *cmd.mouse_set_pos*
 
 Allows ``mouse_set_pos`` command execution. *Default:* `True`
 
-- ``Enable: make_screenshot`` *cmd.make_screenshot*
+- ``Tool: make_screenshot`` *cmd.make_screenshot*
 
 Allows ``make_screenshot`` command execution. *Default:* `True`
 
-- ``Enable: mouse_click`` *cmd.mouse_click*
+- ``Tool: mouse_click`` *cmd.mouse_click*
 
 Allows ``mouse_click`` command execution. *Default:* `True`
 
-- ``Enable: mouse_move`` *cmd.mouse_move*
+- ``Tool: mouse_move`` *cmd.mouse_move*
 
 Allows ``mouse_move`` command execution. *Default:* `True`
 
-- ``Enable: mouse_scroll`` *cmd.mouse_scroll*
+- ``Tool: mouse_scroll`` *cmd.mouse_scroll*
 
 Allows ``mouse_scroll`` command execution. *Default:* `True`
 
-- ``Enable: keyboard_key`` *cmd.keyboard_key*
+- ``Tool: keyboard_key`` *cmd.keyboard_key*
 
 Allows ``keyboard_key`` command execution. *Default:* `True`
 
-- ``Enable: keyboard_type`` *cmd.keyboard_type*
+- ``Tool: keyboard_type`` *cmd.keyboard_type*
 
 Allows ``keyboard_type`` command execution. *Default:* `True`
 
@@ -904,7 +904,7 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 
 
 Web Search
---------------------------
+-----------
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
@@ -966,6 +966,7 @@ API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/s
 
 **General options**
 
+
 - ``Number of pages to search`` *num_pages*
 
 Number of max pages to search per query. *Default:* `10`
@@ -1002,37 +1003,32 @@ Max length of the summarized or raw result (characters). *Default:* `50000`
 
 Max tokens in output when generating summary. *Default:* `1500`
 
-- ``Enable: search the Web`` *cmd.web_search*
+- ``Tool: web_search`` *cmd.web_search*
 
 Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
 
-- ``Enable: opening URLs`` *cmd.web_url_open*
+- ``Tool: web_url_open`` *cmd.web_url_open*
 
 Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
 
-- ``Enable: reading the raw content from URLs`` *cmd.web_url_raw*
+- ``Tool: web_url_raw`` *cmd.web_url_raw*
 
 Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
 
-- ``Enable: getting a list of URLs from search results`` *cmd.web_urls*
+- ``Tool: web_request`` *cmd.web_request*
 
-Allows `web_urls` command execution. If enabled, model will be able to search the Web and get founded URLs list. *Default:* `True`
+Allows `web_request` command execution. If enabled, model will be able to send any HTTP request to specified URL or API endpoint. *Default:* `True`
 
-- ``Enable: indexing web and external content`` *cmd.web_index*
+- ``Tool: web_extract_links`` *cmd.web_extract_links*
 
-Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
+Allows `web_extract_links` command execution. If enabled, model will be able to open URL and get list of all links from it. *Default:* `True`
 
-- ``Enable: quick query the web and external content`` *cmd.web_index_query*
+- ``Tool: web_extract_images`` *cmd.web_extract_images*
 
-Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
+Allows `web_extract_images` command execution. If enabled, model will be able to open URL and get list of all images from it.. *Default:* `True`
 
-- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
 
-If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
-
-- ``Index to use`` *idx*
-
-ID of index to use for web page indexing (persistent index). *Default:* `base`
+**Advanced**
 
 - ``Model used for web page summarize`` *summary_model*
 
@@ -1045,6 +1041,27 @@ Prompt used for web search results summarize, use {query} as a placeholder for s
 - ``Summarize prompt (URL open)`` *prompt_summarize_url*
 
 Prompt used for specified URL page summarize
+
+
+**Indexing**
+
+- ``Tool: web_index`` *cmd.web_index*
+
+Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
+
+- ``Tool: web_index_query`` *cmd.web_index_query*
+
+Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
+
+- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
+
+If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
+
+- ``Index to use`` *idx*
+
+ID of index to use for web page indexing (persistent index). *Default:* `base`
+
+
 
 Serial port / USB
 ---------------------------
@@ -1095,15 +1112,15 @@ Timeout in seconds. *Default:* ``1``
 
 Sleep in seconds after connection. *Default:* ``2``
 
-- ``Enable: Send text commands to USB port`` *cmd.serial_send*
+- ``Tool: Send text commands to USB port`` *cmd.serial_send*
 
 Allows ``serial_send`` command execution". *Default:* `True`
 
-- ``Enable: Send raw bytes to USB port`` *cmd.serial_send_bytes*
+- ``Tool: Send raw bytes to USB port`` *cmd.serial_send_bytes*
 
 Allows ``serial_send_bytes`` command execution. *Default:* `True`
 
-- ``Enable: Read data from USB port`` *cmd.serial_read*
+- ``Tool: Read data from USB port`` *cmd.serial_read*
 
 Allows ``serial_read`` command execution. *Default:* `True`
 
@@ -1143,31 +1160,31 @@ Where ``123`` is the ID of previous context (conversation) in database, example 
 
 When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* `False`
 
-- ``Enable: get date range context list`` *cmd.get_ctx_list_in_date_range*
+- ``Tool: get date range context list`` *cmd.get_ctx_list_in_date_range*
 
 Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
 
-- ``Enable: get context content by ID`` *cmd.get_ctx_content_by_id*
+- ``Tool: get context content by ID`` *cmd.get_ctx_content_by_id*
 
 Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
 
-- ``Enable: count contexts in date range`` *cmd.count_ctx_in_date*
+- ``Tool: count contexts in date range`` *cmd.count_ctx_in_date*
 
 Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
 
-- ``Enable: get day note`` *cmd.get_day_note*
+- ``Tool: get day note`` *cmd.get_day_note*
 
 Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
 
-- ``Enable: add day note`` *cmd.add_day_note*
+- ``Tool: add day note`` *cmd.add_day_note*
 
 Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
 
-- ``Enable: update day note`` *cmd.update_day_note*
+- ``Tool: update day note`` *cmd.update_day_note*
 
 Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
 
-- ``Enable: remove day note`` *cmd.remove_day_note*
+- ``Tool: remove day note`` *cmd.remove_day_note*
 
 Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
 
@@ -1268,11 +1285,11 @@ The prompt used for vision mode. It will append or replace current system prompt
 
 Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
 
-- ``Enable: capturing images from camera`` *cmd.camera_capture*
+- ``Tool: capturing images from camera`` *cmd.camera_capture*
 
 Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
 
-- ``Enable: making screenshots`` *cmd.make_screenshot*
+- ``Tool: making screenshots`` *cmd.make_screenshot*
 
 Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
 
