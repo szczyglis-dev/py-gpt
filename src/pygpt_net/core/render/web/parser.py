@@ -37,7 +37,9 @@ class Parser:
         """
         if self.md is None:
             self.md = markdown.Markdown(extensions=[
-                'fenced_code',  # code blocks
+                'fenced_code',
+                'tables',
+                'sane_lists',
                 MathExtension(enable_dollar_delimiter=True)  # math formulas
             ])
 
