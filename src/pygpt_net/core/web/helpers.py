@@ -18,8 +18,6 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-from pygpt_net.provider.web.base import BaseProvider
-
 
 class Helpers:
     def __init__(self, window=None):

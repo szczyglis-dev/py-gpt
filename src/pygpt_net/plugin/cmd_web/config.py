@@ -150,11 +150,12 @@ class Config(BaseConfig):
         )
         plugin.add_option(
             "idx",
-            type="text",
+            type="combo",
             value="base",
             label="Index to use",
             description="ID of index to use for web page indexing (persistent index)",
             tooltip="Index name",
+            use="idx",
             tab="indexing",
         )
         plugin.add_option(
@@ -162,7 +163,7 @@ class Config(BaseConfig):
             type="combo",
             value="gpt-4o-mini",
             label="Model used for web page summarize",
-            description="Model used for web page summarize, default: gpt-3.5-turbo-1106",
+            description="Model used for web page summarize, default: gpt-4o-mini",
             use="models",
             advanced=True,
         )
