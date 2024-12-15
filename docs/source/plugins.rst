@@ -30,6 +30,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 * ``Voice Control (inline)`` - provides voice control command execution within a conversation.
+* ``Mailer`` - Provides the ability to send, receive and read emails.
 
 
 Creating Your Own Plugins

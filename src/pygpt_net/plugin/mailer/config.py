@@ -130,6 +130,12 @@ class Config(BaseConfig):
                     "description": "Email ID (index)",
                     "required": True,
                 },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "description": "Display format, default: text, options: text, html",
+                    "required": False,
+                },
             ],
             enabled=True,
             description="Allows receiving email body",

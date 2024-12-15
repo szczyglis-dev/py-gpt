@@ -15,6 +15,7 @@ import poplib
 
 from email.parser import BytesParser
 from typing import Any
+from bs4 import BeautifulSoup
 
 from pygpt_net.item.ctx import CtxItem
 
@@ -37,14 +38,16 @@ class Runner:
         """
         self.signals = signals
 
-    def parse_email(self, msg) -> str:
+    def parse_email(self, msg, as_text: bool = True) -> str:
         """
         Parse email message
 
         :param msg: email message
+        :param as_text: return as text
         :return: parsed email
         """
         body = ""
+        is_html = False
         if msg.is_multipart():
             for part in msg.walk():
                 content_type = part.get_content_type()
@@ -53,8 +56,11 @@ class Runner:
                     body = part.get_payload(decode=True).decode(part.get_content_charset('utf-8'))
                 elif content_type == 'text/html' and 'attachment' not in content_disposition:
                     body = part.get_payload(decode=True).decode(part.get_content_charset('utf-8'))
+                    is_html = True
         else:
             body = msg.get_payload(decode=True).decode(msg.get_content_charset('utf-8'))
+        if is_html and as_text:
+            body = BeautifulSoup(body, 'html.parser').get_text()
         return body
 
     def smtp_get_email_body(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -72,6 +78,12 @@ class Runner:
         username = self.plugin.get_option_value("smtp_user")
         password = self.plugin.get_option_value("smtp_password")
         msg = "Receiving email from: {}".format(server)
+        format = "text"
+        as_text = True
+        if "format" in item["params"]:
+            format = item["params"]["format"].lower()
+        if format == "html":
+            as_text = False
         self.log(msg)
         try:
             if port in [995]:
@@ -91,7 +103,7 @@ class Runner:
                 "From": msg["From"],
                 "Subject": msg["Subject"],
                 "Date": msg["Date"],
-                "Message": self.parse_email(msg)
+                "Message": self.parse_email(msg, as_text)
             }
             pop3.quit()
         except Exception as e:

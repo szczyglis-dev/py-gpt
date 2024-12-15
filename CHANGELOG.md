@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.42 (2024-12-15)
+
+- Added Mailer plugin, which allows sending and retrieving emails from the server, and reading them. It currently supports only SMTP.
+- Added 'web_request' command to the Web Search plugin, enabling GET/POST/PUT and other connections to any address and API endpoint. It also supports sending POST data, files, headers, cookies, and more.
+- Improved audio output.
+- Enhanced visibility of the Video menu.
+- Other fixes.
+
 ## 2.4.41 (2024-12-14)
 
 - Improved switching between columns on a split screen.

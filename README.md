@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.41** | build: **2024.12.14** | Python: **>=3.10, <3.12**
+Release: **2.4.42** | build: **2024.12.15** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -1067,7 +1067,7 @@ as well as list and create directories.
 
 - `Voice Control (inline)` - provides voice control command execution within a conversation.
 
-- `Mailer` - provides the ability to send emails.
+- `Mailer` - Provides the ability to send, receive and read emails.
 
 ## Audio Input
 
@@ -3933,6 +3933,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.42 (2024-12-15)**
+
+- Added Mailer plugin, which allows sending and retrieving emails from the server, and reading them. It currently supports only SMTP.
+- Added 'web_request' command to the Web Search plugin, enabling GET/POST/PUT and other connections to any address and API endpoint. It also supports sending POST data, files, headers, cookies, and more.
+- Improved audio output.
+- Enhanced visibility of the Video menu.
+- Other fixes.
 
 **2.4.41 (2024-12-14)**
 
