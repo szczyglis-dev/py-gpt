@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -71,9 +71,24 @@ class Settings(BaseConfigDialog):
             content_tabs = {}
             scroll_tabs = {}
             advanced_keys = {}  # advanced options keys
+            first_tab = "general"
 
             # get settings options for section
             fields = self.window.controller.settings.editor.get_options(section_id)
+            is_general = False
+            for key in fields:
+                if 'tab' in fields[key]:
+                    tab = fields[key]['tab']
+                    if tab is not None:
+                        if first_tab == "general":
+                            first_tab = tab
+                        if tab.lower() == "general":
+                            is_general = True
+                            break
+                else:
+                    is_general = True
+                    break
+
 
             # extract tab ids, general is default
             tab_ids = self.extract_option_tabs(fields)
@@ -124,7 +139,7 @@ class Settings(BaseConfigDialog):
                 elif fields[key]['type'] == 'combo':
                     options[key] = self.add_option(widgets[key], fields[key])  # combobox
 
-            self.window.ui.nodes['settings.api_key.label'].setMinimumHeight(60)
+            #self.window.ui.nodes['settings.api_key.label'].setMinimumHeight(60)
 
             # append widgets options layouts to scroll area
             for key in options:
@@ -192,7 +207,7 @@ class Settings(BaseConfigDialog):
                 content_tabs[tab_id].addStretch()
 
             # tabs or no tabs
-            if len(content_tabs) > 1:
+            if len(content_tabs) > 1 or (len(content_tabs) == 1 and not is_general):
                 # tabs
                 tab_widget = QTabWidget()
 
@@ -205,7 +220,7 @@ class Settings(BaseConfigDialog):
                         name_key = trans("settings.section.tab.general")
                     else:
                         name_key = trans("settings.section." + section_id + "." + tab_id)
-                    tab_name = trans(name_key)
+                    tab_name = trans(name_key.replace(" ", "_").lower())
                     scroll_widget = QWidget()
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)
@@ -217,12 +232,12 @@ class Settings(BaseConfigDialog):
             else:
                 # one scroll only
                 scroll_widget = QWidget()
-                scroll_widget.setLayout(content_tabs["general"])
-                scroll_tabs["general"].setWidget(scroll_widget)
+                scroll_widget.setLayout(content_tabs[first_tab])
+                scroll_tabs[first_tab].setWidget(scroll_widget)
 
                 area = QVBoxLayout()
                 area.addWidget(self.add_line())
-                area.addWidget(scroll_tabs["general"])
+                area.addWidget(scroll_tabs[first_tab])
 
             area_widget = QWidget()
             area_widget.setLayout(area)

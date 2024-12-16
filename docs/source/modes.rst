@@ -8,6 +8,9 @@ Chat
 
 This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``GPT-4``, ``GPT-4o`` and ``GPT-3.5``. It works by using the ``ChatCompletion`` OpenAI API.
 
+.. note::
+   **Tip:** This mode directly uses the OpenAI API. If you want to use models other than GPT (such as Gemini, Claude, or Llama3), use ``Chat with Files`` mode.
+
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the ``Files and Attachments`` section for more information on how to use attachments.

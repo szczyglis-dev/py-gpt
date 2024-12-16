@@ -2,6 +2,9 @@
     "general": {
         "label": "settings.section.general"
     },
+    "api_keys": {
+        "label": "settings.section.api_keys"
+    },
     "layout": {
         "label": "settings.section.layout"
     },

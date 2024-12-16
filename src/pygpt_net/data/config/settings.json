@@ -1,27 +1,10 @@
 {
     "api_key": {
-        "section": "general",
+        "section": "api_keys",
         "type": "text",
         "slider": false,
         "label": "settings.api_key",
         "description": "settings.api_key.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "extra": {
-            "bold": true
-        },
-        "secret": true,
-        "persist": true,
-        "advanced": false
-    },
-    "organization_key": {
-        "section": "general",
-        "type": "text",
-        "slider": false,
-        "label": "settings.organization_key",
         "value": "",
         "min": null,
         "max": null,
@@ -35,10 +18,29 @@
         },
         "secret": true,
         "persist": true,
-        "advanced": false
+        "advanced": false,
+        "tab": "OpenAI"
+    },
+    "organization_key": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.organization_key",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "OpenAI"
     },
     "api_endpoint": {
-        "section": "general",
+        "section": "api_keys",
         "type": "text",
         "slider": false,
         "label": "settings.api_endpoint",
@@ -49,10 +51,11 @@
         "multiplier": null,
         "step": null,
         "secret": false,
-        "advanced": false
+        "advanced": false,
+        "tab": "OpenAI"
     },
     "api_proxy": {
-        "section": "general",
+        "section": "api_keys",
         "type": "text",
         "slider": false,
         "label": "settings.api_proxy",
@@ -63,7 +66,97 @@
         "multiplier": null,
         "step": null,
         "secret": false,
-        "advanced": false
+        "advanced": false,
+        "tab": "OpenAI"
+    },
+    "api_key_google": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.google",
+        "description": "settings.api_key.google.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Google"
+    },
+    "api_key_anthropic": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.anthropic",
+        "description": "settings.api_key.anthropic.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Anthropic"
+    },
+    "api_key_hugging_face": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.hugging_face",
+        "description": "settings.api_key.hugging_face.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "HuggingFace"
+    },
+    "api_azure_version": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_azure_version",
+        "description": "settings.api_azure_version.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Azure OpenAI"
+    },
+    "api_azure_endpoint": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_azure_endpoint",
+        "description": "settings.api_azure_endpoint.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Azure OpenAI"
     },
     "app.env": {
         "section": "general",

@@ -12,12 +12,12 @@ To do so, navigate to the menu:
 
 .. code-block:: ini
 
-   Config -> Settings...
+   Config -> Settings -> API Keys
 
 
 and then paste the API key into the ``OpenAI API KEY`` field.
 
-.. image:: images/v2_settings.png
+.. image:: images/v2_api_keys.png
    :width: 400
 
 

@@ -29,7 +29,7 @@
                 "env": [
                     {
                         "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_anthropic}"
                     }
                 ]
             },
@@ -48,7 +48,7 @@
                 "env": [
                     {
                         "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_anthropic}"
                     }
                 ]
             },
@@ -80,7 +80,7 @@
                 "env": [
                     {
                         "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_anthropic}"
                     }
                 ]
             },
@@ -99,7 +99,7 @@
                 "env": [
                     {
                         "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_anthropic}"
                     }
                 ]
             },
@@ -175,7 +175,7 @@
                 "env": [
                     {
                         "name": "GOOGLE_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_google}"
                     }
                 ]
             },
@@ -194,7 +194,7 @@
                 "env": [
                     {
                         "name": "GOOGLE_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_google}"
                     }
                 ]
             },
@@ -226,7 +226,7 @@
                 "env": [
                     {
                         "name": "GOOGLE_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_google}"
                     }
                 ]
             },
@@ -245,7 +245,7 @@
                 "env": [
                     {
                         "name": "GOOGLE_API_KEY",
-                        "value": "{api_key}"
+                        "value": "{api_key_google}"
                     }
                 ]
             },
@@ -285,6 +285,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -308,6 +316,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -346,14 +362,47 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
             "llama_index": {
-                "provider": null,
-                "mode": [],
-                "args": [],
-                "env": []
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-3.5-turbo-1106",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
             },
             "ctx": 16385,
             "tokens": 4096,
@@ -391,6 +440,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -414,6 +471,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -453,6 +518,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -476,6 +549,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -515,6 +596,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -538,6 +627,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -577,6 +674,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -600,6 +705,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -639,6 +752,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -662,6 +783,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -702,6 +831,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -725,6 +862,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -765,6 +910,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -788,6 +941,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -828,6 +989,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -851,6 +1020,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -891,6 +1068,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -914,6 +1099,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -947,6 +1140,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -970,6 +1171,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1011,6 +1220,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1034,6 +1251,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1075,6 +1300,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1098,6 +1331,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1138,6 +1379,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1161,6 +1410,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1220,6 +1477,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1555,6 +1820,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1578,6 +1851,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1613,6 +1894,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },
@@ -1636,6 +1925,14 @@
                     {
                         "name": "OPENAI_API_BASE",
                         "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
                     }
                 ]
             },

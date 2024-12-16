@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -312,6 +312,161 @@ class Patch:
             if old < parse_version("2.4.34"):
                 print("Migrating models from < 2.4.34...")
                 # add missing gpt-4o-audio-preview, gpt-4o-2024-11-20
+                updated = True
+
+            # < 2.4.46  <--- add separated API keys
+            if old < parse_version("2.4.46"):
+                print("Migrating models from < 2.4.46...")
+                azure_endpoint = ""
+                azure_api_version = ""
+                google_key = ""
+                anthropic_key = ""
+                for id in data:
+                    model = data[id]
+                    # OpenAI
+                    if model.id.startswith("gpt-") or model.id.startswith("o1-"):
+                        # langchain
+                        is_endpoint = False
+                        is_version = False
+                        for item in model.langchain["env"]:
+                            if item["name"] == "AZURE_OPENAI_ENDPOINT":
+                                is_endpoint = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_azure_endpoint}", "{api_endpoint}"]):
+                                    azure_endpoint = item["value"]
+                                item["value"] = "{api_azure_endpoint}"
+                            elif item["name"] == "OPENAI_API_VERSION":
+                                is_version = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_azure_version}"]):
+                                    azure_api_version = item["value"]
+                                item["value"] = "{api_azure_version}"
+                        if not is_endpoint:
+                            model.langchain["env"].append(
+                                {
+                                    "name": "AZURE_OPENAI_ENDPOINT",
+                                    "value": "{api_azure_endpoint}",
+                                }
+                            )
+                        if not is_version:
+                            model.langchain["env"].append(
+                                {
+                                    "name": "OPENAI_API_VERSION",
+                                    "value": "{api_azure_version}",
+                                }
+                            )
+
+                        # llama
+                        is_endpoint = False
+                        is_version = False
+                        for item in model.llama_index["env"]:
+                            if item["name"] == "AZURE_OPENAI_ENDPOINT":
+                                is_endpoint = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_azure_endpoint}", "{api_endpoint}"]):
+                                    azure_endpoint = item["value"]
+                                item["value"] = "{api_azure_endpoint}"
+                            elif item["name"] == "OPENAI_API_VERSION":
+                                is_version = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_azure_version}"]):
+                                    azure_api_version = item["value"]
+                                item["value"] = "{api_azure_version}"
+                        if not is_endpoint:
+                            model.llama_index["env"].append(
+                                {
+                                    "name": "AZURE_OPENAI_ENDPOINT",
+                                    "value": "{api_azure_endpoint}",
+                                }
+                            )
+                        if not is_version:
+                            model.llama_index["env"].append(
+                                {
+                                    "name": "OPENAI_API_VERSION",
+                                    "value": "{api_azure_version}",
+                                }
+                            )
+
+                    # Anthropic
+                    elif model.id.startswith("claude-"):
+                        is_key = False
+                        for item in model.langchain["env"]:
+                            if item["name"] == "ANTHROPIC_API_KEY":
+                                is_key = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_key}"]):
+                                    anthropic_key = item["value"]
+                                item["value"] = "{api_key_anthropic}"
+                        if not is_key:
+                            model.langchain["env"].append(
+                                {
+                                    "name": "ANTHROPIC_API_KEY",
+                                    "value": "{api_key_anthropic}",
+                                }
+                            )
+                        is_key = False
+                        for item in model.llama_index["env"]:
+                            if item["name"] == "ANTHROPIC_API_KEY":
+                                is_key = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_key}"]):
+                                    anthropic_key = item["value"]
+                                item["value"] = "{api_key_anthropic}"
+                        if not is_key:
+                            model.llama_index["env"].append(
+                                {
+                                    "name": "ANTHROPIC_API_KEY",
+                                    "value": "{api_key_anthropic}",
+                                }
+                            )
+                    # Google
+                    elif model.id.startswith("gemini-"):
+                        is_key = False
+                        for item in model.langchain["env"]:
+                            if item["name"] == "GOOGLE_API_KEY":
+                                is_key = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_key}"]):
+                                    google_key = item["value"]
+                                item["value"] = "{api_key_google}"
+                        if not is_key:
+                            model.langchain["env"].append(
+                                {
+                                    "name": "GOOGLE_API_KEY",
+                                    "value": "{api_key_google}",
+                                }
+                            )
+                        is_key = False
+                        for item in model.llama_index["env"]:
+                            if item["name"] == "GOOGLE_API_KEY":
+                                is_key = True
+                                if (item["value"]
+                                        and item["value"] not in ["{api_key}"]):
+                                    google_key = item["value"]
+                                item["value"] = "{api_key_google}"
+                        if not is_key:
+                            model.llama_index["env"].append(
+                                {
+                                    "name": "GOOGLE_API_KEY",
+                                    "value": "{api_key_google}",
+                                }
+                            )
+                # move API keys to config
+                config_updated = False
+                if azure_endpoint:
+                    self.window.core.config.set("api_azure_endpoint", azure_endpoint)
+                    config_updated = True
+                if azure_api_version:
+                    self.window.core.config.set("api_azure_version", azure_api_version)
+                    config_updated = True
+                if google_key:
+                    self.window.core.config.set("api_key_google", google_key)
+                    config_updated = True
+                if anthropic_key:
+                    self.window.core.config.set("api_key_anthropic", anthropic_key)
+                    config_updated = True
+                if config_updated:
+                    self.window.core.config.save()
                 updated = True
 
         # update file

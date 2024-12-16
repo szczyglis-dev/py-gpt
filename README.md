@@ -329,12 +329,12 @@ During the initial launch, you must configure your API key within the applicatio
 To do so, navigate to the menu:
 
 ``` ini
-Config -> Settings...
+Config -> Settings -> API Keys
 ```
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_settings](https://github.com/user-attachments/assets/003b0f86-8225-4478-8525-fb9324ac5c88)
+![v2_api_keys](https://github.com/user-attachments/assets/8564add8-364b-471d-80d5-7e99ae77e129)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -353,6 +353,8 @@ Your API keys will be available here:
 **+ Inline Vision and Image generation**
 
 This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `GPT-4`, `GPT-4o` and `GPT-3.5`. It works by using the `ChatCompletion` OpenAI API.
+
+**Tip: This mode directly uses the OpenAI API. If you want to use models other than GPT (such as Gemini, Claude, or Llama3), use `Chat with Files` mode.**
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 

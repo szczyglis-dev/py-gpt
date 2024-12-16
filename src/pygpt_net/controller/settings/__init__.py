@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 import os
@@ -230,7 +230,7 @@ class Settings:
 
     def welcome_settings(self):
         """Open settings at first launch (if no API key yet)"""
-        self.open_section("general")
+        self.open_section("api_keys")
         self.window.ui.config['config']['api_key'].setFocus()
         self.window.ui.dialogs.close('info.start')
 

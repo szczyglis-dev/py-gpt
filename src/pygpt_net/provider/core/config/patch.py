@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.13 19:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -1786,6 +1786,21 @@ class Patch:
             if old < parse_version("2.4.45"):
                 print("Migrating config from < 2.4.45...")
                 self.window.core.updater.patch_css('style.css', True)  # force update
+                updated = True
+
+            # < 2.4.46
+            if old < parse_version("2.4.46"):
+                print("Migrating config from < 2.4.46...")
+                if 'api_azure_version' not in data:
+                    data["api_azure_version"] = "2023-07-01-preview"
+                if 'api_azure_endpoint' not in data:
+                    data["api_azure_endpoint"] = "https://<your-resource-name>.openai.azure.com/"
+                if 'api_key_google' not in data:
+                    data["api_key_google"] = ""
+                if 'api_key_anthropic' not in data:
+                    data["api_key_anthropic"] = ""
+                if 'api_key_hugging_face' not in data:
+                    data["api_key_hugging_face"] = ""
                 updated = True
 
         # update file
