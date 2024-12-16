@@ -29,6 +29,7 @@ class Loader(BaseLoader):
                         "url": {
                             "type": "str",
                             "label": "URL",
+                            "description": "URL to RSS feed, e.g. https://example.com/feed.xml",
                         },
                     },
                 }

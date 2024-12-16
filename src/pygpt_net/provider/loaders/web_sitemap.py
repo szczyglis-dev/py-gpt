@@ -23,12 +23,13 @@ class Loader(BaseLoader):
         self.type = ["web"]
         self.instructions = [
             {
-                "rss": {
-                    "description": "read sitemap XML from URL",
+                "sitemap": {
+                    "description": "read all web pages from sitemap.xml",
                     "args": {
                         "url": {
                             "type": "str",
                             "label": "URL",
+                            "description": "URL to sitemap XML, e.g. https://example.com/sitemap.xml, all pages will be read",
                         },
                     },
                 }
@@ -41,6 +42,10 @@ class Loader(BaseLoader):
         self.init_args_types = {
             "html_to_text": "bool",
             "limit": "int",
+        }
+        self.init_args_desc = {
+            "html_to_text": "Whether to convert HTML to text",
+            "limit": "Maximum number of concurrent requests",
         }
 
     def get(self) -> BaseReader:

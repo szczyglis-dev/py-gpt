@@ -21,7 +21,7 @@ class GmailReader(BaseReader, BaseModel):
     Reads emails
 
     Args:
-        max_results (int): Defaults to 10.
+        max_results (int): Defaults to 10.``
         query (str): Gmail query. Defaults to None.
         service (Any): Gmail service. Defaults to None.
         results_per_page (Optional[int]): Max number of results per page. Defaults to 10.
@@ -32,7 +32,7 @@ class GmailReader(BaseReader, BaseModel):
     token_path: str = "token.json"
     use_iterative_parser: bool = False
     max_results: int = 10
-    service: Any
+    service: Any = None
     results_per_page: Optional[int]
 
     def load_data(self, query: str = None) -> List[Document]:

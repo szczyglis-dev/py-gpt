@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.45 (2024-12-16)
+
+- Enhanced web data loaders UI.
+
 ## 2.4.44 (2024-12-16)
 
 - Enhanced web data loaders.

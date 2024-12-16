@@ -1782,6 +1782,12 @@ class Patch:
                 data["ctx.records.folders.top"] = True
                 updated = True
 
+            # < 2.4.45
+            if old < parse_version("2.4.45"):
+                print("Migrating config from < 2.4.45...")
+                self.window.core.updater.patch_css('style.css', True)  # force update
+                updated = True
+
         # update file
         migrated = False
         if updated:

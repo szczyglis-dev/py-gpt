@@ -17,6 +17,7 @@ QLineEdit {{
 QTextEdit {{
   color: #ffffff; 
   border: 1px solid #5c5c5c;
+  padding: 10px !important;
 }}
 
 QTableView::item,

@@ -12,11 +12,12 @@
 import json
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget, QCheckBox, QHBoxLayout, QScrollArea, \
     QSizePolicy
 
 from pygpt_net.ui.widget.element.group import QVLine, QHLine
-from pygpt_net.ui.widget.element.labels import HelpLabel, UrlLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, UrlLabel, IconLabel
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.input import OptionInput
 from pygpt_net.utils import trans
@@ -62,7 +63,18 @@ class WebTab:
         self.window.ui.add_hook("update.tool.indexer.web.loader", self.hook_loader_change)
 
         self.window.ui.nodes["tool.indexer.web.options.label"] = HelpLabel(trans("tool.indexer.tab.web.source"))
-        self.window.ui.nodes["tool.indexer.web.config.label"] = HelpLabel(trans("tool.indexer.tab.web.cfg"))
+
+        config_label = HelpLabel(trans("tool.indexer.tab.web.cfg"))
+        config_label.setWordWrap(False)
+
+        config_label_layout = QHBoxLayout()
+        config_label_layout.addWidget(IconLabel(QIcon(":/icons/settings_filled.svg")))
+        config_label_layout.addWidget(config_label)
+        config_label_layout.setAlignment(Qt.AlignLeft)
+
+        self.window.ui.nodes["tool.indexer.web.config.label"] = QWidget()
+        self.window.ui.nodes["tool.indexer.web.config.label"].setLayout(config_label_layout)
+
         self.window.ui.nodes["tool.indexer.web.config.help"] = UrlLabel(
             trans("tool.indexer.tab.web.help"),
             "https://pygpt.readthedocs.io/en/latest/configuration.html#data-loaders")
@@ -95,7 +107,6 @@ class WebTab:
 
         # config
         params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.config.label"])
-        self.window.ui.nodes["tool.indexer.web.config.label"].setAlignment(Qt.AlignCenter)
         inputs, groups = self.window.core.idx.ui.loaders.setup_loader_config()
         for loader in inputs:
             for k in inputs[loader]:

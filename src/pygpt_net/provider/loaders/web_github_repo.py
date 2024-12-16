@@ -30,15 +30,19 @@ class Loader(BaseLoader):
                     "args": {
                         "commit_sha": {
                             "type": "str",
+                            "label": "Commit SHA",
                         },
                         "branch": {
                             "type": "str",
+                            "label": "Branch",
                         },
                         "owner": {
                             "type": "str",
+                            "label": "Owner",
                         },
                         "repository": {
                             "type": "str",
+                            "label": "Repository",
                         }
                     },
                 },
@@ -67,6 +71,12 @@ class Loader(BaseLoader):
             "filter_dirs_exclude": "list",
             "filter_file_ext_include": "list",
             "filter_file_ext_exclude": "list",
+        }
+        self.init_args_desc = {
+            "filter_dirs_include": "List of directories to include, separated by comma (,)",
+            "filter_dirs_exclude": "List of directories to exclude, separated by comma (,)",
+            "filter_file_ext_include": "List of file extensions to include, separated by comma (,)",
+            "filter_file_ext_exclude": "list of file extensions to exclude, separated by comma (,)",
         }
 
     def get(self) -> BaseReader:

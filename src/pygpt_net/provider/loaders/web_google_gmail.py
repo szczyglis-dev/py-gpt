@@ -31,6 +31,7 @@ class Loader(BaseLoader):
                         "query": {
                             "type": "str",
                             "label": "Query",
+                            "description": "Query to search emails, e.g. from:me after:2023-01-01",
                         },
                     },
                 }
@@ -41,7 +42,7 @@ class Loader(BaseLoader):
             "token_path": "token.json",
             "use_iterative_parser": False,
             "max_results": 10,
-            "service": None,
+            # "service": None,
             "results_per_page": None,
         }
         self.init_args_types = {
@@ -49,7 +50,7 @@ class Loader(BaseLoader):
             "token_path": "str",
             "use_iterative_parser": "bool",
             "max_results": "int",
-            "service": "str",
+            # "service": "str",
             "results_per_page": "int",
         }
 

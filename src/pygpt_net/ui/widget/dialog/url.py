@@ -10,10 +10,11 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QScrollArea, QWidget, QSizePolicy
 
 from pygpt_net.ui.widget.element.group import QHLine
-from pygpt_net.ui.widget.element.labels import HelpLabel, UrlLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, UrlLabel, IconLabel
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.utils import trans
 from pygpt_net.ui.widget.textarea.url import UrlInput
@@ -85,7 +86,18 @@ class UrlDialog(QDialog):
         self.window.ui.add_hook("update.dialog.url.web.loader", self.hook_loader_change)
 
         self.window.ui.nodes["dialog.url.options.label"] = HelpLabel(trans("tool.indexer.tab.web.source"))
-        self.window.ui.nodes["dialog.url.config.label"] = HelpLabel(trans("tool.indexer.tab.web.cfg"))
+
+        config_label = HelpLabel(trans("tool.indexer.tab.web.cfg"))
+        config_label.setWordWrap(False)
+
+        config_label_layout = QHBoxLayout()
+        config_label_layout.addWidget(IconLabel(QIcon(":/icons/settings_filled.svg")))
+        config_label_layout.addWidget(config_label)
+        config_label_layout.setAlignment(Qt.AlignLeft)
+
+        self.window.ui.nodes["dialog.url.config.label"] = QWidget()
+        self.window.ui.nodes["dialog.url.config.label"].setLayout(config_label_layout)
+
         self.window.ui.nodes["dialog.url.config.help"] = UrlLabel(
             trans("tool.indexer.tab.web.help"),
             "https://pygpt.readthedocs.io/en/latest/configuration.html#data-loaders")
@@ -117,7 +129,6 @@ class UrlDialog(QDialog):
 
         # config
         params_layout.addWidget(self.window.ui.nodes["dialog.url.config.label"])
-        self.window.ui.nodes["dialog.url.config.label"].setAlignment(Qt.AlignCenter)
         inputs, groups = self.window.core.idx.ui.loaders.setup_loader_config()
 
         for loader in inputs:

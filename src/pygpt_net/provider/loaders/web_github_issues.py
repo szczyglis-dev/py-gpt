@@ -30,19 +30,27 @@ class Loader(BaseLoader):
                     "args": {
                         "owner": {
                             "type": "str",
+                            "label": "Owner",
                         },
                         "repository": {
                             "type": "str",
+                            "label": "Repository",
                         },
                         "state": {
                             "type": "enum",
                             "options": ["open", "closed", "all"],
+                            "label": "State",
+                            "description": "Issue state, default: open, available options: open, closed, all",
                         },
                         "label_filters_include": {
                             "type": "list",
+                            "label": "Label filters include",
+                            "description": "List of labels to include, separated by comma (,)",
                         },
                         "label_filters_exclude": {
                             "type": "list",
+                            "label": "Label filters exclude",
+                            "description": "List of labels to exclude, separated by comma (,)",
                         },
                     },
                 }
@@ -98,6 +106,11 @@ class Loader(BaseLoader):
         if "repository" in kwargs and kwargs.get("repository"):
             if isinstance(kwargs.get("repository"), str):
                 args["repository"] = kwargs.get("repository")  # repo name
+        if "state" in kwargs and kwargs.get("state"):
+            if isinstance(kwargs.get("state"), str):
+                args["state"] = kwargs.get("state")
+                if args["state"] not in ["open", "closed", "all"]:
+                    args["state"] = "open"
 
         # filters
         if "label_filters_include" in kwargs and kwargs.get("label_filters_include"):
