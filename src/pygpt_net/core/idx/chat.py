@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 import json
@@ -245,15 +245,25 @@ class Chat:
             history.insert(0, self.context.add_system(system_prompt))
             history.append(self.context.add_user(query))
             if stream:
-                response = llm.stream_chat_with_tools(
-                    tools=tools,
-                    messages=history,
-                )
+                if hasattr(llm, "stream_chat_with_tools"):
+                    response = llm.stream_chat_with_tools(
+                        tools=tools,
+                        messages=history,
+                    )
+                else:
+                    response = llm.stream_chat(
+                        messages=history,
+                    )
             else:
-                response = llm.chat_with_tools(
-                    tools=tools,
-                    messages=history,
-                )
+                if hasattr(llm, "chat_with_tools"):
+                    response = llm.chat_with_tools(
+                        tools=tools,
+                        messages=history,
+                    )
+                else:
+                    response = llm.chat(
+                        messages=history,
+                    )
 
         # handle response
         if response:
