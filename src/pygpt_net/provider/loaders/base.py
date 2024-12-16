@@ -22,7 +22,9 @@ class BaseLoader:
         self.instructions = []  # list of instructions for 'web_index' command for how to handle this type
         self.args = {}  # custom keyword arguments
         self.init_args = {}  # initial keyword arguments
+        self.init_args_labels = {}
         self.init_args_types = {}
+        self.init_args_desc = {}
         self.allow_compiled = True  # allow in compiled and Snap versions
         # This is required due to some readers may require Python environment to install additional packages
 
@@ -41,6 +43,18 @@ class BaseLoader:
         :param args: keyword arguments dict
         """
         self.args = args
+
+    def explode(self, value: str) -> list:
+        """
+        Explode list from string
+
+        :param value: value string
+        :return: list
+        """
+        if value:
+            items = value.split(",")
+            return [item.strip() for item in items]
+        return []
 
     def get_args(self):
         """

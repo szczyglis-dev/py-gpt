@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,6 +30,8 @@ class Loader(BaseLoader):
                     "args": {
                         "document_ids": {
                             "type": "list",
+                            "label": "Document IDs",
+                            "description": "List of document ids, separated by comma (,)",
                         },
                     },
                 }
@@ -74,4 +76,6 @@ class Loader(BaseLoader):
         if "document_ids" in kwargs and kwargs.get("document_ids"):
             if isinstance(kwargs.get("document_ids"), list):
                 args["document_ids"] = kwargs.get("document_ids")  # list of document ids
+            elif isinstance(kwargs.get("document_ids"), str):
+                args["document_ids"] = self.explode(kwargs.get("document_ids"))
         return args

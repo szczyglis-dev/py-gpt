@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 20:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget, QCheckBox, QHBoxLayout, QScrollArea, \
     QSizePolicy
 
+from pygpt_net.ui.widget.element.group import QVLine, QHLine
 from pygpt_net.ui.widget.element.labels import HelpLabel, UrlLabel
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.input import OptionInput
@@ -33,15 +34,17 @@ class WebTab:
         self.params_widget = None
 
     def setup(self):
-        """
-        Setup tab widget
-        """
+        """Setup tab widget"""
         # get loaders list
         loaders = self.window.controller.config.placeholder.apply_by_id("llama_index_loaders_web")
         loaders_list = []
         for loader in loaders:
-            key = list(loader.keys())[0]
-            loaders_list.append(key.replace("web_", ""))
+            k = list(loader.keys())[0]
+            key = k.replace("web_", "")
+            value = loader[k]
+            loaders_list.append({
+                key: value,
+            })
 
         self.window.ui.nodes["tool.indexer.web.loader"] = OptionCombo(
             self.window,
@@ -55,14 +58,14 @@ class WebTab:
         )
 
         self.window.ui.nodes["tool.indexer.web.loader"].layout.setContentsMargins(0, 0, 0, 0)
-        self.window.ui.nodes["tool.indexer.web.loader.label"] = QLabel(trans("tool.indexer.tab.web.loader"))
+        self.window.ui.nodes["tool.indexer.web.loader.label"] = HelpLabel(trans("tool.indexer.tab.web.loader"))
         self.window.ui.add_hook("update.tool.indexer.web.loader", self.hook_loader_change)
 
         self.window.ui.nodes["tool.indexer.web.options.label"] = HelpLabel(trans("tool.indexer.tab.web.source"))
         self.window.ui.nodes["tool.indexer.web.config.label"] = HelpLabel(trans("tool.indexer.tab.web.cfg"))
         self.window.ui.nodes["tool.indexer.web.config.help"] = UrlLabel(
             trans("tool.indexer.tab.web.help"),
-            "https://pygpt.readthedocs.io/en/latest/modes.html#chat-with-files-llama-index")
+            "https://pygpt.readthedocs.io/en/latest/configuration.html#data-loaders")
 
         # --------------------------------------------------
 
@@ -78,7 +81,7 @@ class WebTab:
 
         # params
         params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.options.label"])
-        inputs, groups = self.setup_loader_options()
+        inputs, groups = self.window.core.idx.ui.loaders.setup_loader_options()
         for loader in inputs:
             for k in inputs[loader]:
                 self.window.ui.nodes["tool.indexer.web.loader.option." + loader + "." + k] = inputs[loader][k]
@@ -87,9 +90,13 @@ class WebTab:
             params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.loader.option_group"][loader])
             self.window.ui.nodes["tool.indexer.web.loader.option_group"][loader].hide()  # hide on start
 
+        # separator
+        params_layout.addWidget(QHLine())
+
         # config
         params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.config.label"])
-        inputs, groups = self.setup_loader_config()
+        self.window.ui.nodes["tool.indexer.web.config.label"].setAlignment(Qt.AlignCenter)
+        inputs, groups = self.window.core.idx.ui.loaders.setup_loader_config()
         for loader in inputs:
             for k in inputs[loader]:
                 self.window.ui.nodes["tool.indexer.web.loader.config." + loader + "." + k] = inputs[loader][k]
@@ -99,6 +106,7 @@ class WebTab:
             self.window.ui.nodes["tool.indexer.web.loader.config_group"][loader].hide()  # hide on start
         params_layout.addWidget(self.window.ui.nodes["tool.indexer.web.config.help"], alignment=Qt.AlignCenter)
 
+        # stretch
         params_layout.addStretch(1)
 
         self.params_widget = QWidget()
@@ -117,9 +125,10 @@ class WebTab:
 
         self.window.ui.nodes["tool.indexer.provider"] = HelpLabel(self.window.core.config.get("llama.idx.storage"))
 
-        loader_layout = QHBoxLayout()
+        loader_layout = QVBoxLayout()
         loader_layout.addWidget(self.window.ui.nodes["tool.indexer.web.loader.label"])
         loader_layout.addWidget(self.window.ui.nodes["tool.indexer.web.loader"])
+        loader_layout.setContentsMargins(0, 10, 0, 0)
 
         options_layout = QVBoxLayout()
         options_layout.addWidget(self.window.ui.nodes["tool.indexer.web.options.replace"])
@@ -177,70 +186,3 @@ class WebTab:
 
         self.params_widget.adjustSize()
         self.params_scroll.update()
-
-    def setup_loader_options(self):
-        """
-        Setup loader options
-        """
-        inputs = {}
-        groups = {}
-        loaders = self.window.core.idx.indexing.get_external_instructions()
-        for loader in loaders:
-            params = loaders[loader]
-            inputs[loader] = {}
-            group = QVBoxLayout()
-            for k in params["args"]:
-                widget = OptionInput(self.window, "tool.indexer", f"web.loader.{loader}.option.{k}", {
-                    "label": k,
-                    "value": "",
-                })
-                widget.setPlaceholderText(params["args"][k]["type"])
-                inputs[loader][k] = widget
-                row = QHBoxLayout()  # cols
-                row.addWidget(QLabel(k))
-                row.addWidget(widget)
-                group.addLayout(row)
-            group_widget = QWidget()
-            group_widget.setLayout(group)
-            groups[loader] = group_widget
-
-        return inputs, groups
-
-    def setup_loader_config(self):
-        """
-        Setup loader config
-        """
-        inputs = {}
-        groups = {}
-        loaders = self.window.core.idx.indexing.get_external_config()
-        for loader in loaders:
-            params = loaders[loader]
-            inputs[loader] = {}
-            group = QVBoxLayout()
-            for k in params:
-                widget = OptionInput(self.window, "tool.indexer", f"web.loader.{loader}.config.{k}", {
-                    "label": k,
-                    "value": params[k]["value"],
-                })
-                try:
-                    if params[k]["value"] is not None:
-                        if params[k]["type"] == "list" and isinstance(params[k]["value"], list):
-                            widget.setText(", ".join(params[k]["value"]))
-                        elif params[k]["type"] == "dict" and isinstance(params[k]["value"], dict):
-                            widget.setText(json.dumps(params[k]["value"]))
-                        else:
-                            widget.setText(str(params[k]["value"]))
-                except Exception as e:
-                    self.window.core.debug.log(e)
-
-                widget.setPlaceholderText(params[k]["type"])
-                inputs[loader][k] = widget
-                row = QHBoxLayout()  # cols
-                row.addWidget(QLabel(k))
-                row.addWidget(widget)
-                group.addLayout(row)
-            group_widget = QWidget()
-            group_widget.setLayout(group)
-            groups[loader] = group_widget
-
-        return inputs, groups

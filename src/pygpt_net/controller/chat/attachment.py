@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import os
@@ -316,18 +316,6 @@ class Attachment(QObject):
                 print("\n--- Using additional context ---\n\n{}".format(content))
             return "====================================\nADDITIONAL CONTEXT FROM ATTACHMENT(s): {}".format(content)
         return ""
-
-    def get_uploaded_attachments(
-            self,
-            meta: CtxMeta
-    ) -> List[Dict[str, Any]]:
-        """
-        Get uploaded attachments for meta
-
-        :param meta: CtxMeta instance
-        :return: List of attachments
-        """
-        return meta.additional_ctx
 
     def update(self):
         """Update attachments list"""

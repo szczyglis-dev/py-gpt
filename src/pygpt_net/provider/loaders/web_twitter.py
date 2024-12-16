@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,9 +30,11 @@ class Loader(BaseLoader):
                     "args": {
                         "users": {
                             "type": "list",
+                            "label": "Twitter/X usernames",
                         },
                         "max_tweets": {
                             "type": "int",
+                            "label": "Max tweets",
                         },
                     },
                 }
@@ -80,7 +82,7 @@ class Loader(BaseLoader):
             if isinstance(kwargs.get("users"), list):
                 args["twitterhandles"] = kwargs.get("users")  # usernames
             elif isinstance(kwargs.get("users"), str):
-                args["twitterhandles"] = [kwargs.get("users")]
+                args["twitterhandles"] = self.explode(kwargs.get("users"))
 
         if "max_tweets" in kwargs and kwargs.get("max_tweets"):
             if isinstance(kwargs.get("max_tweets"), int):

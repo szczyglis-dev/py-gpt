@@ -15,6 +15,7 @@ class YoutubeTranscriptReader(BasePydanticReader):
     """Youtube Transcript reader."""
 
     is_remote: bool = True
+    languages: List[str] = ["en"]
 
     @classmethod
     def class_name(cls) -> str:
@@ -34,6 +35,10 @@ class YoutubeTranscriptReader(BasePydanticReader):
                 for which transcripts are to be read.
 
         """
+        languages = self.languages
+        if not languages:
+            languages = ["en"]
+
         results = []
         for link in ytlinks:
             video_id = self._extract_video_id(link)

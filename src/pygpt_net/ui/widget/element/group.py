@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QCheckBox, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QCheckBox, QWidget, QVBoxLayout, QFrame
 
 import pygpt_net.icons_rc
 
@@ -105,3 +106,15 @@ class CollapsedGroup(QWidget):
         :param option: option widget
         """
         self.options.addWidget(option)
+
+class QHLine(QFrame):
+    def __init__(self):
+        super(QHLine, self).__init__()
+        self.setFrameShape(QFrame.HLine)
+        self.setFrameShadow(QFrame.Sunken)
+
+class QVLine(QFrame):
+    def __init__(self):
+        super(QVLine, self).__init__()
+        self.setFrameShape(QFrame.VLine)
+        self.setFrameShadow(QFrame.Sunken)

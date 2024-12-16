@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,7 +15,9 @@ import shutil
 import uuid
 
 from shutil import copyfile
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
+
+from llama_index.core import Document
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
@@ -313,7 +315,7 @@ class Context:
             prompt: str,
             auto_index: bool = False,
             real_path: Optional[str] = None
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """
         Upload attachment for context
 
@@ -325,7 +327,10 @@ class Context:
         :return: Dict with attachment data
         """
         if self.is_verbose():
-            print("Uploading for meta ID: {}".format(meta.id))
+            if meta.group:
+                print("Uploading for meta group ID: {}".format(meta.group.id))
+            else:
+                print("Uploading for meta ID: {}".format(meta.id))
 
         # prepare idx dir
         name = os.path.basename(attachment.path)
@@ -342,11 +347,18 @@ class Context:
             if auto_index:
                 print("Attachments: vector index path: {}".format(index_path))
 
-        # store content to read
-        src_file = self.store_content(attachment, file_idx_path)
+        documents = None
+        
+        # store content to read, and get docs if type == web
+        src_file, docs = self.store_content(attachment, file_idx_path)
+        if attachment.type == AttachmentItem.TYPE_URL:
+            documents = docs
 
-        # extract text content using data loader
-        content = self.read_content(attachment, src_file, prompt)
+        # extract text content using data loader, and get docs if type == file
+        content, docs = self.read_content(attachment, src_file, prompt)
+        if attachment.type == AttachmentItem.TYPE_URL:
+            documents = docs
+
         if content:
             text_path = os.path.join(file_idx_path, file_id + ".txt")
             with open(text_path, "w", encoding="utf-8") as f:
@@ -372,7 +384,7 @@ class Context:
             source = src_file
             if attachment.type == AttachmentItem.TYPE_URL:
                 source = attachment.path  # URL
-            doc_ids = self.index_attachment(attachment.type, source, index_path)
+            doc_ids = self.index_attachment(attachment.type, source, index_path, documents=documents)
 
         result = {
             "name": name,
@@ -402,58 +414,77 @@ class Context:
             attachment: AttachmentItem,
             path: str,
             prompt: str
-    ) -> str:
+    ) -> Tuple[str, List[Document]]:
         """
         Read content from attachment
 
         :param attachment: AttachmentItem instance
         :param path: source file path
         :param prompt: user input prompt
-        :return: content
+        :return: text content, list of documents
         """
         content = ""
+        docs = []
         if attachment.type == AttachmentItem.TYPE_FILE:
             loader_kwargs = {
                 "prompt": prompt,
             }  # extra loader kwargs
-            content = self.window.core.idx.indexing.read_text_content(
+            content, docs = self.window.core.idx.indexing.read_text_content(
                 path=path,
                 loader_kwargs=loader_kwargs,
             )
         elif attachment.type == AttachmentItem.TYPE_URL:
-            # directly from path
+            # directly from before stored path
             with open(path, "r", encoding="utf-8") as f:
-                content = f.read()  # already crawled
-
-        return content
+                content = f.read()  # data is already crawled in `store_content`
+        return content, docs
 
     def store_content(
             self,
             attachment: AttachmentItem,
             dir: str
-    ) -> str:
+    ) -> Tuple[str, List[Document]]:
         """
         Prepare content for attachment
 
         :param attachment: AttachmentItem instance
         :param dir: directory to save content
-        :return: content
+        :return: path, list of documents
         """
         path = None
+        docs = []
         if attachment.type == AttachmentItem.TYPE_FILE:
-            # copy raw file
+            # copy raw file only
             name = os.path.basename(attachment.path)
             path = os.path.join(dir, name)
             if os.path.exists(path):
                 os.remove(path)
             copyfile(attachment.path, path)
         elif attachment.type == AttachmentItem.TYPE_URL:
+            loader = attachment.extra.get("loader")
+            input_params = attachment.extra.get("input_params")
+            input_config = attachment.extra.get("input_config")
+            self.window.core.idx.indexing.update_loader_args(loader, input_config)  # update config
+            content, docs = self.window.core.idx.indexing.read_web_content(
+                url="",
+                type=loader,
+                extra_args=input_params,
+            )
+            """
+            self.window.controller.idx.indexer.index_web(
+                self.current_idx,
+                loader,
+                input_params,
+                input_config,
+                is_replace,
+            )
             web_type = self.window.core.idx.indexing.get_webtype(attachment.path)
             content = self.window.core.idx.indexing.read_web_content(
                 url=attachment.path,
                 type=web_type,  # webpage, default, TODO: add more types
                 extra_args={},
             )
+            """
             # src file save
             name = "url.txt"
             path = os.path.join(dir, name)
@@ -461,14 +492,14 @@ class Context:
                 os.remove(path)
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
-        return path
+        return path, docs
 
     def index_attachment(
             self,
             type: str,
             source: str,
             idx_path: str,
-            documents: Optional[list] = None
+            documents: Optional[List[Document]] = None
     ) -> list:
         """
         Index attachment

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -414,6 +414,17 @@ class CtxMeta:
             if item in self.additional_ctx:
                 self.additional_ctx.remove(item)
 
+    def get_attachment_names(self) -> list:
+        """
+        Get attachment names
+
+        :return: list
+        """
+        if self.group:
+            if self.group.additional_ctx:
+                return self.group.get_attachment_names()
+        return [item['name'] for item in self.additional_ctx]
+
     def to_dict(self) -> dict:
         """
         Dump context meta to dict
@@ -510,6 +521,40 @@ class CtxGroup:
         self.updated = int(time.time())
         self.additional_ctx = []
         self.count = 0
+
+    def has_additional_ctx(self) -> bool:
+        """
+        Check if additional context data is attached
+
+        :return: True if additional context data is present
+        """
+        if self.additional_ctx is not None and len(self.additional_ctx) > 0:
+            return True
+        return False
+
+    def get_additional_ctx(self) -> list:
+        """
+        Get additional context data
+
+        :return: list
+        """
+        return self.additional_ctx
+
+    def get_attachments_count(self) -> int:
+        """
+        Get attachments count
+
+        :return: int
+        """
+        return len(self.additional_ctx)
+
+    def get_attachment_names(self) -> list:
+        """
+        Get attachment names
+
+        :return: list
+        """
+        return [item['name'] for item in self.additional_ctx]
 
     def to_dict(self) -> dict:
         """

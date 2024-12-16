@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -33,6 +33,7 @@ class AttachmentItem:
         self.size = 0
         self.send = False
         self.type = self.TYPE_FILE
+        self.extra = {}
 
     def serialize(self) -> dict:
         """
@@ -50,6 +51,7 @@ class AttachmentItem:
             'ctx': self.ctx,
             'vector_store_ids': self.vector_store_ids,
             'type': self.type,
+            'extra': self.extra,
             'meta_id': self.meta_id,
             'send': self.send
         }
@@ -78,6 +80,8 @@ class AttachmentItem:
             self.vector_store_ids = data['vector_store_ids']
         if 'type' in data:
             self.type = data['type']
+        if 'extra' in data:
+            self.extra = data['extra']
         if 'meta_id' in data:
             self.meta_id = data['meta_id']
         if 'send' in data:

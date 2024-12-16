@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,9 +30,13 @@ class Loader(BaseLoader):
                     "args": {
                         "number_of_results": {
                             "type": "int",
+                            "label": "Number of results",
+                            "description": "Number of results to fetch, default: 100",
                         },
                         "start_date": {
                             "type": "str",
+                            "label": "Start date",
+                            "description": "Start date for events, ISO format: YYYY-MM-DD, default: today",
                         },
                     },
                 }
@@ -79,8 +83,12 @@ class Loader(BaseLoader):
         if "number_of_results" in kwargs and kwargs.get("number_of_results"):
             if isinstance(kwargs.get("number_of_results"), int):
                 args["number_of_results"] = kwargs.get("number_of_results")  # number of results
+                if args["number_of_results"] == 0:
+                    args["number_of_results"] = None
 
         if "start_date" in kwargs and kwargs.get("start_date"):
             if isinstance(kwargs.get("start_date"), str):
                 args["start_date"] = kwargs.get("start_date")  # start date
+                if args["start_date"] == "today" or args["start_date"] == "":
+                    args["start_date"] = None
         return args

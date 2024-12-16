@@ -38,6 +38,7 @@ class AttachmentsDebug:
                     'mode': mode,
                     'type': attachment.type,
                     'consumed': attachment.consumed,
+                    'extra': attachment.extra,
                 }
                 self.window.core.debug.add(self.id, attachment.name, str(data))
 

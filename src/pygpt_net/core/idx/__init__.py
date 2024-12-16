@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -24,6 +24,7 @@ from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
 from .metadata import Metadata
+from .ui import UI
 
 from .types.ctx import Ctx
 from .types.external import External
@@ -43,6 +44,7 @@ class Idx:
         self.storage = Storage(window)
         self.chat = Chat(window, self.storage)
         self.metadata = Metadata(window)
+        self.ui = UI(window)
 
         self.providers = {
             "json_file": JsonFileProvider(window),  # only for patching
@@ -529,7 +531,7 @@ class Idx:
                     self.items[store_id][idx].id = idx
                     self.items[store_id][idx].name = idx
 
-    def get_idx_ids(self) -> List[str]:
+    def get_idx_ids(self) -> List[Dict[str, str]]:
         """
         Get list of indexes
 
@@ -539,7 +541,10 @@ class Idx:
         data =  self.window.core.config.get('llama.idx.list')
         if data is not None:
             for item in data:
-                ids.append(item['id'])
+                name = item['name']
+                if name is None or name == "":
+                    name = item['id']
+                ids.append({item['id']: name})
         return ids
 
     def clear(self, idx: str):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import datetime
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QAction, QIcon, QColor, QPixmap, QStandardItem
 from PySide6.QtWidgets import QMenu
+from overrides import overrides
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
@@ -31,13 +32,13 @@ class ContextList(BaseList):
         super(ContextList, self).__init__(window)
         self.window = window
         self.id = id
-        self.clicked.connect(self.click)
         self.expanded_items = set()
         self.setItemDelegate(ImportantItemDelegate())
 
+
     def click(self, index):
         """
-        Click event
+        Click event (override, connected in BaseList class)
 
         :param index: index
         """
@@ -49,8 +50,10 @@ class ContextList(BaseList):
                 self.window.controller.ctx.set_group(item.id)
                 if self.window.ui.nodes['ctx.list'].isExpanded(index):
                     self.expanded_items.discard(item.id)
+                    self.window.ui.nodes['ctx.list'].collapse(index)
                 else:
                     self.expanded_items.add(item.id)
+                    self.window.ui.nodes['ctx.list'].expand(index)
             else:
                 self.window.controller.ctx.select_by_id(item.id)
         else:
@@ -76,7 +79,7 @@ class ContextList(BaseList):
 
         :param index: index
         """
-        pass
+        print("dblclick")
 
     def mousePressEvent(self, event):
         """
@@ -407,20 +410,28 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             label = 0
             is_important = False
             is_attachment = False
+            is_group = False
+            in_group = False
+
             if "label" in data:
                 label = data["label"]
             if "is_important" in data and data["is_important"]:
                 is_important = True
             if "is_attachment" in data and data["is_attachment"]:
                 is_attachment = True
+            if "is_group" in data and data["is_group"]:
+                is_group = True
+            if "in_group" in data and data["in_group"]:
+                in_group = True
 
             painter.save()
 
             if is_attachment:
                 icon = QtGui.QIcon(":/icons/attachment.svg")
                 icon_size = option.decorationSize or QtCore.QSize(16, 16)
+                icon_pos = option.rect.right() - icon_size.width()
                 icon_rect = QtCore.QRect(
-                    option.rect.right() - icon_size.width(),
+                    icon_pos,
                     option.rect.top() + (option.rect.height() - icon_size.height()) / 2,
                     icon_size.width(),
                     icon_size.height()
@@ -446,8 +457,6 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                     )
                 )
                 painter.drawRect(square_rect)
-
-                #label = label - 10  # remove pin status
 
             # label (0-9)
             if label > 0:
@@ -495,6 +504,7 @@ class GroupItem(QStandardItem):
         self.name = name
         self.isFolder = True
         self.isPinned = False
+        self.hasAttachments = False
         self.dt = None
 
 class Item(QStandardItem):
@@ -507,12 +517,16 @@ class Item(QStandardItem):
         self.dt = None
 
 class SectionItem(QStandardItem):
-    def __init__(self, title):
+    def __init__(self, title, group: bool = False):
         super().__init__(title)
         self.title = title
+        self.group = group
         self.setSelectable(False)
         self.setEnabled(False)
-        self.setTextAlignment(QtCore.Qt.AlignRight)
+        if self.group:
+            self.setTextAlignment(QtCore.Qt.AlignLeft)
+        else:
+            self.setTextAlignment(QtCore.Qt.AlignRight)
         font = self.font()
         font.setBold(True)
         self.setFont(font)

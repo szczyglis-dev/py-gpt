@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,14 +30,16 @@ class Loader(BaseLoader):
                     "args": {
                         "query": {
                             "type": "str",
+                            "label": "SQL query",
+                            "description": "SQL query to read data from database, e.g. SELECT * FROM table",
                         },
                     },
                 }
             }
         ]
         self.init_args = {
-            "sql_database": None,
-            "engine": None,
+            # "sql_database": None,
+            # "engine": None,
             "uri": None,
             "scheme": None,
             "host": None,
@@ -47,8 +49,8 @@ class Loader(BaseLoader):
             "dbname": None,
         }
         self.init_args_types = {
-            "sql_database": "str",
-            "engine": "str",
+            # "sql_database": "str",
+            # "engine": "str",
             "uri": "str",
             "scheme": "str",
             "host": "str",
@@ -56,6 +58,12 @@ class Loader(BaseLoader):
             "user": "str",
             "password": "str",
             "dbname": "str",
+        }
+        self.init_args_desc = {
+            # "sql_database": "str",
+            # "engine": "str",
+            "uri": "You can provide a single URI in the form of: {scheme}://{user}:{password}@{host}:{port}/{dbname}, "
+                   "or you can provide each field manually:",
         }
 
     def get(self) -> BaseReader:

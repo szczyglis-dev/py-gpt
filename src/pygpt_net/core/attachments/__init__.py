@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -187,6 +187,7 @@ class Attachments:
             path: Optional[str] = None,
             auto_save: bool = True,
             type: str = AttachmentItem.TYPE_FILE,
+            extra: Optional[dict] = None
     ) -> AttachmentItem:
         """
         Create new attachment
@@ -196,6 +197,7 @@ class Attachments:
         :param path: path
         :param auto_save: auto_save
         :param type: type
+        :param extra: extra data
         :return: AttachmentItem
         """
         # make local copy of external attachment if enabled
@@ -208,6 +210,9 @@ class Attachments:
         attachment.name = name
         attachment.path = path
         attachment.type = type
+
+        if extra is not None:
+            attachment.extra = extra
 
         if mode not in self.items:
             self.items[mode] = {}

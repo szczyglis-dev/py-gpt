@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -89,17 +89,34 @@ class Indexing:
                             "key": key,
                             "value": loader.init_args[key],
                             "type": "str",  # default = str
+                            "label": key,
+                            "description": None,
                         }
                         # from config
                         if key in loader.args:
                             self.external_config[loader.id][key]["value"] = loader.args[key]
                         if key in loader.init_args_types:
                             self.external_config[loader.id][key]["type"] = loader.init_args_types[key]
+                        if key in loader.init_args_labels:
+                            self.external_config[loader.id][key]["label"] = loader.init_args_labels[key]
+                        if key in loader.init_args_desc:
+                            self.external_config[loader.id][key]["description"] = loader.init_args_desc[key]
 
             except ImportError as e:
                 msg = "Error while registering data loader: " + loader.id + " - " + str(e)
                 self.window.core.debug.log(msg)
                 self.window.core.debug.log(e)
+
+    def get_loader(self, loader: str) -> Optional[BaseLoader]:
+        """
+        Get data loader by id
+
+        :param loader: loader id
+        :return: data loader instance
+        """
+        if loader in self.data_providers:
+            return self.data_providers[loader]
+        return None
 
     def update_loader_args(
             self,
@@ -344,13 +361,13 @@ class Indexing:
             self,
             path: str,
             loader_kwargs: Optional[Dict[str, Any]] = None
-    ) -> str:
+    ) -> Tuple[str, List[Document]]:
         """
         Get content from file using loaders
 
         :param path: path to file
         :param loader_kwargs: additional keyword arguments for data loader
-        :return: file content
+        :return: text content, list of documents
         """
         docs = self.get_documents(
             path,
@@ -361,27 +378,27 @@ class Indexing:
         data = []
         for doc in docs:
             data.append(doc.text)
-        return "\n".join(data)
+        return "\n".join(data), docs
 
     def read_web_content(
             self,
             url: str,
             type: str = "webpage",
             extra_args: Optional[Dict[str, Any]] = None
-    ) -> str:
+    ) -> Tuple[str, List[Document]]:
         """
         Get content from external resource
 
         :param url: external url to index
         :param type: type of URL (webpage, feed, etc.)
         :param extra_args: extra arguments for loader
-        :return: file content
+        :return: text content, list of documents
         """
         docs = self.read_web(url, type, extra_args)
         data = []
         for doc in docs:
             data.append(doc.text)
-        return "\n".join(data)
+        return "\n".join(data), docs
 
     def read_web(
             self,

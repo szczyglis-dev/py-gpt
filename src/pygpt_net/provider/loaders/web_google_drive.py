@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.19 20:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,12 +30,17 @@ class Loader(BaseLoader):
                     "args": {
                         "folder_id": {
                             "type": "str",
+                            "label": "Folder ID",
                         },
                         "file_ids": {
                             "type": "list",
+                            "label": "File IDs",
+                            "description": "List of file ids, separated by comma (,)",
                         },
                         "mime_types": {
                             "type": "list",
+                            "label": "Mime Types",
+                            "description": "List of mime types, separated by comma (,)",
                         },
                     },
                 }
@@ -98,8 +103,12 @@ class Loader(BaseLoader):
         if "file_ids" in kwargs and kwargs.get("file_ids"):
             if isinstance(kwargs.get("file_ids"), list):
                 args["file_ids"] = kwargs.get("file_ids")  # list of file ids
+            elif isinstance(kwargs.get("file_ids"), str):
+                args["file_ids"] = self.explode(kwargs.get("file_ids"))
 
         if "mime_types" in kwargs and kwargs.get("mime_types"):
             if isinstance(kwargs.get("mime_types"), list):
                 args["mime_types"] = kwargs.get("mime_types")  # list of mime types
+            elif isinstance(kwargs.get("mime_types"), str):
+                args["mime_types"] = self.explode(kwargs.get("mime_types"))
         return args

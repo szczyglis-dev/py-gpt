@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import os
@@ -141,7 +141,8 @@ class Plugin(BasePlugin):
         """
         # use_loaders = False
         if use_loaders:
-            return str(self.window.core.idx.indexing.read_text_content(path))
+            content, docs = str(self.window.core.idx.indexing.read_text_content(path))
+            return content
         else:
             data = ""
             if os.path.isfile(path):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -279,7 +279,8 @@ class Placeholder:
         modes = self.window.core.agents.legacy.get_allowed_modes()
         data = []
         for id in modes:
-            data.append({id: id})  # TODO: name
+            name = trans(f"mode.{id}")
+            data.append({id: name})
         return data
 
     def get_idx(self) -> List[Dict[str, str]]:
@@ -291,8 +292,9 @@ class Placeholder:
         indexes = self.window.core.idx.get_idx_ids()
         data = []
         data.append({'_': '---'})
-        for id in indexes:
-            data.append({id: id})
+        for item in indexes:
+            for k, v in item.items():
+                data.append({k: v})
         return data
 
     def get_syntax_styles(self) -> List[Dict[str, str]]:

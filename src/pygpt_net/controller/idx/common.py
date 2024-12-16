@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 from typing import List, Dict
@@ -50,13 +50,17 @@ class Common:
                     ext_str = " (" + ", ".join(loader.extensions) + ")"
                 # name = "(File) " + loader.name + ext_str  # TODO: implement option names
                 data.append({
-                    id: id
+                    id: loader.name
                 })
+                # sort by name
+                data = sorted(data, key=lambda x: list(x.values())[0])
             # web
             if "web" in loader.type:
                 id = "web_" + id
                 # name = "(Web) " + loader.name  # TODO: implement option names
                 data.append({
-                    id: id
+                    id: loader.name
                 })
+                # sort by name
+                data = sorted(data, key=lambda x: list(x.values())[0])
         return data

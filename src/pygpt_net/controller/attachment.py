@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import os
@@ -293,10 +293,38 @@ class Attachment:
     def open_add_url(self):
         """Open add attachment URL dialog"""
         self.window.ui.dialog['url'].id = "attachment"
-        self.window.ui.dialog['url'].input.setText("")
         self.window.ui.dialog['url'].current = ""
+        self.window.ui.dialog['url'].init()
+        self.window.ui.dialog['url'].resize(800, 400)
         self.window.ui.dialog['url'].show()
-        self.window.ui.dialog['url'].input.setFocus()
+
+    def attach_url(self):
+        """Attach attachment URL"""
+        result, loader, input_params, input_config = self.window.core.idx.ui.loaders.handle_options(
+            self.window.ui.nodes["dialog.url.loader"],
+            "dialog.url.loader.option",
+            "dialog.url.loader.config",
+        )
+        extra = {
+            "loader": loader,
+            "input_params": input_params,
+            "input_config": input_config,
+        }
+        provider = self.window.core.idx.indexing.get_loader(loader)
+        if provider:
+            mode = self.window.core.config.get('mode')
+            name = provider.get_external_id(input_params)
+            attachment = self.window.core.attachments.new(
+                mode=mode,
+                name=name,
+                path=name,
+                auto_save=False,
+                type=AttachmentItem.TYPE_URL,
+                extra=extra,
+            )
+            self.window.core.attachments.save()
+            self.update()
+            self.window.ui.dialog['url'].close()
 
     def add_url(self, url: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -311,48 +311,16 @@ class IndexerTool(BaseTool):
 
         :param force: force indexing
         """
-        input_params = {}
-        input_config = {}
-        is_replace = self.window.ui.nodes["tool.indexer.web.options.replace"].isChecked()
-        loader = self.window.ui.nodes["tool.indexer.web.loader"].get_value()
-        if not loader:
+        result, loader, input_params, input_config = self.window.core.idx.ui.loaders.handle_options(
+            self.window.ui.nodes["tool.indexer.web.loader"],
+            "tool.indexer.web.loader.option",
+            "tool.indexer.web.loader.config",
+        )
+        if not result:
             self.window.ui.dialogs.alert(trans("tool.indexer.alert.no_loader"))
             return
-        loaders = self.window.core.idx.indexing.get_external_instructions()
-        if loader in loaders:
-            params = loaders[loader]
-            for k in params["args"]:
-                key_path = "tool.indexer.web.loader.option." + loader + "." + k
-                if key_path in self.window.ui.nodes:
-                    input_params[k] = self.window.ui.nodes[key_path].text()
 
-        loaders = self.window.core.idx.indexing.get_external_config()
-        if loader in loaders:
-            params = loaders[loader]
-            for k in params:
-                key_path = "tool.indexer.web.loader.config." + loader + "." + k
-                type = params[k]["type"]
-                if key_path in self.window.ui.nodes:
-                    tmp_value = self.window.ui.nodes[key_path].text()
-                    try:
-                        if tmp_value:
-                            if type == "int":
-                                tmp_value = int(tmp_value)
-                            elif type == "float":
-                                tmp_value = float(tmp_value)
-                            elif type == "bool":
-                                if tmp_value.lower() in ["true", "1"]:
-                                    tmp_value = True
-                                else:
-                                    tmp_value = False
-                            elif type == "list":
-                                tmp_value = tmp_value.split(",")
-                            elif type == "dict":
-                                tmp_value = json.loads(tmp_value)
-                            input_config[k] = tmp_value
-                    except Exception as e:
-                        self.window.core.debug.log(e)
-                        self.window.ui.dialogs.alert(e)
+        is_replace = self.window.ui.nodes["tool.indexer.web.options.replace"].isChecked()
         if not force:
             self.window.ui.dialogs.confirm(
                 type="idx.tool.index",

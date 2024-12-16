@@ -139,7 +139,7 @@ def parse_args(data: list) -> dict:
         elif type == 'dict':
             try:
                 args[key] = json.loads(value)
-            except json.JSONDecodeError:
+            except:
                 args[key] = {}
         elif type == 'list':
             args[key] = [x.strip() for x in value.split(',')]

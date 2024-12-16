@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.12 06:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -19,7 +19,7 @@ class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = "webpage"
-        self.name = "Webpages"
+        self.name = "Webpage"
         self.type = ["web"]
         self.instructions = [
             {
@@ -28,6 +28,8 @@ class Loader(BaseLoader):
                     "args": {
                         "url": {
                             "type": "str",
+                            "label": "URL",
+                            "description": "URL of the webpage to index, e.g. https://www.example.com",
                         },
                     },
                 }

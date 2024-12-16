@@ -1078,7 +1078,7 @@
         },
         "label": "settings.llama.idx.storage.args",
         "description": "settings.llama.idx.storage.args.desc",
-        "urls": "https://pygpt.readthedocs.io/en/latest/modes.html#chat-with-files-llama-index",
+        "urls": "https://pygpt.readthedocs.io/en/latest/configuration.html#vector-stores",
         "value": [],
         "advanced": false,
         "tab": "store"
@@ -1261,7 +1261,7 @@
                 "use": "var_types"
             }
         },
-        "urls": "https://pygpt.readthedocs.io/en/latest/modes.html#chat-with-files-llama-index",
+        "urls": "https://pygpt.readthedocs.io/en/latest/configuration.html#data-loaders",
         "slider": false,
         "label": "settings.llama.hub.loaders.args",
         "description": "settings.llama.hub.loaders.args.desc",
@@ -1395,7 +1395,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false,
-        "tab": "legacy"
+        "tab": "autonomous"
     },
     "experts.mode": {
         "section": "agent",
@@ -1410,7 +1410,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false,
-        "tab": "legacy"
+        "tab": "experts"
     },
     "agent.idx": {
         "section": "agent",
@@ -1425,7 +1425,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false,
-        "tab": "legacy"
+        "tab": "autonomous"
     },
     "llama.idx.chat.mode": {
         "section": "llama-index",

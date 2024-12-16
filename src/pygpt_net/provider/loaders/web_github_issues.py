@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -103,8 +103,12 @@ class Loader(BaseLoader):
         if "label_filters_include" in kwargs and kwargs.get("label_filters_include"):
             if isinstance(kwargs.get("label_filters_include"), list):
                 args["label_filters_include"] = kwargs.get("label_filters_include")
+            elif isinstance(kwargs.get("label_filters_include"), str):
+                args["label_filters_include"] = self.explode(kwargs.get("label_filters_include"))
         if "label_filters_exclude" in kwargs and kwargs.get("label_filters_exclude"):
             if isinstance(kwargs.get("label_filters_exclude"), list):
                 args["label_filters_exclude"] = kwargs.get("label_filters_exclude")
+            elif isinstance(kwargs.get("label_filters_exclude"), str):
+                args["label_filters_exclude"] = self.explode(kwargs.get("label_filters_exclude"))
 
         return args

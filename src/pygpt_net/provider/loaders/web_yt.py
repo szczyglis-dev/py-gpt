@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -28,11 +28,19 @@ class Loader(BaseLoader):
                     "args": {
                         "url": {
                             "type": "str",
+                            "label": "Youtube URL",
+                            "description": "URL of the YouTube video, e.g. https://www.youtube.com/watch?v=CRRlbK5w8AE",
                         },
                     },
                 }
             }
         ]
+        self.init_args = {
+            "languages": ["en"],
+        }
+        self.init_args_types = {
+            "languages": "list",
+        }
 
     def get(self) -> BaseReader:
         """
@@ -40,7 +48,8 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
-        return YoutubeTranscriptReader()
+        args = self.get_args()
+        return YoutubeTranscriptReader(**args)
 
     def prepare_args(self, **kwargs) -> dict:
         """

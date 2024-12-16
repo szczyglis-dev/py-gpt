@@ -100,7 +100,7 @@
       6,
       7
   ],
-  "ctx.records.folders.top": false,
+  "ctx.records.folders.top": true,
   "ctx.records.limit": 0,
   "ctx.records.separators": true,
   "ctx.records.groups.separators": true,

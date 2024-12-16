@@ -170,8 +170,8 @@ def test_upload(mock_window):
             mock_window.core.tokens.from_str = MagicMock(return_value=4321)
             mock_file.write = MagicMock()
             context = Context(mock_window)
-            context.store_content = MagicMock(return_value="test_src")
-            context.read_content = MagicMock(return_value="test_content")
+            context.store_content = MagicMock(return_value=("test_src", []))
+            context.read_content = MagicMock(return_value=("test_content", []))
             context.index_attachment = MagicMock(return_value=["doc_uuid"])
             result = context.upload(
                 meta,
@@ -192,9 +192,9 @@ def test_read_content(mock_window):
     attachment = AttachmentItem()
     attachment.path = "test_path"
     attachment.type = "file"
-    mock_window.core.idx.indexing.read_text_content = MagicMock(return_value="test_content")
+    mock_window.core.idx.indexing.read_text_content = MagicMock(return_value=("test_content", []))
     context = Context(mock_window)
-    result = context.read_content(attachment, "test_path", "test_prompt")
+    result, _ = context.read_content(attachment, "test_path", "test_prompt")
     assert result == "test_content"
 
 
@@ -203,12 +203,12 @@ def test_store_content(mock_window):
     attachment = AttachmentItem()
     attachment.path = "test_path"
     attachment.type = "url"
-    mock_window.core.idx.indexing.read_web_content = MagicMock(return_value="test_content")
+    mock_window.core.idx.indexing.read_web_content = MagicMock(return_value=("test_content", []))
     with patch("os.path.exists", return_value=True), \
             patch('os.remove', return_value=True):
         with patch('builtins.open', mock_open()) as mock_file:
             context = Context(mock_window)
-            result = context.store_content(attachment, "test_dir")
+            result, _ = context.store_content(attachment, "test_dir")
             assert result == "test_dir/url.txt"
 
 

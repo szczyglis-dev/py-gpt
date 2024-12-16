@@ -564,8 +564,10 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 
 **SQL Database**  (web_database)
 
-* ``engine`` - str, default: `None`
 * ``uri`` - str, default: `None`
+
+You can provide a single URI in the form of: ``{scheme}://{user}:{password}@{host}:{port}/{dbname}``, or you can provide each field manually:
+
 * ``scheme`` - str, default: `None`
 * ``host`` - str, default: `None`
 * ``port`` - str, default: `None`
