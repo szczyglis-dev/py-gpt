@@ -186,7 +186,7 @@ class Chat:
         query = ctx.input  # user input
         verbose = self.window.core.config.get("log.llama", False)
 
-        self.log("Query index...")
+        self.log("Retrieval...")
         self.log("Idx: {}, retrieve only: {}".format(
             idx,
             query,
