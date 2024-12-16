@@ -15,14 +15,6 @@ The following basic options can be modified directly within the application:
 
 **General**
 
-* ``OpenAI API KEY``: The personal API key you'll need to enter into the application for it to function.
-
-* ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
-
-* ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
-
-* ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
-
 * ``Show tray icon``: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
 * ``Minimize to tray on exit``: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
@@ -32,6 +24,26 @@ The following basic options can be modified directly within the application:
 * ``OpenGL hardware acceleration``: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
 * ``Application environment (os.environ)``: Additional environment vars to set on application start.
+
+**API Keys**
+
+- ``OpenAI API KEY``: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.
+
+- ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
+
+- ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
+
+- ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
+
+- ``Google API KEY``: Required for the Google API and Gemini models.
+
+- ``Anthropic API KEY``: Required for the Anthropic API and Claude models.
+
+- ``HuggingFace API KEY``: Required for the HuggingFace API.
+
+- ``OpenAI API version``: Azure OpenAI API version, e.g. 2023-07-01-preview
+
+- ``Azure OpenAI API endpoint``: Azure OpenAI API endpoint, https://<your-resource-name>.openai.azure.com/
 
 **Layout**
 

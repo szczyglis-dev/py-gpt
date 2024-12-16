@@ -2725,14 +2725,6 @@ Config -> Settings...
 
 **General**
 
-- `OpenAI API KEY`: The personal API key you'll need to enter into the application for it to function.
-
-- `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
-
-- `API Endpoint`: OpenAI API endpoint URL, default: https://api.openai.com/v1.
-
-- `Proxy address`: Proxy address to be used for connection; supports HTTP/SOCKS.
-
 - `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 - `Render engine`: chat output render engine: `WebEngine / Chromium` - for full HTML/CSS and `Legacy (markdown)` for legacy, simple markdown CSS output. Default: WebEngine / Chromium.
@@ -2740,6 +2732,26 @@ Config -> Settings...
 - `OpenGL hardware acceleration`: enables hardware acceleration in `WebEngine / Chromium` renderer.  Default: False.
 
 - `Application environment (os.environ)`: Additional environment vars to set on application start.
+
+**API Keys**
+
+- `OpenAI API KEY`: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.
+
+- `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
+
+- `API Endpoint`: OpenAI API endpoint URL, default: https://api.openai.com/v1.
+
+- `Proxy address`: Proxy address to be used for connection; supports HTTP/SOCKS.
+
+- `Google API KEY`: Required for the Google API and Gemini models.
+
+- `Anthropic API KEY`: Required for the Anthropic API and Claude models.
+
+- `HuggingFace API KEY`: Required for the HuggingFace API.
+
+- `OpenAI API version`: Azure OpenAI API version, e.g. 2023-07-01-preview
+
+- `Azure OpenAI API endpoint`: Azure OpenAI API endpoint, https://<your-resource-name>.openai.azure.com/
 
 **Layout**
 
@@ -3942,8 +3954,8 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.46 (2024-12-16)**
 
-- Added a new tab in Settings: "API Keys," where the API keys configuration for Google and Anthropic models has been relocated.
-- Introduced a new mode in "Chat with Files": "Retrieve Only," which allows for retrieving raw documents from the index.
+- Added a new tab in Settings: "API Keys", where the API keys configuration for Google and Anthropic models has been relocated.
+- Introduced a new mode in "Chat with Files": "Retrieve Only", which allows for retrieving raw documents from the index.
 - Fixed a bug related to tool calls in the Gemini provider when using Chat with Files mode.
 
 **2.4.45 (2024-12-16)**
