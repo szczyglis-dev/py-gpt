@@ -41,6 +41,12 @@ class Loader(BaseLoader):
         self.init_args_types = {
             "languages": "list",
         }
+        self.init_args_labels = {
+            "languages": "Languages",
+        }
+        self.init_args_desc = {
+            "languages": "List of languages to extract from the video, separated by comma (,), e.g. 'en,de,fr'. Default is 'en'",
+        }
 
     def get(self) -> BaseReader:
         """

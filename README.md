@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.43** | build: **2024.12.15** | Python: **>=3.10, <3.12**
+Release: **2.4.44** | build: **2024.12.16** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3937,6 +3937,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.44 (2024-12-16)**
+
+- Enhanced web data loaders.
+- Web loaders have been added to attachments, allowing external web content to be attached to context via the "+Web" button in the Attachments tab.
+- Improved handling of attachments in groups and added an attachment icon when a group contains attachments.
 
 **2.4.43 (2024-12-15)**
 
