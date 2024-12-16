@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 11:00:00                  #
+# Updated Date: 2024.12.16 21:00:00                  #
 # ================================================== #
 
 import os
@@ -118,5 +118,5 @@ def test_welcome_settings(mock_window):
     settings.open_section = MagicMock()
     mock_window.ui.dialogs.close = MagicMock()
     settings.welcome_settings()
-    settings.open_section.assert_called_once_with('general')
+    settings.open_section.assert_called_once_with('api_keys')
     mock_window.ui.dialogs.close.assert_called_once_with('info.start')
