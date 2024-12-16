@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.45** | build: **2024.12.16** | Python: **>=3.10, <3.12**
+Release: **2.4.46** | build: **2024.12.16** | Python: **>=3.10, <3.12**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3939,6 +3939,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.46 (2024-12-16)**
+
+- Added a new tab in Settings: "API Keys," where the API keys configuration for Google and Anthropic models has been relocated.
+- Introduced a new mode in "Chat with Files": "Retrieve Only," which allows for retrieving raw documents from the index.
+- Fixed a bug related to tool calls in the Gemini provider when using Chat with Files mode.
 
 **2.4.45 (2024-12-16)**
 
