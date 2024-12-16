@@ -137,7 +137,7 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "secret": true,
+        "secret": false,
         "persist": true,
         "advanced": false,
         "tab": "Azure OpenAI"
@@ -153,7 +153,7 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "secret": true,
+        "secret": false,
         "persist": true,
         "advanced": false,
         "tab": "Azure OpenAI"
