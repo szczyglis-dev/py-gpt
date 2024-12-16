@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -65,6 +65,7 @@ class Idx:
         return [
             {"chat": trans('toolbox.llama_index.mode.chat')},
             {"query": trans('toolbox.llama_index.mode.query')},
+            {"retrieval": trans('toolbox.llama_index.mode.retrieval')},
         ]
 
     def select_mode(self, mode: str):

@@ -61,6 +61,11 @@ class Chat:
                 context=context,
                 extra=extra,
             )
+        elif idx_mode == "retrieval":  # retrieval mode
+            return self.retrieval(
+                context=context,
+                extra=extra,
+            )
 
         # if not raw, check if chat mode is available
         if MODE_CHAT in model.llama_index['mode']:
@@ -163,6 +168,50 @@ class Chat:
             return True
         return False
 
+    def retrieval(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Retrieve documents from index only
+
+        :param context: Bridge context
+        :param extra: Extra arguments
+        :return: True if success
+        """
+        idx = context.idx
+        model = context.model
+        ctx = context.ctx
+        query = ctx.input  # user input
+        verbose = self.window.core.config.get("log.llama", False)
+
+        self.log("Query index...")
+        self.log("Idx: {}, retrieve only: {}".format(
+            idx,
+            query,
+        ))
+
+        index, service_context = self.get_index(idx, model)
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(query)
+        outputs = []
+        self.log("Retrieved {} nodes...".format(len(nodes)))
+        for node in nodes:
+            outputs.append({
+                "text": node.text,
+                "score": node.score,
+            })
+        if outputs:
+            response = ""
+            for output in outputs:
+                response += "**Score: {}**\n\n{}".format(output["score"], output["text"])
+                if output != outputs[-1]:
+                    response += "\n\n-------\n\n"
+            ctx.set_output(response)
+            ctx.add_doc_meta(self.get_metadata(nodes))
+        return True
+
     def chat(
             self,
             context: BridgeContext,
@@ -225,6 +274,7 @@ class Chat:
         )
 
         if use_index:
+            # CMD: commands are applied to system prompt here
             # index as query engine
             chat_engine = index.as_chat_engine(
                 llm=llm,
@@ -238,6 +288,7 @@ class Chat:
             else:
                 response = chat_engine.chat(query)
         else:
+            # CMD: commands are applied to system prompt here
             # prepare tools (native calls if enabled)
             tools = self.window.core.agents.tools.prepare(context, extra)
 
@@ -285,10 +336,9 @@ class Chat:
                     if output is None:
                         output = ""
                     ctx.set_output(output, "")
-                    print("output", output)
                     ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
-                # from LLM
+                # from LLM directly
                 if stream:
                     # tools handled in stream output controller
                     ctx.stream = response  # chunk is in response.delta

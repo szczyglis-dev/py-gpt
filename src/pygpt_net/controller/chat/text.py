@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2024.12.16 20:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -83,9 +83,12 @@ class Text:
         base_mode = mode  # store parent mode
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
+        idx_mode = self.window.core.config.get('llama.idx.mode')
 
         # o1 models: disable stream mode
         if model.startswith("o1") or mode in [MODE_AGENT_LLAMA, MODE_AUDIO]:
+            stream_mode = False
+        if mode in [MODE_LLAMA_INDEX] and idx_mode == "retrieval":
             stream_mode = False
 
         # create ctx item
@@ -234,7 +237,7 @@ class Text:
                 file_ids=self.window.controller.files.uploaded_ids,  # uploaded files IDs
                 assistant_id=assistant_id,
                 idx=self.window.controller.idx.current_idx,  # current idx
-                idx_mode=self.window.core.config.get('llama.idx.mode'),  # llama index mode (chat or query)
+                idx_mode=idx_mode,  # llama index mode (chat or query)
                 external_functions=functions,  # external functions
                 tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
                 max_tokens=max_tokens,  # max output tokens
