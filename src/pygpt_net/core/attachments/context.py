@@ -356,7 +356,7 @@ class Context:
 
         # extract text content using data loader, and get docs if type == file
         content, docs = self.read_content(attachment, src_file, prompt)
-        if attachment.type == AttachmentItem.TYPE_URL:
+        if attachment.type == AttachmentItem.TYPE_FILE:
             documents = docs
 
         if content:
@@ -470,21 +470,6 @@ class Context:
                 type=loader,
                 extra_args=input_params,
             )
-            """
-            self.window.controller.idx.indexer.index_web(
-                self.current_idx,
-                loader,
-                input_params,
-                input_config,
-                is_replace,
-            )
-            web_type = self.window.core.idx.indexing.get_webtype(attachment.path)
-            content = self.window.core.idx.indexing.read_web_content(
-                url=attachment.path,
-                type=web_type,  # webpage, default, TODO: add more types
-                extra_args={},
-            )
-            """
             # src file save
             name = "url.txt"
             path = os.path.join(dir, name)
