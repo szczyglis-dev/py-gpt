@@ -34,42 +34,66 @@ class Mapping:
         # nodes labels
         for k in self.mapping['nodes']:
             if k in self.window.ui.nodes:
-                self.window.ui.nodes[k].setText(trans(self.mapping['nodes'][k]))
+                try:
+                    self.window.ui.nodes[k].setText(trans(self.mapping['nodes'][k]))
+                except:
+                    pass
 
         # menu title
         for k in self.mapping['menu.title']:
             if k in self.window.ui.menu:
-                self.window.ui.menu[k].setTitle(trans(self.mapping['menu.title'][k]))
+                try:
+                    self.window.ui.menu[k].setTitle(trans(self.mapping['menu.title'][k]))
+                except:
+                    pass
 
         # menu text
         for k in self.mapping['menu.text']:
             if k in self.window.ui.menu:
-                self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
+                try:
+                    self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
+                except:
+                    pass
 
         # menu tooltip
         for k in self.mapping['menu.tooltip']:
             if k in self.window.ui.menu:
-                self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
+                try:
+                    self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
+                except:
+                    pass
 
         # dialog title
         for k in self.mapping['dialog.title']:
             if k in self.window.ui.dialog:
-                self.window.ui.dialog[k].setWindowTitle(trans(self.mapping['dialog.title'][k]))
+                try:
+                    self.window.ui.dialog[k].setWindowTitle(trans(self.mapping['dialog.title'][k]))
+                except:
+                    pass
 
         # tooltip
         for k in self.mapping['tooltip']:
             if k in self.window.ui.nodes:
-                self.window.ui.nodes[k].setToolTip(trans(self.mapping['tooltip'][k]))
+                try:
+                    self.window.ui.nodes[k].setToolTip(trans(self.mapping['tooltip'][k]))
+                except:
+                    pass
 
         # placeholder
         for k in self.mapping['placeholder']:
             if k in self.window.ui.nodes:
-                self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
+                try:
+                    self.window.ui.nodes[k].setPlaceholderText(trans(self.mapping['placeholder'][k]))
+                except:
+                    pass
 
         # menu tab tools
         for k in self.window.controller.tools.get_tab_tools():
             if k in self.window.ui.menu:
-                self.window.ui.menu[k].setText(trans("output.tab." + self.window.controller.tools.get_tab_tools()[k][0]))
+                try:
+                    self.window.ui.menu[k].setText(trans("output.tab." + self.window.controller.tools.get_tab_tools()[k][0]))
+                except:
+                    pass
 
     def get_mapping(self) -> Dict[str, Dict[str, str]]:
         """
@@ -313,7 +337,6 @@ class Mapping:
         nodes['tool.indexer.file.options.replace'] = 'tool.indexer.option.replace'
         nodes['tool.indexer.web.loader.label'] = 'tool.indexer.tab.web.loader'
         nodes['tool.indexer.web.options.label'] = 'tool.indexer.tab.web.source'
-        nodes['tool.indexer.web.config.label'] = 'tool.indexer.tab.web.cfg'
         nodes['tool.indexer.web.options.replace'] = 'tool.indexer.option.replace'
         nodes['tool.indexer.file.header.tip'] = 'tool.indexer.tab.files.tip'
         nodes['tool.indexer.web.header.tip'] = 'tool.indexer.tab.web.tip'
