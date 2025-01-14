@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.46** | build: **2024.12.16** | Python: **>=3.10, <3.12**
+Release: **2.4.47** | build: **2025.01.14** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -157,7 +157,7 @@ pygpt
 
 ## Running from GitHub source code
 
-An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.12`). 
+An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.13`). 
 
 ### Install with pip
 
@@ -3951,6 +3951,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.47 (2025-01-14)**
+
+- Added support for Python 3.12.
+- Added a new model to Chat with Files: gemini-2.0-flash-exp.
+- PySide6 upgraded to 6.6.0.
 
 **2.4.46 (2024-12-16)**
 

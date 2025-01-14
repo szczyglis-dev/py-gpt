@@ -86,7 +86,7 @@ class About:
                "{label_website}: {website}\n" \
                "{label_github}: {github}\n" \
                "{label_docs}: {docs}\n\n" \
-               "(c) 2024 {author}\n" \
+               "(c) 2025 {author}\n" \
                "{email}\n".format(
                 label_version=label_version,
                 version=version,

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.47 (2025-01-14)
+
+- Added support for Python 3.12.
+- Added a new model to Chat with Files: gemini-2.0-flash-exp.
+- PySide6 upgraded to 6.6.0.
+
 ## 2.4.46 (2024-12-16)
 
 - Added a new tab in Settings: "API Keys", where the API keys configuration for Google and Anthropic models has been relocated.
