@@ -73,7 +73,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (``>=3.10``, ``<3.12``).
+the application using the Python interpreter (``>=3.10``, ``<3.13``).
 You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)
