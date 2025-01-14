@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2025.01.14 14:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -467,6 +467,12 @@ class Patch:
                     config_updated = True
                 if config_updated:
                     self.window.core.config.save()
+                updated = True
+
+            # < 2.4.47 <--- add gemini-2.0-flash-exp
+            if old < parse_version("2.4.47"):
+                print("Migrating models from < 2.4.47...")
+                # add gemini-2.0-flash-exp
                 updated = True
 
         # update file

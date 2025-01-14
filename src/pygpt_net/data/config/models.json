@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.4.46",
-        "app.version": "2.4.46",
-        "updated_at": "2024-12-16T00:00:00"
+        "version": "2.4.47",
+        "app.version": "2.4.47",
+        "updated_at": "2025-01-14T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -252,6 +252,58 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false
+        },
+        "gemini-2.0-flash-exp": {
+            "id": "gemini-2.0-flash-exp",
+            "name": "gemini-2.0-flash-exp",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gemini-2.0-flash-exp",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "google",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "models/gemini-2.0-flash-exp",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "GOOGLE_API_KEY",
+                        "value": "{api_key_google}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false,
+            "multimodal": []
         },
         "gpt-3.5-turbo": {
             "id": "gpt-3.5-turbo",
