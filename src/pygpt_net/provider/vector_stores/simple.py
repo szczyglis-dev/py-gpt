@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -14,7 +14,6 @@ from typing import Optional
 
 from llama_index.core import StorageContext, load_index_from_storage
 from llama_index.core.indices.base import BaseIndex
-from llama_index.core.indices.service_context import ServiceContext
 
 from .base import BaseStore
 
@@ -50,13 +49,15 @@ class SimpleProvider(BaseStore):
     def get(
             self,
             id: str,
-            service_context: Optional[ServiceContext] = None
+            llm: Optional = None,
+            embed_model: Optional = None,
     ) -> BaseIndex:
         """
         Get index
 
         :param id: index name
-        :param service_context: Service context
+        :param llm: LLM instance
+        :param embed_model: Embedding model instance
         :return: index instance
         """
         if not self.exists(id):
@@ -67,7 +68,8 @@ class SimpleProvider(BaseStore):
         )
         self.indexes[id] = load_index_from_storage(
             storage_context,
-            service_context=service_context,
+            llm=llm,
+            embed_model=embed_model,
         )
         return self.indexes[id]
 

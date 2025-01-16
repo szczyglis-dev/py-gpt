@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import hashlib
 from typing import Optional, Tuple, List
 
-from llama_index.core.indices.service_context import ServiceContext
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
@@ -110,13 +109,15 @@ class Storage:
     def get(
             self,
             id: str,
-            service_context: Optional[ServiceContext]
+            llm: Optional = None,
+            embed_model: Optional = None,
     ) -> BaseIndex:
         """
         Get index instance
 
         :param id: index name
-        :param service_context: service context
+        :param llm: LLM instance
+        :param embed_model: Embedding model instance
         :return: index instance
         """
         storage = self.get_storage()
@@ -124,7 +125,8 @@ class Storage:
             raise Exception('Storage engine not found!')
         return storage.get(
             id=id,
-            service_context=service_context,
+            llm=llm,
+            embed_model=embed_model,
         )
 
     def store(
@@ -189,13 +191,15 @@ class Storage:
     def get_tmp(
             self,
             identifier: str,
-            service_context: Optional[ServiceContext] = None
+            llm: Optional = None,
+            embed_model: Optional = None,
     ) -> Tuple[str, BaseIndex]:
         """
         Get tmp index instance
 
         :param identifier: identifier
-        :param service_context: service context
+        :param llm: LLM instance
+        :param embed_model: Embedding model instance
         :return: index instance
         """
         # convert path to md5 hash
@@ -205,7 +209,8 @@ class Storage:
             raise Exception('Storage engine not found!')
         return id, storage.get(
             id=id,
-            service_context=service_context,
+            llm=llm,
+            embed_model=embed_model,
         )
 
     def store_tmp(
@@ -252,13 +257,15 @@ class Storage:
     def get_ctx_idx(
             self,
             path: str,
-            service_context: Optional[ServiceContext] = None
+            llm: Optional = None,
+            embed_model: Optional = None,
     ) -> BaseIndex:
         """
         Get context index instance
 
         :param path: path to index directory
-        :param service_context: service context
+        :param llm: LLM instance
+        :param embed_model: Embedding model instance
         :return: index instance
         """
         # convert path to md5 hash
@@ -267,7 +274,8 @@ class Storage:
             raise Exception('Storage engine not found!')
         return storage.get(
             id="",
-            service_context=service_context,
+            llm=llm,
+            embed_model=embed_model,
         )
 
     def store_ctx_idx(

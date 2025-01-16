@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -146,10 +146,11 @@ class Idx:
         :param recursive: recursive indexing
         :return: dict with indexed files (path -> id), list with errors
         """
-        context = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context()
         index = self.storage.get(
             id=idx,
-            service_context=context,
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create index
         files, errors = self.indexing.index_files(
             idx=idx,
@@ -182,10 +183,11 @@ class Idx:
         :param from_ts: timestamp from
         :return: num of indexed files, list with errors
         """
-        context = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context()
         index = self.storage.get(
             id=idx,
-            service_context=context,
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create index
         num, errors = self.indexing.index_db_by_meta_id(
             idx=idx,
@@ -215,10 +217,11 @@ class Idx:
         :param from_ts: timestamp from
         :return: num of indexed files, list with errors
         """
-        context = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context()
         index = self.storage.get(
             id=idx,
-            service_context=context,
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create index
         num, errors = self.indexing.index_db_from_updated_ts(
             idx=idx,
@@ -251,10 +254,11 @@ class Idx:
         :param extra_args: extra args
         :return: num of indexed, list with errors
         """
-        context = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context()
         index = self.storage.get(
             id=idx,
-            service_context=context,
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create index
         n, errors = self.indexing.index_urls(
             idx=idx,
@@ -294,10 +298,11 @@ class Idx:
         # update config params
         self.indexing.update_loader_args(type, config)
 
-        context = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context()
         index = self.storage.get(
             id=idx,
-            service_context=context,
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create index
         n, errors = self.indexing.index_url(
             idx=idx,

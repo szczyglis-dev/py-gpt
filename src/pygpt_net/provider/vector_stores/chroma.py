@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -16,7 +16,6 @@ import chromadb
 from chromadb.config import Settings
 
 from llama_index.core.indices.base import BaseIndex
-from llama_index.core.indices.service_context import ServiceContext
 from llama_index.core import StorageContext
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
@@ -69,13 +68,15 @@ class ChromaProvider(BaseStore):
     def get(
             self,
             id: str,
-            service_context: Optional[ServiceContext] = None
+            llm: Optional = None,
+            embed_model: Optional = None,
     ) -> BaseIndex:
         """
         Get index
 
         :param id: index name
-        :param service_context: Service context
+        :param llm: LLM instance
+        :param embed_model: Embedding model instance
         :return: index instance
         """
         if not self.exists(id):
@@ -89,7 +90,12 @@ class ChromaProvider(BaseStore):
         storage_context = StorageContext.from_defaults(
             persist_dir=path,
         )
-        self.indexes[id] = self.index_from_store(vector_store, storage_context, service_context)
+        self.indexes[id] = self.index_from_store(
+            vector_store=vector_store,
+            storage_context=storage_context,
+            llm=llm,
+            embed_model=embed_model,
+        )
         return self.indexes[id]
 
     def store(

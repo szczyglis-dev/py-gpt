@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 03:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -85,8 +85,9 @@ def test_query(mock_window):
     chat.get_custom_prompt = MagicMock(return_value=None)
     mock_window.core.config.set("llama.log", False)
     mock_window.core.tokens.from_llama_messages = MagicMock(return_value=222)
-    service_context = MagicMock()
-    mock_window.core.idx.llm.get_service_context = MagicMock(return_value=service_context)
+    llm = MagicMock()
+    embed_model = MagicMock()
+    mock_window.core.idx.llm.get_service_context = MagicMock(return_value=(llm, embed_model))
     chat.storage = MagicMock()
     chat.storage.exists = MagicMock(return_value=True)
     chat.storage.get = MagicMock(return_value=index)
@@ -124,8 +125,9 @@ def test_chat(mock_window):
     mock_window.core.config.set("max_total_tokens", 11111)
     mock_window.core.models.get_num_ctx = MagicMock(return_value=4096)
     mock_window.core.tokens.from_llama_messages = MagicMock(return_value=222)
-    service_context = MagicMock()
-    mock_window.core.idx.llm.get_service_context = MagicMock(return_value=service_context)
+    llm = MagicMock()
+    embed_model = MagicMock()
+    mock_window.core.idx.llm.get_service_context = MagicMock(return_value=(llm, embed_model))
     chat.storage = MagicMock()
     chat.storage.exists = MagicMock(return_value=True)
     chat.storage.get = MagicMock(return_value=index)

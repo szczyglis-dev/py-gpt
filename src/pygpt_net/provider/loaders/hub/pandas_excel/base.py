@@ -86,7 +86,7 @@ class PandasExcelReader(BaseReader):
                 documents.append(
                     Document(
                         text=text,
-                        extra_info=doc_extra_info,
+                        metadata=doc_extra_info,
                     )
                 )
             return documents
@@ -107,6 +107,6 @@ class PandasExcelReader(BaseReader):
             return [
                 Document(
                     text=text,
-                    extra_info=extra_info or {},
+                    metadata=extra_info or {},
                 )
             ]

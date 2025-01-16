@@ -68,11 +68,11 @@ class JSONReader(BaseReader):
             useful_lines = [
                 line for line in lines if not re.match(r"^[{}\\[\\],]*$", line)
             ]
-            return Document(text="\n".join(useful_lines), extra_info=extra_info or {})
+            return Document(text="\n".join(useful_lines), metadata=extra_info or {})
 
         else:
             lines = [*_depth_first_yield(json_data_object, self.levels_back, [])]
-            return Document(text="\n".join(lines), extra_info=extra_info or {})
+            return Document(text="\n".join(lines), metadata=extra_info or {})
 
     def load_data(
         self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -446,9 +446,9 @@ class Indexing:
         :param doc: Document
         """
         # fix empty date in Pinecode
-        if "last_accessed_date" in doc.extra_info and doc.extra_info["last_accessed_date"] is None:
-            if "creation_date" in doc.extra_info:
-                doc.extra_info["last_accessed_date"] = doc.extra_info["creation_date"]
+        if "last_accessed_date" in doc.metadata and doc.metadata["last_accessed_date"] is None:
+            if "creation_date" in doc.metadata:
+                doc.metadata["last_accessed_date"] = doc.metadata["creation_date"]
 
     def index_files(
             self,
@@ -1046,12 +1046,14 @@ class Indexing:
         :param doc: document
         """
         self.apply_rate_limit()  # apply RPM limit
+        """
         try:
             # display embedding model info
-            if index.service_context is not None:
+            if index._embed_model is not None:
                 self.window.core.idx.log("Embedding model: {}".format(index.service_context.embed_model.model_name))
         except Exception as e:
             self.window.core.debug.log(e)
+        """
         index.insert(document=doc)
 
     def index_attachment(
@@ -1073,10 +1075,11 @@ class Indexing:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
         index = self.window.core.idx.storage.get_ctx_idx(
             index_path,
-            service_context=service_context
+            llm=llm,
+            embed_model=embed_model,
         )  # get or create ctx index
 
         idx = "tmp:{}".format(index_path)  # tmp index id
@@ -1114,8 +1117,8 @@ class Indexing:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.window.core.idx.storage.get_ctx_idx(index_path, service_context=service_context)  # get or create ctx index
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.window.core.idx.storage.get_ctx_idx(index_path, llm, embed_model)  # get or create ctx index
 
         idx = "tmp:{}".format(index_path)  # tmp index id
         self.window.core.idx.log("Indexing to context attachment index: {}...".format(idx))
@@ -1168,9 +1171,8 @@ class Indexing:
         :return: True if success
         """
         model = self.window.core.models.from_defaults()
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.window.core.idx.storage.get_ctx_idx(index_path,
-                                                         service_context=service_context)  # get or create ctx index
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.window.core.idx.storage.get_ctx_idx(index_path, llm, embed_model)  # get or create ctx index
         index.delete_ref_doc(doc_id)
         self.window.core.idx.storage.store_ctx_idx(index_path, index)
         return True

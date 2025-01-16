@@ -6,11 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
+
+from typing import Optional, List, Dict
 
 from llama_index.llms.gemini import Gemini
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from llama_index.core.base.embeddings.base import BaseEmbedding
+from llama_index.embeddings.gemini import GeminiEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -30,7 +34,7 @@ class GoogleLLM(BaseLLM):
             - api_key: API key for Google API
         """
         self.id = "google"
-        self.type = [MODE_LLAMA_INDEX]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
     def llama(
             self,
@@ -48,3 +52,22 @@ class GoogleLLM(BaseLLM):
         """
         args = self.parse_args(model.llama_index)
         return Gemini(**args)
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            })
+        return GeminiEmbedding(**args)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -126,8 +126,7 @@ class Chat:
             model.id,
         ))
 
-        index, service_context = self.get_index(idx, model)
-        llm = service_context.llm
+        index, llm = self.get_index(idx, model)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             [],
@@ -192,7 +191,7 @@ class Chat:
             query,
         ))
 
-        index, service_context = self.get_index(idx, model)
+        index, llm = self.get_index(idx, model)
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         outputs = []
@@ -251,8 +250,7 @@ class Chat:
         # use index only if idx is not empty, otherwise use only LLM
         index = None
         if use_index:
-            index, service_context = self.get_index(idx, model)
-            llm = service_context.llm  # no multimodal LLM in service context
+            index, llm = self.get_index(idx, model)
         else:
             llm = self.window.core.idx.llm.get(model)
 
@@ -382,9 +380,8 @@ class Chat:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        llm = service_context.llm
-        tmp_id, index = self.storage.get_tmp(path, service_context=service_context)  # get or create tmp index
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        tmp_id, index = self.storage.get_tmp(path, llm, embed_model)  # get or create tmp index
 
         idx = "tmp:{}".format(path)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
@@ -443,9 +440,8 @@ class Chat:
         id = json.dumps(parts)
         if model is None:
             model = self.window.core.models.from_defaults()
-        context = self.window.core.idx.llm.get_service_context(model=model)
-        tmp_id, index = self.storage.get_tmp(id, service_context=context)  # get or create tmp index
-        llm = context.llm
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        tmp_id, index = self.storage.get_tmp(id, llm, embed_model)  # get or create tmp index
 
         idx = "tmp:{}".format(id)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
@@ -498,8 +494,8 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get_ctx_idx(path, service_context=service_context)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get_ctx_idx(path, llm, embed_model)
 
         # 1. try to retrieve directly from index
         retriever = index.as_retriever()
@@ -524,9 +520,9 @@ class Chat:
                 "",
                 history,
             )
-            memory = self.get_memory_buffer(history, service_context.llm)
+            memory = self.get_memory_buffer(history, llm)
             response = index.as_chat_engine(
-                llm=service_context.llm,
+                llm=llm,
                 streaming=False,
                 memory=memory,
             ).chat(query)
@@ -550,7 +546,7 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        index, service_context = self.get_index(idx, model)
+        index, llm = self.get_index(idx, model)
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         response = ""
@@ -628,14 +624,14 @@ class Chat:
         if not self.storage.exists(idx):
             if idx is None:
                 # create empty in memory idx
-                service_context = self.window.core.idx.llm.get_service_context(model=model)
+                llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
                 index = self.storage.index_from_empty()
-                return index, service_context
+                return index, llm
             # raise Exception("Index not prepared")
 
-        service_context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get(idx, service_context=service_context)  # get index
-        return index, service_context
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, llm, embed_model)  # get index
+        return index, llm
 
     def get_metadata(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import json
@@ -54,8 +54,8 @@ class Tools:
         # add query engine tool if idx is provided
         idx = extra.get("agent_idx", None)
         if idx is not None and idx != "_":
-            service_context = self.window.core.idx.llm.get_service_context(model=context.model)
-            index = self.window.core.idx.storage.get(idx, service_context=service_context)  # get index
+            llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
+            index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
             if index is not None:
                 query_engine = index.as_query_engine(similarity_top_k=3)
                 query_engine_tools = [

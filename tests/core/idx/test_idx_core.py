@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import os
@@ -59,7 +59,7 @@ def test_index_files(mock_window):
     """
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.storage", "test_store")
-    idx.llm.get_service_context = MagicMock(return_value=MagicMock())
+    idx.llm.get_service_context = MagicMock(return_value=(MagicMock(), MagicMock()))
     index = MagicMock()
     idx.storage.get = MagicMock(return_value=index)
     idx.storage.store = MagicMock()
@@ -84,7 +84,7 @@ def test_index_db_by_meta_id(mock_window):
     """
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.storage", "test_store")
-    idx.llm.get_service_context = MagicMock(return_value=MagicMock())
+    idx.llm.get_service_context = MagicMock(return_value=(MagicMock(), MagicMock()))
     index = MagicMock()
     idx.storage.get = MagicMock(return_value=index)
     idx.storage.store = MagicMock()
@@ -103,7 +103,7 @@ def test_index_db_from_updated_ts(mock_window):
     """
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.storage", "test_store")
-    idx.llm.get_service_context = MagicMock(return_value=MagicMock())
+    idx.llm.get_service_context = MagicMock(return_value=(MagicMock(), MagicMock()))
     index = MagicMock()
     idx.storage.get = MagicMock(return_value=index)
     idx.storage.store = MagicMock()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -15,7 +15,6 @@ from typing import Optional, Union
 from llama_index.core.llms.llm import BaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.indices.service_context import ServiceContext
 from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
@@ -125,7 +124,7 @@ class Llm:
     def get_service_context(
             self,
             model: Optional[ModelItem] = None
-    ) -> ServiceContext:
+    ):
         """
         Get service context + embeddings provider
 
@@ -134,11 +133,4 @@ class Llm:
         """
         llm = self.get(model=model)
         embed_model = self.get_embeddings_provider()
-
-        kwargs = {}
-        if llm is not None:
-            kwargs['llm'] = llm
-        if embed_model is not None:
-            kwargs['embed_model'] = embed_model
-
-        return ServiceContext.from_defaults(**kwargs)
+        return llm, embed_model

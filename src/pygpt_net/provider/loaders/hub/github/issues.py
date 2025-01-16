@@ -89,7 +89,7 @@ class GitHubRepositoryIssuesReader(BaseGitHubRepositoryIssuesReader):
                     doc_id=str(issue["number"]),
                     text=f"{title}\n{body}",
                 )
-                extra_info = {
+                metadata = {
                     "state": issue["state"],
                     "created_at": issue["created_at"],
                     # url is the API URL
@@ -98,12 +98,12 @@ class GitHubRepositoryIssuesReader(BaseGitHubRepositoryIssuesReader):
                     "source": issue["html_url"],
                 }
                 if issue["closed_at"] is not None:
-                    extra_info["closed_at"] = issue["closed_at"]
+                    metadata["closed_at"] = issue["closed_at"]
                 if issue["assignee"] is not None:
-                    extra_info["assignee"] = issue["assignee"]["login"]
+                    metadata["assignee"] = issue["assignee"]["login"]
                 if issue["labels"] is not None:
-                    extra_info["labels"] = ",".join([label["name"] for label in issue["labels"]])  # fix for labels
-                document.extra_info = extra_info
+                    metadata["labels"] = ",".join([label["name"] for label in issue["labels"]])  # fix for labels
+                document.metadata = metadata
                 documents.append(document)
 
             print_if_verbose(self._verbose, f"Resulted in {len(documents)} documents")

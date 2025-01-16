@@ -59,7 +59,7 @@ class YoutubeTranscriptReader(BasePydanticReader):
             transcript = "\n".join(chunk_text)
             results.append(
                 Document(
-                    text=transcript, id_=video_id, extra_info={"video_id": video_id}
+                    text=transcript, id_=video_id, metadata={"video_id": video_id}
                 )
             )
         return results
