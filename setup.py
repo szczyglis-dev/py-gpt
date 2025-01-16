@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.4.48'
+VERSION = '2.4.49'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
@@ -109,7 +109,7 @@ setup(
         'pypdf>=5.1.0,<6.0.0',
         'pynput>=1.7.7,<2.0.0',
         'pyserial>=3.5,<4.0',
-        'PySide6==6.6.0',
+        'PySide6==6.6.1',
         'python-markdown-math>=0.8,<0.9',
         'redis>=5.0.1,<6.0.0',
         'qt-material>=2.14,<3.0',

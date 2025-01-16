@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.49 (2025-01-16)
+
+- Fix: stream render in Assistants mode.
+
 ## 2.4.48 (2025-01-16)
 
 - Fix: parsing lists in data loaders configuration.
