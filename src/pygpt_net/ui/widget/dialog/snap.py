@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton
@@ -55,7 +55,7 @@ class SnapDialogAudioInput(QDialog):
         self.window = window
         self.setParent(window)
         self.setWindowTitle("Snap is detected")
-        self.cmd = CmdLabel(self.window, "sudo snap connect pygpt:audio-record :audio-record")
+        self.cmd = CmdLabel(self.window, "sudo snap connect pygpt:alsa && sudo snap connect pygpt:audio-record :audio-record")
 
         self.btn = QPushButton("OK")
         self.btn.clicked.connect(self.accept)
