@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
 import os
@@ -177,7 +177,8 @@ class UpdateDialog(BaseDialog):
                 if self.window.core.platforms.is_windows():
                     self.download_link = download_windows
                     self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
-                    self.download_file.setVisible(True)
+                    self.download_file.setVisible(False)  # Windows Store: disabled
+                    self.info_upgrade.setVisible(False)  # Windows Store: disabled
                 elif self.window.core.platforms.is_linux():
                     self.download_link = download_linux
                     self.download_file.setText("{} .tar.gz ({})".format(trans("action.download"), version))
