@@ -856,6 +856,13 @@ class Ctx:
         :param meta_id: meta_id
         :param item_id: item_id
         """
+        items = self.get_items()
+        remove = False
+        for item in items:
+            if item.id == item_id:
+                remove = True
+            if remove:
+                items.remove(item)
         return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):

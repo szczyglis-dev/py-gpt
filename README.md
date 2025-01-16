@@ -3955,6 +3955,7 @@ may consume additional tokens that are not displayed in the main window.
 **2.4.49 (2025-01-16)**
 
 - Fix: stream render in Assistants mode.
+- Fix: items remove in context regen/edit.
 
 **2.4.48 (2025-01-16)**
 
