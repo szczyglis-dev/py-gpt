@@ -1,3 +1,8 @@
+2.4.50 (2025-01-16)
+
+- Refactored audio input core.
+- Added audio input volume progress bar.
+
 2.4.49 (2025-01-16)
 
 - Fix: stream render in Assistants mode.
