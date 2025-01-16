@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
 
-import pyaudio
-import wave
 import os
 
 from PySide6.QtCore import QTimer, Slot
@@ -38,9 +36,6 @@ class Voice:
         """
         self.window = window
         self.is_recording = False
-        self.frames = []
-        self.p = None
-        self.stream = None
         self.timer = None
         self.input_file = "voice_control.wav"
         self.thread_started = False
@@ -218,15 +213,6 @@ class Voice:
 
     def start_recording(self):
         """Start recording"""
-        self.frames = []  # clear audio frames
-
-        def callback(in_data, frame_count, time_info, status):
-            self.frames.append(in_data)
-            if self.is_recording:
-                return (in_data, pyaudio.paContinue)
-            else:
-                return (in_data, pyaudio.paComplete)
-
         try:
             self.is_recording = True
             self.switch_btn_stop()
@@ -235,23 +221,26 @@ class Voice:
             if self.window.controller.audio.is_playing():
                 self.window.controller.audio.stop_output()
 
+            # set audio volume bar
+            self.window.core.audio.capture.set_bar(
+                self.window.ui.nodes['voice.control.btn'].bar
+            )
+
             # start timeout timer to prevent infinite recording
             if self.timer is None:
                 self.timer = QTimer()
                 self.timer.timeout.connect(self.stop_timeout)
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
 
-            self.p = pyaudio.PyAudio()
-            self.stream = self.p.open(format=pyaudio.paInt16,
-                                      channels=1,
-                                      rate=44100,
-                                      input=True,
-                                      frames_per_buffer=1024,
-                                      stream_callback=callback)
+            if not self.window.core.audio.capture.check_audio_input():
+                raise Exception("Audio input not working.")
+                # IMPORTANT!!!!
+                # Stop here if audio input not working!
+                # This prevents the app from freezing when audio input is not working!
 
+            self.window.core.audio.capture.start()  # start recording if audio is OK
             self.window.update_status(trans('audio.speak.now'))
             self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STARTED))  # app event
-            self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
             self.window.core.debug.log(e)
@@ -270,35 +259,29 @@ class Voice:
 
         :param timeout: True if stopped due to timeout
         """
+        self.window.core.audio.capture.reset_audio_level()
         self.is_recording = False
         if self.timer:
             self.timer.stop()
             self.timer = None
         self.switch_btn_start()  # switch button to start
         path = os.path.join(self.window.core.config.path, self.input_file)
+        self.window.core.audio.capture.set_path(path)
 
-        if self.stream is not None:
-            self.stream.stop_stream()
-            self.stream.close()
-            self.p.terminate()
-
+        if self.window.core.audio.capture.has_source():
+            self.window.core.audio.capture.stop()  # stop recording
             # abort if timeout
             if timeout:
                 self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                 self.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
                 return
 
-            if self.frames:
-                if len(self.frames) < self.MIN_FRAMES:
+            if self.window.core.audio.capture.has_frames():
+                frames = self.window.core.audio.capture.get_frames()
+                if len(frames) < self.MIN_FRAMES:
                     self.window.update_status(trans("status.audio.too_short"))
                     self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
-                wf = wave.open(path, 'wb')
-                wf.setnchannels(1)
-                wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
-                wf.setframerate(44100)
-                wf.writeframes(b''.join(self.frames))
-                wf.close()
                 self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_SENT))  # app event
                 self.handle_thread(True)  # handle transcription in simple mode
         else:

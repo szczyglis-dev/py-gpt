@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
 import re
 from typing import Union, Optional, Tuple, List
 
+from PySide6.QtMultimedia import QMediaDevices
 from bs4 import UnicodeDammit
 
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
 
+from .capture import Capture
 from .whisper import Whisper
 
 
@@ -28,6 +30,7 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
+        self.capture = Capture(window)
         self.whisper = Whisper(window)
         self.providers = {
             "input": {},
@@ -41,21 +44,12 @@ class Audio:
 
         :return devices list: [(id, name)]
         """
-        import pyaudio
-        devices = []
-        try:
-            p = pyaudio.PyAudio()
-            num_devices = p.get_device_count()
-            for i in range(num_devices):
-                info = p.get_device_info_by_index(i)
-                if info["maxInputChannels"] > 0:
-                    dammit = UnicodeDammit(info["name"])
-                    devices.append((i, dammit.unicode_markup))
-                    # print(f"Device ID {i}: {info['name']}")
-            p.terminate()
-        except Exception as e:
-            print(f"Audio input devices receive error: {e}")
-        return devices
+        devices = QMediaDevices.audioInputs()
+        devices_list = []
+        for index, device in enumerate(devices):
+            dammit = UnicodeDammit(device.description())
+            devices_list.append((index, dammit.unicode_markup))
+        return devices_list
 
     def is_device_compatible(self, device_index: int) -> bool:
         """
@@ -69,7 +63,6 @@ class Audio:
         channels = int(self.window.core.config.get('audio.input.channels', 1))
         p = pyaudio.PyAudio()
         info = p.get_device_info_by_index(device_index)
-        supported = False
         try:
             p.is_format_supported(
                 rate=rate,

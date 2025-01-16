@@ -52,6 +52,7 @@ To manage future updates just use:
 .. code-block:: console
 
     $ sudo snap connect pygpt:audio-record :audio-record
+    $ sudo snap connect pygpt:alsa
 
 
 **Connecting IPython in Docker in Snap version**:

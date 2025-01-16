@@ -6,11 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.08 00:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
-import pyaudio
-import wave
 import os
 
 from PySide6.QtCore import QTimer
@@ -32,9 +30,6 @@ class Simple:
         """
         self.plugin = plugin
         self.is_recording = False
-        self.frames = []
-        self.p = None
-        self.stream = None
         self.timer = None
 
     def toggle_recording(self):
@@ -61,22 +56,15 @@ class Simple:
 
     def start_recording(self):
         """Start recording"""
-        self.frames = []  # clear audio frames
-
-        def callback(in_data, frame_count, time_info, status):
-            self.frames.append(in_data)
-            if self.is_recording:
-                return (in_data, pyaudio.paContinue)
-            else:
-                return (in_data, pyaudio.paComplete)
-
         try:
-            self.is_recording = True
-            self.switch_btn_stop()
-
             # stop audio output if playing
             if self.plugin.window.controller.audio.is_playing():
                 self.plugin.window.controller.audio.stop_output()
+
+            # set audio volume bar
+            self.plugin.window.core.audio.capture.set_bar(
+                self.plugin.window.ui.plugin_addon['audio.input.btn'].bar
+            )
 
             # start timeout timer to prevent infinite recording
             if self.timer is None:
@@ -84,31 +72,17 @@ class Simple:
                 self.timer.timeout.connect(self.stop_timeout)
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
 
-            # select audio input device
-            device_id = int(self.plugin.window.core.config.get('audio.input.device', 0))
-            rate = int(self.plugin.window.core.config.get('audio.input.rate', 44100))
-            channels = int(self.plugin.window.core.config.get('audio.input.channels', 1))
-            if not self.plugin.window.core.audio.is_device_compatible(device_id):
-                err = self.plugin.window.core.audio.get_last_error()
-                message = "Selected audio input device is not compatible. Please select another one. ERROR: " + str(err)
-                self.is_recording = False
-                self.plugin.window.core.debug.log(message)
-                self.plugin.window.ui.dialogs.alert(message)
-                self.switch_btn_start()  # switch button to start
-                return
+            if not self.plugin.window.core.audio.capture.check_audio_input():
+                raise Exception("Audio input not working.")
+                # IMPORTANT!!!!
+                # Stop here if audio input not working!
+                # This prevents the app from freezing when audio input is not working!
 
-            self.p = pyaudio.PyAudio()
-            self.stream = self.p.open(format=pyaudio.paInt16,
-                                      channels=channels,
-                                      rate=rate,
-                                      input=True,
-                                      input_device_index=device_id,
-                                      frames_per_buffer=1024,
-                                      stream_callback=callback)
-
+            self.is_recording = True
+            self.switch_btn_stop()
+            self.plugin.window.core.audio.capture.start()  # start recording if audio is OK
             self.plugin.window.update_status(trans('audio.speak.now'))
             self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
-            self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
             self.plugin.window.core.debug.log(e)
@@ -127,6 +101,7 @@ class Simple:
 
         :param timeout: True if stopped due to timeout
         """
+        self.plugin.window.core.audio.capture.reset_audio_level()
         self.is_recording = False
         self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STOPPED))  # app event
         if self.timer:
@@ -134,30 +109,22 @@ class Simple:
             self.timer = None
         self.switch_btn_start()  # switch button to start
         path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
+        self.plugin.window.core.audio.capture.set_path(path)
 
-        if self.stream is not None:
-            self.stream.stop_stream()
-            self.stream.close()
-            self.p.terminate()
-
+        if self.plugin.window.core.audio.capture.has_source():
+            self.plugin.window.core.audio.capture.stop()  # stop recording
             # abort if timeout
             if timeout:
                 self.plugin.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
                 return
 
-            if self.frames:
-                if len(self.frames) < self.MIN_FRAMES:
+            if self.plugin.window.core.audio.capture.has_frames():
+                frames = self.plugin.window.core.audio.capture.get_frames()
+                if len(frames) < self.MIN_FRAMES:
                     self.plugin.window.update_status(trans("status.audio.too_short"))
                     self.plugin.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
-                wf = wave.open(path, 'wb')
-                channels = int(self.plugin.window.core.config.get('audio.input.channels', 1))
-                rate = int(self.plugin.window.core.config.get('audio.input.rate', 44100))
-                wf.setnchannels(channels)
-                wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
-                wf.setframerate(rate)
-                wf.writeframes(b''.join(self.frames))
-                wf.close()
+
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
         else:
             self.plugin.window.update_status("")

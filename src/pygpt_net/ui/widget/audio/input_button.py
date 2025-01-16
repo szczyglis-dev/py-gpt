@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2025.01.16 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QPushButton
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QPushButton, QVBoxLayout
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.utils import trans
@@ -31,14 +32,18 @@ class VoiceControlButton(QWidget):
         self.btn_toggle.setCursor(Qt.PointingHandCursor)
         self.btn_toggle.setMinimumWidth(200)
 
+        self.bar = LevelBar(self)
+        self.bar.setLevel(0)
+
         # status
         self.status = QLabel("")
         self.status.setStyleSheet("color: #999; font-size: 10px; font-weight: 400; margin: 0; padding: 0; border: 0;")
         self.status.setMaximumHeight(15)
 
-        self.layout = QHBoxLayout(self)
+        self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.btn_toggle)
-        self.layout.addWidget(self.status)
+        # self.layout.addWidget(self.status)
+        self.layout.addWidget(self.bar)
 
         # self.layout.addWidget(self.stop)
         self.layout.setAlignment(Qt.AlignCenter)
@@ -82,14 +87,18 @@ class AudioInputButton(QWidget):
         self.btn_toggle.setCursor(Qt.PointingHandCursor)
         self.btn_toggle.setMinimumWidth(200)
 
-        # status
-        self.status = QLabel("")
-        self.status.setStyleSheet("color: #999; font-size: 10px; font-weight: 400; margin: 0; padding: 0; border: 0;")
-        self.status.setMaximumHeight(15)
+        self.bar = LevelBar(self)
+        self.bar.setLevel(0)
 
-        self.layout = QHBoxLayout(self)
+        # status
+        #self.status = QLabel("xxx")
+        #self.status.setStyleSheet("color: #999; font-size: 10px; font-weight: 400; margin: 0; padding: 0; border: 0;")
+        #self.status.setMaximumHeight(15)
+
+        self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.btn_toggle)
-        self.layout.addWidget(self.status)
+        #self.layout.addWidget(self.status)
+        self.layout.addWidget(self.bar)
 
         # self.layout.addWidget(self.stop)
         self.layout.setAlignment(Qt.AlignCenter)
@@ -116,3 +125,24 @@ class AudioInputButton(QWidget):
         """Toggle recording"""
         event = Event(Event.AUDIO_INPUT_RECORD_TOGGLE)
         self.window.dispatch(event)
+
+
+class LevelBar(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._level = 0.0  # Level from 0.0 to 100.0
+        self.setFixedSize(200, 5)  # Set your desired size
+
+    def setLevel(self, level):
+        self._level = level
+        self.update()  # Trigger repaint
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        # Draw background
+        painter.fillRect(self.rect(), Qt.transparent)
+        # Draw level
+        level_width = (self._level / 100.0) * self.width()
+        painter.setBrush(Qt.green)
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(0, 0, level_width, self.height())
