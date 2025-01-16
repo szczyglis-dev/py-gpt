@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.47** | build: **2025.01.14** | Python: **>=3.10, <3.13**
+Release: **2.4.48** | build: **2025.01.16** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -10,7 +10,7 @@ Release: **2.4.47** | build: **2025.01.14** | Python: **>=3.10, <3.13**
 > 
 > Compiled version for Linux (`zip`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
 > 
-> ❤️ Donate: https://www.buymeacoffee.com/szczyglis
+> ❤️ Donate: https://www.buymeacoffee.com/szczyglis | https://github.com/sponsors/szczyglis-dev
 
 ## Overview
 
@@ -3951,6 +3951,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.4.48 (2025-01-16)**
+
+- Fix: parsing lists in data loaders configuration.
+- Added Gemini embeddings to LlamaIndex settings.
+- LlamaIndex upgraded to 0.12.11.
+- Security updates.
 
 **2.4.47 (2025-01-14)**
 

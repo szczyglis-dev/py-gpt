@@ -59,7 +59,7 @@ a = Analysis(
         ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\*', 'llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\core\\agent\\react\\templates\\*', 'llama_index\\core\\agent\\react\\templates\\'),  # llama-index agents hack
         ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # langchain/llama hack
-        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.27.0.dist-info\\*', 'opentelemetry_sdk-1.27.0.dist-info'), # chromadb hack
+        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.29.0.dist-info\\*', 'opentelemetry_sdk-1.29.0.dist-info'), # chromadb hack
         ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
     ],
     hiddenimports=[

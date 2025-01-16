@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.4.48 (2025-01-16)
+
+- Fix: parsing lists in data loaders configuration.
+- Added Gemini embeddings to LlamaIndex settings.
+- LlamaIndex upgraded to 0.12.11.
+- Security updates.
+
 ## 2.4.47 (2025-01-14)
 
 - Added support for Python 3.12.
