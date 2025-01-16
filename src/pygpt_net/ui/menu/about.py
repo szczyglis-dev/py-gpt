@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.19 01:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -33,6 +33,8 @@ class About:
                                                         self.window)
         self.window.ui.menu['info.updates'] = QAction(QIcon(":/icons/updater.svg"), trans("menu.info.updates"),
                                                       self.window)
+        self.window.ui.menu['info.report'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.report"),
+                                                      self.window)
         self.window.ui.menu['info.website'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.website"),
                                                       self.window)
         self.window.ui.menu['info.docs'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.docs"),
@@ -50,15 +52,14 @@ class About:
         self.window.ui.menu['info.license'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.license"),
                                                       self.window)
 
-        self.window.ui.menu['info.donate'] = QAction(QIcon(":/icons/favorite.svg"), trans("menu.info.donate"),
-                                                      self.window)
-
         self.window.ui.menu['info.about'].triggered.connect(
             lambda: self.window.controller.dialogs.info.toggle('about'))
         self.window.ui.menu['info.changelog'].triggered.connect(
             lambda: self.window.controller.dialogs.info.toggle('changelog'))
         self.window.ui.menu['info.updates'].triggered.connect(
             lambda: self.window.controller.launcher.check_updates())
+        self.window.ui.menu['info.report'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.goto_report())
         self.window.ui.menu['info.website'].triggered.connect(
             lambda: self.window.controller.dialogs.info.goto_website())
         self.window.ui.menu['info.docs'].triggered.connect(
@@ -77,13 +78,12 @@ class About:
                 width=500,
                 height=480,
             ))
-        self.window.ui.menu['info.donate'].triggered.connect(
-            lambda: self.window.controller.dialogs.info.goto_donate())
 
         self.window.ui.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.about'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.changelog'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.updates'])
+        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.report'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.docs'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.website'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])
@@ -91,4 +91,3 @@ class About:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.discord'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])
-        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.donate'])

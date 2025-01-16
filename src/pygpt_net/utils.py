@@ -98,7 +98,11 @@ def get_app_meta() -> dict:
         'version': get_init_value("__version__"),
         'build': get_init_value("__build__"),
         'author': get_init_value("__author__"),
-        'email': get_init_value("__email__")
+        'email': get_init_value("__email__"),
+        'donate_coffee': get_init_value("__donate_coffee__"),
+        'donate_paypal': get_init_value("__donate_paypal__"),
+        'donate_github': get_init_value("__donate_github__"),
+        'report': get_init_value("__report__"),
     }
 
 

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 10:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 from .about import About
 from .audio import Audio
 from .config import Config
 from .debug import Debug
+from .donate import Donate
 from .file import File
 from .lang import Lang
 from .plugins import Plugins
@@ -33,6 +34,7 @@ class Menu:
         self.audio = Audio(window)
         self.config = Config(window)
         self.debug = Debug(window)
+        self.donate = Donate(window)
         self.file = File(window)
         self.lang = Lang(window)
         self.plugins = Plugins(window)
@@ -54,6 +56,7 @@ class Menu:
         """Post setup menus"""
         # tools menu
         self.tools.setup()
+        self.donate.setup()
 
         # debug menu
         show = self.window.core.config.get('debug')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -364,6 +364,7 @@ class Mapping:
         menu_title['menu.audio'] = 'menu.audio'
         menu_title['menu.video'] = 'menu.video'
         menu_title['menu.tools'] = 'menu.tools'
+        menu_title['menu.donate'] = 'menu.info.donate'
 
         # menu text
         menu_text = {}
@@ -393,9 +394,9 @@ class Mapping:
         menu_text['info.docs'] = 'menu.info.docs'
         menu_text['info.pypi'] = 'menu.info.pypi'
         menu_text['info.snap'] = 'menu.info.snap'
-        menu_text['info.donate'] = 'menu.info.donate'
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
+        menu_text['info.report'] = 'menu.info.report'
         menu_text['audio.output'] = 'menu.audio.output'
         menu_text['audio.input'] = 'menu.audio.input'
         menu_text['audio.control.plugin'] = 'menu.audio.control.plugin'
@@ -453,7 +454,6 @@ class Mapping:
         tooltips['icon.audio.output'] = 'icon.audio.output'
         tooltips['icon.audio.input'] = 'icon.audio.input'
         tooltips['assistant.store.btn.refresh_status'] = 'dialog.assistant.store.btn.refresh_status'
-        tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
 
         # menu tooltips

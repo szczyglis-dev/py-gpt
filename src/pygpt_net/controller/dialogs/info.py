@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -92,6 +92,23 @@ class Info:
     def goto_discord(self):
         """Open discord page"""
         webbrowser.open(self.window.meta['discord'])
+
+    def goto_report(self):
+        """Open report a bug page"""
+        webbrowser.open(self.window.meta['report'])
+
+    def donate(self, id: str):
+        """
+        Donate action
+
+        :param id: donate id
+        """
+        if id == 'coffee':
+            webbrowser.open(self.window.meta['donate_coffee'])
+        elif id == 'paypal':
+            webbrowser.open(self.window.meta['donate_paypal'])
+        elif id == 'github':
+            webbrowser.open(self.window.meta['donate_github'])
 
     def update_menu(self):
         """Update info menu"""

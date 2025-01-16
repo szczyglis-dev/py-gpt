@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -160,7 +160,6 @@ class Output:
         self.window.ui.nodes['inline.vision'] = HelpLabel(trans('inline.vision'))
         self.window.ui.nodes['inline.vision'].setVisible(False)
         self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
-        self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
 
         opts_layout = QHBoxLayout()
         # opts_layout.setSpacing(2)  #
