@@ -697,7 +697,7 @@ greenlet==3.1.1 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:f1d4aeb8891338e60d1ab6127af1fe45def5259def8094b9c7e34690c8858803 \
     --hash=sha256:f406b22b7c9a9b4f8aa9d2ab13d6ae0ac3e85c9a809bd590ad53fed2bf70dc79 \
     --hash=sha256:f6ff3b14f2df4c41660a7dec01045a045653998784bf8cfcb5a525bdffffbc8f
-grpcio-status==1.69.0 ; python_version >= "3.10" and python_version < "3.13" \
+grpcio-status==1.69.0 ; python_version < "3.13" and python_version >= "3.10" \
     --hash=sha256:595ef84e5178d6281caa732ccf68ff83259241608d26b0e9c40a5e66eee2a2d2 \
     --hash=sha256:d6b2a3c9562c03a817c628d7ba9a925e209c228762d6d7677ae5c9401a542853
 grpcio==1.69.0 ; python_version >= "3.10" and python_version < "3.13" \
@@ -992,6 +992,9 @@ llama-index-core==0.12.11 ; python_version >= "3.10" and python_version < "3.13"
 llama-index-embeddings-azure-openai==0.3.0 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:2ca61d6b75468d1230cfc1151a878d892b237130b8af09b4434f8c0466d44dfe \
     --hash=sha256:80b0cf977d8b967a08536d65b8e2d0c6c966eeaf1b8fff084e97f3081fd70c34
+llama-index-embeddings-gemini==0.3.1 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:06de8d6b3a2033c3b9403b6b20ddaea2828c0b0ccbb1e394fefe47f5ed21bc49 \
+    --hash=sha256:fd2b391c65f82550d988d346cab512b54336fe6557757b418b3293c9e26f94b0
 llama-index-embeddings-huggingface-api==0.3.0 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:13ec7ee0fb5ac6ce506b9b624b6ed6a046614631a22422ba6e26fd8c193ed6b3 \
     --hash=sha256:6722a946dfa965b5d05c7c1c43d722a4e822381630f7098883373a4e05237a39
