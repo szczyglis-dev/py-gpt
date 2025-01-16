@@ -130,19 +130,41 @@ class AudioInputButton(QWidget):
 class LevelBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._level = 0.0  # Level from 0.0 to 100.0
-        self.setFixedSize(200, 5)  # Set your desired size
+        self._level = 0.0  # level from 0.0 to 100.0
+        self.setFixedSize(200, 5)  # bar size
 
     def setLevel(self, level):
+        """
+        Set volume level
+
+        :param level: level
+        """
         self._level = level
-        self.update()  # Trigger repaint
+        self.update()
 
     def paintEvent(self, event):
+        """
+        Paint event
+
+        :param event: event
+        """
         painter = QPainter(self)
-        # Draw background
         painter.fillRect(self.rect(), Qt.transparent)
-        # Draw level
         level_width = (self._level / 100.0) * self.width()
         painter.setBrush(Qt.green)
         painter.setPen(Qt.NoPen)
         painter.drawRect(0, 0, level_width, self.height())
+
+    """
+        # --- bar from center ---
+        def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), Qt.transparent)
+        level_width = (self._level / 100.0) * self.width()
+        half_level_width = level_width / 2
+        center_x = self.width() / 2
+        rect_x = center_x - half_level_width
+        painter.setBrush(Qt.green)
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(rect_x, 0, level_width, self.height())
+    """
