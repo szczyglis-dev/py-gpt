@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.16 04:00:00                  #
 # ================================================== #
 
 import json
@@ -440,6 +440,11 @@ class Threads(QObject):
         self.stop = False
         event = KernelEvent(KernelEvent.STATE_IDLE, {
             'msg': trans('assistant.run.completed'),
+        })
+        self.window.dispatch(event)
+        event = RenderEvent(RenderEvent.RELOAD, {
+            "meta": ctx.meta,
+            "ctx": ctx,
         })
         self.window.dispatch(event)
         self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens
