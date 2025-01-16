@@ -63,7 +63,7 @@ class AnimToggle(QCheckBox):
         #bar_checked_color = palette.color(QPalette.Dark)
         bar_checked_color = QColor("#969696")
         bar_color.setAlpha(0x80)
-        handle_color = palette.color(QPalette.Shadow)
+        handle_color = palette.color(QPalette.Dark)
         handle_checked_color = palette.color(QPalette.ButtonText)
 
         # Create semi-transparent colors for the pulse effect

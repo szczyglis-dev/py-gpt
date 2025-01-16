@@ -3955,6 +3955,7 @@ may consume additional tokens that are not displayed in the main window.
 **2.4.48 (2025-01-16)**
 
 - Fix: parsing lists in data loaders configuration.
+- Fix: crash on Windows on PySide6 v6.6.0.
 - Added Gemini embeddings to LlamaIndex settings.
 - LlamaIndex upgraded to 0.12.11.
 - Security updates.
