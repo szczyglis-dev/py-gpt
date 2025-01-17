@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.52 (2025-01-17)
+
+- Improved audio input button visibility toggle.
+- Fix: check for required arguments - issue #88.
+- UI Fixes.
+
 ## 2.4.51 (2025-01-17)
 
 - Added a "Continuous recording" mode under Audio Input in the Notepad tab, allowing for recording long voice notes and real-time auto-transcription. (beta)
