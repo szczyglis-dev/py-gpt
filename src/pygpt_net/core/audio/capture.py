@@ -14,8 +14,8 @@ import time
 import numpy as np
 import wave
 
-from PySide6.QtCore import Signal
 from PySide6.QtMultimedia import QAudioFormat, QMediaDevices, QAudioSource
+from PySide6.QtCore import QTimer
 
 class Capture:
     def __init__(self, window=None):
@@ -255,7 +255,7 @@ class Capture:
             if time_elapsed >= stop_interval:
                 # stop recording here, save audio chunk to WAV file, run transcription, and start recording again
                 self.start_time = current_time
-                self.stop_callback()
+                QTimer.singleShot(0, self.stop_callback)  # required QTimer to prevent crash!!!
 
     def update_audio_level(self, level: int):
         """
