@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 import os
@@ -109,9 +109,10 @@ class UI:
     def set_initial_size(self):
         """Set default sizes"""
         def set_initial_splitter_height():
+            """Set initial splitter height"""
             total_height = self.window.ui.splitters['main.output'].size().height()
             if total_height > 0:
-                size_output = int(total_height * 0.8)
+                size_output = int(total_height * 0.9)
                 size_input = total_height - size_output
                 self.window.ui.splitters['main.output'].setSizes([size_output, size_input])
             else:
@@ -119,6 +120,7 @@ class UI:
         QTimer.singleShot(0, set_initial_splitter_height)
 
         def set_initial_splitter_width():
+            """Set initial splitter width"""
             total_width = self.window.ui.splitters['main'].size().width()
             if total_width > 0:
                 size_output = int(total_width * 0.7)
