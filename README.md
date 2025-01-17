@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.4.50** | build: **2025.01.16** | Python: **>=3.10, <3.13**
+Release: **2.4.51** | build: **2025.01.17** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3953,6 +3953,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.51 (2025-01-17)**
+
+- Added a "Continuous recording" mode under Audio Input in the Notepad tab, allowing for recording long voice notes and real-time auto-transcription.
+- A new option has been added in Settings -> Audio -> Continuous recording auto-transcribe interval.
+
 **2.4.50 (2025-01-16)**
 
 - Refactored audio input core.
@@ -3982,67 +3987,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new tab in Settings: "API Keys", where the API keys configuration for Google and Anthropic models has been relocated.
 - Introduced a new mode in "Chat with Files": "Retrieve Only", which allows for retrieving raw documents from the index.
 - Fixed a bug related to tool calls in the Gemini provider when using Chat with Files mode.
-
-**2.4.45 (2024-12-16)**
-
-- Enhanced web data loaders UI.
-
-**2.4.44 (2024-12-16)**
-
-- Enhanced web data loaders.
-- Web loaders have been added to attachments, allowing external web content to be attached to context via the "+Web" button in the Attachments tab.
-- Improved handling of attachments in groups and added an attachment icon when a group contains attachments.
-
-**2.4.43 (2024-12-15)**
-
-- Fix: Bug on attachment upload.
-- Added: Attachments uploaded in groups are now available for all contexts in the group (beta).
-
-**2.4.42 (2024-12-15)**
-
-- Added Mailer plugin, which allows sending and retrieving emails from the server, and reading them. It currently supports only SMTP.
-- Added 'web_request' command to the Web Search plugin, enabling GET/POST/PUT and other connections to any address and API endpoint. It also supports sending POST data, files, headers, cookies, and more.
-- Improved audio output.
-- Enhanced visibility of the Video menu.
-- Other fixes.
-
-**2.4.41 (2024-12-14)**
-
-- Improved switching between columns on a split screen.
-- Added visual identification of the active column.
-
-**2.4.40 (2024-12-13)**
-
-- Enhanced Split Screen mode, now promoted from beta to stable.
-- Python Code Interpreter tool added to the Tabs.
-- HTML/JS Canvas tool added to the Tabs.
-- Added attachment icon to the context list if context has attachments.
-- Improved audio playback.
-- Improved web search.
-- Added a thumbnail image to web search results.
-- Added a new commands to web search: "extract_images" and "extract_links".
-- Added the option "Use raw content (without summarization)" to the web search plugin, which provides a more detailed result to the main model.
-- Extended the default maximum result characters to 50,000 in the web search plugin.
-
-**2.4.39 (2024-12-09)**
-
-- Added "Split Screen" mode (accessible via the switch in the bottom-right corner of the screen), which allows you to work in two windows simultaneously. It is currently experimental (beta). Future updates will include Code Interpreter and Canvas running in tabs.
-
-- Fixed: Language switch.
-
-**2.4.38 (2024-12-08)**
-
-- Added the ability to select a style for chat display between: Blocks, ChatGPT-like, and ChatGPT-like Wide. New option in the menu: Config -> Theme -> Style...
-- Added configuration options for audio input in Settings -> Audio -> Audio Input Device, Channels, and Sampling rate.
-
-**2.4.37 (2024-11-30)**
-
-- The `Query only` mode in `Uploaded` tab has been renamed to `RAG`.
-- New options have been added under `Settings -> Files and Attachments`: 
-  - `Use history in RAG query`: When enabled, the content of the entire conversation will be used when preparing a query if the mode is set to RAG or Summary.
-  - `RAG limit`: This option is applicable only if 'Use history in RAG query' is enabled. It specifies the limit on how many recent entries in the conversation will be used when generating a query for RAG. A value of 0 indicates no limit.
-- Cache: dynamic parts of the system prompt (from plugins) have been moved to the very end of the prompt stack to enable the use of prompt cache mechanisms in OpenAI.
-
 
 # Credits and links
 
