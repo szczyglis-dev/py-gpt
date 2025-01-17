@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.53 (2025-01-17)
+
+- Fix: issue #89
+
 ## 2.4.52 (2025-01-17)
 
 - Improved audio input button visibility toggle.
