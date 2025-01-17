@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -113,7 +113,9 @@ class Info:
     def update_menu(self):
         """Update info menu"""
         for id in self.ids:
-            if id in self.active and self.active[id]:
-                self.window.ui.menu['info.' + id].setChecked(True)
-            else:
-                self.window.ui.menu['info.' + id].setChecked(False)
+            item = 'info.' + id
+            if item in self.window.ui.menu:
+                if id in self.active and self.active[id]:
+                    self.window.ui.menu[item].setChecked(True)
+                else:
+                    self.window.ui.menu[item].setChecked(False)
