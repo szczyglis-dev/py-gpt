@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 07:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -181,6 +181,12 @@ class Tabs:
 
         if prev_tab != idx or prev_column != column_idx:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
+
+        # show/hide audio record footer
+        if tab.type == Tab.TAB_NOTEPAD:
+            self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(True)
+        else:
+            self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(False)
 
         self.window.controller.ui.update()
         self.update_current()

@@ -160,24 +160,12 @@ class Input:
 
         grid = QGridLayout()
 
-        #left_layout = QHBoxLayout()
-        #left_layout.addWidget(self.window.ui.nodes['input.label'])
-        #left_layout.addWidget(self.window.ui.nodes['inline.vision'])
-        #left_layout.addStretch(1)
-
         center_layout = QHBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(self.window.ui.plugin_addon['audio.input'])
         center_layout.addWidget(self.window.ui.plugin_addon['audio.input.btn'])
         center_layout.addStretch()
-
-        #right_layout = QHBoxLayout()
-        #right_layout.addStretch(1)
-        #right_layout.addWidget(self.window.ui.nodes['input.counter'])
-
-        #grid.addLayout(left_layout, 0, 0)
         grid.addLayout(center_layout, 0, 1, alignment=Qt.AlignCenter)
-        #grid.addLayout(right_layout, 0, 2, alignment=Qt.AlignRight)
 
         grid.setContentsMargins(0, 0, 0, 0)
         return grid

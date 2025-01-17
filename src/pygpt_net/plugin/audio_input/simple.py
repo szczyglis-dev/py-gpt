@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 17:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ import os
 from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import AppEvent
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 
 
@@ -56,6 +57,14 @@ class Simple:
 
     def start_recording(self):
         """Start recording"""
+        # enable continuous mode if notepad tab is active
+        self.plugin.window.core.audio.capture.stop_callback = self.on_stop
+        continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
+        if continuous_enabled and self.plugin.window.controller.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD:
+            self.plugin.window.core.audio.capture.loop = True  # set loop
+        else:
+            self.plugin.window.core.audio.capture.loop = False
+
         try:
             # stop audio output if playing
             if self.plugin.window.controller.audio.is_playing():
@@ -128,3 +137,12 @@ class Simple:
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
         else:
             self.plugin.window.update_status("")
+
+
+    def on_stop(self):
+        """Handle auto-transcribe"""
+        path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
+        self.plugin.window.core.audio.capture.set_path(path)
+        self.plugin.window.core.audio.capture.stop()
+        self.plugin.window.core.audio.capture.start()
+        self.plugin.handle_thread(True)

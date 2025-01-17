@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
 
 from .about import About
@@ -50,15 +50,16 @@ class Menu:
         self.audio.setup()
         self.video.setup()
         self.config.setup()
-        self.about.setup()
 
     def post_setup(self):
         """Post setup menus"""
         # tools menu
         self.tools.setup()
-        self.donate.setup()
+        self.about.setup()
 
         # debug menu
         show = self.window.core.config.get('debug')
         self.debug.setup()
         self.window.ui.menu['menu.debug'].menuAction().setVisible(show)
+
+        self.donate.setup()

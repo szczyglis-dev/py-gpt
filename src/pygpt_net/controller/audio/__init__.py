@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
 
 import os
@@ -29,6 +29,8 @@ class Audio:
     def setup(self):
         """Setup controller"""
         self.update()
+        if self.window.core.config.get("audio.input.continuous", False):
+            self.window.ui.plugin_addon['audio.input.btn'].continuous.setChecked(True)
 
     def toggle_input(
             self,
@@ -53,6 +55,18 @@ class Audio:
             self.disable_output()
         else:
             self.enable_output()
+
+    def toggle_continuous(self, state: bool):
+        """
+        Toggle continuous audio input
+
+        :param state: True to enable, False to disable
+        """
+        if state:
+            self.window.core.config.set("audio.input.continuous", True)
+        else:
+            self.window.core.config.set("audio.input.continuous", False)
+        self.window.core.config.save()
 
     def enable_output(self):
         """Enable audio output"""

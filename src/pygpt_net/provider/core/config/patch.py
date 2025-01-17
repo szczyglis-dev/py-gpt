@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -1802,6 +1802,14 @@ class Patch:
                 if 'api_key_hugging_face' not in data:
                     data["api_key_hugging_face"] = ""
                 updated = True
+
+            # < 2.4.51
+            if old < parse_version("2.4.51"):
+                print("Migrating config from < 2.4.51...")
+                if 'audio.input.stop_interval' not in data:
+                    data["audio.input.stop_interval"] = 10
+                if 'audio.input.continuous' not in data:
+                    data["audio.input.continuous"] = False
 
         # update file
         migrated = False

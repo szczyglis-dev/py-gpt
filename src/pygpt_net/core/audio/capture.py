@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 17:00:00                  #
+# Updated Date: 2025.01.17 02:00:00                  #
 # ================================================== #
+
+import time
 
 import numpy as np
 import wave
 
+from PySide6.QtCore import Signal
 from PySide6.QtMultimedia import QAudioFormat, QMediaDevices, QAudioSource
 
 class Capture:
@@ -28,6 +31,9 @@ class Capture:
         self.actual_audio_format = None
         self.path = None
         self.disconnected = False
+        self.loop = False
+        self.stop_callback = None
+        self.start_time = 0
         self.devices = []
         self.selected_device = None
         self.bar = None
@@ -100,6 +106,7 @@ class Capture:
 
         # Set up audio input and start recording
         self.setup_audio_input()
+        self.start_time = time.time()
         return True
 
     def stop(self):
@@ -199,6 +206,7 @@ class Capture:
 
     def process_audio_input(self):
         """Process incoming audio data"""
+        # add seconds to stop timer
         data = self.audio_io_device.readAll()
         if data.isEmpty():
             return
@@ -238,6 +246,16 @@ class Capture:
 
         # Update the level bar widget
         self.update_audio_level(level_percent)
+
+        # Handle loop recording
+        if self.loop and self.stop_callback is not None:
+            stop_interval = int(self.window.core.config.get('audio.input.stop_interval', 10))
+            current_time = time.time()
+            time_elapsed = current_time - self.start_time
+            if time_elapsed >= stop_interval:
+                print("Recording stopped due to timeout")
+                # stop recording here, save audio to file, execute transcribe saved file, start recording again
+                self.stop_callback()
 
     def update_audio_level(self, level: int):
         """
