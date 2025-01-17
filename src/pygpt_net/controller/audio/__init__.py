@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 import os
 from typing import Optional
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event, BaseEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -25,6 +26,11 @@ class Audio:
         :param window: Window instance
         """
         self.window = window
+        self.input_allowed_tabs = [
+            Tab.TAB_NOTEPAD,
+            Tab.TAB_CHAT,
+            Tab.TAB_TOOL_CALENDAR,
+        ]
 
     def setup(self):
         """Setup controller"""
@@ -67,6 +73,19 @@ class Audio:
         else:
             self.window.core.config.set("audio.input.continuous", False)
         self.window.core.config.save()
+
+    def on_tab_changed(self, tab: Tab):
+        """
+        On tab changed event
+
+        :param tab: Tab instance (current tab)
+        """
+        # input button visibility
+        if self.is_input_enabled():
+            if tab.type in self.input_allowed_tabs:
+                self.handle_audio_input(True)  # show btn
+            else:
+                self.handle_audio_input(False) # hide btn
 
     def enable_output(self):
         """Enable audio output"""
@@ -361,3 +380,55 @@ class Audio:
         except Exception as e:
             pass
         return False
+
+    def handle_audio_input(
+            self,
+            is_enabled: bool
+    ):
+        """
+        Handle audio input UI
+
+        :param is_enabled: enable/disable audio input
+        """
+        # get advanced audio input option
+        is_advanced = False
+        data = {
+            'name': 'audio.input.advanced',
+            'value': is_advanced,
+        }
+        event = Event(Event.PLUGIN_OPTION_GET, data)
+        self.window.dispatch(event)
+        if 'value' in event.data:
+            is_advanced = event.data['value']
+        if is_enabled:
+            # show/hide extra options
+            tab = self.window.controller.ui.tabs.get_current_tab()
+            if tab.type == Tab.TAB_NOTEPAD:
+                self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(True)
+            else:
+                self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(False)
+            if is_advanced:
+                self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)
+                self.window.ui.plugin_addon['audio.input'].setVisible(True)
+            else:
+                self.window.ui.plugin_addon['audio.input.btn'].setVisible(True)  # simple recording
+                self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
+            self.toggle_input_icon(True)
+        else:
+            self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)  # simple recording
+            self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
+            self.toggle_input_icon(False)
+
+    def handle_audio_output(self, is_enabled: bool):
+        """
+        Handle audio output UI
+
+        :param is_enabled: enable/disable audio output
+        """
+        if is_enabled:
+            self.toggle_output_icon(True)
+            # self.window.ui.plugin_addon['audio.output'].setVisible(True)
+        else:
+            self.window.ui.plugin_addon['audio.output'].setVisible(False)
+            self.toggle_output_icon(False)
+

@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
-
-from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
@@ -182,14 +180,17 @@ class Tabs:
         if prev_tab != idx or prev_column != column_idx:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
-        # show/hide audio record footer
-        if tab.type == Tab.TAB_NOTEPAD:
-            self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(True)
-        else:
-            self.window.ui.plugin_addon['audio.input.btn'].notepad_footer.setVisible(False)
+        self.on_changed()
 
         self.window.controller.ui.update()
         self.update_current()
+
+    def on_changed(self):
+        """On Tab or column changed event (any)"""
+        tab = self.get_current_tab()
+        if tab is None:
+            return
+        self.window.controller.audio.on_tab_changed(tab)
 
     def get_current_idx(self, column_idx: int = 0) -> int:
         """
@@ -297,6 +298,7 @@ class Tabs:
         self.current = idx
         self.column_idx = column_idx
         self.on_column_changed()
+        self.on_changed()
         self.update_current()
 
     def on_column_focus(self, idx: int):
@@ -307,6 +309,7 @@ class Tabs:
         """
         self.column_idx = idx
         self.on_column_changed()
+        self.on_changed()
         self.update_current()
 
     def on_tab_dbl_clicked(
@@ -338,6 +341,7 @@ class Tabs:
         if self.locked:
             return
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
+        self.on_changed()
         self.update_current()
 
     def on_tab_moved(
@@ -393,6 +397,7 @@ class Tabs:
             return
         column_idx = self.tmp_column_idx
         self.window.core.tabs.remove_all_by_type(type, column_idx)
+        self.on_changed()
         self.update_current()
 
     def next_tab(self):

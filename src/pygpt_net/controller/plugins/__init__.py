@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any
@@ -280,41 +280,16 @@ class Plugins:
         """Handle plugin type"""
         for type in self.window.core.plugins.allowed_types:
 
-            # get advanced audio input option
-            is_advanced = False
-            data = {
-                'name': 'audio.input.advanced',
-                'value': is_advanced,
-            }
-            event = Event(Event.PLUGIN_OPTION_GET, data)
-            self.window.dispatch(event)
-            if 'value' in event.data:
-                is_advanced = event.data['value']
+            enabled = self.is_type_enabled(type)
 
             if type == 'audio.input':
-                if self.is_type_enabled(type):
-                    if is_advanced:
-                        self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)
-                        self.window.ui.plugin_addon['audio.input'].setVisible(True)
-                    else:
-                        self.window.ui.plugin_addon['audio.input.btn'].setVisible(True)  # simple recording
-                        self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
-                    self.window.controller.audio.toggle_input_icon(True)
-                else:
-                    self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)  # simple recording
-                    self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
-                    self.window.controller.audio.toggle_input_icon(False)
+                self.window.controller.audio.handle_audio_input(enabled)
 
             elif type == 'audio.output':
-                if self.is_type_enabled(type):
-                    self.window.controller.audio.toggle_output_icon(True)
-                    # self.window.ui.plugin_addon['audio.output'].setVisible(True)
-                else:
-                    self.window.ui.plugin_addon['audio.output'].setVisible(False)
-                    self.window.controller.audio.toggle_output_icon(False)
+                self.window.controller.audio.handle_audio_output(enabled)
 
             elif type == 'schedule':
-                if self.is_type_enabled(type):
+                if enabled:
                     self.window.ui.plugin_addon['schedule'].setVisible(True)
                     # get tasks count by throwing "get option" event
                     num = 0
