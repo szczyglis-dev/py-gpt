@@ -55,8 +55,12 @@ class Simple:
         """Stop timeout"""
         self.stop_recording(timeout=True)
 
-    def start_recording(self):
-        """Start recording"""
+    def start_recording(self, force: bool = False):
+        """
+        Start recording
+
+        :param force: True to force recording
+        """
         # enable continuous mode if notepad tab is active
         self.plugin.window.core.audio.capture.stop_callback = self.on_stop
         continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
@@ -81,11 +85,12 @@ class Simple:
                 self.timer.timeout.connect(self.stop_timeout)
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
 
-            if not self.plugin.window.core.audio.capture.check_audio_input():
-                raise Exception("Audio input not working.")
-                # IMPORTANT!!!!
-                # Stop here if audio input not working!
-                # This prevents the app from freezing when audio input is not working!
+            if not force:
+                if not self.plugin.window.core.audio.capture.check_audio_input():
+                    raise Exception("Audio input not working.")
+                    # IMPORTANT!!!!
+                    # Stop here if audio input not working!
+                    # This prevents the app from freezing when audio input is not working!
 
             self.is_recording = True
             self.switch_btn_stop()

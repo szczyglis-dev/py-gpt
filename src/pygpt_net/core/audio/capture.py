@@ -253,8 +253,8 @@ class Capture:
             current_time = time.time()
             time_elapsed = current_time - self.start_time
             if time_elapsed >= stop_interval:
-                print("Recording stopped due to timeout")
-                # stop recording here, save audio to file, execute transcribe saved file, start recording again
+                # stop recording here, save audio chunk to WAV file, run transcription, and start recording again
+                self.start_time = current_time
                 self.stop_callback()
 
     def update_audio_level(self, level: int):
