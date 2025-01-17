@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.01.17 13:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -160,6 +160,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"] or "data" not in item["params"]:
+                return self.make_response(item, "Path or data not provided")
             path = self.prepare_path(item["params"]['path'])
             data = item["params"]['data']
             self.msg = "Saving file: {}".format(path)
@@ -180,6 +182,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"] or "data" not in item["params"]:
+                return self.make_response(item, "Path or data not provided")
             path = self.prepare_path(item["params"]['path'])
             data = item["params"]['data']
             self.msg = "Appending file: {}".format(path)
@@ -201,6 +205,8 @@ class Worker(BaseWorker):
         """
         context_result = ""
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             self.msg = "Reading file: {}".format(item["params"]['path'])
             self.log(self.msg)
             path = item["params"]['path']
@@ -232,6 +238,8 @@ class Worker(BaseWorker):
         context = None
         query = None
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Reading path: {}".format(path)
             self.log(self.msg)
@@ -283,6 +291,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Deleting file: {}".format(path)
             self.log(self.msg)
@@ -372,6 +382,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Creating directory: {}".format(path)
             self.log(self.msg)
@@ -394,6 +406,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Deleting directory: {}".format(path)
             self.log(self.msg)
@@ -416,6 +430,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
             self.log(self.msg)
@@ -468,6 +484,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Copying file: {} into {}".format(src, dst)
@@ -487,6 +505,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Copying directory: {} into {}".format(src, dst)
@@ -506,6 +526,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
             src = self.prepare_path(item["params"]['src'])
             dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Moving: {} into {}".format(src, dst)
@@ -525,6 +547,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if directory exists: {}".format(path)
             self.log(self.msg)
@@ -546,6 +570,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if file exists: {}".format(path)
             self.log(self.msg)
@@ -567,6 +593,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking if path exists: {}".format(path)
             self.log(self.msg)
@@ -588,6 +616,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking file size: {}".format(path)
             self.log(self.msg)
@@ -613,6 +643,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Checking file info: {}".format(path)
             self.log(self.msg)
@@ -666,6 +698,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
             path = self.prepare_path(item["params"]['path'])
             self.msg = "Adding attachment: {}".format(path)
             self.log(self.msg)
@@ -728,6 +762,8 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
+            if "pattern" not in item["params"]:
+                return self.make_response(item, "Search pattern not provided")
             recursive = True
             path = self.plugin.window.core.config.get_user_dir('data')
             pattern = item["params"]['pattern']
