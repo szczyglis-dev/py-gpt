@@ -2,7 +2,7 @@
 
 ## 2.4.51 (2025-01-17)
 
-- Added a "Continuous recording" mode under Audio Input in the Notepad tab, allowing for recording long voice notes and real-time auto-transcription.
+- Added a "Continuous recording" mode under Audio Input in the Notepad tab, allowing for recording long voice notes and real-time auto-transcription. (beta)
 - A new option has been added in Settings -> Audio -> Continuous recording auto-transcribe interval.
 
 ## 2.4.50 (2025-01-16)
