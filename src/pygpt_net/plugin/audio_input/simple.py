@@ -92,7 +92,8 @@ class Simple:
             )
 
             # start timeout timer to prevent infinite recording
-            if self.timer is None:
+            # disable in continuous mode
+            if self.timer is None and not continuous_enabled:
                 self.timer = QTimer()
                 self.timer.timeout.connect(self.stop_timeout)
                 self.timer.start(self.TIMEOUT_SECONDS * 1000)
