@@ -21,7 +21,9 @@ parts:
     plugin: python
     python-requirements: [requirements.txt]
     stage-packages:
-      - portaudio19-dev
+      - libasound2
+      - libasound2-data
+      - libportaudio2
       - ffmpeg
       - gstreamer1.0-libav
       - libxcb-cursor0
@@ -38,7 +40,7 @@ parts:
       - libgtk-3-0
       - libpng16-16
       - libfontconfig1
-      - libxi6        
+      - libxi6
       - xkb-data
     build-packages:
       - execstack
@@ -83,6 +85,7 @@ apps:
     - alsa
     - audio-playback
     - audio-record
+    - pulseaudio
     - browser-support
     - network
     - network-bind
