@@ -1816,6 +1816,8 @@ class Patch:
                 print("Migrating config from < 2.4.55...")
                 if 'audio.input.timeout' not in data:
                     data["audio.input.timeout"] = 120
+                if 'audio.input.timeout.continuous' not in data:
+                    data["audio.input.timeout.continuous"] = False
 
         # update file
         migrated = False

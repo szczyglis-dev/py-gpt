@@ -94,8 +94,9 @@ class Simple:
             # start timeout timer to prevent infinite recording
             # disable in continuous mode
             timeout = int(self.plugin.window.core.config.get('audio.input.timeout', 120) or 0) # get timeout
+            timeout_continuous = self.plugin.window.core.config.get('audio.input.timeout.continuous', False) # enable continuous timeout
             if timeout > 0:
-                if self.timer is None and not continuous_enabled:
+                if self.timer is None and (not continuous_enabled or timeout_continuous):
                     self.timer = QTimer()
                     self.timer.timeout.connect(self.stop_timeout)
                     self.timer.start(timeout * 1000)
