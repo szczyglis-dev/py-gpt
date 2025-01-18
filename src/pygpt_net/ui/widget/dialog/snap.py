@@ -34,7 +34,7 @@ class SnapDialogCamera(QDialog):
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel(
-            "Camera not connected? It must be connected in Snap environment.\n"
+            "Camera not connected? It must be connected in the Snap environment.\n"
             "Run the following command to enable the camera and restart the application:")
         self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
         self.layout.addWidget(self.message)
@@ -64,8 +64,9 @@ class SnapDialogAudioInput(QDialog):
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel(
-            "Microphone not connected? It must be connected in Snap environment.\n"
-            "Run the following command to enable the microphone and restart the application:")
+            "Tip: Microphone must be manually connected in the Snap environment.\n"
+            "If it is connected, click on the OK button, and this warning will not be displayed again.\n"
+            "If it is NOT connected yet, run the following command and restart the application:")
         self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.cmd)
@@ -94,7 +95,7 @@ class SnapDialogAudioOutput(QDialog):
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel(
-            "Audio Device not connected? It must be connected in Snap environment.\n"
+            "Audio Device not connected? It must be connected in the Snap environment.\n"
             "Run the following command to enable the audio output and restart the application:")
         self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
         self.layout.addWidget(self.message)

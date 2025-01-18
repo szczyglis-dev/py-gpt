@@ -61,6 +61,19 @@ class Simple:
 
         :param force: True to force recording
         """
+        # display snap warning if not displayed yet
+        if (not self.plugin.window.core.config.get("audio.input.snap", False)
+                or not self.plugin.window.core.config.has("audio.input.snap")):
+            if self.plugin.window.core.platforms.is_snap():
+                self.plugin.window.ui.dialogs.open(
+                    'snap_audio_input',
+                    width=400,
+                    height=200
+                )
+                self.plugin.window.core.config.set("audio.input.snap", True)
+                self.plugin.window.core.config.save()
+                return
+
         # enable continuous mode if notepad tab is active
         self.plugin.window.core.audio.capture.stop_callback = self.on_stop
         continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
