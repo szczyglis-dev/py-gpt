@@ -25,7 +25,7 @@ class WorkerSignals(BaseSignals):
     volume_changed = Signal(float)  # Emits the volume level
     playback = Signal(str)
     stop = Signal()
-    error = Signal(tuple)
+    error_playback = Signal(object)
 
 
 class Worker(BaseWorker):
@@ -80,6 +80,7 @@ class Worker(BaseWorker):
         try:
             self.signals.playback.emit(self.event)
             audio = AudioSegment.from_file(audio_file)
+            audio = audio.set_frame_rate(44100)  # resample to 44.1 kHz
             wav_io = io.BytesIO()
             audio.export(wav_io, format='wav')
             wav_io.seek(0)
@@ -165,7 +166,7 @@ class Worker(BaseWorker):
             self.signals.volume_changed.emit(0)
         except Exception as e:
             self.signals.volume_changed.emit(0)
-            self.signals.error.emit((type(e), e.args, e))
+            self.signals.error_playback.emit(e)
 
     def cache_audio_file(self, src: str, dst: str):
         """
