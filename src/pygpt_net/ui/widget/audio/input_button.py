@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.01.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,6 +16,8 @@ from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QPushButton, QVBoxLa
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
+from .bar import InputBar
+
 import pygpt_net.icons_rc
 
 class VoiceControlButton(QWidget):
@@ -34,7 +36,7 @@ class VoiceControlButton(QWidget):
         self.btn_toggle.setCursor(Qt.PointingHandCursor)
         self.btn_toggle.setMinimumWidth(200)
 
-        self.bar = LevelBar(self)
+        self.bar = InputBar(self)
         self.bar.setLevel(0)
 
         # status
@@ -89,7 +91,7 @@ class AudioInputButton(QWidget):
         self.btn_toggle.setCursor(Qt.PointingHandCursor)
         self.btn_toggle.setMinimumWidth(200)
 
-        self.bar = LevelBar(self)
+        self.bar = InputBar(self)
         self.bar.setLevel(0)
 
         btn_layout = QVBoxLayout()
@@ -133,46 +135,3 @@ class AudioInputButton(QWidget):
         """Toggle recording"""
         event = Event(Event.AUDIO_INPUT_RECORD_TOGGLE)
         self.window.dispatch(event)
-
-
-class LevelBar(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._level = 0.0  # level from 0.0 to 100.0
-        self.setFixedSize(200, 5)  # bar size
-
-    def setLevel(self, level):
-        """
-        Set volume level
-
-        :param level: level
-        """
-        self._level = level
-        self.update()
-
-    def paintEvent(self, event):
-        """
-        Paint event
-
-        :param event: event
-        """
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.transparent)
-        level_width = (self._level / 100.0) * self.width()
-        painter.setBrush(Qt.green)
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(0, 0, level_width, self.height())
-
-    """
-        # --- bar from center ---
-        def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.transparent)
-        level_width = (self._level / 100.0) * self.width()
-        half_level_width = level_width / 2
-        center_x = self.width() / 2
-        rect_x = center_x - half_level_width
-        painter.setBrush(Qt.green)
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(rect_x, 0, level_width, self.height())
-    """

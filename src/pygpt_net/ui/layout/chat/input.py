@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2025.01.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -18,6 +18,7 @@ from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.chat.attachments_ctx import AttachmentsCtx
 from pygpt_net.ui.layout.status import Status
+from pygpt_net.ui.widget.audio.bar import OutputBar
 from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.audio.input_button import AudioInputButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -176,8 +177,10 @@ class Input:
 
         :return: QHBoxLayout
         """
+        self.window.ui.plugin_addon['audio.output.bar'] = OutputBar(self.window)
         layout = QHBoxLayout()
         layout.addLayout(self.status.setup())
+        layout.addWidget(self.window.ui.plugin_addon['audio.output.bar'], alignment=Qt.AlignCenter)
         layout.addLayout(self.setup_buttons())
         layout.setContentsMargins(2, 0, 2, 0)
 

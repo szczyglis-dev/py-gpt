@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.4.54 (2025-01-18)
+
+- Improved audio playback.
+- Added audio output volume progress bar.
+
 ## 2.4.53 (2025-01-17)
 
 - Fix: issue #89
