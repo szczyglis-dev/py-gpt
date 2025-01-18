@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.01.18 16:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -145,6 +145,7 @@ class Mapping:
         nodes["agent.iterations.label"] = "toolbox.agent.iterations.label"
         nodes["agent.auto_stop"] = "toolbox.agent.auto_stop.label"
         nodes["agent.continue"] = "toolbox.agent.continue.label"
+        nodes['layout.split'] = "layout.split"
         # nodes["indexes.new"] = "idx.new"
 
         # input

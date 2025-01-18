@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.01.18 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -1810,6 +1810,12 @@ class Patch:
                     data["audio.input.stop_interval"] = 10
                 if 'audio.input.continuous' not in data:
                     data["audio.input.continuous"] = False
+
+            # < 2.4.55
+            if old < parse_version("2.4.55"):
+                print("Migrating config from < 2.4.55...")
+                if 'audio.input.timeout' not in data:
+                    data["audio.input.timeout"] = 120
 
         # update file
         migrated = False

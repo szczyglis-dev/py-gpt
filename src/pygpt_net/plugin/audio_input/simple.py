@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.01.18 16:00:00                  #
 # ================================================== #
 
 import os
@@ -93,10 +93,12 @@ class Simple:
 
             # start timeout timer to prevent infinite recording
             # disable in continuous mode
-            if self.timer is None and not continuous_enabled:
-                self.timer = QTimer()
-                self.timer.timeout.connect(self.stop_timeout)
-                self.timer.start(self.TIMEOUT_SECONDS * 1000)
+            timeout = int(self.plugin.window.core.config.get('audio.input.timeout', 120) or 0) # get timeout
+            if timeout > 0:
+                if self.timer is None and not continuous_enabled:
+                    self.timer = QTimer()
+                    self.timer.timeout.connect(self.stop_timeout)
+                    self.timer.start(timeout * 1000)
 
             if not force:
                 if not self.plugin.window.core.audio.capture.check_audio_input():
