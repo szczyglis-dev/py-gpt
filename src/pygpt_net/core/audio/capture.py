@@ -333,10 +333,10 @@ class Capture:
         :return: True if working
         """
         import pyaudio
+        p = pyaudio.PyAudio()
         try:
             rate = 44100
             channels = 1
-            p = pyaudio.PyAudio()
             stream = p.open(format=pyaudio.paInt16,
                             channels=channels,
                             rate=rate,
@@ -346,4 +346,5 @@ class Capture:
             p.terminate()
             return True
         except Exception as e:
+            p.terminate()
             return False
