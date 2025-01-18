@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.4.54",
-    "app.version": "2.4.54",
+    "version": "2.4.55",
+    "app.version": "2.4.55",
     "updated_at": "2025-01-18T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -79,6 +79,7 @@
   "audio.input.rate": 44100,
   "audio.input.stop_interval": 10,
   "audio.input.timeout": 120,
+  "audio.input.timeout.continuous": false,
   "audio.transcribe.convert_video": true,
   "context_threshold": 200,
   "cmd": false,

@@ -1148,6 +1148,18 @@
         "step": 1,
         "advanced": false
     },
+    "audio.input.timeout.continuous": {
+        "section": "audio",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.audio.input.timeout.continuous",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "llama.idx.list": {
         "section": "llama-index",
         "type": "dict",

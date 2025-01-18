@@ -1,3 +1,8 @@
+2.4.55 (2025-01-18)
+
+- Added a new option in settings: Audio -> Recording timeout.
+- Added a new option in settings: Audio -> Enable timeout in continuous mode.
+
 2.4.54 (2025-01-18)
 
 - Audio output switched from PyGame to PyAudio. It may be necessary to manually connect Alsa in Snap version with: "sudo snap connect pygpt:alsa".
