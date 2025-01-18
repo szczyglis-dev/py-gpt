@@ -91,7 +91,8 @@ class UI:
 
         # FIRST RUN: initial sizes if not set yet
         if not self.window.core.config.has("layout.splitters") \
-            or self.window.core.config.get("layout.splitters") == {}:
+            or self.window.core.config.get("layout.splitters") == {}\
+            or self.window.core.config.get("license.accepted") == False:
             self.set_initial_size()
 
         # menus
