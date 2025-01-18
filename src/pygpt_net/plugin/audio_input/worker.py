@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.01.18 03:00:00                  #
 # ================================================== #
 
 import os.path
@@ -16,6 +16,7 @@ import audioop
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.tabs import Tab
 from pygpt_net.utils import trans
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
@@ -76,10 +77,12 @@ class Worker(BaseWorker):
                 self.status(trans('audio.speak.wait'))
 
                 # if multimodal audio, then only return path to audio file and do not transcribe
-                if self.plugin.window.controller.chat.audio.enabled():
-                    self.signals.on_realtime.emit(self.path)
-                    self.status('')
-                    return
+                tab = self.window.controller.ui.tabs.get_current_tab()
+                if tab.type == Tab.TAB_CHAT:
+                    if self.plugin.window.controller.chat.audio.enabled():
+                        self.signals.on_realtime.emit(self.path)
+                        self.status('')
+                        return
 
                 # transcribe audio
                 transcript = self.plugin.get_provider().transcribe(self.path)

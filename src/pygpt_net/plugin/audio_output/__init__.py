@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.01.18 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -35,6 +35,7 @@ class Plugin(BasePlugin):
         self.use_locale = True
         self.output_file = "output.mp3"
         self.config = Config(self)
+        self.worker = None
 
     def init_options(self):
         """Initialize options"""
@@ -175,6 +176,8 @@ class Plugin(BasePlugin):
         
         try:
             if text is not None and len(text) > 0:
+                self.stop_audio()
+
                 worker = Worker()
                 worker.from_defaults(self)
                 worker.ctx = ctx
@@ -186,12 +189,14 @@ class Plugin(BasePlugin):
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
                 worker.signals.stop.connect(self.handle_stop)
+                worker.signals.volume_changed.connect(self.handle_volume)
 
                 worker.run_async()
+                self.worker = worker
 
                 # only for manual reading
                 if name == Event.AUDIO_READ_TEXT:
-                    self.window.controller.audio.on_begin(worker.text)
+                    self.window.controller.audio.on_begin(self.worker.text)
 
         except Exception as e:
             self.error(e)
@@ -204,6 +209,8 @@ class Plugin(BasePlugin):
         :param event: Event
         """     
         try:
+            self.stop_audio()
+
             worker = Worker()
             worker.from_defaults(self)
             worker.audio_file = event.data["audio_file"]
@@ -212,8 +219,10 @@ class Plugin(BasePlugin):
             # signals
             worker.signals.playback.connect(self.handle_playback)
             worker.signals.stop.connect(self.handle_stop)
+            worker.signals.volume_changed.connect(self.handle_volume)
 
             worker.run_async()
+            self.worker = worker
 
         except Exception as e:
             self.error(e)
@@ -250,22 +259,29 @@ class Plugin(BasePlugin):
 
         Stop playing the audio
         """
-        if self.playback is not None:
-            self.playback.stop()
-            self.playback = None
+        if self.worker is not None:
+            self.worker.stop()
+        self.handle_volume(0.0)
 
-    @Slot(object, str)
-    def handle_playback(self, playback, event: str):
+    @Slot(str)
+    def handle_playback(self, event: str):
         """
         Handle thread playback object
 
-        :param playback: playback object
         :param event: event name
         """
-        self.playback = playback
         self.window.controller.audio.on_play(event)
 
     @Slot()
     def handle_stop(self):
         """Handle thread playback stop"""
         self.stop_audio()
+
+    @Slot(float)
+    def handle_volume(self, volume: float):
+        """
+        Handle thread playback volume
+
+        :param volume: volume level
+        """
+        self.window.ui.plugin_addon['audio.output.bar'].setLevel(volume)

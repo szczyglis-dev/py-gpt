@@ -71,8 +71,7 @@ class Simple:
 
         try:
             # stop audio output if playing
-            if self.plugin.window.controller.audio.is_playing():
-                self.plugin.window.controller.audio.stop_output()
+            self.plugin.window.controller.audio.stop_output()
 
             # set audio volume bar
             self.plugin.window.core.audio.capture.set_bar(
