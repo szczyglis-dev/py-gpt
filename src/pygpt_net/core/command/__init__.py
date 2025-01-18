@@ -104,7 +104,8 @@ class Command:
 
                                     # remove description and move to help
                                     if "description" in data[cmd_name]["params"][key]:
-                                        data[cmd_name]["params"][key]["help"] = data[cmd_name]["params"][key]["description"]
+                                        data[cmd_name]["params"][key]["help"] = data[cmd_name]["params"][key][
+                                            "description"]
                                         del data[cmd_name]["params"][key]["description"]
 
                         except Exception as e:
@@ -397,7 +398,7 @@ class Command:
     ) -> List[Dict[str, Any]]:
         """
         Convert internal functions to native API format
-        
+
         :param: all True to include all
         :param: parent_id: parent context ID
         :return: native functions list
@@ -406,7 +407,7 @@ class Command:
         # Native API format (example):
         # https://platform.openai.com/docs/guides/function-calling
         # At this moment it must be converted to format:
-        
+
         functions = [
         {
             "name": "get_delivery_date",

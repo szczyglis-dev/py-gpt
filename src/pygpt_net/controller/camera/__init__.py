@@ -227,7 +227,7 @@ class Camera(QObject):
 
     def capture_frame_save(self) -> str:
         """
-        Capture frame and save 
+        Capture frame and save
 
         :return: Path to saved frame
         """

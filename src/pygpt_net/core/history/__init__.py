@@ -92,5 +92,3 @@ class History:
                     f.write(content.strip() + "\n")
         except Exception as e:
             print(e)
-
-

@@ -68,9 +68,10 @@ class CaptureWorker(QRunnable):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.core.config.get('vision.capture.width'))
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.core.config.get('vision.capture.height'))
         except Exception as e:
-            self.signals.error.emit(e)
-            print("Camera thread setup exception", e)
-            self.signals.finished.emit(e)
+            self.window.core.debug.log(e)
+            if self.signals is not None:
+                self.signals.error.emit(e)
+                self.signals.finished.emit(e)
 
     @Slot()
     def run(self):
@@ -99,9 +100,9 @@ class CaptureWorker(QRunnable):
                     self.signals.capture.emit(frame)
                     last_frame_time = now
         except Exception as e:
+            self.window.core.debug.log(e)
             if self.signals is not None:
                 self.signals.error.emit(e)
-            print("Camera thread capture exception", e)
 
         # release camera
         self.release()
