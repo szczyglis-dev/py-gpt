@@ -54,6 +54,13 @@ To manage future updates just use:
     $ sudo snap connect pygpt:audio-record :audio-record
     $ sudo snap connect pygpt:alsa
 
+**Using audio output:** to use audio output in Snap version you must connect the audio with:
+
+.. code-block:: console
+
+    $ sudo snap connect pygpt:audio-playback
+    $ sudo snap connect pygpt:alsa
+
 
 **Connecting IPython in Docker in Snap version**:
 

@@ -24,7 +24,7 @@ class SnapDialogCamera(QDialog):
         super(SnapDialogCamera, self).__init__(window)
         self.window = window
         self.setParent(window)
-        self.setWindowTitle("Snap detected")
+        self.setWindowTitle("Snap version detected")
         self.cmd = CmdLabel(self.window, "sudo snap connect pygpt:camera")
 
         self.btn = QPushButton("OK")
@@ -34,8 +34,8 @@ class SnapDialogCamera(QDialog):
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel(
-            "Camera is not connected! It must be connected in Snap environment.\n"
-            "Run the following command to enable the camera:")
+            "Camera not connected? It must be connected in Snap environment.\n"
+            "Run the following command to enable the camera and restart the application:")
         self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.cmd)
@@ -54,7 +54,7 @@ class SnapDialogAudioInput(QDialog):
         super(SnapDialogAudioInput, self).__init__(window)
         self.window = window
         self.setParent(window)
-        self.setWindowTitle("Snap is detected")
+        self.setWindowTitle("Snap version is detected")
         self.cmd = CmdLabel(self.window, "sudo snap connect pygpt:alsa && sudo snap connect pygpt:audio-record :audio-record")
 
         self.btn = QPushButton("OK")
@@ -64,8 +64,38 @@ class SnapDialogAudioInput(QDialog):
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel(
-            "Microphone is not connected! It must be connected in Snap environment.\n"
-            "Run the following command to enable the microphone:")
+            "Microphone not connected? It must be connected in Snap environment.\n"
+            "Run the following command to enable the microphone and restart the application:")
+        self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
+        self.layout.addWidget(self.message)
+        self.layout.addWidget(self.cmd)
+        self.layout.addWidget(self.btn)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
+
+
+class SnapDialogAudioOutput(QDialog):
+    def __init__(self, window=None):
+        """
+        Snap dialog for audio output
+
+        :param window: main window
+        """
+        super(SnapDialogAudioOutput, self).__init__(window)
+        self.window = window
+        self.setParent(window)
+        self.setWindowTitle("Snap version is detected")
+        self.cmd = CmdLabel(self.window, "sudo snap connect pygpt:alsa && sudo snap connect pygpt:audio-playback")
+
+        self.btn = QPushButton("OK")
+        self.btn.clicked.connect(self.accept)
+        self.btn.setStyleSheet("margin: 10px 0px 0px 0px;")
+
+        # layout
+        self.layout = QVBoxLayout()
+        self.message = QLabel(
+            "Audio Device not connected? It must be connected in Snap environment.\n"
+            "Run the following command to enable the audio output and restart the application:")
         self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.cmd)

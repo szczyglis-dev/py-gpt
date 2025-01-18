@@ -1,6 +1,6 @@
 2.4.54 (2025-01-18)
 
-- Improved audio playback.
+- Audio output switched from PyGame to PyAudio. It may be necessary to manually connect Alsa in Snap version with: "sudo snap connect pygpt:alsa".
 - Added audio output volume progress bar.
 
 2.4.53 (2025-01-17)

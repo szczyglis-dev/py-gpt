@@ -121,6 +121,13 @@ sudo snap connect pygpt:audio-record :audio-record
 sudo snap connect pygpt:alsa
 ```
 
+**Using audio output:** to use audio output in Snap version you must connect the audio with:
+
+```commandline
+sudo snap connect pygpt:audio-playback
+sudo snap connect pygpt:alsa
+```
+
 **Connecting IPython in Docker in Snap version**:
 
 To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
@@ -3955,7 +3962,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.4.54 (2025-01-18)**
 
-- Improved audio playback.
+- Audio output switched from PyGame to PyAudio. It may be necessary to manually connect Alsa in Snap version with: "sudo snap connect pygpt:alsa".
 - Added audio output volume progress bar.
 
 **2.4.53 (2025-01-17)**

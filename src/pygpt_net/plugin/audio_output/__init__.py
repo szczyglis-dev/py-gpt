@@ -9,6 +9,8 @@
 # Updated Date: 2025.01.18 03:00:00                  #
 # ================================================== #
 
+from typing import Any
+
 from PySide6.QtCore import Slot
 
 from pygpt_net.core.types import MODE_AUDIO
@@ -172,8 +174,8 @@ class Plugin(BasePlugin):
         # check for audio read allowed. Prevents reading audio in commands, results, etc.
         if name == Event.CTX_AFTER:
             if not ctx.audio_read_allowed():
-                return # abort if audio read is not allowed (commands, results, etc.)
-        
+                return  # abort if audio read is not allowed (commands, results, etc.)
+
         try:
             if text is not None and len(text) > 0:
                 self.stop_audio()
@@ -188,6 +190,7 @@ class Plugin(BasePlugin):
 
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
+                worker.signals.error_playback.connect(self.handle_playback_error)
                 worker.signals.stop.connect(self.handle_stop)
                 worker.signals.volume_changed.connect(self.handle_volume)
 
@@ -207,7 +210,7 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         :param event: Event
-        """     
+        """
         try:
             self.stop_audio()
 
@@ -218,6 +221,7 @@ class Plugin(BasePlugin):
 
             # signals
             worker.signals.playback.connect(self.handle_playback)
+            worker.signals.error_playback.connect(self.handle_playback_error)
             worker.signals.stop.connect(self.handle_stop)
             worker.signals.volume_changed.connect(self.handle_volume)
 
@@ -262,6 +266,21 @@ class Plugin(BasePlugin):
         if self.worker is not None:
             self.worker.stop()
         self.handle_volume(0.0)
+
+    @Slot(object)
+    def handle_playback_error(self, err: Any):
+        """
+        Send error message to logger and alert dialog
+
+        :param err: error message
+        """
+        self.error(err)
+        if self.window.core.platforms.is_snap():
+            self.window.ui.dialogs.open(
+                'snap_audio_output',
+                width=400,
+                height=200
+            )
 
     @Slot(str)
     def handle_playback(self, event: str):
