@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 17:00:00                  #
+# Updated Date: 2025.01.18 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -24,7 +24,6 @@ from pygpt_net.utils import trans
 
 class Voice:
 
-    TIMEOUT_SECONDS = 120  # 2 minutes, max recording time before timeout
     MIN_FRAMES = 25  # minimum frames to start transcription
     PLAY_DELAY = 500  # ms, delay before playing audio event
 
@@ -213,6 +212,18 @@ class Voice:
 
     def start_recording(self):
         """Start recording"""
+        # display snap warning if not displayed yet
+        if (not self.window.core.config.get("audio.input.snap", False)
+                or not self.window.core.config.has("audio.input.snap")):
+            if self.window.core.platforms.is_snap():
+                self.window.ui.dialogs.open(
+                    'snap_audio_input',
+                    width=400,
+                    height=200
+                )
+                self.window.core.config.set("audio.input.snap", True)
+                self.window.core.config.save()
+                return
         try:
             self.is_recording = True
             self.switch_btn_stop()
@@ -227,10 +238,12 @@ class Voice:
             )
 
             # start timeout timer to prevent infinite recording
-            if self.timer is None:
-                self.timer = QTimer()
-                self.timer.timeout.connect(self.stop_timeout)
-                self.timer.start(self.TIMEOUT_SECONDS * 1000)
+            timeout = int(self.window.core.config.get('audio.input.timeout', 120) or 0)  # get timeout
+            if timeout > 0:
+                if self.timer is None:
+                    self.timer = QTimer()
+                    self.timer.timeout.connect(self.stop_timeout)
+                    self.timer.start(timeout * 1000)
 
             if not self.window.core.audio.capture.check_audio_input():
                 raise Exception("Audio input not working.")
@@ -273,7 +286,7 @@ class Voice:
             # abort if timeout
             if timeout:
                 self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
-                self.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
+                self.window.update_status("Aborted.".format(timeout))
                 return
 
             if self.window.core.audio.capture.has_frames():

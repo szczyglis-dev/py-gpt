@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 16:00:00                  #
+# Updated Date: 2025.01.18 23:00:00                  #
 # ================================================== #
 
 import os
@@ -20,7 +20,6 @@ from pygpt_net.utils import trans
 
 class Simple:
 
-    TIMEOUT_SECONDS = 120  # 2 minutes, max recording time before timeout
     MIN_FRAMES = 25  # minimum frames to start transcription
 
     def __init__(self, plugin=None):
@@ -145,7 +144,7 @@ class Simple:
             self.plugin.window.core.audio.capture.stop()  # stop recording
             # abort if timeout
             if timeout:
-                self.plugin.window.update_status("Aborted.".format(self.TIMEOUT_SECONDS))
+                self.plugin.window.update_status("Aborted.".format(timeout))
                 return
 
             if self.plugin.window.core.audio.capture.has_frames():
