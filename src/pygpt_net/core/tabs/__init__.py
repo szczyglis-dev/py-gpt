@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import uuid
@@ -448,7 +448,7 @@ class Tabs:
         column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
         tabs = column.get_tabs()
         tab.parent = column
-        tab.child = self.window.core.ctx.container.get(tab)
+        tab.child = self.window.core.ctx.container.get(tab)  # tab is already appended here
         if tab.new_idx is not None:
             tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)
         else:
@@ -508,6 +508,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.painter.setup()
+        tab.child.append(self.window.ui.painter)
         tab.idx = tabs.addTab(tab.child, tab.title)
         tab.child.setOwner(tab)
         tabs.setTabIcon(tab.idx, QIcon(tab.icon))
@@ -805,9 +806,10 @@ class Tabs:
         layout = QVBoxLayout()
         layout.addWidget(widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        widget = TabBody()
-        widget.setLayout(layout)
-        return widget
+        tab_widget = TabBody(self.window)
+        tab_widget.append(widget)
+        tab_widget.setLayout(layout)
+        return tab_widget
 
     def from_layout(self, layout: QLayout) -> TabBody:
         """
@@ -817,6 +819,6 @@ class Tabs:
         :return: TabBody
         """
         layout.setContentsMargins(0, 0, 0, 0)
-        widget = TabBody()
+        widget = TabBody(self.window)
         widget.setLayout(layout)
         return widget

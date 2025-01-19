@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import re
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenuBar, QVBoxLayout
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
@@ -70,6 +71,14 @@ class Tool:
         self.menu["file"].addAction(self.actions["file.reload"])
         self.menu["file"].addAction(self.actions["file.clear"])
         return self.menu_bar
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.widget.set_tab(tab)
 
     def setup(self):
         """Setup canvas dialog"""

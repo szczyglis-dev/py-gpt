@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -118,6 +118,29 @@ class FileExplorer(QWidget):
                vertical-align: middle;
            }
        """)
+        self.tab = None
+        self.treeView.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def setOwner(self, owner: Tab):
         """

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 16:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
@@ -32,12 +33,22 @@ class NotepadWidget(QWidget):
         self.textarea = NotepadOutput(self.window)
         self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
         self.opened = False
+        self.tab = None
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea)
         layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
+        self.textarea.set_tab(tab)
 
     def scroll_to_bottom(self):
         """Scroll down"""
@@ -69,7 +80,7 @@ class NotepadWidget(QWidget):
 class NotepadOutput(QTextEdit):
     def __init__(self, window=None):
         """
-        Notepad
+        Notepad output textarea
 
         :param window: main window
         """
@@ -83,6 +94,29 @@ class NotepadOutput(QTextEdit):
         self.min_font_size = 8
         self.id = 1  # assigned in setup
         self.textChanged.connect(self.text_changed)
+        self.tab = None
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def text_changed(self):
         """On text changed"""

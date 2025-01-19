@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.widget.tabs.body import TabBody
@@ -36,4 +36,6 @@ class Explorer:
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
         # build tab body
-        return self.window.core.tabs.from_widget(self.window.ui.nodes['output_files'])
+        body = self.window.core.tabs.from_widget(self.window.ui.nodes['output_files'])
+        body.append(self.window.ui.nodes['output_files'])
+        return body

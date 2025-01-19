@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import re
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -43,6 +43,7 @@ class HtmlOutput(QWebEngineView):
         self.html_content = ""
         self.meta = None
         self.tab = None
+        self.installEventFilter(self)
 
     def set_tab(self, tab):
         """
@@ -212,6 +213,24 @@ class HtmlOutput(QWebEngineView):
         """
         super(HtmlOutput, self).focusInEvent(e)
         self.window.controller.finder.focus_in(self.finder)
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if (event.type() == QEvent.ChildAdded and
+                source is self and
+                event.child().isWidgetType()):
+            self._glwidget = event.child()
+            self._glwidget.installEventFilter(self)
+        elif (event.type() == event.Type.MouseButtonPress):
+            if self.tab:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
 
 class CustomWebEnginePage(QWebEnginePage):

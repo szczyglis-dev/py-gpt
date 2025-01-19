@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -44,7 +44,10 @@ class Calendar:
         :return: QWidget
         """
         self.init()
-        return self.window.core.tabs.from_widget(self.setup_calendar())
+        body = self.window.core.tabs.from_widget(self.setup_calendar())
+        body.append(self.window.ui.calendar['note'])
+        body.append(self.window.ui.calendar['select'])
+        return body
 
     def setup_filters(self) -> QWidget:
         """

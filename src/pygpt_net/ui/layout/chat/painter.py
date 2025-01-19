@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
@@ -83,7 +83,9 @@ class Painter:
         """
         # build tab body
         self.init()
-        return self.window.core.tabs.from_layout(self.setup_painter())
+        body = self.window.core.tabs.from_layout(self.setup_painter())
+        body.append(self.window.ui.painter)
+        return body
 
     def setup_painter(self) -> QVBoxLayout:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -41,6 +41,15 @@ class ToolWidget:
         self.btn_clear = None  # clear button
         self.label_output = None  # output label
         self.label_history = None  # history label
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.output.set_tab(tab)
+        self.input.set_tab(tab)
 
     def setup(self, all: bool = True) -> QVBoxLayout:
         """
@@ -297,6 +306,29 @@ class PythonInput(QTextEdit):
             lambda: self.tool.update_input()
         )
         self.setFocus()
+        self.tab = None
+        self.installEventFilter(self)
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
     def update_stylesheet(self, data: str):
         """
@@ -364,6 +396,29 @@ class PythonOutput(BaseCodeEditor):
         self.setProperty('class', 'interpreter-output')
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
+        self.tab = None
+        self.installEventFilter(self)
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
     def clear_content(self):
         """Clear content"""

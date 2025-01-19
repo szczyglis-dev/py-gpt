@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.12 08:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -35,6 +36,16 @@ class PainterWidget(QWidget):
         self.undoLimit = 10
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
+        self.installEventFilter(self)
+        self.tab = None
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def handle_paste(self):
         """Handle clipboard paste"""
@@ -353,3 +364,16 @@ class PainterWidget(QWidget):
             painter = QPainter(new)
             painter.drawImage(QPoint(0, 0), self.image)
             self.image = new
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)

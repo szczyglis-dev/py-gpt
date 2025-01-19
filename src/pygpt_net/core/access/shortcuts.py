@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -52,10 +52,51 @@ class Shortcuts:
         """
         # SHIFT not working properly
         modifiers_names = [
-            '---', 'Control', 'Alt', 'Meta', 'Keypad', 'GroupSwitch',
+            '---', 'Ctrl', 'Alt', 'Shift',
         ]
         modifiers = [{name: name} for name in modifiers_names]
         return modifiers
+
+    def handle_global_shortcuts(self, event: QEvent):
+        """
+        Handle global shortcuts
+
+        :param event: event
+        """
+        # esc key
+        if event.type() == QEvent.KeyPress and event.key() == QtCore.Qt.Key_Escape:
+            self.window.controller.access.on_escape()
+            return True
+
+        if not hasattr(self.window, 'core') or not hasattr(self.window.core, 'config'):
+            return False
+
+        if event.type() == QEvent.KeyPress:
+            # shortcuts
+            config = copy.deepcopy(self.window.core.config.get("access.shortcuts"))
+            for shortcut in config:
+                if shortcut['key'] == "" or shortcut['key'] is None:
+                    continue
+                key_name = 'Key_' + str(shortcut['key'])
+                if hasattr(QtCore.Qt, key_name):
+                    shortcut['key'] = getattr(QtCore.Qt, 'Key_' + str(shortcut['key']))
+                else:
+                    continue
+                modifier_name = str(shortcut['key_modifier']) + 'Modifier'
+                if shortcut['key_modifier'] == "" or shortcut['key_modifier'] is None or shortcut[
+                    'key_modifier'] == "---":
+                    shortcut['key_modifier'] = QtCore.Qt.NoModifier
+                elif hasattr(QtCore.Qt, modifier_name):
+                    shortcut['key_modifier'] = getattr(QtCore.Qt, modifier_name, QtCore.Qt.NoModifier)
+
+            for shortcut in config:
+                if (event.key() == shortcut['key'] and
+                        (shortcut['key_modifier'] == QtCore.Qt.NoModifier or event.modifiers() == shortcut[
+                            'key_modifier'])
+                ):
+                    self.window.dispatch(ControlEvent(shortcut['action']))
+                    return True
+        return False
 
 
 class GlobalShortcutFilter(QObject):
@@ -72,33 +113,11 @@ class GlobalShortcutFilter(QObject):
         :return: True if event was handled
         """
         try:
-            # esc key
-            if event.type() == QEvent.KeyPress and event.key() == QtCore.Qt.Key_Escape:
-                self.window.controller.access.on_escape()
-
-            if event.type() == QEvent.KeyPress:
-                # shortcuts
-                config = copy.deepcopy(self.window.core.config.get("access.shortcuts"))
-                for shortcut in config:
-                    if shortcut['key'] == "" or shortcut['key'] is None:
-                        continue
-                    key_name = 'Key_' + str(shortcut['key'])
-                    if hasattr(QtCore.Qt, key_name):
-                        shortcut['key'] = getattr(QtCore.Qt, 'Key_' + str(shortcut['key']))
-                    else:
-                        continue
-                    modifier_name = str(shortcut['key_modifier']) + 'Modifier'
-                    if shortcut['key_modifier'] == "" or shortcut['key_modifier'] is None or shortcut['key_modifier'] == "---":
-                        shortcut['key_modifier'] = QtCore.Qt.NoModifier
-                    elif hasattr(QtCore.Qt, modifier_name):
-                        shortcut['key_modifier'] = getattr(QtCore.Qt, modifier_name, QtCore.Qt.NoModifier)
-
-                for shortcut in config:
-                    if (event.key() == shortcut['key'] and
-                        (shortcut['key_modifier'] == QtCore.Qt.NoModifier or event.modifiers() == shortcut['key_modifier'])
-                    ):
-                        self.window.dispatch(ControlEvent(shortcut['action']))
-                        return True
+            if event.type() != QEvent.KeyPress:
+                return False
+            if not self.window or not hasattr(self.window, 'controller'):
+                return False
+            return self.window.core.access.shortcuts.handle_global_shortcuts(event)
         except Exception as e:
             print(e)
         return False

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 16:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QTextEdit
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -21,7 +22,7 @@ import pygpt_net.icons_rc
 class CalendarNote(QTextEdit):
     def __init__(self, window=None):
         """
-        Notepad
+        Calendar note widget
 
         :param window: main window
         """
@@ -34,6 +35,29 @@ class CalendarNote(QTextEdit):
         self.textChanged.connect(self.text_changed)
         self.max_font_size = 42
         self.min_font_size = 8
+        self.tab = None
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
 
     def text_changed(self):
         """On parent textarea text changed"""

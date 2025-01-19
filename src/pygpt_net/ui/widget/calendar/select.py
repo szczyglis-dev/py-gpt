@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
 from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon, QPixmap, QPen
 from PySide6.QtWidgets import QCalendarWidget, QMenu
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -44,6 +45,29 @@ class CalendarSelect(QCalendarWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.open_context_menu)
         self.setProperty('class', 'calendar')
+        self.tab = None
+        self.installEventFilter(self)
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
     def page_changed(self, year, month):
         """
@@ -171,6 +195,10 @@ class CalendarSelect(QCalendarWidget):
         # check if date has ctx TODO: think about better solution
         # if date in self.counters['ctx']:
         self.window.controller.calendar.on_ctx_select(year, month, day)
+
+        if self.tab is not None:
+            col_idx = self.tab.column_idx
+            self.window.controller.ui.tabs.on_column_focus(col_idx)
 
     def add_ctx(self, date: QDate, num: int):
         """

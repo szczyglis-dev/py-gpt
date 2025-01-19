@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenuBar
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.code_interpreter.ui.widgets import ToolWidget
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
@@ -32,6 +33,14 @@ class Tool:
         self.menu_bar = None
         self.menu = {}
         self.actions = {}  # menu actions
+
+    def set_tab(self, tab: Tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.widget.set_tab(tab)
 
     def setup_menu(self) -> QMenuBar:
         """

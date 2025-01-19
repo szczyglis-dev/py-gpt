@@ -16,7 +16,7 @@ import audioop
 
 from PySide6.QtCore import Slot, Signal
 
-from pygpt_net.core.tabs import Tab
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 

@@ -13,32 +13,32 @@
       {
           "action": "voice_cmd.toggle",
           "key": "Space",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       },
       {
           "action": "tab.chat",
           "key": "1",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       },
       {
           "action": "tab.files",
           "key": "2",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       },
       {
           "action": "tab.calendar",
           "key": "3",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       },
       {
           "action": "tab.draw",
           "key": "4",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       },
       {
           "action": "tab.notepad",
           "key": "5",
-          "key_modifier": "Control"
+          "key_modifier": "Ctrl"
       }        
   ],
   "access.voice_control": false,

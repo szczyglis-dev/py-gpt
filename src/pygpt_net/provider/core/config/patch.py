@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 16:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -1818,6 +1818,18 @@ class Patch:
                     data["audio.input.timeout"] = 120
                 if 'audio.input.timeout.continuous' not in data:
                     data["audio.input.timeout.continuous"] = False
+
+            # < 2.4.56
+            if old < parse_version("2.4.56"):
+                print("Migrating config from < 2.4.56...")
+                remove_modifiers = ["Meta", "Keypad", "GroupSwitch"]
+                if 'access.shortcuts' in data:
+                    for item in data['access.shortcuts']:
+                        if 'key_modifier' in item and item['key_modifier'] == 'Control':
+                            item['key_modifier'] = 'Ctrl'
+                        elif 'key_modifier' in item and item['key_modifier'] in remove_modifiers:
+                            item['key_modifier'] = ''
+                updated = True
 
         # update file
         migrated = False

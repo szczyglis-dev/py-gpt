@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal
@@ -33,6 +33,15 @@ class ToolWidget:
         self.output = None  # canvas output
         self.edit = None  # canvas edit
         self.btn_edit = None  # edit checkbox
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.output.set_tab(tab)
+        self.edit.set_tab(tab)
 
     def setup(self) -> QVBoxLayout:
         """
@@ -128,6 +137,29 @@ class CanvasEdit(BaseCodeEditor):
         self.setProperty('class', 'interpreter-output')
         self.default_stylesheet = ""
         self.setStyleSheet(self.default_stylesheet)
+        self.tab = None
+        self.installEventFilter(self)
+
+    def set_tab(self, tab):
+        """
+        Set tab
+
+        :param tab: Tab
+        """
+        self.tab = tab
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
 
 class ToolSignals(QObject):

@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import re
 
+from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
@@ -18,7 +19,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu
 
-from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.events import RenderEvent, ControlEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
@@ -63,6 +64,7 @@ class ChatWebOutput(QWebEngineView):
         elif (event.type() == event.Type.MouseButtonPress):
             col_idx = self.tab.column_idx
             self.window.controller.ui.tabs.on_column_focus(col_idx)
+
         return super().eventFilter(source, event)
 
     def on_focus(self, widget):

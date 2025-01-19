@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 import os
@@ -539,6 +539,7 @@ class CodeInterpreter(BaseTool):
         widget.setLayout(layout)
         self.load_history()
         self.load_output()
+        tool.set_tab(tab)
         return widget
 
     def setup_dialogs(self):

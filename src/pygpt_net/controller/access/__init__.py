@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import BaseEvent, ControlEvent, AppEvent
@@ -73,9 +73,7 @@ class Access:
             self.window.core.plugins.get("audio_input").handler_simple.stop_recording(timeout=True)
 
         # stop audio output if playing
-        #if self.window.controller.audio.is_playing():
         self.window.controller.audio.stop_output()
 
         # stop generating if active
-        #if self.window.controller.chat.input.generating:
         self.window.controller.kernel.stop()
