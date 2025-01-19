@@ -6,16 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 23:00:00                  #
+# Updated Date: 2025.01.19 03:00:00                  #
 # ================================================== #
 
+import copy
 import os
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory
+from PySide6.QtGui import QShortcut, QKeySequence
 from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 
-from pygpt_net.core.events import BaseEvent, KernelEvent
+from pygpt_net.core.events import BaseEvent, KernelEvent, ControlEvent
 from pygpt_net.container import Container
 from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
@@ -84,6 +86,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup UI
         self.ui = UI(self)
         self.ui.init()
+
+        # global shortcuts
+        self.shortcuts = []
 
         # setup signals
         self.statusChanged.connect(self.update_status)
@@ -338,3 +343,44 @@ class MainWindow(QMainWindow, QtStyleTools):
             self.showNormal()
         self.activateWindow()
         self.ui.tray_menu['restore'].setVisible(False)
+
+    def setup_global_shortcuts(self):
+        """Setup global shortcuts"""
+        if not hasattr(self, 'core') or not hasattr(self.core, 'config'):
+            return
+
+        # unregister already existing shortcuts
+        for shortcut in self.shortcuts:
+            shortcut.activated.disconnect()
+            del shortcut
+
+        # Handle the Escape key
+        escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self)
+        escape_shortcut.setContext(Qt.ApplicationShortcut)
+        escape_shortcut.activated.connect(self.controller.access.on_escape)
+        self.shortcuts.append(escape_shortcut)
+
+        config = copy.deepcopy(self.core.config.get("access.shortcuts"))
+        for shortcut_conf in config:
+            key = shortcut_conf.get('key', '')
+            key_modifier = shortcut_conf.get('key_modifier', '')
+            action_name = shortcut_conf.get('action')
+
+            if not key or not action_name:
+                continue
+
+            key_sequence_parts = []
+            if key_modifier and key_modifier != '---':
+                if key_modifier == "Control":
+                    key_modifier = "Ctrl"
+                key_sequence_parts.append(key_modifier)
+            key_sequence_parts.append(key)
+            key_sequence_str = '+'.join(key_sequence_parts)
+            key_sequence = QKeySequence(key_sequence_str)
+
+            shortcut = QShortcut(key_sequence, self)
+            shortcut.setContext(Qt.ApplicationShortcut)
+            shortcut.activated.connect(
+                lambda checked=False, action=action_name: self.dispatch(ControlEvent(action))
+            )
+            self.shortcuts.append(shortcut)

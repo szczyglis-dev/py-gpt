@@ -199,6 +199,10 @@ class Editor:
         if self.config_changed('ctx.sources') or self.config_changed('ctx.audio'):
             self.window.controller.ctx.refresh()
 
+        # update global shortcuts
+        if self.config_changed('access.shortcuts'):
+            self.window.setup_global_shortcuts()
+
         self.before_config = copy.deepcopy(self.window.core.config.all())
         self.window.controller.settings.close_window(id)
 
