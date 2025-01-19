@@ -376,7 +376,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         config = copy.deepcopy(self.core.config.get("access.shortcuts"))
         for shortcut_conf in config:
-            print(shortcut_conf)
             key = shortcut_conf.get('key', '')
             key_modifier = shortcut_conf.get('key_modifier', '')
             action_name = shortcut_conf.get('action')
