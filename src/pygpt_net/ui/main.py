@@ -12,6 +12,7 @@
 import copy
 import os
 
+from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory
 from PySide6.QtGui import QShortcut, QKeySequence
 from PySide6.QtWidgets import QApplication, QMainWindow
@@ -349,10 +350,23 @@ class MainWindow(QMainWindow, QtStyleTools):
         if not hasattr(self, 'core') or not hasattr(self.core, 'config'):
             return
 
-        # unregister already existing shortcuts
-        for shortcut in self.shortcuts:
-            shortcut.activated.disconnect()
-            del shortcut
+        # unregister existing shortcuts
+        if hasattr(self, 'shortcuts'):
+            for shortcut in self.shortcuts:
+                # disconnect signals
+                shortcut.activated.disconnect()
+                # disable the shortcut to prevent it from handling events
+                shortcut.setEnabled(False)
+                # remove the parent to break the QObject tree
+                shortcut.setParent(None)
+                # schedule the shortcut for deletion
+                shortcut.deleteLater()
+            # clear the list of shortcuts
+            self.shortcuts.clear()
+            # process events to delete shortcuts immediately
+            QtWidgets.QApplication.processEvents()
+        else:
+            self.shortcuts = []
 
         # Handle the Escape key
         escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self)
@@ -362,6 +376,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         config = copy.deepcopy(self.core.config.get("access.shortcuts"))
         for shortcut_conf in config:
+            print(shortcut_conf)
             key = shortcut_conf.get('key', '')
             key_modifier = shortcut_conf.get('key_modifier', '')
             action_name = shortcut_conf.get('action')
