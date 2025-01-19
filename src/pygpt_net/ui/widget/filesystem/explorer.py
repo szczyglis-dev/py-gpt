@@ -119,7 +119,7 @@ class FileExplorer(QWidget):
            }
        """)
         self.tab = None
-        self.treeView.installEventFilter(self)
+        self.installEventFilter(self)
 
     def eventFilter(self, source, event):
         """
