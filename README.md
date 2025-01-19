@@ -3960,6 +3960,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.4.56 (2025-01-19)**
+
+- Improved tab switching and focus change.
+- Improved global keyboard shortcuts handling.
+
 **2.4.55 (2025-01-18)**
 
 - Added a new option in settings: Audio -> Recording timeout.
