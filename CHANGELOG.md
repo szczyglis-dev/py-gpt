@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.57 (2025-01-19)
+
+- Logging fix.
+
 ## 2.4.56 (2025-01-19)
 
 - Improved tab switching and focus change.
