@@ -39,7 +39,7 @@ from pygpt_net.core.plugins import Plugins
 from pygpt_net.core.presets import Presets
 from pygpt_net.core.prompt import Prompt
 from pygpt_net.core.settings import Settings
-from pygpt_net.core.tabs.tab import Tabs
+from pygpt_net.core.tabs import Tabs
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
 from pygpt_net.core.vision import Vision
