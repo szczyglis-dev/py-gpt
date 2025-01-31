@@ -237,7 +237,8 @@ class Chat:
         use_index = True
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
-        if model.llama_index['provider'] in self.tool_calls_not_allowed_providers:
+        if ('provider' in model.llama_index
+                and model.llama_index['provider'] in self.tool_calls_not_allowed_providers):
             allow_native_tool_calls = False
 
         if idx is None or idx == "_":
