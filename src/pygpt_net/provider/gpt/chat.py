@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 import json
@@ -116,6 +116,10 @@ class Chat:
             response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
             response_kwargs['top_p'] = self.window.core.config.get('top_p')
+
+        # tool calls are not supported for o1-mini and o1-preview
+        if (model.id is not None
+                and model.id not in ["o1-mini", "o1-preview"]):
             if len(tools) > 0:
                 response_kwargs['tools'] = tools
 
