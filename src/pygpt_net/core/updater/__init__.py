@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -285,6 +285,18 @@ class Updater:
             data_json = json.loads(response.read())
             newest_version = data_json["version"]
             newest_build = data_json["build"]
+
+            # check correct version for Microsoft Store, Snap Store, etc.
+            if self.window.core.platforms.is_windows():
+                if "version_windows" in data_json:
+                    newest_version = data_json["version_windows"]
+                if "build_windows" in data_json:
+                    newest_build = data_json["build_windows"]
+            elif self.window.core.platforms.is_snap():
+                if "version_snap" in data_json:
+                    newest_version = data_json["version_snap"]
+                if "build_snap" in data_json:
+                    newest_build = data_json["build_snap"]
 
             # changelog, download links
             changelog = ""
