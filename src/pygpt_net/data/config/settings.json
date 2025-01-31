@@ -126,6 +126,25 @@
         "advanced": false,
         "tab": "HuggingFace"
     },
+    "api_key_deepseek": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.deepseek",
+        "description": "settings.api_key.deepseek.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "DeepSeek"
+    },
     "api_azure_version": {
         "section": "api_keys",
         "type": "text",

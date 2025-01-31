@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.4.57",
-        "app.version": "2.4.57",
-        "updated_at": "2025-01-19T00:00:00"
+        "version": "2.5.0",
+        "app.version": "2.5.0",
+        "updated_at": "2025-01-31T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -150,6 +150,220 @@
             "ctx": 0,
             "tokens": 0,
             "default": true
+        },
+        "deepseek_api_reasoner": {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek API (R1, reasoner)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "deepseek_api",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-reasoner",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "deepseek_api",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-reasoner",
+                        "type": "str"
+                    },
+                    {
+                        "name": "api_key",
+                        "value": "{api_key_deepseek}",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_api_chat": {
+            "id": "deepseek-chat",
+            "name": "DeepSeek API (V3, chat)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "deepseek_api",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-chat",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "deepseek_api",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-chat",
+                        "type": "str"
+                    },
+                    {
+                        "name": "api_key",
+                        "value": "{api_key_deepseek}",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },        
+        "deepseek_ollama_r1": {
+            "id": "deepseek-r1",
+            "name": "DeepSeek Ollama (R1, 7B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_v3": {
+            "id": "deepseek-v3",
+            "name": "DeepSeek Ollama (V3, 671B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-v3",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-v3",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
         },
         "gemini-1.5-flash": {
             "id": "gemini-1.5-flash",
@@ -1991,6 +2205,82 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false
+        },
+        "o1": {
+            "id": "o1",
+            "name": "o1",
+            "mode": [
+                "chat",
+                "vision",
+                "agent",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "o1",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o1",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false,
+            "multimodal": []
         },
         "bielik-11b-v2.2-instruct:Q4_K_M": {
             "id": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",

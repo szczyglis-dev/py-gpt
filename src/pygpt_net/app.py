@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.15 04:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -43,6 +43,7 @@ from pygpt_net.provider.agents.react import ReactAgent
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
+from pygpt_net.provider.llms.deepseek_api import DeepseekApiLLM
 from pygpt_net.provider.llms.google import GoogleLLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
 from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
@@ -339,6 +340,7 @@ def run(**kwargs):
     launcher.add_llm(HuggingFaceApiLLM())
     launcher.add_llm(LocalLLM())
     launcher.add_llm(OllamaLLM())
+    launcher.add_llm(DeepseekApiLLM())
 
     # register custom langchain and llama-index LLMs
     llms = kwargs.get('llms', None)

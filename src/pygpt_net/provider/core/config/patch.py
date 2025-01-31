@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -1829,6 +1829,13 @@ class Patch:
                             item['key_modifier'] = 'Ctrl'
                         elif 'key_modifier' in item and item['key_modifier'] in remove_modifiers:
                             item['key_modifier'] = ''
+                updated = True
+
+            # < 2.5.0
+            if old < parse_version("2.5.0"):
+                print("Migrating config from < 2.5.0...")
+                if 'api_key_deepseek' not in data:
+                    data["api_key_deepseek"] = ""
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.14 14:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -473,6 +473,12 @@ class Patch:
             if old < parse_version("2.4.47"):
                 print("Migrating models from < 2.4.47...")
                 # add gemini-2.0-flash-exp
+                updated = True
+
+            # < 2.5.0 <--- add o1, DeepSeek R1, V3
+            if old < parse_version("2.5.0"):
+                print("Migrating models from < 2.5.0...")
+                # add o1, DeepSeek R1, V3
                 updated = True
 
         # update file

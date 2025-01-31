@@ -2766,6 +2766,20 @@ llama-index-core = ">=0.12.0,<0.13.0"
 llama-index-llms-openai = ">=0.3.0,<0.4.0"
 
 [[package]]
+name = "llama-index-llms-deepseek"
+version = "0.1.0"
+description = "llama-index llms deepseek integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+files = [
+    {file = "llama_index_llms_deepseek-0.1.0-py3-none-any.whl", hash = "sha256:78773d5dfdb633d649963ae5cca20dde52461a99f0fdca27e60ba91ab770ef1a"},
+    {file = "llama_index_llms_deepseek-0.1.0.tar.gz", hash = "sha256:3020823cbe2776a977ef941d59b247124f5052ad768b55e28072d796fae91a3e"},
+]
+
+[package.dependencies]
+llama-index-llms-openai-like = ">=0.3.3,<0.4.0"
+
+[[package]]
 name = "llama-index-llms-gemini"
 version = "0.4.3"
 description = "llama-index llms gemini integration"
@@ -7913,4 +7927,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "cdee1f2f87b7bb2ddf6a528896866b0be8a17121625386175a8cd38e48c82d7e"
+content-hash = "2aab9a49b216c678f5b91a68337df73b9577d9ef6f3bf41aff168eea306e7e76"

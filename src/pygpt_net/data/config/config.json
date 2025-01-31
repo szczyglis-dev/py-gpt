@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.4.57",
-    "app.version": "2.4.57",
-    "updated_at": "2025-01-19T00:00:00"
+    "version": "2.5.0",
+    "app.version": "2.5.0",
+    "updated_at": "2025-01-31T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -65,6 +65,7 @@
   "api_key_google": "",
   "api_key_anthropic": "",
   "api_key_hugging_face": "",
+  "api_key_deepseek": "",
   "api_proxy": "",
   "app.env": [],
   "assistant": "",
