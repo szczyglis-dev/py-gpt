@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.01.31 22:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -35,6 +35,7 @@ class Stream:
         output = ""
         output_tokens = 0
         begin = True
+        error = None
 
         # chunks: stream begin
         data = {
@@ -55,6 +56,9 @@ class Stream:
                     # if force stop then break
                     if self.window.controller.kernel.stopped():
                         break
+
+                    if error is not None:
+                        break  # break if error
 
                     response = None
                     chunk_type = "raw"
@@ -159,6 +163,7 @@ class Stream:
 
         except Exception as e:
             self.window.core.debug.log(e)
+            error = e
 
         self.window.controller.ui.update_tokens()  # update UI tokens
 
@@ -176,6 +181,9 @@ class Stream:
 
         # log
         self.log("[chat] Stream end.")
+
+        if error is not None:
+            raise error  # raise error if any, to display in UI
 
     def log(self, data: Any):
         """
