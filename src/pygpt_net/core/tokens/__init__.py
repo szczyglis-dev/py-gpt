@@ -334,7 +334,7 @@ class Tokens:
         if mode in CHAT_MODES:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model)  # add addons
 
             if system_prompt is not None and system_prompt != "":
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
@@ -347,7 +347,7 @@ class Tokens:
         elif mode == MODE_COMPLETION:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model)  # add addons
             system_tokens = self.from_text(system_prompt, model_id)
 
             # input prompt

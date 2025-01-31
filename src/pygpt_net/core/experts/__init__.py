@@ -358,6 +358,7 @@ class Experts:
         sys_prompt = event.data['value']
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
             mode,
+            model_data,
             sys_prompt,
             ctx,
             reply,

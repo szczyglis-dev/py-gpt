@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -15,6 +15,7 @@ from pygpt_net.item.ctx import CtxItem
 
 from .custom import Custom
 from .template import Template
+from pygpt_net.item.model import ModelItem
 
 
 class Prompt:
@@ -40,11 +41,18 @@ class Prompt:
             return str(self.window.core.config.get(key))
         return ""
 
-    def build_final_system_prompt(self, prompt: str) -> str:
+    def build_final_system_prompt(
+            self,
+            prompt: str,
+            mode: str,
+            model: ModelItem = None
+    ) -> str:
         """
         Build final system prompt
 
         :param prompt: prompt
+        :param mode: mode
+        :param model: model item
         :return: final system prompt
         """
         # tmp dispatch event: system prompt
@@ -63,6 +71,10 @@ class Prompt:
             if self.window.core.command.is_native_enabled():
                 return prompt
 
+            # abort if model not supported
+            if not self.window.core.command.is_model_supports_tools(mode, model):
+                return prompt
+
             # cmd syntax tokens
             data = {
                 'prompt': prompt,
@@ -71,24 +83,28 @@ class Prompt:
                 'cmd': [],
             }
 
+            # IMPORTANT: append command syntax only if at least one command is detected
             # tmp dispatch event: command syntax apply
             # full execute cmd syntax
             if self.window.core.config.get('cmd'):
                 event = Event(Event.CMD_SYNTAX, data)
                 self.window.dispatch(event)
-                prompt = self.window.core.command.append_syntax(event.data)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    prompt = self.window.core.command.append_syntax(event.data)
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
                 self.window.dispatch(event)
-                prompt = self.window.core.command.append_syntax(event.data)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    prompt = self.window.core.command.append_syntax(event.data)
 
         return prompt
 
     def prepare_sys_prompt(
             self,
             mode: str,
+            model: ModelItem,
             sys_prompt: str,
             ctx: CtxItem,
             reply: bool,
@@ -100,6 +116,7 @@ class Prompt:
         Prepare system prompt
 
         :param mode: mode
+        :param model: model item
         :param sys_prompt: system prompt
         :param ctx: context item
         :param reply: reply from plugins
@@ -134,6 +151,10 @@ class Prompt:
             if self.window.core.command.is_native_enabled() and not disable_native_tool_calls:
                 return sys_prompt  # abort if native func call enabled
 
+            # abort if model not supported
+            if not self.window.core.command.is_model_supports_tools(mode, model):
+                return sys_prompt
+
             data = {
                 'mode': mode,
                 'prompt': sys_prompt,
@@ -141,16 +162,19 @@ class Prompt:
                 'cmd': [],
                 'is_expert': is_expert,
             }
+            # IMPORTANT: append command syntax only if at least one command is detected
             # full execute cmd syntax
             if self.window.core.config.get('cmd'):
                 event = Event(Event.CMD_SYNTAX, data)
                 self.window.dispatch(event)
-                sys_prompt = self.window.core.command.append_syntax(event.data)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    sys_prompt = self.window.core.command.append_syntax(event.data)
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
                 self.window.dispatch(event)
-                sys_prompt = self.window.core.command.append_syntax(event.data)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    sys_prompt = self.window.core.command.append_syntax(event.data)
 
         return sys_prompt

@@ -27,7 +27,7 @@ def test_build_final_system_prompt(mock_window):
     prompt.window.core.command.append_syntax = MagicMock(return_value='cmd_syntax')
     prompt.window.dispatch = MagicMock()
 
-    result = prompt.build_final_system_prompt('prompt')
+    result = prompt.build_final_system_prompt('prompt', 'chat')
     assert result == 'cmd_syntax'
     prompt.window.core.command.append_syntax.assert_called_once()
     prompt.window.dispatch.assert_called()

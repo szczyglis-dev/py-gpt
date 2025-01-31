@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -14,7 +14,7 @@ from typing import Any
 from pygpt_net.core.types import (
     MODE_AGENT,
 )
-from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.events import KernelEvent, RenderEvent, Event
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.item.ctx import CtxItem
@@ -44,7 +44,17 @@ class Command:
         cmds = ctx.cmds_before  # from llama index tool calls pre-handler
         if not cmds:  # if no commands in context (from llama index tool calls)
             cmds = self.window.core.command.extract_cmds(ctx.output)
+
         if len(cmds) > 0:
+            # check if commands are enabled, leave only enabled commands
+            for cmd in cmds:
+                cmd_id = str(cmd["cmd"])
+                if not self.window.core.command.is_enabled(cmd_id):
+                    self.log("Command not allowed: " + cmd_id)
+                    cmds.remove(cmd)  # remove command from execution list
+            if len(cmds) == 0:
+                return  # abort if no commands
+
             ctx.cmds = cmds  # append commands to ctx
             self.log("Command call received...")
 

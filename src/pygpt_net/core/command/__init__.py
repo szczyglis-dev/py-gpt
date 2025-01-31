@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
 
 class Command:
@@ -590,3 +591,64 @@ class Command:
         if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
             return False
         return self.window.core.config.get('func_call.native', False)  # otherwise check config
+
+    def is_enabled(self, cmd: str) -> bool:
+        """
+        Check if command is enabled
+
+        :param cmd: command
+        :return: True if command is enabled
+        """
+        enabled_cmds = []
+        data = {
+            'prompt': "",
+            'silent': True,
+            'syntax': [],
+            'cmd': [],
+        }
+        event = Event(Event.CMD_SYNTAX, data)
+        self.window.dispatch(event)
+        if (event.data and "cmd" in event.data
+                and isinstance(event.data["cmd"], list)):
+            for item in event.data["cmd"]:
+                if "cmd" in item:
+                    enabled_cmds.append(item["cmd"])
+        data = {
+            'prompt': "",
+            'silent': True,
+            'syntax': [],
+            'cmd': [],
+        }
+        event = Event(Event.CMD_SYNTAX_INLINE, data)
+        self.window.dispatch(event)
+        if (event.data and "cmd" in event.data
+            and isinstance(event.data["cmd"], list)):
+            for item in event.data["cmd"]:
+                if "cmd" in item:
+                    enabled_cmds.append(item["cmd"])
+        if cmd in enabled_cmds:
+            return True
+        return False
+
+    def is_model_supports_tools(
+            self,
+            mode: str,
+            model: ModelItem) -> bool:
+        """
+        Check if model supports tools
+
+        :param mode: mode
+        :param model: model item
+        :return: True if model supports tools
+        """
+        disabled_models = [
+            "deepseek",
+            "llama2",
+            "llama3.1",
+            "codellama",
+        ]
+        if model.id is not None:
+            for disabled_model in disabled_models:
+                if model.id.startswith(disabled_model):
+                    return False
+        return True

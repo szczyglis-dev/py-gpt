@@ -161,6 +161,7 @@ class Text:
         # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
             mode=mode,
+            model=model_data,
             sys_prompt=sys_prompt,
             ctx=ctx,
             reply=reply,
