@@ -641,16 +641,19 @@ class Command:
         :param model: model item
         :return: True if model supports tools
         """
+        return True  # TMP allowed all
         if model is None:
             return False
         disabled_models = [
-            "deepseek",
+            "deepseek-r1:1.5b",
+            "deepseek-r1:7b",
             "llama2",
             "llama3.1",
             "codellama",
         ]
         if model.id is not None:
             for disabled_model in disabled_models:
-                if model.id.startswith(disabled_model):
+                if (model.llama_index['provider'] == "ollama"
+                        and model.id.startswith(disabled_model)):
                     return False
         return True
