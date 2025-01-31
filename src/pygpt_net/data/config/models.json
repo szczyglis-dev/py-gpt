@@ -262,10 +262,10 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false
-        },        
-        "deepseek_ollama_r1": {
-            "id": "deepseek-r1",
-            "name": "DeepSeek Ollama (R1, 7B)",
+        },
+        "deepseek_ollama_r1_1.5b": {
+            "id": "deepseek-r1-1.5b",
+            "name": "DeepSeek Ollama (R1, 1.5B)",
             "mode": [
                 "llama_index",
                 "agent",
@@ -280,7 +280,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "deepseek-r1",
+                        "value": "deepseek-r1:1.5b",
                         "type": "str"
                     }
                 ],
@@ -299,7 +299,262 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "deepseek-r1",
+                        "value": "deepseek-r1:1.5b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_r1_7b": {
+            "id": "deepseek-r1-7b",
+            "name": "DeepSeek Ollama (R1, 7B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:7b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:7b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_r1_14b": {
+            "id": "deepseek-r1-14b",
+            "name": "DeepSeek Ollama (R1, 14B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:14b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:14b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_r1_32b": {
+            "id": "deepseek-r1-32b",
+            "name": "DeepSeek Ollama (R1, 32B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:32b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:32b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_r1_70b": {
+            "id": "deepseek-r1-70b",
+            "name": "DeepSeek Ollama (R1, 70B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:70b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:70b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "ctx": 64000,
+            "tokens": 8000,
+            "default": false
+        },
+        "deepseek_ollama_r1_671b": {
+            "id": "deepseek-r1-671b",
+            "name": "DeepSeek Ollama (R1, 671B)",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:671b",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "DEEPSEEK_API_KEY",
+                        "value": "{api_key_deepseek}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "deepseek-r1:671b",
                         "type": "str"
                     }
                 ],
@@ -1881,6 +2136,48 @@
                     {
                         "name": "model",
                         "value": "llama3.1:405b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "llama3.3:70b": {
+            "id": "llama3.3:70b",
+            "name": "llama3.3:70b",
+            "mode": [
+                "langchain",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.3:70b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "llama3.3:70b",
                         "type": "str"
                     }
                 ],

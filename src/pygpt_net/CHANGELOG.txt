@@ -1,3 +1,13 @@
+2.5.0 (2025-01-31)
+
+- Added provider for DeepSeek (in Chat with Files mode, beta).
+- Added new models: OpenAI o1, Llama 3.3, DeepSeek V3 and R1 (API + local, with Ollama).
+- Added tool calls for OpenAI o1.
+- Added native vision for OpenAI o1.
+- Fix: tool calls in Ollama provider.
+- Fix: error handling in stream mode.
+- Fix: added check for active plugin tools before tool call.
+
 2.4.57 (2025-01-19)
 
 - Logging fix.
