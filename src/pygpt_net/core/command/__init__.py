@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.01.31 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -633,7 +633,7 @@ class Command:
     def is_model_supports_tools(
             self,
             mode: str,
-            model: ModelItem) -> bool:
+            model: ModelItem = None) -> bool:
         """
         Check if model supports tools
 
@@ -641,6 +641,8 @@ class Command:
         :param model: model item
         :return: True if model supports tools
         """
+        if model is None:
+            return False
         disabled_models = [
             "deepseek",
             "llama2",

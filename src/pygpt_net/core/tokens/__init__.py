@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.31 22:00:00                  #
 # ================================================== #
 
 from typing import Tuple, List
@@ -320,7 +320,10 @@ class Tokens:
                sum_tokens, max_current, threshold)
         """
         model = self.window.core.config.get('model')
-        model_id = self.window.core.models.get_id(model)
+        model_id = ""
+        model_data = self.window.core.models.get(model)
+        if model_data is not None:
+            model_id = model_data.id
         mode = self.window.core.config.get('mode')
         user_name = self.window.core.config.get('user_name')
         ai_name = self.window.core.config.get('ai_name')
@@ -334,7 +337,7 @@ class Tokens:
         if mode in CHAT_MODES:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)  # add addons
 
             if system_prompt is not None and system_prompt != "":
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
@@ -347,7 +350,7 @@ class Tokens:
         elif mode == MODE_COMPLETION:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)  # add addons
             system_tokens = self.from_text(system_prompt, model_id)
 
             # input prompt
