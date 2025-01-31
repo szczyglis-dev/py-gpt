@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
 import os
@@ -83,6 +83,8 @@ class OllamaLLM(BaseLLM):
         """
         nest_asyncio.apply()
         args = self.parse_args(model.llama_index)
+        if "request_timeout" not in args:
+            args["request_timeout"] = 120
         return Ollama(**args)
 
     def get_embeddings_model(
