@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.0** | build: **2025.01.31** | Python: **>=3.10, <3.13**
+Release: **2.5.1** | build: **2025.02.01** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3959,6 +3959,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.1 (2025-02-01)**
+
+- PySide6 upgraded to 6.6.2.
+- Disabled Transformers startup warnings.
 
 **2.5.0 (2025-01-31)**
 

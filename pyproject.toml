@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.5.0"
-description = "Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more."
+version = "2.5.1"
+description = "Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, DeepSeek, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://pygpt.net"
 repository = "https://github.com/szczyglis-dev/py-gpt"
 documentation = "https://pygpt.readthedocs.io/"
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "o1", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "o1", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "deepseek", bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
     "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "ollama", "presets", "ui", "qt", "pyside"]
 classifiers = [
     "License :: OSI Approved :: MIT License",

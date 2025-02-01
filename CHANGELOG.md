@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.1 (2025-02-01)
+
+- PySide6 upgraded to 6.6.2.
+- Disabled Transformers startup warnings.
+
 ## 2.5.0 (2025-01-31)
 
 - Added provider for DeepSeek (in Chat with Files mode, beta).
