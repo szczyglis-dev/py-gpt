@@ -1,3 +1,9 @@
+2.5.3 (2025-02-01)
+
+- Fix: Snap permission denied bug.
+- Fix: column focus on tab change.
+- Datetime separators in groups moved to right side.
+
 2.5.2 (2025-02-01)
 
 - Fix: spinner update after inline image generation.
