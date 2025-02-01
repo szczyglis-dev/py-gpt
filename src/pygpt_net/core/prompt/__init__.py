@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
-
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
+from .base import Base
 from .custom import Custom
 from .template import Template
-from pygpt_net.item.model import ModelItem
 
 
 class Prompt:
@@ -26,20 +26,29 @@ class Prompt:
         :param window: Window instance
         """
         self.window = window
+        self.base = Base(window)
         self.custom = Custom(window)
         self.template = Template(window)
 
-    def get(self, prompt: str) -> str:
+    def get(
+            self,
+            prompt: str,
+            mode: str = None,
+            model: ModelItem = None
+    ) -> str:
         """
-        Get prompt content
+        Get system prompt content
 
         :param prompt: id of the prompt
+        :param mode: mode
+        :param model: model item
         :return: text content
         """
-        key = "prompt." + prompt
-        if self.window.core.config.has(key):
-            return str(self.window.core.config.get(key))
-        return ""
+        return self.base.get(
+            prompt=prompt,
+            mode=mode,
+            model=model,
+        )
 
     def build_final_system_prompt(
             self,
@@ -90,14 +99,22 @@ class Prompt:
                 event = Event(Event.CMD_SYNTAX, data)
                 self.window.dispatch(event)
                 if event.data and "cmd" in event.data and event.data["cmd"]:
-                    prompt = self.window.core.command.append_syntax(event.data)
+                    prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
                 self.window.dispatch(event)
                 if event.data and "cmd" in event.data and event.data["cmd"]:
-                    prompt = self.window.core.command.append_syntax(event.data)
+                    prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
         return prompt
 
@@ -168,13 +185,21 @@ class Prompt:
                 event = Event(Event.CMD_SYNTAX, data)
                 self.window.dispatch(event)
                 if event.data and "cmd" in event.data and event.data["cmd"]:
-                    sys_prompt = self.window.core.command.append_syntax(event.data)
+                    sys_prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
             # inline cmd syntax only
             elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
                 event = Event(Event.CMD_SYNTAX_INLINE, data)
                 self.window.dispatch(event)
                 if event.data and "cmd" in event.data and event.data["cmd"]:
-                    sys_prompt = self.window.core.command.append_syntax(event.data)
+                    sys_prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
         return sys_prompt

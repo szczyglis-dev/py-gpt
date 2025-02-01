@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 22:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 import copy
@@ -39,12 +39,16 @@ class Command:
 
     def append_syntax(
             self,
-            data: Dict[str, Any]
+            data: Dict[str, Any],
+            mode: str = None,
+            model: ModelItem = None
     ) -> str:
         """
         Append command syntax to the system prompt
 
         :param data: event data
+        :param mode: mode
+        :param model: model item
         :return: prompt with appended syntax
         """
         prompt = data['prompt']
@@ -603,11 +607,13 @@ class Command:
         data = {
             'prompt': "",
             'silent': True,
+            'force': True,
             'syntax': [],
             'cmd': [],
         }
         event = Event(Event.CMD_SYNTAX, data)
         self.window.dispatch(event)
+        print(event.data)
         if (event.data and "cmd" in event.data
                 and isinstance(event.data["cmd"], list)):
             for item in event.data["cmd"]:
@@ -616,11 +622,13 @@ class Command:
         data = {
             'prompt': "",
             'silent': True,
+            'force': True,
             'syntax': [],
             'cmd': [],
         }
         event = Event(Event.CMD_SYNTAX_INLINE, data)
         self.window.dispatch(event)
+        print(event.data)
         if (event.data and "cmd" in event.data
             and isinstance(event.data["cmd"], list)):
             for item in event.data["cmd"]:
