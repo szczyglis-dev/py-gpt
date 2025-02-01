@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.02.02 02:00:00                  #
 # ================================================== #
 
 import json
@@ -32,9 +32,7 @@ class JsonFileProvider(BaseProvider):
         self.config_file = 'models.json'
 
     def install(self):
-        """
-        Install provider data files
-        """
+        """Install provider data files"""
         dst = os.path.join(self.window.core.config.path, self.config_file)
         if not os.path.exists(dst):
             src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
@@ -166,6 +164,7 @@ class JsonFileProvider(BaseProvider):
             'tokens': item.tokens,
             'default': item.default,
             'multimodal': item.multimodal,
+            'extra': item.extra,
         }
 
     @staticmethod
@@ -194,6 +193,8 @@ class JsonFileProvider(BaseProvider):
             item.default = data['default']
         if 'multimodal' in data:
             item.multimodal = data['multimodal']
+        if 'extra' in data:
+            item.extra = data['extra']
 
     def dump(self, item: ModelItem) -> str:
         """
