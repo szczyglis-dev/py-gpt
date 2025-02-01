@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 import copy
@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
+from .ollama import Ollama
 
 class Models:
     def __init__(self, window=None):
@@ -32,6 +33,7 @@ class Models:
         """
         self.window = window
         self.provider = JsonFileProvider(window)
+        self.ollama = Ollama(window)
         self.default = "gpt-4o-mini"
         self.items = {}
 
