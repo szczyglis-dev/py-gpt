@@ -43,6 +43,8 @@ class About:
                                                    self.window)
         self.window.ui.menu['info.snap'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.snap"),
                                                    self.window)
+        self.window.ui.menu['info.ms_store'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.ms_store"),
+                                                   self.window)
         self.window.ui.menu['info.github'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.github"),
                                                      self.window)
 
@@ -68,6 +70,8 @@ class About:
             lambda: self.window.controller.dialogs.info.goto_pypi())
         self.window.ui.menu['info.snap'].triggered.connect(
             lambda: self.window.controller.dialogs.info.goto_snap())
+        self.window.ui.menu['info.ms_store'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.goto_ms_store())
         self.window.ui.menu['info.github'].triggered.connect(
             lambda: self.window.controller.dialogs.info.goto_github())
         self.window.ui.menu['info.discord'].triggered.connect(
@@ -89,5 +93,6 @@ class About:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.pypi'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
+        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.ms_store'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.discord'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])

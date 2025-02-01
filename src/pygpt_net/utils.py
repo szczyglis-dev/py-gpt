@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.02.01 02:00:00                  #
 # ================================================== #
 
 import json
@@ -93,6 +93,7 @@ def get_app_meta() -> dict:
         'docs': get_init_value("__documentation__"),
         'pypi': get_init_value("__pypi__"),
         'snap': get_init_value("__snap__"),
+        'ms_store': get_init_value("__ms_store__"),
         'donate': get_init_value("__donate__"),
         'discord': get_init_value("__discord__"),
         'version': get_init_value("__version__"),

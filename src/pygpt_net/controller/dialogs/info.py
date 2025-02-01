@@ -81,6 +81,10 @@ class Info:
         """Open Snapcraft page"""
         webbrowser.open(self.window.meta['snap'])
 
+    def goto_ms_store(self):
+        """Open MS Store page"""
+        webbrowser.open(self.window.meta['ms_store'])
+
     def goto_update(self):
         """Open update URL"""
         webbrowser.open(self.window.meta['website'])
