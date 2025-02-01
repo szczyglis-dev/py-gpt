@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.02.02 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -587,7 +587,6 @@ class Command:
             MODE_LLAMA_INDEX,
             MODE_LANGCHAIN,
             MODE_COMPLETION,
-            MODE_AUDIO,
         ]
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:

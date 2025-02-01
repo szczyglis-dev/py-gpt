@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.02.02 02:00:00                  #
 # ================================================== #
 
 import json
@@ -35,6 +35,8 @@ class Chat:
         """
         self.window = window
         self.input_tokens = 0
+        self.audio_prev_id = None
+        self.audio_prev_expires_ts = None
 
     def send(
             self,
@@ -91,24 +93,23 @@ class Chat:
         # extra API kwargs
         response_kwargs = {}
 
-        # tools / functions >>>>>>>>>> TMP DISABLED FOR AUDIO <<<<<<<<<<
+        # tools / functions
         tools = []
-        if mode not in [MODE_AUDIO]:
-            if functions is not None and isinstance(functions, list):
-                for function in functions:
-                    if str(function['name']).strip() == '' or function['name'] is None:
-                        continue
-                    params = {}
-                    if function['params'] is not None and function['params'] != "":
-                        params = json.loads(function['params'])  # unpack JSON from string
-                    tools.append({
-                        "type": "function",
-                        "function": {
-                            "name": function['name'],
-                            "parameters": params,
-                            "description": function['desc'],
-                        }
-                    })
+        if functions is not None and isinstance(functions, list):
+            for function in functions:
+                if str(function['name']).strip() == '' or function['name'] is None:
+                    continue
+                params = {}
+                if function['params'] is not None and function['params'] != "":
+                    params = json.loads(function['params'])  # unpack JSON from string
+                tools.append({
+                    "type": "function",
+                    "function": {
+                        "name": function['name'],
+                        "parameters": params,
+                        "description": function['desc'],
+                    }
+                })
 
         # fix: o1 compatibility
         if model.id is not None and not model.id.startswith("o1"):
@@ -117,6 +118,10 @@ class Chat:
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
             response_kwargs['top_p'] = self.window.core.config.get('top_p')
 
+        # extra arguments, o3 only
+        if model.extra and "reasoning_effort" in model.extra:
+            response_kwargs['reasoning_effort'] = model.extra["reasoning_effort"]
+
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None
                 and model.id not in ["o1-mini", "o1-preview"]):
@@ -124,11 +129,12 @@ class Chat:
                 response_kwargs['tools'] = tools
 
         if max_tokens > 0:
-            if not model.id.startswith("o1"):
+            if not model.id.startswith("o1") and not model.id.startswith("o3"):
                 response_kwargs['max_tokens'] = max_tokens
             else:
                 response_kwargs['max_completion_tokens'] = max_tokens
 
+        # o1 models do not support streaming
         if model.id is not None and model.id.startswith("o1"):
             stream = False
 
@@ -182,7 +188,8 @@ class Chat:
         # tokens config
         mode = MODE_CHAT
         allowed_system = True
-        if model.id is not None and model.id.startswith("o1"):
+        if (model.id is not None
+                and model.id not in ["o1-mini", "o1-preview"]):
             allowed_system = False
 
         used_tokens = self.window.core.tokens.from_user(
@@ -235,14 +242,22 @@ class Chat:
                         "content": item.final_output,
                     }
                     # append previous audio ID
-                    if MODE_AUDIO in model.mode and item.audio_id:
-                        # at first check expires_at - expired audio throws error in API
-                        current_timestamp = time.time()
-                        audio_timestamp = int(item.audio_expires_ts) if item.audio_expires_ts else 0
-                        if audio_timestamp and audio_timestamp > current_timestamp:
-                            msg["audio"] = {
-                                "id": item.audio_id
-                            }
+                    if MODE_AUDIO in model.mode:
+                        if item.audio_id:
+                            # at first check expires_at - expired audio throws error in API
+                            current_timestamp = time.time()
+                            audio_timestamp = int(item.audio_expires_ts) if item.audio_expires_ts else 0
+                            if audio_timestamp and audio_timestamp > current_timestamp:
+                                msg["audio"] = {
+                                    "id": item.audio_id
+                                }
+                        elif self.audio_prev_id:
+                            current_timestamp = time.time()
+                            audio_timestamp = int(self.audio_prev_expires_ts) if self.audio_prev_expires_ts else 0
+                            if audio_timestamp and audio_timestamp > current_timestamp:
+                                msg["audio"] = {
+                                    "id": self.audio_prev_id
+                                }
                     messages.append(msg)
 
         # use vision and audio if available in current model

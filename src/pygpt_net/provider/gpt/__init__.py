@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.02.02 02:00:00                  #
 # ================================================== #
 
 from httpx_socks import SyncProxyTransport
@@ -199,6 +199,16 @@ class Gpt:
                     ctx.audio_expires_ts = response.choices[0].message.audio.expires_at
                     ctx.is_audio = True
                     output = response.choices[0].message.audio.transcript  # from transcript
+                    self.chat.audio_prev_expires_ts = ctx.audio_expires_ts
+                    self.chat.audio_prev_id = ctx.audio_id
+                elif response.choices[0].message and not response.choices[0].message.audio:
+                    output = response.choices[0].message.content
+                    ctx.audio_id = self.chat.audio_prev_id
+                    ctx.audio_expires_ts = self.chat.audio_prev_expires_ts
+                if response.choices[0].message.tool_calls:
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                        response.choices[0].message.tool_calls,
+                    )
 
         ctx.set_output(output, ai_name)
         ctx.set_tokens(
