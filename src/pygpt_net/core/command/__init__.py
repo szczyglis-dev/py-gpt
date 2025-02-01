@@ -613,7 +613,6 @@ class Command:
         }
         event = Event(Event.CMD_SYNTAX, data)
         self.window.dispatch(event)
-        print(event.data)
         if (event.data and "cmd" in event.data
                 and isinstance(event.data["cmd"], list)):
             for item in event.data["cmd"]:
@@ -628,7 +627,6 @@ class Command:
         }
         event = Event(Event.CMD_SYNTAX_INLINE, data)
         self.window.dispatch(event)
-        print(event.data)
         if (event.data and "cmd" in event.data
             and isinstance(event.data["cmd"], list)):
             for item in event.data["cmd"]:
