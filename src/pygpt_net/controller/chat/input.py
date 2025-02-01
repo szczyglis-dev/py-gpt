@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -17,6 +17,7 @@ from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
     MODE_IMAGE,
 )
@@ -72,6 +73,13 @@ class Input:
             if self.window.controller.agent.common.is_infinity_loop(mode):
                 self.window.controller.agent.common.display_infinity_loop_confirm()
                 return
+
+            # TODO: check ollama status
+            """
+            if mode == MODE_LLAMA_INDEX:
+                status = self.window.core.models.ollama.get_status()
+                print("Ollama status: {}".format(status))
+            """
 
         # listen for stop command
         if self.generating \
