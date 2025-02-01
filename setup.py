@@ -110,7 +110,7 @@ setup(
         'pypdf>=5.1.0,<6.0.0',
         'pynput>=1.7.7,<2.0.0',
         'pyserial>=3.5,<4.0',
-        'PySide6==6.6.1',
+        'PySide6==6.6.2',
         'python-markdown-math>=0.8,<0.9',
         'redis>=5.0.1,<6.0.0',
         'qt-material>=2.14,<3.0',
