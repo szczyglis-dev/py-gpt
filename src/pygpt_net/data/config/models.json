@@ -265,7 +265,7 @@
         },
         "deepseek_ollama_r1_1.5b": {
             "id": "deepseek-r1-1.5b",
-            "name": "DeepSeek Ollama (R1, 1.5B)",
+            "name": "deepseek-r1-1.5b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -316,7 +316,7 @@
         },
         "deepseek_ollama_r1_7b": {
             "id": "deepseek-r1-7b",
-            "name": "DeepSeek Ollama (R1, 7B)",
+            "name": "deepseek-r1-7b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -367,7 +367,7 @@
         },
         "deepseek_ollama_r1_14b": {
             "id": "deepseek-r1-14b",
-            "name": "DeepSeek Ollama (R1, 14B)",
+            "name": "deepseek-r1-14b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -418,7 +418,7 @@
         },
         "deepseek_ollama_r1_32b": {
             "id": "deepseek-r1-32b",
-            "name": "DeepSeek Ollama (R1, 32B)",
+            "name": "deepseek-r1-32b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -469,7 +469,7 @@
         },
         "deepseek_ollama_r1_70b": {
             "id": "deepseek-r1-70b",
-            "name": "DeepSeek Ollama (R1, 70B)",
+            "name": "deepseek-r1-70b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -520,7 +520,7 @@
         },
         "deepseek_ollama_r1_671b": {
             "id": "deepseek-r1-671b",
-            "name": "DeepSeek Ollama (R1, 671B)",
+            "name": "deepseek-r1-671b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -570,8 +570,8 @@
             "default": false
         },
         "deepseek_ollama_v3": {
-            "id": "deepseek-v3",
-            "name": "DeepSeek Ollama (V3, 671B)",
+            "id": "deepseek-v3:671b",
+            "name": "deepseek-v3:671b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -586,7 +586,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "deepseek-v3",
+                        "value": "deepseek-v3:671b",
                         "type": "str"
                     }
                 ],
@@ -605,7 +605,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "deepseek-v3",
+                        "value": "deepseek-v3:671b",
                         "type": "str"
                     }
                 ],

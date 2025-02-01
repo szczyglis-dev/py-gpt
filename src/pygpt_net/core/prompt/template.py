@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 import os
@@ -62,7 +62,11 @@ class Template:
         # sort by name
         self.prompts = dict(sorted(self.prompts.items(), key=lambda item: item[1]['name']))
 
-    def to_menu_options(self, menu, parent: str = "global"):
+    def to_menu_options(
+            self,
+            menu,
+            parent: str = "global"
+    ):
         """
         Convert prompts to menu options
 
