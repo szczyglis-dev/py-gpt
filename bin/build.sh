@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script is used to build the app using pyinstaller
 
-VERSION="2.5.1"
+VERSION="2.5.2"
 
 cd "$(dirname "$0")"
 DIR_CURRENT="$(pwd)"

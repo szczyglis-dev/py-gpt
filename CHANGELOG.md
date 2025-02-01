@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.2 (2025-02-01)
+
+- Fix: spinner update after inline image generation.
+- Added Ollama suffix to Ollama-models in models list.
+
 ## 2.5.1 (2025-02-01)
 
 - PySide6 upgraded to 6.6.2.
