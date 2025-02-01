@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.02.01 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -86,7 +86,7 @@ class Plugin(BasePlugin):
             Event.CMD_SYNTAX_INLINE,  # inline is allowed
             Event.CMD_SYNTAX,
         ]:
-            if not self.is_native_cmd():  # only if native commands are enabled, otherwise use prompt only
+            if not self.is_native_cmd() and "force" not in data:  # only if native commands are enabled, otherwise use prompt only
                 return
 
             self.cmd_syntax(data)
