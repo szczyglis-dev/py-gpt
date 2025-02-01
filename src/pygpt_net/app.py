@@ -9,6 +9,11 @@
 # Updated Date: 2025.01.31 19:00:00                  #
 # ================================================== #
 
+import os
+
+# disable warnings
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+
 from pygpt_net.launcher import Launcher
 
 # plugins
