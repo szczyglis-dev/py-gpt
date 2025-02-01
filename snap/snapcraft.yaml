@@ -42,6 +42,9 @@ parts:
       - libfontconfig1
       - libxi6
       - xkb-data
+      - xapp
+      - libatomic1
+      - packagekit-gtk3-module
     build-packages:
       - execstack
       - portaudio19-dev
