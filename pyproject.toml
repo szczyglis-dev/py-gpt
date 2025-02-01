@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://pygpt.net"
 repository = "https://github.com/szczyglis-dev/py-gpt"
 documentation = "https://pygpt.readthedocs.io/"
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "o1", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "deepseek", bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "o1", "gpt", "gpt4", "gpt-4o", "gpt-4v", "gpt3.5", "gpt-4", "gpt-4-vision", "gpt-3.5", "llama3", "mistral", "gemini", "deepseek", "bielik", "claude", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
     "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "ollama", "presets", "ui", "qt", "pyside"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
