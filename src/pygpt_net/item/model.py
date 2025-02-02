@@ -184,6 +184,16 @@ class ModelItem:
         """
         return len(self.multimodal) > 0
 
+    def is_ollama(self) -> bool:
+        """
+        Check if model is Ollama
+
+        :return: True if Ollama
+        """
+        if self.llama_index is None:
+            return False
+        return "ollama" in self.llama_index.get("provider", "")
+
     def has_mode(self, mode: str) -> bool:
         """
         Check if model has mode
