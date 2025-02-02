@@ -112,7 +112,7 @@ class Chat:
                 })
 
         # fix: o1 compatibility
-        if model.id is not None and not model.id.startswith("o1"):
+        if model.id is not None and not model.id.startswith("o1") and not model.id.startswith("o3"):
             response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
             response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
