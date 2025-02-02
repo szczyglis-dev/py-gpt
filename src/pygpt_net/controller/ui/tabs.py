@@ -176,6 +176,9 @@ class Tabs:
         elif tab.type == Tab.TAB_TOOL_PAINTER:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
+        elif tab.type == Tab.TAB_TOOL_CALENDAR:
+            self.window.controller.calendar.update()
+            self.window.controller.calendar.update_ctx_counters()
 
         if prev_tab != idx or prev_column != column_idx:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
