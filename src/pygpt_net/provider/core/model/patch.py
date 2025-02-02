@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.02.02 02:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -488,6 +488,19 @@ class Patch:
                     model = data[id]
                     if model.name.startswith("DeepSeek Ollama"):
                         model.name = model.id
+                updated = True
+
+            # < 2.5.4 <--- add o3-mini, update output tokens in o1, o1-mini, o1-preview
+            if old < parse_version("2.5.4"):
+                print("Migrating models from < 2.5.4...")
+                for id in data:
+                    model = data[id]
+                    if model.id == "o1":
+                        model.tokens = 100000
+                    elif model.id == "o1-mini":
+                        model.tokens = 65536
+                    elif model.id == "o1-preview":
+                        model.tokens = 65536
                 updated = True
 
         # update file
