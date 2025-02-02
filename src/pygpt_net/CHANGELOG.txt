@@ -1,3 +1,9 @@
+2.5.4 (2025-02-02)
+
+- Added new models: o3-mini and gpt-4o-mini-audio-preview.
+- Enabled tool calls in Chat with Audio mode.
+- Added a check to verify if Ollama is running and if the model is available.
+
 2.5.3 (2025-02-01)
 
 - Fix: Snap permission denied bug.

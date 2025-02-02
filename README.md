@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.3** | build: **2025.02.01** | Python: **>=3.10, <3.13**
+Release: **2.5.4** | build: **2025.02.02** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3959,6 +3959,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.4 (2025-02-02)**
+
+- Added new models: `o3-mini` and `gpt-4o-mini-audio-preview`.
+- Enabled tool calls in Chat with Audio mode.
+- Added a check to verify if Ollama is running and if the model is available.
 
 **2.5.3 (2025-02-01)**
 

@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.3",
-        "app.version": "2.5.3",
-        "updated_at": "2025-02-01T00:00:00"
+        "version": "2.5.4",
+        "app.version": "2.5.4",
+        "updated_at": "2025-02-02T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -1681,6 +1681,79 @@
                     {
                         "name": "model",
                         "value": "gpt-4o-audio-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
+        "gpt-4o-mini-audio-preview": {
+            "id": "gpt-4o-mini-audio-preview",
+            "name": "gpt-4o-mini-audio-preview",
+            "mode": [
+                "audio"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4o-mini-audio-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4o-mini-audio-preview",
                         "type": "str"
                     }
                 ],
