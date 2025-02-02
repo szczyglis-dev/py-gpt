@@ -189,7 +189,7 @@ class Chat:
         mode = MODE_CHAT
         allowed_system = True
         if (model.id is not None
-                and model.id not in ["o1-mini", "o1-preview"]):
+                and model.id in ["o1-mini", "o1-preview"]):
             allowed_system = False
 
         used_tokens = self.window.core.tokens.from_user(
