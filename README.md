@@ -284,6 +284,10 @@ To use microphone in Snap version you must connect the microphone with:
 sudo snap connect pygpt:audio-record :audio-record
 ```
 
+**Access to microphone and audio in Windows version:**
+
+If you have a problems with audio or microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
+
 **Windows and VC++ Redistributable**
 
 On Windows, the proper functioning requires the installation of the `VC++ Redistributable`, which can be found on the Microsoft website:
