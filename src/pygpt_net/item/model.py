@@ -194,6 +194,18 @@ class ModelItem:
             return False
         return "ollama" in self.llama_index.get("provider", "")
 
+    def get_ollama_model(self) -> str:
+        """
+        Get Ollama model ID
+
+        :return: model ID
+        """
+        if "args" in self.llama_index:
+            for arg in self.llama_index["args"]:
+                if arg["name"] == "model":
+                    return arg["value"]
+        return ""
+
     def has_mode(self, mode: str) -> bool:
         """
         Check if model has mode

@@ -79,7 +79,8 @@ class Input:
             if mode == MODE_LLAMA_INDEX and model is not None:
                 model_data = self.window.core.models.get(model)
                 if model_data is not None and model_data.is_ollama():
-                    status = self.window.core.models.ollama.check_model(model)
+                    model_id = model_data.get_ollama_model()
+                    status = self.window.core.models.ollama.check_model(model_id)
                     is_installed = status.get('is_installed', False)
                     is_model = status.get('is_model', False)
                     if not is_installed:
@@ -87,7 +88,7 @@ class Input:
                         return
                     if not is_model:
                         self.window.ui.dialogs.alert(
-                            trans("dialog.ollama.model_not_found").replace("{model}", model))
+                            trans("dialog.ollama.model_not_found").replace("{model}", model_id))
                         return
 
         # listen for stop command
