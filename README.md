@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.4** | build: **2025.02.02** | Python: **>=3.10, <3.13**
+Release: **2.5.5** | build: **2025.02.02** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3963,6 +3963,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.5 (2025-02-02)**
+
+- Fix: system prompt apply.
+- Added calendar live update on tab change.
+- Added API Key monit at launch displayed only once.
 
 **2.5.4 (2025-02-02)**
 
