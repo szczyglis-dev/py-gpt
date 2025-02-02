@@ -71,7 +71,7 @@ class Ollama:
         for item in status.get('models', []):
             model_id = item.get('name').replace(":latest", "")
             if model_id not in self.available_models:
-                self.available_models.append(item.get('name'))  #
+                self.available_models.append(model_id)
             if model_id == model:
                 return {
                     'is_installed': True,
