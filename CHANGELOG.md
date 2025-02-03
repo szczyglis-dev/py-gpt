@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.6 (2025-02-03)
+
+- Fix: disabled index initialization if embedding provider is OpenAI and no API KEY is provided.
+- Fix: embedding provider initialization on empty index.
+
 ## 2.5.5 (2025-02-02)
 
 - Fix: system prompt apply.

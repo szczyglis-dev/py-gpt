@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.5** | build: **2025.02.02** | Python: **>=3.10, <3.13**
+Release: **2.5.6** | build: **2025.02.03** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3963,6 +3963,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.6 (2025-02-03)**
+
+- Fix: disabled index initialization if embedding provider is OpenAI and no API KEY is provided.
+- Fix: embedding provider initialization on empty index.
 
 **2.5.5 (2025-02-02)**
 
