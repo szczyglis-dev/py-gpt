@@ -308,10 +308,15 @@ class Storage:
             raise Exception('Storage engine not found!')
         storage.clean()
 
-    def index_from_empty(self) -> BaseIndex:
+    def index_from_empty(
+            self,
+            embed_model: Optional = None) -> BaseIndex:
         """
         Create empty index
 
         :return: index instance
         """
-        return VectorStoreIndex([])
+        return VectorStoreIndex(
+            [],
+            embed_model=embed_model,
+        )

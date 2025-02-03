@@ -245,6 +245,12 @@ class Chat:
             chat_mode = "simple"  # do not use query engine if no index
             use_index = False
 
+        # disable index if no api key
+        if self.window.core.config.get("api_key") == "" and self.window.core.config.get("llama.idx.embeddings.provider") == "openai":
+            print("Warning: no api key! Disabling index...")
+            chat_mode = "simple"  # do not use query engine if no index
+            use_index = False
+
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
@@ -637,7 +643,7 @@ class Chat:
             if idx is None:
                 # create empty in memory idx
                 llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
-                index = self.storage.index_from_empty()
+                index = self.storage.index_from_empty(embed_model)
                 return index, llm
             # raise Exception("Index not prepared")
 

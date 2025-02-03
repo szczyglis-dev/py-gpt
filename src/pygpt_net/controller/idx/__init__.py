@@ -331,6 +331,8 @@ class Idx:
         """Force stop indexing"""
         print("Force stop indexing...")
         self.stop = True
+        self.window.controller.ui.stop_action = None
+        self.window.controller.ui.hide_global_stop()
 
     def index_selected(self) -> bool:
         """

@@ -56,7 +56,10 @@ class CtxAttachmentProvider(BaseStore):
                 return True
         return False
 
-    def create(self, id: str):
+    def create(
+            self, id: str,
+            embed_model: Optional = None
+    ):
         """
         Create empty index
 
@@ -64,13 +67,13 @@ class CtxAttachmentProvider(BaseStore):
         """
         path = self.get_path(id)
         if not os.path.exists(path):
-            index = self.index_from_empty()  # create empty index
+            index = self.index_from_empty(embed_model)  # create empty index
             self.store(
                 id=id,
                 index=index,
             )
         else:
-            self.index = self.index_from_empty()
+            self.index = self.index_from_empty(embed_model)
 
     def get(
             self,
@@ -87,7 +90,7 @@ class CtxAttachmentProvider(BaseStore):
         :return: index instance
         """
         if not self.exists():
-            self.create(id)
+            self.create(id, embed_model)
         path = self.get_path(id)
         storage_context = StorageContext.from_defaults(
             persist_dir=path,

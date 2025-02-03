@@ -54,13 +54,18 @@ class BaseStore:
             embed_model=embed_model,
         )
 
-    def index_from_empty(self):
+    def index_from_empty(
+            self,
+            embed_model: Optional = None):
         """
         Get empty index instance
 
         :return: index instance
         """
-        return VectorStoreIndex([])
+        return VectorStoreIndex(
+            [],
+            embed_model=embed_model,
+        )
 
     def attach(self, window=None):
         """

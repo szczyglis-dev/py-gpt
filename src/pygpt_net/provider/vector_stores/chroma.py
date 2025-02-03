@@ -51,7 +51,10 @@ class ChromaProvider(BaseStore):
             )
         )
 
-    def create(self, id: str):
+    def create(
+            self,
+            id: str,
+            embed_model: Optional = None):
         """
         Create empty index
 
@@ -59,7 +62,7 @@ class ChromaProvider(BaseStore):
         """
         path = self.get_path(id)
         if not os.path.exists(path):
-            index = self.index_from_empty()  # create empty index
+            index = self.index_from_empty(embed_model)  # create empty index
             self.store(
                 id=id,
                 index=index,
@@ -80,7 +83,7 @@ class ChromaProvider(BaseStore):
         :return: index instance
         """
         if not self.exists(id):
-            self.create(id)
+            self.create(id, embed_model)
         path = self.get_path(id)
         db = self.get_db(id)
         chroma_collection = db.get_or_create_collection(id)
