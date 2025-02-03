@@ -269,6 +269,12 @@ class Chat:
         else:
             llm = self.window.core.idx.llm.get(model)
 
+        # check if index is empty
+        if index:
+            nodes = index.docstore.docs.values()
+            if not nodes:
+                use_index = False
+
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
             # llm = self.window.core.idx.llm.get(model, multimodal=True)  # get multimodal LLM model
