@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.5.7 (2025-02-26)
+
+- Steam mode has been enabled in o1 models.
+- CSS styling for <think> tags (reasoning models) has been added.
+- The search input has been moved to the top.
+- The ChatGPT-based style is now set as default.
+- Fix: Display of max tokens in models with a context window greater than 128k.
+
 ## 2.5.6 (2025-02-03)
 
 - Fix: disabled index initialization if embedding provider is OpenAI and no API KEY is provided.

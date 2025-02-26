@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.6** | build: **2025.02.03** | Python: **>=3.10, <3.13**
+Release: **2.5.7** | build: **2025.02.26** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3963,6 +3963,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.7 (2025-02-26)**
+
+- Steam mode has been enabled in o1 models.
+- CSS styling for <think> tags (reasoning models) has been added.
+- The search input has been moved to the top.
+- The ChatGPT-based style is now set as default.
+- Fix: Display of max tokens in models with a context window greater than 128k.
 
 **2.5.6 (2025-02-03)**
 
