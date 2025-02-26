@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -1836,6 +1836,14 @@ class Patch:
                 print("Migrating config from < 2.5.0...")
                 if 'api_key_deepseek' not in data:
                     data["api_key_deepseek"] = ""
+                updated = True
+
+            # < 2.5.7
+            if old < parse_version("2.5.7"):
+                print("Migrating config from < 2.5.7...")
+                self.window.core.updater.patch_css('web-blocks.css', True)  # force update
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force update
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
         # update file
