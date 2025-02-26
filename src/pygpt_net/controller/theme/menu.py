@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -36,6 +36,10 @@ class Menu:
         for style in styles:
             style_id = style.lower()
             title = style.replace('_', ' ').title()
+            if title == "Chatgpt":
+                title = "ChatGPT"
+            elif title == "Chatgpt Wide":
+                title = "ChatGPT (wide)"
             self.window.ui.menu['theme_style'][style_id] = QAction(title, self.window, checkable=True)
             self.window.ui.menu['theme_style'][style_id].triggered.connect(
                 lambda checked=None, style=style_id: self.window.controller.theme.toggle_style(style))

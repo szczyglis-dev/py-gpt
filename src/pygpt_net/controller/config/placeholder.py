@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -325,7 +325,8 @@ class Placeholder:
         styles.sort()
         data = []
         for id in styles:
-            data.append({id: id})
+            name = id
+            data.append({id: name})
         return data
 
     def get_keys(self) -> List[Dict[str, str]]:
