@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -95,6 +95,20 @@ class UI:
         self.window.controller.assistant.refresh()
         self.window.controller.idx.refresh()
 
+    def format_tokens(self, num: int) -> str:
+        """
+        Format tokens
+        :param num: number of tokens
+        :return: formatted string
+        """
+        num = int(num)
+        if num >= 1_000_000:
+            return f"{num // 1_000_000}M"
+        elif num >= 1_000:
+            return f"{num // 1_000}k"
+        else:
+            return str(num)
+
     def update_tokens(self):
         """Update tokens counter in real-time"""
         prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
@@ -112,12 +126,8 @@ class UI:
         )
         self.window.ui.nodes['prompt.context'].setText(ctx_string)
 
-        # input tokens
-        parsed_sum = str(int(sum_tokens))
-        parsed_sum = parsed_sum.replace("000000", "M").replace("000", "k")
-
-        parsed_max_current = str(int(max_current))
-        parsed_max_current = parsed_max_current.replace("000000", "M").replace("000", "k")
+        parsed_sum = self.format_tokens(sum_tokens)
+        parsed_max_current = self.format_tokens(max_current)
 
         input_string = "{} + {} + {} + {} + {} = {} / {}".format(
             input_tokens,
