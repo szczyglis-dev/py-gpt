@@ -60,8 +60,6 @@ parts:
 layout:
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
-  /usr/share/qt5:
-    bind: $SNAP/usr/share/qt5
 
 plugs:
   docker:
