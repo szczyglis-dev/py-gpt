@@ -48,12 +48,12 @@ class Helpers:
         text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
         text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
 
-        text = text.replace("<think>", "{{{{think}}}}")
-        text = text.replace("</think>", "{{{{/think}}}}")
-        text = text.replace("<", "&lt;")
-        text = text.replace(">", "&gt;")
-        text = text.replace("{{{{think}}}}", "<think>")
-        text = text.replace("{{{{/think}}}}", "</think>")
+        #text = text.replace("<think>", "{{{{think}}}}")
+        #text = text.replace("</think>", "{{{{/think}}}}")
+        #text = text.replace("<", "&lt;")
+        #text = text.replace(">", "&gt;")
+        #text = text.replace("{{{{think}}}}", "<think>")
+        #text = text.replace("{{{{/think}}}}", "</think>")
 
         # replace cmd tags
         text = self.replace_code_tags(text)
