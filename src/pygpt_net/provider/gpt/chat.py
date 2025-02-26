@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 import json
@@ -135,8 +135,8 @@ class Chat:
                 response_kwargs['max_completion_tokens'] = max_tokens
 
         # o1 models do not support streaming
-        if model.id is not None and model.id.startswith("o1"):
-            stream = False
+        if model.id is not None and model.id.startswith("o1-preview"):
+            streams = False
 
         # audio mode
         if mode in [MODE_AUDIO]:
