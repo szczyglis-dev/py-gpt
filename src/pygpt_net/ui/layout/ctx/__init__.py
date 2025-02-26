@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 02:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
-from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.layout.ctx.ctx_list import CtxList
 from pygpt_net.ui.layout.ctx.video import Video
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -27,7 +26,6 @@ class CtxMain:
         :param window: Window instance
         """
         self.window = window
-        self.search_input = SearchInput(window)
         self.ctx_list = CtxList(window)
         self.video = Video(window)
 
@@ -39,7 +37,6 @@ class CtxMain:
         """
         ctx = self.ctx_list.setup()
         video = self.video.setup()
-        search_input = self.search_input.setup()
 
         self.window.ui.nodes['tip.toolbox.ctx'] = HelpLabel(trans('tip.toolbox.ctx'), self.window)
         self.window.ui.nodes['tip.toolbox.ctx'].setAlignment(Qt.AlignCenter)
@@ -48,7 +45,6 @@ class CtxMain:
         layout.addWidget(ctx)
 
         layout.addWidget(self.window.ui.nodes['tip.toolbox.ctx'])
-        layout.addWidget(search_input)
         layout.addWidget(video)
         layout.setContentsMargins(5, 5, 2, 5)
 

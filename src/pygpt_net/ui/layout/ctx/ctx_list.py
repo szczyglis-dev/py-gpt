@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.02.26 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from datetime import datetime, timedelta
 
 from pygpt_net.item.ctx import CtxMeta
+from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem
@@ -30,6 +31,7 @@ class CtxList:
         :param window: Window instance
         """
         self.window = window
+        self.search_input = SearchInput(window)
 
     def setup(self) -> QWidget:
         """
@@ -42,9 +44,12 @@ class CtxList:
         self.window.ui.nodes[id] = ContextList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
         self.window.ui.nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))
+        self.window.ui.nodes['ctx.new'].setContentsMargins(0,0,0,0)
+        search_input = self.search_input.setup()
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['ctx.new'])
+        layout.addWidget(search_input)
         layout.addWidget(self.window.ui.nodes[id])
         layout.setContentsMargins(0, 0, 0, 0)
 
