@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import time
@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 
 from .context import BridgeContext
@@ -195,7 +196,7 @@ class Bridge:
 
         if context.model is not None:
             # check if model is supported by chat API, if not then try to use llama-index or langchain call
-            if not context.model.is_supported(MODE_CHAT):
+            if not context.model.is_supported(MODE_CHAT) and not context.model.is_supported(MODE_RESEARCH):
 
                 # tmp switch to: llama-index
                 if context.model.is_supported(MODE_LLAMA_INDEX):
@@ -230,6 +231,13 @@ class Bridge:
                         self.window.core.debug.error("Error in Langchain quick call: " + str(e))
                         self.window.core.debug.error(e)
                     return ""
+
+        # if model is research model, then switch to research / Perplexity endpoint
+        if context.mode is None or context.mode == MODE_CHAT:
+            if context.model is not None:
+                if not context.model.is_supported(MODE_CHAT):
+                    if context.model.is_supported(MODE_RESEARCH):
+                        context.mode = MODE_RESEARCH
 
         # default: OpenAI API call
         return self.window.core.gpt.quick_call(

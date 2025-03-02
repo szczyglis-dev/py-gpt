@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION, 
     MODE_IMAGE,
+    MODE_RESEARCH,
 )
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
@@ -92,6 +93,10 @@ class Editor:
             MODE_AUDIO: {
                 "type": "bool",
                 "label": "preset.audio",
+            },
+            MODE_RESEARCH: {
+                "type": "bool",
+                "label": "preset.research",
             },
             # "assistant": {
             # "type": "bool",
@@ -302,6 +307,8 @@ class Editor:
                 data.agent_llama = True
             elif mode == MODE_AUDIO:
                 data.audio = True
+            elif mode == MODE_RESEARCH:
+                data.research = True
 
         options = {}
         data_dict = data.to_dict()

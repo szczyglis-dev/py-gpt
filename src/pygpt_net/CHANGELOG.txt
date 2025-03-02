@@ -1,6 +1,12 @@
+2.5.8 (2025-03-02)
+
+- Added a new mode: Research (Perplexity) powered by: https://perplexity.ai - beta.
+- Added Perplexity models: sonar, sonar-pro, sonar-deep-research, sonar-reasoning, sonar-reasoning-pro, r1-1776.
+- Added a new OpenAI model: gpt-4.5-preview.
+
 2.5.7 (2025-02-26)
 
-- Steam mode has been enabled in o1 models.
+- Stream mode has been enabled in o1 models.
 - CSS styling for <think> tags (reasoning models) has been added.
 - The search input has been moved to the top.
 - The ChatGPT-based style is now set as default.

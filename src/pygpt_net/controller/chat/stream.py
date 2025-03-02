@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 22:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -81,7 +81,12 @@ class Stream:
 
                     # OpenAI chat completion
                     if chunk_type == "api_chat":
+                        citations = None
                         if chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
+                            if citations is None:
+                                if chunk and hasattr(chunk, 'citations') and chunk.citations is not None:
+                                    citations = chunk.citations
+                                    ctx.urls = citations
                             response = chunk.choices[0].delta.content
                         if chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
                             tool_chunks = chunk.choices[0].delta.tool_calls

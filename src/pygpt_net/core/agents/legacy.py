@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_AUDIO,
+    MODE_RESEARCH,
 )
 
 class Legacy:
@@ -35,6 +36,7 @@ class Legacy:
             MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             MODE_AUDIO,
+            MODE_RESEARCH,
         ]
 
     def get_allowed_modes(self) -> List[str]:

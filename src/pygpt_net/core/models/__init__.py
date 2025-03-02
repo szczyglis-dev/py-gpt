@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
+    MODE_RESEARCH,
 )
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
@@ -385,6 +386,10 @@ class Models:
             self.window.core.debug.info(
                 "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
             mode = MODE_CHAT
+        elif model.is_supported(MODE_RESEARCH):
+            self.window.core.debug.info(
+                "WARNING: Switching to research mode (model not supported in: {})".format(mode))
+            mode = MODE_RESEARCH
         elif model.is_supported(MODE_LLAMA_INDEX):
             self.window.core.debug.info(
                 "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))

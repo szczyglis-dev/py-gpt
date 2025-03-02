@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import os
@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 
 class PresetsDebug:
@@ -66,6 +67,7 @@ class PresetsDebug:
                 MODE_AGENT_LLAMA: preset.agent_llama,
                 MODE_EXPERT: preset.expert,
                 MODE_AUDIO: preset.audio,
+                MODE_RESEARCH: preset.research,
                 'temperature': preset.temperature,
                 'version': preset.version,
             }

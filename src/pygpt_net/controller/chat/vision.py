@@ -17,6 +17,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 
 class Vision:
@@ -36,6 +37,7 @@ class Vision:
             MODE_LLAMA_INDEX,
             MODE_AGENT,
             MODE_AGENT_LLAMA,
+            MODE_RESEARCH,
         ]
 
     def setup(self):

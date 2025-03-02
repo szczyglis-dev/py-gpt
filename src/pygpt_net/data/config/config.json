@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.5.7",
-    "app.version": "2.5.7",
-    "updated_at": "2025-02-26T00:00:00"
+    "version": "2.5.8",
+    "app.version": "2.5.8",
+    "updated_at": "2025-03-02T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -61,11 +61,13 @@
   "api_azure_version": "2023-07-01-preview",
   "api_azure_endpoint": "https://<your-resource-name>.openai.azure.com/",
   "api_endpoint": "https://api.openai.com/v1",
+  "api_endpoint_perplexity": "https://api.perplexity.ai",
   "api_key": "",
   "api_key_google": "",
   "api_key_anthropic": "",
   "api_key_hugging_face": "",
   "api_key_deepseek": "",
+  "api_key_perplexity": "",
   "api_proxy": "",
   "app.env": [],
   "assistant": "",

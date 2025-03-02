@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.7",
-        "app.version": "2.5.7",
-        "updated_at": "2025-02-26T00:00:00"
+        "version": "2.5.8",
+        "app.version": "2.5.8",
+        "updated_at": "2025-03-02T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -1861,6 +1861,85 @@
             "default": false,
             "multimodal": []
         },
+        "gpt-4.5-preview": {
+            "id": "gpt-4.5-preview",
+            "name": "gpt-4.5-preview",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4.5-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4o",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false
+        },
         "chatgpt-4o-latest": {
             "id": "chatgpt-4o-latest",
             "name": "chatgpt-4o-latest",
@@ -2927,6 +3006,348 @@
             "ctx": 32768,
             "tokens": 4096,
             "default": false
+        },
+        "sonar-deep-research": {
+            "id": "sonar-deep-research",
+            "name": "sonar-deep-research",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "sonar-deep-research",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sonar-deep-research",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
+        "sonar-reasoning-pro": {
+            "id": "sonar-reasoning-pro",
+            "name": "sonar-reasoning-pro",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "sonar-reasoning-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sonar-reasoning-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 8000,
+            "default": false,
+            "multimodal": []
+        },
+        "sonar-reasoning": {
+            "id": "sonar-reasoning",
+            "name": "sonar-reasoning",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "sonar-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sonar-reasoning",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
+        "sonar-pro": {
+            "id": "sonar-pro",
+            "name": "sonar-pro",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "sonar-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sonar-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 8000,
+            "default": false,
+            "multimodal": []
+        },
+        "sonar": {
+            "id": "sonar",
+            "name": "sonar",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "sonar",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "sonar",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
+        },
+        "r1-1776": {
+            "id": "r1-1776",
+            "name": "r1-1776",
+            "mode": [
+                "research"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "r1-1776",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "r1-1776",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_perplexity}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_perplexity}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 16384,
+            "default": false,
+            "multimodal": []
         }
     }
 }

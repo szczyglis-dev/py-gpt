@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.7** | build: **2025.02.26** | Python: **>=3.10, <3.13**
+Release: **2.5.8** | build: **2025.03.02** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Vision, Completion, Assistant, Image generation, LangChain, Chat with Files, Chat with Audio, Experts, Autonomous Mode and Agents.
+- 12 modes of operation: Chat, Vision, Completion, Assistant, Image generation, LangChain, Chat with Files, Chat with Audio, Research (Perplexity), Experts, Autonomous Mode and Agents.
 - Supports multiple models: `o1`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LangChain`, `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `DeepSeek V3/R1`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -398,7 +398,15 @@ More info: https://platform.openai.com/docs/guides/audio/quickstart
 
 Currently, in beta. Tool and function calls are not enabled in this mode.
 
-**INFO:** The execution of commands and tools in this mode is temporarily unavailable.
+## Research (Perplexity)
+
+2025-03-02: currently in beta.
+
+Mode operates using the Perplexity API: https://perplexity.ai.
+
+It allows for deep web searching and utilizes Sonar models, available in `Perplexity AI`.
+
+It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
 
 ## Completion
 
@@ -3964,9 +3972,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.8 (2025-03-02)**
+
+- Added a new mode: Research (Perplexity) powered by: https://perplexity.ai - beta.
+- Added Perplexity models: sonar, sonar-pro, sonar-deep-research, sonar-reasoning, sonar-reasoning-pro, r1-1776.
+- Added a new OpenAI model: gpt-4.5-preview.
+
 **2.5.7 (2025-02-26)**
 
-- Steam mode has been enabled in o1 models.
+- Stream mode has been enabled in o1 models.
 - CSS styling for <think> tags (reasoning models) has been added.
 - The search input has been moved to the top.
 - The ChatGPT-based style is now set as default.

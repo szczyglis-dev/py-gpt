@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -1844,6 +1844,15 @@ class Patch:
                 self.window.core.updater.patch_css('web-blocks.css', True)  # force update
                 self.window.core.updater.patch_css('web-chatgpt.css', True)  # force update
                 self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force update
+                updated = True
+
+            # < 2.5.8
+            if old < parse_version("2.5.8"):
+                print("Migrating config from < 2.5.8...")
+                if 'api_key_perplexity' not in data:
+                    data["api_key_perplexity"] = ""
+                if 'api_endpoint_perplexity' not in data:
+                    data["api_endpoint_perplexity"] = "https://api.perplexity.ai"
                 updated = True
 
         # update file

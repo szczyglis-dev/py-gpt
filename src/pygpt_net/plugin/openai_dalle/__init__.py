@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.bridge.context import BridgeContext
@@ -46,6 +47,7 @@ class Plugin(BasePlugin):
             MODE_ASSISTANT,
             MODE_AGENT,
             MODE_AUDIO,
+            MODE_RESEARCH,
         ]
         self.allowed_cmds = [
             "image",

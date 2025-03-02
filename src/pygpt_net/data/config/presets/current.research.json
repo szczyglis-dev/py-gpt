@@ -1,0 +1,35 @@
+{
+    "uuid": "900887dd-dfec-47e6-ab6f-2f217f2e9ada",
+    "name": "*",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "langchain": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "expert": false,
+    "audio": false,
+    "research": true,
+    "temperature": 1.0,
+    "filename": "current.research",
+    "model": null,
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": null,
+    "agent_provider": null,
+    "assistant_id": "",
+    "enabled": true,
+    "__meta__": {
+        "version": "2.4.34",
+        "app.version": "2.4.34",
+        "updated_at": "2024-11-26T22:06:18"
+    }
+}

@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.7",
-        "app.version": "2.5.7",
-        "updated_at": "2025-02-26T00:00:00"
+        "version": "2.5.8",
+        "app.version": "2.5.8",
+        "updated_at": "2025-03-02T00:00:00"
     },
     "items": {
         "chat": {
@@ -15,6 +15,12 @@
             "id": "audio",
             "name": "audio",
             "label": "mode.audio",
+            "default": false
+        },
+        "research": {
+            "id": "research",
+            "name": "research",
+            "label": "mode.research",
             "default": false
         },
         "completion": {

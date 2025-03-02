@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 from httpx_socks import SyncProxyTransport
@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_COMPLETION,
     MODE_IMAGE,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext
 
@@ -50,10 +51,11 @@ class Gpt:
         self.summarizer = Summarizer(window)
         self.vision = Vision(window)
 
-    def get_client(self) -> OpenAI:
+    def get_client(self, mode: str = MODE_CHAT) -> OpenAI:
         """
         Return OpenAI client
 
+        :param mode: Mode
         :return: OpenAI client
         """
         args = {
@@ -73,6 +75,16 @@ class Gpt:
                 args["http_client"] = DefaultHttpxClient(
                     transport=transport,
                 )
+
+        # research mode endpoint - Perplexity
+        if mode == MODE_RESEARCH:
+            if self.window.core.config.has('api_key_perplexity'):
+                args["api_key"] = self.window.core.config.get('api_key_perplexity')
+            if self.window.core.config.has('api_endpoint_perplexity'):
+                endpoint = self.window.core.config.get('api_endpoint_perplexity')
+                if endpoint:
+                    args["base_url"] = endpoint
+
         return OpenAI(**args)
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
@@ -116,12 +128,19 @@ class Gpt:
             )
             used_tokens = self.completion.get_used_tokens()
 
-        # chat
-        elif mode in [MODE_CHAT, MODE_AUDIO]:
+        # chat (OpenAI) | research (Perplexity)
+        elif mode in [
+            MODE_CHAT,
+            MODE_AUDIO,
+            MODE_RESEARCH
+        ]:
             response = self.chat.send(
                 context=context,
                 extra=extra,
             )
+            if hasattr(response, "citations"):
+                if response.citations:
+                    ctx.urls = response.citations
             used_tokens = self.chat.get_used_tokens()
             self.vision.append_images(ctx)  # append images to ctx if provided
 
@@ -182,7 +201,11 @@ class Gpt:
         output = ""
         if mode == MODE_COMPLETION:
             output = response.choices[0].text.strip()
-        elif mode in [MODE_CHAT, MODE_VISION]:
+        elif mode in [
+            MODE_CHAT, 
+            MODE_VISION, 
+            MODE_RESEARCH
+        ]:
             if response.choices[0]:
                 if response.choices[0].message.content:
                     output = response.choices[0].message.content.strip()
@@ -225,6 +248,7 @@ class Gpt:
         :param extra: Extra arguments
         :return: response content
         """
+        mode = context.mode
         prompt = context.prompt
         system_prompt = context.system_prompt
         max_tokens = context.max_tokens
@@ -233,7 +257,7 @@ class Gpt:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        client = self.get_client()
+        client = self.get_client(mode)
         messages = []
         messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})

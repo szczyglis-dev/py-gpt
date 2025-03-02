@@ -44,6 +44,16 @@ More info: https://platform.openai.com/docs/guides/audio/quickstart
 
 Currently in beta. Tool and function calls are not enabled in this mode.
 
+ Research (Perplexity)
+----------------------
+2025-03-02: currently in beta.
+
+Mode operates using the Perplexity API: https://perplexity.ai.
+
+It allows for deep web searching and utilizes Sonar models, available in ``Perplexity AI``.
+
+It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
+
 Completion
 ----------
 An older mode of operation that allows working in the standard text completion mode. However, it allows for a bit more flexibility with the text by enabling you to initiate the entire discussion in any way you like.

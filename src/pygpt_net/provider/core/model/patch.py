@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -501,6 +501,12 @@ class Patch:
                         model.tokens = 65536
                     elif model.id == "o1-preview":
                         model.tokens = 65536
+                updated = True
+
+            # < 2.5.8 <--- add gpt-4.5-preview and sonar models (Perplexity)
+            if old < parse_version("2.5.8"):
+                print("Migrating models from < 2.5.8...")
+                # add gpt-4.5-preview, sonar, R1
                 updated = True
 
         # update file

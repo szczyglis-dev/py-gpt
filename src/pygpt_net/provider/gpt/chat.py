@@ -17,13 +17,14 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
     MODE_AUDIO,
+    MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 from .utils import sanitize_name
-from ...item.attachment import AttachmentItem
+from pygpt_net.item.attachment import AttachmentItem
 
 
 class Chat:
@@ -66,7 +67,7 @@ class Chat:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.gpt.get_client()
+        client = self.window.core.gpt.get_client(mode)
 
         # build chat messages
         messages = self.build(
@@ -133,10 +134,6 @@ class Chat:
                 response_kwargs['max_tokens'] = max_tokens
             else:
                 response_kwargs['max_completion_tokens'] = max_tokens
-
-        # o1 models do not support streaming
-        if model.id is not None and model.id.startswith("o1-preview"):
-            streams = False
 
         # audio mode
         if mode in [MODE_AUDIO]:

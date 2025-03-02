@@ -177,6 +177,25 @@
         "advanced": false,
         "tab": "Azure OpenAI"
     },
+    "api_key_perplexity": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.perplexity",
+        "description": "settings.api_key.perplexity.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Perplexity"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",

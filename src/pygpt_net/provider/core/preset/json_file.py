@@ -28,6 +28,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 from pygpt_net.provider.core.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
@@ -195,6 +196,7 @@ class JsonFileProvider(BaseProvider):
             MODE_AGENT_LLAMA: item.agent_llama,
             MODE_EXPERT: item.expert,
             MODE_AUDIO: item.audio,
+            MODE_RESEARCH: item.research,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
@@ -236,6 +238,8 @@ class JsonFileProvider(BaseProvider):
             item.expert = data[MODE_EXPERT]
         if MODE_AUDIO in data:
             item.audio = data[MODE_AUDIO]
+        if MODE_RESEARCH in data:
+            item.research = data[MODE_RESEARCH]
 
         if 'uuid' in data:
             item.uuid = data['uuid']

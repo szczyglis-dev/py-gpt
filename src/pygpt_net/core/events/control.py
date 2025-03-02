@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -48,6 +48,7 @@ class ControlEvent(BaseEvent):
     INPUT_SEND = "input.send"
     INPUT_APPEND = "input.append"
     MODE_CHAT = "mode.chat"
+    MODE_RESEARCH = "mode.research"
     MODE_LLAMA_INDEX = "mode.llama_index"
     MODE_NEXT = "mode.next"
     MODE_PREV = "mode.prev"

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -26,6 +26,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
+    MODE_RESEARCH,
 )
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.provider.core.preset.json_file import JsonFileProvider
@@ -233,6 +234,8 @@ class Presets:
             return MODE_EXPERT
         if preset.audio:
             return MODE_AUDIO
+        if preset.research:
+            return MODE_RESEARCH
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -303,6 +306,7 @@ class Presets:
                     or (mode == MODE_AGENT and self.items[id].agent) \
                     or (mode == MODE_AGENT_LLAMA and self.items[id].agent_llama) \
                     or (mode == MODE_EXPERT and self.items[id].expert) \
+                    or (mode == MODE_RESEARCH and self.items[id].research) \
                     or (mode == MODE_AUDIO and self.items[id].audio):
                 presets[id] = self.items[id]
         return presets
