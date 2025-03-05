@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.8** | build: **2025.03.02** | Python: **>=3.10, <3.13**
+Release: **2.5.9** | build: **2025.03.05** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3972,6 +3972,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.9 (2025-03-05)**
+
+- Improved formatting of HTML code in the output.
+- Disabled automatic indentation parsing as code blocks.
+- Disabled automatic scrolling of the notepad when opening a tab.
+
 **2.5.8 (2025-03-02)**
 
 - Added a new mode: Research (Perplexity) powered by: https://perplexity.ai - beta.
@@ -4028,70 +4034,6 @@ may consume additional tokens that are not displayed in the main window.
 - Fix: tool calls in Ollama provider.
 - Fix: error handling in stream mode.
 - Fix: added check for active plugin tools before tool call.
-
-**2.4.57 (2025-01-19)**
-
-- Logging fix.
-
-**2.4.56 (2025-01-19)**
-
-- Improved tab switching and focus change.
-- Improved global keyboard shortcuts handling.
-
-**2.4.55 (2025-01-18)**
-
-- Added a new option in settings: Audio -> Recording timeout.
-- Added a new option in settings: Audio -> Enable timeout in continuous mode.
-
-**2.4.54 (2025-01-18)**
-
-- Audio output switched from PyGame to PyAudio. It may be necessary to manually connect Alsa in Snap version with: "sudo snap connect pygpt:alsa".
-- Added audio output volume progress bar.
-
-**2.4.53 (2025-01-17)**
-
-- Fix: issue #89
-
-**2.4.52 (2025-01-17)**
-
-- Improved audio input button visibility toggle.
-- Fix: check for required arguments - issue #88.
-- UI Fixes.
-
-**2.4.51 (2025-01-17)**
-
-- Added a "Continuous recording" mode under Audio Input in the Notepad tab, allowing for recording long voice notes and real-time auto-transcription. (beta)
-- A new option has been added in Settings -> Audio -> Continuous recording auto-transcribe interval.
-
-**2.4.50 (2025-01-16)**
-
-- Refactored audio input core.
-- Added audio input volume progress bar.
-
-**2.4.49 (2025-01-16)**
-
-- Fix: stream render in Assistants mode.
-- Fix: items remove in context regen/edit.
-
-**2.4.48 (2025-01-16)**
-
-- Fix: parsing lists in data loaders configuration.
-- Fix: crash on Windows on PySide6 v6.6.0.
-- Added Gemini embeddings to LlamaIndex settings.
-- LlamaIndex upgraded to 0.12.11.
-- Security updates.
-
-**2.4.47 (2025-01-14)**
-
-- Added support for Python 3.12.
-- Added a new model to Chat with Files: gemini-2.0-flash-exp.
-- PySide6 upgraded to 6.6.0.
-
-**2.4.46 (2024-12-16)**
-
-- Added a new tab in Settings: "API Keys", where the API keys configuration for Google and Anthropic models has been relocated.
-- Introduced a new mode in "Chat with Files": "Retrieve Only", which allows for retrieving raw documents from the index.
-- Fixed a bug related to tool calls in the Gemini provider when using Chat with Files mode.
 
 # Credits and links
 

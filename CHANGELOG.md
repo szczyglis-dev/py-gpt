@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.9 (2025-03-05)
+
+- Improved formatting of HTML code in the output.
+- Disabled automatic indentation parsing as code blocks.
+- Disabled automatic scrolling of the notepad when opening a tab.
+
 ## 2.5.8 (2025-03-02)
 
 - Added a new mode: Research (Perplexity) powered by: https://perplexity.ai - beta.
