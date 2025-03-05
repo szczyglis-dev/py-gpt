@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.03.05 23:00:00                  #
 # ================================================== #
 
 import re
@@ -33,6 +33,9 @@ class Helpers:
         pattern = r"~###~(.*?)~###~"
         def repl(match):
             code = match.group(1)
+            # restore tags first
+            code = code.replace("&lt;", "<")
+            code = code.replace("&gt;", ">")
             escaped_code = html.escape(code)
             return f'<p class="cmd">{escaped_code}</p>'
         return re.sub(pattern, repl, text, flags=re.DOTALL)
@@ -48,12 +51,14 @@ class Helpers:
         text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
         text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
 
-        #text = text.replace("<think>", "{{{{think}}}}")
-        #text = text.replace("</think>", "{{{{/think}}}}")
-        #text = text.replace("<", "&lt;")
-        #text = text.replace(">", "&gt;")
-        #text = text.replace("{{{{think}}}}", "<think>")
-        #text = text.replace("{{{{/think}}}}", "</think>")
+        # replace HTML tags
+        text = text.replace("<think>", "{{{{think}}}}")
+        text = text.replace("</think>", "{{{{/think}}}}")
+        text = text.replace("<", "&lt;")
+        text = text.replace(">", "&gt;")
+        text = text.replace("{{{{think}}}}", "<think>")
+        text = text.replace("{{{{/think}}}}", "</think>")
+        text = text.replace("<think>\n", "<think>")
 
         # replace cmd tags
         text = self.replace_code_tags(text)
