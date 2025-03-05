@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.03.05 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -31,6 +31,7 @@ class Notepad:
         """
         self.window = window
         self.opened_once = False
+        self.opened_idx = []
 
     def create(
             self,
@@ -283,6 +284,9 @@ class Notepad:
         if tab.type == Tab.TAB_NOTEPAD:
             idx = tab.data_id
             if idx in self.window.ui.notepad:
-                self.window.ui.notepad[idx].scroll_to_bottom()
+                if idx not in self.opened_idx:
+                    self.window.ui.notepad[idx].scroll_to_bottom()
                 if not self.window.ui.notepad[idx].opened:
                     self.window.ui.notepad[idx].opened = True
+                if idx not in self.opened_idx:
+                    self.opened_idx.append(idx)
