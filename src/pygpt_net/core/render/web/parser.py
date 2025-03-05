@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 22:00:00                  #
+# Updated Date: 2025.03.05 23:00:00                  #
 # ================================================== #
 
 import os
@@ -32,9 +32,7 @@ class Parser:
         self.block_idx = 1
 
     def init(self):
-        """
-        Initialize markdown parser
-        """
+        """Initialize markdown parser"""
         if self.md is None:
             self.md = markdown.Markdown(extensions=[
                 'fenced_code',
@@ -42,6 +40,9 @@ class Parser:
                 'sane_lists',
                 MathExtension(enable_dollar_delimiter=True)  # math formulas
             ])
+            # disable code blocks parsing (without ` and ```)
+            if 'code' in self.md.parser.blockprocessors:
+                self.md.parser.blockprocessors.deregister('code')
 
     def reset(self):
         """
@@ -78,7 +79,8 @@ class Parser:
         self.init()
         try:
             text = self.prepare_paths(text.strip())
-            soup = BeautifulSoup(self.md.convert(text), 'html.parser')
+            html = self.md.convert(text)
+            soup = BeautifulSoup(html, 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             # if self.window.core.config.get("ctx.convert_lists"):
             #   self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs, DISABLED: 2024-11-03
