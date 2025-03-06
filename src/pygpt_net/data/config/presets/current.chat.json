@@ -2,7 +2,7 @@
   "name": "*",
   "ai_name": "",
   "user_name": "",
-  "prompt": "You are a helpful assistant.",
+  "prompt": "You are a helpful assistant. Use fenced code for code blocks.",
   "temperature": 1.0,
   "chat": true,
   "completion": false,
