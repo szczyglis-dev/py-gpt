@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.5.9'
+VERSION = '2.5.10'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
@@ -64,21 +64,21 @@ setup(
         'langchain-community>=0.2.12,<0.3.0',
         'langchain-experimental>=0.0.64,<0.1.0',
         'langchain-openai>=0.1.22,<0.2.0',
-        'llama-index>=0.12.11,<0.13.0',
+        'llama-index>=0.12.22,<0.13.0',
         'llama-index-agent-openai>=0.4.2,<0.5.0',
-        'llama-index-core==0.12.11',
+        'llama-index-core==0.12.22',
         'llama-index-embeddings-azure-openai>=0.3.0,<0.4.0',
         'llama-index-embeddings-huggingface-api>=0.3.0,<0.4.0',
         'llama-index-embeddings-gemini>=0.3.1,<0.4.0',
         'llama-index-embeddings-openai>=0.3.1,<0.4.0',
         'llama-index-embeddings-ollama>=0.5.0,<0.6.0',
-        'llama-index-llms-anthropic>=0.6.3,<0.7.0',
+        'llama-index-llms-anthropic>=0.6.8,<0.7.0',
         'llama-index-llms-deepseek>=0.1.0,<0.2.0',
         'llama-index-llms-huggingface-api>=0.3.1,<0.4.0',
-        'llama-index-llms-openai>=0.3.13,<0.4.0',
+        'llama-index-llms-openai>=0.3.25,<0.4.0',
         'llama-index-llms-openai-like>=0.3.3,<0.4.0',
-        'llama-index-llms-azure-openai>=0.3.0,<0.4.0',
-        'llama-index-llms-gemini>=0.4.3,<0.5.0',
+        'llama-index-llms-azure-openai>=0.3.1,<0.4.0',
+        'llama-index-llms-gemini>=0.4.11,<0.5.0',
         'llama-index-llms-ollama>=0.5.0,<0.6.0',
         'llama-index-multi-modal-llms-openai>=0.4.2,<0.5.0',
         'llama-index-vector-stores-chroma>=0.4.1,<0.5.0',
