@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.9** | build: **2025.03.05** | Python: **>=3.10, <3.13**
+Release: **2.5.10** | build: **2025.03.06** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3971,6 +3971,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.10 (2025-03-06)**
+
+- Added a new model: Claude 3.7 Sonnet.  
+- Fixed the context switch issue when the column changed and the tab is not a chat tab.
+- LlamaIndex upgraded to 0.12.22.
+- LlamaIndex LLMs upgraded to recent versions.
 
 **2.5.9 (2025-03-05)**
 

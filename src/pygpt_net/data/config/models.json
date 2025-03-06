@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.9",
-        "app.version": "2.5.9",
-        "updated_at": "2025-03-05T00:00:00"
+        "version": "2.5.10",
+        "app.version": "2.5.10",
+        "updated_at": "2025-03-06T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -42,6 +42,57 @@
                     {
                         "name": "model",
                         "value": "claude-3-5-sonnet-20240620",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key_anthropic}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 4096,
+            "default": false
+        },
+        "claude-3-7-sonnet-latest": {
+            "id": "claude-3-7-sonnet-latest",
+            "name": "claude-3-7-sonnet-latest",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-7-sonnet-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "ANTHROPIC_API_KEY",
+                        "value": "{api_key_anthropic}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "anthropic",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "claude-3-7-sonnet-latest",
                         "type": "str"
                     }
                 ],
