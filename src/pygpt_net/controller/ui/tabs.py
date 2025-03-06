@@ -283,7 +283,8 @@ class Tabs:
             return
         current_ctx = self.window.core.ctx.get_current()
         if (current_ctx is not None and current_ctx != tab.data_id) or current_ctx is None:
-            self.window.controller.ctx.select_on_list_only(tab.data_id)
+            if tab.type == Tab.TAB_CHAT:
+                self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
         self.update_current()
 
