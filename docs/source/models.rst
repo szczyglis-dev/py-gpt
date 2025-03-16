@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has built-in support for models (as of 2024-11-27):
+PyGPT has built-in support for models (as of 2025-03-16):
 
 * ``bielik-11b-v2.2-instruct:Q4_K_M``
 * ``chatgpt-4o-latest``

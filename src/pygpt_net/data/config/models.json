@@ -3016,8 +3016,8 @@
                 "reasoning_effort": "high"
             }
         },
-        "bielik-11b-v2.2-instruct:Q4_K_M": {
-            "id": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+        "bielik-11b-v2.3-instruct:Q4_K_M": {
+            "id": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
             "name": "bielik-11b-v2.2",
             "mode": [
                 "llama_index",
@@ -3034,7 +3034,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+                        "value": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
                         "type": "str"
                     }
                 ],
@@ -3048,7 +3048,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "SpeakLeash/bielik-11b-v2.2-instruct:Q4_K_M",
+                        "value": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
                         "type": "str"
                     }
                 ],

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.11 (2025-03-16)
+
+- Updated Bielik model from v2.2 to v2.3.
+
 ## 2.5.10 (2025-03-06)
 
 - Added a new model: Claude 3.7 Sonnet.  

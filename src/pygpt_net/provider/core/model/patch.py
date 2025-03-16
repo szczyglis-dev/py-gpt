@@ -515,6 +515,21 @@ class Patch:
                 # add claude-3-7-sonnet-latest
                 updated = True
 
+            # < 2.5.11  <--- update Bielik from v2.2 to v2.3
+            if old < parse_version("2.5.11"):
+                print("Migrating models from < 2.5.11...")
+                # Remove old Bielik v2.2 model if exists
+                if 'bielik-11b-v2.2-instruct:Q4_K_M' in data:
+                    # If we have the newer model with v2.3, keep its settings
+                    if 'SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M' not in data:
+                        # Copy the old model's data to the new model ID
+                        data['SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M'] = data['bielik-11b-v2.2-instruct:Q4_K_M']
+                        # Update ID and name for the new model
+                        data['SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M'].id = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
+                        data['SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M'].name = "bielik-11b-v2.3"
+                    del data['bielik-11b-v2.2-instruct:Q4_K_M']
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
