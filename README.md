@@ -905,9 +905,9 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has built-in support for models (as of 2024-11-27):
+PyGPT has built-in support for models (as of 2025-03-16):
 
-- ``bielik-11b-v2.3-instruct:Q4_K_M``
+- `bielik-11b-v2.3-instruct:Q4_K_M`
 - `chatgpt-4o-latest`
 - `claude-3-5-sonnet-20240620`
 - `claude-3-opus-20240229`
