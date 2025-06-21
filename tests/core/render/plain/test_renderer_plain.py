@@ -141,7 +141,7 @@ def test_append_raw(mock_window):
     item = CtxItem()
     meta = CtxMeta()
     render.append_raw(meta, item, "test")
-    render.get_output_node().setText.assert_called_once()
+    render.get_output_node().setPlainText.assert_called_once()
 
 
 def test_append_chunk_start(mock_window):
