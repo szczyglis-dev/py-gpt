@@ -271,9 +271,8 @@ class Chat:
 
         # check if index is empty
         if index:
-            nodes = index.docstore.docs.values()
-            # if not nodes:
-               # use_index = False
+            pass
+            # TODO: implement check if index is empty
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
