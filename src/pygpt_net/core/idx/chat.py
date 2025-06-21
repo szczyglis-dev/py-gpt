@@ -305,7 +305,13 @@ class Chat:
                 response = chat_engine.stream_chat(query)
             else:
                 response = chat_engine.chat(query)
-        else:
+
+            # check for not empty
+            if len(response.source_nodes) == 0:
+                self.log("No source nodes found in response, using LLM directly...")
+                use_index = False
+
+        if not use_index:
             # TOOLS: commands are applied to system prompt here
             # prepare tools (native calls if enabled)
             tools = self.window.core.agents.tools.prepare(context, extra)
