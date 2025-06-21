@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.11** | build: **2025-06-21** | Python: **>=3.10, <3.13**
+Release: **2.5.12** | build: **2025-06-22** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3971,6 +3971,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.12 (2025-06-22)**
+
+- Fixed send-mode radio buttons switch.
+- Added a new models: qwen2.5-coder, OpenAI gpt-4.1-mini.
 
 **2.5.11 (2025-06-21)**
 

@@ -1,3 +1,8 @@
+2.5.12 (2025-06-22)
+
+- Fixed send-mode radio buttons switch.
+- Added a new models: qwen2.5-coder, OpenAI gpt-4.1-mini.
+
 2.5.11 (2025-06-21)
 
 - Added a new models: OpenAI o1-pro and o3-pro, Anthropic Claude 4.0 Opus and Claude 4.0 Sonnet, Alibaba Qwen and Qwen2.  

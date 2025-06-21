@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.06 03:00:00                  #
+# Updated Date: 2025.06.22 03:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -519,6 +519,12 @@ class Patch:
             if old < parse_version("2.5.11"):
                 print("Migrating models from < 2.5.11...")
                 # update Bielik from v2.2 to v2.3
+                updated = True
+
+            # < 2.5.12  <--- add gpt-4.1-mini, qwen2.5-coder
+            if old < parse_version("2.5.12"):
+                print("Migrating models from < 2.5.12...")
+                # add gpt-4.1-mini, qwen2.5-coder
                 updated = True
 
         # update file
