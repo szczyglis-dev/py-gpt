@@ -515,6 +515,12 @@ class Patch:
                 # add claude-3-7-sonnet-latest
                 updated = True
 
+            # < 2.5.11  <--- update Bielik from v2.2 to v2.3
+            if old < parse_version("2.5.11"):
+                print("Migrating models from < 2.5.11...")
+                # update Bielik from v2.2 to v2.3
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
