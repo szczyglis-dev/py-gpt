@@ -13,7 +13,7 @@ a = Analysis(
         'src\\pygpt_net\\'
     ],
     binaries=[],
-    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql']) + [  # chromadb, pinecode hack
+    datas=collect_data_files('opentelemetry.sdk', 'pinecode', 'onnxruntime', 'opentelemetry') + collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql']) + [  # chromadb, pinecode hack
         ('src\\pygpt_net\\data\\config\\presets\\*', 'data\\config\\presets'),
         ('src\\pygpt_net\\data\\config\\config.json', 'data\\config'),
         ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
@@ -49,6 +49,7 @@ a = Analysis(
         ('src\\pygpt_net\\data\\win32\\banner_welcome.bmp', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
+        ('venv\\Lib\\site-packages\\onnxruntime\\*', 'onnxruntime\\'),  # onnxruntime
         ('venv\\Lib\\site-packages\\onnxruntime\\capi\\*', 'onnxruntime\\capi\\'),  # onnxruntime
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\VERSION', 'llama_index\\legacy\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
@@ -57,13 +58,14 @@ a = Analysis(
         ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\core\\agent\\react\\templates\\*', 'llama_index\\core\\agent\\react\\templates\\'),  # llama-index agents hack
         ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # langchain/llama hack
-        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.29.0.dist-info\\*', 'opentelemetry_sdk-1.29.0.dist-info'), # chromadb hack
+        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.34.1.dist-info\\*', 'opentelemetry_sdk-1.34.1.dist-info'), # chromadb hack
         ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
     ],
     hiddenimports=[
     'chromadb.api.segment', 
     'chromadb.db.impl', 
     'chromadb.db.impl.sqlite', 
+    'chromadb.utils.embedding_functions',
     'chromadb.migrations', 
     'chromadb.migrations.sysdb',
     'chromadb.migrations.embeddings_queue', 
@@ -84,13 +86,15 @@ a = Analysis(
     'pinecode',
     'opentelemetry',
     'opentelemetry.sdk',
+    'opentelemetry.context.contextvars_context',
     'onnxruntime',
     'tokenizers',
+    'transformers',
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'pydub',
     'tweepy'],
-    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert'],
+    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert', 'onnxruntime'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
