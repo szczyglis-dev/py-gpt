@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.11",
-        "app.version": "2.5.11",
-        "updated_at": "2025-06-21T00:00:00"
+        "version": "2.5.12",
+        "app.version": "2.5.12",
+        "updated_at": "2025-06-22T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -2197,6 +2197,85 @@
             "tokens": 32768,
             "default": false
         },
+        "gpt-4.1-mini": {
+            "id": "gpt-4.1-mini",
+            "name": "gpt-4.1-mini",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4.1-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4.1-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 1047576,
+            "tokens": 32768,
+            "default": false
+        },
         "gpt-4.5-preview": {
             "id": "gpt-4.5-preview",
             "name": "gpt-4.5-preview",
@@ -3646,6 +3725,48 @@
                     {
                         "name": "model",
                         "value": "qwen2:7b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 32000,
+            "tokens": 4096,
+            "default": false
+        },
+        "qwen2.5-coder:7b": {
+            "id": "qwen2.5-coder:7b",
+            "name": "qwen2.5-coder:7b",
+            "mode": [
+                "langchain",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen2.5-coder:7b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen2.5-coder:7b",
                         "type": "str"
                     }
                 ],
