@@ -41,6 +41,7 @@ GitHub's community:
 * **glinkot**
 * **kaneda2004**
 * **linnflux**
+* **lukasz-pekala**
 * **moritz-t-w**
 * **oleksii-honchar**
 * **yf007**

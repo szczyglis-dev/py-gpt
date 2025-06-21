@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.5.10"
+version = "2.5.11"
 description = "Desktop AI Assistant powered by models: OpenAI o1, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, DeepSeek, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"
@@ -60,7 +60,7 @@ llama-index-llms-openai = "^0.3.25"
 llama-index-llms-openai-like = "^0.3.3"
 llama-index-multi-modal-llms-openai = "^0.4.2"
 llama-index-vector-stores-chroma = "^0.4.1"
-llama-index-vector-stores-elasticsearch = "^0.4.0"
+llama-index-vector-stores-elasticsearch = "0.4.0"
 llama-index-vector-stores-pinecone = "^0.4.2"
 llama-index-vector-stores-redis = "^0.4.0"
 llama-index-readers-chatgpt-plugin = "^0.3.0"

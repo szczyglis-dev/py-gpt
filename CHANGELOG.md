@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## 2.5.11 (2025-03-16)
+## 2.5.11 (2025-06-21)
 
-- Updated Bielik model from v2.2 to v2.3.
+- Added a new models: OpenAI o1-pro and o3-pro, Anthropic Claude 4.0 Opus and Claude 4.0 Sonnet, Alibaba Qwen and Qwen2.  
+- Updated Bielik model from v2.2 to v2.3 / merged PR #101.
+- Fixed HTML output formatting.
 
 ## 2.5.10 (2025-03-06)
 

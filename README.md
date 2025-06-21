@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.10** | build: **2025.03.06** | Python: **>=3.10, <3.13**
+Release: **2.5.11** | build: **2025-06-21** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -905,7 +905,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has built-in support for models (as of 2025-03-16):
+PyGPT has built-in support for models (as of 2025-06-21):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M`
 - `chatgpt-4o-latest`
@@ -3972,6 +3972,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.11 (2025-06-21)**
+
+- Added a new models: OpenAI o1-pro and o3-pro, Anthropic Claude 4.0 Opus and Claude 4.0 Sonnet, Alibaba Qwen and Qwen2.  
+- Bielik model upgraded to v2.3 / merged PR #101.
+- Fixed HTML output formatting.
+
 **2.5.10 (2025-03-06)**
 
 - Added a new model: Claude 3.7 Sonnet.  
@@ -4077,6 +4083,8 @@ GitHub's community:
 - [@kaneda2004](https://github.com/kaneda2004)
 
 - [@linnflux](https://github.com/linnflux)
+
+- [@lukasz-pekala](https://github.com/lukasz-pekala)
 
 - [@moritz-t-w](https://github.com/moritz-t-w)
 

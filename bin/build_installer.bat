@@ -5,7 +5,7 @@ REM https://github.com/wixtoolset/wix3/releases/tag/wix3141rtm
 REM Set variables
 SET SourceDir=%CD%\..\dist\Windows
 SET InstallerOutputFolder=%CD%\..\dist
-SET ProductVersion=2.5.10
+SET ProductVersion=2.5.11
 SET ProductUpgradeCode=3FCD39F6-4965-4B51-A185-FC6E53CA431B
 SET WIX=C:\Program Files (x86)\WiX Toolset v3.14
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
