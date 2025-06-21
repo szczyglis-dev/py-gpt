@@ -3977,6 +3977,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new models: OpenAI o1-pro and o3-pro, Anthropic Claude 4.0 Opus and Claude 4.0 Sonnet, Alibaba Qwen and Qwen2.  
 - Bielik model upgraded to v2.3 / merged PR #101.
 - Fixed HTML output formatting.
+- Fixed empty index in chat mode.
 
 **2.5.10 (2025-03-06)**
 
