@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.06.21 23:00:00                  #
 # ================================================== #
 
 import json
@@ -272,8 +272,8 @@ class Chat:
         # check if index is empty
         if index:
             nodes = index.docstore.docs.values()
-            if not nodes:
-                use_index = False
+            # if not nodes:
+               # use_index = False
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
