@@ -3,10 +3,10 @@
 # ================================================== #
 # This file is a part of PYGPT package               #
 # Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt    #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.21 16:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -283,12 +283,11 @@ class Renderer(BaseRenderer):
             if urls_str:
                 self.append_raw(meta, item, "\n" + "\n".join(urls_str))
 
-        # docs json
         if self.window.core.config.get('ctx.sources'):
             if item.doc_ids is not None and len(item.doc_ids) > 0:
                 try:
                     docs = self.body.get_docs_html(item.doc_ids)
-                    self.get_output_node(meta).append(docs)
+                    self.append_raw(meta, item, docs)
                     self.to_end(meta)
                 except Exception as e:
                     pass
@@ -345,7 +344,6 @@ class Renderer(BaseRenderer):
         Append block to output
 
         :param meta: context meta
-        :param ctx: context item
         """
         node = self.get_output_node(meta)
         cursor = node.textCursor()
@@ -362,7 +360,7 @@ class Renderer(BaseRenderer):
             text: str
     ):
         """
-        Append and format raw text to output
+        Append and format raw text to output as plain text.
         
         :param meta: context meta
         :param ctx: context item
@@ -373,7 +371,7 @@ class Renderer(BaseRenderer):
         if prev_text != "":
             prev_text += "\n\n"
         new_text = prev_text + text.strip()
-        node.setText(new_text)
+        node.setPlainText(new_text)
         cur = node.textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
 
@@ -412,7 +410,7 @@ class Renderer(BaseRenderer):
             end: str = "\n"
     ):
         """
-        Append text to output
+        Append text to output.
 
         :param meta: context meta
         :param ctx: context item
@@ -425,10 +423,10 @@ class Renderer(BaseRenderer):
         s = str(text) + end
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
-            if sep:  # New line if LF
+            cur.insertText(head)
+            if sep:
                 cur.insertText("\n")
-        node.setTextCursor(cur)  # Update visible cursor
+        node.setTextCursor(cur)
 
     def append_timestamp(
             self,
@@ -502,12 +500,14 @@ class Renderer(BaseRenderer):
             meta: Optional[CtxMeta] = None
     ) -> ChatOutput:
         """
-        Get output node for current context
+        Get output node for current context.
         
         :param meta: context meta
         :return: output node
         """
-        return self.window.core.ctx.output.get_current_plain(meta)
+        node = self.window.core.ctx.output.get_current_plain(meta)
+        node.setAcceptRichText(False)
+        return node
 
     def get_input_node(self) -> ChatInput:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.21 16:00:00                  #
 # ================================================== #
 
 import os
@@ -379,15 +379,6 @@ class Body:
             <style>
                 """ + self.prepare_styles() + """
             </style>
-        </head>
-        <body """ + classes_str + """>
-        <div id="container">
-            <div id="_nodes_" class="nodes empty_list"></div>
-            <div id="_append_input_" class="append_input"></div>
-            <div id="_append_output_" class="append_output"></div>
-            <div id="_footer_" class="footer"></div>
-        </div>
-        
         <link rel="stylesheet" href="qrc:///css/katex.min.css">
         <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
         <script type="text/javascript" src="qrc:///js/highlight.min.js"></script>
@@ -418,6 +409,17 @@ class Body:
                 window.location.href = 'bridge://focus';
             }
         });
+        function sanitize(content) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(content, "text/html");
+            var codeElements = doc.querySelectorAll('code, pre');
+            codeElements.forEach(function(element) {
+                var html = element.outerHTML;
+                var newHtml = html.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
+                element.outerHTML = newHtml;
+            });
+            return doc.documentElement.outerHTML;
+        }
         function highlightCode() {
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
@@ -458,7 +460,7 @@ class Body:
         function appendToInput(content) {
             const element = document.getElementById('_append_input_');
             if (element) {
-                element.innerHTML += content;
+                element.innerHTML += sanitize(content);
             }
             highlightCode();
             scrollToBottom();
@@ -485,7 +487,7 @@ class Body:
                     msg = box.querySelector('.msg');
                 }
                 if (msg) {
-                    msg.innerHTML+= content;
+                    msg.innerHTML+= sanitize(content);
                 }
             }
             highlightCode();
@@ -496,7 +498,7 @@ class Body:
             const element = document.getElementById('_nodes_');
             if (element) {
                 element.classList.remove('empty_list');
-                element.innerHTML += content;
+                element.innerHTML += sanitize(content);
             }
             highlightCode();
             scrollToBottom();
@@ -507,7 +509,7 @@ class Body:
             if (element) {
                 const extra = element.querySelector('.msg-extra');
                 if (extra) {
-                    extra.innerHTML+= content;
+                    extra.innerHTML+= sanitize(content);
                 }
             }
             highlightCode();
@@ -566,7 +568,7 @@ class Body:
                     msg = box.querySelector('.msg');
                 }
                 if (msg) {
-                    msg.innerHTML = content;
+                    msg.innerHTML = sanitize(content);
                 }
             }
             highlightCode();
@@ -580,7 +582,7 @@ class Body:
                 const last = elements[elements.length - 1];
                 const contentEl = last.querySelector('.content');
                 if (contentEl) {
-                    contentEl.innerHTML += content;
+                    contentEl.innerHTML += sanitize(content);
                 }
             }
         }
@@ -592,7 +594,7 @@ class Body:
                 const last = elements[elements.length - 1];
                 const contentEl = last.querySelector('.content');
                 if (contentEl) {
-                    contentEl.innerHTML = content;
+                    contentEl.innerHTML = sanitize(content);
                 }
             }
         }
@@ -795,6 +797,14 @@ class Body:
             });
         });
         </script>
+        </head>
+        <body """ + classes_str + """>
+        <div id="container">
+            <div id="_nodes_" class="nodes empty_list"></div>
+            <div id="_append_input_" class="append_input"></div>
+            <div id="_append_output_" class="append_output"></div>
+            <div id="_footer_" class="footer"></div>
+        </div>
         </body>
         </html>
         """

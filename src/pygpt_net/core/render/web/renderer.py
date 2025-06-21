@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.21 16:00:00                  #
 # ================================================== #
 
 import json
@@ -362,6 +362,8 @@ class Renderer(BaseRenderer):
 
         self.update_names(meta, ctx)
         raw_chunk = str(text_chunk)
+        raw_chunk = raw_chunk.replace("<", "&lt;")
+        raw_chunk = raw_chunk.replace(">", "&gt;")
         if begin:
             # debug
             debug = ""
