@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.22 01:00:00                  #
 # ================================================== #
 
 import os
@@ -185,6 +185,17 @@ class Common:
 
         :param value: True if enabled
         """
+        if value == 0:
+            self.window.ui.nodes['input.send_none'].setChecked(True)
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
+        elif value == 1:
+            self.window.ui.nodes['input.send_enter'].setChecked(True)
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_none'].setChecked(False)
+        elif value == 2:
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
+            self.window.ui.nodes['input.send_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_none'].setChecked(False)
         self.window.core.config.set('send_mode', value)
 
     def focus_input(self):
