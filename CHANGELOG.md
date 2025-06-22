@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.13 (2025-06-22)
+
+- Disabled auto-switch to vision mode in Painer.
+- UI fixes.
+
 ## 2.5.12 (2025-06-22)
 
 - Fixed send-mode radio buttons switch.
