@@ -188,6 +188,7 @@ class Common:
         if value == 0:
             self.window.ui.nodes['input.send_none'].setChecked(True)
             self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_enter'].setChecked(False)
         elif value == 1:
             self.window.ui.nodes['input.send_enter'].setChecked(True)
             self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
