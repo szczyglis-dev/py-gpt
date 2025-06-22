@@ -136,7 +136,7 @@ class Capture:
     def use(self):
         """Use current image"""
         # switch to vision mode if needed
-        self.window.controller.chat.vision.switch_to_vision()
+        # self.window.controller.chat.vision.switch_to_vision()
 
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
