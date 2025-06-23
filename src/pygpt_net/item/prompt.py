@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.29 04:00:00                  #
+# Updated Date: 2025.06.23 19:00:00                  #
 # ================================================== #
 
 import json
@@ -28,7 +28,7 @@ class PromptItem:
         :return: serialized item
         """
         return {
-            'id': self.id,
+            'id': str(self.id),
             'name': self.name,
             'content': self.content,
         }

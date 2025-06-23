@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2025.06.23 19:00:00                  #
 # ================================================== #
 
 import json
@@ -29,7 +29,7 @@ class NotepadItem:
     def to_dict(self):
         return {
             'id': self.id,
-            'uuid': self.uuid,
+            'uuid': str(self.uuid),
             'idx': self.idx,
             'title': self.title,
             'content': self.content,

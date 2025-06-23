@@ -43,7 +43,7 @@ class CalendarNoteItem:
     def to_dict(self):
         return {
             'id': self.id,
-            'uuid': self.uuid,
+            'uuid': str(self.uuid),
             'idx': self.idx,
             'year': self.year,
             'month': self.month,
