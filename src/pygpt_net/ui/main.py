@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 03:00:00                  #
+# Updated Date: 2025.06.23 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -375,6 +375,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.shortcuts.append(escape_shortcut)
 
         config = copy.deepcopy(self.core.config.get("access.shortcuts"))
+        if config is None:
+            return
+            
         for shortcut_conf in config:
             key = shortcut_conf.get('key', '')
             key_modifier = shortcut_conf.get('key_modifier', '')
