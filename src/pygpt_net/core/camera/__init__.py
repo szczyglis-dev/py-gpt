@@ -61,7 +61,7 @@ class CaptureWorker(QRunnable):
         try:
             # get params from global config
             self.capture = cv2.VideoCapture(self.window.core.config.get('vision.capture.idx'))
-            if not self.capture.isOpened():
+            if not self.capture or not self.capture.isOpened():
                 self.allow_finish = False
                 self.signals.unfinished.emit()
                 return

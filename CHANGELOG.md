@@ -1,8 +1,13 @@
 # CHANGELOG
 
+## 2.5.14 (2025-06-23)
+
+- Fix: crash if empty shortcuts in config.
+- Fix: UUID serialization.
+
 ## 2.5.13 (2025-06-22)
 
-- Disabled auto-switch to vision mode in Painer.
+- Disabled auto-switch to vision mode in Painter.
 - UI fixes.
 
 ## 2.5.12 (2025-06-22)
