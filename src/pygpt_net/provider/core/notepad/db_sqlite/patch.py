@@ -47,6 +47,7 @@ class Patch:
         :return: True if imported
         :rtype: bool
         """
+        return True
         # use json provider to load old notepads
         provider = self.window.core.notepad.providers['json_file']
         provider.attach(self.window)
