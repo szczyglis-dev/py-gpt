@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.06.24 16:00:00                  #
 # ================================================== #
-
+import os
 from typing import Optional, Any, Dict
 
 from pygpt_net.core.bridge import BridgeContext
@@ -80,6 +80,13 @@ class Input:
                 model_data = self.window.core.models.get(model)
                 if model_data is not None and model_data.is_ollama():
                     model_id = model_data.get_ollama_model()
+                    # load ENV vars first
+                    if ('env' in model_data.llama_index
+                            and model_data.llama_index['env'] is not None):
+                        for item in model_data.llama_index['env']:
+                            key = item.get('name', '').strip()
+                            value = item.get('value', '').strip()
+                            os.environ[key] = value
                     status = self.window.core.models.ollama.check_model(model_id)
                     is_installed = status.get('is_installed', False)
                     is_model = status.get('is_model', False)

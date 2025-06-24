@@ -44,7 +44,7 @@ More info: https://platform.openai.com/docs/guides/audio/quickstart
 
 Currently in beta. Tool and function calls are not enabled in this mode.
 
- Research (Perplexity)
+Research (Perplexity)
 ----------------------
 2025-03-02: currently in beta.
 

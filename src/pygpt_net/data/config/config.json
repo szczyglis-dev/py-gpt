@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.5.14",
-    "app.version": "2.5.14",
-    "updated_at": "2025-06-23T00:00:00"
+    "version": "2.5.15",
+    "app.version": "2.5.15",
+    "updated_at": "2025-06-24T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -69,7 +69,12 @@
   "api_key_deepseek": "",
   "api_key_perplexity": "",
   "api_proxy": "",
-  "app.env": [],
+  "app.env": [
+        {
+            "name": "OLLAMA_API_BASE",
+            "value": "http://localhost:11434"
+        }
+    ],
   "assistant": "",
   "assistant_thread": "",
   "assistant.store.hide_threads": true,

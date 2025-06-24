@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.06.24 16:00:00                  #
 # ================================================== #
+import os
 
 import requests
 
@@ -27,7 +28,11 @@ class Ollama:
 
         :return: dict
         """
-        url = "http://localhost:11434/api/tags"
+        api_base = "http://localhost:11434"
+        if 'OLLAMA_API_BASE' in os.environ:
+            api_base = os.environ['OLLAMA_API_BASE']
+        print("Using Ollama base URL:", api_base)
+        url = api_base + "/api/tags"
         try:
             response = requests.get(url, timeout=2)
             if response.status_code == 200:

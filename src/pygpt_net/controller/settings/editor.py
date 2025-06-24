@@ -203,6 +203,9 @@ class Editor:
         if self.config_changed('access.shortcuts'):
             self.window.setup_global_shortcuts()
 
+        # update ENV
+        self.window.core.config.setup_env()
+
         self.before_config = copy.deepcopy(self.window.core.config.all())
         self.window.controller.settings.close_window(id)
 

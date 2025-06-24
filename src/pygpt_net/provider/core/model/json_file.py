@@ -165,6 +165,7 @@ class JsonFileProvider(BaseProvider):
             'default': item.default,
             'multimodal': item.multimodal,
             'extra': item.extra,
+            'imported': item.imported,
         }
 
     @staticmethod
@@ -195,6 +196,8 @@ class JsonFileProvider(BaseProvider):
             item.multimodal = data['multimodal']
         if 'extra' in data:
             item.extra = data['extra']
+        if 'imported' in data:
+            item.imported = data['imported']
 
     def dump(self, item: ModelItem) -> str:
         """

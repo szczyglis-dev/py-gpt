@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.06.24 16:00:00                  #
 # ================================================== #
 
 import os
@@ -14,7 +14,8 @@ from typing import Optional, List, Dict
 
 from langchain_community.chat_models import ChatOllama
 
-from llama_index.llms.ollama import Ollama
+from .ollama_custom import Ollama
+
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
@@ -85,6 +86,8 @@ class OllamaLLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         if "request_timeout" not in args:
             args["request_timeout"] = 120
+        if 'OLLAMA_API_BASE' in os.environ:
+            args["base_url"] = os.environ['OLLAMA_API_BASE']
         return Ollama(**args)
 
     def get_embeddings_model(
@@ -104,6 +107,8 @@ class OllamaLLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             })
+        if 'OLLAMA_API_BASE' in os.environ:
+            args["base_url"] = os.environ['OLLAMA_API_BASE']
         return OllamaEmbedding(**args)
 
     def init_embeddings(

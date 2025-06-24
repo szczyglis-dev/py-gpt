@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.06.24 02:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -15,6 +15,7 @@ from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.item.model import ModelItem
 
 from .editor import Editor
+from .importer import Importer
 
 
 class Model:
@@ -26,6 +27,7 @@ class Model:
         """
         self.window = window
         self.editor = Editor(window)
+        self.importer = Importer(window)
 
     def select(self, model: str):
         """

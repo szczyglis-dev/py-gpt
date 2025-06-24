@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.07 21:00:00                  #
+# Updated Date: 2025.06.24 02:00:00                  #
 # ================================================== #
 
 import os
@@ -38,11 +38,25 @@ class Config:
                                                          trans("menu.config.settings"), self.window)
         self.window.ui.menu['config.settings'].setMenuRole(QAction.MenuRole.NoRole)
 
-        self.window.ui.menu['config.models'] = QAction(QIcon(":/icons/settings_filled.svg"),
-                                                       trans("menu.config.models"), self.window)
+        self.window.ui.menu['config.models'] = QMenu(trans("menu.config.models"), self.window)
 
         self.window.ui.menu['config.access'] = QAction(QIcon(":/icons/accessibility.svg"),
                                                        trans("menu.config.access"), self.window)
+        self.window.ui.menu['config.access'].setMenuRole(QAction.MenuRole.NoRole)
+
+        # models
+        self.window.ui.menu['config.models.edit'] = QAction(QIcon(":/icons/settings_filled.svg"),
+                                                       trans("menu.config.models.edit"), self.window)
+        self.window.ui.menu['config.models.edit'].triggered.connect(
+            lambda: self.window.controller.model.editor.toggle_editor())
+        self.window.ui.menu['config.models.import.ollama'] = QAction(QIcon(":/icons/reload.svg"),
+                                                            trans("menu.config.models.import.ollama"), self.window)
+        self.window.ui.menu['config.models.import.ollama'].triggered.connect(
+            lambda: self.window.controller.model.importer.toggle_editor())
+
+        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.edit'])
+        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.import.ollama'])
+
 
         css_dir = os.path.join(self.window.core.config.path, 'css')
         css_files = os.listdir(css_dir)
@@ -125,9 +139,6 @@ class Config:
         self.window.ui.menu['config.settings'].triggered.connect(
             lambda: self.window.controller.settings.toggle_editor('settings'))
 
-        self.window.ui.menu['config.models'].triggered.connect(
-            lambda: self.window.controller.model.editor.toggle_editor())
-
         self.window.ui.menu['config.access'].triggered.connect(
             lambda: self.window.controller.settings.open_section('access'))
 
@@ -145,7 +156,7 @@ class Config:
 
         self.window.ui.menu['menu.config'] = self.window.menuBar().addMenu(trans("menu.config"))
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.settings'])
-        self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.models'])
+        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.models'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.access'])
 
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.theme'])

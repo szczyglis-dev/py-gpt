@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.24 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -230,17 +230,20 @@ class Models:
             id = "model-" + str(int(id.split("-")[1]) + 1).zfill(3)
         return id
 
-    def create_empty(self) -> ModelItem:
+    def create_empty(self, append: bool = True) -> ModelItem:
         """
         Create new empty model
 
+        :param append: if True, append model to items
         :return: new model
+
         """
         id = self.create_id()
         model = ModelItem()
         model.id = id
         model.name = "New model"
-        self.items[id] = model
+        if append:
+            self.items[id] = model
         return model
 
     def get_all(self) -> Dict[str, ModelItem]:

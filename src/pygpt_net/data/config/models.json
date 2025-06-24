@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.14",
-        "app.version": "2.5.14",
-        "updated_at": "2025-06-23T00:00:00"
+        "version": "2.5.15",
+        "app.version": "2.5.15",
+        "updated_at": "2025-06-24T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -416,9 +416,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_1.5b": {
-            "id": "deepseek-r1-1.5b",
-            "name": "deepseek-r1-1.5b",
+        "deepseek-r1:1.5b": {
+            "id": "deepseek-r1:1.5b",
+            "name": "deepseek-r1:1.5b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -467,9 +467,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_7b": {
-            "id": "deepseek-r1-7b",
-            "name": "deepseek-r1-7b",
+        "deepseek-r1:7b": {
+            "id": "deepseek-r1:7b",
+            "name": "deepseek-r1:7b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -518,9 +518,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_14b": {
-            "id": "deepseek-r1-14b",
-            "name": "deepseek-r1-14b",
+        "deepseek-r1:14b": {
+            "id": "deepseek-r1:14b",
+            "name": "deepseek-r1:14b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -569,9 +569,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_32b": {
-            "id": "deepseek-r1-32b",
-            "name": "deepseek-r1-32b",
+        "deepseek-r1:32b": {
+            "id": "deepseek-r1:32b",
+            "name": "deepseek-r1:32b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -620,9 +620,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_70b": {
-            "id": "deepseek-r1-70b",
-            "name": "deepseek-r1-70b",
+        "deepseek-r1:70b": {
+            "id": "deepseek-r1:70b",
+            "name": "deepseek-r1:70b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -671,9 +671,9 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_r1_671b": {
-            "id": "deepseek-r1-671b",
-            "name": "deepseek-r1-671b",
+        "deepseek-r1:671b": {
+            "id": "deepseek-r1:671b",
+            "name": "deepseek-r1:671b",
             "mode": [
                 "llama_index",
                 "agent",
@@ -722,7 +722,7 @@
             "tokens": 8000,
             "default": false
         },
-        "deepseek_ollama_v3": {
+        "deepseek-v3:671b": {
             "id": "deepseek-v3:671b",
             "name": "deepseek-v3:671b",
             "mode": [

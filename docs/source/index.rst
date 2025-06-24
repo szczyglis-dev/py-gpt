@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Release:** 2.5.14 (2025-06-23), Last update: 2025-06-23 19:00
+| **Release:** 2.5.15 (2025-06-24), Last update: 2025-06-24 16:00
 | **Project Website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt

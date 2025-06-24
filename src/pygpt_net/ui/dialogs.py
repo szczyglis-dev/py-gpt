@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2025.06.24 02:00:00                  #
 # ================================================== #
 
 import threading
@@ -26,6 +26,7 @@ from pygpt_net.ui.dialog.image import Image
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
 from pygpt_net.ui.dialog.models import Models
+from pygpt_net.ui.dialog.models_importer import ModelsImporter
 from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
 from pygpt_net.ui.dialog.preset_plugins import PresetPlugins
@@ -101,6 +102,7 @@ class Dialogs:
         self.window.plugin_settings = Plugins(self.window)
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)
+        self.window.model_importer = ModelsImporter(self.window)
         self.window.assistant_store = AssistantVectorStore(self.window)
 
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
