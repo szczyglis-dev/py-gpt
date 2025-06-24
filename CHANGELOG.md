@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.15 (2025-06-24)
+
+- Added Ollama models importer in "Settings -> Models -> Import from Ollama".
+- Fixed Ollama provider in the newest LlamaIndex.
+- Added the ability to set a custom base URL for Ollama -> ENV: OLLAMA_API_BASE.
+
 ## 2.5.14 (2025-06-23)
 
 - Fix: crash if empty shortcuts in config.
