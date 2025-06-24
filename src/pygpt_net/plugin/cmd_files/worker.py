@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 13:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -847,7 +847,7 @@ class Worker(BaseWorker):
                 path,
             )
 
-    def read_files(self, paths: list) -> (dict, str):
+    def read_files(self, paths: list) -> (list, list):
         """
         Read files from directory
 
