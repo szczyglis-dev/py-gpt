@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.22 03:00:00                  #
+# Updated Date: 2025.06.24 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -525,6 +525,29 @@ class Patch:
             if old < parse_version("2.5.12"):
                 print("Migrating models from < 2.5.12...")
                 # add gpt-4.1-mini, qwen2.5-coder
+                updated = True
+
+            # < 2.5.15  <--- update deepseek IDs
+            if old < parse_version("2.5.15"):
+                print("Migrating models from < 2.5.15...")
+                replace = [
+                    ["deepseek_ollama_r1_1.5b", "deepseek-r1:1.5b"],
+                    ["deepseek_ollama_r1_7b", "deepseek-r1:7b"],
+                    ["deepseek_ollama_r1_14b", "deepseek-r1:14b"],
+                    ["deepseek_ollama_r1_32b", "deepseek-r1:32b"],
+                    ["deepseek_ollama_r1_70b", "deepseek-r1:70b"],
+                    ["deepseek_ollama_r1_671b", "deepseek-r1:671b"],
+                    ["deepseek_ollama_v3", "deepseek-v3:671b"]
+                ]
+                for m in replace:
+                    name_to_replace = m[0]
+                    new_name = m[1]
+                    if name_to_replace in data:
+                        model = data[name_to_replace]
+                        model.id = new_name
+                        model.name = new_name
+                        data[new_name] = model
+                        del data[name_to_replace]
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 16:00:00                  #
+# Updated Date: 2025.06.24 02:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -351,6 +351,7 @@ class Mapping:
         menu_title['config.edit.css'] = 'menu.config.edit.css'
         menu_title['config.edit.json'] = 'menu.config.edit.json'
         menu_title['config.profile'] = 'menu.config.profile'
+        menu_title['config.models'] = 'menu.config.models'
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
@@ -376,7 +377,8 @@ class Mapping:
         menu_text['app.clear_history_groups'] = 'menu.file_clear_history_groups'
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'
-        menu_text['config.models'] = 'menu.config.models'
+        menu_text['config.models.edit'] = 'menu.config.models.edit'
+        menu_text['config.models.import.ollama'] = 'menu.config.models.import.ollama'
         menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.06.24 16:00:00                  #
 # ================================================== #
 
 import json
@@ -28,6 +28,7 @@ class ModelItem:
         self.ctx = 0
         self.tokens = 0
         self.default = False
+        self.imported = False
         self.extra = {}
 
     def from_dict(self, data: dict):
@@ -51,6 +52,8 @@ class ModelItem:
             self.default = data['default']
         if 'extra' in data:
             self.extra = data['extra']
+        if 'imported' in data:
+            self.imported = data['imported']
 
         # multimodal
         if 'multimodal' in data:
@@ -101,6 +104,7 @@ class ModelItem:
         data['default'] = self.default
         data['multimodal'] = ','.join(self.multimodal)
         data['extra'] = self.extra
+        data['imported'] = self.imported
 
         data['langchain.provider'] = None
         data['langchain.mode'] = ""
