@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.16",
-    "app.version": "2.5.16",
+    "version": "2.5.17",
+    "app.version": "2.5.17",
     "updated_at": "2025-06-25T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -198,7 +198,7 @@
   "llama.idx.auto.index": "base",
   "llama.idx.auto.modes": "chat,completion,vision,assistant,langchain,llama_index,agent",
   "llama.idx.chat.mode": "context",
-  "llama.idx.current": "base",
+  "llama.idx.current": null,
   "llama.idx.custom_meta": [
       {
           "extensions": "*",
@@ -307,6 +307,7 @@
   "render.open_gl": false,
   "render.plain": false,
   "render.code_syntax": "github-dark",
+  "remote_tools.web_search": true,
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,

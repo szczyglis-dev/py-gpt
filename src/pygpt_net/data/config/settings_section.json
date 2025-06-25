@@ -14,6 +14,9 @@
     "ctx": {
         "label": "settings.section.ctx"
     },
+    "remote_tools": {
+        "label": "settings.section.remote_tools"
+    },
     "model": {
         "label": "settings.section.model"
     },

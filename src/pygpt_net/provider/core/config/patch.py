@@ -1855,6 +1855,13 @@ class Patch:
                     data["api_endpoint_perplexity"] = "https://api.perplexity.ai"
                 updated = True
 
+            # < 2.5.17
+            if old < parse_version("2.5.17"):
+                print("Migrating config from < 2.5.17...")
+                if 'remote_tools.web_search' not in data:
+                    data["remote_tools.web_search"] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

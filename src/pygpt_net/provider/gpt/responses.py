@@ -117,7 +117,8 @@ class Responses:
 
         # extend tools with external tools
         if not model.id.startswith("o1") and not model.id.startswith("o3"):
-            tools.append({"type": "web_search_preview"})
+            if self.window.core.config.get("remote_tools.web_search", False):
+                tools.append({"type": "web_search_preview"})
 
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None
