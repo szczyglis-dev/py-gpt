@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.02 02:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -220,6 +220,34 @@ class Command:
                         "function": {
                             "name": tool_call.function.name,
                             "arguments": json.loads(tool_call.function.arguments)
+                        }
+                    }
+                )
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error parsing tool call: " + str(e))
+        return parsed
+
+    def unpack_tool_calls_responses(
+            self,
+            tool_calls: List
+    ) -> List[Dict[str, Any]]:
+        """
+        Unpack tool calls from OpenAI response
+
+        :param tool_calls: tool calls list
+        :return: parsed tool calls list
+        """
+        parsed = []
+        for tool_call in tool_calls:
+            try:
+                parsed.append(
+                    {
+                        "id": tool_call.id,
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.name,
+                            "arguments": json.loads(tool_call.arguments)
                         }
                     }
                 )
@@ -503,6 +531,9 @@ class Command:
                 if "required" in param and param["required"]:
                     required.append(param["name"])
 
+            if len(required) > 0:
+                params["required"] = required
+
             # extract params and convert to JSON schema format
             for param in cmd["params"]:
                 try:
@@ -570,7 +601,7 @@ class Command:
                             elif params["properties"][key]["type"] == "list":
                                 params["properties"][key]["type"] = "array"
                                 params["properties"][key]["items"] = {
-                                    "$ref": "#"
+                                    "type": "string"
                                 }
                 except Exception as e:
                     print(e)

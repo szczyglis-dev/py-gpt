@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.23 19:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -75,6 +75,7 @@ class CtxItem:
         self.sub_call = False  # is sub call
         self.sub_reply = False  # sub call reply
         self.hidden = False  # hidden context
+        self.use_responses_api = False  # use responses API format
         self.pid = 0
         self.audio_id = None
         self.audio_output = None

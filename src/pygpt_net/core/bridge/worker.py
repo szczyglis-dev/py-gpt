@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
+    MODE_ASSISTANT,
 )
 from pygpt_net.core.events import KernelEvent, Event
 
@@ -48,7 +49,8 @@ class BridgeWorker(QObject, QRunnable):
             self.handle_post_prompt_async()
 
             # ADDITIONAL CONTEXT: append additional context from attachments
-            self.handle_additional_context()
+            if self.mode != MODE_ASSISTANT:
+                self.handle_additional_context()
 
             # POST PROMPT END: handle post prompt end event
             self.handle_post_prompt_end()

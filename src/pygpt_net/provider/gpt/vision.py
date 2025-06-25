@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 import base64
@@ -168,18 +168,26 @@ class Vision:
             self,
             content: Union[str, list],
             attachments: Optional[Dict[str, AttachmentItem]] = None,
+            responses_api: Optional[bool] = False,
     ) -> List[dict]:
         """
         Build vision content
 
         :param content: content (str or list)
         :param attachments: attachments (dict, optional)
+        :param responses_api: if True, use responses API format
         :return: List of contents
         """
+        type_text = "text"
+        type_image = "image_url"
+        if responses_api:
+            type_text = "input_text"
+            type_image = "input_image"
+
         if not isinstance(content, list):
             content = [
                 {
-                    "type": "text",
+                    "type": type_text,
                     "text": str(content)
                 }
             ]
@@ -193,14 +201,22 @@ class Vision:
         urls = self.extract_urls(prompt)
         if len(urls) > 0:
             for url in urls:
-                content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": url,
+                if not responses_api:
+                    content.append(
+                        {
+                            "type": type_image,
+                            "image_url": {
+                                "url": url,
+                            }
                         }
-                    }
-                )
+                    )
+                else:
+                    content.append(
+                        {
+                            "type": type_image,
+                            "image_url": url,
+                        }
+                    )
                 self.urls.append(url)
 
         # local images (attachments)
@@ -211,14 +227,22 @@ class Vision:
                     # check if it's an image
                     if self.is_image(attachment.path):
                         base64_image = self.encode_image(attachment.path)
-                        content.append(
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}",
+                        if not responses_api:
+                            content.append(
+                                {
+                                    "type": type_image,
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{base64_image}",
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        else:
+                            content.append(
+                                {
+                                    "type": type_image,
+                                    "image_url": f"data:image/jpeg;base64,{base64_image}",
+                                }
+                            )
                         self.attachments[id] = attachment.path
                         attachment.consumed = True
 

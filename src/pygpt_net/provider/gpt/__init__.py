@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
 
 from httpx_socks import SyncProxyTransport
@@ -29,6 +29,7 @@ from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
 from .image import Image
+from .responses import Responses
 from .store import Store
 from .summarizer import Summarizer
 from .vision import Vision
@@ -47,6 +48,7 @@ class Gpt:
         self.chat = Chat(window)
         self.completion = Completion(window)
         self.image = Image(window)
+        self.responses = Responses(window)
         self.store = Store(window)
         self.summarizer = Summarizer(window)
         self.vision = Vision(window)
@@ -108,6 +110,12 @@ class Gpt:
         ai_name = ctx.output_name
         thread_id = ctx.thread  # from ctx
 
+        # --- Responses API ---- /beta/
+        use_responses_api = False
+        if mode == MODE_CHAT:
+            use_responses_api = True  # use responses API for chat, audio, research modes
+        ctx.use_responses_api = use_responses_api  # set in context
+
         # get model id
         model_id = None
         if model is not None:
@@ -128,20 +136,30 @@ class Gpt:
             )
             used_tokens = self.completion.get_used_tokens()
 
-        # chat (OpenAI) | research (Perplexity)
+        # chat, audio (OpenAI) | research (Perplexity)
         elif mode in [
             MODE_CHAT,
             MODE_AUDIO,
             MODE_RESEARCH
         ]:
-            response = self.chat.send(
-                context=context,
-                extra=extra,
-            )
-            if hasattr(response, "citations"):
-                if response.citations:
-                    ctx.urls = response.citations
-            used_tokens = self.chat.get_used_tokens()
+            # responses API
+            if use_responses_api:
+                response = self.responses.send(
+                    context=context,
+                    extra=extra,
+                )
+                used_tokens = self.responses.get_used_tokens()
+            else:
+                # chat completion API
+                response = self.chat.send(
+                    context=context,
+                    extra=extra,
+                )
+                if hasattr(response, "citations"):
+                    if response.citations:
+                        ctx.urls = response.citations
+                used_tokens = self.chat.get_used_tokens()
+
             self.vision.append_images(ctx)  # append images to ctx if provided
 
         # image
@@ -184,7 +202,7 @@ class Gpt:
 
         # if stream
         if stream:
-            ctx.stream = response
+            ctx.stream = response  # generator
             ctx.set_output("", ai_name)  # set empty output
             ctx.input_tokens = used_tokens  # get from input tokens calculation
             return True
@@ -206,13 +224,21 @@ class Gpt:
             MODE_VISION, 
             MODE_RESEARCH
         ]:
-            if response.choices[0]:
-                if response.choices[0].message.content:
-                    output = response.choices[0].message.content.strip()
-                elif response.choices[0].message.tool_calls:
-                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
-                        response.choices[0].message.tool_calls,
+            if use_responses_api:
+                if response.output_text:
+                    output = response.output_text.strip()
+                if response.output:
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls_responses(
+                        response.output,
                     )
+            else:
+                if response.choices[0]:
+                    if response.choices[0].message.content:
+                        output = response.choices[0].message.content.strip()
+                    elif response.choices[0].message.tool_calls:
+                        ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                            response.choices[0].message.tool_calls,
+                        )
         # audio
         elif mode in [MODE_AUDIO]:
             if response.choices[0]:
@@ -234,10 +260,17 @@ class Gpt:
                     )
 
         ctx.set_output(output, ai_name)
-        ctx.set_tokens(
-            response.usage.prompt_tokens,
-            response.usage.completion_tokens,
-        )
+
+        if not use_responses_api:
+            ctx.set_tokens(
+                response.usage.prompt_tokens,
+                response.usage.completion_tokens,
+            )
+        else:
+            ctx.set_tokens(
+                response.usage.input_tokens,
+                response.usage.output_tokens,
+            )
         return True
 
     def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
