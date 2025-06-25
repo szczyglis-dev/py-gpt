@@ -299,6 +299,8 @@ class Ollama(FunctionCallingLLM):
         error_on_no_tool_call: bool = True,
     ) -> List[ToolSelection]:
         """Predict and call the tool."""
+        if response.message.additional_kwargs.get("tool_calls", []) is None:
+            response.message.additional_kwargs["tool_calls"] = []
         tool_calls = response.message.additional_kwargs.get("tool_calls", [])
         if len(tool_calls) < 1:
             if error_on_no_tool_call:
