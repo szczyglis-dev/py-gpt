@@ -115,6 +115,10 @@ class Responses:
             response_kwargs['reasoning'] = {}
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
+        # extend tools with external tools
+        if not model.id.startswith("o1") and not model.id.startswith("o3"):
+            tools.append({"type": "web_search_preview"})
+
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None
                 and model.id not in ["o1-mini", "o1-preview"]):
@@ -133,10 +137,6 @@ class Responses:
                 "voice": voice_id,
                 "format": "wav"
             }
-
-        # extend tools with external tools
-        if not model.id.startswith("o1") and not model.id.startswith("o3"):
-            tools.append({"type": "web_search_preview"})
 
         response = client.responses.create(
             input=messages,

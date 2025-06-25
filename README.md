@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.15** | build: **2025-06-23** | Python: **>=3.10, <3.13**
+Release: **2.5.16** | build: **2025-06-25** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4025,6 +4025,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.16 (2025-06-25)**
+
+- OpenAI API upgraded to 1.91.0.
+- Chat mode migrated to Responses API with native built-in web search tool. (beta)
+- Fixed file_read tool in I/O plugin.
 
 **2.5.15 (2025-06-24)**
 

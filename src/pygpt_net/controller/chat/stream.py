@@ -128,7 +128,6 @@ class Stream:
 
                         # ---------- function_call ----------
                         elif etype == "response.output_item.added" and chunk.item.type == "function_call":
-                            #print(chunk)
                             tool_calls.append({
                                 "id": chunk.item.id,
                                 "type": "function",
@@ -137,19 +136,14 @@ class Stream:
                             fn_args_buffers[chunk.item.id] = ""
 
                         elif etype == "response.function_call_arguments.delta":
-                            #print(chunk)
                             fn_args_buffers[chunk.item_id] += chunk.delta
-                            print(chunk.delta)
 
                         elif etype == "response.function_call_arguments.done":
-
-                            #print(chunk)
                             for tc in tool_calls:
                                 if tc["id"] == chunk.item_id:
                                     tc["function"]["arguments"] = fn_args_buffers[chunk.item_id]
                                     break
                             fn_args_buffers.pop(chunk.item_id, None)
-                            #print(tool_calls)
 
                         # ---------- annotations ----------
                         elif etype == "response.output_text.annotation.added":

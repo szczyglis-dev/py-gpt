@@ -1,3 +1,9 @@
+2.5.16 (2025-06-25)
+
+- OpenAI API upgraded to 1.91.0.
+- Chat mode migrated to Responses API with native built-in web search tool. (beta)
+- Fixed file_read tool in I/O plugin.
+
 2.5.15 (2025-06-24)
 
 - Added Ollama models importer in "Settings -> Models -> Import from Ollama".
