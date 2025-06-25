@@ -1681,9 +1681,9 @@ onnxruntime==1.20.1 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:f1f56e898815963d6dc4ee1c35fc6c36506466eff6d16f3cb9848cea4e8c8172 \
     --hash=sha256:f6243e34d74423bdd1edf0ae9596dd61023b260f546ee17d701723915f06a9f7 \
     --hash=sha256:fb44b08e017a648924dbe91b82d89b0c105b1adcfe31e90d1dc06b8677ad37be
-openai==1.59.9 ; python_version >= "3.10" and python_version < "3.13" \
-    --hash=sha256:61a0608a1313c08ddf92fe793b6dbd1630675a1fe3866b2f96447ce30050c448 \
-    --hash=sha256:ec1a20b0351b4c3e65c6292db71d8233515437c6065efd4fd50edeb55df5f5d2
+openai==1.91.0 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:207f87aa3bc49365e014fac2f7e291b99929f4fe126c4654143440e0ad446a5f \
+    --hash=sha256:d6b07730d2f7c6745d0991997c16f85cddfc90ddcde8d569c862c30716b9fc90
 opencv-python==4.11.0.86 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:03d60ccae62304860d232272e4a4fda93c39d595780cb40b161b310244b736a4 \
     --hash=sha256:085ad9b77c18853ea66283e98affefe2de8cc4c1f43eda4c100cf9b2721142ec \
@@ -2109,10 +2109,8 @@ pyaudio==0.2.14 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:2dac0d6d675fe7e181ba88f2de88d321059b69abd52e3f4934a8878e03a7a074 \
     --hash=sha256:506b32a595f8693811682ab4b127602d404df7dfc453b499c91a80d0f7bad289 \
     --hash=sha256:5fce4bcdd2e0e8c063d835dbe2860dac46437506af509353c7f8114d4bacbd5b \
-    --hash=sha256:692d8c1446f52ed2662120bcd9ddcb5aa2b71f38bda31e58b19fb4672fffba69 \
     --hash=sha256:78dfff3879b4994d1f4fc6485646a57755c6ee3c19647a491f790a0895bd2f87 \
     --hash=sha256:858caf35b05c26d8fc62f1efa2e8f53d5fa1a01164842bd622f70ddc41f55000 \
-    --hash=sha256:95328285b4dab57ea8c52a4a996cb52be6d629353315be5bfda403d15932a497 \
     --hash=sha256:bbeb01d36a2f472ae5ee5e1451cacc42112986abe622f735bb870a5db77cf903 \
     --hash=sha256:f745109634a7c19fa4d6b8b7d6967c3123d988c9ade0cd35d4295ee1acdb53e9
 pyautogui==0.9.54 ; python_version >= "3.10" and python_version < "3.13" \
