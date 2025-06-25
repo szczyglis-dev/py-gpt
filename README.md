@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.16** | build: **2025-06-25** | Python: **>=3.10, <3.13**
+Release: **2.5.17** | build: **2025-06-25** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4025,6 +4025,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.17 (2025-06-25)**
+
+- Added settings for enable/disable Remote Tools via Responses API in Chat mode: Config -> Settings -> Remote tools. Currently only web-search-preview tool is available, rest of tools coming soon.
+- Fixed context summarization in Ollama provider.
 
 **2.5.16 (2025-06-25)**
 

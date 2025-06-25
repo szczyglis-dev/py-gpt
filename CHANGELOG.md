@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.17 (2025-06-25)
+
+- Added settings for enable/disable Remote Tools via Responses API in Chat mode: Config -> Settings -> Remote tools. Currently only web-search-preview tool is available, rest of tools coming soon.
+- Fixed context summarization in Ollama provider.
+
 ## 2.5.16 (2025-06-25)
 
 - OpenAI API upgraded to 1.91.0.
