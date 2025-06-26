@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -55,6 +55,10 @@ class Editor:
             "default": {
                 "type": "bool",
                 "label": "model.default",
+            },
+            "openai": {
+                "type": "bool",
+                "label": "model.openai",
             },
             "langchain.provider": {
                 "type": "combo",
