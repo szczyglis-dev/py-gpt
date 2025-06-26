@@ -39,6 +39,7 @@ class Chat:
         self.context = Context(window)
         self.tool_calls_not_allowed_providers = [
             "ollama",
+            "google",
             "hugging_face_api",
             "deepseek_api",
         ]
