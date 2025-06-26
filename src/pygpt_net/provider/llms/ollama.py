@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 16:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import os
@@ -66,6 +66,8 @@ class OllamaLLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
+        if "model" not in args:
+            args["model"] = model.id
         return ChatOllama(**args)
 
     def llama(
@@ -87,7 +89,10 @@ class OllamaLLM(BaseLLM):
         if "request_timeout" not in args:
             args["request_timeout"] = 120
         if 'OLLAMA_API_BASE' in os.environ:
-            args["base_url"] = os.environ['OLLAMA_API_BASE']
+            if "base_url" not in args:
+                args["base_url"] = os.environ['OLLAMA_API_BASE']
+        if "model" not in args:
+            args["model"] = model.id
         return Ollama(**args)
 
     def get_embeddings_model(
@@ -108,7 +113,8 @@ class OllamaLLM(BaseLLM):
                 "args": config,
             })
         if 'OLLAMA_API_BASE' in os.environ:
-            args["base_url"] = os.environ['OLLAMA_API_BASE']
+            if "base_url" not in args:
+                args["base_url"] = os.environ['OLLAMA_API_BASE']
         return OllamaEmbedding(**args)
 
     def init_embeddings(

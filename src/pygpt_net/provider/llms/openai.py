@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -50,6 +50,8 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
+        if "model" not in args:
+            args["model"] = model.id
         return OpenAI(**args)
 
     def chat(
@@ -84,6 +86,8 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.llama_index)
+        if "model" not in args:
+            args["model"] = model.id
         return LlamaOpenAI(**args)
 
     def llama_multimodal(
@@ -101,6 +105,8 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.llama_index)
+        if "model" not in args:
+            args["model"] = model.id
         return LlamaOpenAIMultiModal(**args)
 
     def get_embeddings_model(

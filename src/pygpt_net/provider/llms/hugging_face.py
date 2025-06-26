@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 from langchain_community.llms import HuggingFaceHub
@@ -39,6 +39,8 @@ class HuggingFaceLLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
+        if "model" not in args:
+            args["model"] = model.id
         return HuggingFaceHub(**args)
 
     def chat(
