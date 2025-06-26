@@ -617,7 +617,7 @@ class Command:
         :return: True if enabled
         """
         disabled_modes = [
-            MODE_LLAMA_INDEX,
+            #MODE_LLAMA_INDEX,
             MODE_LANGCHAIN,
             MODE_COMPLETION,
         ]
@@ -626,6 +626,13 @@ class Command:
             return False  # disabled for specific modes
         if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
             return False
+        model = self.window.core.config.get('model')
+        if model:
+            model_data = self.window.core.models.get(model)
+            if model_data:
+                llama_provider = model_data.get_llama_provider()
+                if llama_provider in self.window.core.idx.chat.tool_calls_not_allowed_providers:
+                    return False
         return self.window.core.config.get('func_call.native', False)  # otherwise check config
 
     def is_enabled(self, cmd: str) -> bool:

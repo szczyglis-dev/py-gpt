@@ -326,6 +326,7 @@ class Chat:
             if stream:
                 # IMPORTANT: stream chat with tools not supported by all providers
                 if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
+                    self.log("Using with tools...")
                     response = llm.stream_chat_with_tools(
                         tools=tools,
                         messages=history,
