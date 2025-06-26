@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.17",
-    "app.version": "2.5.17",
+    "version": "2.5.18",
+    "app.version": "2.5.18",
     "updated_at": "2025-06-25T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -308,6 +308,7 @@
   "render.plain": false,
   "render.code_syntax": "github-dark",
   "remote_tools.web_search": true,
+  "remote_tools.image": false,
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,
