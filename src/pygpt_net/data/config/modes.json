@@ -11,6 +11,12 @@
             "label": "mode.chat",
             "default": true
         },
+        "llama_index": {
+            "id": "llama_index",
+            "name": "Index (LlamaIndex)",
+            "label": "mode.llama_index",
+            "default": false
+        },
         "audio": {
             "id": "audio",
             "name": "audio",
@@ -52,13 +58,7 @@
             "name": "langchain",
             "label": "mode.langchain",
             "default": false
-        },
-        "llama_index": {
-            "id": "llama_index",
-            "name": "Index (LlamaIndex)",
-            "label": "mode.llama_index",
-            "default": false
-        },
+        },        
         "agent_llama": {
             "id": "agent_llama",
             "name": "Agent (LlamaIndex)",
