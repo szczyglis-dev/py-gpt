@@ -241,6 +241,8 @@ class Command:
         parsed = []
         for tool_call in tool_calls:
             try:
+                if not hasattr(tool_call, 'name'):
+                    continue
                 parsed.append(
                     {
                         "id": tool_call.id,

@@ -8,7 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
-
+import base64
+import uuid
 from typing import Any
 
 from PySide6.QtWidgets import QApplication
@@ -39,6 +40,8 @@ class Stream:
         tool_calls = []
         fn_args_buffers = {}
         citations = []
+        img_path = self.window.core.image.gen_unique_path(ctx)
+        is_image = False
 
         # chunks: stream begin
         data = {
@@ -121,8 +124,8 @@ class Stream:
                                 if tool_chunk.function.arguments:
                                     tool_call["function"]["arguments"] += tool_chunk.function.arguments
 
+                    # OpenAI Responses API
                     elif chunk_type == "api_chat_responses":
-
                         if etype == "response.output_text.delta":
                             response = chunk.delta
 
@@ -153,6 +156,19 @@ class Stream:
                                 url_citation = chunk.annotation['url']
                                 citations.append(url_citation)
                                 ctx.urls = citations
+
+                        # ---------- image gen ----------
+                        elif etype == "response.image_generation_call.partial_image":
+                            idx = chunk.partial_image_index
+                            image_base64 = chunk.partial_image_b64
+                            image_bytes = base64.b64decode(image_base64)
+                            with open(img_path, "wb") as f:
+                                f.write(image_bytes)
+                            is_image = True
+
+                        # ---------- response ID ----------
+                        elif etype == "response.created":
+                            ctx.msg_id = chunk.response.id # store previous response ID
 
                         # ---------- end / error ----------
                         elif etype in {"response.done", "response.failed", "error"}:
@@ -213,6 +229,10 @@ class Stream:
                 # unpack and store tool calls
                 if tool_calls:
                     self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
+
+                # append images
+                if is_image:
+                    ctx.images = [img_path]  # save image path to ctx
 
         except Exception as e:
             self.window.core.debug.log(e)

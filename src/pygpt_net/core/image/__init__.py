@@ -10,6 +10,8 @@
 # ================================================== #
 
 import os
+import uuid
+from time import strftime
 from typing import List
 
 from PySide6.QtCore import Slot, QObject
@@ -126,3 +128,16 @@ class Image(QObject):
             else:
                 return "_"
         return "".join(safe_char(c) for c in name).rstrip("_")[:30]
+
+    def gen_unique_path(self, ctx: CtxItem):
+        """
+        Generate unique image path based on context
+
+        :param ctx: CtxItem
+        :return: unique image path
+        """
+        img_id = uuid.uuid4()
+        dt_prefix = strftime("%Y%m%d_%H%M%S")
+        img_dir = self.window.core.config.get_user_dir("img")
+        filename = f"{dt_prefix}_{img_id}.png"
+        return os.path.join(img_dir, filename)

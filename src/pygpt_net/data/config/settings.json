@@ -1027,6 +1027,11 @@
         "step": null,
         "advanced": false,
         "keys": [
+            {"auto": "[gpt-image-1] auto"},
+            {"1024x1024": "[gpt-image-1] 1024x1024"},
+            {"1536x1024": "[gpt-image-1] 1536x1024"},
+            {"1024x1536": "[gpt-image-1] 1024x1536"},
+            {"1536x1024": "[gpt-image-1] 1536x1024"},
             {"1792x1024": "[DALL-E 3] 1792x1024"},
             {"1024x1792": "[DALL-E 3] 1024x1792"},
             {"1024x1024": "[DALL-E 3] 1024x1024"},
@@ -1047,6 +1052,10 @@
         "step": null,
         "advanced": false,
         "keys": [
+            {"auto": "[gpt-image-1] auto"},
+            {"high": "[gpt-image-1] high"},
+            {"medium": "[gpt-image-1] medium"},
+            {"medium": "[gpt-image-1] low"},
             {"standard": "[DALL-E 3] standard"},
             {"hd": "[DALL-E 3] hd"},
             {"standard": "[DALL-E 2] standard"}
@@ -1204,6 +1213,19 @@
         "slider": false,
         "label": "settings.remote_tools.web_search",
         "description": "settings.remote_tools.web_search.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "remote_tools.image": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.image",
+        "description": "settings.remote_tools.image.desc",
         "value": true,
         "min": null,
         "max": null,

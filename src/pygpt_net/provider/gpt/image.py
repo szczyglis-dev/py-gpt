@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.06.26 18:00:00                  #
 # ================================================== #
-
+import base64
 import datetime
 import os
 from typing import Optional, Dict, Any
@@ -132,6 +132,7 @@ class ImageWorker(QObject, QRunnable):
         self.allowed_max_num = {
             "dall-e-2": 4,
             "dall-e-3": 1,
+            "gpt-image-1": 1,
         }
         self.allowed_resolutions = {
             "dall-e-2": [
@@ -143,6 +144,27 @@ class ImageWorker(QObject, QRunnable):
                 "1792x1024",
                 "1024x1792",
                 "1024x1024",
+            ],
+            "gpt-image-1": [
+                "1536x1024",
+                "1024x1536",
+                "1024x1024",
+                "auto",
+            ],
+        }
+        self.allowed_quality = {
+            "dall-e-2": [
+                "standard",
+            ],
+            "dall-e-3": [
+                "standard",
+                "hd",
+            ],
+            "gpt-image-1": [
+                "auto",
+                "high",
+                "medium",
+                "low",
             ],
         }
 
@@ -188,6 +210,11 @@ class ImageWorker(QObject, QRunnable):
                 if resolution not in self.allowed_resolutions[self.model]:
                     resolution = self.allowed_resolutions[self.model][0]
 
+            quality = self.quality
+            if self.model in self.allowed_quality:
+                if quality not in self.allowed_quality[self.model]:
+                    quality = self.allowed_quality[self.model][0]
+
             # send to API
             response = None
             if self.model == "dall-e-2":
@@ -197,12 +224,12 @@ class ImageWorker(QObject, QRunnable):
                     n=self.num,
                     size=resolution,
                 )
-            elif self.model == "dall-e-3":
+            elif self.model == "dall-e-3" or self.model == "gpt-image-1":
                 response = self.client.images.generate(
                     model=self.model,
                     prompt=self.input_prompt,
                     n=self.num,
-                    quality=self.quality,
+                    quality=quality,
                     size=resolution,
                 )
 
@@ -215,20 +242,27 @@ class ImageWorker(QObject, QRunnable):
             for i in range(self.num):
                 if i >= len(response.data):
                     break
-                url = response.data[i].url
-                res = requests.get(url)
 
                 # generate filename
                 name = datetime.date.today().strftime(
                     "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" \
-                    + self.window.core.image.make_safe_filename(self.input_prompt) + "-" + str(i + 1) + ".png"
+                       + self.window.core.image.make_safe_filename(self.input_prompt) + "-" + str(i + 1) + ".png"
                 path = os.path.join(self.window.core.config.get_user_dir("img"), name)
 
                 msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + str(path)
                 self.signals.status.emit(msg)
 
+                if response.data[i] is None:
+                    self.signals.error.emit("API Error: empty image data")
+                    return
+                if response.data[i].url:  # dall-e 2 and 3 returns URL
+                    res = requests.get(response.data[i].url)
+                    data = res.content
+                else:  # gpt-image-1 returns base64 encoded image
+                    data = base64.b64decode(response.data[i].b64_json)
+
                 # save image
-                if self.window.core.image.save_image(path, res.content):
+                if data and self.window.core.image.save_image(path, data):
                     paths.append(path)
                 else:
                     self.signals.error.emit("Error saving image")

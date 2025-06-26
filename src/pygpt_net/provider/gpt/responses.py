@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.26 18:00:00                  #
 # ================================================== #
 
 import json
@@ -17,13 +17,11 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
     MODE_AUDIO,
-    MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from .utils import sanitize_name
 from pygpt_net.item.attachment import AttachmentItem
 
 
@@ -38,6 +36,7 @@ class Responses:
         self.input_tokens = 0
         self.audio_prev_id = None
         self.audio_prev_expires_ts = None
+        self.prev_response_id = None
 
     def send(
             self,
@@ -116,9 +115,15 @@ class Responses:
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
         # extend tools with external tools
-        if not model.id.startswith("o1") and not model.id.startswith("o3"):
+        if (not model.id.startswith("o1")
+                and not model.id.startswith("o3")):
             if self.window.core.config.get("remote_tools.web_search", False):
                 tools.append({"type": "web_search_preview"})
+            if self.window.core.config.get("remote_tools.image", False):
+                tool = {"type": "image_generation"}
+                if stream:
+                    tool["partial_images"] = 1  # required for streaming
+                tools.append(tool)
 
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None
@@ -126,18 +131,9 @@ class Responses:
             if len(tools) > 0:
                 response_kwargs['tools'] = tools
 
-        # audio mode
-        if mode in [MODE_AUDIO]:
-            stream = False
-            voice_id = "alloy"
-            tmp_voice = self.window.core.plugins.get_option("audio_output", "openai_voice")
-            if tmp_voice:
-                voice_id = tmp_voice
-            response_kwargs["modalities"] = ["text", "audio"]
-            response_kwargs["audio"] = {
-                "voice": voice_id,
-                "format": "wav"
-            }
+        # attach previous response ID if available
+        if self.prev_response_id:
+            response_kwargs['previous_response_id'] = self.prev_response_id
 
         response = client.responses.create(
             input=messages,
@@ -145,6 +141,11 @@ class Responses:
             stream=stream,
             **response_kwargs,
         )
+
+        # store previous response ID
+        if not stream and response:
+            ctx.msg_id = response.id
+
         return response
 
     def build(
@@ -172,6 +173,7 @@ class Responses:
         :return: messages list
         """
         messages = []
+        self.prev_response_id = None  # reset
 
         # tokens config
         mode = MODE_CHAT
@@ -239,6 +241,9 @@ class Responses:
                                     "id": self.audio_prev_id
                                 }
                     messages.append(msg)
+
+                if item.msg_id:
+                    self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # use vision and audio if available in current model
         content = str(prompt)

@@ -1862,6 +1862,13 @@ class Patch:
                     data["remote_tools.web_search"] = True
                 updated = True
 
+            # < 2.5.18
+            if old < parse_version("2.5.18"):
+                print("Migrating config from < 2.5.18...")
+                if 'remote_tools.image' not in data:
+                    data["remote_tools.image"] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.06.25 02:00:00                  #
 # ================================================== #
+import base64
 
 from httpx_socks import SyncProxyTransport
 
@@ -271,6 +272,19 @@ class Gpt:
                 response.usage.input_tokens,
                 response.usage.output_tokens,
             )
+            if mode == MODE_CHAT:
+                # if image generation call in responses API
+                image_data = [
+                    output.result
+                    for output in response.output
+                    if output.type == "image_generation_call"
+                ]
+                if image_data:
+                    img_path = self.window.core.image.gen_unique_path(ctx)
+                    image_base64 = image_data[0]
+                    with open(img_path, "wb") as f:
+                        f.write(base64.b64decode(image_base64))
+                    ctx.images = [img_path]
         return True
 
     def quick_call(self, context: BridgeContext, extra: dict = None) -> str:
