@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 16:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
+
 import os
 from typing import Optional, Any, Dict
 
@@ -20,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
     MODE_IMAGE,
+    MODE_CHAT,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -76,27 +78,29 @@ class Input:
 
             # check ollama model
             model = self.window.core.config.get('model')
-            if mode == MODE_LLAMA_INDEX and model is not None:
+            if model:
                 model_data = self.window.core.models.get(model)
                 if model_data is not None and model_data.is_ollama():
-                    model_id = model_data.get_ollama_model()
-                    # load ENV vars first
-                    if ('env' in model_data.llama_index
-                            and model_data.llama_index['env'] is not None):
-                        for item in model_data.llama_index['env']:
-                            key = item.get('name', '').strip()
-                            value = item.get('value', '').strip()
-                            os.environ[key] = value
-                    status = self.window.core.models.ollama.check_model(model_id)
-                    is_installed = status.get('is_installed', False)
-                    is_model = status.get('is_model', False)
-                    if not is_installed:
-                        self.window.ui.dialogs.alert(trans("dialog.ollama.not_installed"))
-                        return
-                    if not is_model:
-                        self.window.ui.dialogs.alert(
-                            trans("dialog.ollama.model_not_found").replace("{model}", model_id))
-                        return
+                    if (mode == MODE_LLAMA_INDEX or
+                            (mode == MODE_CHAT and not model_data.is_openai() and model_data.is_ollama())):
+                        model_id = model_data.get_ollama_model()
+                        # load ENV vars first
+                        if ('env' in model_data.llama_index
+                                and model_data.llama_index['env'] is not None):
+                            for item in model_data.llama_index['env']:
+                                key = item.get('name', '').strip()
+                                value = item.get('value', '').strip()
+                                os.environ[key] = value
+                        status = self.window.core.models.ollama.check_model(model_id)
+                        is_installed = status.get('is_installed', False)
+                        is_model = status.get('is_model', False)
+                        if not is_installed:
+                            self.window.ui.dialogs.alert(trans("dialog.ollama.not_installed"))
+                            return
+                        if not is_model:
+                            self.window.ui.dialogs.alert(
+                                trans("dialog.ollama.model_not_found").replace("{model}", model_id))
+                            return
 
         # listen for stop command
         if self.generating \
@@ -247,14 +251,19 @@ class Input:
             self.generating = False  # unlock as not generating
             return
 
-        # check API key, show monit if no API key
+        # check OpenAI API key, show monit if no API key
         if mode not in self.window.controller.launcher.no_api_key_allowed:
-            if not self.window.controller.chat.common.check_api_key():
-                self.generating = False
-                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
-                    "id": "chat",
-                }))
-                return
+            if not self.window.controller.chat.common.check_api_key(monit=False):
+                model = self.window.core.config.get('model')
+                if model:
+                    model_data = self.window.core.models.get(model)
+                    if model_data is not None and model_data.is_openai():
+                        self.window.controller.chat.common.check_api_key(monit=True)
+                        self.generating = False
+                        self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                            "id": "chat",
+                        }))
+                        return
 
         # set state to: busy
         self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {

@@ -997,7 +997,7 @@ There is built-in support for those LLM providers:
 
 How to use locally installed Llama 3 or Mistral models:
 
-1) Choose a working mode: `Chat with Files`.
+1) Choose a working mode: `Chat` or `Chat with Files`.
 
 2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the menu `Config -> Models -> Edit`, then configure the model parameters in the `advanced` section.
 

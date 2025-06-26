@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 16:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -548,6 +548,22 @@ class Patch:
                         model.name = new_name
                         data[new_name] = model
                         del data[name_to_replace]
+                updated = True
+
+            # < 2.5.18 <--- update openai flag
+            if old < parse_version("2.5.18"):
+                print("Migrating models from < 2.5.18...")
+                for id in data:
+                    model = data[id]
+                    if (model.id.startswith("o1")
+                            or model.id.startswith("o3")
+                            or model.id.startswith("gpt-")
+                            or model.id.startswith("chatgpt")
+                            or model.id.startswith("dall-e")):
+                        model.openai = True
+                    if model.is_supported("llama_index"):
+                        if "chat" not in model.mode:
+                            model.mode.append("chat")
                 updated = True
 
         # update file

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import time
@@ -93,9 +93,11 @@ class Bridge:
         if model is not None:
             if not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
+                if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
+                    context.idx = None # disable index if in Chat mode and switch to Llama Index
 
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
-            context.idx_mode = MODE_CHAT
+            context.idx_mode = MODE_CHAT  # default in sub-mode
 
         if is_virtual:
             if mode == MODE_LLAMA_INDEX:  # after switch
@@ -192,11 +194,13 @@ class Bridge:
                 debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
 
+        # --- DEBUG ONLY ---
         self.last_context_quick = context  # store last context for quick call (debug)
 
         if context.model is not None:
-            # check if model is supported by chat API, if not then try to use llama-index or langchain call
-            if not context.model.is_supported(MODE_CHAT) and not context.model.is_supported(MODE_RESEARCH):
+            # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call
+            if ((not context.model.is_supported(MODE_CHAT) or not context.model.is_openai())
+                    and not context.model.is_supported(MODE_RESEARCH)):
 
                 # tmp switch to: llama-index
                 if context.model.is_supported(MODE_LLAMA_INDEX):

@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.5.17",
-        "app.version": "2.5.17",
+        "version": "2.5.18",
+        "app.version": "2.5.18",
         "updated_at": "2025-06-25T00:00:00"
     },
     "items": {
@@ -12,7 +12,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -63,7 +64,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -114,7 +116,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -165,7 +168,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -216,7 +220,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "anthropic",
@@ -280,6 +285,7 @@
             },
             "ctx": 0,
             "tokens": 0,
+            "openai": true,
             "default": false
         },
         "dall-e-3": {
@@ -302,6 +308,30 @@
             },
             "ctx": 0,
             "tokens": 0,
+            "openai": true,
+            "default": true
+        },
+        "gpt-image-1": {
+            "id": "gpt-image-1",
+            "name": "gpt-image-1",
+            "mode": [
+                "img"
+            ],
+            "langchain": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
+            "llama_index": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
+            "ctx": 0,
+            "tokens": 0,
+            "openai": true,
             "default": true
         },
         "deepseek_api_reasoner": {
@@ -311,7 +341,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "deepseek_api",
@@ -367,7 +398,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "deepseek_api",
@@ -423,7 +455,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -474,7 +507,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -525,7 +559,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -576,7 +611,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -627,7 +663,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -678,7 +715,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -729,7 +767,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -780,7 +819,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "google",
@@ -831,7 +871,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "google",
@@ -882,7 +923,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "google",
@@ -934,7 +976,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "google",
@@ -986,7 +1029,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "google",
@@ -1107,6 +1151,7 @@
             },
             "ctx": 4096,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-3.5-turbo-1106": {
@@ -1184,6 +1229,7 @@
             },
             "ctx": 16385,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-3.5-turbo-16k": {
@@ -1262,6 +1308,7 @@
             },
             "ctx": 16385,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4": {
@@ -1340,6 +1387,7 @@
             },
             "ctx": 8192,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-1106-preview": {
@@ -1418,6 +1466,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-0125-preview": {
@@ -1496,6 +1545,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-turbo-preview": {
@@ -1574,6 +1624,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-turbo-2024-04-09": {
@@ -1653,6 +1704,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-turbo": {
@@ -1732,6 +1784,7 @@
             },
             "ctx": 128000,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4o": {
@@ -1811,6 +1864,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": true
         },
         "gpt-4o-mini": {
@@ -1890,6 +1944,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false
         },
         "gpt-4o-audio-preview": {
@@ -1962,6 +2017,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -2035,6 +2091,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -2115,6 +2172,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -2195,6 +2253,7 @@
             },
             "ctx": 1047576,
             "tokens": 32768,
+            "openai": true,
             "default": false
         },
         "gpt-4.1-mini": {
@@ -2274,6 +2333,7 @@
             },
             "ctx": 1047576,
             "tokens": 32768,
+            "openai": true,
             "default": false
         },
         "gpt-4.5-preview": {
@@ -2353,6 +2413,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false
         },
         "chatgpt-4o-latest": {
@@ -2432,6 +2493,7 @@
             },
             "ctx": 128000,
             "tokens": 16384,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -2511,6 +2573,7 @@
             },
             "ctx": 32768,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "gpt-4-vision-preview": {
@@ -2584,6 +2647,7 @@
             },
             "ctx": 4096,
             "tokens": 4096,
+            "openai": true,
             "default": false
         },
         "llama3.1": {
@@ -2594,7 +2658,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2636,7 +2701,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2678,7 +2744,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2720,7 +2787,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2762,7 +2830,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2804,7 +2873,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2846,7 +2916,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2888,7 +2959,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -2994,6 +3066,7 @@
             },
             "ctx": 128000,
             "tokens": 65536,
+            "openai": true,
             "default": false
         },
         "o1-mini": {
@@ -3068,6 +3141,7 @@
             },
             "ctx": 128000,
             "tokens": 65536,
+            "openai": true,
             "default": false
         },
         "o1": {
@@ -3143,6 +3217,7 @@
             },
             "ctx": 128000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -3219,6 +3294,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -3294,6 +3370,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": [],
             "extra": {
@@ -3372,6 +3449,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": [],
             "extra": {
@@ -3450,6 +3528,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": [],
             "extra": {
@@ -3529,6 +3608,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -3605,6 +3685,7 @@
             },
             "ctx": 200000,
             "tokens": 100000,
+            "openai": true,
             "default": false,
             "multimodal": []
         },
@@ -3616,7 +3697,8 @@
                 "langchain",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -3658,7 +3740,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -3700,7 +3783,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -3742,7 +3826,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "chat"
             ],
             "langchain": {
                 "provider": "ollama",
@@ -3773,6 +3858,92 @@
                 "env": []
             },
             "ctx": 32000,
+            "tokens": 4096,
+            "default": false
+        },
+        "qwen3:8b": {
+            "id": "qwen3:8b",
+            "name": "qwen3:8b",
+            "mode": [
+                "langchain",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen3:8b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen3:8b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 40000,
+            "tokens": 4096,
+            "default": false
+        },
+        "qwen3:30b-a3b": {
+            "id": "qwen3:30b-a3b",
+            "name": "qwen3:30b-a3b",
+            "mode": [
+                "langchain",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat"
+            ],
+            "langchain": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen3:30b-a3b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "llama_index": {
+                "provider": "ollama",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "qwen3:30b-a3b",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 40000,
             "tokens": 4096,
             "default": false
         },

@@ -282,15 +282,17 @@ class Common:
         if not exit:
             self.window.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
-    def check_api_key(self) -> bool:
+    def check_api_key(self, monit: bool = True) -> bool:
         """
         Check if API KEY is set
 
+        :param monit: True if monitor should be shown
         :return: True if API KEY is set, False otherwise
         """
         result = True
         if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-            self.window.controller.launcher.show_api_monit()
+            if monit:
+                self.window.controller.launcher.show_api_monit()
             self.window.update_status("Missing API KEY!")
             result = False
         return result

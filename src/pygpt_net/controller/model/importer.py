@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -200,7 +200,7 @@ class Importer:
         """
         Get current ollama models
 
-        :return: ollama models dictionary
+        :return: PyGPT ollama models dictionary
         """
         items = copy.deepcopy(self.window.core.models.items)
         for key in list(items.keys()):
@@ -214,7 +214,7 @@ class Importer:
         """
         Get available ollama models
 
-        :return: ollama models dictionary
+        :return: Ollama API models dictionary
         """
         models = {}
         status = self.window.core.models.ollama.get_status()
@@ -233,6 +233,7 @@ class Importer:
                     m.id = name
                     m.name = name
                     m.mode = [
+                        "chat",
                         "llama_index",
                         "agent",
                         "agent_llama",

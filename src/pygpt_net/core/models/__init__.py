@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -385,18 +385,26 @@ class Models:
         :param mode: mode (initial)
         :return: mode (supported)
         """
-        if model.is_supported(MODE_CHAT):
-            self.window.core.debug.info(
-                "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
-            mode = MODE_CHAT
-        elif model.is_supported(MODE_RESEARCH):
+        # if OpenAI API model and not llama_index mode, switch to Chat mode
+        if model.is_openai():
+            if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:  # do not switch if llama_index mode!
+                self.window.core.debug.info(
+                    "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
+                return MODE_CHAT
+
+        # Research / Perplexity
+        if model.is_supported(MODE_RESEARCH):
             self.window.core.debug.info(
                 "WARNING: Switching to research mode (model not supported in: {})".format(mode))
             mode = MODE_RESEARCH
+
+        # Llama Index / Chat with Files
         elif model.is_supported(MODE_LLAMA_INDEX):
             self.window.core.debug.info(
                 "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
             mode = MODE_LLAMA_INDEX
+
+        # LangChain
         elif model.is_supported(MODE_LANGCHAIN):
             self.window.core.debug.info(
                 "WARNING: Switching to langchain mode (model not supported in: {})".format(mode))

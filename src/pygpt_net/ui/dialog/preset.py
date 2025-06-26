@@ -103,12 +103,12 @@ class Preset(BaseConfigDialog):
         # modes
         mode_keys = [
             MODE_CHAT,
+            MODE_LLAMA_INDEX,
             MODE_AUDIO,
             MODE_COMPLETION,
             MODE_IMAGE,
             MODE_VISION,
             MODE_LANGCHAIN,
-            MODE_LLAMA_INDEX,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
             MODE_EXPERT,

@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 16:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import json
+
+from pygpt_net.core.types import MODE_CHAT
 
 
 class ModelItem:
@@ -29,6 +31,7 @@ class ModelItem:
         self.tokens = 0
         self.default = False
         self.imported = False
+        self.openai = False  # OpenAI API supported model
         self.extra = {}
 
     def from_dict(self, data: dict):
@@ -54,6 +57,8 @@ class ModelItem:
             self.extra = data['extra']
         if 'imported' in data:
             self.imported = data['imported']
+        if 'openai' in data:
+            self.openai = data['openai']
 
         # multimodal
         if 'multimodal' in data:
@@ -105,6 +110,7 @@ class ModelItem:
         data['multimodal'] = ','.join(self.multimodal)
         data['extra'] = self.extra
         data['imported'] = self.imported
+        data['openai'] = self.openai
 
         data['langchain.provider'] = None
         data['langchain.mode'] = ""
@@ -178,6 +184,9 @@ class ModelItem:
         :param mode: Mode
         :return: True if supported
         """
+        if mode == MODE_CHAT and not self.is_openai():
+            # only OpenAI models are supported for chat mode
+            return False
         return mode in self.mode
 
     def is_multimodal(self) -> bool:
@@ -188,6 +197,21 @@ class ModelItem:
         """
         return len(self.multimodal) > 0
 
+    def is_openai(self) -> bool:
+        """
+        Check if model is supported by OpenAI API
+
+        :return: True if OpenAI
+        """
+        if (self.id.startswith("gpt-")
+                or self.id.startswith("chatgpt")
+                or self.id.startswith("o1")
+                or self.id.startswith("o3")
+                or self.id.startswith("o4")
+                or self.id.startswith("o5")):
+            return True
+        return False
+
     def is_ollama(self) -> bool:
         """
         Check if model is Ollama
@@ -195,6 +219,8 @@ class ModelItem:
         :return: True if Ollama
         """
         if self.llama_index is None:
+            return False
+        if self.llama_index.get("provider") is None:
             return False
         return "ollama" in self.llama_index.get("provider", "")
 
