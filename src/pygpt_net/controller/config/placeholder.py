@@ -270,7 +270,7 @@ class Placeholder:
             model = models[id]
             suffix = ""
             if "provider" in model.llama_index and model.llama_index["provider"] == "ollama":
-                suffix = " [Ollama]"
+                suffix = " (Ollama)"
             name = model.name + suffix
             data.append({id: name})
         return data

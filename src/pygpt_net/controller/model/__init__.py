@@ -161,7 +161,7 @@ class Model:
         for k in data:
             suffix = ""
             if "provider" in data[k].llama_index and data[k].llama_index["provider"] == "ollama":
-                suffix = " [Ollama]"
+                suffix = " (Ollama)"
             items[k] = data[k].name + suffix
         items = dict(sorted(items.items(), key=lambda item: item[1]))  # sort items by name
         self.window.ui.nodes["prompt.model"].set_keys(items)
