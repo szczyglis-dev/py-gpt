@@ -79,6 +79,7 @@ class Responses:
             user_name=user_name,
             multimodal_ctx=multimodal_ctx,
         )
+
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
             model.id,
@@ -242,7 +243,7 @@ class Responses:
                                 }
                     messages.append(msg)
 
-                if item.msg_id:
+                if item.msg_id and (item.cmds is None or len(item.cmds) == 0):  # if no cmds before
                     self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # use vision and audio if available in current model
