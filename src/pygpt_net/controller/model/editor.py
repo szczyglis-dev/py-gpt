@@ -59,6 +59,7 @@ class Editor:
             "openai": {
                 "type": "bool",
                 "label": "model.openai",
+                "description": "model.openai.desc",
             },
             "langchain.provider": {
                 "type": "combo",
