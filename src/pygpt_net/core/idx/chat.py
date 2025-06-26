@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.21 23:00:00                  #
+# Updated Date: 2025.06.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -237,6 +237,7 @@ class Chat:
         use_index = True
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
+        response = None
         if ('provider' in model.llama_index
                 and model.llama_index['provider'] in self.tool_calls_not_allowed_providers):
             allow_native_tool_calls = False
@@ -246,10 +247,12 @@ class Chat:
             use_index = False
 
         # disable index if no api key
+        """
         if self.window.core.config.get("api_key") == "" and self.window.core.config.get("llama.idx.embeddings.provider") == "openai":
             print("Warning: no api key! Disabling index...")
             chat_mode = "simple"  # do not use query engine if no index
             use_index = False
+        """
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
