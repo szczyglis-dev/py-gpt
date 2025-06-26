@@ -6,10 +6,10 @@ Chat
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``GPT-4``, ``GPT-4o`` and ``GPT-3.5``. It works by using the ``ChatCompletion`` OpenAI API.
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``GPT-3.5``. It works by using the ``Responses`` OpenAI API.
 
 .. note::
-   **Tip:** This mode directly uses the OpenAI API. If you want to use models other than GPT (such as Gemini, Claude, or Llama3), use ``Chat with Files`` mode.
+   **Tip:** This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex, which the application switches to in the background when working with models other than OpenAI.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -70,7 +70,7 @@ Image generation (DALL-E)
 
 **DALL-E 3**
 
-**PyGPT** enables quick and easy image creation with ``DALL-E 3``. 
+**PyGPT** enables quick and easy image creation with ``DALL-E 3`` or ``gpt-image-1``. 
 The older model version, ``DALL-E 2``, is also accessible. Generating images is akin to a chat conversation  - a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to ``DALL-E`` in ``Image generation`` mode or ask the model for the best prompt.
 
 .. image:: images/v3_img.png

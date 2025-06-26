@@ -236,6 +236,14 @@ class ModelItem:
                     return arg["value"]
         return ""
 
+    def get_llama_provider(self) -> str:
+        """
+        Get Llama Index provider
+
+        :return: provider name
+        """
+        return self.llama_index.get("provider", "")
+
     def has_mode(self, mode: str) -> bool:
         """
         Check if model has mode

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.18 (2025-06-26)
+
+- Non-GPT models are now available in standard Chat mode.
+- Added a new remote tool: `image_generation` in Responses API -> disabled by default, enable in `Config -> Settings -> Remote Tools`. Enables native image generation and editing of uploaded images in Chat mode.
+- Added a new model `gpt-image-1` and improved image generation.
+- Other small fixes.
+
 ## 2.5.17 (2025-06-25)
 
 - Added settings for enable/disable Remote Tools via Responses API in Chat mode: Config -> Settings -> Remote tools. Currently only web-search-preview tool is available, rest of tools coming soon.
