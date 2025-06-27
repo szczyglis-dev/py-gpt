@@ -69,6 +69,21 @@
         "advanced": false,
         "tab": "OpenAI"
     },
+    "api_use_responses": {
+        "section": "api_keys",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.api_use_responses",
+        "description": "settings.api_use_responses.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "OpenAI"
+    },
     "api_key_google": {
         "section": "api_keys",
         "type": "text",
@@ -144,6 +159,25 @@
         "persist": true,
         "advanced": false,
         "tab": "DeepSeek"
+    },
+    "api_key_xai": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.xai",
+        "description": "settings.api_key.xai.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "xAI"
     },
     "api_azure_version": {
         "section": "api_keys",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.27 16:00:00                  #
 # ================================================== #
 import base64
 
@@ -34,6 +34,7 @@ from .responses import Responses
 from .store import Store
 from .summarizer import Summarizer
 from .vision import Vision
+from pygpt_net.item.model import ModelItem
 
 
 class Gpt:
@@ -54,11 +55,12 @@ class Gpt:
         self.summarizer = Summarizer(window)
         self.vision = Vision(window)
 
-    def get_client(self, mode: str = MODE_CHAT) -> OpenAI:
+    def get_client(self, mode: str = MODE_CHAT, model: ModelItem = None) -> OpenAI:
         """
         Return OpenAI client
 
         :param mode: Mode
+        :param model: Model
         :return: OpenAI client
         """
         args = {
@@ -87,6 +89,12 @@ class Gpt:
                 endpoint = self.window.core.config.get('api_endpoint_perplexity')
                 if endpoint:
                     args["base_url"] = endpoint
+        elif mode == MODE_CHAT:
+            if model is not None:
+                # xAI / grok
+                if model.id.startswith("grok"):
+                    args["api_key"] = self.window.core.config.get('api_key_xai')
+                    args["base_url"] = self.window.core.config.get('api_endpoint_xai')
 
         return OpenAI(**args)
 
@@ -113,9 +121,6 @@ class Gpt:
 
         # --- Responses API ---- /beta/
         use_responses_api = False
-        if mode == MODE_CHAT:
-            use_responses_api = True  # use responses API for chat, audio, research modes
-        ctx.use_responses_api = use_responses_api  # set in context
 
         # get model id
         model_id = None
@@ -123,6 +128,12 @@ class Gpt:
             model_id = model.id
             if max_tokens > model.tokens:  # check max output tokens
                 max_tokens = model.tokens
+
+            if model.is_responses_api_compatible():
+                if mode == MODE_CHAT and self.window.core.config.get('api_use_responses', False):
+                    use_responses_api = True  # use responses API for chat mode, only OpenAI models
+
+        ctx.use_responses_api = use_responses_api  # set in context
 
         response = None
         used_tokens = 0
@@ -304,7 +315,7 @@ class Gpt:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        client = self.get_client(mode)
+        client = self.get_client(mode, model)
         messages = []
         messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})

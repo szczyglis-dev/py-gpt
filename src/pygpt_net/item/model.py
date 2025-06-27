@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.27 16:00:00                  #
 # ================================================== #
 
 import json
@@ -202,6 +202,14 @@ class ModelItem:
         Check if model is supported by OpenAI API
 
         :return: True if OpenAI
+        """
+        return self.openai
+
+    def is_responses_api_compatible(self) -> bool:
+        """
+        Check if model is supported by OpenAI Responses API
+
+        :return: True if OpenAI Responses API compatible
         """
         if (self.id.startswith("gpt-")
                 or self.id.startswith("chatgpt")
