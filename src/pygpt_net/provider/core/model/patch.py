@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.27 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -564,6 +564,10 @@ class Patch:
                     if model.is_supported("llama_index"):
                         if "chat" not in model.mode:
                             model.mode.append("chat")
+                updated = True
+
+            # < 2.5.19 <--- add Grok models
+            if old < parse_version("2.5.19"):
                 updated = True
 
         # update file

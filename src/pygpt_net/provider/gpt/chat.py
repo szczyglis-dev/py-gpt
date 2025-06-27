@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.06.27 16:00:00                  #
 # ================================================== #
 
 import json
@@ -67,7 +67,7 @@ class Chat:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.gpt.get_client(mode)
+        client = self.window.core.gpt.get_client(mode, context.model)
 
         # build chat messages
         messages = self.build(

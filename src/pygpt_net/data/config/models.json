@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.18",
-        "app.version": "2.5.18",
-        "updated_at": "2025-06-26T00:00:00"
+        "version": "2.5.19",
+        "app.version": "2.5.19",
+        "updated_at": "2025-06-27T00:00:00"
     },
     "items": {
         "claude-3-5-sonnet-20240620": {
@@ -4287,6 +4287,254 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
+            "multimodal": []
+        },
+        "grok-3": {
+            "id": "grok-3",
+            "name": "grok-3",
+            "mode": [
+                "chat",
+                "llama_index",
+                "expert",
+                "agent_llama",
+                "agent"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "grok-3",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "openai": true,
+            "multimodal": []
+        },
+        "grok-3-fast": {
+            "id": "grok-3-fast",
+            "name": "grok-3-fast",
+            "mode": [
+                "chat",
+                "llama_index",
+                "expert",
+                "agent_llama",
+                "agent"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "grok-3-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "openai": true,
+            "multimodal": []
+        },
+        "grok-3-mini": {
+            "id": "grok-3-mini",
+            "name": "grok-3-mini",
+            "mode": [
+                "chat",
+                "llama_index",
+                "expert",
+                "agent_llama",
+                "agent"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "grok-3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,                        
+            "openai": true,
+            "multimodal": []
+        },
+        "grok-3-mini-fast": {
+            "id": "grok-3-mini-fast",
+            "name": "grok-3-mini-fast",
+            "mode": [
+                "chat",
+                "llama_index",
+                "expert",
+                "agent_llama",
+                "agent"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "grok-3-mini-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-mini-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,            
+            "openai": true,
             "multimodal": []
         }
     }

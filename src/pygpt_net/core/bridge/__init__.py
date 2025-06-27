@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.27 16:00:00                  #
 # ================================================== #
 
 import time
@@ -95,6 +95,8 @@ class Bridge:
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
                 if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
                     context.idx = None # disable index if in Chat mode and switch to Llama Index
+
+        # print("Using mode: ", mode)
 
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
             context.idx_mode = MODE_CHAT  # default in sub-mode
