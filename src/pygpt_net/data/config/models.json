@@ -4293,11 +4293,7 @@
             "id": "grok-3",
             "name": "grok-3",
             "mode": [
-                "chat",
-                "llama_index",
-                "expert",
-                "agent_llama",
-                "agent"
+                "chat"
             ],
             "langchain": {
                 "provider": "openai",
@@ -4355,11 +4351,7 @@
             "id": "grok-3-fast",
             "name": "grok-3-fast",
             "mode": [
-                "chat",
-                "llama_index",
-                "expert",
-                "agent_llama",
-                "agent"
+                "chat"
             ],
             "langchain": {
                 "provider": "openai",
@@ -4417,11 +4409,7 @@
             "id": "grok-3-mini",
             "name": "grok-3-mini",
             "mode": [
-                "chat",
-                "llama_index",
-                "expert",
-                "agent_llama",
-                "agent"
+                "chat"
             ],
             "langchain": {
                 "provider": "openai",
@@ -4479,11 +4467,7 @@
             "id": "grok-3-mini-fast",
             "name": "grok-3-mini-fast",
             "mode": [
-                "chat",
-                "llama_index",
-                "expert",
-                "agent_llama",
-                "agent"
+                "chat"
             ],
             "langchain": {
                 "provider": "openai",

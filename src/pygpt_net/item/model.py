@@ -205,7 +205,7 @@ class ModelItem:
         """
         return self.openai
 
-    def is_responses_api_compatible(self) -> bool:
+    def is_gpt(self) -> bool:
         """
         Check if model is supported by OpenAI Responses API
 

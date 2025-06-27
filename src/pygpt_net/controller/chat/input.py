@@ -257,7 +257,7 @@ class Input:
                 model = self.window.core.config.get('model')
                 if model:
                     model_data = self.window.core.models.get(model)
-                    if model_data is not None and model_data.is_openai():
+                    if model_data is not None and model_data.is_gpt():
                         self.window.controller.chat.common.check_api_key(monit=True)
                         self.generating = False
                         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {

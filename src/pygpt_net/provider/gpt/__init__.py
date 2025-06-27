@@ -129,7 +129,7 @@ class Gpt:
             if max_tokens > model.tokens:  # check max output tokens
                 max_tokens = model.tokens
 
-            if model.is_responses_api_compatible():
+            if model.is_gpt():
                 if mode == MODE_CHAT and self.window.core.config.get('api_use_responses', False):
                     use_responses_api = True  # use responses API for chat mode, only OpenAI models
 
