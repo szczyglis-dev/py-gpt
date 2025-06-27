@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.19 (2025-06-27)
+
+- Added option to enable/disable `Responses API` in `Config -> Settings -> API Keys -> OpenAI`.
+- Added support for xAI / Grok models, added grok-3 models.
+
 ## 2.5.18 (2025-06-26)
 
 - Non-GPT models are now available in standard Chat mode.

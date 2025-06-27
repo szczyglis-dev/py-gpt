@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.18** | build: **2025-06-26** | Python: **>=3.10, <3.13**
+Release: **2.5.19** | build: **2025-06-27** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -364,7 +364,7 @@ Your API keys will be available here:
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and `GPT-3.5`. It works by using the `Responses` OpenAI API.
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and `GPT-3.5`. It works by using the `Responses` and `ChatCompletions` OpenAI API. You can select the API to use in: `Config -> Settings -> API Keys -> OpenAI`.
 
 **Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex, which the application switches to in the background when working with models other than OpenAI.**
 
@@ -905,7 +905,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ## Built-in models
 
-PyGPT has built-in support for models (as of 2025-06-24):
+PyGPT has built-in support for models (as of 2025-06-27):
 
 - `bielik-11b-v2.3-instruct:Q4_K_M`
 - `chatgpt-4o-latest`
@@ -951,6 +951,10 @@ PyGPT has built-in support for models (as of 2025-06-24):
 - `gpt-4o-2024-11-20`
 - `gpt-4o-audio-preview`
 - `gpt-4o-mini`
+- `grok-3`
+- `grok-3-fast`
+- `grok-3-mini`
+- `grok-3-mini-fast`
 - `llama2-uncensored`
 - `llama3.1`
 - `llama3.1:405b`
@@ -966,6 +970,8 @@ PyGPT has built-in support for models (as of 2025-06-24):
 - `qwen:7b`
 - `qwen2:7b`
 - `qwen2.5-coder:7b`
+- `qwen3:8b`
+- `qwen3:30b-a3b`
 - `r1` (Perplexity)
 - `sonar` (Perplexity)
 - `sonar-deep-research` (Perplexity)
@@ -4025,6 +4031,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.19 (2025-06-27)**
+
+- Added option to enable/disable `Responses API` in `Config -> Settings -> API Keys -> OpenAI`.
+- Added support for xAI / Grok models, added grok-3 models.
 
 **2.5.18 (2025-06-26)**
 

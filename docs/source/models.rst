@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has built-in support for models (as of 2025-06-24):
+PyGPT has built-in support for models (as of 2025-06-27):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M``
 - ``chatgpt-4o-latest``
@@ -50,6 +50,10 @@ PyGPT has built-in support for models (as of 2025-06-24):
 - ``gpt-4o-2024-11-20``
 - ``gpt-4o-audio-preview``
 - ``gpt-4o-mini``
+- ``grok-3``
+- ``grok-3-fast``
+- ``grok-3-mini``
+- ``grok-3-mini-fast``
 - ``llama2-uncensored``
 - ``llama3.1``
 - ``llama3.1:405b``
@@ -65,6 +69,8 @@ PyGPT has built-in support for models (as of 2025-06-24):
 - ``qwen:7b``
 - ``qwen2:7b``
 - ``qwen2.5-coder:7b``
+- ``qwen3:8b``
+- ``qwen3:30b-a3b``
 - ``r1`` (Perplexity)
 - ``sonar`` (Perplexity)
 - ``sonar-deep-research`` (Perplexity)
