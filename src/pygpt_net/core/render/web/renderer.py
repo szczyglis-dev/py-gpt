@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.21 16:00:00                  #
+# Updated Date: 2025.06.28 22:00:00                  #
 # ================================================== #
 
 import json
@@ -1001,7 +1001,7 @@ class Renderer(BaseRenderer):
         escaped_html = json.dumps(html)
         try:
             node = self.get_output_node_by_pid(pid)
-            node.page().runJavaScript(f"appendNode({escaped_html});")
+            node.page().runJavaScript(f"if (typeof window.appendNode !== 'undefined') appendNode({escaped_html});")
             node.update_current_content()
         except Exception as e:
             pass
@@ -1083,7 +1083,7 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         try:
-            self.get_output_node(ctx.meta).page().runJavaScript("removeNode({});".format(ctx.id))
+            self.get_output_node(ctx.meta).page().runJavaScript("if (typeof window.removeNode !== 'undefined') removeNode({});".format(ctx.id))
         except Exception as e:
             pass
 
@@ -1094,7 +1094,7 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         try:
-            self.get_output_node(ctx.meta).page().runJavaScript("removeNodesFromId({});".format(ctx.id))
+            self.get_output_node(ctx.meta).page().runJavaScript("if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({});".format(ctx.id))
         except Exception as e:
             pass
 
@@ -1147,7 +1147,7 @@ class Renderer(BaseRenderer):
         try:
             nodes = self.get_all_nodes()
             for node in nodes:
-                node.page().runJavaScript("enableEditIcons();")
+                node.page().runJavaScript("if (typeof window.enableEditIcons !== 'undefined') enableEditIcons();")
         except Exception as e:
             pass
 
@@ -1162,7 +1162,7 @@ class Renderer(BaseRenderer):
         try:
             nodes = self.get_all_nodes()
             for node in nodes:
-                node.page().runJavaScript("disableEditIcons();")
+                node.page().runJavaScript("if (typeof window.disableEditIcons !== 'undefined') disableEditIcons();")
         except Exception as e:
             pass
 
@@ -1177,7 +1177,7 @@ class Renderer(BaseRenderer):
         try:
             nodes = self.get_all_nodes()
             for node in nodes:
-                node.page().runJavaScript("enableTimestamp();")
+                node.page().runJavaScript("if (typeof window.enableTimestamp !== 'undefined') enableTimestamp();")
         except Exception as e:
             pass
 
@@ -1192,7 +1192,7 @@ class Renderer(BaseRenderer):
         try:
             nodes = self.get_all_nodes()
             for node in nodes:
-                node.page().runJavaScript("disableTimestamp();")
+                node.page().runJavaScript("if (typeof window.disableTimestamp !== 'undefined') disableTimestamp();")
         except Exception as e:
             pass
 
@@ -1253,11 +1253,11 @@ class Renderer(BaseRenderer):
         for pid in self.pids:
             if self.pids[pid].loaded:
                 for node in nodes:
-                    node.page().runJavaScript("updateCSS({});".format(to_json))
+                    node.page().runJavaScript("if (typeof window.updateCSS !== 'undefined') updateCSS({});".format(to_json))
                     if self.window.core.config.get('render.blocks'):
-                        node.page().runJavaScript("enableBlocks();")
+                        node.page().runJavaScript("if (typeof window.enableBlocks !== 'undefined') enableBlocks();")
                     else:
-                        node.page().runJavaScript("disableBlocks();")  # TODO: ctx!!!!!
+                        node.page().runJavaScript("if (typeof window.disableBlocks !== 'undefined') disableBlocks();")  # TODO: ctx!!!!!
                 return
 
     def on_theme_change(self):
@@ -1281,7 +1281,7 @@ class Renderer(BaseRenderer):
         """
         escaped_content = json.dumps(content)
         try:
-            self.get_output_node(meta).page().runJavaScript(f"appendToolOutput({escaped_content});")
+            self.get_output_node(meta).page().runJavaScript(f"if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({escaped_content});")
         except Exception as e:
             pass
 
@@ -1298,7 +1298,7 @@ class Renderer(BaseRenderer):
         """
         escaped_content = json.dumps(content)
         try:
-            self.get_output_node(meta).page().runJavaScript(f"updateToolOutput({escaped_content});")
+            self.get_output_node(meta).page().runJavaScript(f"if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({escaped_content});")
         except Exception as e:
             pass
 
@@ -1309,7 +1309,7 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         try:
-            self.get_output_node(meta).page().runJavaScript(f"clearToolOutput();")
+            self.get_output_node(meta).page().runJavaScript(f"if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();")
         except Exception as e:
             pass
 
@@ -1320,14 +1320,14 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         """
         try:
-            self.get_output_node(meta).page().runJavaScript(f"beginToolOutput();")
+            self.get_output_node(meta).page().runJavaScript(f"if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();")
         except Exception as e:
             pass
 
     def tool_output_end(self):
         """End tool output"""
         try:
-            self.get_output_node().page().runJavaScript(f"endToolOutput();")
+            self.get_output_node().page().runJavaScript(f"if (typeof window.endToolOutput !== 'undefined') endToolOutput();")
         except Exception as e:
             pass
 
