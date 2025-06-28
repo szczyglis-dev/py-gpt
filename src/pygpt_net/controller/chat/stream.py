@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 import base64
 import uuid
@@ -37,7 +37,6 @@ class Stream:
         output_tokens = 0
         begin = True
         error = None
-        tool_calls = []
         fn_args_buffers = {}
         citations = []
         img_path = self.window.core.image.gen_unique_path(ctx)
@@ -105,6 +104,8 @@ class Stream:
                         if chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
                             tool_chunks = chunk.choices[0].delta.tool_calls
                             for tool_chunk in tool_chunks:
+                                if tool_chunk.index is None:
+                                    tool_chunk.index = 0
                                 if len(tool_calls) <= tool_chunk.index:
                                     tool_calls.append(
                                         {
@@ -133,6 +134,7 @@ class Stream:
                         elif etype == "response.output_item.added" and chunk.item.type == "function_call":
                             tool_calls.append({
                                 "id": chunk.item.id,
+                                "call_id": chunk.item.call_id,
                                 "type": "function",
                                 "function": {"name": chunk.item.name, "arguments": ""}
                             })
@@ -228,10 +230,12 @@ class Stream:
 
                 # unpack and store tool calls
                 if tool_calls:
+                    self.window.core.debug.info("[chat] Tool calls found, unpacking...")
                     self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
 
                 # append images
                 if is_image:
+                    self.window.core.debug.info("[chat] Image generation call found")
                     ctx.images = [img_path]  # save image path to ctx
 
         except Exception as e:

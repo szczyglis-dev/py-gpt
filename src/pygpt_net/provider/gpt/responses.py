@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 18:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -66,7 +66,7 @@ class Responses:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
 
-        client = self.window.core.gpt.get_client(mode)
+        client = self.window.core.gpt.get_client(mode, model)
 
         # build chat messages
         messages = self.build(
@@ -175,9 +175,11 @@ class Responses:
         """
         messages = []
         self.prev_response_id = None  # reset
+        is_tool_output = False  # reset
 
         # tokens config
         mode = MODE_CHAT
+        tool_call_native_enabled = self.window.core.config.get('func_call.native', False)
         allowed_system = True
         if (model.id is not None
                 and model.id in ["o1-mini", "o1-preview"]):
@@ -243,28 +245,63 @@ class Responses:
                                 }
                     messages.append(msg)
 
-                if item.msg_id and (item.cmds is None or len(item.cmds) == 0):  # if no cmds before
+                    # ---- tool output ----
+                    is_tool_output = False  # reset tool output flag
+                    if tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                        if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
+                            for tool_call in item.extra["tool_calls"]:
+                                if "function" in tool_call:
+                                    if "call_id" not in tool_call or "name" not in tool_call["function"]:
+                                        continue
+                                    if tool_call["call_id"] and tool_call["function"]["name"]:
+                                        if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                            for tool_output in item.extra["tool_output"]:
+                                                if ("cmd" in tool_output
+                                                        and tool_output["cmd"] == tool_call["function"]["name"]):
+                                                    msg = {
+                                                        "type": "function_call_output",
+                                                        "call_id": tool_call["call_id"],
+                                                        "output": str(tool_output),
+                                                    }
+                                                    is_tool_output = True
+                                                    messages.append(msg)
+                                                    break
+                                                elif "result" in tool_output:
+                                                    # if result is present, append it as function call output
+                                                    msg = {
+                                                        "type": "function_call_output",
+                                                        "call_id": tool_call["call_id"],
+                                                        "output": str(tool_output["result"]),
+                                                    }
+                                                    is_tool_output = True
+                                                    messages.append(msg)
+                                                    break
+
+                # --- previous message ID ---
+                if (item.msg_id
+                        and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
                     self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # use vision and audio if available in current model
-        content = str(prompt)
-        if MODE_VISION in model.mode:
-            content = self.window.core.gpt.vision.build_content(
-                content=content,
-                attachments=attachments,
-                responses_api=True,
-            )
-        if MODE_AUDIO in model.mode:
-            content = self.window.core.gpt.audio.build_content(
-                content=content,
-                multimodal_ctx=multimodal_ctx,
-            )
+        if not is_tool_output:  # append current prompt only if not tool output
+            content = str(prompt)
+            if MODE_VISION in model.mode:
+                content = self.window.core.gpt.vision.build_content(
+                    content=content,
+                    attachments=attachments,
+                    responses_api=True,
+                )
+            if MODE_AUDIO in model.mode:
+                content = self.window.core.gpt.audio.build_content(
+                    content=content,
+                    multimodal_ctx=multimodal_ctx,
+                )
 
-        # append current prompt
-        messages.append({
-            "role": "user",
-            "content": content,
-        })
+            # append current prompt
+            messages.append({
+                "role": "user",
+                "content": content,
+            })
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -617,8 +617,8 @@ class Command:
         :return: True if enabled
         """
         disabled_modes = [
-            #MODE_LLAMA_INDEX,
-            MODE_LANGCHAIN,
+            # MODE_LLAMA_INDEX,
+            # MODE_LANGCHAIN,
             MODE_COMPLETION,
         ]
         mode = self.window.core.config.get('mode')
@@ -630,10 +630,12 @@ class Command:
         if model:
             model_data = self.window.core.models.get(model)
             if model_data:
-                llama_provider = model_data.get_llama_provider()
-                if llama_provider in self.window.core.idx.chat.tool_calls_not_allowed_providers:
+                if not self.window.core.models.is_tool_call_allowed(mode, model_data):
                     return False
-        return self.window.core.config.get('func_call.native', False)  # otherwise check config
+        enabled = self.window.core.config.get('func_call.native', False)  # otherwise check config
+        # if enabled:
+            # self.window.core.debug.info("[cmd] Native tool calls enabled")
+        return enabled
 
     def is_enabled(self, cmd: str) -> bool:
         """
@@ -693,12 +695,12 @@ class Command:
             "deepseek-r1:1.5b",
             "deepseek-r1:7b",
             "llama2",
-            "llama3.1",
+            #"llama3.1",
             "codellama",
         ]
         if model.id is not None:
             for disabled_model in disabled_models:
-                if (model.llama_index['provider'] == "ollama"
+                if (model.get_provider() == "ollama"
                         and model.id.startswith(disabled_model)):
                     return False
         return True

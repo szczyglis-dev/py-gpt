@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -81,8 +81,8 @@ class Prompt:
                 return prompt
 
             # abort if model not supported
-            if not self.window.core.command.is_model_supports_tools(mode, model):
-                return prompt
+            # if not self.window.core.command.is_model_supports_tools(mode, model):
+                # return prompt
 
             # cmd syntax tokens
             data = {
@@ -169,8 +169,8 @@ class Prompt:
                 return sys_prompt  # abort if native func call enabled
 
             # abort if model not supported
-            if not self.window.core.command.is_model_supports_tools(mode, model):
-                return sys_prompt
+            # if not self.window.core.command.is_model_supports_tools(mode, model):
+                # return sys_prompt
 
             data = {
                 'mode': mode,

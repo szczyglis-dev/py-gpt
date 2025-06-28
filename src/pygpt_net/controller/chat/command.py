@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -50,13 +50,13 @@ class Command:
             for cmd in cmds:
                 cmd_id = str(cmd["cmd"])
                 if not self.window.core.command.is_enabled(cmd_id):
-                    self.log("Command not allowed: " + cmd_id)
+                    self.log("[cmd] Command not allowed: " + cmd_id)
                     cmds.remove(cmd)  # remove command from execution list
             if len(cmds) == 0:
                 return  # abort if no commands
 
             ctx.cmds = cmds  # append commands to ctx
-            self.log("Command call received...")
+            self.log("[cmd] Command call received...")
 
             # agent mode
             if mode == MODE_AGENT:
@@ -67,7 +67,7 @@ class Command:
                 )
 
             # plugins
-            self.log("Preparing command reply context...")
+            self.log("[cmd] Preparing command reply context...")
 
             reply = ReplyContext()
             reply.ctx = ctx

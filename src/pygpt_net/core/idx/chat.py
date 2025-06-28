@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -37,12 +37,6 @@ class Chat:
         self.window = window
         self.storage = storage
         self.context = Context(window)
-        self.tool_calls_not_allowed_providers = [
-            "ollama",
-            "google",
-            "hugging_face_api",
-            "deepseek_api",
-        ]
 
     def call(
             self,
@@ -73,17 +67,11 @@ class Chat:
                 extra=extra,
             )
 
-        # if not raw, check if chat mode is available
-        if MODE_CHAT in model.llama_index['mode']:
-            return self.chat(
-                context=context,
-                extra=extra,
-            )
-        else:
-            return self.query(
-                context=context,
-                extra=extra,
-            )  # if not, use query mode
+        # chat
+        return self.chat(
+            context=context,
+            extra=extra,
+        )
 
     def raw_query(
             self,
@@ -239,8 +227,7 @@ class Chat:
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
         response = None
-        if ('provider' in model.llama_index
-                and model.llama_index['provider'] in self.tool_calls_not_allowed_providers):
+        if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
 
         if idx is None or idx == "_":
