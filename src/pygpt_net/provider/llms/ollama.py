@@ -12,7 +12,7 @@
 import os
 from typing import Optional, List, Dict
 
-from langchain_community.chat_models import ChatOllama
+# from langchain_community.chat_models import ChatOllama
 
 from .ollama_custom import Ollama
 
@@ -21,7 +21,6 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
 
 from pygpt_net.core.types import (
-    MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.provider.llms.base import BaseLLM
@@ -34,7 +33,7 @@ class OllamaLLM(BaseLLM):
         super(OllamaLLM, self).__init__(*args, **kwargs)
         self.id = "ollama"
         self.name = "Ollama"
-        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(
             self,
@@ -50,7 +49,7 @@ class OllamaLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        return None
+        pass
 
     def chat(
             self,
@@ -65,11 +64,13 @@ class OllamaLLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         if "model" not in args:
             args["model"] = model.id
         return ChatOllama(**args)
+        """
+        pass
 
     def llama(
             self,

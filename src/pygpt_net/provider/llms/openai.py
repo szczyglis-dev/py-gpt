@@ -11,8 +11,8 @@
 
 from typing import Optional, List, Dict
 
-from langchain_openai import OpenAI
-from langchain_openai import ChatOpenAI
+# from langchain_openai import OpenAI
+# from langchain_openai import ChatOpenAI
 
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
@@ -22,7 +22,6 @@ from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIM
 from llama_index.embeddings.openai import OpenAIEmbedding
 
 from pygpt_net.core.types import (
-    MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.provider.llms.base import BaseLLM
@@ -34,7 +33,7 @@ class OpenAILLM(BaseLLM):
         super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
         self.name = "OpenAI"
-        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(
             self,
@@ -49,11 +48,13 @@ class OpenAILLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         if "model" not in args:
             args["model"] = model.id
         return OpenAI(**args)
+        """
+        pass
 
     def chat(
             self,
@@ -68,9 +69,11 @@ class OpenAILLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         return ChatOpenAI(**args)
+        """
+        pass
 
     def llama(
             self,

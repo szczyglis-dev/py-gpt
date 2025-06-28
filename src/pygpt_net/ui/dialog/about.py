@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -49,19 +49,19 @@ class About:
 
         try:
             from llama_index.core import __version__ as llama_index_version
-            from langchain import __version__ as langchain_version
+            # from langchain import __version__ as langchain_version
             from openai.version import VERSION as openai_version
         except ImportError:
             pass
 
         lib_versions = ""
-        if llama_index_version is None or langchain_version is None or openai_version is None:
+        if llama_index_version is None or openai_version is None:
             versions = False
 
         if versions:
-            lib_versions = "OpenAI API: {}, LangChain: {}, LlamaIndex: {}\n\n".format(
+            lib_versions = "OpenAI API: {}, LlamaIndex: {}\n\n".format(
                 openai_version,
-                langchain_version,
+                # langchain_version,
                 llama_index_version,
             )
 

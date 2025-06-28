@@ -11,8 +11,8 @@
 
 from typing import Optional, List, Dict
 
-from langchain_openai import AzureOpenAI
-from langchain_openai import AzureChatOpenAI
+# from langchain_openai import AzureOpenAI
+# from langchain_openai import AzureChatOpenAI
 
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -20,7 +20,6 @@ from llama_index.llms.azure_openai import AzureOpenAI as LlamaAzureOpenAI
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 
 from pygpt_net.core.types import (
-    MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.provider.llms.base import BaseLLM
@@ -40,7 +39,7 @@ class AzureOpenAILLM(BaseLLM):
         """
         self.id = "azure_openai"
         self.name = "Azure OpenAI"
-        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(
             self,
@@ -55,9 +54,11 @@ class AzureOpenAILLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         return AzureOpenAI(**args)
+        """
+        pass
 
     def chat(
             self,
@@ -72,9 +73,11 @@ class AzureOpenAILLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         return AzureChatOpenAI(**args)
+        """
+        pass
 
     def llama(
             self,

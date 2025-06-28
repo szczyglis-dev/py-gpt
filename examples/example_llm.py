@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.22 17:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
-from langchain_openai import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
-from langchain_openai import ChatOpenAI  # <--- Import ChatOpenAI provider for Langchain (chat)
+# from langchain_openai import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
+# from langchain_openai import ChatOpenAI  # <--- Import ChatOpenAI provider for Langchain (chat)
 
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -37,6 +37,8 @@ class ExampleLlm(BaseLLM):
         """
         Return Langchain LLM provider instance for completion mode.
 
+        ========= DEPRECATED FROM v2.5.20 =========
+
         This method is used for Langchain mode when getting provider to handle completion.
         It must return an instance of the Langchain LLM provider for completion mode.
         Instance returned by this method must provide methods for completion mode:
@@ -54,7 +56,7 @@ class ExampleLlm(BaseLLM):
         :param model: model instance - current model
         :param stream: stream mode - True if stream mode is enabled
         :return: Langchain LLM provider instance
-        """
+        
         print("Using example provider (completion)...")
         print("Using model:", model.id)
         print("Model config:", model)
@@ -65,10 +67,14 @@ class ExampleLlm(BaseLLM):
 
         # return OpenAI provider instance
         return OpenAI(**args)  # <--- pass all parsed args from model config to the provider
+        """
+        pass
 
     def chat(self, window, model: ModelItem, stream: bool = False):
         """
         Return Langchain LLM provider instance for chat mode.
+
+        ========= DEPRECATED FROM v2.5.20 =========
 
         This method is used for Langchain mode when getting provider to handle chat.
         It must return an instance of the Langchain LLM provider for chat mode.
@@ -87,7 +93,7 @@ class ExampleLlm(BaseLLM):
         :param model: model instance - current model
         :param stream: stream mode - True if stream mode is enabled
         :return: Langchain LLM provider instance
-        """
+        
         print("Using example provider (chat)...")
         print("Using model:", model.id)
         print("Model config:", model)
@@ -98,6 +104,8 @@ class ExampleLlm(BaseLLM):
 
         # return ChatOpenAI provider instance
         return ChatOpenAI(**args)  # <--- pass all parsed args from model config to the provider
+        """
+        pass
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         """

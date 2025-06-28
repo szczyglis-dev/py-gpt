@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 00:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -18,7 +18,7 @@ from pygpt_net.core.audio import Audio
 from pygpt_net.core.bridge import Bridge
 from pygpt_net.core.calendar import Calendar
 from pygpt_net.core.camera import Camera
-from pygpt_net.core.chain import Chain
+# from pygpt_net.core.chain import Chain
 from pygpt_net.core.command import Command
 from pygpt_net.core.ctx import Ctx
 from pygpt_net.core.db import Database
@@ -65,7 +65,7 @@ class Container:
         self.bridge = Bridge(window)
         self.calendar = Calendar(window)
         self.camera = Camera(window)
-        self.chain = Chain(window)
+        # self.chain = Chain(window)  # deprecated from v2.5.20
         self.command = Command(window)
         self.config = Config(window)
         self.ctx = Ctx(window)

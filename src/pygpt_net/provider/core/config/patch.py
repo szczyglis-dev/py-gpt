@@ -1887,6 +1887,8 @@ class Patch:
                     data["api_endpoint_deepseek"] = "https://api.deepseek.com/v1"
                 if 'api_endpoint_google' not in data:
                     data["api_endpoint_google"] = "https://generativelanguage.googleapis.com/v1beta/openai"
+                if "mode" in data and "mode" == "langchain":  # deprecated mode
+                    data["mode"] = "chat"
                 updated = True
 
         # update file

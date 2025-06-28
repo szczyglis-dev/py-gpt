@@ -9,7 +9,7 @@
 # Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
-from langchain_community.llms import HuggingFaceHub
+# from langchain_community.llms import HuggingFaceHub
 
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
@@ -23,7 +23,7 @@ class HuggingFaceLLM(BaseLLM):
         super(HuggingFaceLLM, self).__init__(*args, **kwargs)
         self.id = "huggingface"
         self.name = "HuggingFace"
-        self.type = [MODE_LANGCHAIN]
+        self.type = []
 
     def completion(
             self,
@@ -38,11 +38,13 @@ class HuggingFaceLLM(BaseLLM):
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
-        """
+
         args = self.parse_args(model.langchain)
         if "model" not in args:
             args["model"] = model.id
         return HuggingFaceHub(**args)
+        """
+        pass
 
     def chat(
             self,
@@ -58,4 +60,4 @@ class HuggingFaceLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        return None
+        pass

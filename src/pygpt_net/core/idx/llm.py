@@ -31,7 +31,7 @@ class Llm:
         :param window: Window instance
         """
         self.window = window
-        self.default_model = "gpt-3.5-turbo"
+        self.default_model = "gpt-4o-mini"
         self.default_embed = "openai"
         self.initialized = False
 
@@ -56,9 +56,9 @@ class Llm:
         # TMP: deprecation warning fix
         # https://github.com/DataDog/dd-trace-py/issues/8212#issuecomment-1971063988
         if not self.initialized:
-            import warnings
-            from langchain._api import LangChainDeprecationWarning
-            warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
+            # import warnings
+            # from langchain._api import LangChainDeprecationWarning
+            # warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
             self.initialized = True
 
         llm = None

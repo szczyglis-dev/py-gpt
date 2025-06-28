@@ -11,15 +11,9 @@
 
 from typing import Optional, List, Dict
 
-from langchain_openai import OpenAI
-from langchain_openai import ChatOpenAI
-
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI as LlamaOpenAI
-from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIMultiModal
-from llama_index.embeddings.openai import OpenAIEmbedding
 
 from pygpt_net.core.types import (
     MODE_CHAT,

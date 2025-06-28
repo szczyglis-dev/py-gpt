@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -48,7 +48,8 @@ class BaseLLM:
         """
         options = {}
         if mode == MODE_LANGCHAIN:
-            options = model.langchain
+            pass
+            # options = model.langchain
         elif mode == MODE_LLAMA_INDEX:
             options = model.llama_index
         if 'env' in options:

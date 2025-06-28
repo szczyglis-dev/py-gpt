@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -30,6 +30,13 @@ class Mode:
 
         :param mode
         """
+        # --- deprecated from v2.5.20 ---
+        if mode == "langchain":
+            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
+                            "Please use LlamaIndex or Chat mode instead.")
+            mode = "chat"
+        # --- end of deprecated ---
+
         # check if mode change is not locked
         if self.change_locked() or mode is None:
             return
@@ -50,6 +57,13 @@ class Mode:
 
         :param mode: mode name
         """
+        # --- deprecated from v2.5.20 ---
+        if mode == "langchain":
+            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
+                  "Please use LlamaIndex or Chat mode instead.")
+            mode = "chat"
+        # --- end of deprecated ---
+
         self.locked = True
         # if ctx loaded with assistant ID assigned then switch to assistant from ctx
         if mode == "assistant":
@@ -93,6 +107,13 @@ class Mode:
 
         :param mode: mode name
         """
+        # --- deprecated from v2.5.20 ---
+        if mode == "langchain":
+            print("Langchain mode is deprecated from v2.5.20 and no longer supported. "
+                  "Please use LlamaIndex or Chat mode instead.")
+            mode = "chat"
+        # --- end of deprecated ---
+
         self.window.ui.nodes["prompt.mode"].set_value(mode)
 
     def init_list(self):

@@ -19,6 +19,7 @@ from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding as HuggingFaceAPIEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
+
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
