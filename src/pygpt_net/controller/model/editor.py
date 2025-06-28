@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -52,60 +52,14 @@ class Editor:
                 "label": "model.mode",
                 "description": "model.mode.desc",
             },
+            "provider": {
+                "type": "combo",
+                "use": "llm_providers",
+                "label": "model.provider",
+            },
             "default": {
                 "type": "bool",
                 "label": "model.default",
-            },
-            "openai": {
-                "type": "bool",
-                "label": "model.openai",
-                "description": "model.openai.desc",
-            },
-            "langchain.provider": {
-                "type": "combo",
-                "use": "langchain_providers",
-                "label": "model.langchain.provider",
-                "description": "model.langchain.provider.desc",
-            },
-            "langchain.mode": {
-                "type": "text",  # list of comma separated values
-                "label": "model.langchain.mode",
-                "description": "model.langchain.mode.desc",
-            },
-            "langchain.args": {
-                "type": "dict",
-                "keys": {
-                    'name': 'text',
-                    'value': 'text',
-                    'type': {
-                        "type": "combo",
-                        "use": "var_types",
-                    },
-                },
-                "label": "model.langchain.args",
-                "description": "model.langchain.args.desc",
-                "advanced": True,
-            },
-            "langchain.env": {
-                "type": "dict",
-                "keys": {
-                    'name': 'text',
-                    'value': 'text',
-                },
-                "label": "model.langchain.env",
-                "description": "model.langchain.env.desc",
-                "advanced": True,
-            },
-            "llama_index.provider": {
-                "type": "combo",
-                "use": "llama_index_providers",
-                "label": "model.llama_index.provider",
-                "description": "model.llama_index.provider.desc",
-            },
-            "llama_index.mode": {
-                "type": "text",  # list of comma separated values
-                "label": "model.llama_index.mode",
-                "description": "model.llama_index.mode.desc",
             },
             "llama_index.args": {
                 "type": "dict",
@@ -155,17 +109,6 @@ class Editor:
         """Set up editor"""
         idx = None
         self.window.model_settings.setup(idx)  # widget dialog setup
-        parent = "model"
-        keys = [
-            "langchain.args",
-            "langchain.env",
-        ]
-        for key in keys:
-            self.window.ui.dialogs.register_dictionary(
-                key,
-                parent,
-                self.get_option(key),
-            )
 
     def toggle_editor(self):
         """Toggle models editor dialog"""

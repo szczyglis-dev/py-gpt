@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -158,7 +158,7 @@ class JsonFileProvider(BaseProvider):
             'id': item.id,
             'name': item.name,
             'mode': item.mode,
-            'langchain': item.langchain,
+            # 'langchain': item.langchain,
             'llama_index': item.llama_index,
             'ctx': item.ctx,
             'tokens': item.tokens,
@@ -166,7 +166,7 @@ class JsonFileProvider(BaseProvider):
             'multimodal': item.multimodal,
             'extra': item.extra,
             'imported': item.imported,
-            'openai': item.openai,
+            'provider': item.provider,
         }
 
     @staticmethod
@@ -183,8 +183,8 @@ class JsonFileProvider(BaseProvider):
             item.name = data['name']
         if 'mode' in data:
             item.mode = data['mode']
-        if 'langchain' in data:
-            item.langchain = data['langchain']
+        # if 'langchain' in data:
+            # item.langchain = data['langchain']
         if 'llama_index' in data:
             item.llama_index = data['llama_index']
         if 'ctx' in data:
@@ -199,8 +199,8 @@ class JsonFileProvider(BaseProvider):
             item.extra = data['extra']
         if 'imported' in data:
             item.imported = data['imported']
-        if 'openai' in data:
-            item.openai = data['openai']
+        if 'provider' in data:
+            item.provider = data['provider']
 
     def dump(self, item: ModelItem) -> str:
         """

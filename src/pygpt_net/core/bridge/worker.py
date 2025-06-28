@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -56,14 +56,16 @@ class BridgeWorker(QObject, QRunnable):
             self.handle_post_prompt_end()
 
             # Langchain
+            """
             if self.mode == MODE_LANGCHAIN:
                 result = self.window.core.chain.call(
                     context=self.context,
                     extra=self.extra,
                 )
+            """
 
             # LlamaIndex: chat with files
-            elif self.mode == MODE_LLAMA_INDEX:
+            if self.mode == MODE_LLAMA_INDEX:
                 result = self.window.core.idx.chat.call(
                     context=self.context,
                     extra=self.extra,

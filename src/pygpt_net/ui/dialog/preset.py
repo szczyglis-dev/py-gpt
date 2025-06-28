@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -103,16 +103,16 @@ class Preset(BaseConfigDialog):
         # modes
         mode_keys = [
             MODE_CHAT,
-            MODE_LLAMA_INDEX,
-            MODE_AUDIO,
+            MODE_LLAMA_INDEX,            
+            MODE_AUDIO,            
+            MODE_RESEARCH,
             MODE_COMPLETION,
             MODE_IMAGE,
             MODE_VISION,
-            MODE_LANGCHAIN,
+            # MODE_LANGCHAIN,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
             MODE_EXPERT,
-            MODE_RESEARCH,
         ]
         rows_mode = QVBoxLayout()
         rows_mode.addStretch()

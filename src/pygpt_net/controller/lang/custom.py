@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -56,7 +56,7 @@ class Custom:
         self.window.ui.config['preset'][MODE_COMPLETION].box.setText(trans("preset.completion"))
         self.window.ui.config['preset'][MODE_IMAGE].box.setText(trans("preset.img"))
         self.window.ui.config['preset'][MODE_VISION].box.setText(trans("preset.vision"))
-        self.window.ui.config['preset'][MODE_LANGCHAIN].box.setText(trans("preset.langchain"))
+        #self.window.ui.config['preset'][MODE_LANGCHAIN].box.setText(trans("preset.langchain"))
         self.window.ui.config['preset'][MODE_LLAMA_INDEX].box.setText(trans("preset.llama_index"))
         self.window.ui.config['preset'][MODE_AGENT].box.setText(trans("preset.agent"))
         self.window.ui.config['preset'][MODE_AGENT_LLAMA].box.setText(trans("preset.agent_llama"))

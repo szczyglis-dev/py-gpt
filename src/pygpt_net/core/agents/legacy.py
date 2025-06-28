@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -33,7 +33,7 @@ class Legacy:
             MODE_CHAT,
             MODE_COMPLETION,
             MODE_VISION,
-            MODE_LANGCHAIN,
+            # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             MODE_AUDIO,
             MODE_RESEARCH,

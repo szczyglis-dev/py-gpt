@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
+
+from pygpt_net.core.types import MODE_RESEARCH
 
 
 class Patch:
@@ -328,6 +330,7 @@ class Patch:
                         # langchain
                         is_endpoint = False
                         is_version = False
+                        """
                         for item in model.langchain["env"]:
                             if item["name"] == "AZURE_OPENAI_ENDPOINT":
                                 is_endpoint = True
@@ -355,6 +358,7 @@ class Patch:
                                     "value": "{api_azure_version}",
                                 }
                             )
+                        """
 
                         # llama
                         is_endpoint = False
@@ -390,6 +394,7 @@ class Patch:
                     # Anthropic
                     elif model.id.startswith("claude-"):
                         is_key = False
+                        """
                         for item in model.langchain["env"]:
                             if item["name"] == "ANTHROPIC_API_KEY":
                                 is_key = True
@@ -404,6 +409,7 @@ class Patch:
                                     "value": "{api_key_anthropic}",
                                 }
                             )
+                        """
                         is_key = False
                         for item in model.llama_index["env"]:
                             if item["name"] == "ANTHROPIC_API_KEY":
@@ -422,6 +428,7 @@ class Patch:
                     # Google
                     elif model.id.startswith("gemini-"):
                         is_key = False
+                        """
                         for item in model.langchain["env"]:
                             if item["name"] == "GOOGLE_API_KEY":
                                 is_key = True
@@ -436,6 +443,7 @@ class Patch:
                                     "value": "{api_key_google}",
                                 }
                             )
+                        """
                         is_key = False
                         for item in model.llama_index["env"]:
                             if item["name"] == "GOOGLE_API_KEY":
@@ -555,12 +563,6 @@ class Patch:
                 print("Migrating models from < 2.5.18...")
                 for id in data:
                     model = data[id]
-                    if (model.id.startswith("o1")
-                            or model.id.startswith("o3")
-                            or model.id.startswith("gpt-")
-                            or model.id.startswith("chatgpt")
-                            or model.id.startswith("dall-e")):
-                        model.openai = True
                     if model.is_supported("llama_index"):
                         if "chat" not in model.mode:
                             model.mode.append("chat")
@@ -568,6 +570,48 @@ class Patch:
 
             # < 2.5.19 <--- add Grok models
             if old < parse_version("2.5.19"):
+                updated = True
+
+            # < 2.5.20 <--- add provider field
+            if old < parse_version("2.5.20"):
+                print("Migrating models from < 2.5.20...")
+                for id in data:
+                    model = data[id]
+
+                    # add global providers
+                    if model.is_ollama():
+                        model.provider = "ollama"
+                    if (model.id.startswith("gpt-")
+                      or model.id.startswith("chatgpt")
+                      or model.id.startswith("o1")
+                      or model.id.startswith("o3")
+                      or model.id.startswith("o4")
+                      or model.id.startswith("o5")
+                      or model.id.startswith("dall-e")):
+                        model.provider = "openai"
+                    if model.id.startswith("claude-"):
+                        model.provider = "anthropic"
+                    if model.id.startswith("gemini-"):
+                        model.provider = "google"
+                    if MODE_RESEARCH in model.mode:
+                        model.provider = "perplexity"
+                    if model.id.startswith("grok-"):
+                        model.provider = "x_ai"
+                    if id.startswith("deepseek_api"):
+                        model.provider = "deepseek_api"
+                    if model.provider is None or model.provider == "":
+                        model.provider = "local_ai"
+
+                    # patch llama_index config
+                    if model.llama_index:
+                        if 'mode' in model.llama_index:
+                            del model.llama_index['mode']
+                        if 'provider' in model.llama_index:
+                            del model.llama_index['provider']
+
+                    # del langchain config
+                    if 'langchain' in model.mode:
+                        model.mode.remove("langchain")
                 updated = True
 
         # update file

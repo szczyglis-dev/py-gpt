@@ -52,13 +52,7 @@
             "name": "assistant",
             "label": "mode.assistant",
             "default": false
-        },
-        "langchain": {
-            "id": "langchain",
-            "name": "langchain",
-            "label": "mode.langchain",
-            "default": false
-        },        
+        },    
         "agent_llama": {
             "id": "agent_llama",
             "name": "Agent (LlamaIndex)",

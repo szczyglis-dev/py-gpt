@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -220,8 +220,8 @@ class Presets:
             return MODE_IMAGE
         if preset.vision:
             return MODE_VISION
-        if preset.langchain:
-            return MODE_LANGCHAIN
+        # if preset.langchain:
+            # return MODE_LANGCHAIN
         if preset.assistant:
             return MODE_ASSISTANT
         if preset.llama_index:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -74,10 +74,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.vision",
             },
-            MODE_LANGCHAIN: {
-                "type": "bool",
-                "label": "preset.langchain",
-            },
+            #MODE_LANGCHAIN: {
+            #    "type": "bool",
+            #    "label": "preset.langchain",
+            #},
             MODE_EXPERT: {
                 "type": "bool",
                 "label": "preset.expert",
@@ -293,8 +293,8 @@ class Editor:
                 data.img = True
             elif mode == MODE_VISION:
                 data.vision = True
-            elif mode == MODE_LANGCHAIN:
-                data.langchain = True
+            # elif mode == MODE_LANGCHAIN:
+                # data.langchain = True
             # elif mode == MODE_ASSISTANT:
                 # data.assistant = True
             elif mode == MODE_LLAMA_INDEX:
@@ -373,7 +373,7 @@ class Editor:
             MODE_COMPLETION,
             MODE_IMAGE,
             MODE_VISION,
-            MODE_LANGCHAIN,
+            # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
