@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -34,9 +34,7 @@ def test_get(mock_window):
     mock_window.core.llm.llms = {
         "openai": provider
     }
-    model.llama_index = {
-        "provider": "openai"
-    }
+    model.provider = "openai"
     llm = Llm(mock_window)
     llm.get(model)
     provider.init.assert_called_once()

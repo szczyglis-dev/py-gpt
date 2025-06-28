@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 13:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -148,7 +148,7 @@ def test_serialize(mock_window):
     item.completion = False
     item.img = False
     item.vision = False
-    item.langchain = False
+   # item.langchain = False
     item.assistant = False
     item.temperature = 1.0
     item.filename = None
@@ -163,7 +163,7 @@ def test_serialize(mock_window):
     assert data['completion'] is False
     assert data['img'] is False
     assert data['vision'] is False
-    assert data['langchain'] is False
+#    assert data['langchain'] is False
     assert data['assistant'] is False
     assert data['temperature'] == 1.0
     assert data['filename'] is None
@@ -181,7 +181,7 @@ def test_deserialize(mock_window):
         "completion": False,
         "img": False,
         "vision": False,
-        "langchain": False,
+        #"langchain": False,
         "assistant": False,
         "temperature": 1.0,
         "filename": None
@@ -197,7 +197,7 @@ def test_deserialize(mock_window):
     assert item.completion is False
     assert item.img is False
     assert item.vision is False
-    assert item.langchain is False
+   # assert item.langchain is False
     assert item.assistant is False
     assert item.temperature == 1.0
     assert item.filename is None
