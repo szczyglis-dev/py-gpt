@@ -33,7 +33,7 @@ def test_send(mock_window):
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
-    mock_window.core.chain.call = MagicMock(return_value=result)
+    #mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
     mock_window.controller.agent.enabled = MagicMock(return_value=False)
     mock_window.controller.agent.experts.enabled = MagicMock(return_value=False)
@@ -75,7 +75,7 @@ def test_send_stream(mock_window):
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
-    mock_window.core.chain.call = MagicMock(return_value=result)
+    #mock_window.core.chain.call = MagicMock(return_value=result)
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
     mock_window.controller.agent.enabled = MagicMock(return_value=False)
 
@@ -109,7 +109,7 @@ def test_send_assistant(mock_window):
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
-    mock_window.core.chain.call = MagicMock(return_value=result)
+    #mock_window.core.chain.call = MagicMock(return_value=result)
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 

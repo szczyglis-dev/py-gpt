@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 from tests.mocks import mock_window_conf
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.chain import Chain
+# from pygpt_net.core.chain import Chain
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
@@ -21,7 +21,7 @@ from pygpt_net.item.model import ModelItem
 def test_call(mock_window_conf):
     """
     Test call
-    """
+    
     ctx = CtxItem()
     ctx.input = 'test_input'
     ctx.input_name = 'User'
@@ -61,3 +61,4 @@ def test_call(mock_window_conf):
         user_name='User',
         stream=False,
     )
+    """

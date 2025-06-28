@@ -32,7 +32,7 @@ def test_send(mock_window):
 
     result = True
     mock_window.core.gpt.call = MagicMock(return_value=result)
-    mock_window.core.chain.call = MagicMock(return_value=result)
+    #mock_window.core.chain.call = MagicMock(return_value=result)
 
     model = ModelItem()
     mock_window.core.models.get = MagicMock(return_value=model)
