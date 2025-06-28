@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.20 (2025-06-28)
+
+- Langchain removed from the list of modes and dependencies.
+- Improved tools execution.
+- Simplified model configuration.
+- Added endpoint configuration for non-OpenAI APIs.
+
 ## 2.5.19 (2025-06-27)
 
 - Added option to enable/disable `Responses API` in `Config -> Settings -> API Keys -> OpenAI`.

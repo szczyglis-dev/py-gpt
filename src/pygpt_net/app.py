@@ -343,7 +343,7 @@ def run(**kwargs):
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
     launcher.add_llm(GoogleLLM())
-    launcher.add_llm(HuggingFaceLLM())
+    # launcher.add_llm(HuggingFaceLLM())
     launcher.add_llm(HuggingFaceApiLLM())
     launcher.add_llm(LocalLLM())
     launcher.add_llm(OllamaLLM())

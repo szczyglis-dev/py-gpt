@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.19** | build: **2025-06-27** | Python: **>=3.10, <3.13**
+Release: **2.5.20** | build: **2025-06-28** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3996,6 +3996,13 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.20 (2025-06-28)**
+
+- Langchain removed from the list of modes and dependencies.
+- Improved tools execution.
+- Simplified model configuration.
+- Added endpoint configuration for non-OpenAI APIs.
+
 **2.5.19 (2025-06-27)**
 
 - Added option to enable/disable `Responses API` in `Config -> Settings -> API Keys -> OpenAI`.
@@ -4024,98 +4031,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added Ollama models importer in "Settings -> Models -> Import from Ollama".
 - Fixed Ollama provider in the newest LlamaIndex.
 - Added the ability to set a custom base URL for Ollama -> ENV: OLLAMA_API_BASE.
-
-**2.5.14 (2025-06-23)**
-
-- Fix: crash if empty shortcuts in config.
-- Fix: UUID serialization.
-
-**2.5.13 (2025-06-22)**
-
-- Disabled auto-switch to vision mode in Painter.
-- UI fixes.
-
-**2.5.12 (2025-06-22)**
-
-- Fixed send-mode radio buttons switch.
-- Added a new models: qwen2.5-coder, OpenAI gpt-4.1-mini.
-
-**2.5.11 (2025-06-21)**
-
-- Added a new models: OpenAI o1-pro and o3-pro, Anthropic Claude 4.0 Opus and Claude 4.0 Sonnet, Alibaba Qwen and Qwen2.  
-- Bielik model upgraded to v2.3 / merged PR #101.
-- Fixed HTML output formatting.
-- Fixed empty index in chat mode.
-
-**2.5.10 (2025-03-06)**
-
-- Added a new model: Claude 3.7 Sonnet.  
-- Fixed the context switch issue when the column changed and the tab is not a chat tab.
-- LlamaIndex upgraded to 0.12.22.
-- LlamaIndex LLMs upgraded to recent versions.
-
-**2.5.9 (2025-03-05)**
-
-- Improved formatting of HTML code in the output.
-- Disabled automatic indentation parsing as code blocks.
-- Disabled automatic scrolling of the notepad when opening a tab.
-
-**2.5.8 (2025-03-02)**
-
-- Added a new mode: Research (Perplexity) powered by: https://perplexity.ai - beta.
-- Added Perplexity models: sonar, sonar-pro, sonar-deep-research, sonar-reasoning, sonar-reasoning-pro, r1-1776.
-- Added a new OpenAI model: gpt-4.5-preview.
-
-**2.5.7 (2025-02-26)**
-
-- Stream mode has been enabled in o1 models.
-- CSS styling for <think> tags (reasoning models) has been added.
-- The search input has been moved to the top.
-- The ChatGPT-based style is now set as default.
-- Fix: Display of max tokens in models with a context window greater than 128k.
-
-**2.5.6 (2025-02-03)**
-
-- Fix: disabled index initialization if embedding provider is OpenAI and no API KEY is provided.
-- Fix: embedding provider initialization on empty index.
-
-**2.5.5 (2025-02-02)**
-
-- Fix: system prompt apply.
-- Added calendar live update on tab change.
-- Added API Key monit at launch displayed only once.
-
-**2.5.4 (2025-02-02)**
-
-- Added new models: `o3-mini` and `gpt-4o-mini-audio-preview`.
-- Enabled tool calls in Chat with Audio mode.
-- Added a check to verify if Ollama is running and if the model is available.
-
-**2.5.3 (2025-02-01)**
-
-- Fix: Snap permission denied bug.
-- Fix: column focus on tab change.
-- Datetime separators in groups moved to right side.
-
-**2.5.2 (2025-02-01)**
-
-- Fix: spinner update after inline image generation.
-- Added Ollama suffix to Ollama-models in models list.
-
-**2.5.1 (2025-02-01)**
-
-- PySide6 upgraded to 6.6.2.
-- Disabled Transformers startup warnings.
-
-**2.5.0 (2025-01-31)**
-
-- Added provider for DeepSeek (in Chat with Files mode, beta).
-- Added new models: OpenAI o1, Llama 3.3, DeepSeek V3 and R1 (API + local, with Ollama).
-- Added tool calls for OpenAI o1.
-- Added native vision for OpenAI o1.
-- Fix: tool calls in Ollama provider.
-- Fix: error handling in stream mode.
-- Fix: added check for active plugin tools before tool call.
 
 # Credits and links
 
