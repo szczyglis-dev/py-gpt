@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.21 (2025-06-28)
+
+- Fixed JS errors in logger.
+- Updated CSS.
+
 ## 2.5.20 (2025-06-28)
 
 - LlamaIndex upgraded to 0.12.44.
