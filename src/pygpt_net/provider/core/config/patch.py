@@ -1891,6 +1891,12 @@ class Patch:
                     data["mode"] = "chat"
                 updated = True
 
+            # < 2.5.21
+            if old < parse_version("2.5.21"):
+                print("Migrating config from < 2.5.21...")
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:
