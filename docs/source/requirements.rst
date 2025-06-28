@@ -163,6 +163,13 @@ Install with Poetry
     $ poetry env use python3.10
     $ poetry shell
 
+or (Poetry >= 2.0):
+
+.. code-block:: console
+    
+    $ poetry env use python3.10
+    $ poetry env activate
+
 4. Install requirements:
 
 .. code-block:: console

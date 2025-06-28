@@ -112,6 +112,13 @@ poetry env use python3.10
 poetry shell
 ```
 
+or (Poetry >= 2.0):
+
+```commandline
+poetry env use python3.10
+poetry env activate
+```
+
 4. Install requirements:
 
 ```commandline

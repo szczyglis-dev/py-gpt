@@ -35,6 +35,107 @@ With this plugin, you can capture an image with your camera or attach an image a
 .. image:: images/v3_img_chat.png
    :width: 800
 
+Chat with Files (LlamaIndex)
+-----------------------------
+
+This mode enables chat interaction with your documents and entire context history through conversation. 
+It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
+
+**Querying single files**
+
+You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
+
+**For example:**
+
+If you have a file: ``data/my_cars.txt`` with content ``My car is red.``
+
+You can ask for: ``Query the file my_cars.txt about what color my car is.``
+
+And you will receive the response: ``Red``.
+
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto-index readed files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
+
+**Using Chat with Files mode**
+
+In this mode, you are querying the whole index, stored in a vector store database.
+To start, you need to index (embed) the files you want to use as additional context.
+Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
+
+https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
+
+For a visualization from OpenAI's page, see this picture:
+
+.. image:: images/vectors.png
+
+Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
+
+To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
+
+Built-in file loaders: 
+
+**Files:**
+
+* CSV files (csv)
+* Epub files (epub)
+* Excel .xlsx spreadsheets (xlsx)
+* HTML files (html, htm)
+* IPYNB Notebook files (ipynb)
+* Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
+* JSON files (json)
+* Markdown files (md)
+* PDF documents (pdf)
+* Txt/raw files (txt)
+* Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
+* Word .docx documents (docx)
+* XML files (xml)
+
+**Web/external content:**
+
+* Bitbucket
+* ChatGPT Retrieval Plugin
+* GitHub Issues
+* GitHub Repository
+* Google Calendar
+* Google Docs
+* Google Drive 
+* Google Gmail
+* Google Keep
+* Google Sheets
+* Microsoft OneDrive
+* RSS
+* SQL Database
+* Sitemap (XML)
+* Twitter/X posts
+* Webpages (crawling any webpage content)
+* YouTube (transcriptions)
+
+You can configure data loaders in ``Settings / LlamaIndex / Data Loaders`` by providing list of keyword arguments for specified loaders.
+You can also develop and provide your own custom loader and register it within the application.
+
+LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / LlamaIndex`` section.
+
+**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. 
+Always control the number of tokens used on the OpenAI page.
+
+**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
+
+**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
+
+**Available vector stores** (provided by ``LlamaIndex``):
+
+* ChromaVectorStore
+* ElasticsearchStore
+* PinecodeVectorStore
+* RedisVectorStore
+* SimpleVectorStore
+
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
+
+**Configuring data loaders**
+
+In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
+
 
 Chat with Audio
 ---------------
@@ -182,108 +283,6 @@ The vector database in use will be displayed in the list of uploaded files, on t
 
 .. image:: images/v2_assistant_stores_upload.png
    :width: 800
-
-
-Chat with Files (LlamaIndex)
------------------------------
-
-This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
-
-**Querying single files**
-
-You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
-
-**For example:**
-
-If you have a file: ``data/my_cars.txt`` with content ``My car is red.``
-
-You can ask for: ``Query the file my_cars.txt about what color my car is.``
-
-And you will receive the response: ``Red``.
-
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto-index readed files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
-
-**Using Chat with Files mode**
-
-In this mode, you are querying the whole index, stored in a vector store database.
-To start, you need to index (embed) the files you want to use as additional context.
-Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
-
-https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
-
-For a visualization from OpenAI's page, see this picture:
-
-.. image:: images/vectors.png
-
-Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
-
-To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
-
-Built-in file loaders: 
-
-**Files:**
-
-* CSV files (csv)
-* Epub files (epub)
-* Excel .xlsx spreadsheets (xlsx)
-* HTML files (html, htm)
-* IPYNB Notebook files (ipynb)
-* Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-* JSON files (json)
-* Markdown files (md)
-* PDF documents (pdf)
-* Txt/raw files (txt)
-* Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-* Word .docx documents (docx)
-* XML files (xml)
-
-**Web/external content:**
-
-* Bitbucket
-* ChatGPT Retrieval Plugin
-* GitHub Issues
-* GitHub Repository
-* Google Calendar
-* Google Docs
-* Google Drive 
-* Google Gmail
-* Google Keep
-* Google Sheets
-* Microsoft OneDrive
-* RSS
-* SQL Database
-* Sitemap (XML)
-* Twitter/X posts
-* Webpages (crawling any webpage content)
-* YouTube (transcriptions)
-
-You can configure data loaders in ``Settings / LlamaIndex / Data Loaders`` by providing list of keyword arguments for specified loaders.
-You can also develop and provide your own custom loader and register it within the application.
-
-LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / LlamaIndex`` section.
-
-**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. 
-Always control the number of tokens used on the OpenAI page.
-
-**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
-
-**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
-
-**Available vector stores** (provided by ``LlamaIndex``):
-
-* ChromaVectorStore
-* ElasticsearchStore
-* PinecodeVectorStore
-* RedisVectorStore
-* SimpleVectorStore
-
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
-
-**Configuring data loaders**
-
-In the ``Settings -> LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
 
 
 Agent (LlamaIndex) 
