@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -33,6 +33,7 @@ class OpenAILLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
+        self.name = "OpenAI"
         self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from llama_index.llms.openai_like import OpenAILike
@@ -23,6 +23,7 @@ class LocalLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(LocalLLM, self).__init__(*args, **kwargs)
         self.id = "local_ai"
+        self.name = "Local model (OpenAI API compatible)"
         self.type = [MODE_LLAMA_INDEX]
 
     def llama(

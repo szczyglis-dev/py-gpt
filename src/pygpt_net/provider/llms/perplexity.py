@@ -11,36 +11,30 @@
 
 from typing import Optional, List, Dict
 
-from langchain_openai import AzureOpenAI
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import OpenAI
+from langchain_openai import ChatOpenAI
 
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.azure_openai import AzureOpenAI as LlamaAzureOpenAI
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.llms.openai import OpenAI as LlamaOpenAI
+from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIMultiModal
+from llama_index.embeddings.openai import OpenAIEmbedding
 
 from pygpt_net.core.types import (
-    MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
+    MODE_CHAT,
+    MODE_RESEARCH,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 
-class AzureOpenAILLM(BaseLLM):
+class PerplexityLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
-        super(AzureOpenAILLM, self).__init__(*args, **kwargs)
-        """
-        Required ENV variables:
-            - AZURE_OPENAI_API_KEY - API key for Azure OpenAI API
-            - AZURE_OPENAI_ENDPOINT - API endpoint for Azure OpenAI API
-        Required args:
-            - model: model name, e.g. gpt-4
-            - api_key: API key for Azure OpenAI API
-        """
-        self.id = "azure_openai"
-        self.name = "Azure OpenAI"
-        self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
+        super(PerplexityLLM, self).__init__(*args, **kwargs)
+        self.id = "perplexity"
+        self.name = "Perplexity"
+        self.type = [MODE_CHAT, MODE_RESEARCH]
 
     def completion(
             self,
@@ -56,8 +50,7 @@ class AzureOpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.langchain)
-        return AzureOpenAI(**args)
+        pass
 
     def chat(
             self,
@@ -73,8 +66,7 @@ class AzureOpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.langchain)
-        return AzureChatOpenAI(**args)
+        pass
 
     def llama(
             self,
@@ -90,8 +82,23 @@ class AzureOpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.llama_index)
-        return LlamaAzureOpenAI(**args)
+        pass
+
+    def llama_multimodal(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaMultiModalLLM:
+        """
+        Return multimodal LLM provider instance for llama
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LLM provider instance
+        """
+        pass
 
     def get_embeddings_model(
             self,
@@ -105,9 +112,4 @@ class AzureOpenAILLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        args = {}
-        if config is not None:
-            args = self.parse_args({
-                "args": config,
-            })
-        return AzureOpenAIEmbedding(**args)
+        pass

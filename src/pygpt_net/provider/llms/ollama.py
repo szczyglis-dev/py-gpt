@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,7 @@ class OllamaLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(OllamaLLM, self).__init__(*args, **kwargs)
         self.id = "ollama"
+        self.name = "Ollama"
         self.type = [MODE_LANGCHAIN, MODE_LLAMA_INDEX, "embeddings"]
 
     def completion(

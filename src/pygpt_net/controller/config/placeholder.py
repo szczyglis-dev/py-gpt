@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -68,6 +68,8 @@ class Placeholder:
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
             return self.get_llama_index_providers()
+        elif id == "llm_providers":
+            return self.get_llm_providers()
         elif id == "embeddings_providers":
             return self.get_embeddings_providers()
         elif id == "llama_index_loaders":
@@ -139,10 +141,10 @@ class Placeholder:
 
         :return: placeholders list
         """
-        ids = self.window.core.llm.get_ids(MODE_LANGCHAIN)
+        choices = self.window.core.llm.get_choices(MODE_LANGCHAIN)
         data = []
-        for id in ids:
-            data.append({id: id})
+        for id in choices:
+            data.append({id: choices[id]})
         return data
 
     def get_llama_index_providers(self) -> List[Dict[str, str]]:
@@ -151,10 +153,34 @@ class Placeholder:
 
         :return: placeholders list
         """
-        ids = self.window.core.llm.get_ids(MODE_LLAMA_INDEX)
+        choices = self.window.core.llm.get_choices(MODE_LLAMA_INDEX)
         data = []
-        for id in ids:
-            data.append({id: id})
+        for id in choices:
+            data.append({id: choices[id]})
+        return data
+
+    def get_llm_providers(self) -> List[Dict[str, str]]:
+        """
+        Get all LLM provider placeholders list
+
+        :return: placeholders list
+        """
+        choices = self.window.core.llm.get_choices()
+        data = []
+        for id in choices:
+            data.append({id: choices[id]})
+        return data
+
+    def get_embeddings_providers(self) -> List[Dict[str, str]]:
+        """
+        Get embeddings placeholders list
+
+        :return: placeholders list
+        """
+        choices = self.window.core.llm.get_choices("embeddings")
+        data = []
+        for id in choices:
+            data.append({id: choices[id]})
         return data
 
     def get_agent_providers(self) -> List[Dict[str, str]]:
@@ -164,18 +190,6 @@ class Placeholder:
         :return: placeholders list
         """
         ids = self.window.core.agents.provider.get_providers()
-        data = []
-        for id in ids:
-            data.append({id: id})
-        return data
-
-    def get_embeddings_providers(self) -> List[Dict[str, str]]:
-        """
-        Get embeddings placeholders list
-
-        :return: placeholders list
-        """
-        ids = self.window.core.llm.get_ids("embeddings")
         data = []
         for id in ids:
             data.append({id: id})
@@ -269,7 +283,7 @@ class Placeholder:
         for id in models:
             model = models[id]
             suffix = ""
-            if "provider" in model.llama_index and model.llama_index["provider"] == "ollama":
+            if model.provider == "ollama":
                 suffix = " (Ollama)"
             name = model.name + suffix
             data.append({id: name})

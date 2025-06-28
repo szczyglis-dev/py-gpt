@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -27,6 +27,7 @@ class HuggingFaceApiLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(HuggingFaceApiLLM, self).__init__(*args, **kwargs)
         self.id = "huggingface_api"
+        self.name = "HuggingFace API"
         self.type = [MODE_LLAMA_INDEX, "embeddings"]
 
     def llama(
