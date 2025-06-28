@@ -1076,15 +1076,15 @@ llama-index-llms-azure-openai==0.3.2 ; python_version >= "3.10" and python_versi
 llama-index-llms-deepseek==0.1.1 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:0ae41e7bf87f24da693b9a1cd603113b0f5595e28c8c8eb4b171af6f90a87151 \
     --hash=sha256:b8b844e08dfacbc0cc3dfc23553cd46d97584ee48833e588077bc5f7f6562777
-llama-index-llms-gemini==0.4.14 ; python_version >= "3.10" and python_version < "3.13" \
-    --hash=sha256:e094037e80c2f97e66dc5ecb5701237e1dde330a8368ad180cca7ebcb60f8319 \
-    --hash=sha256:ea53a5be7fad63f7e3c69cca2b759ccc2d8c36b33596daa38b9e91793f674074
+llama-index-llms-gemini==0.5.0 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:8d2910566ca9043847ffec142942db7fa9465c7e298ecbad5542cacc9515c3a9 \
+    --hash=sha256:a5a031042b07c56699b6ae2980c92df53acfea19f4611af3cb559b46887f5bc3
 llama-index-llms-huggingface-api==0.3.1 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:6528900a4d59d594e489f58f34c3356b447b4d4ad58820d192ab5b9e951d5398 \
     --hash=sha256:6531c8fe5405574ae997f5066085a8830cb60299cb5b93a8cf6e84f7d3e1c9fc
-llama-index-llms-ollama==0.5.6 ; python_version >= "3.10" and python_version < "3.13" \
-    --hash=sha256:44388cbfaae2b9572f6ea6734c07015c772823fbe6d2cb26c7dfe34fae51ddc5 \
-    --hash=sha256:8c17136d341ef8fe0e9efa7e31b65664ade90c142697b25b337b0c197ab29d05
+llama-index-llms-ollama==0.6.2 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:1be4081f0ba9c9dd3b5d270c2e8009c256b3b6a1312cb38a0c724dba8bac1304 \
+    --hash=sha256:b714311c3a1e3e5c9d9d2a46c1c12cc3e6865e8b81f1863412da41c1725a1144
 llama-index-llms-openai-like==0.3.4 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:628fc6308d7a6da3e6b158fb1b94d627d7885bb541e5c46d97f156e9c4de9e14 \
     --hash=sha256:6cb8d574d89c46b0bda07e7f9747b6428f70a7335606922b43187da99d96751d
