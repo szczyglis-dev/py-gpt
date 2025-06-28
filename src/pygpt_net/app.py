@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -55,6 +55,8 @@ from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
 from pygpt_net.provider.llms.local import LocalLLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
+from pygpt_net.provider.llms.perplexity import PerplexityLLM
+from pygpt_net.provider.llms.x_ai import xAILLM
 
 # vector store providers (llama-index)
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -336,7 +338,7 @@ def run(**kwargs):
         for plugin in plugins:
             launcher.add_plugin(plugin)
 
-    # register base langchain and llama-index LLMs
+    # register LLMs
     launcher.add_llm(OpenAILLM())
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
@@ -346,8 +348,10 @@ def run(**kwargs):
     launcher.add_llm(LocalLLM())
     launcher.add_llm(OllamaLLM())
     launcher.add_llm(DeepseekApiLLM())
+    launcher.add_llm(PerplexityLLM())
+    launcher.add_llm(xAILLM())
 
-    # register custom langchain and llama-index LLMs
+    # register LLMs
     llms = kwargs.get('llms', None)
     if isinstance(llms, list):
         for llm in llms:
