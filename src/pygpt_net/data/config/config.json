@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.19",
-    "app.version": "2.5.19",
+    "version": "2.5.20",
+    "app.version": "2.5.20",
     "updated_at": "2025-06-27T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -61,6 +61,8 @@
   "api_azure_version": "2023-07-01-preview",
   "api_azure_endpoint": "https://<your-resource-name>.openai.azure.com/",
   "api_endpoint": "https://api.openai.com/v1",
+  "api_endpoint_deepseek": "https://api.deepseek.com/v1",
+  "api_endpoint_google": "https://generativelanguage.googleapis.com/v1beta/openai",
   "api_endpoint_perplexity": "https://api.perplexity.ai",
   "api_endpoint_xai": "https://api.x.ai/v1",
   "api_key": "",

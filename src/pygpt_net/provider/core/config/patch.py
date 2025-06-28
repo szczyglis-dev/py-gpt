@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -1878,6 +1878,15 @@ class Patch:
                     data["api_key_xai"] = ""
                 if 'api_endpoint_xai' not in data:
                     data["api_endpoint_xai"] = "https://api.x.ai/v1"
+                updated = True
+
+            # < 2.5.20
+            if old < parse_version("2.5.20"):
+                print("Migrating config from < 2.5.20...")
+                if 'api_endpoint_deepseek' not in data:
+                    data["api_endpoint_deepseek"] = "https://api.deepseek.com/v1"
+                if 'api_endpoint_google' not in data:
+                    data["api_endpoint_google"] = "https://generativelanguage.googleapis.com/v1beta/openai"
                 updated = True
 
         # update file

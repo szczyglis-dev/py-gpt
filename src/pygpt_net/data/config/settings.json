@@ -103,6 +103,21 @@
         "advanced": false,
         "tab": "Google"
     },
+    "api_endpoint_google": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_google",
+        "description": "settings.api_endpoint_google.desc",
+        "value": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Google"
+    },
     "api_key_anthropic": {
         "section": "api_keys",
         "type": "text",
@@ -160,6 +175,21 @@
         "advanced": false,
         "tab": "DeepSeek"
     },
+    "api_endpoint_deepseek": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_deepseek",
+        "description": "settings.api_endpoint_deepseek.desc",
+        "value": "https://api.deepseek.com/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "DeepSeek"
+    },
     "api_key_xai": {
         "section": "api_keys",
         "type": "text",
@@ -176,6 +206,21 @@
         },
         "secret": true,
         "persist": true,
+        "advanced": false,
+        "tab": "xAI"
+    },
+    "api_endpoint_xai": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_xai",
+        "description": "settings.api_endpoint_xai.desc",
+        "value": "https://api.x.ai/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
         "advanced": false,
         "tab": "xAI"
     },
@@ -227,6 +272,21 @@
         },
         "secret": true,
         "persist": true,
+        "advanced": false,
+        "tab": "Perplexity"
+    },
+    "api_endpoint_perplexity": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_perplexity",
+        "description": "settings.api_endpoint_perplexity.desc",
+        "value": "https://api.perplexity.ai",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
         "advanced": false,
         "tab": "Perplexity"
     },
