@@ -290,7 +290,7 @@ class Chat:
                                                                     "type": "function",
                                                                     "function": {
                                                                         "name": call["function"]["name"],
-                                                                        "arguments": str(
+                                                                        "arguments": json.dumps(
                                                                             call["function"]["arguments"]),
                                                                     }
                                                                 }
@@ -317,7 +317,7 @@ class Chat:
                                                                     "type": "function",
                                                                     "function": {
                                                                         "name": call["function"]["name"],
-                                                                        "arguments": str(call["function"]["arguments"]),
+                                                                        "arguments": json.dumps(call["function"]["arguments"]),
                                                                     }
                                                                 }
                                                             )
