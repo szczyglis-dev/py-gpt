@@ -2,6 +2,7 @@
 
 ## 2.5.20 (2025-06-28)
 
+- LlamaIndex upgraded to 0.12.44.
 - Langchain removed from the list of modes and dependencies.
 - Improved tools execution.
 - Simplified model configuration.
