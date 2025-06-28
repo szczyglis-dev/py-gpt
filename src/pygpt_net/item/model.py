@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,17 @@ from pygpt_net.core.types import MODE_CHAT
 
 
 class ModelItem:
+
+    OPENAI_COMPATIBLE = [
+        "openai",
+        "azure_openai",
+        "google",
+        "local_ai",
+        "perplexity",
+        "deepseek_api",
+        "x_ai",
+    ]
+
     def __init__(self, id=None):
         """
         Model data item
@@ -31,7 +42,7 @@ class ModelItem:
         self.tokens = 0
         self.default = False
         self.imported = False
-        self.openai = False  # OpenAI API supported model
+        self.provider = ""
         self.extra = {}
 
     def from_dict(self, data: dict):
@@ -57,8 +68,8 @@ class ModelItem:
             self.extra = data['extra']
         if 'imported' in data:
             self.imported = data['imported']
-        if 'openai' in data:
-            self.openai = data['openai']
+        if 'provider' in data:
+            self.provider = data['provider']
 
         # multimodal
         if 'multimodal' in data:
@@ -66,6 +77,7 @@ class ModelItem:
             self.multimodal = options.split(',')
 
         # langchain
+        """
         if 'langchain.provider' in data:
             self.langchain['provider'] = data['langchain.provider']
         if 'langchain.mode' in data:
@@ -78,16 +90,19 @@ class ModelItem:
             self.langchain['args'] = data['langchain.args']
         if 'langchain.env' in data:
             self.langchain['env'] = data['langchain.env']
-
+        """
+        
         # llama index
         if 'llama_index.provider' in data:
             self.llama_index['provider'] = data['llama_index.provider']
+        """
         if 'llama_index.mode' in data:
             if data['llama_index.mode'] is None or data['llama_index.mode'] == "":
                 self.llama_index['mode'] = []
             else:
                 mode = data['llama_index.mode'].replace(' ', '')
                 self.llama_index['mode'] = mode.split(',')
+        """
         if 'llama_index.args' in data:
             self.llama_index['args'] = data['llama_index.args']
         if 'llama_index.env' in data:
@@ -103,27 +118,29 @@ class ModelItem:
         data['id'] = self.id
         data['name'] = self.name
         data['mode'] = ','.join(self.mode)
-        data['langchain'] = self.langchain
+        # data['langchain'] = self.langchain
         data['ctx'] = self.ctx
         data['tokens'] = self.tokens
         data['default'] = self.default
         data['multimodal'] = ','.join(self.multimodal)
         data['extra'] = self.extra
         data['imported'] = self.imported
-        data['openai'] = self.openai
+        data['provider'] = self.provider
 
-        data['langchain.provider'] = None
-        data['langchain.mode'] = ""
-        data['langchain.args'] = []
-        data['langchain.env'] = []
-        data['llama_index.provider'] = None
-        data['llama_index.mode'] = ""
+        # data['langchain.provider'] = None
+        # data['langchain.mode'] = ""
+        # data['langchain.args'] = []
+        # data['langchain.env'] = []
+        # data['llama_index.provider'] = None
+        # data['llama_index.mode'] = ""
         data['llama_index.args'] = []
         data['llama_index.env'] = []
 
+
         # langchain
+        """
         if 'provider' in self.langchain:
-            data['langchain.provider'] = self.langchain['provider']
+            data['langchain.provider'] = self.langchain['provider']        
         if 'mode' in self.langchain:
             data['langchain.mode'] = ",".join(self.langchain['mode'])
         if 'args' in self.langchain:
@@ -147,12 +164,13 @@ class ModelItem:
                     data['langchain.env'].append(item)
             elif isinstance(self.langchain['env'], list):
                 data['langchain.env'] = self.langchain['env']
+        """
 
         # llama_index
-        if 'provider' in self.llama_index:
-            data['llama_index.provider'] = self.llama_index['provider']
-        if 'mode' in self.llama_index:
-            data['llama_index.mode'] = ",".join(self.llama_index['mode'])
+        # if 'provider' in self.llama_index:
+            # data['llama_index.provider'] = self.llama_index['provider']
+        # if 'mode' in self.llama_index:
+            # data['llama_index.mode'] = ",".join(self.llama_index['mode'])
         if 'args' in self.llama_index:
             # old versions support
             if isinstance(self.llama_index['args'], dict):
@@ -184,8 +202,8 @@ class ModelItem:
         :param mode: Mode
         :return: True if supported
         """
-        if mode == MODE_CHAT and not self.is_openai():
-            # only OpenAI models are supported for chat mode
+        if mode == MODE_CHAT and not self.is_openai_supported():
+            # only OpenAI API compatible models are supported in Chat mode
             return False
         return mode in self.mode
 
@@ -197,13 +215,13 @@ class ModelItem:
         """
         return len(self.multimodal) > 0
 
-    def is_openai(self) -> bool:
+    def is_openai_supported(self) -> bool:
         """
-        Check if model is supported by OpenAI API
+        Check if model is supported by OpenAI API (or compatible)
 
-        :return: True if OpenAI
+        :return: True if OpenAI compatible
         """
-        return self.openai
+        return self.provider in self.OPENAI_COMPATIBLE
 
     def is_gpt(self) -> bool:
         """
@@ -226,11 +244,16 @@ class ModelItem:
 
         :return: True if Ollama
         """
+        if self.provider == "ollama":
+            return True
         if self.llama_index is None:
             return False
         if self.llama_index.get("provider") is None:
             return False
         return "ollama" in self.llama_index.get("provider", "")
+
+    def get_provider(self):
+        return self.provider
 
     def get_ollama_model(self) -> str:
         """

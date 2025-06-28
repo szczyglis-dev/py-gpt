@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import time
@@ -96,7 +96,7 @@ class Bridge:
                 if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
                     context.idx = None # disable index if in Chat mode and switch to Llama Index
 
-        # print("Using mode: ", mode)
+        self.window.core.debug.info("[bridge] Using mode: " + str(mode))
 
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
             context.idx_mode = MODE_CHAT  # default in sub-mode
@@ -201,8 +201,7 @@ class Bridge:
 
         if context.model is not None:
             # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call
-            if ((not context.model.is_supported(MODE_CHAT) or not context.model.is_openai())
-                    and not context.model.is_supported(MODE_RESEARCH)):
+            if not context.model.is_supported(MODE_CHAT):
 
                 # tmp switch to: llama-index
                 if context.model.is_supported(MODE_LLAMA_INDEX):
@@ -222,6 +221,7 @@ class Bridge:
                     return ""
 
                 # tmp switch to: langchain
+                """
                 elif context.model.is_supported(MODE_LANGCHAIN):
                     context.stream = False
                     ctx = context.ctx
@@ -237,6 +237,7 @@ class Bridge:
                         self.window.core.debug.error("Error in Langchain quick call: " + str(e))
                         self.window.core.debug.error(e)
                     return ""
+                """
 
         # if model is research model, then switch to research / Perplexity endpoint
         if context.mode is None or context.mode == MODE_CHAT:

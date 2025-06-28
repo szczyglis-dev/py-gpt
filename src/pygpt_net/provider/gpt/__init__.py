@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 import base64
 
@@ -55,7 +55,11 @@ class Gpt:
         self.summarizer = Summarizer(window)
         self.vision = Vision(window)
 
-    def get_client(self, mode: str = MODE_CHAT, model: ModelItem = None) -> OpenAI:
+    def get_client(
+            self,
+            mode: str = MODE_CHAT,
+            model: ModelItem = None
+    ) -> OpenAI:
         """
         Return OpenAI client
 
@@ -81,21 +85,8 @@ class Gpt:
                     transport=transport,
                 )
 
-        # research mode endpoint - Perplexity
-        if mode == MODE_RESEARCH:
-            if self.window.core.config.has('api_key_perplexity'):
-                args["api_key"] = self.window.core.config.get('api_key_perplexity')
-            if self.window.core.config.has('api_endpoint_perplexity'):
-                endpoint = self.window.core.config.get('api_endpoint_perplexity')
-                if endpoint:
-                    args["base_url"] = endpoint
-        elif mode == MODE_CHAT:
-            if model is not None:
-                # xAI / grok
-                if model.id.startswith("grok"):
-                    args["api_key"] = self.window.core.config.get('api_key_xai')
-                    args["base_url"] = self.window.core.config.get('api_endpoint_xai')
-
+        # update client args by mode and model
+        args = self.window.core.models.prepare_client_args(args, mode, model)
         return OpenAI(**args)
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
@@ -245,6 +236,7 @@ class Gpt:
                     )
             else:
                 if response.choices[0]:
+                    print(response.choices[0].message)
                     if response.choices[0].message.content:
                         output = response.choices[0].message.content.strip()
                     elif response.choices[0].message.tool_calls:

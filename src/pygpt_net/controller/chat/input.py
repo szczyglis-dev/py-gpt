@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import os
@@ -82,7 +82,7 @@ class Input:
                 model_data = self.window.core.models.get(model)
                 if model_data is not None and model_data.is_ollama():
                     if (mode == MODE_LLAMA_INDEX or
-                            (mode == MODE_CHAT and not model_data.is_openai() and model_data.is_ollama())):
+                            (mode == MODE_CHAT and not model_data.is_openai_supported() and model_data.is_ollama())):
                         model_id = model_data.get_ollama_model()
                         # load ENV vars first
                         if ('env' in model_data.llama_index

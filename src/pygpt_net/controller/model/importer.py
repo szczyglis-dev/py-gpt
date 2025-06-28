@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -205,8 +205,7 @@ class Importer:
         items = copy.deepcopy(self.window.core.models.items)
         for key in list(items.keys()):
             if (items[key].llama_index is None
-                    or 'provider' not in items[key].llama_index
-                    or items[key].llama_index['provider'] != 'ollama'):
+                    or items[key].provider != 'ollama'):
                 del items[key]
         return items
 
@@ -239,8 +238,9 @@ class Importer:
                         "agent_llama",
                         "expert",
                     ]
-                    m.llama_index['provider'] = 'ollama'
-                    m.llama_index['mode'] = ['chat']
+                    m.provider = 'ollama'
+                    # m.llama_index['provider'] = 'ollama'
+                    # m.llama_index['mode'] = ['chat']
                     m.llama_index['args'] = [
                         {
                             'name': 'model',
@@ -248,6 +248,7 @@ class Importer:
                             'type': 'str'
                         }
                     ]
+                    """
                     m.langchain['provider'] = 'ollama'
                     m.langchain['mode'] = ['chat']
                     m.langchain['args'] = [
@@ -257,11 +258,12 @@ class Importer:
                             'type': 'str'
                         }
                     ]
+                    """
                     m.imported = True
                     m.ctx = 32000  # default
                     key = m.id
-                    #if key in self.items_current:
-                        #key += "_imported"
+                    # if key in self.items_current:
+                        # key += "_imported"
                     models[key] = m
                 self.set_status(trans('models.importer.loaded'))
         return models

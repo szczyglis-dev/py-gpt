@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.27 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import json
@@ -17,7 +17,6 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
     MODE_AUDIO,
-    MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -113,7 +112,10 @@ class Chat:
                 })
 
         # fix: o1 compatibility
-        if model.id is not None and not model.id.startswith("o1") and not model.id.startswith("o3"):
+        if (model.id is not None
+                and not model.id.startswith("o1")
+                and not model.id.startswith("o3")
+                and model.is_gpt()):
             response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
             response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
@@ -184,6 +186,8 @@ class Chat:
 
         # tokens config
         mode = MODE_CHAT
+        is_tool_output = False
+        tool_call_native_enabled = self.window.core.config.get('func_call.native', False)
         allowed_system = True
         if (model.id is not None
                 and model.id in ["o1-mini", "o1-preview"]):
@@ -257,24 +261,90 @@ class Chat:
                                 }
                     messages.append(msg)
 
-        # use vision and audio if available in current model
-        content = str(prompt)
-        if MODE_VISION in model.mode:
-            content = self.window.core.gpt.vision.build_content(
-                content=content,
-                attachments=attachments,
-            )
-        if MODE_AUDIO in model.mode:
-            content = self.window.core.gpt.audio.build_content(
-                content=content,
-                multimodal_ctx=multimodal_ctx,
-            )
+                    # ---- tool output ----
+                    is_tool_output = False
+                    if tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                        if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
+                            for tool_call in item.extra["tool_calls"]:
+                                if "function" in tool_call:
+                                    if "id" not in tool_call or "name" not in tool_call["function"]:
+                                        continue
+                                    if tool_call["id"] and tool_call["function"]["name"]:
+                                        if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                            for tool_output in item.extra["tool_output"]:
+                                                if ("cmd" in tool_output
+                                                        and tool_output["cmd"] == tool_call["function"]["name"]):
+                                                    msg = {
+                                                        "role": "tool",
+                                                        "tool_call_id": tool_call["id"],
+                                                        "content": str(tool_output),
+                                                    }
+                                                    last_msg = messages[-1] if messages else None
+                                                    if last_msg and last_msg.get(
+                                                            "role") == "assistant":
+                                                        last_msg["tool_calls"] = []
+                                                        for call in item.extra["tool_calls"]:
+                                                            last_msg["tool_calls"].append(
+                                                                {
+                                                                    "id": call["id"],
+                                                                    "type": "function",
+                                                                    "function": {
+                                                                        "name": call["function"]["name"],
+                                                                        "arguments": str(
+                                                                            call["function"]["arguments"]),
+                                                                    }
+                                                                }
+                                                            )
+                                                        last_msg["content"] = ""
+                                                    messages.append(msg)
+                                                    is_tool_output = True
+                                                    break
+                                                elif "result" in tool_output:
+                                                    # if result is present, append it as function call output
+                                                    msg = {
+                                                        "role": "tool",
+                                                        "tool_call_id": tool_call["id"],
+                                                        "content": str(tool_output["result"]),
+                                                    }
+                                                    last_msg = messages[-1] if messages else None
+                                                    if last_msg and last_msg.get(
+                                                            "role") == "assistant":
+                                                        last_msg["tool_calls"] = []
+                                                        for call in item.extra["tool_calls"]:
+                                                            last_msg["tool_calls"].append(
+                                                                {
+                                                                    "id": call["id"],
+                                                                    "type": "function",
+                                                                    "function": {
+                                                                        "name": call["function"]["name"],
+                                                                        "arguments": str(call["function"]["arguments"]),
+                                                                    }
+                                                                }
+                                                            )
+                                                        last_msg["content"] = ""
+                                                    messages.append(msg)
+                                                    is_tool_output = True
+                                                    break
 
-        # append current prompt
-        messages.append({
-            "role": "user",
-            "content": content,
-        })
+        # use vision and audio if available in current model
+        if not is_tool_output:  # append current prompt only if not tool output
+            content = str(prompt)
+            if MODE_VISION in model.mode:
+                content = self.window.core.gpt.vision.build_content(
+                    content=content,
+                    attachments=attachments,
+                )
+            if MODE_AUDIO in model.mode:
+                content = self.window.core.gpt.audio.build_content(
+                    content=content,
+                    multimodal_ctx=multimodal_ctx,
+                )
+
+            # append current prompt
+            messages.append({
+                "role": "user",
+                "content": content,
+            })
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(

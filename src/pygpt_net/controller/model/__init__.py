@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -160,7 +160,7 @@ class Model:
         data = self.window.core.models.get_by_mode(mode)
         for k in data:
             suffix = ""
-            if "provider" in data[k].llama_index and data[k].llama_index["provider"] == "ollama":
+            if data[k].provider == "ollama":
                 suffix = " (Ollama)"
             items[k] = data[k].name + suffix
         items = dict(sorted(items.items(), key=lambda item: item[1]))  # sort items by name

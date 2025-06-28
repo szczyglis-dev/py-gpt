@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -385,31 +385,105 @@ class Models:
         :param mode: mode (initial)
         :return: mode (supported)
         """
+        prev_mode = mode
         # if OpenAI API model and not llama_index mode, switch to Chat mode
-        if model.is_openai():
-            if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:  # do not switch if llama_index mode!
+        if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:  # do not switch if llama_index mode!
+            if prev_mode != MODE_CHAT:
                 self.window.core.debug.info(
-                    "WARNING: Switching to chat mode (model not supported in: {})".format(mode))
-                return MODE_CHAT
+                    "WARNING: Switching to chat mode (model not supported in: {})".format(prev_mode))
+            return MODE_CHAT
 
         # Research / Perplexity
         if model.is_supported(MODE_RESEARCH):
-            self.window.core.debug.info(
-                "WARNING: Switching to research mode (model not supported in: {})".format(mode))
+            if prev_mode != MODE_RESEARCH:
+                self.window.core.debug.info(
+                    "WARNING: Switching to research mode (model not supported in: {})".format(mode))
             mode = MODE_RESEARCH
 
         # Llama Index / Chat with Files
         elif model.is_supported(MODE_LLAMA_INDEX):
-            self.window.core.debug.info(
-                "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
+            if prev_mode != MODE_LLAMA_INDEX:
+                self.window.core.debug.info(
+                    "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
             mode = MODE_LLAMA_INDEX
 
         # LangChain
+        """
         elif model.is_supported(MODE_LANGCHAIN):
             self.window.core.debug.info(
                 "WARNING: Switching to langchain mode (model not supported in: {})".format(mode))
             mode = MODE_LANGCHAIN
+        """
         return mode
+
+    def prepare_client_args(
+            self,
+            args: dict,
+            mode: str = MODE_CHAT,
+            model: ModelItem = None
+    ) -> Dict[str, str]:
+        """
+        Prepare chat client arguments
+
+        :param args: client arguments
+        :param mode: mode name
+        :param model: ModelItem
+        :return: client arguments dict
+        """
+        # research mode endpoint - Perplexity
+        if mode == MODE_RESEARCH:
+            args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
+            args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
+            self.window.core.debug.info("[api] Using client: Perplexity")
+        elif mode == MODE_CHAT:
+            if model is not None:
+                # xAI / grok
+                if model.provider == "x_ai":
+                    args["api_key"] = self.window.core.config.get('api_key_xai', "")
+                    args["base_url"] = self.window.core.config.get('api_endpoint_xai', "")
+                    self.window.core.debug.info("[api] Using client: xAI")
+                # Perplexity
+                elif model.provider == "perplexity":
+                    args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
+                    args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
+                    self.window.core.debug.info("[api] Using client: Perplexity")
+                # Google
+                elif model.provider == "google":
+                    args["api_key"] = self.window.core.config.get('api_key_google', "")
+                    args["base_url"] = self.window.core.config.get('api_endpoint_google', "")
+                    self.window.core.debug.info("[api] Using client: Google")
+                # Deepseek
+                elif model.provider == "deepseek_api":
+                    args["api_key"] = self.window.core.config.get('api_key_deepseek_api', "")
+                    args["base_url"] = self.window.core.config.get('api_endpoint_deepseek_api', "")
+                    self.window.core.debug.info("[api] Using client: Deepseek API")
+                else:
+                    self.window.core.debug.info("[api] Using client: OpenAI default")
+            else:
+                self.window.core.debug.info("[api] No model provided, using default OpenAI client")
+        return args
+
+    def is_tool_call_allowed(self, mode: str, model: ModelItem) -> bool:
+        """
+        Check if native tool call is allowed for model and mode
+
+        :param mode: Mode name
+        :param model: ModelItem
+        :return: True if tool call is allowed, False otherwise
+        """
+        not_allowed_providers = [
+            "ollama",
+            "hugging_face_api",
+            "deepseek_api",
+            "perplexity",
+            # "x_ai",
+        ]
+        if mode == MODE_LLAMA_INDEX:
+            if model.provider == "google":
+                not_allowed_providers.append("google")  # bug in types in google-generativeai==0.8.5
+        if model.provider in not_allowed_providers:
+            return False
+        return True
 
     def get_version(self) -> str:
         """
