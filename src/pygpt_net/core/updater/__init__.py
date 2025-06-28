@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.31 19:00:00                  #
+# Updated Date: 2025.06.28 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,6 +16,7 @@ import json
 import ssl
 import time
 from typing import Tuple
+import locale
 
 from urllib.request import urlopen, Request
 
@@ -333,8 +334,9 @@ class Updater:
         :param people: people list
         :return: parsed people list
         """
-        # split by ",", trim, add to list, sort and return joined
-        return ", ".join(natsort([x.strip() for x in people.split(",")]))
+        people_list = [x.strip() for x in people.split(",")]
+        sorted_people = sorted(people_list, key=locale.strxfrm)
+        return ", ".join(sorted_people)
 
     def check(self, force: bool = False) -> bool:
         """
