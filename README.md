@@ -14,7 +14,7 @@ Release: **2.5.19** | build: **2025-06-27** | Python: **>=3.10, <3.13**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LangChain` and `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini` and `Anthropic Claude`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini` and `Anthropic Claude`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -22,7 +22,7 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, vision, LangChain, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
 **Video** (mp4, version `2.4.35`, build `2024-11-28`):
 
@@ -38,8 +38,8 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 12 modes of operation: Chat, Vision, Completion, Assistant, Image generation, LangChain, Chat with Files, Chat with Audio, Research (Perplexity), Experts, Autonomous Mode and Agents.
-- Supports multiple models: `o1`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LangChain`, `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `DeepSeek V3/R1`, `Bielik`, etc.
+- 11 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Chat with Files, Chat with Audio, Research (Perplexity), Experts, Autonomous Mode and Agents.
+- Supports multiple models: `o1`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `DeepSeek V3/R1`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -49,7 +49,6 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Speech recognition via `OpenAI Whisper`, `Google` and `Microsoft Speech Recognition`.
 - Real-time video camera capture in Vision mode.
 - Image analysis via `GPT-4 Vision` and `GPT-4o`.
-- Integrated `LangChain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Integrated calendar, day notes and search in contexts by selected date.
 - Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 - Custom commands creation and execution.
@@ -79,7 +78,7 @@ Full Python source code is available on `GitHub`.
 **PyGPT uses the user's API key  -  to use the GPT models, 
 you must have a registered OpenAI account and your own API key. Local models do not require any API keys.**
 
-You can also use built-it LangChain support to connect to other Large Language Models (LLMs), 
+You can also use built-it LlamaIndex support to connect to other Large Language Models (LLMs), 
 such as those on HuggingFace. Additional API keys may be required.
 
 # Installation
@@ -524,28 +523,6 @@ The vector database in use will be displayed in the list of uploaded files, on t
 
 ![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f13c2eb-f961-4eae-b08b-0b4937f06ca9)
 
-## LangChain
-
-This mode enables you to work with models that are supported by `LangChain`. The LangChain support is integrated 
-into the application, allowing you to interact with any LLM by simply supplying a configuration 
-file for the specific model. You can add as many models as you like; just list them in the configuration 
-file named `models.json`.
-
-Available LLMs providers supported by **PyGPT**, in `LangChain` and `Chat with Files (LlamaIndex)` modes:
-
-```
-- OpenAI
-- Azure OpenAI
-- Google (Gemini, etc.)
-- HuggingFace
-- Anthropic
-- Ollama (Llama3, Mistral, etc.)
-```
-
-You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. 
-To integrate a new model, you can create your own wrapper and register it with the application. 
-Detailed instructions for this process are provided in the section titled `Managing models / Adding models via LangChain`.
-
 ##  Chat with Files (LlamaIndex)
 
 This mode enables chat interaction with your documents and entire context history through conversation. 
@@ -875,7 +852,7 @@ To allow the model to manage files or python code execution, the `+ Tools` optio
 
 ## What is preset?
 
-Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system prompt, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `LangChain`.
+Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system prompt, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `LlamaIndex`.
 
 The application lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
@@ -981,7 +958,7 @@ PyGPT has built-in support for models (as of 2025-06-27):
 
 All models are specified in the configuration file `models.json`, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by `OpenAI API`
-and those supported by `LlamaIndex` or `LangChain` to this file. Configuration for LangChain wrapper is placed in `langchain` key, configuration for LlamaIndex in `llama_index` key.
+and those supported by `LlamaIndex` to this file. Configuration for LlamaIndex is placed in `llama_index` key.
 
 ## Adding a custom model
 
@@ -989,13 +966,16 @@ You can add your own models. See the section `Extending PyGPT / Adding a new mod
 
 There is built-in support for those LLM providers:
 
-- OpenAI (openai)
+- Anthropic (anthropic)
 - Azure OpenAI (azure_openai)
+- Deepseek API (deepseek_api)
 - Google (google)
 - HuggingFace (huggingface)
-- Anthropic (anthropic)
+- Local models (OpenAI API compatible)
 - Ollama (ollama)
-- Deepseek API (deepseek_api)
+- OpenAI (openai)
+- Perplexity (perplexity)
+- xAI (x_ai)
 
 ## How to use local or non-GPT models
 
@@ -1433,7 +1413,7 @@ If enabled, plugin will stop after goal is reached." *Default:* `True`
 
 - `Reverse roles between iterations` *reverse_roles*
 
-Only for Completion/LangChain modes. 
+Only for Completion modes. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
@@ -2915,6 +2895,10 @@ Config -> Settings...
 
 - `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
+**Remote tools**
+
+Enable/disable remote tools, like Web Search or Image generation to use in OpenAI Responses API (OpenAI models and Chat mode only).
+
 **Models**
 
 - `Max Output Tokens`: Sets the maximum number of tokens the model can generate for a single response.
@@ -3511,7 +3495,7 @@ PyGPT can be extended with:
 
 **Examples (tutorial files)** 
 
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LlamaIndex) provider and data loader:
 
 - `examples/custom_launcher.py`
 
@@ -3567,7 +3551,7 @@ To register custom web providers:
 
 ## Adding a custom model
 
-To add a new model using the OpenAI API, LangChain, or LlamaIndex wrapper, use the editor in `Config -> Models` or manually edit the `models.json` file by inserting the model's configuration details. If you are adding a model via LangChain or LlamaIndex, ensure to include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (such as `OpenAI` or `HuggingFace`), and, if you are using an external API-based model, an optional `API KEY` along with any other necessary environment settings.
+To add a new model using the OpenAI API or LlamaIndex wrapper, use the editor in `Config -> Models` or manually edit the `models.json` file by inserting the model's configuration details. If you are adding a model via LlamaIndex, ensure to include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (such as `OpenAI` or `HuggingFace`), and, if you are using an external API-based model, an optional `API KEY` along with any other necessary environment settings.
 
 Example of models configuration - `%WORKDIR%/models.json`:
 
@@ -3581,30 +3565,8 @@ Example of models configuration - `%WORKDIR%/models.json`:
         "langchain",
         "llama_index"
     ],
-    "langchain": {
-        "provider": "openai",
-        "mode": [
-            "chat"
-        ],
-        "args": [
-            {
-                "name": "model_name",
-                "value": "gpt-3.5-turbo",
-                "type": "str"
-            }
-        ],
-        "env": [
-            {
-                "name": "OPENAI_API_KEY",
-                "value": "{api_key}"
-            }
-        ]
-    },
+    "provider": "openai"
     "llama_index": {
-        "provider": "openai",
-        "mode": [
-            "chat"
-        ],
         "args": [
             {
                 "name": "model",
@@ -3627,14 +3589,16 @@ Example of models configuration - `%WORKDIR%/models.json`:
 
 There is built-in support for those LLM providers:
 
-```
-- `OpenAI` (openai)
-- `Azure OpenAI` (azure_openai)
-- `Google` (google)
-- `HuggingFace API` (huggingface_api)
-- `Anthropic` (anthropic)
-- `Ollama` (ollama)
-```
+- Anthropic (anthropic)
+- Azure OpenAI (azure_openai)
+- Deepseek API (deepseek_api)
+- Google (google)
+- HuggingFace (huggingface)
+- Local models (OpenAI API compatible)
+- Ollama (ollama)
+- OpenAI (openai)
+- Perplexity (perplexity)
+- xAI (x_ai)
 
 **Tip**: `{api_key}` in `models.json` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
 
@@ -3813,7 +3777,7 @@ Events flow can be debugged by enabling the option `Config -> Settings -> Develo
 
 ## Adding a custom LLM provider
 
-Handling LLMs with LangChain and LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LangChain or LlamaIndex. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
+Handling LLMs with LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LlamaIndex. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
 
 These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
 
@@ -3887,7 +3851,7 @@ run(
 
 **Examples (tutorial files)** 
 
-See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM provider and data loader:
 
 - `examples/custom_launcher.py`
 
@@ -3909,7 +3873,7 @@ These example files can be used as a starting point for creating your own extens
 
 To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
-Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 3 components: provider for LangChain, provider for LlamaIndex, and provider for Embeddings.
+Every single LLM provider (wrapper) inherits from `BaseLLM` class and can provide 2 components: provider for LlamaIndex, and provider for Embeddings.
 
 
 ## Adding a custom vector store provider

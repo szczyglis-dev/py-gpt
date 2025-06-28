@@ -184,28 +184,6 @@ The vector database in use will be displayed in the list of uploaded files, on t
    :width: 800
 
 
-LangChain
-----------
-
-This mode enables you to work with models that are supported by ``LangChain``. The LangChain support is integrated 
-into the application, allowing you to interact with any LLM by simply supplying a configuration 
-file for the specific model. You can add as many models as you like; just list them in the configuration 
-file named ``models.json``.
-
-Available LLMs providers supported by **PyGPT**, in ``LangChain`` and ``Chat with Files (LlamaIndex)`` modes:
-
-* OpenAI
-* Azure OpenAI
-* Google (Gemini, etc.)
-* HuggingFace
-* Anthropic
-* Ollama (Llama 3, Mistral, etc.)
-
-You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. 
-To integrate a new model, you can create your own wrapper and register it with the application. 
-Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via LangChain``.
-
-
 Chat with Files (LlamaIndex)
 -----------------------------
 

@@ -326,7 +326,7 @@ If enabled, plugin will stop after goal is reached. *Default:* `True`
 
 - ``Reverse roles between iterations`` *reverse_roles*
 
-Only for Completion/LangChain modes. 
+Only for Completion mode. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`

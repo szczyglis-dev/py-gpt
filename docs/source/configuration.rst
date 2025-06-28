@@ -127,6 +127,10 @@ The following basic options can be modified directly within the application:
 
 * ``Model used for auto-summary``: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
+**Remote tools**
+
+Enable/disable remote tools, like Web Search or Image generation to use in OpenAI Responses API (OpenAI models and Chat mode only).
+
 **Models**
 
 * ``Max Output Tokens``: Sets the maximum number of tokens the model can generate for a single response.

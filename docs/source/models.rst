@@ -80,7 +80,7 @@ PyGPT has built-in support for models (as of 2025-06-27):
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by ``OpenAI API``
-and those supported by ``LlamaIndex`` or ``LangChain`` to this file. Configuration for LangChain wrapper is placed in ``langchain`` key, configuration for LlamaIndex in ``llama_index`` key.
+and those supported by ``LlamaIndex`` to this file. Configuration for LlamaIndex in placed in``llama_index`` key.
 
 Adding a custom model
 ---------------------
@@ -89,13 +89,16 @@ You can add your own models. See the section ``Extending PyGPT / Adding a new mo
 
 There is built-in support for those LLM providers:
 
-* ``OpenAI`` (openai)
-* ``Azure OpenAI`` (azure_openai)
-* ``Google`` (google)
-* ``HuggingFace API`` (huggingface_api)
 * ``Anthropic`` (anthropic)
-* ``Ollama`` (ollama)
+* ``Azure OpenAI`` (azure_openai)
 * ``Deepseek API`` (deepseek_api)
+* ``Google`` (google)
+* ``HuggingFace`` (huggingface)
+* ``Local models`` (OpenAI API compatible)
+* ``Ollama`` (ollama)
+* ``OpenAI`` (openai)
+* ``Perplexity`` (perplexity)
+* ``xAI`` (x_ai)
 
 How to use local or non-GPT models
 ----------------------------------

@@ -19,7 +19,7 @@ PyGPT can be extended with:
 
 **Examples (tutorial files)** 
 
-See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM provider and data loader:
 
 * ``examples/custom_launcher.py``
 * ``examples/example_audio_input.py``
@@ -70,7 +70,7 @@ To register custom web providers:
 Adding a custom model
 ---------------------
 
-To add a new model using the OpenAI API, LangChain, or LlamaIndex wrapper, use the editor in ``Config -> Models`` or manually edit the ``models.json`` file by inserting the model's configuration details. If you are adding a model via LangChain or LlamaIndex, ensure to include the model's name, its supported modes (either ``chat``, ``completion``, or both), the LLM provider (such as ``OpenAI`` or ``HuggingFace``), and, if you are using an external API-based model, an optional ``API KEY`` along with any other necessary environment settings.
+To add a new model using the OpenAI API, or LlamaIndex wrapper, use the editor in ``Config -> Models`` or manually edit the ``models.json`` file by inserting the model's configuration details. If you are adding a model via LlamaIndex, ensure to include the model's name, its supported modes (either ``chat``, ``completion``, or both), the LLM provider (such as ``OpenAI`` or ``HuggingFace``), and, if you are using an external API-based model, an optional ``API KEY`` along with any other necessary environment settings.
 
 Example of models configuration - ``%WORKDIR%/models.json``:
 
@@ -85,30 +85,8 @@ Example of models configuration - ``%WORKDIR%/models.json``:
             "langchain",
             "llama_index"
         ],
-        "langchain": {
-            "provider": "openai",
-            "mode": [
-                "chat"
-            ],
-            "args": [
-                {
-                    "name": "model_name",
-                    "value": "gpt-3.5-turbo",
-                    "type": "str"
-                }
-            ],
-            "env": [
-                {
-                    "name": "OPENAI_API_KEY",
-                    "value": "{api_key}"
-                }
-            ]
-        },
+        "provider": "openai",
         "llama_index": {
-            "provider": "openai",
-            "mode": [
-                "chat"
-            ],
             "args": [
                 {
                     "name": "model",
@@ -133,12 +111,16 @@ Example of models configuration - ``%WORKDIR%/models.json``:
 
 There is built-in support for those LLMs providers:
 
-* OpenAI (openai)
-* Azure OpenAI (azure_openai)
-* Google (google)
-* HuggingFace (huggingface)
-* Anthropic (anthropic)
-* Ollama (ollama)
+* ``Anthropic`` (anthropic)
+* ``Azure OpenAI`` (azure_openai)
+* ``Deepseek API`` (deepseek_api)
+* ``Google`` (google)
+* ``HuggingFace`` (huggingface)
+* ``Local models`` (OpenAI API compatible)
+* ``Ollama`` (ollama)
+* ``OpenAI`` (openai)
+* ``Perplexity`` (perplexity)
+* ``xAI`` (x_ai)
 
 
 Adding a custom plugin
@@ -321,7 +303,7 @@ Events flow can be debugged by enabling the option ``Config -> Settings -> Devel
 Adding a custom LLM provider
 ----------------------------
 
-Handling LLMs with LangChain and LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LangChain or LlamaIndex. All built-in wrappers for the models and its providers  are placed in the ``pygpt_net.provider.llms``.
+Handling LLMs with LlamaIndex is implemented through separated wrappers. This allows for the addition of support for any provider and model available via LlamaIndex. All built-in wrappers for the models and its providers  are placed in the ``pygpt_net.provider.llms``.
 
 These wrappers are loaded into the application during startup using ``launcher.add_llm()`` method:
 
@@ -393,7 +375,7 @@ To register custom LLM wrappers:
 
 **Examples (tutorial files)** 
 
-See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (LangChain and LlamaIndex) provider and data loader:
+See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM provider and data loader:
 
 * ``examples/custom_launcher.py``
 * ``examples/example_audio_input.py``
@@ -408,7 +390,7 @@ These example files can be used as a starting point for creating your own extens
 
 To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the ``pygpt_net.provider.llms``. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
 
-Every single LLM provider (wrapper) inherits from ``BaseLLM`` class and can provide 3 components: provider for LangChain, provider for LlamaIndex, and provider for Embeddings.
+Every single LLM provider (wrapper) inherits from ``BaseLLM`` class and can provide 2 components: provider for LlamaIndex, and provider for Embeddings.
 
 Adding a custom vector store provider
 -------------------------------------
