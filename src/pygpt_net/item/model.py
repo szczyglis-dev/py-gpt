@@ -94,7 +94,7 @@ class ModelItem:
         
         # llama index
         if 'llama_index.provider' in data:
-            self.llama_index['provider'] = data['llama_index.provider']
+            self.llama_index['provider'] = data['llama_index.provider']  # backward compatibility < v2.5.20
         """
         if 'llama_index.mode' in data:
             if data['llama_index.mode'] is None or data['llama_index.mode'] == "":
@@ -266,14 +266,6 @@ class ModelItem:
                 if arg["name"] == "model":
                     return arg["value"]
         return ""
-
-    def get_llama_provider(self) -> str:
-        """
-        Get Llama Index provider
-
-        :return: provider name
-        """
-        return self.llama_index.get("provider", "")
 
     def has_mode(self, mode: str) -> bool:
         """

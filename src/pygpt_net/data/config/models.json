@@ -1998,7 +1998,8 @@
                 "chat",
                 "vision",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2041,7 +2042,8 @@
             "mode": [
                 "chat",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2084,7 +2086,8 @@
             "mode": [
                 "chat",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2128,7 +2131,8 @@
                 "chat",
                 "vision",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2172,7 +2176,8 @@
                 "chat",
                 "vision",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2215,7 +2220,8 @@
             "mode": [
                 "chat",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2260,7 +2266,8 @@
             "mode": [
                 "chat",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2305,7 +2312,8 @@
             "mode": [
                 "chat",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [
@@ -2351,7 +2359,8 @@
                 "chat",
                 "vision",
                 "agent",
-                "expert"
+                "expert",
+                "llama_index"
             ],
             "llama_index": {
                 "args": [

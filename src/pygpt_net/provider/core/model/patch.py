@@ -609,6 +609,11 @@ class Patch:
                         if 'provider' in model.llama_index:
                             del model.llama_index['provider']
 
+                    # add llama_index mode to o1, o3
+                    if model.id.startswith("o1") or model.id.startswith("o3"):
+                        if "llama_index" not in model.mode:
+                            model.mode.append("llama_index")
+
                     # del langchain config
                     if 'langchain' in model.mode:
                         model.mode.remove("langchain")
