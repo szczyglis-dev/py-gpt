@@ -56,13 +56,14 @@ class BridgeWorker(QObject, QRunnable):
             self.handle_post_prompt_end()
 
             # Langchain
-            """
             if self.mode == MODE_LANGCHAIN:
+                raise Exception("Langchain mode is deprecated from v2.5.20 and no longer supported. ")
+                """
                 result = self.window.core.chain.call(
                     context=self.context,
                     extra=self.extra,
                 )
-            """
+                """
 
             # LlamaIndex: chat with files
             if self.mode == MODE_LLAMA_INDEX:
