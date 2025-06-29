@@ -19,6 +19,9 @@ https://pygpt.net/discord
 **Snap Store:**
 https://snapcraft.io/pygpt
 
+**Microsoft Store:**
+https://apps.microsoft.com/detail/XP99R4MX3X65VQ
+
 **PyPI:**
 https://pypi.org/project/pygpt-net
 
