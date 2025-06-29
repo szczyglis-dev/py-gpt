@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.22 (2025-06-29)
+
+- Improved models editor.
+
 ## 2.5.21 (2025-06-28)
 
 - Fixed JS errors in logger.
