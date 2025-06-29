@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 19:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -92,6 +92,7 @@ def test_get_tokens(mock_window):
 def test_get_num_ctx(mock_window):
     """Test get num ctx"""
     model = ModelItem()
+    model.name = "gpt-5"
     model.ctx = 100
     models = Models(mock_window)
     models.items = {"gpt-5": model}
@@ -102,6 +103,7 @@ def test_get_num_ctx(mock_window):
 def test_load(mock_window):
     """Test load"""
     model = ModelItem()
+    model.name = "gpt-5"
     model.ctx = 100
     models = Models(mock_window)
     models.provider = MagicMock()
@@ -113,6 +115,7 @@ def test_load(mock_window):
 def test_save(mock_window):
     """Test save"""
     model = ModelItem()
+    model.name = "gpt-5"
     model.ctx = 100
     models = Models(mock_window)
     models.provider = MagicMock()

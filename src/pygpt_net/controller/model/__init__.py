@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -163,8 +163,13 @@ class Model:
             if data[k].provider == "ollama":
                 suffix = " (Ollama)"
             items[k] = data[k].name + suffix
-        items = dict(sorted(items.items(), key=lambda item: item[1]))  # sort items by name
+        items = dict(sorted(items.items(), key=lambda item: item[1].lower()))  # sort items by name
         self.window.ui.nodes["prompt.model"].set_keys(items)
+
+    def reload(self):
+        """Reload models"""
+        self.init_list()
+        self.update()
 
     def update(self):
         """Update models"""

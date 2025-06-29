@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
 
 from .field.checkbox import Checkbox
+from .field.checkbox_list import CheckboxList
 from .field.combo import Combo
 from .field.cmd import Cmd
 from .field.dictionary import Dictionary
@@ -30,6 +31,7 @@ class Config:
         """
         self.window = window
         self.checkbox = Checkbox(window)
+        self.checkbox_list = CheckboxList(window)
         self.combo = Combo(window)
         self.cmd = Cmd(window)
         self.dictionary = Dictionary(window)
@@ -77,6 +79,8 @@ class Config:
             self.textarea.apply(parent_id, key, option)
         elif option['type'] == 'bool':
             self.checkbox.apply(parent_id, key, option)
+        elif option['type'] == 'bool_list':
+            self.checkbox_list.apply(parent_id, key, option)
         elif option['type'] == 'dict':
             self.dictionary.apply(parent_id, key, option)
         elif option['type'] == 'combo':
@@ -129,6 +133,8 @@ class Config:
             return self.textarea.get_value(parent_id, key, option)
         elif option['type'] == 'bool':
             return self.checkbox.get_value(parent_id, key, option)
+        elif option['type'] == 'bool_list':
+            return self.checkbox_list.get_value(parent_id, key, option)
         elif option['type'] == 'dict':
             return self.dictionary.get_value(parent_id, key, option)
         elif option['type'] == 'combo':

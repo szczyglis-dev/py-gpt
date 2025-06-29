@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -22,6 +22,7 @@ from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.labels import UrlLabel
 from pygpt_net.ui.widget.lists.model_editor import ModelEditorList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
@@ -209,10 +210,19 @@ class Models:
                 widgets[key] = OptionTextarea(self.window, parent, key, option)  # textarea
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, parent, key, option)  # checkbox
+            elif option['type'] == 'bool_list':
+                self.window.controller.config.placeholder.apply(option)
+                widgets[key] = OptionCheckboxList(self.window, parent, key, option)  # checkbox list
             elif option['type'] == 'dict':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionDict(self.window, parent, key, option)  # dictionary
                 widgets[key].setMinimumHeight(200)
+                # register dict to editor:
+                self.window.ui.dialogs.register_dictionary(
+                    key,
+                    parent=parent,
+                    option=option,
+                )
             elif option['type'] == 'combo':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
@@ -273,12 +283,14 @@ class Models:
         # 2-columns layout
         if option['type'] not in one_column_types:
             cols = QHBoxLayout()
-            cols.addWidget(self.window.ui.nodes[label_key])  # disable label in bool type
-            cols.addWidget(widget)
+            cols.addWidget(self.window.ui.nodes[label_key], 1)  # disable label in bool type
+            cols.addWidget(widget, 4)
 
             cols_widget = QWidget()
             cols_widget.setLayout(cols)
-            cols_widget.setMaximumHeight(90)
+
+            if option['type'] != 'bool_list':
+                cols_widget.setMaximumHeight(90)
 
             layout = QVBoxLayout()
             layout.addWidget(cols_widget)

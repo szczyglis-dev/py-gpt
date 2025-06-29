@@ -107,6 +107,18 @@ class OptionInput(QLineEdit):
             if "read_only" in self.option and self.option["read_only"]:
                 self.setReadOnly(True)
 
+        # on update hook
+        self.textChanged.connect(
+            lambda: self.window.controller.config.input.on_update(
+                self.parent_id,
+                self.id,
+                self.option,
+                self.text(),
+                hooks=True,
+                only_hook=True,
+            )
+        )
+
     def keyPressEvent(self, event):
         """
         Key press event

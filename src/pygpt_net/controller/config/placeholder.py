@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -53,6 +53,9 @@ class Placeholder:
         elif option['type'] == 'combo':
             if "use" in option and option["use"] is not None:
                 option["keys"] = self.apply_by_id(option["use"])
+        elif option['type'] == 'bool_list':
+            if "use" in option and option["use"] is not None:
+                option["keys"] = self.apply_by_id(option["use"])
 
     def apply_by_id(self, id: str) -> List[Dict[str, str]]:
         """
@@ -62,6 +65,8 @@ class Placeholder:
         """
         if id == "presets":
             return self.get_presets()
+        elif id == "modes":
+            return self.get_modes()
         elif id == "models":
             return self.get_models()
         elif id == "langchain_providers":
@@ -270,6 +275,19 @@ class Placeholder:
             if id.startswith("current."):  # ignore "current" preset
                 continue
             data.append({id: id})  # TODO: name
+        return data
+
+    def get_modes(self) -> List[Dict[str, str]]:
+        """
+        Get modes placeholders list
+
+        :return: Modes placeholders list
+        """
+        modes = self.window.core.modes.get_all()
+        data = []
+        for id in modes:
+            name = trans("mode." + id)
+            data.append({id: name})
         return data
 
     def get_models(self) -> List[Dict[str, str]]:

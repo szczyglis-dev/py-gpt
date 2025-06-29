@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -367,7 +367,8 @@ class Models:
 
     def sort_items(self):
         """Sort items"""
-        self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))
+        if self.items:
+            self.items = dict(sorted(self.items.items(), key=lambda x: x[1].name.lower()))
 
     def save(self):
         """Save models"""

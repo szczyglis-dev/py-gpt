@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 import copy
-from typing import Optional
+from typing import Optional, Any
 
 from pygpt_net.utils import trans
 
@@ -26,6 +26,7 @@ class Editor:
         self.dialog = False
         self.config_initialized = False
         self.current = None
+        self.previous = None  # previous models
         self.width = 800
         self.height = 500
         self.options = {
@@ -36,6 +37,11 @@ class Editor:
             "name": {
                 "type": "text",
                 "label": "model.name",
+            },
+            "provider": {
+                "type": "combo",
+                "use": "llm_providers",
+                "label": "model.provider",
             },
             "ctx": {
                 "type": "int",
@@ -48,14 +54,9 @@ class Editor:
                 "description": "model.tokens.desc",
             },
             "mode": {
-                "type": "text",  # list of comma separated values
+                "type": "bool_list",  # list of comma separated values
                 "label": "model.mode",
-                "description": "model.mode.desc",
-            },
-            "provider": {
-                "type": "combo",
-                "use": "llm_providers",
-                "label": "model.provider",
+                "use": "modes",
             },
             "default": {
                 "type": "bool",
@@ -109,6 +110,35 @@ class Editor:
         """Set up editor"""
         idx = None
         self.window.model_settings.setup(idx)  # widget dialog setup
+        self.window.ui.add_hook("update.model.name", self.hook_update)
+        self.window.ui.add_hook("update.model.mode", self.hook_update)
+
+    def hook_update(
+            self,
+            key: str,
+            value: Any,
+            caller,
+            *args,
+            **kwargs
+    ):
+        """
+        Hook: on settings update
+
+        :param key: config key
+        :param value: config value
+        :param caller: caller name
+        :param args: args
+        :param kwargs: kwargs
+        """
+        if self.window.controller.reloading:
+            return  # ignore hooks during reloading process
+        if key in ["id", "name", "mode"]:
+            self.save(persist=False)
+            self.reload_items()
+            # select by current model
+            idx = self.get_tab_by_id(self.current)
+            if idx is not None:
+                self.set_by_tab(idx)
 
     def toggle_editor(self):
         """Toggle models editor dialog"""
@@ -128,12 +158,21 @@ class Editor:
             self.config_initialized = True
         if not self.dialog or force:
             self.init()
+            self.previous =  copy.deepcopy(self.window.core.models.items)
             self.window.ui.dialogs.open(
                 "models.editor",
                 width=self.width,
                 height=self.height,
             )
             self.dialog = True
+
+    def undo(self):
+        """Undo last changes in models editor"""
+        if self.previous is not None:
+            self.window.core.models.items = copy.deepcopy(self.previous)
+            self.window.core.models.save()
+            self.reload_items()
+            self.init()
 
     def close(self):
         """Close models editor dialog"""
@@ -143,6 +182,7 @@ class Editor:
 
     def init(self):
         """Initialize models editor options"""
+        self.window.core.models.sort_items()
         self.reload_items()
 
         # select the first plugin on list if no plugin selected yet
@@ -186,6 +226,9 @@ class Editor:
             self.window.core.models.save()
             self.close()
             self.window.update_status(trans("info.settings.saved"))
+
+        self.window.core.models.sort_items()
+        self.window.controller.model.reload()
 
     def reload_items(self):
         """Reload items"""
@@ -250,12 +293,7 @@ class Editor:
             )
             return
 
-        # reload settings window
-        self.window.core.models.save()
-        self.current = None
-        self.reload_items()
-        self.init()
-        # self.window.ui.dialogs.alert(trans('dialog.models.editor.defaults.user.result'))
+        self.undo()
 
     def load_defaults_app(self, force: bool = False):
         """
@@ -277,11 +315,13 @@ class Editor:
 
         # reload settings window
         self.current = None
+        self.window.core.models.sort_items()
         self.reload_items()
         self.init()
         self.window.ui.dialogs.alert(
             trans('dialog.models.editor.defaults.app.result')
         )
+        self.previous = copy.deepcopy(self.window.core.models.items)
 
     def set_by_tab(self, idx: int):
         """

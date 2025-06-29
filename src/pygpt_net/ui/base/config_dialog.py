@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.02 19:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWi
 
 from pygpt_net.ui.widget.element.labels import TitleLabel, UrlLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.ui.widget.option.checkbox_list import OptionCheckboxList
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
@@ -62,6 +63,9 @@ class BaseConfigDialog:
                     widgets[key].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, id, key, option)  # checkbox
+            elif option['type'] == 'bool_list':
+                self.window.controller.config.placeholder.apply(option)
+                widgets[key] = OptionCheckboxList(self.window, id, key, option)  # checkbox list
             elif option['type'] == 'dict':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionDict(self.window, id, key, option)  # dictionary

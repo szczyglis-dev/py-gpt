@@ -49,14 +49,14 @@ class Input:
                 value = 0.0
 
         # min/max
-        if "type" in option and option["type"] == "int" or option["type"] == "float":
+        if "type" in option and (option["type"] == "int" or option["type"] == "float"):
             if value is not None:
-                if "min" in option and option["min"] is not None and value < option["min"]:
+                if "min" in option and (option["min"] is not None and value < option["min"]):
                     value = option["min"]
-                elif "max" in option and option["max"] is not None and value > option["max"]:
+                elif "max" in option and (option["max"] is not None and value > option["max"]):
                     value = option["max"]
 
-        if key in self.window.ui.config[parent_id]:
+        if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
             self.window.ui.config[parent_id][key].setText("{}".format(value))
 
     def on_update(
@@ -65,7 +65,8 @@ class Input:
             key: str,
             option: Dict[str, Any],
             value: Any,
-            hooks: bool = True
+            hooks: bool = True,
+            only_hook = False,
     ):
         """
         On update event handler
@@ -75,9 +76,11 @@ class Input:
         :param option: Option data
         :param value: Option value
         :param hooks: Run hooks
+        :param only_hook: Only run hook, do not apply value
         """
         option['value'] = value
-        self.apply(parent_id, key, option)
+        if not only_hook:
+            self.apply(parent_id, key, option)
 
         # on update hooks
         if hooks:
