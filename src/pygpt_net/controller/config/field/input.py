@@ -80,9 +80,6 @@ class Input:
         :param hooks: Run hooks
         :param only_hook: Only run hook, do not apply value
         """
-        if "value" not in option:
-            return
-
         option['value'] = value
         if not only_hook:
             self.apply(parent_id, key, option)

@@ -54,8 +54,6 @@ class Textarea:
         :param value: Option value
         :param hooks: Run hooks
         """
-        if "value" not in option:
-            return
         option["value"] = value
         self.apply(parent_id, key, option)
 

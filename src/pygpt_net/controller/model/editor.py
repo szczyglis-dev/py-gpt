@@ -220,7 +220,8 @@ class Editor:
                 option=options[key],
             )
             data_dict[key] = value
-        self.window.core.models.items[self.current].from_dict(data_dict)
+        if self.current in self.window.core.models.items:
+            self.window.core.models.items[self.current].from_dict(data_dict)
 
         # save config
         if persist:

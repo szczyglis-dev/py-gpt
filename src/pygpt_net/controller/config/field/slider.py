@@ -109,8 +109,6 @@ class Slider:
         :param type: Update from field type (slider, input, None=value)
         :param hooks: Run hooks
         """
-        if "value" not in option:
-            return
         option['value'] = value
         self.apply(parent_id, key, option, type)
 
