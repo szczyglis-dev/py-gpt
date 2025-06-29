@@ -111,16 +111,16 @@ Example of models configuration - ``%WORKDIR%/models.json``:
 
 There is built-in support for those LLMs providers:
 
-* ``Anthropic`` (anthropic)
-* ``Azure OpenAI`` (azure_openai)
-* ``Deepseek API`` (deepseek_api)
-* ``Google`` (google)
-* ``HuggingFace`` (huggingface)
+* ``Anthropic``
+* ``Azure OpenAI``
+* ``Deepseek API``
+* ``Google``
+* ``HuggingFace``
 * ``Local models`` (OpenAI API compatible)
-* ``Ollama`` (ollama)
-* ``OpenAI`` (openai)
-* ``Perplexity`` (perplexity)
-* ``xAI`` (x_ai)
+* ``Ollama``
+* ``OpenAI``
+* ``Perplexity``
+* ``xAI``
 
 
 Adding a custom plugin
