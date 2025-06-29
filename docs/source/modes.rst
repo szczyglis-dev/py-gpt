@@ -6,7 +6,7 @@ Chat
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``GPT-3.5``. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API. YYou can select the API to use in: ``Config -> Settings -> API Keys -> OpenAI``.
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``GPT-3.5``. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API. You can select the API to use in: ``Config -> Settings -> API Keys -> OpenAI``.
 
 .. note::
    **Tip:** This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex, which the application switches to in the background when working with models other than OpenAI.
