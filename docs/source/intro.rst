@@ -4,7 +4,7 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``o1``, ``o3``, ``gpt-4``, ``gpt-4 Vision``, and ``gpt-3.5``, through the ``OpenAI API``. By utilizing ``LlamaIndex``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models via ``Ollama`` (like ``Llama 3``,``Mistral``, ``DeepSeek V3/R1`` or ``Bielik``), ``Google Gemini``, ``Anthropic Claude``, and ``xAI Grok``.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``o1``, ``o3``, ``gpt-4``, ``gpt-4 Vision``, and ``gpt-3.5``, through the ``OpenAI API``. By utilizing ``LlamaIndex``, the application also supports alternative LLMs, like those available on ``HuggingFace``, locally available models via ``Ollama`` (like ``Llama 3``, ``Mistral``, ``DeepSeek V3/R1`` or ``Bielik``), ``Google Gemini``, ``Anthropic Claude``, and ``xAI Grok``.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``gpt-4o`` and ``gpt-4-vision`` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google`` and ``Microsoft Bing``.
 
