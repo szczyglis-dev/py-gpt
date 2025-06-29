@@ -372,7 +372,7 @@ Your API keys will be available here:
 
 This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and `GPT-3.5`. It works by using the `Responses` and `ChatCompletions` OpenAI API. You can select the API to use in: `Config -> Settings -> API Keys -> OpenAI`.
 
-**Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex, which the application switches to in the background when working with models other than OpenAI.**
+**Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints, which the application switches to in the background when working with models other than OpenAI.**
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
