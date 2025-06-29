@@ -891,71 +891,71 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 PyGPT has built-in support for models (as of 2025-06-27):
 
-- `bielik-11b-v2.3-instruct:Q4_K_M`
-- `chatgpt-4o-latest`
-- `claude-3-5-sonnet-20240620`
-- `claude-3-7-sonnet`
-- `claude-3-opus`
-- `claude-3-opus`
-- `claude-opus-4-0`
-- `claude-sonnet-4-0`
-- `codellama`
-- `dall-e-2`
-- `dall-e-3`
-- `deepseek-chat`
-- `deepseek-r1:1.5b`
-- `deepseek-r1:14b`
-- `deepseek-r1:32b`
-- `deepseek-r1:670b`
-- `deepseek-r1:7b`
-- `deepseek-r1:671b`
-- `deepseek-reasoner`
-- `deepseek-v3:671b`
-- `gemini-1.5-flash`
-- `gemini-1.5-pro`
-- `gemini-2.0-flash-exp`
-- `gemini-2.5-flash`
-- `gemini-2.5-pro`
-- `gpt-3.5-turbo`
-- `gpt-3.5-turbo-1106`
-- `gpt-3.5-turbo-16k`
-- `gpt-3.5-turbo-instruct`
-- `gpt-4`
-- `gpt-4-0125-preview`
-- `gpt-4-1106-preview`
-- `gpt-4-32k`
-- `gpt-4-turbo`
-- `gpt-4-turbo-2024-04-09`
-- `gpt-4-turbo-preview`
-- `gpt-4-vision-preview`
-- `gpt-4.1`
-- `gpt-4.1-mini`
-- `gpt-4.5-preview`
-- `gpt-4o`
-- `gpt-4o-2024-11-20`
-- `gpt-4o-audio-preview`
-- `gpt-4o-mini`
-- `grok-3`
-- `grok-3-fast`
-- `grok-3-mini`
-- `grok-3-mini-fast`
-- `llama2-uncensored`
-- `llama3.1`
-- `llama3.1:405b`
-- `llama3.1:70b`
-- `mistral`
-- `mistral-large`
-- `o1`
-- `o1-mini`
-- `o1-pro`
-- `o3`
-- `o3-mini`
-- `o3-pro`
-- `qwen:7b`
-- `qwen2:7b`
-- `qwen2.5-coder:7b`
-- `qwen3:8b`
-- `qwen3:30b-a3b`
+- `bielik-11b-v2.3-instruct:Q4_K_M` (Ollama)
+- `chatgpt-4o-latest` (OpenAI)
+- `claude-3-5-sonnet-20240620` (Anthropic)
+- `claude-3-7-sonnet` (Anthropic)
+- `claude-3-opus` (Anthropic)
+- `claude-3-opus` (Anthropic)
+- `claude-opus-4-0` (Anthropic)
+- `claude-sonnet-4-0` (Anthropic)
+- `codellama` (Ollama)
+- `dall-e-2` (OpenAI)
+- `dall-e-3` (OpenAI)
+- `deepseek-chat` (DeepSeek)
+- `deepseek-r1:1.5b` (Ollama)
+- `deepseek-r1:14b` (Ollama)
+- `deepseek-r1:32b` (Ollama)
+- `deepseek-r1:670b` (Ollama)
+- `deepseek-r1:7b` (Ollama)
+- `deepseek-r1:671b` (Ollama)
+- `deepseek-reasoner` (DeepSeek)
+- `deepseek-v3:671b` (Ollama)
+- `gemini-1.5-flash` (Google)
+- `gemini-1.5-pro` (Google)
+- `gemini-2.0-flash-exp` (Google)
+- `gemini-2.5-flash` (Google)
+- `gemini-2.5-pro` (Google)
+- `gpt-3.5-turbo` (OpenAI)
+- `gpt-3.5-turbo-1106` (OpenAI)
+- `gpt-3.5-turbo-16k` (OpenAI)
+- `gpt-3.5-turbo-instruct` (OpenAI)
+- `gpt-4` (OpenAI)
+- `gpt-4-0125-preview` (OpenAI)
+- `gpt-4-1106-preview` (OpenAI)
+- `gpt-4-32k` (OpenAI)
+- `gpt-4-turbo` (OpenAI)
+- `gpt-4-turbo-2024-04-09` (OpenAI)
+- `gpt-4-turbo-preview` (OpenAI)
+- `gpt-4-vision-preview` (OpenAI)
+- `gpt-4.1` (OpenAI)
+- `gpt-4.1-mini` (OpenAI)
+- `gpt-4.5-preview` (OpenAI)
+- `gpt-4o` (OpenAI)
+- `gpt-4o-2024-11-20` (OpenAI)
+- `gpt-4o-audio-preview` (OpenAI)
+- `gpt-4o-mini` (OpenAI)
+- `grok-3` (xAI)
+- `grok-3-fast` (xAI)
+- `grok-3-mini` (xAI)
+- `grok-3-mini-fast` (xAI)
+- `llama2-uncensored` (Ollama)
+- `llama3.1` (Ollama)
+- `llama3.1:405b` (Ollama)
+- `llama3.1:70b` (Ollama)
+- `mistral` (Ollama)
+- `mistral-large` (Ollama)
+- `o1` (OpenAI)
+- `o1-mini` (OpenAI)
+- `o1-pro` (OpenAI)
+- `o3` (OpenAI)
+- `o3-mini` (OpenAI)
+- `o3-pro` (OpenAI)
+- `qwen:7b` (Ollama)
+- `qwen2:7b` (Ollama)
+- `qwen2.5-coder:7b` (Ollama)
+- `qwen3:8b` (Ollama)
+- `qwen3:30b-a3b` (Ollama)
 - `r1` (Perplexity)
 - `sonar` (Perplexity)
 - `sonar-deep-research` (Perplexity)
@@ -973,16 +973,16 @@ You can add your own models. See the section `Extending PyGPT / Adding a new mod
 
 There is built-in support for those LLM providers:
 
-- Anthropic (anthropic)
-- Azure OpenAI (azure_openai)
-- Deepseek API (deepseek_api)
-- Google (google)
-- HuggingFace (huggingface)
+- Anthropic
+- Azure OpenAI
+- Deepseek API
+- Google
+- HuggingFace
 - Local models (OpenAI API compatible)
-- Ollama (ollama)
-- OpenAI (openai)
-- Perplexity (perplexity)
-- xAI (x_ai)
+- Ollama
+- OpenAI
+- Perplexity
+- xAI
 
 ## How to use local or non-GPT models
 
@@ -1058,16 +1058,16 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 
 - name: `base_url`, value: `http://localhost:11434`, type: `str`
 
-### Google Gemini and Anthropic Claude
+### Google Gemini, Anthropic Claude, xAI Grok, etc.
 
-To use `Gemini` or `Claude` models, select the `Chat with Files` mode in PyGPT and select a predefined model.
-Remember to configure the required parameters like API keys in the model ENV config fields.
+To use `Gemini`, `Grok`, or `Claude` models, select the `Chat` or `Chat with Files` mode in PyGPT and select a predefined model. `Chat` mode works via OpenAI SDK, `Chat with Files` mode works via LlamaIndex.
+If you want to use `Chat with Files` mode (LlamaIndex), then remember to configure the required parameters like API keys in the model ENV config fields:
 
 **Google Gemini**
 
 Required ENV:
 
-- GOOGLE_API_KEY
+- GOOGLE_API_KEY = {api_key_google}
 
 Required **kwargs:
 
@@ -1077,7 +1077,18 @@ Required **kwargs:
 
 Required ENV:
 
-- ANTHROPIC_API_KEY
+- ANTHROPIC_API_KEY = {api_key_anthropic}
+
+Required **kwargs:
+
+- model
+
+**xAI Grok** (Chat mode only)
+
+Required ENV:
+
+- OPENAI_API_KEY = {api_key_xai}
+- OPENAI_API_BASE = {api_endpoint_xai}
 
 Required **kwargs:
 
@@ -1291,7 +1302,7 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 ## Audio Output
 
-The plugin lets you turn text into speech using the TTS model from OpenAI or other services like ``Microsoft Azure``, ``Google``, and ``Eleven Labs``. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+The plugin lets you turn text into speech using the TTS model from OpenAI or other services like `Microsoft Azure`, `Google`, and `Eleven Labs`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, `Google` or `Eleven Labs`, you must configure the audio plugin with your API keys, regions and voices if required.
 
 ![v2_azure](https://github.com/user-attachments/assets/475108c1-5ea8-4f43-8cd5-effcd5ef352c)
@@ -3596,16 +3607,16 @@ Example of models configuration - `%WORKDIR%/models.json`:
 
 There is built-in support for those LLM providers:
 
-- Anthropic (anthropic)
-- Azure OpenAI (azure_openai)
-- Deepseek API (deepseek_api)
-- Google (google)
-- HuggingFace (huggingface)
+- Anthropic
+- Azure OpenAI
+- Deepseek API
+- Google
+- HuggingFace
 - Local models (OpenAI API compatible)
-- Ollama (ollama)
-- OpenAI (openai)
-- Perplexity (perplexity)
-- xAI (x_ai)
+- Ollama
+- OpenAI
+- Perplexity
+- xAI
 
 **Tip**: `{api_key}` in `models.json` is a placeholder for the main OpenAI API KEY from the settings. It will be replaced by the configured key value.
 
