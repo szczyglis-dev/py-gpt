@@ -80,7 +80,7 @@ PyGPT has built-in support for models (as of 2025-06-27):
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
 This file is located in your working directory. You can add new models provided directly by ``OpenAI API``
-and those supported by ``LlamaIndex`` to this file. Configuration for LlamaIndex in placed in``llama_index`` key.
+and those supported by ``LlamaIndex`` to this file. Configuration for LlamaIndex in placed in ``llama_index`` key.
 
 Adding a custom model
 ---------------------
