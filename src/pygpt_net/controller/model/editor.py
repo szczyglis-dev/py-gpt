@@ -192,13 +192,14 @@ class Editor:
 
         # assign plugins options to config dialog fields
         options = copy.deepcopy(self.get_options())  # copy options
-        model = self.window.core.models.items[self.current]
-        data_dict = model.to_dict()
-        for key in options:
-            value = data_dict[key]
-            options[key]["value"] = value
+        if self.current in self.window.core.models.items:
+            model = self.window.core.models.items[self.current]
+            data_dict = model.to_dict()
+            for key in options:
+                value = data_dict[key]
+                options[key]["value"] = value
 
-        if self.current is not None:
+        if self.current is not None and self.current in self.window.core.models.items:
             self.set_tab_by_id(self.current)
 
         # load and apply options to config dialog

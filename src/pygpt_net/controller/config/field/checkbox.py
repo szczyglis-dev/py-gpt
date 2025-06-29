@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -34,6 +34,8 @@ class Checkbox:
         :param key: Option key
         :param option: Option data
         """
+        if "value" not in option:
+            return
         value = option["value"]
         if value is None:
             value = False

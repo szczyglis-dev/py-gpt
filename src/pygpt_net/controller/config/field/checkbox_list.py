@@ -34,6 +34,8 @@ class CheckboxList:
         :param key: Option key
         :param option: Option data
         """
+        if "value" not in option:
+            return
         value = option["value"]
         exploded_list = value.split(",") if isinstance(value, str) else []
         if key not in self.window.ui.config[parent_id]:

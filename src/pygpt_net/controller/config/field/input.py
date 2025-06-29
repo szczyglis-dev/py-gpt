@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict, Optional, Union
@@ -34,6 +34,8 @@ class Input:
         :param key: Option key
         :param option: Option data
         """
+        if "value" not in option:
+            return
         value = option["value"]
 
         # type
@@ -78,6 +80,9 @@ class Input:
         :param hooks: Run hooks
         :param only_hook: Only run hook, do not apply value
         """
+        if "value" not in option:
+            return
+
         option['value'] = value
         if not only_hook:
             self.apply(parent_id, key, option)

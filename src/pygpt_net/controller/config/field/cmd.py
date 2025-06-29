@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -36,7 +36,7 @@ class Cmd:
         :param key: Option key
         :param option: Option data
         """
-        if option["value"] is None:
+        if "value" not in option or option["value"] is None:
             option["value"] = {
                 "enabled": False,
                 "instruction": "",

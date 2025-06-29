@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Dict, Union
@@ -36,6 +36,8 @@ class Slider:
         :param option: Option data
         :param type: Update from type (slider, input, None=value)
         """
+        if "value" not in option:
+            return
         value = option["value"]
         is_integer = False
         multiplier = 1
@@ -107,6 +109,8 @@ class Slider:
         :param type: Update from field type (slider, input, None=value)
         :param hooks: Run hooks
         """
+        if "value" not in option:
+            return
         option['value'] = value
         self.apply(parent_id, key, option, type)
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.29 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Dict
@@ -35,6 +35,8 @@ class Combo:
         :param option: Option data
         :param idx: by idx, not the value
         """
+        if "value" not in option:
+            return
         value = option["value"]
         if "idx" in option:  # by idx
             self.window.ui.config[parent_id][key].combo.setCurrentIndex(option["idx"])
