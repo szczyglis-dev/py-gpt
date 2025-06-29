@@ -13,7 +13,7 @@
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
 <Program_Description_Short>Desktop AI Assistant powered by o1, o3, GPT-4, GPT-4V, GPT-3.5, Llama3, Mistral, Gemini, DeepSeek, Claude, Grok, DALL-E 3, Ollama, LlamaIndex, Whisper and more with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more</Program_Description_Short>
-<Program_Description_Long><![CDATA[PyGPT is all-in-one Desktop AI Assistant that provides direct interaction with OpenAI language models, including o1, o3, gpt-4, gpt-4 Vision, and gpt-3.5, through the OpenAI API. By utilizing LlamaIndex, the application also supports alternative LLMs, like those available on HuggingFace, locally available models via Ollama (like Llama 3,``Mistral``, DeepSeek V3/R1 or Bielik), Google Gemini, Anthropic Claude, and xAI Grok.
+<Program_Description_Long><![CDATA[PyGPT is all-in-one Desktop AI Assistant that provides direct interaction with OpenAI language models, including o1, o3, gpt-4, gpt-4 Vision, and gpt-3.5, through the OpenAI API. By utilizing LlamaIndex, the application also supports alternative LLMs, like those available on HuggingFace, locally available models via Ollama (like Llama 3, Mistral, DeepSeek V3/R1 or Bielik), Google Gemini, Anthropic Claude, and xAI Grok.
 
 Features
 - Desktop AI Assistant for Linux, Windows and Mac, written in Python.
