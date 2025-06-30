@@ -2,13 +2,13 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.5.24</Program_Version>
-<Program_Release_Month>06</Program_Release_Month>
-<Program_Release_Day>30</Program_Release_Day>
+<Program_Version>2.5.25</Program_Version>
+<Program_Release_Month>07</Program_Release_Month>
+<Program_Release_Day>01</Program_Release_Day>
 <Program_Release_Year>2025</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.5.24/pygpt-2.5.24.zip</Download_URL>
+<Download_URL>https://pygpt.net/download/2.5.25/pygpt-2.5.25.zip</Download_URL>
 <Application_OS_Support>Linux 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
@@ -19,7 +19,7 @@ Features
 - Desktop AI Assistant for Linux, Windows and Mac, written in Python.
 - Works similarly to ChatGPT, but locally (on a desktop computer).
 - 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Agents and Autonomous Mode.
-- Supports multiple models: o1, GPT-4o, GPT-4, GPT-3.5, and any model accessible through LlamaIndex and Ollama such as Llama 3, Mistral, Google Gemini, xAI Grok, Anthropic Claude, DeepSeek V3/R1, Bielik, etc.
+- Supports multiple models: o1, o3, GPT-4o, GPT-4, GPT-3.5, and any model accessible through LlamaIndex and Ollama such as Llama 3, Mistral, Google Gemini, xAI Grok, Anthropic Claude, DeepSeek V3/R1, Bielik, etc.
 - Chat with your own Files: integrated LlamaIndex support: chat with data such as: txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.

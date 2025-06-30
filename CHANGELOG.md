@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.25 (2025-07-01)
+
+- Tool calls in Chat with Files mode moved to ReAct agent.
+
 ## 2.5.24 (2025-06-30)
 
 - Added attachments and image edits in Image mode.
