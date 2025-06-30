@@ -1076,6 +1076,9 @@ llama-index-llms-openai-like==0.4.0 ; python_version >= "3.10" and python_versio
 llama-index-llms-openai==0.4.7 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:3b8d9d3c1bcadc2cff09724de70f074f43eafd5b7048a91247c9a41b7cd6216d \
     --hash=sha256:564af8ab39fb3f3adfeae73a59c0dca46c099ab844a28e725eee0c551d4869f8
+llama-index-llms-perplexity==0.3.7 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:510dbe3afa52bc095ac40d682144a1e759c5e7b65b67d24cb182c269a3838a22 \
+    --hash=sha256:d57ca9fac377f4c67c47a9ac7634fb12a6169118ec959bc27b97c185fb8703af
 llama-index-multi-modal-llms-openai==0.5.1 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:69bb9c310c323ce51038f0d40719f546d0d4e0853835a4f5cfa21f07dbb0b91e \
     --hash=sha256:df3aff00c36023c5f8c49f972a325f71823ed0f4dd9cd479955d76afc146575f

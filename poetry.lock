@@ -3032,6 +3032,22 @@ llama-index-llms-openai = ">=0.4.0,<0.5"
 transformers = ">=4.37.0,<5"
 
 [[package]]
+name = "llama-index-llms-perplexity"
+version = "0.3.7"
+description = "llama-index llms perplexity integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "llama_index_llms_perplexity-0.3.7-py3-none-any.whl", hash = "sha256:d57ca9fac377f4c67c47a9ac7634fb12a6169118ec959bc27b97c185fb8703af"},
+    {file = "llama_index_llms_perplexity-0.3.7.tar.gz", hash = "sha256:510dbe3afa52bc095ac40d682144a1e759c5e7b65b67d24cb182c269a3838a22"},
+]
+
+[package.dependencies]
+llama-index-core = ">=0.12.0,<0.13"
+llama-index-llms-openai = ">=0.4.0,<0.5"
+
+[[package]]
 name = "llama-index-multi-modal-llms-openai"
 version = "0.5.1"
 description = "llama-index multi-modal-llms openai integration"
@@ -8438,4 +8454,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "5a62418e3f114841e42c92165231e806fb683ff5fbe8e6713807bb33c2895c14"
+content-hash = "ebaf15a3c415f952c3dbdfd1a013f926796e095288a78bd7bfe048a3f093ed4b"

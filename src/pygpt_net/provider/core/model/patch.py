@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -617,6 +617,24 @@ class Patch:
                     # del langchain config
                     if 'langchain' in model.mode:
                         model.mode.remove("langchain")
+                updated = True
+
+            # < 2.5.23 <--- add Perplexity to rest of modes
+            if old < parse_version("2.5.23"):
+                print("Migrating models from < 2.5.23...")
+                for id in data:
+                    model = data[id]
+                    if model.provider == "perplexity":
+                        if "llama_index" not in model.mode:
+                            model.mode.append("llama_index")
+                        if "agent" not in model.mode:
+                            model.mode.append("agent")
+                        if "agent_llama" not in model.mode:
+                            model.mode.append("agent_llama")
+                        if "expert" not in model.mode:
+                            model.mode.append("expert")
+                        if "chat" not in model.mode:
+                            model.mode.append("chat")
                 updated = True
 
         # update file

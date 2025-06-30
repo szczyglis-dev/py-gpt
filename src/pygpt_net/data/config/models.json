@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.22",
-        "app.version": "2.5.22",
-        "updated_at": "2025-06-29T01:31:35"
+        "version": "2.5.23",
+        "app.version": "2.5.23",
+        "updated_at": "2025-06-30T01:31:35"
     },
     "items": {
         "bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -2541,6 +2541,11 @@
             "id": "r1-1776",
             "name": "r1-1776",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
@@ -2574,6 +2579,11 @@
             "id": "sonar",
             "name": "sonar",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
@@ -2607,6 +2617,11 @@
             "id": "sonar-deep-research",
             "name": "sonar-deep-research",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
@@ -2640,6 +2655,11 @@
             "id": "sonar-pro",
             "name": "sonar-pro",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
@@ -2673,6 +2693,11 @@
             "id": "sonar-reasoning",
             "name": "sonar-reasoning",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
@@ -2706,6 +2731,11 @@
             "id": "sonar-reasoning-pro",
             "name": "sonar-reasoning-pro",
             "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
                 "research"
             ],
             "llama_index": {
