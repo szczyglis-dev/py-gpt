@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 18:00:00                  #
+# Updated Date: 2025.06.30 18:00:00                  #
 # ================================================== #
+
 import base64
 import datetime
 import os
@@ -24,6 +25,10 @@ from pygpt_net.utils import trans
 
 
 class Image:
+
+    MODE_GENERATE = "generate"
+    MODE_EDIT = "edit"
+
     def __init__(self, window=None):
         """
         Image generation core
@@ -51,6 +56,12 @@ class Image:
         model = context.model
         num = extra.get("num", 1)
         inline = extra.get("inline", False)
+        sub_mode = self.MODE_GENERATE
+
+        # if attachments then switch mode to EDIT
+        attachments = context.attachments
+        if attachments and len(attachments) > 0:
+            sub_mode = self.MODE_EDIT
 
         if ctx is None:
             ctx = CtxItem()  # create empty context
@@ -65,6 +76,8 @@ class Image:
         self.worker.window = self.window
         self.worker.client = self.window.core.gpt.get_client()
         self.worker.ctx = ctx
+        self.worker.mode = sub_mode  # mode can be "generate" or "edit"
+        self.worker.attachments = attachments  # attachments for edit mode
         self.worker.raw = self.window.core.config.get('img_raw')
         self.worker.model = model.id  # model ID for generate image, e.g. "dall-e-3"
         self.worker.model_prompt = prompt_model  # model for generate prompt, not image!
@@ -121,9 +134,11 @@ class ImageWorker(QObject, QRunnable):
         self.client = None
         self.ctx = None
         self.raw = False
+        self.mode = Image.MODE_GENERATE  # default mode is generate
         self.model = "dall-e-3"
         self.quality = "standard"
         self.resolution = "1792x1024"
+        self.attachments = {}  # attachments for edit mode
         self.model_prompt = None
         self.input_prompt = None
         self.system_prompt = None
@@ -217,20 +232,32 @@ class ImageWorker(QObject, QRunnable):
 
             # send to API
             response = None
-            if self.model == "dall-e-2":
-                response = self.client.images.generate(
+            if self.mode == Image.MODE_GENERATE:
+                if self.model == "dall-e-2":
+                    response = self.client.images.generate(
+                        model=self.model,
+                        prompt=self.input_prompt,
+                        n=self.num,
+                        size=resolution,
+                    )
+                elif self.model == "dall-e-3" or self.model == "gpt-image-1":
+                    response = self.client.images.generate(
+                        model=self.model,
+                        prompt=self.input_prompt,
+                        n=self.num,
+                        quality=quality,
+                        size=resolution,
+                    )
+            elif self.mode == Image.MODE_EDIT:
+                images = []
+                for uuid in self.attachments:
+                    attachment = self.attachments[uuid]
+                    if attachment.path and os.path.exists(attachment.path):
+                        images.append(open(attachment.path, "rb"))
+                response = self.client.images.edit(
                     model=self.model,
+                    image=images,
                     prompt=self.input_prompt,
-                    n=self.num,
-                    size=resolution,
-                )
-            elif self.model == "dall-e-3" or self.model == "gpt-image-1":
-                response = self.client.images.generate(
-                    model=self.model,
-                    prompt=self.input_prompt,
-                    n=self.num,
-                    quality=quality,
-                    size=resolution,
                 )
 
             # check response

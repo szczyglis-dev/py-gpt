@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 11:00:00                  #
+# Updated Date: 2025.06.30 18:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -50,9 +50,10 @@ class Image:
             num = 4
 
         # force 1 image if dall-e-3 model is used
+        mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        if model_data.id == 'dall-e-3':
+        if model_data.id == 'dall-e-3' or model_data.id == 'gpt-image-1':
             num = 1
 
         self.window.update_status(trans('status.sending'))
@@ -94,12 +95,19 @@ class Image:
         if self.window.core.config.get('ctx.auto_summary'):
             self.window.controller.ctx.prepare_name(ctx)
 
+        # get attachments
+        files = self.window.core.attachments.get_all(mode)
+        num_files = len(files)
+        if num_files > 0:
+            self.window.controller.chat.log("Attachments ({}): {}".format(mode, num_files))
+
         # generate image
         bridge_context = BridgeContext(
             ctx=ctx,
             mode=MODE_IMAGE,
             model=model_data,  # model instance
             prompt=text,
+            attachments=files,
         )
         extra = {
             "num": num,
