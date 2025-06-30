@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.22** | build: **2025-06-29** | Python: **>=3.10, <3.13**
+Release: **2.5.23** | build: **2025-06-30** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4012,6 +4012,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.23 (2025-06-30)**
+
+- Perplexity added to LlamaIndex providers.
+- OpenAI Responses API support (with built-in tools) added to LlamaIndex and Agent modes.
+- Improved models and indexes configuration in plugins.
 
 **2.5.22 (2025-06-29)**
 

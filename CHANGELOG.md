@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.23 (2025-06-30)
+
+- Perplexity added to LlamaIndex providers.
+- OpenAI Responses API support (with built-in tools) added to LlamaIndex and Agent modes.
+- Improved models and indexes configuration in plugins.
+
 ## 2.5.22 (2025-06-29)
 
 - Improved models editor.
