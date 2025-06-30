@@ -355,33 +355,34 @@ class Chat:
         # handle response
         if response:
             if cmd_enabled:
-                    ctx.response = response
-                    ctx.input_tokens = input_tokens
-                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                        response.response,
-                        [],
-                        model.id,
-                    )  # calc from response
-                    output = str(response.response)
-                    if output is None:
-                        output = ""
-                    ctx.set_output(output, "")
-                    ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
+                # from agent
+                ctx.response = response
+                ctx.input_tokens = input_tokens
+                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                    response.response,
+                    [],
+                    model.id,
+                )  # calc from response
+                output = str(response.response)
+                if output is None:
+                    output = ""
+                ctx.set_output(output, "")
+                ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
-                    ctx.response = response
-                    if use_index:
-                        output = str(response.response)
-                    else:
-                        output = response.message.content
-                    if output is None:
-                        output = ""
-                    ctx.set_output(output, "")
-                    ctx.input_tokens = input_tokens
-                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                        output,
-                        [],
-                        model.id,
-                    ) # calc from response
+                ctx.response = response
+                if use_index:
+                    output = str(response.response)  # from agent
+                else:
+                    output = response.message.content  # from LLM directly
+                if output is None:
+                    output = ""
+                ctx.set_output(output, "")
+                ctx.input_tokens = input_tokens
+                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                    output,
+                    [],
+                    model.id,
+                ) # calc from response
             return True
         return False
 
