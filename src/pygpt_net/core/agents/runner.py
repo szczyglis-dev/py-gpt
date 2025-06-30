@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any, List
@@ -64,7 +64,7 @@ class Runner:
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             tools = self.window.core.agents.tools.prepare(context, extra)
             history = self.window.core.agents.memory.prepare(context)
-            llm = self.window.core.idx.llm.get(model)
+            llm = self.window.core.idx.llm.get(model, stream=False)
 
             provider = None
             agent = None
@@ -461,7 +461,7 @@ class Runner:
 
         verbose = self.window.core.config.get("agent.llama.verbose", False)
         model = self.window.core.models.get(model_name)
-        llm = self.window.core.idx.llm.get(model)
+        llm = self.window.core.idx.llm.get(model, stream=False)
         kwargs = {
             "context": BridgeContext(),
             "tools": tools,

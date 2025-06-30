@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -44,13 +44,15 @@ class Llm:
     def get(
             self,
             model: Optional[ModelItem] = None,
-            multimodal: bool = False
+            multimodal: bool = False,
+            stream: bool = False
     ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
 
         :param model: Model item
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
+        :param stream: Stream mode (True to enable streaming)
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -87,6 +89,7 @@ class Llm:
                     llm = self.window.core.llm.llms[provider].llama(
                         window=self.window,
                         model=model,
+                        stream=stream,
                     )
 
         # default model
