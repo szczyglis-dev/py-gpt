@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
 
-from llama_index.llms.gemini import Gemini
+from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.gemini import GeminiEmbedding
@@ -54,7 +54,7 @@ class GoogleLLM(BaseLLM):
         args = self.parse_args(model.llama_index)
         if "model" not in args:
             args["model"] = model.id
-        return Gemini(**args)
+        return GoogleGenAI(**args)
 
     def get_embeddings_model(
             self,
