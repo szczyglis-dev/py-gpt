@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import os.path
@@ -125,14 +125,16 @@ class Llm:
 
     def get_service_context(
             self,
-            model: Optional[ModelItem] = None
+            model: Optional[ModelItem] = None,
+            stream: bool = False,
     ):
         """
         Get service context + embeddings provider
 
         :param model: Model item (for query)
+        :param stream: Stream mode (True to enable streaming)
         :return: Service context instance
         """
-        llm = self.get(model=model)
+        llm = self.get(model=model, stream=stream)
         embed_model = self.get_embeddings_provider()
         return llm, embed_model

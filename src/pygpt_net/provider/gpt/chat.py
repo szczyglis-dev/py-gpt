@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import json
@@ -263,7 +263,8 @@ class Chat:
 
                     # ---- tool output ----
                     is_tool_output = False
-                    if tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                    is_last_item = item == items[-1] if items else False
+                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
                         if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
                             for tool_call in item.extra["tool_calls"]:
                                 if "function" in tool_call:

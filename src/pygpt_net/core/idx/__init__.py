@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -146,7 +146,7 @@ class Idx:
         :param recursive: recursive indexing
         :return: dict with indexed files (path -> id), list with errors
         """
-        llm, embed_model = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context(stream=False)
         index = self.storage.get(
             id=idx,
             llm=llm,
@@ -183,7 +183,7 @@ class Idx:
         :param from_ts: timestamp from
         :return: num of indexed files, list with errors
         """
-        llm, embed_model = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context(stream=False)
         index = self.storage.get(
             id=idx,
             llm=llm,
@@ -217,7 +217,7 @@ class Idx:
         :param from_ts: timestamp from
         :return: num of indexed files, list with errors
         """
-        llm, embed_model = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context(stream=False)
         index = self.storage.get(
             id=idx,
             llm=llm,
@@ -254,7 +254,7 @@ class Idx:
         :param extra_args: extra args
         :return: num of indexed, list with errors
         """
-        llm, embed_model = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context(stream=False)
         index = self.storage.get(
             id=idx,
             llm=llm,
@@ -298,7 +298,7 @@ class Idx:
         # update config params
         self.indexing.update_loader_args(type, config)
 
-        llm, embed_model = self.llm.get_service_context()
+        llm, embed_model = self.llm.get_service_context(stream=False)
         index = self.storage.get(
             id=idx,
             llm=llm,
@@ -476,7 +476,7 @@ class Idx:
         :param idx: index name (id)
         :param doc_id: document ID (in storage)
         """
-        self.llm.get_service_context()  # init environment only (ENV API keys, etc.)
+        self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
         if self.storage.remove_document(idx, doc_id):
             self.log("Removed document from index: " + idx + " - " + doc_id)
 
@@ -491,7 +491,7 @@ class Idx:
         :param idx: index name
         :param file: file ID
         """
-        self.llm.get_service_context()  # init environment only (ENV API keys, etc.)
+        self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
             if file in self.items[store_id][idx].items:

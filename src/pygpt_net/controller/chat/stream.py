@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 import base64
 import uuid
@@ -193,19 +193,34 @@ class Stream:
                         tool_chunks = chunk.message.additional_kwargs.get("tool_calls", [])
                         if tool_chunks:
                             for tool_chunk in tool_chunks:
-                                args = tool_chunk.function.arguments
-                                if not args:
-                                    args = "{}"  # JSON encoded
-                                tool_call = {
-                                        "id": tool_chunk.id,
-                                        "type": "function",
-                                        "function": {
-                                            "name": tool_chunk.function.name,
-                                            "arguments": args
+                                id = None
+                                name = None
+                                args = {}
+                                if hasattr(tool_chunk, 'arguments'):
+                                    args = tool_chunk.arguments
+                                elif hasattr(tool_chunk, 'function') and hasattr(tool_chunk.function, 'arguments'):
+                                    args = tool_chunk.function.arguments
+                                if hasattr(tool_chunk, 'call_id'):
+                                    id = tool_chunk.call_id
+                                elif hasattr(tool_chunk, 'id'):
+                                    id = tool_chunk.id
+                                if hasattr(tool_chunk, 'name'):
+                                    name = tool_chunk.name
+                                elif hasattr(tool_chunk, 'function') and hasattr(tool_chunk.function, 'name'):
+                                    name = tool_chunk.function.name
+                                if id:
+                                    if not args:
+                                        args = "{}"  # JSON encoded
+                                    tool_call = {
+                                            "id": id,
+                                            "type": "function",
+                                            "function": {
+                                                "name": name,
+                                                "arguments": args
+                                            }
                                         }
-                                    }
-                                tool_calls.clear()
-                                tool_calls.append(tool_call)
+                                    tool_calls.clear()
+                                    tool_calls.append(tool_call)
 
                     # raw text: llama-index and langchain completion
                     else:

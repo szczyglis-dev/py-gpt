@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -1075,7 +1075,7 @@ class Indexing:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         index = self.window.core.idx.storage.get_ctx_idx(
             index_path,
             llm=llm,
@@ -1117,7 +1117,7 @@ class Indexing:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         index = self.window.core.idx.storage.get_ctx_idx(index_path, llm, embed_model)  # get or create ctx index
 
         idx = "tmp:{}".format(index_path)  # tmp index id
@@ -1171,7 +1171,7 @@ class Indexing:
         :return: True if success
         """
         model = self.window.core.models.from_defaults()
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         index = self.window.core.idx.storage.get_ctx_idx(index_path, llm, embed_model)  # get or create ctx index
         index.delete_ref_doc(doc_id)
         self.window.core.idx.storage.store_ctx_idx(index_path, index)

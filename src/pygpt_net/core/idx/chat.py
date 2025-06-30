@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import json
@@ -37,6 +37,7 @@ class Chat:
         self.window = window
         self.storage = storage
         self.context = Context(window)
+        self.prev_message = None  # previous message, used in chat mode
 
     def call(
             self,
@@ -120,7 +121,7 @@ class Chat:
             model.id,
         ))
 
-        index, llm = self.get_index(idx, model)
+        index, llm = self.get_index(idx, model, stream=stream)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             [],
@@ -175,6 +176,7 @@ class Chat:
         """
         idx = context.idx
         model = context.model
+        stream = context.stream
         ctx = context.ctx
         query = ctx.input  # user input
         verbose = self.window.core.config.get("log.llama", False)
@@ -185,7 +187,7 @@ class Chat:
             query,
         ))
 
-        index, llm = self.get_index(idx, model)
+        index, llm = self.get_index(idx, model, stream=stream)
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         outputs = []
@@ -256,7 +258,8 @@ class Chat:
         # use index only if idx is not empty, otherwise use only LLM
         index = None
         if use_index:
-            index, llm = self.get_index(idx, model)
+            allow_native_tool_calls = False  # disable stream for index query engine
+            index, llm = self.get_index(idx, model, stream=stream)
         else:
             llm = self.window.core.idx.llm.get(model, stream=stream)
 
@@ -274,7 +277,11 @@ class Chat:
             ctx.input,
             system_prompt,
             context.history,
+            allow_native_tool_calls=allow_native_tool_calls,
+            prev_message=self.prev_message,
         )
+
+        self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
@@ -282,6 +289,7 @@ class Chat:
             model.id,
         )
 
+        tools = self.window.core.agents.tools.prepare(context, extra)
         if use_index:
             # TOOLS: commands are applied to system prompt here
             # index as query engine
@@ -303,10 +311,7 @@ class Chat:
                 use_index = False
 
         if not use_index:
-            # TOOLS: commands are applied to system prompt here
             # prepare tools (native calls if enabled)
-            tools = self.window.core.agents.tools.prepare(context, extra)
-
             # without index, use LLM as chat engine
             history.insert(0, self.context.add_system(system_prompt))
             history.append(self.context.add_user(query))
@@ -363,6 +368,7 @@ class Chat:
                     ctx.input_tokens = input_tokens
                     ctx.set_output("", "")
                 else:
+                    self.prev_message = response.message
                     # unpack tool calls
                     tool_calls = llm.get_tool_calls_from_response(
                         response,
@@ -401,7 +407,7 @@ class Chat:
         if model is None:
             model = self.window.core.models.from_defaults()
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         tmp_id, index = self.storage.get_tmp(path, llm, embed_model)  # get or create tmp index
 
         idx = "tmp:{}".format(path)  # tmp index id
@@ -461,7 +467,7 @@ class Chat:
         id = json.dumps(parts)
         if model is None:
             model = self.window.core.models.from_defaults()
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         tmp_id, index = self.storage.get_tmp(id, llm, embed_model)  # get or create tmp index
 
         idx = "tmp:{}".format(id)  # tmp index id
@@ -515,7 +521,7 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False)
         index = self.storage.get_ctx_idx(path, llm, embed_model)
 
         # 1. try to retrieve directly from index
@@ -567,7 +573,7 @@ class Chat:
         """
         if model is None:
             model = self.window.core.models.from_defaults()
-        index, llm = self.get_index(idx, model)
+        index, llm = self.get_index(idx, model, stream=False)
         retriever = index.as_retriever()
         nodes = retriever.retrieve(query)
         response = ""
@@ -632,25 +638,27 @@ class Chat:
     def get_index(
             self,
             idx: str,
-            model: ModelItem
+            model: ModelItem,
+            stream: bool = False,
     ):
         """
         Get index instance
 
         :param idx: idx name (id)
         :param model: model instance
+        :param stream: stream mode
         :return:
         """
         # check if index exists
         if not self.storage.exists(idx):
             if idx is None:
                 # create empty in memory idx
-                llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+                llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
                 index = self.storage.index_from_empty(embed_model)
                 return index, llm
             # raise Exception("Index not prepared")
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
         index = self.storage.get(idx, llm, embed_model)  # get index
         return index, llm
 

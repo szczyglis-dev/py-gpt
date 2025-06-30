@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -472,6 +472,7 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
+        stream = self.window.core.config.get("stream", False)
         not_allowed_providers = [
             "ollama",
             "hugging_face_api",
@@ -480,7 +481,7 @@ class Models:
             # "x_ai",
         ]
         if mode == MODE_LLAMA_INDEX:
-            if model.provider == "google":
+            if model.provider == "google" and stream:
                 not_allowed_providers.append("google")  # bug in types in google-generativeai==0.8.5
         if model.provider in not_allowed_providers:
             return False

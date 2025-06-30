@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
-
+import json
 from typing import Optional, List
 
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -30,7 +30,9 @@ class Context:
             input_prompt: str,
             system_prompt: str,
             history: Optional[List[CtxItem]] = None,
-            multimodal: bool = False
+            multimodal: bool = False,
+            prev_message = None,
+            allow_native_tool_calls: bool = False
     ):
         """
         Get messages from db
@@ -39,6 +41,8 @@ class Context:
         :param system_prompt: system prompt
         :param history: history
         :param multimodal: multimodal flag
+        :param prev_message: previous message
+        :param allow_native_tool_calls: allow native tool calls
         :return: Messages
         """
         messages = []
@@ -73,10 +77,58 @@ class Context:
                     ))
                 # output
                 if item.final_output is not None and item.final_output != "":
-                    messages.append(ChatMessage(
+                    msg = ChatMessage(
                         role=MessageRole.ASSISTANT,
                         content=item.final_output
-                    ))
+                    )
+                    messages.append(msg)
+
+                # ---- if tool output ----
+                is_last_item = item == items[-1] if items else False
+                if (is_last_item
+                        and prev_message
+                        and allow_native_tool_calls
+                        and item.extra
+                        and isinstance(item.extra, dict)):
+                    if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
+                        for tool_call in item.extra["tool_calls"]:
+                            if "function" in tool_call:
+                                if "id" not in tool_call or "name" not in tool_call["function"]:
+                                    continue
+                                if tool_call["id"] and tool_call["function"]["name"]:
+                                    if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                        for tool_output in item.extra["tool_output"]:
+                                            if ("cmd" in tool_output
+                                                    and tool_output["cmd"] == tool_call["function"]["name"]):
+                                                last_msg = messages[-1] if messages else None
+                                                if last_msg and last_msg.role == "assistant":
+                                                    if prev_message:
+                                                        last_msg = prev_message  # prev message with tool calls
+                                                        messages[-1] = last_msg
+
+                                                msg = ChatMessage(
+                                                    role=MessageRole.TOOL,
+                                                    content=str(tool_output),
+                                                    additional_kwargs={"tool_call_id": tool_call["id"]}
+                                                )
+                                                messages.append(msg)
+                                                break
+                                            elif "result" in tool_output:
+                                                # if result is present, append it as function call output
+                                                last_msg = messages[-1] if messages else None
+                                                if last_msg and last_msg.role == "assistant":
+                                                    if prev_message:
+                                                        last_msg = prev_message  # prev message with tool calls
+                                                        messages[-1] = last_msg
+
+                                                msg = ChatMessage(
+                                                    role=MessageRole.TOOL,
+                                                    content=str(tool_output["result"]),
+                                                    additional_kwargs={"tool_call_id": tool_call["id"]}
+                                                )
+                                                messages.append(msg)
+                                                break
+
 
         return messages
 

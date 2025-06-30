@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -636,6 +636,18 @@ class Command:
         # if enabled:
             # self.window.core.debug.info("[cmd] Native tool calls enabled")
         return enabled
+
+    def is_cmd_prompt_enabled(self):
+        """
+        Check if command prompt is enabled
+
+        :return: True if command prompt is enabled
+        """
+        mode = self.window.core.config.get('mode')
+        if mode == MODE_LLAMA_INDEX:
+            if self.window.controller.idx.index_selected():
+                return False
+        return True
 
     def is_enabled(self, cmd: str) -> bool:
         """
