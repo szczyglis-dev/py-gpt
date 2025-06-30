@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import json
@@ -14,6 +14,7 @@ from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
+from pygpt_net.core.types import MODE_LLAMA_INDEX
 from pygpt_net.item.ctx import CtxItem
 
 class Reply:
@@ -117,6 +118,12 @@ class Reply:
         event = RenderEvent(RenderEvent.TOOL_UPDATE, data)
         self.window.dispatch(event)
         self.clear()
+
+        # disable reply if LlamaIndex agent is used
+        mode = self.window.core.config.get("mode")
+        if mode == MODE_LLAMA_INDEX:
+            self.window.core.debug.info("Reply disabled for LlamaIndex agent")
+            return
 
         # send reply
         context = BridgeContext()

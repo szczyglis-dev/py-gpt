@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import time
@@ -18,7 +18,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
-    MODE_EXPERT,
+    MODE_EXPERT, MODE_LLAMA_INDEX,
 )
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
@@ -350,7 +350,7 @@ class Kernel(QObject):
         :param ctx: context item
         :return: True if async commands are allowed
         """
-        disabled = [MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA]
+        disabled = [MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_LLAMA_INDEX]
         if self.window.core.config.get("mode") in disabled:
             return False
         if ctx.agent_call:

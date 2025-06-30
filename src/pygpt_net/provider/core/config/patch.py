@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -1901,6 +1901,13 @@ class Patch:
             if old < parse_version("2.5.24"):
                 print("Migrating config from < 2.5.24...")
                 self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                updated = True
+
+            # < 2.5.25
+            if old < parse_version("2.5.25"):
+                print("Migrating config from < 2.5.25...")
+                if 'api_use_responses_llama' not in data:
+                    data["api_use_responses_llama"] = False
                 updated = True
 
         # update file

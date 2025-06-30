@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -94,7 +94,7 @@ class OpenAILLM(BaseLLM):
         if "model" not in args:
             args["model"] = model.id
 
-        if window.core.config.get('api_use_responses', False):
+        if window.core.config.get('api_use_responses_llama', False):
             tools = []
             if (not model.id.startswith("o1")
                     and not model.id.startswith("o3")):

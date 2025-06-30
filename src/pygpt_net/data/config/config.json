@@ -74,6 +74,7 @@
   "api_key_xai": "",
   "api_proxy": "",
   "api_use_responses": true,
+  "api_use_responses_llama": false,
   "app.env": [
         {
             "name": "OLLAMA_API_BASE",

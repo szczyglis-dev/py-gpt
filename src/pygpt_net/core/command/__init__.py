@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -644,6 +644,7 @@ class Command:
         :return: True if command prompt is enabled
         """
         mode = self.window.core.config.get('mode')
+        return True
         if mode == MODE_LLAMA_INDEX:
             if self.window.controller.idx.index_selected():
                 return False

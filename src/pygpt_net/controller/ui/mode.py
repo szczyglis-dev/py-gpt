@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -42,15 +42,6 @@ class Mode:
             self.window.ui.nodes['presets.widget'].setVisible(True)
         else:
             self.window.ui.nodes['presets.widget'].setVisible(False)
-
-        # cmd
-        if mode == MODE_LLAMA_INDEX:
-            if self.window.controller.idx.index_selected():
-                self.window.ui.nodes['cmd.enabled'].setVisible(False)
-            else:
-                self.window.ui.nodes['cmd.enabled'].setVisible(True)
-        else:
-            self.window.ui.nodes['cmd.enabled'].setVisible(True)
 
         # presets: labels
         if mode == MODE_AGENT:

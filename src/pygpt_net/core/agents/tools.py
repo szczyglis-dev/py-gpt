@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import json
@@ -102,10 +102,11 @@ class Tools:
                             "cmd": name,
                             "params": kwargs,
                         }
-                        return self.window.controller.plugins.apply_cmds_all(
+                        response = self.window.controller.plugins.apply_cmds_all(
                             ctx,  # current ctx
                             [cmd],  # commands
                         )
+                        return str(response)  # return response as string
 
                     return func
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -90,6 +90,8 @@ class Text:
             stream_mode = False
         if mode in [MODE_LLAMA_INDEX] and idx_mode == "retrieval":
             stream_mode = False
+        if mode in [MODE_LLAMA_INDEX]:
+            stream_mode = False  # disable stream mode for LlamaIndex query engine
 
         # create ctx item
         ctx = CtxItem()

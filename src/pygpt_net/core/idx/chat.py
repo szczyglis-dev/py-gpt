@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import json
 from typing import Optional, Dict, Any, List
 
+from llama_index.core.agent import AgentRunner
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
+from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -229,6 +231,7 @@ class Chat:
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
         response = None
+        cmd_enabled = self.window.core.config.get("cmd", False)
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
 
@@ -258,7 +261,6 @@ class Chat:
         # use index only if idx is not empty, otherwise use only LLM
         index = None
         if use_index:
-            allow_native_tool_calls = False  # disable stream for index query engine
             index, llm = self.get_index(idx, model, stream=stream)
         else:
             llm = self.window.core.idx.llm.get(model, stream=stream)
@@ -291,64 +293,69 @@ class Chat:
 
         tools = self.window.core.agents.tools.prepare(context, extra)
         if use_index:
-            # TOOLS: commands are applied to system prompt here
-            # index as query engine
-            chat_engine = index.as_chat_engine(
-                llm=llm,
-                chat_mode=chat_mode,
-                memory=memory,
-                verbose=verbose,
-                system_prompt=system_prompt,
-            )
-            if stream:
-                response = chat_engine.stream_chat(query)
+            # 1) if tools enabled use agent engine
+            if cmd_enabled:
+                ctx.agent_call = True
+                # use index as query engine
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    chat_mode=chat_mode,
+                    verbose=verbose,
+                )
+                index_tool = QueryEngineTool.from_defaults(
+                    query_engine=query_engine,
+                    name="get_context",
+                    description="Get additional context to answer the question. Always call this tool at first to get additional context.",
+                    return_direct=True,  # return direct response from index
+                )
+                tools.append(index_tool)
+                agent = AgentRunner.from_llm(
+                    tools=tools,
+                    llm=llm,
+                    memory=memory,
+                    verbose=True,
+                    system_prompt=system_prompt,
+                )
+                response = agent.chat(query)
             else:
+                # 2) if tools disabled, use index as chat engine
+                chat_engine = index.as_chat_engine(
+                    llm=llm,
+                    chat_mode=chat_mode,
+                    memory=memory,
+                    verbose=verbose,
+                    system_prompt=system_prompt,
+                )
                 response = chat_engine.chat(query)
-
-            # check for not empty
-            if len(response.source_nodes) == 0:
-                self.log("No source nodes found in response, using LLM directly...")
-                use_index = False
+                # check for not empty
+                if len(response.source_nodes) == 0:
+                    self.log("No source nodes found in response, using LLM directly...")
+                    use_index = False
 
         if not use_index:
-            # prepare tools (native calls if enabled)
-            # without index, use LLM as chat engine
-            history.insert(0, self.context.add_system(system_prompt))
-            history.append(self.context.add_user(query))
-            if stream:
-                # IMPORTANT: stream chat with tools not supported by all providers
-                if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
-                    self.log("Using with tools...")
-                    response = llm.stream_chat_with_tools(
-                        tools=tools,
-                        messages=history,
-                    )
-                else:
-                    response = llm.stream_chat(
-                        messages=history,
-                    )
+            # use agent if tools enabled
+            if cmd_enabled:
+                ctx.agent_call = True
+                agent = AgentRunner.from_llm(
+                    tools=tools,
+                    llm=llm,
+                    memory=memory,
+                    verbose=True,
+                    system_prompt=system_prompt,
+                )
+                response = agent.chat(query)
             else:
-                # IMPORTANT: stream chat with tools not supported by all providers
-                if allow_native_tool_calls and hasattr(llm, "chat_with_tools"):
-                    response = llm.chat_with_tools(
-                        tools=tools,
-                        messages=history,
-                    )
-                else:
-                    response = llm.chat(
-                        messages=history,
-                    )
+                # without index, use LLM directly
+                history.insert(0, self.context.add_system(system_prompt))
+                history.append(self.context.add_user(query))
+                response = llm.chat(
+                    messages=history,
+                )
 
         # handle response
         if response:
-            if use_index:
-                # from index as query engine
-                if stream:
-                    ctx.stream = response.response_gen
-                    ctx.input_tokens = input_tokens
-                    ctx.set_output("", "")
-                    ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                else:
+            if cmd_enabled:
+                    ctx.response = response
                     ctx.input_tokens = input_tokens
                     ctx.output_tokens = self.window.core.tokens.from_llama_messages(
                         response.response,
@@ -361,19 +368,14 @@ class Chat:
                     ctx.set_output(output, "")
                     ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
-                # from LLM directly, no index
-                if stream:
-                    # tools are handled in stream output controller
-                    ctx.stream = response  # chunk is in response.delta
-                    ctx.input_tokens = input_tokens
-                    ctx.set_output("", "")
-                else:
+                    # handle response from LLM directly
                     self.prev_message = response.message
                     # unpack tool calls
                     tool_calls = llm.get_tool_calls_from_response(
                         response,
                         error_on_no_tool_call=False,
                     )
+                    ctx.response = response
                     ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
                     output = response.message.content
                     if output is None:

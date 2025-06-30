@@ -84,6 +84,21 @@
         "advanced": false,
         "tab": "OpenAI"
     },
+    "api_use_responses_llama": {
+        "section": "api_keys",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.api_use_responses_llama",
+        "description": "settings.api_use_responses_llama.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "OpenAI"
+    },
     "api_key_google": {
         "section": "api_keys",
         "type": "text",
