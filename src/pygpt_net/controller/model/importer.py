@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 import copy
 import os
 from typing import List, Dict, Optional
 
+from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
 
 
@@ -297,6 +298,10 @@ class Importer:
         self.window.controller.model.init_list()
         self.window.controller.model.update()
         self.close()
+
+        # dispatch on update event
+        event = Event(Event.MODELS_CHANGED)
+        self.window.dispatch(event, all=True)
 
     def refresh(self, reload: bool = False):
         """

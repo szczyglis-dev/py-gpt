@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -434,13 +434,13 @@ class Plugins:
             cols = QHBoxLayout()
 
             if option['type'] not in no_label_types:
-                cols.addWidget(self.window.ui.nodes[label_key])  # disable label in bool type
+                cols.addWidget(self.window.ui.nodes[label_key], 1)  # disable label in bool type
 
-            cols.addWidget(widget)
+            cols.addWidget(widget, 4)
 
             cols_widget = QWidget()
             cols_widget.setLayout(cols)
-            cols_widget.setMaximumHeight(90)
+            # cols_widget.setMaximumHeight(90)
 
             self.window.ui.nodes[desc_key] = QLabel(txt_desc)
             self.window.ui.nodes[desc_key].setWordWrap(True)

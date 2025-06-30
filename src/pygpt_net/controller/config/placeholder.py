@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -41,7 +41,10 @@ class Placeholder:
                     if "type" in item:
                         if item["type"] == "combo":
                             if "use" in item and item["use"] is not None:
-                                item["keys"] = self.apply_by_id(item["use"])
+                                params = {}
+                                if "use_params" in item and type(item["use_params"]) is dict:
+                                    params = item["use_params"]
+                                item["keys"] = self.apply_by_id(item["use"], params)
         elif option['type'] == 'cmd' and 'params_keys' in option:
             for key in option['params_keys']:
                 item = option['params_keys'][key]
@@ -49,26 +52,38 @@ class Placeholder:
                     if "type" in item:
                         if item["type"] == "combo":
                             if "use" in item and item["use"] is not None:
-                                item["keys"] = self.apply_by_id(item["use"])
+                                params = {}
+                                if "use_params" in item and type(item["use_params"]) is dict:
+                                    params = item["use_params"]
+                                item["keys"] = self.apply_by_id(item["use"], params)
         elif option['type'] == 'combo':
             if "use" in option and option["use"] is not None:
-                option["keys"] = self.apply_by_id(option["use"])
+                params = {}
+                if "use_params" in option and type(option["use_params"]) is dict:
+                    params = option["use_params"]
+                option["keys"] = self.apply_by_id(option["use"], params)
         elif option['type'] == 'bool_list':
             if "use" in option and option["use"] is not None:
-                option["keys"] = self.apply_by_id(option["use"])
+                params = {}
+                if "use_params" in option and type(option["use_params"]) is dict:
+                    params = option["use_params"]
+                option["keys"] = self.apply_by_id(option["use"], params)
 
-    def apply_by_id(self, id: str) -> List[Dict[str, str]]:
+    def apply_by_id(self, id: str, params: dict = None) -> List[Dict[str, str]]:
         """
         Apply placeholders by id
 
         :param id: Placeholder options id
+        :param params: Additional parameters for specific placeholders
         """
+        if params is None:
+            params = {}
         if id == "presets":
-            return self.get_presets()
+            return self.get_presets(params)
         elif id == "modes":
-            return self.get_modes()
+            return self.get_modes(params)
         elif id == "models":
-            return self.get_models()
+            return self.get_models(params)
         elif id == "langchain_providers":
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
@@ -98,7 +113,7 @@ class Placeholder:
         elif id == "styles":
             return self.get_styles()
         elif id == "idx":
-            return self.get_idx()
+            return self.get_idx(params)
         elif id == "keys":
             return self.get_keys()
         elif id == "keys_modifiers":
@@ -262,12 +277,15 @@ class Placeholder:
             data.append({type: type})
         return data
 
-    def get_presets(self) -> List[Dict[str, str]]:
+    def get_presets(self, params: dict = None) -> List[Dict[str, str]]:
         """
         Get presets placeholders list
 
+        :param params: Additional parameters for specific placeholders
         :return: Presets placeholders list
         """
+        if params is None:
+            params = {}
         presets = self.window.core.presets.get_all()
         data = []
         data.append({'_': '---'})
@@ -277,12 +295,15 @@ class Placeholder:
             data.append({id: id})  # TODO: name
         return data
 
-    def get_modes(self) -> List[Dict[str, str]]:
+    def get_modes(self, params: dict = None) -> List[Dict[str, str]]:
         """
         Get modes placeholders list
 
+        :param params: Additional parameters for specific placeholders
         :return: Modes placeholders list
         """
+        if params is None:
+            params = {}
         modes = self.window.core.modes.get_all()
         data = []
         for id in modes:
@@ -290,16 +311,28 @@ class Placeholder:
             data.append({id: name})
         return data
 
-    def get_models(self) -> List[Dict[str, str]]:
+    def get_models(self, params: dict = None) -> List[Dict[str, str]]:
         """
         Get models placeholders list
 
+        :param params: Additional parameters for specific placeholders
         :return: Models placeholders list
         """
+        if params is None:
+            params = {}
         models = self.window.core.models.get_all()
         data = []
         for id in models:
             model = models[id]
+            allowed = True
+            if "mode" in params and type(params["mode"]) is list:
+                for mode in params["mode"]:
+                    if mode not in model.mode:
+                        allowed = False
+                        break
+            if not allowed:
+                continue
+
             suffix = ""
             if model.provider == "ollama":
                 suffix = " (Ollama)"
@@ -320,15 +353,19 @@ class Placeholder:
             data.append({id: name})
         return data
 
-    def get_idx(self) -> List[Dict[str, str]]:
+    def get_idx(self, params: dict = None) -> List[Dict[str, str]]:
         """
         Get indexes placeholders list
 
+        :param params: Additional parameters for specific placeholders
         :return: Indexes placeholders list
         """
+        if params is None:
+            params = {}
         indexes = self.window.core.idx.get_idx_ids()
         data = []
-        data.append({'_': '---'})
+        if "none" not in params or params["none"] is True:
+            data.append({'_': '---'})
         for item in indexes:
             for k, v in item.items():
                 data.append({k: v})

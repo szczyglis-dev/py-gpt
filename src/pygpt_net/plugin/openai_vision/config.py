@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 19:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -32,6 +32,9 @@ class Config(BaseConfig):
             "model",
             type="combo",
             use="models",
+            use_params={
+                "mode": ["vision"],
+            },
             value="gpt-4o",
             label="Model",
             description="Model used to temporarily providing vision abilities, "

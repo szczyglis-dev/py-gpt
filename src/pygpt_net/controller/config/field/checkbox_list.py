@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class CheckboxList:
@@ -103,3 +103,19 @@ class CheckboxList:
             if self.window.ui.config[parent_id][key].boxes[item].isChecked():
                 imploded_list.append(item)
         return ",".join(imploded_list)
+
+
+    def update_list(
+            self,
+            parent_id: str,
+            key: str,
+            items: List[Dict]
+    ):
+        """
+        Update combobox items
+
+        :param parent_id: Options parent ID
+        :param key: Option key
+        :param items: Items dict
+        """
+        self.window.ui.config[parent_id][key].update_boxes_list(items)

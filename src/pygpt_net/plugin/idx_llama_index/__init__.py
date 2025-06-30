@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.29 23:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -107,6 +107,13 @@ class Plugin(BasePlugin):
                 ctx,
                 data['commands'],
             )
+        elif name == Event.SETTINGS_CHANGED:
+            self.refresh_option("idx")  # update indexes list
+
+        elif name == Event.MODELS_CHANGED:
+            # update models list
+            self.refresh_option("model_prepare_question")
+            self.refresh_option("model_query")
 
     def on_system_prompt(self, prompt: str) -> str:
         """
@@ -181,7 +188,6 @@ class Plugin(BasePlugin):
             response = self.window.core.idx.chat.query_retrieval(query, index)
             if response is not None and response != "":
                 break
-        print(response)
         return response
 
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:

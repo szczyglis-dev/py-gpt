@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 19:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -40,15 +40,6 @@ class Config(BaseConfig):
             description="Prompt used for instruct how to use additional data provided from Llama-index",
             tooltip="Prompt",
             advanced=True,
-        )
-        plugin.add_option(
-            "idx",
-            type="text",
-            value="base",
-            label="Indexes to use",
-            description="ID's of indexes to use, default: base, separate by comma if you want to use "
-                        "more than one index at once",
-            tooltip="Index name",
         )
         plugin.add_option(
             "ask_llama_first",
@@ -131,4 +122,17 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="If enabled, model will be able to get additional context for a given query",
+        )
+        plugin.add_option(
+            "idx",
+            type="bool_list",
+            use="idx",
+            use_params={
+                "none": False,
+            },
+            value="base",
+            label="Indexes to use",
+            description="ID's of indexes to use, default: base, separate by comma if you want to use "
+                        "more than one index at once",
+            tooltip="Index name",
         )

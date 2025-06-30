@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
+from typing import Dict
 
 from PySide6.QtWidgets import QCheckBox, QWidget
 
@@ -88,6 +89,48 @@ class OptionCheckboxList(QWidget):
 
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
+
+    def update_boxes_list(self, keys: dict) -> None:
+        """
+        Update checkbox list with new keys
+
+        :param keys: dictionary with keys and names
+        """
+        self.keys = keys
+
+        # remove all existing checkboxes from the layout
+        while self.layout.count() > 0:
+            item = self.layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
+
+        # clear the boxes dictionary
+        self.boxes.clear()
+
+        # get current values from the option
+        values = self.value.split(",") if isinstance(self.value, str) else []
+
+        # create a checkbox for each key
+        for item in self.keys:
+            # item is a dict with key:name
+            if type(item) is dict:
+                for key, name in item.items():
+                    checkbox = QCheckBox(name, self.window)
+                    checkbox.setStyleSheet("margin-left: 5px; margin-right: 5px;")
+                    checkbox.setChecked(key in values)
+                    checkbox.stateChanged.connect(
+                        lambda state, k=key: self.window.controller.config.checkbox_list.on_update(
+                            self.parent_id,
+                            self.id,
+                            self.option,
+                            state,
+                            k
+                        )
+                    )
+                    self.boxes[key] = checkbox
+                    self.layout.addWidget(checkbox)
 
     def setIcon(self, icon: str):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 19:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -47,6 +47,19 @@ class Config(BaseConfig):
                       'and visually appealing image. Use this command to start image generation. Use English in the image query.  ' \
                       'The image will be generated on my machine immediately after the command is issued, allowing us to ' \
                       'discuss the photo once it has been created. Please engage with me about the photo itself, not only by giving the generate command. '
+        plugin.add_option(
+            "model",
+            type="combo",
+            use="models",
+            use_params={
+                "mode": ["img"],
+            },
+            value="dall-e-3",
+            label="Model",
+            description="Model used for generating images, "
+                        "default: dall-e-3",
+            tooltip="Model",
+        )
         plugin.add_cmd(
             "image",
             instruction=prompt_func,

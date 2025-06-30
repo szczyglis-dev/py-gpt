@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -83,6 +83,27 @@ class Settings:
             self.window.controller.config.load_options('plugin.' + id, options)
 
         self.window.controller.layout.restore_plugin_settings()  # restore previous selected plugin tab
+
+    def refresh_option(self, id: str, key: str):
+        """
+        Refresh plugin option
+
+        :param id: plugin id
+        :param key: option key
+        """
+        if id not in self.window.core.plugins.plugins:
+            return
+        if key not in self.window.core.plugins.plugins[id].options:
+            return
+        option = self.window.core.plugins.plugins[id].options[key]  # get option
+        self.window.controller.config.placeholder.apply(option)  # update keys in option
+        items = option["keys"] if "keys" in option else {}
+        self.window.controller.config.update_list(
+            option=option,
+            parent_id='plugin.' + id,
+            key=key,
+            items=items,
+        )
 
     def save(self):
         """Save plugin settings"""

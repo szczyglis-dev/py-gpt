@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any
 
+from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
 
 
@@ -231,6 +232,10 @@ class Editor:
 
         self.window.core.models.sort_items()
         self.window.controller.model.reload()
+
+        # dispatch on update event
+        event = Event(Event.MODELS_CHANGED)
+        self.window.dispatch(event, all=True)
 
     def reload_items(self):
         """Reload items"""

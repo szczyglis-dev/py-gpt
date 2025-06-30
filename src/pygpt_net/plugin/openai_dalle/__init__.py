@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -101,6 +101,10 @@ class Plugin(BasePlugin):
                 ctx,
                 data['commands'],
             )
+
+        elif name == Event.MODELS_CHANGED:
+            # update models list
+            self.refresh_option("model")
 
     def cmd_syntax(self, data: dict):
         """

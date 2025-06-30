@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
 import os
@@ -86,6 +86,10 @@ class Plugin(BasePlugin):
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
                 data['html'] = self.output.handle(ctx, data['content'])
+
+        elif name == Event.MODELS_CHANGED:
+            # update models list
+            self.refresh_option("model_tmp_query")
 
     def cmd_syntax(self, data: dict):
         """

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from .field.checkbox import Checkbox
 from .field.checkbox_list import CheckboxList
@@ -142,6 +142,32 @@ class Config:
         elif option['type'] == 'cmd':
             return self.cmd.get_value(parent_id, key, option)
 
+    def update_list(
+            self,
+            option: Dict[str, Any],
+            parent_id: str,
+            key: str,
+            items: List[Dict]
+    ):
+        """
+        Update list items
+
+        :param option: Option dict
+        :param parent_id: Parent ID
+        :param key: Option key
+        :param items: Items dict
+        """
+        if "type" not in option:
+            return
+        if option['type'] == 'combo':
+            as_dict = {}
+            for item in items:
+                for k, v in item.items():
+                    as_dict[k] = v
+            self.update_combo(parent_id, key, as_dict)
+        elif option['type'] == 'bool_list':
+            self.update_bool_list(parent_id, key, items)
+
     def update_combo(
             self,
             parent_id: str,
@@ -156,3 +182,18 @@ class Config:
         :param items: Items dict
         """
         self.combo.update_list(parent_id, key, items)
+
+    def update_bool_list(
+            self,
+            parent_id: str,
+            key: str,
+            items: List[Dict]
+    ):
+        """
+        Update combo items
+
+        :param parent_id: Parent ID
+        :param key: Option key
+        :param items: Items dict
+        """
+        self.checkbox_list.update_list(parent_id, key, items)
