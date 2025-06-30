@@ -1,3 +1,9 @@
+2.5.24 (2025-06-30)
+
+- Added attachments and image edits in Image mode.
+- Extended tool calls in LlamaIndex mode.
+- Added llama-index-llms-google-genai to dependencies.
+
 2.5.23 (2025-06-30)
 
 - Perplexity added to LlamaIndex providers.
