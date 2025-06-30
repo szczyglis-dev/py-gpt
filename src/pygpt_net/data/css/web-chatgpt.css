@@ -207,6 +207,7 @@ code {{
     margin-top: 10px;
     margin-bottom: 0px;
     color: gray;
+    font-size: 0.8rem;
 }}
 .msg-extra a {{
     color: gray;
