@@ -362,22 +362,17 @@ class Chat:
                         [],
                         model.id,
                     )  # calc from response
-                    output = response.response
+                    output = str(response.response)
                     if output is None:
                         output = ""
                     ctx.set_output(output, "")
                     ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
-                    # handle response from LLM directly
-                    self.prev_message = response.message
-                    # unpack tool calls
-                    tool_calls = llm.get_tool_calls_from_response(
-                        response,
-                        error_on_no_tool_call=False,
-                    )
                     ctx.response = response
-                    ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
-                    output = response.message.content
+                    if use_index:
+                        output = str(response.response)
+                    else:
+                        output = response.message.content
                     if output is None:
                         output = ""
                     ctx.set_output(output, "")
