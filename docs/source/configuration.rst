@@ -209,6 +209,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Indexes``: List of created indexes.
 
+* ``Use ReAct agent for Tool calls in Chat with Files mode`` - enable ReAct agent for tool calls in Chat with Files mode.
+
 * ``Vector Store``: Vector store to use (vector database provided by LlamaIndex).
 
 * ``Vector Store (**kwargs)``: Keyword arguments for vector store provider (api_key, index_name, etc.).

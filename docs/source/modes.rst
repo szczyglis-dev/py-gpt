@@ -41,6 +41,8 @@ Chat with Files (LlamaIndex)
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
+**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. Tool calls in Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: ``Settings -> Indexes (LlamaIndex) -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+
 **Querying single files**
 
 You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
@@ -145,15 +147,17 @@ More info: https://platform.openai.com/docs/guides/audio/quickstart
 
 Currently in beta. Tool and function calls are not enabled in this mode.
 
-Research (Perplexity)
+Research
 ----------------------
 2025-03-02: currently in beta.
 
-Mode operates using the Perplexity API: https://perplexity.ai.
+This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
 
 It allows for deep web searching and utilizes Sonar models, available in ``Perplexity AI``.
 
 It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
+
+From version ``2.5.27`` also OpenAI deep-research models are available in this mode.
 
 Completion
 ----------

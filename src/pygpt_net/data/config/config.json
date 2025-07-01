@@ -243,6 +243,7 @@
       }
   ],
   "llama.idx.mode": "chat",
+  "llama.idx.react": true,
   "llama.idx.recursive": true,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
@@ -315,6 +316,7 @@
   "render.code_syntax": "github-dark",
   "remote_tools.web_search": true,
   "remote_tools.image": false,
+  "remote_tools.code_interpreter": false,
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,

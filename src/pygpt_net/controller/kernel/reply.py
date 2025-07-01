@@ -122,8 +122,9 @@ class Reply:
         # disable reply if LlamaIndex agent is used
         mode = self.window.core.config.get("mode")
         if mode == MODE_LLAMA_INDEX:
-            self.window.core.debug.info("Reply disabled for LlamaIndex agent")
-            return
+            if self.window.core.config.get("llama.idx.react", False):
+                self.window.core.debug.info("Reply disabled for LlamaIndex ReAct agent")
+                return
 
         # send reply
         context = BridgeContext()

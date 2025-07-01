@@ -27,6 +27,7 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
 from .context import Context
+from .response import Response
 
 
 class Chat:
@@ -39,6 +40,7 @@ class Chat:
         self.window = window
         self.storage = storage
         self.context = Context(window)
+        self.response = Response(window)
         self.prev_message = None  # previous message, used in chat mode
 
     def call(
@@ -233,7 +235,8 @@ class Chat:
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
         response = None
-        cmd_enabled = self.window.core.config.get("cmd", False)
+        cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
+        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
         if disable_cmd:
@@ -242,14 +245,6 @@ class Chat:
         if idx is None or idx == "_":
             chat_mode = "simple"  # do not use query engine if no index
             use_index = False
-
-        # disable index if no api key
-        """
-        if self.window.core.config.get("api_key") == "" and self.window.core.config.get("llama.idx.embeddings.provider") == "openai":
-            print("Warning: no api key! Disabling index...")
-            chat_mode = "simple"  # do not use query engine if no index
-            use_index = False
-        """
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
@@ -268,11 +263,6 @@ class Chat:
             index, llm = self.get_index(idx, model, stream=stream)
         else:
             llm = self.window.core.idx.llm.get(model, stream=stream)
-
-        # check if index is empty
-        if index:
-            pass
-            # TODO: implement check if index is empty
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
@@ -294,33 +284,51 @@ class Chat:
             history,
             model.id,
         )
-
+        ctx.input_tokens = input_tokens
         tools = self.window.core.agents.tools.prepare(context, extra)
+
         if use_index:
             # 1) if tools enabled use agent engine
             if cmd_enabled:
-                ctx.agent_call = True
-                # use index as query engine
-                query_engine = index.as_query_engine(
-                    llm=llm,
-                    chat_mode=chat_mode,
-                    verbose=verbose,
-                )
-                index_tool = QueryEngineTool.from_defaults(
-                    query_engine=query_engine,
-                    name="get_context",
-                    description="Get additional context to answer the question.",
-                    return_direct=True,  # return direct response from index
-                )
-                tools.append(index_tool)
-                agent = AgentRunner.from_llm(
-                    tools=tools,
-                    llm=llm,
-                    memory=memory,
-                    verbose=True,
-                    system_prompt=system_prompt,
-                )
-                response = agent.chat(query)
+                if use_react: # TOOLS + REACT + INDEX
+                    ctx.agent_call = True
+                    query_engine = index.as_query_engine(
+                        llm=llm,
+                        chat_mode=chat_mode,
+                        verbose=verbose,
+                    )
+                    index_tool = QueryEngineTool.from_defaults(
+                        query_engine=query_engine,
+                        name="get_context",
+                        description="Get additional context to answer the question.",
+                        return_direct=True,  # return direct response from index
+                    )
+                    tools.append(index_tool)
+                    agent = AgentRunner.from_llm(
+                        tools=tools,
+                        llm=llm,
+                        memory=memory,
+                        verbose=True,
+                        system_prompt=system_prompt,
+                    )
+                    response = agent.chat(query)
+                else:
+                    chat_engine = index.as_chat_engine(
+                        llm=llm,
+                        chat_mode=chat_mode,
+                        memory=memory,
+                        verbose=verbose,
+                        system_prompt=system_prompt,
+                    )
+                    if stream:
+                        response = chat_engine.stream_chat(query) # TOOLS + INDEX + STREAM
+                    else:
+                        response = chat_engine.chat(query) # TOOLS + INDEX
+
+                    # check for not empty
+                    if hasattr(response, "source_nodes") and len(response.source_nodes) == 0:
+                        self.log("No source nodes found in response, fallback to LLM directly...")
+                        use_index = False # fallback
             else:
                 # 2) if tools disabled, use index as chat engine
                 chat_engine = index.as_chat_engine(
@@ -336,24 +344,51 @@ class Chat:
                     response = chat_engine.chat(query)
 
                 # check for not empty
-                if len(response.source_nodes) == 0:
-                    self.log("No source nodes found in response, using LLM directly...")
-                    use_index = False
+                if hasattr(response, "source_nodes") and len(response.source_nodes) == 0:
+                    self.log("No source nodes found in response, fallback to LLM directly...")
+                    use_index = False # fallback
 
         if not use_index:
-            # use agent if tools enabled
             if cmd_enabled:
-                ctx.agent_call = True
-                agent = AgentRunner.from_llm(
-                    tools=tools,
-                    llm=llm,
-                    memory=memory,
-                    verbose=True,
-                    system_prompt=system_prompt,
-                )
-                response = agent.chat(query)
+                if use_react:  # TOOLS + REACT + NO INDEX
+                    ctx.agent_call = True
+                    agent = AgentRunner.from_llm(
+                        tools=tools,
+                        llm=llm,
+                        memory=memory,
+                        verbose=True,
+                        system_prompt=system_prompt,
+                    )
+                    response = agent.chat(query)
+                else:
+                    history.insert(0, self.context.add_system(system_prompt))
+                    history.append(self.context.add_user(query))
+                    if stream: # TOOLS + STREAM + NO INDEX
+                        # IMPORTANT: stream chat with tools not supported by all providers
+                        if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
+                            self.log("Using with tools...")
+                            response = llm.stream_chat_with_tools(
+                                tools=tools,
+                                messages=history,
+                            )
+                        else:
+                            response = llm.stream_chat(
+                                messages=history,
+                            )
+                    else: # TOOLS + NO INDEX
+                        # IMPORTANT: stream chat with tools not supported by all providers
+                        if allow_native_tool_calls and hasattr(llm, "chat_with_tools"):
+                            self.log("Using with tools...")
+                            response = llm.chat_with_tools(
+                                tools=tools,
+                                messages=history,
+                            )
+                        else:
+                            response = llm.chat(
+                                messages=history,
+                            )
             else:
-                # without index, use LLM directly
+                # NO TOOLS + NO INDEX
                 history.insert(0, self.context.add_system(system_prompt))
                 history.append(self.context.add_user(query))
                 if stream:
@@ -367,44 +402,64 @@ class Chat:
 
         # handle response
         if response:
+            # tools
             if cmd_enabled:
-                # from agent
-                ctx.input_tokens = input_tokens
+                if use_react:
+                    self.response.from_react(ctx, model, response) # TOOLS + REACT, non-stream
+                else:
+                    if stream:
+                        if use_index:
+                            self.response.from_index_stream(ctx, model, response) # INDEX + STREAM
+                        else:
+                            self.response.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
+                    else:
+                        if use_index:
+                            self.response.from_index(ctx, model, response) # TOOLS + INDEX
+                        else:
+                            self.response.from_llm(ctx, model, llm, response) # TOOLS + LLM
+            else:
+                # no tools
+                if stream:
+                    if use_index:
+                        self.response.from_index_stream(ctx, model, response) # INDEX + STREAM
+                    else:
+                        self.response.from_llm_stream(ctx, model, llm, response) # LLM + STREAM
+                else:
+                    if use_index:
+                        self.response.from_index(ctx, model, response) # INDEX
+                    else:
+                        self.response.from_llm(ctx, model, llm, response) # LLM
+
+            if not stream:
+                # store output tokens
                 ctx.output_tokens = self.window.core.tokens.from_llama_messages(
                     response.response,
                     [],
                     model.id,
-                )  # calc from response
-                output = str(response.response)
-                if output is None:
-                    output = ""
-                ctx.set_output(output, "")
+                )
+                # store prev message
+                if (cmd_enabled and not use_react and not use_index) or (not cmd_enabled and not use_index):
+                    self.prev_message = response.message
+
+            # store metadata from response
+            if hasattr(response, "source_nodes") and response.source_nodes:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-            else:
-                # from LLM directly, no index
-                if stream:
-                    if use_index:
-                        ctx.stream = response.response_gen
-                    else:
-                        ctx.stream = response  # chunk is in response.delta
-                    ctx.input_tokens = input_tokens
-                    ctx.set_output("", "")
-                else:
-                    if use_index:
-                        output = str(response.response)  # from index
-                    else:
-                        output = response.message.content  # from LLM
-                    if output is None:
-                        output = ""
-                    ctx.set_output(output, "")
-                    ctx.input_tokens = input_tokens
-                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                        output,
-                        [],
-                        model.id,
-                    ) # calc from response
             return True
+
         return False
+
+    def is_stream_allowed(self) -> bool:
+        """
+        Return if stream mode allowed
+
+        :return: True if stream allowed
+        """
+        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
+        is_cmd = self.window.core.config.get("cmd", False)
+        if is_cmd:
+            if use_react:
+                return False
+        return True
 
     def query_file(
             self,

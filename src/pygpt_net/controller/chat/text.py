@@ -91,8 +91,7 @@ class Text:
         if mode in [MODE_LLAMA_INDEX] and idx_mode == "retrieval":
             stream_mode = False
         if mode in [MODE_LLAMA_INDEX]:
-            if self.window.core.config.get("cmd", False):
-                # if tools enabled, then disable stream mode
+            if not self.window.core.idx.chat.is_stream_allowed():
                 stream_mode = False
 
         # create ctx item
