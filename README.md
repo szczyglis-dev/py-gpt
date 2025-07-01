@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.26** | build: **2025-07-01** | Python: **>=3.10, <3.13**
+Release: **2.5.27** | build: **2025-07-01** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4018,6 +4018,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.27 (2025-07-01)**
+
+- Added Code Interpreter tool to Responses API. Disabled by default, you can enable in: Settings -> Remote Tools.
+- Added a new models: o3-deep-research, o4-mini-deep-research, codex-mini-latest.
+- Added a new option in Settings -> Indexes: Use ReAct agent for Tool calls in Chat with Files mode.
 
 **2.5.26 (2025-07-01)**
 
