@@ -91,7 +91,9 @@ class Text:
         if mode in [MODE_LLAMA_INDEX] and idx_mode == "retrieval":
             stream_mode = False
         if mode in [MODE_LLAMA_INDEX]:
-            stream_mode = False  # disable stream mode for LlamaIndex query engine
+            if self.window.core.config.get("cmd", False):
+                # if tools enabled, then disable stream mode
+                stream_mode = False
 
         # create ctx item
         ctx = CtxItem()

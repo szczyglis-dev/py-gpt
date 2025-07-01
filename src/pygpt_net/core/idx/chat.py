@@ -326,7 +326,11 @@ class Chat:
                     verbose=verbose,
                     system_prompt=system_prompt,
                 )
-                response = chat_engine.chat(query)
+                if stream:
+                    response = chat_engine.stream_chat(query)
+                else:
+                    response = chat_engine.chat(query)
+
                 # check for not empty
                 if len(response.source_nodes) == 0:
                     self.log("No source nodes found in response, using LLM directly...")
@@ -348,15 +352,19 @@ class Chat:
                 # without index, use LLM directly
                 history.insert(0, self.context.add_system(system_prompt))
                 history.append(self.context.add_user(query))
-                response = llm.chat(
-                    messages=history,
-                )
+                if stream:
+                    response = llm.stream_chat(
+                        messages=history,
+                    )
+                else:
+                    response = llm.chat(
+                        messages=history,
+                    )
 
         # handle response
         if response:
             if cmd_enabled:
                 # from agent
-                ctx.response = response
                 ctx.input_tokens = input_tokens
                 ctx.output_tokens = self.window.core.tokens.from_llama_messages(
                     response.response,
@@ -369,20 +377,28 @@ class Chat:
                 ctx.set_output(output, "")
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
             else:
-                ctx.response = response
-                if use_index:
-                    output = str(response.response)  # from agent
+                # from LLM directly, no index
+                if stream:
+                    if use_index:
+                        ctx.stream = response.response_gen
+                    else:
+                        ctx.stream = response  # chunk is in response.delta
+                    ctx.input_tokens = input_tokens
+                    ctx.set_output("", "")
                 else:
-                    output = response.message.content  # from LLM directly
-                if output is None:
-                    output = ""
-                ctx.set_output(output, "")
-                ctx.input_tokens = input_tokens
-                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                    output,
-                    [],
-                    model.id,
-                ) # calc from response
+                    if use_index:
+                        output = str(response.response)  # from index
+                    else:
+                        output = response.message.content  # from LLM
+                    if output is None:
+                        output = ""
+                    ctx.set_output(output, "")
+                    ctx.input_tokens = input_tokens
+                    ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                        output,
+                        [],
+                        model.id,
+                    ) # calc from response
             return True
         return False
 
