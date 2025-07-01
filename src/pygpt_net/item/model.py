@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import json
@@ -234,7 +234,8 @@ class ModelItem:
                 or self.id.startswith("o1")
                 or self.id.startswith("o3")
                 or self.id.startswith("o4")
-                or self.id.startswith("o5")):
+                or self.id.startswith("o5")
+                or self.id.startswith("codex-")):
             return True
         return False
 

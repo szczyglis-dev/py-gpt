@@ -432,7 +432,7 @@ class Models:
         :return: client arguments dict
         """
         # research mode endpoint - Perplexity
-        if mode == MODE_RESEARCH:
+        if mode == MODE_RESEARCH and model.provider == "perplexity":
             args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
             args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
             self.window.core.debug.info("[api] Using client: Perplexity")
@@ -472,7 +472,9 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
-        return True
+        if self.window.core.config.get("llama.idx.react", False):
+            return True # allow all for ReAct agent
+
         stream = self.window.core.config.get("stream", False)
         not_allowed_providers = [
             "ollama",
@@ -483,7 +485,7 @@ class Models:
         ]
         if mode == MODE_LLAMA_INDEX:
             if model.provider == "google" and stream:
-                not_allowed_providers.append("google")  # bug in types in google-generativeai==0.8.5
+                not_allowed_providers.append("google")
         if model.provider in not_allowed_providers:
             return False
         return True

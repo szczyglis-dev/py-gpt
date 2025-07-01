@@ -273,6 +273,47 @@
             "imported": false,
             "provider": "ollama"
         },
+        "codex-mini-latest": {
+            "id": "codex-mini-latest",
+            "name": "codex-mini-latest",
+            "mode": [
+                "chat"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "codex-mini-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "multimodal": [],
+            "extra": {},
+            "imported": false,
+            "provider": "openai"
+        },
         "dall-e-2": {
             "id": "dall-e-2",
             "name": "dall-e-2",
@@ -2367,6 +2408,90 @@
                     {
                         "name": "model",
                         "value": "o3-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "multimodal": [],
+            "extra": {},
+            "imported": false,
+            "provider": "openai"
+        },
+        "o3-deep-research": {
+            "id": "o3-deep-research",
+            "name": "o3-deep-research",
+            "mode": [
+                "chat",
+                "research"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o3-deep-research",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "multimodal": [],
+            "extra": {},
+            "imported": false,
+            "provider": "openai"
+        },
+        "o4-mini-deep-research": {
+            "id": "o4-mini-deep-research",
+            "name": "o4-mini-deep-research",
+            "mode": [
+                "chat",
+                "research"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o4-mini-deep-research",
                         "type": "str"
                     }
                 ],

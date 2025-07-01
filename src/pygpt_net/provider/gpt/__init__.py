@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 import base64
 
@@ -121,7 +121,8 @@ class Gpt:
                 max_tokens = model.tokens
 
             if model.is_gpt():
-                if mode == MODE_CHAT and self.window.core.config.get('api_use_responses', False):
+                if (mode in [MODE_CHAT, MODE_RESEARCH]
+                        and self.window.core.config.get('api_use_responses', False)):
                     use_responses_api = True  # use responses API for chat mode, only OpenAI models
 
         ctx.use_responses_api = use_responses_api  # set in context

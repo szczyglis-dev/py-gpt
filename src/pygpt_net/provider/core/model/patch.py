@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -635,6 +635,11 @@ class Patch:
                             model.mode.append("expert")
                         if "chat" not in model.mode:
                             model.mode.append("chat")
+                updated = True
+
+            # < 2.5.27 <--- add o3, o4 deep research
+            if old < parse_version("2.5.27"):
+                print("Migrating models from < 2.5.27...")
                 updated = True
 
         # update file
