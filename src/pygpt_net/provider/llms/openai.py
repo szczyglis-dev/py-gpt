@@ -24,6 +24,9 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
+    OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
+    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -98,13 +101,26 @@ class OpenAILLM(BaseLLM):
             tools = []
             if (not model.id.startswith("o1")
                     and not model.id.startswith("o3")):
-                if window.core.config.get("remote_tools.web_search", False):
-                    tools.append({"type": "web_search_preview"})
-                if window.core.config.get("remote_tools.image", False):
-                    tool = {"type": "image_generation"}
-                    if stream:
-                        tool["partial_images"] = 1  # required for streaming
-                    tools.append(tool)
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
+                    if window.core.config.get("remote_tools.web_search", False):
+                        tools.append({"type": "web_search_preview"})
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
+                    if window.core.config.get("remote_tools.code_interpreter", False):
+                        tools.append({
+                            "type": "code_interpreter",
+                            "container": {
+                                "type": "auto"
+                            }
+                        })
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
+                    if window.core.config.get("remote_tools.image", False):
+                        tool = {"type": "image_generation"}
+                        if stream:
+                            tool["partial_images"] = 1  # required for streaming
+                        tools.append(tool)
             if tools:
                 args["built_in_tools"] = tools
             return LlamaOpenAIResponses(**args)

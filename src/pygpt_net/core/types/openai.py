@@ -9,5 +9,18 @@
 # Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
-from .mode import *
-from .openai import *
+OPENAI_DISABLE_TOOLS = [
+    "o4-mini-deep-research",
+    "o3-deep-research",
+]
+OPENAI_REMOTE_TOOL_DISABLE_IMAGE = [
+    "o4-mini-deep-research",
+    "o3-deep-research",
+    "codex-mini-latest",
+]
+OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER = [
+    "codex-mini-latest",
+]
+OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH = [
+    "codex-mini-latest",
+]

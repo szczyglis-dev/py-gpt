@@ -1327,7 +1327,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "OpenAI"
     },
     "remote_tools.image": {
         "section": "remote_tools",
@@ -1340,7 +1341,22 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "OpenAI"
+    },
+    "remote_tools.code_interpreter": {
+        "section": "remote_tools",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.remote_tools.code_interpreter",
+        "description": "settings.remote_tools.code_interpreter.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "OpenAI"
     },
     "llama.idx.list": {
         "section": "llama-index",
@@ -1361,6 +1377,20 @@
         "max": null,
         "multiplier": null,
         "step": null,
+        "advanced": false
+    },
+    "llama.idx.react": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.react",
+        "description": "settings.llama.idx.react.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
         "advanced": false
     },
     "llama.idx.storage": {

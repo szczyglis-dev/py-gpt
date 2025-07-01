@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 
 import json
@@ -17,6 +17,10 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
     MODE_AUDIO,
+    OPENAI_DISABLE_TOOLS,
+    OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
+    OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
+    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -115,16 +119,31 @@ class Responses:
             response_kwargs['reasoning'] = {}
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
+        if model.id in OPENAI_DISABLE_TOOLS:
+            tools = []  # disable tools for specific models
+
         # extend tools with external tools
         if (not model.id.startswith("o1")
-                and not model.id.startswith("o3")):
-            if self.window.core.config.get("remote_tools.web_search", False):
-                tools.append({"type": "web_search_preview"})
-            if self.window.core.config.get("remote_tools.image", False):
-                tool = {"type": "image_generation"}
-                if stream:
-                    tool["partial_images"] = 1  # required for streaming
-                tools.append(tool)
+                and not model.id.startswith("o3")):  # o1, o3, o4 models do not support tools
+
+            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
+                if self.window.core.config.get("remote_tools.web_search", False):
+                    tools.append({"type": "web_search_preview"})
+
+            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
+                if self.window.core.config.get("remote_tools.code_interpreter", False):
+                    tools.append({
+                        "type": "code_interpreter",
+                        "container": {
+                            "type": "auto"
+                        }
+                    })
+            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
+                if self.window.core.config.get("remote_tools.image", False):
+                    tool = {"type": "image_generation"}
+                    if stream:
+                        tool["partial_images"] = 1  # required for streaming
+                    tools.append(tool)
 
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None

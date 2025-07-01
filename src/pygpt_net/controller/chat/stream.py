@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.01 01:00:00                  #
 # ================================================== #
 import base64
 import uuid
@@ -41,6 +41,7 @@ class Stream:
         citations = []
         img_path = self.window.core.image.gen_unique_path(ctx)
         is_image = False
+        is_code = False
 
         # chunks: stream begin
         data = {
@@ -159,9 +160,18 @@ class Stream:
                                 citations.append(url_citation)
                                 ctx.urls = citations
 
+                        # ---------- code interpreter ----------
+                        elif etype == "response.code_interpreter_call_code.delta":
+                            if not is_code:
+                                response = "\n\n**Code interpreter**\n```python\n" + chunk.delta
+                                is_code = True
+                            else:
+                                response = chunk.delta
+                        elif etype == "response.code_interpreter_call_code.done":
+                            response = "\n\n```\n-----------\n"
+
                         # ---------- image gen ----------
                         elif etype == "response.image_generation_call.partial_image":
-                            idx = chunk.partial_image_index
                             image_base64 = chunk.partial_image_b64
                             image_bytes = base64.b64decode(image_base64)
                             with open(img_path, "wb") as f:
