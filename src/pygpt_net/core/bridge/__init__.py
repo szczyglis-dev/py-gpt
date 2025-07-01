@@ -214,6 +214,7 @@ class Bridge:
                         res = self.window.core.idx.chat.chat(
                             context=context,
                             extra=extra,
+                            disable_cmd=True,
                         )
                         if res:
                             return ctx.output  # response text is in ctx.output

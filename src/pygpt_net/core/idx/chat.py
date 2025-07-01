@@ -212,13 +212,15 @@ class Chat:
     def chat(
             self,
             context: BridgeContext,
-            extra: Optional[Dict[str, Any]] = None
+            extra: Optional[Dict[str, Any]] = None,
+            disable_cmd: bool = False,
     ) -> bool:
         """
         Chat mode (conversation, using context from index) and append result to the context
 
         :param context: Bridge context
         :param extra: Extra arguments
+        :param disable_cmd: Disable tools
         """
         idx = context.idx
         model = context.model
@@ -234,6 +236,8 @@ class Chat:
         cmd_enabled = self.window.core.config.get("cmd", False)
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
+        if disable_cmd:
+            cmd_enabled = False
 
         if idx is None or idx == "_":
             chat_mode = "simple"  # do not use query engine if no index
