@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.26 (2025-07-01)
+
+- Improved mode switch in background.
+
 ## 2.5.25 (2025-07-01)
 
 - Tool calls in Chat with Files mode moved to ReAct agent.

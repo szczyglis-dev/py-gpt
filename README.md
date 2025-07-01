@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.25** | build: **2025-07-01** | Python: **>=3.10, <3.13**
+Release: **2.5.26** | build: **2025-07-01** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4012,6 +4012,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.26 (2025-07-01)**
+
+- Improved mode switch in background.
 
 **2.5.25 (2025-07-01)**
 

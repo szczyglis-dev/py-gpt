@@ -305,7 +305,7 @@ class Chat:
                 index_tool = QueryEngineTool.from_defaults(
                     query_engine=query_engine,
                     name="get_context",
-                    description="Get additional context to answer the question. Always call this tool at first to get additional context.",
+                    description="Get additional context to answer the question.",
                     return_direct=True,  # return direct response from index
                 )
                 tools.append(index_tool)
