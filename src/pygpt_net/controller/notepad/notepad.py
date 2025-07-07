@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.05 23:00:00                  #
+# Updated Date: 2025.07.08 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.tabs.tab import Tab
@@ -196,7 +197,6 @@ class Notepad:
             idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
             if idx is not None:
                 tabs.setCurrentIndex(idx)
-
         self.window.activateWindow()  # focus
 
     def update(self):
@@ -285,7 +285,7 @@ class Notepad:
             idx = tab.data_id
             if idx in self.window.ui.notepad:
                 if idx not in self.opened_idx:
-                    self.window.ui.notepad[idx].scroll_to_bottom()
+                    QTimer.singleShot(0, self.window.ui.notepad[idx].scroll_to_bottom)
                 if not self.window.ui.notepad[idx].opened:
                     self.window.ui.notepad[idx].opened = True
                 if idx not in self.opened_idx:

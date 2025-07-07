@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.08 01:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtCore import Qt, QEvent, QTimer
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
 
 from pygpt_net.core.tabs.tab import Tab
@@ -52,7 +52,7 @@ class NotepadWidget(QWidget):
 
     def scroll_to_bottom(self):
         """Scroll down"""
-        self.textarea.verticalScrollBar().setValue(self.textarea.verticalScrollBar().maximum())
+        self.textarea.scroll_to_bottom()
 
     def setText(self, text: str):
         """
@@ -95,7 +95,18 @@ class NotepadOutput(QTextEdit):
         self.id = 1  # assigned in setup
         self.textChanged.connect(self.text_changed)
         self.tab = None
+        self.last_scroll_pos = None
         self.installEventFilter(self)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self.restore_scroll_pos)
+
+    def scroll_to_bottom(self):
+        self.moveCursor(QTextCursor.End)
+        self.ensureCursorVisible()
+        scroll_bar = self.verticalScrollBar()
+        scroll_bar.setValue(scroll_bar.maximum())
 
     def eventFilter(self, source, event):
         """
@@ -108,6 +119,11 @@ class NotepadOutput(QTextEdit):
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
+        elif source == self.verticalScrollBar():
+            if event.type() == QEvent.Wheel:
+                self.last_scroll_pos = self.verticalScrollBar().value()
+            elif event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
+                self.last_scroll_pos = self.verticalScrollBar().value()
         return super().eventFilter(source, event)
 
     def set_tab(self, tab: Tab):
@@ -123,6 +139,17 @@ class NotepadOutput(QTextEdit):
         if not self.window.core.notepad.locked:
             self.window.controller.notepad.save(self.id)  # use notepad id
         self.finder.text_changed()
+        self.last_scroll_pos = self.verticalScrollBar().value()
+
+    def restore_scroll_pos(self):
+        """ Restore last scroll position after showing the widget"""
+        if self.last_scroll_pos is None:
+            return
+        scroll_bar = self.verticalScrollBar()
+        if self.last_scroll_pos <= scroll_bar.maximum():
+            scroll_bar.setValue(self.last_scroll_pos)
+        else:
+            scroll_bar.setValue(scroll_bar.maximum())
 
     def contextMenuEvent(self, event):
         """
@@ -216,8 +243,10 @@ class NotepadOutput(QTextEdit):
             )
             self.window.controller.ui.update_font_size()
             event.accept()
+            self.last_scroll_pos = self.verticalScrollBar().value()
         else:
             super(NotepadOutput, self).wheelEvent(event)
+            self.last_scroll_pos = self.verticalScrollBar().value()
 
     def focusInEvent(self, e):
         """
