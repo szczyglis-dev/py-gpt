@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.29 07:00:00                  #
+# Updated Date: 2025.07.07 01:00:00                  #
 # ================================================== #
 
 import re
@@ -30,16 +30,32 @@ def output_html2text(html: str) -> str:
             empty = soup.new_tag('p')
             empty.string = '\n'
             tag.replace_with(empty)
+        for tag in soup.find_all('span', class_='ts'):
+            empty = soup.new_tag('span')
+            empty.string = ''
+            tag.replace_with(empty)
+        for tag in soup.find_all('div', class_='name-header'):
+            empty = soup.new_tag('span')
+            empty.string = ''
+            tag.replace_with(empty)
+        for tag in soup.find_all('span', class_='toggle-cmd-output'):
+            empty = soup.new_tag('span')
+            empty.string = ''
+            tag.replace_with(empty)        
         # add separators
         for tag in soup.find_all('div', class_='msg-bot'):
             sep = soup.new_tag('p')
             sep.string = '\n\n'
             tag.insert_before(sep)
+        for p in soup.select('.msg-user .msg p'):
+            for br in p.find_all('br'):
+                br.replace_with("\n")
         for tag in soup.find_all('div', class_='msg-user'):
             sep = soup.new_tag('p')
             sep.string = '\n\n'
             tag.insert_before(sep)
-        return soup.get_text()
+        text = soup.get_text(separator="", strip=False)
+        return text.replace('\t', '    ')
     except Exception as e:
         pass
     return ""
