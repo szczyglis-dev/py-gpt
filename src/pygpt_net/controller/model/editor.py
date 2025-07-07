@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.07 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -221,8 +221,17 @@ class Editor:
                 option=options[key],
             )
             data_dict[key] = value
+
+        # update current model
         if self.current in self.window.core.models.items:
             self.window.core.models.items[self.current].from_dict(data_dict)
+            if persist:
+                # change key to model ID if key not exists
+                old_key = self.current
+                new_key = self.window.core.models.items[self.current].id
+                if old_key != new_key:
+                    if new_key not in self.window.core.models.items:
+                        self.window.core.models.items[new_key] = self.window.core.models.items.pop(old_key)
 
         # save config
         if persist:
