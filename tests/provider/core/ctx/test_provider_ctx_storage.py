@@ -52,7 +52,7 @@ def test_get_meta(mock_window):
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.connect.return_value.__enter__.return_value = conn
         result = storage.get_meta()
@@ -122,7 +122,7 @@ def test_get_items(mock_window):
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.connect.return_value.__enter__.return_value = conn
         result = storage.get_items(1)
@@ -161,7 +161,7 @@ def test_truncate_all(mock_window):
     """Test truncate all"""
     storage = Storage(mock_window)
     conn = Mock()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         result = storage.truncate_all()
@@ -173,7 +173,7 @@ def test_delete_items_by_meta_id(mock_window):
     """Test delete items by meta id"""
     storage = Storage(mock_window)
     conn = Mock()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         result = storage.delete_items_by_meta_id(1)
@@ -185,7 +185,7 @@ def test_delete_meta_by_id(mock_window):
     """Test delete meta by idx"""
     storage = Storage(mock_window)
     conn = Mock()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         result = storage.delete_meta_by_id(1)
@@ -198,7 +198,7 @@ def test_update_meta(mock_window):
     storage = Storage(mock_window)
     conn = Mock()
     item = CtxMeta()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         storage.update_meta(item)
@@ -210,7 +210,7 @@ def test_update_meta_ts(mock_window):
     """Test update meta ts"""
     storage = Storage(mock_window)
     conn = Mock()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         storage.update_meta_ts(1)
@@ -223,7 +223,7 @@ def test_update_item(mock_window):
     storage = Storage(mock_window)
     conn = Mock()
     item = CtxItem()
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.begin.return_value.__enter__.return_value = conn
         storage.update_item(item)
@@ -241,7 +241,7 @@ def test_insert_meta(mock_window):
     conn.execute.return_value = db_result
     mock_db = MagicMock()
     mock_db.begin.return_value.__enter__.return_value = conn
-    with patch('pygpt_net.core.db.Database.get_db', return_value=mock_db) as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db', return_value=mock_db) as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         result = storage.insert_meta(item)
 
@@ -260,7 +260,7 @@ def test_insert_item(mock_window):
     conn.execute.return_value = db_result
     mock_db = MagicMock()
     mock_db.begin.return_value.__enter__.return_value = conn
-    with patch('pygpt_net.core.db.Database.get_db', return_value=mock_db) as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db', return_value=mock_db) as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         result = storage.insert_item(meta, item)
 

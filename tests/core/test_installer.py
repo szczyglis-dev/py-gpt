@@ -33,7 +33,7 @@ def test_install(mock_window):
     mock_window.core.filesystem.install = MagicMock()
     mock_window.core.camera.install = MagicMock()
 
-    with patch('pygpt_net.core.installer.Path', Path):
+    with patch('pygpt_net.core.installer.installer.Path', Path):
         installer.install()
         mock_window.core.config.install.assert_called_once()
         mock_window.core.models.install.assert_called_once()

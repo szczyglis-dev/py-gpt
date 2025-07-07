@@ -41,7 +41,7 @@ def test_from_prompt():
     text = "This is a test"
     input_name = "test"
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8):
         assert Tokens.from_prompt(text, input_name, model) == 12
 
 
@@ -49,7 +49,7 @@ def test_from_text():
     """Test from_text"""
     text = "This is a test"
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8):
         assert Tokens.from_text(text, model) == 8
 
 
@@ -66,7 +66,7 @@ def test_from_messages():
         }
     ]
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8):
         assert Tokens.from_messages(messages, model) == 43
 
 
@@ -84,7 +84,7 @@ def test_from_ctx():
     item.output_timestamp = 2
 
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8):
         assert Tokens.from_ctx(item, 'chat', model) == 56
 
 

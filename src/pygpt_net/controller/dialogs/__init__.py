@@ -10,23 +10,4 @@
 # ================================================== #
 
 
-from pygpt_net.controller.dialogs.confirm import Confirm
-from pygpt_net.controller.dialogs.debug import Debug
-from pygpt_net.controller.dialogs.info import Info
-
-
-class Dialogs:
-    def __init__(self, window=None):
-        """
-        Dialogs controller
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.confirm = Confirm(window)
-        self.debug = Debug(window)
-        self.info = Info(window)
-
-    def setup(self):
-        """Setup dialogs"""
-        self.info.setup()
+from .dialogs import *

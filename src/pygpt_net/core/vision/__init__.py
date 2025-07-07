@@ -9,14 +9,4 @@
 # Updated Date: 2024.11.18 00:00:00                  #
 # ================================================== #
 
-from .analyzer import Analyzer
-
-class Vision:
-    def __init__(self, window=None):
-        """
-        Audio analyzer
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.analyzer = Analyzer(window)
+from .vision import *

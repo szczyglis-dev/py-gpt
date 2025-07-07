@@ -185,7 +185,7 @@ def test_new():
     """
     Test new
     """
-    with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         attachments.window = MagicMock()
         mode = 'test'
@@ -239,7 +239,7 @@ def test_add():
     """
     Test add
     """
-    with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         mode = 'test'
         file_id = 'test_id'
@@ -301,7 +301,7 @@ def test_delete():
     """
     Test delete
     """
-    with patch('pygpt_net.core.attachments.Attachments.save'):
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'
         file_id = 'test_id'
@@ -320,7 +320,7 @@ def test_delete_all():
     """
     Test delete all
     """
-    with patch('pygpt_net.core.attachments.Attachments.clear'):
+    with patch('pygpt_net.core.attachments.attachments.Attachments.clear'):
         attachments = Attachments()
         attachments.window = MagicMock()
         attachments.clear = MagicMock()
@@ -378,7 +378,7 @@ def test_replace_id():
     """
     Test replace id
     """
-    with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         mode = 'test'
         file_id = 'test_id'
@@ -448,7 +448,7 @@ def test_from_files():
     """
     Test from files
     """
-    with patch('pygpt_net.core.attachments.Attachments.save'):
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'
         file_id = 'test_id'
@@ -468,7 +468,7 @@ def test_from_attachments():
     """
     Test from attachments
     """
-    with patch('pygpt_net.core.attachments.Attachments.save'):
+    with patch('pygpt_net.core.attachments.attachments.Attachments.save'):
         attachments = Attachments()
 
         mode = 'test'

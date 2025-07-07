@@ -127,7 +127,7 @@ def test_get_db_data_from_ts(mock_window):
     result.fetchall.return_value = rows
     conn = Mock()
     conn.execute.return_value = result
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.connect.return_value.__enter__.return_value = conn
         documents = idx.get_db_data_from_ts(updated_ts)
@@ -148,7 +148,7 @@ def test_get_db_data_by_id(mock_window):
     result.fetchall.return_value = rows
     conn = Mock()
     conn.execute.return_value = result
-    with patch('pygpt_net.core.db.Database.get_db') as mock_get_db:
+    with patch('pygpt_net.core.db.database.Database.get_db') as mock_get_db:
         mock_window.core.db.get_db = mock_get_db
         mock_get_db.return_value.connect.return_value.__enter__.return_value = conn
         documents = idx.get_db_data_by_id(id)

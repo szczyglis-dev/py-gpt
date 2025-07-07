@@ -125,7 +125,7 @@ def test_add():
     assistant = MagicMock()
     assistant.id = "id1"
 
-    with patch('pygpt_net.core.assistants.Assistants.save') as mock_save:
+    with patch('pygpt_net.core.assistants.assistants.Assistants.save') as mock_save:
         assistants = Assistants()
         assistants.add(assistant)
 
@@ -144,7 +144,7 @@ def test_delete():
         'assistant2': a2,
     }
 
-    with patch('pygpt_net.core.assistants.Assistants.save') as mock_save:
+    with patch('pygpt_net.core.assistants.assistants.Assistants.save') as mock_save:
         assistants = Assistants()
         assistants.items = items
         assistants.delete('assistant1')
@@ -163,7 +163,7 @@ def test_replace_attachment():
         'id_other': MagicMock(),
     }
 
-    with patch('pygpt_net.core.assistants.Assistants.save') as mock_save:
+    with patch('pygpt_net.core.assistants.assistants.Assistants.save') as mock_save:
         assistants = Assistants()
         assistants.replace_attachment(assistant, MagicMock(), 'id_old', 'id_new')
 

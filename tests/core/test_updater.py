@@ -164,8 +164,8 @@ def test_check(mock_window):
     fake_read.return_value = json.dumps(fake_response_data).encode('utf-8')
     fake_urlopen = MagicMock(return_value=MagicMock(read=fake_read))
 
-    with patch('pygpt_net.core.updater.urlopen', fake_urlopen), \
-         patch('pygpt_net.core.updater.Request', MagicMock()), \
+    with patch('pygpt_net.core.updater.updater.urlopen', fake_urlopen), \
+         patch('pygpt_net.core.updater.updater.Request', MagicMock()), \
          patch('ssl.create_default_context', return_value=MagicMock()) as fake_ctx:
 
         fake_ctx.return_value.check_hostname = False

@@ -168,7 +168,7 @@ def test_create():
 
 
 def test_add():
-    with patch('pygpt_net.core.ctx.Ctx.store') as mock_store:
+    with patch('pygpt_net.core.ctx.ctx.Ctx.store') as mock_store:
         ctx = Ctx()
         ctx.current = 5
         ctx.meta = {
