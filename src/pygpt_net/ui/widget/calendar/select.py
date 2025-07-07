@@ -9,6 +9,8 @@
 # Updated Date: 2025.01.19 02:00:00                  #
 # ================================================== #
 
+from typing import Tuple
+
 from PySide6.QtCore import QRect, QDate
 from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon, QPixmap, QPen
 from PySide6.QtWidgets import QCalendarWidget, QMenu
@@ -165,7 +167,7 @@ class CalendarSelect(QCalendarWidget):
                 painter.restore()
                 prev_left += 7
 
-    def get_color_for_status(self, status: int) -> (QColor, QColor):
+    def get_color_for_status(self, status: int) -> Tuple[QColor, QColor]:
         """
         Get color for status
 

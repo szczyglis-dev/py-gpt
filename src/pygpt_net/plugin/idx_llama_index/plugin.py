@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+from typing import Tuple, Dict, List
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -226,7 +227,7 @@ class Plugin(BasePlugin):
         prompt += "\nADDITIONAL CONTEXT: " + response
         return prompt
 
-    def query(self, question: str) -> (str, list, list):
+    def query(self, question: str) -> Tuple[str, list, list]:
         """
         Query Llama-index
 
@@ -310,7 +311,7 @@ class Plugin(BasePlugin):
         if self.get_option_value("append_meta") and meta:
             ctx.output += "\n--------------------------------\nMetadata: " + meta
 
-    def cmd(self, ctx: CtxItem, cmds: list):
+    def cmd(self, ctx: CtxItem, cmds: List[Dict]):
         """
         Events: CMD_INLINE, CMD_EXECUTE
 

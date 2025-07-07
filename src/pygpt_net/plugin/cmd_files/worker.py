@@ -14,6 +14,8 @@ import mimetypes
 import os.path
 import shutil
 import ssl
+
+from typing import Tuple, List, Dict
 from urllib.request import Request, urlopen
 from PySide6.QtCore import Slot
 
@@ -806,7 +808,7 @@ class Worker(BaseWorker):
                     matches.append(os.path.join(directory, filename))
         return matches
 
-    def get_human_readable_size(self, size, decimal_places=2):
+    def get_human_readable_size(self, size: int, decimal_places: int = 2):
         """
         Return a human-readable file size.
 
@@ -847,12 +849,12 @@ class Worker(BaseWorker):
                 path,
             )
 
-    def read_files(self, paths: list) -> (list, list):
+    def read_files(self, paths: List[str]) -> Tuple[List[Dict], List[str]]:
         """
         Read files from directory
 
         :param paths: list of paths
-        :return: response data and context
+        :return: response data(s), context(s)
         """
         data = []
         context = []

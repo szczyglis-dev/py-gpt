@@ -9,6 +9,8 @@
 # Updated Date: 2024.11.21 17:00:00                  #
 # ================================================== #
 
+from typing import List, Tuple
+
 from pygpt_net.core.events import (
     BaseEvent,
     KernelEvent,
@@ -33,7 +35,7 @@ class Dispatcher:
             self,
             event: BaseEvent,
             all: bool = False
-    ) -> (list, BaseEvent):
+    ) -> Tuple[List[str], BaseEvent]:
         """
         Dispatch event
 
@@ -45,13 +47,13 @@ class Dispatcher:
             event.call_id = self.call_id
 
         if self.is_log(event):
-            self.window.core.debug.info("[event] Dispatch begin: " + event.full_name + " (" + str(event.call_id) + ")")
+            self.window.core.debug.info("[event] Dispatch begin: " + str(event.full_name) + " (" + str(event.call_id) + ")")
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("[event] Before handle: " + str(event))
 
         if event.stop:
-            self.window.core.debug.info("[event] Skipping... (stopped): " + event.name)
-            return
+            self.window.core.debug.info("[event] Skipping... (stopped): " + str(event.name))
+            return [], event
 
         # kernel events
         if isinstance(event, KernelEvent):
@@ -64,7 +66,7 @@ class Dispatcher:
             ]:
                 self.window.controller.kernel.handle(event)
             if self.is_log(event):
-                self.window.core.debug.info("[event] Dispatch end: " + event.full_name + " (" + str(event.call_id) + ")")
+                self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
             self.call_id += 1
             if not event.name in [
                 KernelEvent.INIT,
@@ -79,7 +81,7 @@ class Dispatcher:
             # dispatch event to render controller
             self.window.controller.chat.render.handle(event)
             if self.is_log(event):
-                self.window.core.debug.info("[event] Dispatch end: " + event.full_name + " (" + str(event.call_id) + ")")
+                self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
             self.call_id += 1
             return [], event
 
@@ -93,7 +95,7 @@ class Dispatcher:
         for id in list(self.window.core.plugins.plugins.keys()):
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
-                    self.window.core.debug.info("[event] Skipping... (stopped):  " + event.name)
+                    self.window.core.debug.info("[event] Skipping... (stopped):  " + str(event.name))
                     break
                 if self.window.core.debug.enabled() and self.is_log(event):
                     self.window.core.debug.debug("[event] Apply [{}] to plugin: ".format(event.name) + id)
@@ -103,7 +105,7 @@ class Dispatcher:
         if self.is_log(event):
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("[event] After handle: " + str(event))
-            self.window.core.debug.info("[event] Dispatch end: " + event.full_name + " (" + str(event.call_id) + ")")
+            self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
 
         self.call_id += 1
         return affected, event
