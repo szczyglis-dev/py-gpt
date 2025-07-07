@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.05 23:00:00                  #
+# Updated Date: 2025.07.07 01:00:00                  #
 # ================================================== #
 
 import os
@@ -38,7 +38,7 @@ class Parser:
                 'fenced_code',
                 'tables',
                 'sane_lists',
-                MathExtension(enable_dollar_delimiter=True)  # math formulas
+                MathExtension(enable_dollar_delimiter=False)  # math formulas
             ])
             # disable code blocks parsing (without ` and ```)
             if 'code' in self.md.parser.blockprocessors:
