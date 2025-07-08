@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.27** | build: **2025-07-01** | Python: **>=3.10, <3.13**
+Release: **2.5.28** | build: **2025-07-08** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4018,6 +4018,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.28 (2025-07-08)**
+
+- Fixed: Restoring the scrollbar value in the notepad.
+- Fixed: Improved math formula rendering.
+- Fixed: "Save as Text" option functionality.
+- Added: Set the model key to equal the model ID when saving in the model editor.
 
 **2.5.27 (2025-07-01)**
 

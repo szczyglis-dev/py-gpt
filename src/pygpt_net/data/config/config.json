@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.5.27",
-    "app.version": "2.5.27",
-    "updated_at": "2025-07-01T00:00:00"
+    "version": "2.5.28",
+    "app.version": "2.5.28",
+    "updated_at": "2025-07-08T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -319,7 +319,7 @@
   "remote_tools.code_interpreter": false,
   "send_clear": true,
   "send_mode": 2,
-  "store_history": true,
+  "store_history": false,
   "store_history_time": true,
   "stream": true,
   "tabs.data": {

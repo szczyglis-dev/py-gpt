@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.28 (2025-07-08)
+
+- Fixed: Restoring the scrollbar value in the notepad.
+- Fixed: Improved math formula rendering.
+- Fixed: "Save as Text" option functionality.
+- Added: Set the model key to equal the model ID when saving in the model editor.
+
 ## 2.5.27 (2025-07-01)
 
 - Added Code Interpreter tool to Responses API. Disabled by default, you can enable in: Settings -> Remote Tools.
