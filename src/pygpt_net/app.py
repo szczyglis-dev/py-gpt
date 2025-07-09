@@ -6,13 +6,33 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.09 22:00:00                  #
 # ================================================== #
 
 import os
+import builtins
+import io
 
 # disable warnings
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+
+_original_open = builtins.open
+
+def open_wrapper(file, mode='r', *args, **kwargs):
+    """
+    Patch for `builtins.open` - issue #116
+    Prevents attempts to open the .env file in the /home directory
+    within a Snapcraft environment when executing `dotenv.load_dotenv()`.
+    """
+    path = str(file)
+    if path == '.env' or path.endswith('/.env'):
+        if 'b' in mode:
+            return io.BytesIO(b"")
+        else:
+            return io.StringIO("")
+    return _original_open(file, mode, *args, **kwargs)
+
+builtins.open = open_wrapper
 
 from pygpt_net.launcher import Launcher
 
