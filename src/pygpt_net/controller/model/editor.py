@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.07 02:00:00                  #
+# Updated Date: 2025.07.08 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -232,6 +232,7 @@ class Editor:
                 if old_key != new_key:
                     if new_key not in self.window.core.models.items:
                         self.window.core.models.items[new_key] = self.window.core.models.items.pop(old_key)
+                        self.current = new_key  # switch current key
 
         # save config
         if persist:
