@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.26 16:00:00                  #
+# Updated Date: 2025.07.09 21:00:00                  #
 # ================================================== #
 
 import os
@@ -75,7 +75,15 @@ class Ollama:
         if "models" not in status:
             return result
         for item in status.get('models', []):
-            model_id = item.get('name').replace(":latest", "")
+            model_id = item.get('name')
+            if model_id not in self.available_models:
+                self.available_models.append(model_id)
+            if model_id == model:
+                return {
+                    'is_installed': True,
+                    'is_model': True,
+                }
+            model_id = item.get('name').replace(":latest", "")  # handle latest tag
             if model_id not in self.available_models:
                 self.available_models.append(model_id)
             if model_id == model:
