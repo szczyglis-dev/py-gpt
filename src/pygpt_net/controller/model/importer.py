@@ -240,6 +240,8 @@ class Importer:
                         "expert",
                     ]
                     m.provider = 'ollama'
+                    m.input = ["text"]
+                    m.output = ["text"]
                     # m.llama_index['provider'] = 'ollama'
                     # m.llama_index['mode'] = ['chat']
                     m.llama_index['args'] = [

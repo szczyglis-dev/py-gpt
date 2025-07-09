@@ -12,7 +12,7 @@
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_IMAGE,
-    MODE_VISION,
+    MODE_VISION, MULTIMODAL_IMAGE,
 )
 
 class Vision:
@@ -65,7 +65,7 @@ class Vision:
         if model_id is not None:
             if self.window.core.models.has(model_id):
                 model = self.window.core.models.get(model_id)
-                if MODE_VISION in model.mode:
+                if model.is_image_input():
                     return True
         return False
 

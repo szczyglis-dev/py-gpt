@@ -65,6 +65,7 @@
   "api_endpoint_google": "https://generativelanguage.googleapis.com/v1beta/openai",
   "api_endpoint_perplexity": "https://api.perplexity.ai",
   "api_endpoint_xai": "https://api.x.ai/v1",
+  "api_endpoint_anthropic": "https://api.anthropic.com/v1",
   "api_key": "",
   "api_key_google": "",
   "api_key_anthropic": "",
@@ -319,7 +320,7 @@
   "remote_tools.code_interpreter": false,
   "send_clear": true,
   "send_mode": 2,
-  "store_history": false,
+  "store_history": true,
   "store_history_time": true,
   "stream": true,
   "tabs.data": {

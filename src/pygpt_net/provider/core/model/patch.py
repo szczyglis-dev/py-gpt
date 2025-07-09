@@ -642,6 +642,11 @@ class Patch:
                 print("Migrating models from < 2.5.27...")
                 updated = True
 
+            # < 2.5.29 <--- add multimodal
+            if old < parse_version("2.5.29"):
+                print("Migrating models from < 2.5.29...")
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

@@ -223,6 +223,15 @@ def get_image_extensions() -> list:
     """
     return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
 
+def is_image(path: str) -> bool:
+    """
+    Check if file is image
+
+    :param path: path to file
+    :return: True if image
+    """
+    return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))
+
 
 def get_tz_offset() -> int:
     """

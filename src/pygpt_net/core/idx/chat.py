@@ -250,11 +250,24 @@ class Chat:
             raise Exception("Model config not provided")
 
         self.log("Chat with index...")
-        self.log("Idx: {}, query: {}, chat_mode: {}, model: {}".format(
-            idx,
-            query,
-            chat_mode,
-            model.id,
+        self.log("Idx: {idx}, "
+                 "chat_mode: {mode}, "
+                 "model: {model}, "
+                 "stream: {stream}, "
+                 "native tool calls: {tool_calls}, "
+                 "use react: {react}, "
+                 "use index: {use_index}, "
+                 "cmd enabled: {cmd_enabled}, "
+                 "query: {query}".format(
+            idx=idx,
+            mode=chat_mode,
+            model=model.id,
+            stream=stream,
+            tool_calls=allow_native_tool_calls,
+            react=use_react,
+            use_index=use_index,
+            cmd_enabled=cmd_enabled,
+            query=query,
         ))
 
         # use index only if idx is not empty, otherwise use only LLM
@@ -270,11 +283,12 @@ class Chat:
 
         # append context from DB
         history = self.context.get_messages(
-            ctx.input,
-            system_prompt,
-            context.history,
+            input_prompt=ctx.input,
+            system_prompt=system_prompt,
+            history=context.history,
             allow_native_tool_calls=allow_native_tool_calls,
             prev_message=self.prev_message,
+            attachments=context.attachments,
         )
 
         self.prev_message = None  # reset previous message
@@ -362,7 +376,7 @@ class Chat:
                     response = agent.chat(query)
                 else:
                     history.insert(0, self.context.add_system(system_prompt))
-                    history.append(self.context.add_user(query))
+                    history.append(self.context.add_user(query, attachments=context.attachments))
                     if stream: # TOOLS + STREAM + NO INDEX
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
@@ -390,7 +404,7 @@ class Chat:
             else:
                 # NO TOOLS + NO INDEX
                 history.insert(0, self.context.add_system(system_prompt))
-                history.append(self.context.add_user(query))
+                history.append(self.context.add_user(query, attachments=context.attachments))
                 if stream:
                     response = llm.stream_chat(
                         messages=history,

@@ -11,12 +11,18 @@
 
 import json
 
-from pygpt_net.core.types import MODE_CHAT
-
+from pygpt_net.core.types import (
+    MODE_CHAT,
+    MODE_VISION,
+    MULTIMODAL_IMAGE,
+    MODE_AUDIO,
+    MULTIMODAL_AUDIO,
+)
 
 class ModelItem:
 
     OPENAI_COMPATIBLE = [
+        "anthropic",
         "openai",
         "azure_openai",
         "google",
@@ -34,15 +40,17 @@ class ModelItem:
         """
         self.id = id
         self.name = None
-        self.mode = []
+        self.mode = ["chat"]
         self.langchain = {}
         self.llama_index = {}
-        self.multimodal = []  # multimodal support: vision, audio, etc.
+        self.multimodal = ["text"]  # multimodal support: image, audio, etc.
+        self.input = ["text"]  # multimodal support: image, audio, etc.
+        self.output = ["text"]  # multimodal support: image, audio, etc.
         self.ctx = 0
         self.tokens = 0
         self.default = False
         self.imported = False
-        self.provider = ""
+        self.provider = "openai"  # default provider
         self.extra = {}
 
     def from_dict(self, data: dict):
@@ -58,6 +66,12 @@ class ModelItem:
         if 'mode' in data:
             mode = data['mode'].replace(' ', '')
             self.mode = mode.split(',')
+        if 'input' in data:
+            input = data['input'].replace(' ', '')
+            self.input = input.split(',')
+        if 'output' in data:
+            output = data['output'].replace(' ', '')
+            self.output = output.split(',')
         if 'ctx' in data:
             self.ctx = data['ctx']
         if 'tokens' in data:
@@ -70,11 +84,6 @@ class ModelItem:
             self.imported = data['imported']
         if 'provider' in data:
             self.provider = data['provider']
-
-        # multimodal
-        if 'multimodal' in data:
-            options = data['multimodal'].replace(' ', '')
-            self.multimodal = options.split(',')
 
         # langchain
         """
@@ -118,11 +127,12 @@ class ModelItem:
         data['id'] = self.id
         data['name'] = self.name
         data['mode'] = ','.join(self.mode)
+        data['input'] = ','.join(self.input)
+        data['output'] = ','.join(self.output)
         # data['langchain'] = self.langchain
         data['ctx'] = self.ctx
         data['tokens'] = self.tokens
         data['default'] = self.default
-        data['multimodal'] = ','.join(self.multimodal)
         data['extra'] = self.extra
         data['imported'] = self.imported
         data['provider'] = self.provider
@@ -294,6 +304,26 @@ class ModelItem:
         """
         if mode in self.mode:
             self.mode.remove(mode)
+
+    def is_image_input(self) -> bool:
+        """
+        Check if model supports image input
+
+        :return: True if supports image input
+        """
+        if MODE_VISION in self.mode or MULTIMODAL_IMAGE in self.input:
+            return True
+        return False
+
+    def is_audio_input(self) -> bool:
+        """
+        Check if model supports audio input
+
+        :return: True if supports audio input
+        """
+        if MODE_AUDIO in self.mode or MULTIMODAL_AUDIO in self.input:
+            return True
+        return False
 
     def dump(self) -> str:
         """

@@ -1919,6 +1919,13 @@ class Patch:
                     data["llama.idx.react"] = True
                 updated = True
 
+            # < 2.5.29
+            if old < parse_version("2.5.29"):
+                print("Migrating config from < 2.5.29...")
+                if 'api_endpoint_anthropic' not in data:
+                    data["api_endpoint_anthropic"] = "https://api.anthropic.com/v1"
+                updated = True
+
         # update file
         migrated = False
         if updated:

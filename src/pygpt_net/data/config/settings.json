@@ -152,6 +152,21 @@
         "advanced": false,
         "tab": "Anthropic"
     },
+    "api_endpoint_anthropic": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_anthropic",
+        "description": "settings.api_endpoint_anthropic.desc",
+        "value": "https://api.anthropic.com/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Anthropic"
+    },
     "api_key_hugging_face": {
         "section": "api_keys",
         "type": "text",

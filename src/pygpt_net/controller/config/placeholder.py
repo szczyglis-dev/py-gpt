@@ -84,6 +84,8 @@ class Placeholder:
             return self.get_modes(params)
         elif id == "models":
             return self.get_models(params)
+        elif id == "multimodal":
+            return self.get_multimodal(params)
         elif id == "langchain_providers":
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
@@ -308,6 +310,22 @@ class Placeholder:
         data = []
         for id in modes:
             name = trans("mode." + id)
+            data.append({id: name})
+        return data
+
+    def get_multimodal(self, params: dict = None) -> List[Dict[str, str]]:
+        """
+        Get multimodal placeholders list
+
+        :param params: Additional parameters for specific placeholders
+        :return: multimodal placeholders list
+        """
+        if params is None:
+            params = {}
+        modes = self.window.core.models.get_multimodal_list()
+        data = []
+        for id in modes:
+            name = trans("multimodal." + id)
             data.append({id: name})
         return data
 

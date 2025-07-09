@@ -78,6 +78,25 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
 
+    def update_mode_in_current(self):
+        """Update current ctx mode"""
+        mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        id = self.window.core.ctx.get_current()
+        if id is not None:
+            meta = self.window.core.ctx.get_meta_by_id(id)
+            if meta:
+                # update mode in current ctx
+                self.window.core.ctx.mode = mode
+                self.window.core.ctx.model = model
+                self.window.core.ctx.last_mode = mode
+                self.window.core.ctx.last_model = model
+                meta.mode = mode
+                meta.model = model
+                meta.last_mode = mode
+                meta.last_model = model
+                self.window.core.ctx.save(id)
+
     def update(
             self,
             reload: bool = True,

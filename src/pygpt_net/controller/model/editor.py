@@ -59,6 +59,18 @@ class Editor:
                 "label": "model.mode",
                 "use": "modes",
             },
+            "input": {
+                "type": "bool_list",  # list of comma separated values
+                "label": "model.input",
+                "use": "multimodal",
+                "advanced": True,
+            },
+            "output": {
+                "type": "bool_list",  # list of comma separated values
+                "label": "model.output",
+                "use": "multimodal",
+                "advanced": True,
+            },
             "default": {
                 "type": "bool",
                 "label": "model.default",

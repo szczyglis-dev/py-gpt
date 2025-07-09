@@ -8,12 +8,16 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.06.30 20:00:00                  #
 # ================================================== #
-import json
-from typing import Optional, List
 
+import os
+from typing import Optional, List, Dict
+
+from llama_index.core.schema import ImageDocument
 from llama_index.core.llms import ChatMessage, MessageRole
 
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import is_image
 
 
 class Context:
@@ -32,7 +36,8 @@ class Context:
             history: Optional[List[CtxItem]] = None,
             multimodal: bool = False,
             prev_message = None,
-            allow_native_tool_calls: bool = False
+            allow_native_tool_calls: bool = False,
+            attachments: Dict[str, AttachmentItem] = None,
     ):
         """
         Get messages from db
@@ -43,6 +48,7 @@ class Context:
         :param multimodal: multimodal flag
         :param prev_message: previous message
         :param allow_native_tool_calls: allow native tool calls
+        :param attachments: attachments
         :return: Messages
         """
         messages = []
@@ -132,16 +138,43 @@ class Context:
 
         return messages
 
-    def add_user(self, query: str) -> ChatMessage:
+    def add_user(
+            self,
+            query: str,
+            attachments: Dict[str, AttachmentItem] = None) -> ChatMessage:
         """
         Add user message
 
         :param query: input query
+        :param attachments: attachments
         """
         return ChatMessage(
             role=MessageRole.USER,
             content=query,
         )
+
+        # TODO: multimodal support
+        # --------------------------
+        urls = []
+        if attachments is not None and len(attachments) > 0:
+            for id in attachments:
+                attachment = attachments[id]
+                if os.path.exists(attachment.path):
+                    if is_image(attachment.path):
+                        urls.append(attachment.path)
+        msg = ChatMessage(
+            role=MessageRole.USER,
+            content=query,
+        )
+        if urls:
+            image_documents = [ImageDocument(image_path=url) for url in urls]
+            if image_documents:
+                msg = ChatMessage(
+                    role=MessageRole.USER,
+                    content=query,
+                    image_documents=image_documents,
+                )
+        return msg
 
     def add_system(self, prompt: str) -> ChatMessage:
         """

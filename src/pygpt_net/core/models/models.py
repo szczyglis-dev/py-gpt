@@ -19,6 +19,10 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_RESEARCH,
+    MULTIMODAL_TEXT,
+    MULTIMODAL_IMAGE,
+    MULTIMODAL_AUDIO,
+    MULTIMODAL_VIDEO,
 )
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
@@ -37,6 +41,12 @@ class Models:
         self.ollama = Ollama(window)
         self.default = "gpt-4o-mini"
         self.items = {}
+        self.multimodal = [
+            MULTIMODAL_TEXT,
+            MULTIMODAL_IMAGE,
+            MULTIMODAL_AUDIO,
+            MULTIMODAL_VIDEO,
+        ]
 
     def install(self):
         """Install provider data"""
@@ -79,6 +89,27 @@ class Models:
                 self.items[key] = copy.deepcopy(base_items[key])
                 added_keys.append(key)
                 updated = True
+
+        # update multimodal options
+        for key in self.items:
+            if key in base_items:
+                if base_items[key].input != self.items[key].input:
+                    self.items[key].input = base_items[key].input
+                    updated = True
+                if base_items[key].output != self.items[key].output:
+                    self.items[key].output = base_items[key].output
+                    updated = True
+
+        # update empty multimodal options
+        for key in self.items:
+            if isinstance(self.items[key].input, list):
+                if len(self.items[key].input) == 0:
+                    self.items[key].input = ["text"]
+                    updated = True
+            if isinstance(self.items[key].output, list):
+                if len(self.items[key].output) == 0:
+                    self.items[key].output = ["text"]
+                    updated = True
 
         if updated:
             self.save()
@@ -230,6 +261,14 @@ class Models:
             id = "model-" + str(int(id.split("-")[1]) + 1).zfill(3)
         return id
 
+    def get_multimodal_list(self) -> List[str]:
+        """
+        Return available multimodal types
+
+        :return: list of multimodal types
+        """
+        return self.multimodal
+
     def create_empty(self, append: bool = True) -> ModelItem:
         """
         Create new empty model
@@ -265,6 +304,10 @@ class Models:
         model.name = self.default
         model.tokens = 4096
         model.ctx = 128000
+        model.input = ["text"]
+        model.output = ["text"]
+        model.provider = "openai"
+        model.mode = ["chat"]
         return model
 
     def delete(self, model: str):
@@ -432,36 +475,41 @@ class Models:
         :return: client arguments dict
         """
         # research mode endpoint - Perplexity
-        if mode == MODE_RESEARCH and model.provider == "perplexity":
-            args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
-            args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
-            self.window.core.debug.info("[api] Using client: Perplexity")
-        elif mode == MODE_CHAT:
-            if model is not None:
-                # xAI / grok
-                if model.provider == "x_ai":
-                    args["api_key"] = self.window.core.config.get('api_key_xai', "")
-                    args["base_url"] = self.window.core.config.get('api_endpoint_xai', "")
-                    self.window.core.debug.info("[api] Using client: xAI")
-                # Perplexity
-                elif model.provider == "perplexity":
-                    args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
-                    args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
-                    self.window.core.debug.info("[api] Using client: Perplexity")
-                # Google
-                elif model.provider == "google":
-                    args["api_key"] = self.window.core.config.get('api_key_google', "")
-                    args["base_url"] = self.window.core.config.get('api_endpoint_google', "")
-                    self.window.core.debug.info("[api] Using client: Google")
-                # Deepseek
-                elif model.provider == "deepseek_api":
-                    args["api_key"] = self.window.core.config.get('api_key_deepseek_api', "")
-                    args["base_url"] = self.window.core.config.get('api_endpoint_deepseek_api', "")
-                    self.window.core.debug.info("[api] Using client: Deepseek API")
-                else:
-                    self.window.core.debug.info("[api] Using client: OpenAI default")
+        if model is not None:
+            # xAI / grok
+            if model.provider == "x_ai":
+                args["api_key"] = self.window.core.config.get('api_key_xai', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_xai', "")
+                self.window.core.debug.info("[api] Using client: xAI")
+            # Perplexity
+            elif model.provider == "perplexity":
+                args["api_key"] = self.window.core.config.get('api_key_perplexity', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_perplexity', "")
+                self.window.core.debug.info("[api] Using client: Perplexity")
+            # Google
+            elif model.provider == "google":
+                args["api_key"] = self.window.core.config.get('api_key_google', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_google', "")
+                self.window.core.debug.info("[api] Using client: Google")
+            # Anthropic
+            elif model.provider == "anthropic":
+                args["api_key"] = self.window.core.config.get('api_key_anthropic', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_anthropic', "")
+                self.window.core.debug.info("[api] Using client: Anthropic")
+            # Deepseek
+            elif model.provider == "deepseek_api":
+                args["api_key"] = self.window.core.config.get('api_key_deepseek_api', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_deepseek_api', "")
+                self.window.core.debug.info("[api] Using client: Deepseek API")
             else:
-                self.window.core.debug.info("[api] No model provided, using default OpenAI client")
+                self.window.core.debug.info("[api] Using client: OpenAI (default)")
+
+            # do not include organization for non-OpenAI providers
+            if model.provider != "openai":
+                if "organization" in args:
+                    del args["organization"]
+        else:
+            self.window.core.debug.info("[api] No model provided, using default OpenAI client")
         return args
 
     def is_tool_call_allowed(self, mode: str, model: ModelItem) -> bool:

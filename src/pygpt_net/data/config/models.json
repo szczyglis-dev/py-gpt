@@ -1,11 +1,11 @@
 {
     "__meta__": {
-        "version": "2.5.28",
-        "app.version": "2.5.28",
+        "version": "2.5.29",
+        "app.version": "2.5.29",
         "updated_at": "2025-07-08T01:31:35"
     },
     "items": {
-        "bielik-11b-v2.3-instruct:Q4_K_M": {
+        "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
             "id": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
             "name": "bielik-11b-v2.3",
             "mode": [
@@ -28,7 +28,8 @@
             "ctx": 32768,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -75,7 +76,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -88,7 +90,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -108,7 +111,8 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "anthropic"
@@ -121,7 +125,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -141,7 +146,8 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "anthropic"
@@ -154,7 +160,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -174,7 +181,8 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "anthropic"
@@ -187,7 +195,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -207,7 +216,8 @@
             "ctx": 200000,
             "tokens": 32000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "anthropic"
@@ -220,7 +230,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -240,7 +251,8 @@
             "ctx": 200000,
             "tokens": 32000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "anthropic"
@@ -268,7 +280,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -277,7 +290,8 @@
             "id": "codex-mini-latest",
             "name": "codex-mini-latest",
             "mode": [
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -309,7 +323,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -327,7 +342,8 @@
             "ctx": 0,
             "tokens": 0,
             "default": false,
-            "multimodal": [],
+            "input": ["image"],
+            "output": ["image"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -345,7 +361,8 @@
             "ctx": 0,
             "tokens": 0,
             "default": true,
-            "multimodal": [],
+            "input": ["image"],
+            "output": ["image"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -378,7 +395,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -411,7 +429,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -444,7 +463,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -477,7 +497,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -510,7 +531,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -543,7 +565,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -576,7 +599,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -614,7 +638,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "deepseek_api"
@@ -652,7 +677,8 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "deepseek_api"
@@ -665,7 +691,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -685,7 +712,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image", "audio", "video"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "google"
@@ -698,7 +726,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -718,7 +747,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image", "audio", "video"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "google"
@@ -731,7 +761,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -751,7 +782,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image", "audio", "video"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "google"
@@ -764,7 +796,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -784,7 +817,8 @@
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image", "audio", "video"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "google"
@@ -797,7 +831,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -817,7 +852,8 @@
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image", "audio", "video"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "google"
@@ -863,7 +899,8 @@
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -908,7 +945,8 @@
             "ctx": 16385,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -954,7 +992,8 @@
             "ctx": 16385,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -972,7 +1011,8 @@
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1018,7 +1058,8 @@
             "ctx": 8192,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1064,7 +1105,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1110,7 +1152,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1156,7 +1199,8 @@
             "ctx": 32768,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1203,7 +1247,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1250,7 +1295,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1296,7 +1342,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1317,7 +1364,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1364,7 +1412,8 @@
             "ctx": 1047576,
             "tokens": 32768,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1411,7 +1460,8 @@
             "ctx": 1047576,
             "tokens": 32768,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1458,7 +1508,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1505,7 +1556,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": true,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1552,7 +1604,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1593,7 +1646,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "audio"],
+            "output": ["text", "audio"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1640,7 +1694,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1681,7 +1736,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "audio"],
+            "output": ["text", "audio"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1699,7 +1755,8 @@
             "ctx": 0,
             "tokens": 0,
             "default": true,
-            "multimodal": [],
+            "input": ["image"],
+            "output": ["image"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -1732,7 +1789,8 @@
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "x_ai"
@@ -1765,7 +1823,8 @@
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "x_ai"
@@ -1798,7 +1857,8 @@
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "x_ai"
@@ -1831,7 +1891,43 @@
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai"
+        },
+        "grok-2-vision": {
+            "id": "grok-2-vision",
+            "name": "grok-2-vision",
+            "mode": [
+                "chat",
+                "vision"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-2-vision",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 32768,
+            "tokens": 16384,
+            "default": false,
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "x_ai"
@@ -1859,7 +1955,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -1887,7 +1984,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -1915,7 +2013,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -1943,7 +2042,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -1971,7 +2071,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -1999,7 +2100,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2027,7 +2129,8 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2040,7 +2143,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2072,7 +2176,8 @@
             "ctx": 128000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2084,7 +2189,8 @@
                 "chat",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2116,7 +2222,8 @@
             "ctx": 128000,
             "tokens": 65536,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2128,7 +2235,8 @@
                 "chat",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2160,7 +2268,8 @@
             "ctx": 128000,
             "tokens": 65536,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2173,7 +2282,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2205,7 +2315,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2218,7 +2329,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2250,7 +2362,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2262,7 +2375,8 @@
                 "chat",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2294,7 +2408,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {
                 "reasoning_effort": "high"
             },
@@ -2308,7 +2423,8 @@
                 "chat",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2340,7 +2456,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {
                 "reasoning_effort": "low"
             },
@@ -2354,7 +2471,8 @@
                 "chat",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2386,7 +2504,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {
                 "reasoning_effort": "medium"
             },
@@ -2401,7 +2520,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "llama_index"
+                "llama_index",
+                "agent_llama",
             ],
             "llama_index": {
                 "args": [
@@ -2433,7 +2553,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2475,7 +2596,54 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
+            "extra": {},
+            "imported": false,
+            "provider": "openai"
+        },
+        "o4-mini": {
+            "id": "o4-mini",
+            "name": "o4-mini",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "expert",
+                "agent_llama"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o4-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2517,7 +2685,8 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "multimodal": [],
+            "input": ["text", "image"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai"
@@ -2545,7 +2714,8 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2573,7 +2743,8 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2601,7 +2772,8 @@
             "ctx": 40000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2629,7 +2801,8 @@
             "ctx": 40000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2657,7 +2830,8 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "ollama"
@@ -2695,7 +2869,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"
@@ -2733,7 +2908,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"
@@ -2771,7 +2947,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"
@@ -2809,7 +2986,8 @@
             "ctx": 200000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"
@@ -2847,7 +3025,8 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"
@@ -2885,7 +3064,8 @@
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
-            "multimodal": [],
+            "input": ["text"],
+            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "perplexity"

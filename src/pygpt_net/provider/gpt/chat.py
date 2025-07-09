@@ -16,7 +16,7 @@ from typing import Optional, Dict, Any, List
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
-    MODE_AUDIO,
+    MODE_AUDIO, MULTIMODAL_IMAGE,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -115,6 +115,7 @@ class Chat:
         if (model.id is not None
                 and not model.id.startswith("o1")
                 and not model.id.startswith("o3")
+                and not model.id.startswith("o4")
                 and model.is_gpt()):
             response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
             response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
@@ -330,12 +331,12 @@ class Chat:
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
-            if MODE_VISION in model.mode:
+            if model.is_image_input():
                 content = self.window.core.gpt.vision.build_content(
                     content=content,
                     attachments=attachments,
                 )
-            if MODE_AUDIO in model.mode:
+            if model.is_audio_input():
                 content = self.window.core.gpt.audio.build_content(
                     content=content,
                     multimodal_ctx=multimodal_ctx,

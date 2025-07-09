@@ -305,13 +305,13 @@ class Responses:
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
-            if MODE_VISION in model.mode:
+            if model.is_image_input():
                 content = self.window.core.gpt.vision.build_content(
                     content=content,
                     attachments=attachments,
                     responses_api=True,
                 )
-            if MODE_AUDIO in model.mode:
+            if model.is_audio_input():
                 content = self.window.core.gpt.audio.build_content(
                     content=content,
                     multimodal_ctx=multimodal_ctx,

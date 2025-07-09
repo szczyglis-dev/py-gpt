@@ -1536,9 +1536,6 @@ class Ctx:
 
         :param id: ctx id
         """
-        if not self.window.core.config.get('store_history'):
-            return
-
         self.provider.save(id, self.meta[id], self.get_items())
 
     def store(self):

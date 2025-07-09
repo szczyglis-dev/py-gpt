@@ -164,7 +164,8 @@ class JsonFileProvider(BaseProvider):
             'ctx': item.ctx,
             'tokens': item.tokens,
             'default': item.default,
-            'multimodal': item.multimodal,
+            'input': item.input,
+            'output': item.output,
             'extra': item.extra,
             'imported': item.imported,
             'provider': item.provider,
@@ -194,8 +195,10 @@ class JsonFileProvider(BaseProvider):
             item.tokens = data['tokens']
         if 'default' in data:
             item.default = data['default']
-        if 'multimodal' in data:
-            item.multimodal = data['multimodal']
+        if 'input' in data:
+            item.input = data['input']
+        if 'output' in data:
+            item.output = data['output']
         if 'extra' in data:
             item.extra = data['extra']
         if 'imported' in data:

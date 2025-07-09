@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.03.02 19:00:00                  #
 # ================================================== #
 
-from .mode import *
-from .openai import *
-from .multimodal import *
+MULTIMODAL_TEXT = "text"
+MULTIMODAL_IMAGE = "image"
+MULTIMODAL_AUDIO = "audio"
+MULTIMODAL_VIDEO = "video"

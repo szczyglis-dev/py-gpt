@@ -284,6 +284,9 @@ class Input:
             # check if current ctx is allowed for this mode - if not, then auto-create new ctx
             self.window.controller.ctx.handle_allowed(mode)
 
+        # update mode in ctx
+        self.window.controller.ctx.update_mode_in_current()
+
         # send input to API
         if mode == MODE_IMAGE:
             self.window.controller.chat.image.send(
