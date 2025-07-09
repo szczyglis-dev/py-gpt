@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.5.29'
+VERSION = '2.5.30'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, o3, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
@@ -120,7 +120,7 @@ setup(
         'show-in-file-manager>=1.1.5,<2.0.0',
         'SQLAlchemy>=2.0.41,<3.0.0',
         'tiktoken>=0.7.0,<0.8.0',
-        'transformers>=4.52.1,<5.0.0',
+        'transformers==4.48.3',
         'urllib3>=1.26.20,<2.0.0',
         'wikipedia>=1.4.0,<2.0.0',
         'youtube-transcript-api>=0.6.3,<0.7.0',
