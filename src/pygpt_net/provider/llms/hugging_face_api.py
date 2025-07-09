@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.09 22:00:00                  #
 # ================================================== #
 
 import os
@@ -45,7 +45,7 @@ class HuggingFaceApiLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.llama_index)
+        args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
         return HuggingFaceInferenceAPI(**args)
@@ -66,7 +66,7 @@ class HuggingFaceApiLLM(BaseLLM):
         if config is not None:
             args = self.parse_args({
                 "args": config,
-            })
+            }, window)
         return HuggingFaceAPIEmbedding(**args)
 
     def init_embeddings(

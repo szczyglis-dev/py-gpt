@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.09 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -77,7 +77,7 @@ class PerplexityLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.llama_index)
+        args = self.parse_args(model.llama_index, window)
         if "api_key" not in args:
             args["api_key"] = window.core.config.get("api_key_perplexity", "")
         if "model" not in args:

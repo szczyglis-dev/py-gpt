@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.09 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -498,8 +498,8 @@ class Models:
                 self.window.core.debug.info("[api] Using client: Anthropic")
             # Deepseek
             elif model.provider == "deepseek_api":
-                args["api_key"] = self.window.core.config.get('api_key_deepseek_api', "")
-                args["base_url"] = self.window.core.config.get('api_endpoint_deepseek_api', "")
+                args["api_key"] = self.window.core.config.get('api_key_deepseek', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_deepseek', "")
                 self.window.core.debug.info("[api] Using client: Deepseek API")
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")

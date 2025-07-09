@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.09 22:00:00                  #
 # ================================================== #
 
 import os
@@ -87,7 +87,7 @@ class OllamaLLM(BaseLLM):
         :return: LLM provider instance
         """
         nest_asyncio.apply()
-        args = self.parse_args(model.llama_index)
+        args = self.parse_args(model.llama_index, window)
         if "request_timeout" not in args:
             args["request_timeout"] = 120
         if 'OLLAMA_API_BASE' in os.environ:
@@ -113,7 +113,7 @@ class OllamaLLM(BaseLLM):
         if config is not None:
             args = self.parse_args({
                 "args": config,
-            })
+            }, window)
         if 'OLLAMA_API_BASE' in os.environ:
             if "base_url" not in args:
                 args["base_url"] = os.environ['OLLAMA_API_BASE']
