@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.10 01:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from typing import Optional, Dict, List, Any
 from pygpt_net.core.bridge.context import BridgeContext
 
 from pygpt_net.core.events import ControlEvent, AppEvent, KernelEvent
+from pygpt_net.item.ctx import CtxItem
 
 
 class Voice:
@@ -216,10 +217,12 @@ class Voice:
         """
         prompt = self.get_prompt(text)
         model = self.window.core.models.from_defaults()
-        tmp_model = self.window.core.config.get("access.voice_control.model", "gpt-3.5-turbo")
+        tmp_model = self.window.core.config.get("access.voice_control.model", "gpt-4o-mini")
         if self.window.core.models.has(tmp_model):
             model = self.window.core.models.get(tmp_model)
+        ctx = CtxItem()
         bridge_context = BridgeContext(
+            ctx=ctx,
             prompt=prompt,
             system_prompt="You are a helpful assistant",
             model=model,  # model instance
