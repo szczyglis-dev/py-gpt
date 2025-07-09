@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.07.09 21:00:00                  #
 # ================================================== #
 
 import os.path
@@ -82,13 +82,17 @@ class Worker(BaseWorker):
             return False
         
         try:
-            cmd = cmd.format(
-                _file=os.path.dirname(os.path.realpath(__file__)),
-                _home=self.plugin.window.core.config.path,
-                _date=datetime.now().strftime("%Y-%m-%d"),
-                _time=datetime.now().strftime("%H:%M:%S"),
-                _datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            )
+            # replace placeholders with actual values
+            if "{_file}" in cmd:
+                cmd = cmd.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
+            if "{_home}" in cmd:
+                cmd = cmd.replace("{_home}", self.plugin.window.core.config.path)
+            if "{_date}" in cmd:
+                cmd = cmd.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
+            if "{_time}" in cmd:
+                cmd = cmd.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
+            if "{_datetime}" in cmd:
+                cmd = cmd.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         except Exception as e:
             pass
 
@@ -97,12 +101,12 @@ class Worker(BaseWorker):
             # append params to cmd placeholders
             params_list = self.plugin.extract_params(
                 command["params"],
-            )
+            ) # returns list of dicts
             for param in params_list:
-                if param in item["params"]:
+                if param["name"] in item["params"]:
                     cmd = cmd.replace(
-                        "{" + param + "}",
-                        str(item["params"][param]),
+                        "{" + param["name"] + "}",
+                        str(item["params"][param["name"]]),
                     )
 
         # execute
