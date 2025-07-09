@@ -25,11 +25,14 @@ def open_wrapper(file, mode='r', *args, **kwargs):
     within a Snapcraft environment when executing `dotenv.load_dotenv()`.
     """
     path = str(file)
-    if path == '.env' or path.endswith('/.env'):
-        if 'b' in mode:
-            return io.BytesIO(b"")
-        else:
-            return io.StringIO("")
+    if ("SNAP" in os.environ
+            and "SNAP_NAME" in os.environ
+            and os.environ["SNAP_NAME"] == "pygpt"):
+        if path == '.env' or path.endswith('/.env'):
+            if 'b' in mode:
+                return io.BytesIO(b"")
+            else:
+                return io.StringIO("")
     return _original_open(file, mode, *args, **kwargs)
 
 builtins.open = open_wrapper
