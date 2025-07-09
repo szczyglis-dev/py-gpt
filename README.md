@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.28** | build: **2025-07-08** | Python: **>=3.10, <3.13**
+Release: **2.5.29** | build: **2025-07-09** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4018,6 +4018,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.29 (2025-07-09)**
+
+- Fixed: context auto-summary if history is disable.
+- Added: Anthropic base provider.
+- Added: multimodal config in models.
+- Added: vision in non-GPT models in Chat mode.
 
 **2.5.28 (2025-07-08)**
 

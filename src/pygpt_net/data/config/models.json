@@ -2,7 +2,7 @@
     "__meta__": {
         "version": "2.5.29",
         "app.version": "2.5.29",
-        "updated_at": "2025-07-08T01:31:35"
+        "updated_at": "2025-07-09T01:31:35"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -2144,7 +2144,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2190,7 +2190,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2236,7 +2236,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2283,7 +2283,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2330,7 +2330,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2376,7 +2376,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2424,7 +2424,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2472,7 +2472,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [
@@ -2521,7 +2521,7 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama",
+                "agent_llama"
             ],
             "llama_index": {
                 "args": [

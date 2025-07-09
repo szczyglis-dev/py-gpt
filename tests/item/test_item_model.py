@@ -18,7 +18,7 @@ def test_integrity():
 
     assert item.id is None
     assert item.name is None
-    assert item.mode == []
+    assert item.mode == ["chat"]
     assert item.langchain == {}
     assert item.ctx == 0
     assert item.tokens == 0

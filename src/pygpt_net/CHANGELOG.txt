@@ -1,3 +1,10 @@
+2.5.29 (2025-07-09)
+
+- Fixed: context auto-summary if history is disable.
+- Added: Anthropic base provider.
+- Added: multimodal config in models.
+- Added: vision in non-GPT models in Chat mode.
+
 2.5.28 (2025-07-08)
 
 - Fixed: Restoring the scrollbar value in the notepad.
