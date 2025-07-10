@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
+# Updated Date: 2025.07.10 20:00:00                  #
 # ================================================== #
 
 import re
@@ -27,10 +27,10 @@ class LocalKernel:
         :return: True if successful.
         """
         if self.initialized:
-            self.manager.stop_channels()
+            self.client.stop_channels()
             self.manager.restart_kernel(now=True)
-            self.manager = self.manager.client()
-            self.manager.start_channels()
+            self.client = self.manager.client()
+            self.client.start_channels()
             self.log("IPython kernel restarted.")
         else:
             self.init()
@@ -39,7 +39,7 @@ class LocalKernel:
 
     def shutdown_kernel(self):
         """Shutdown the IPython kernel."""
-        self.manager.stop_channels()
+        self.client.stop_channels()
         self.manager.shutdown_kernel()
 
     def init(self, force: bool = False):
