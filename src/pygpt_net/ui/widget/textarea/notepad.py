@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.08 01:00:00                  #
+# Updated Date: 2025.07.10 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
 from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
@@ -142,14 +142,17 @@ class NotepadOutput(QTextEdit):
         self.last_scroll_pos = self.verticalScrollBar().value()
 
     def restore_scroll_pos(self):
-        """ Restore last scroll position after showing the widget"""
         if self.last_scroll_pos is None:
             return
+
         scroll_bar = self.verticalScrollBar()
-        if self.last_scroll_pos <= scroll_bar.maximum():
-            scroll_bar.setValue(self.last_scroll_pos)
+        current_max = scroll_bar.maximum()
+        if self.last_scroll_pos > current_max:
+            self.updateGeometry()
+            QApplication.processEvents()
+            QTimer.singleShot(50, self.restore_scroll_pos)
         else:
-            scroll_bar.setValue(scroll_bar.maximum())
+            scroll_bar.setValue(self.last_scroll_pos)
 
     def contextMenuEvent(self, event):
         """
