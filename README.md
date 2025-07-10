@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.32** | build: **2025-07-10** | Python: **>=3.10, <3.13**
+Release: **2.5.33** | build: **2025-07-10** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4059,6 +4059,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.33 (2025-07-10)**
+
+- Added: Agents (LlamaIndex) -> CodeAct Agent, integrated with Code Interpreter plugin (beta).
+- Fixed: IPython kernel restarting in Code Interpreter plugin.
+
 
 **2.5.32 (2025-07-10)**
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.33 (2025-07-10)
+
+- Added: Agents (LlamaIndex) -> CodeAct Agent, integrated with Code Interpreter plugin (beta).
+- Fixed: IPython kernel restarting in Code Interpreter plugin.
+
 ## 2.5.32 (2025-07-10)
 
 - Fixed: File manager opening in Snap version.
