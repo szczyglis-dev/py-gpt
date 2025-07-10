@@ -4062,7 +4062,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.5.33 (2025-07-10)**
 
-- Added: Agents (LlamaIndex) -> CodeAct Agent, integrated with Code Interpreter plugin (beta).
+- Added: CodeAct Agent, integrated with Code Interpreter plugin (beta).
 - Fixed: IPython kernel restarting in Code Interpreter plugin.
 
 
