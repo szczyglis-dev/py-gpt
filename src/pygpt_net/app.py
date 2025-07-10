@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.07.10 02:00:00                  #
 # ================================================== #
 
 import os
@@ -76,6 +76,7 @@ from pygpt_net.provider.llms.google import GoogleLLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
 from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
 from pygpt_net.provider.llms.local import LocalLLM
+from pygpt_net.provider.llms.mistral import MistralAILLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
 from pygpt_net.provider.llms.perplexity import PerplexityLLM
@@ -369,6 +370,7 @@ def run(**kwargs):
     # launcher.add_llm(HuggingFaceLLM())
     launcher.add_llm(HuggingFaceApiLLM())
     launcher.add_llm(LocalLLM())
+    launcher.add_llm(MistralAILLM())
     launcher.add_llm(OllamaLLM())
     launcher.add_llm(DeepseekApiLLM())
     launcher.add_llm(PerplexityLLM())

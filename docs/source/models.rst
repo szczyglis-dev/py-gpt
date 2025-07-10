@@ -94,6 +94,7 @@ There is built-in support for those LLM providers:
 * ``Google``
 * ``HuggingFace``
 * ``Local models`` (OpenAI API compatible)
+* ``Mistral AI``
 * ``Ollama``
 * ``OpenAI``
 * ``Perplexity``
@@ -216,3 +217,37 @@ Required ENV:
 Required **kwargs:
 
 - model
+
+**Mistral AI**
+
+Required ENV:
+
+- MISTRAL_API_KEY = {api_key_mistral}
+
+Required **kwargs:
+
+- model
+
+**Perplexity**
+
+Required ENV:
+
+- PPLX_API_KEY = {api_key_perplexity}
+
+Required **kwargs:
+
+- model
+
+**HuggingFace API** (Chat with Files mode only)
+
+Required ENV:
+
+- HUGGING_FACE_TOKEN = {api_key_hugging_face}
+
+Required **kwargs:
+
+- model_name | model
+- token
+- provider = auto
+
+

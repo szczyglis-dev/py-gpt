@@ -27,23 +27,31 @@ The following basic options can be modified directly within the application:
 
 **API Keys**
 
-- ``OpenAI API KEY``: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.
+* ``OpenAI API KEY``: Required for the OpenAI API. If you wish to use custom endpoints or local APIs, then you may enter any value here.
 
-- ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
+* ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
 
-- ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
+* ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
 
-- ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
+* ``Proxy address``: Proxy address to be used for connection; supports HTTP/SOCKS.
 
-- ``Google API KEY``: Required for the Google API and Gemini models.
+* ``Anthropic API KEY``: Required for the Anthropic API and Claude models.
 
-- ``Anthropic API KEY``: Required for the Anthropic API and Claude models.
+* ``Deepseek API KEY``: Required for the Deepseek API.
 
-- ``HuggingFace API KEY``: Required for the HuggingFace API.
+* ``Google API KEY``: Required for the Google API and Gemini models.
 
-- ``OpenAI API version``: Azure OpenAI API version, e.g. 2023-07-01-preview
+* ``HuggingFace API KEY``: Required for the HuggingFace API.
 
-- ``Azure OpenAI API endpoint``: Azure OpenAI API endpoint, https://<your-resource-name>.openai.azure.com/
+* ``Mistral AI API KEY``: Required for the Mistral AI API.
+
+* ``Perplexity API KEY``: Required for the Perplexity API and Sonar models.
+
+* ``xAI API KEY``: Required for the xAI API and Grok models.
+
+* ``OpenAI API version``: Azure OpenAI API version, e.g. 2023-07-01-preview
+
+* ``Azure OpenAI API endpoint``: Azure OpenAI API endpoint, https://<your-resource-name>.openai.azure.com/
 
 **Layout**
 

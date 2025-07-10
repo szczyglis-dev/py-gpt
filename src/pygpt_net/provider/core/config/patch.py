@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.10 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -1924,6 +1924,17 @@ class Patch:
                 print("Migrating config from < 2.5.29...")
                 if 'api_endpoint_anthropic' not in data:
                     data["api_endpoint_anthropic"] = "https://api.anthropic.com/v1"
+                updated = True
+
+            # < 2.5.31
+            if old < parse_version("2.5.31"):
+                print("Migrating config from < 2.5.31...")
+                if 'llama.idx.chat.auto_retrieve' not in data:
+                    data["llama.idx.chat.auto_retrieve"] = True
+                if 'api_key_mistral' not in data:
+                    data["api_key_mistral"] = ""
+                if 'api_endpoint_mistral' not in data:
+                    data["api_endpoint_mistral"] = "https://api.mistral.ai/v1"
                 updated = True
 
         # update file

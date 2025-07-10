@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.5.30",
-    "app.version": "2.5.30",
-    "updated_at": "2025-07-09T00:00:00"
+    "version": "2.5.31",
+    "app.version": "2.5.31",
+    "updated_at": "2025-07-10T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -66,6 +66,7 @@
   "api_endpoint_perplexity": "https://api.perplexity.ai",
   "api_endpoint_xai": "https://api.x.ai/v1",
   "api_endpoint_anthropic": "https://api.anthropic.com/v1",
+  "api_endpoint_mistral": "https://api.mistral.ai/v1",
   "api_key": "",
   "api_key_google": "",
   "api_key_anthropic": "",
@@ -73,6 +74,7 @@
   "api_key_deepseek": "",
   "api_key_perplexity": "",
   "api_key_xai": "",
+  "api_key_mistral": "",
   "api_proxy": "",
   "api_use_responses": true,
   "api_use_responses_llama": false,
@@ -204,6 +206,7 @@
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
   "llama.idx.auto.modes": "chat,completion,vision,assistant,langchain,llama_index,agent",
+  "llama.idx.chat.auto_retrieve": true,
   "llama.idx.chat.mode": "context",
   "llama.idx.current": null,
   "llama.idx.custom_meta": [

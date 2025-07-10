@@ -1240,6 +1240,21 @@ requests = ["requests (>=2.4.0,!=2.32.2,<3.0.0)"]
 vectorstore-mmr = ["numpy (>=1)", "simsimd (>=3)"]
 
 [[package]]
+name = "eval-type-backport"
+version = "0.2.2"
+description = "Like `typing._eval_type`, but lets older Python versions use newer typing features."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "eval_type_backport-0.2.2-py3-none-any.whl", hash = "sha256:cb6ad7c393517f476f96d456d0412ea80f0a8cf96f6892834cd9340149111b0a"},
+    {file = "eval_type_backport-0.2.2.tar.gz", hash = "sha256:f0576b4cf01ebb5bd358d02314d31846af5e07678387486e2c798af0e7d849c1"},
+]
+
+[package.extras]
+tests = ["pytest"]
+
+[[package]]
 name = "evdev"
 version = "1.9.2"
 description = "Bindings to the Linux input handling subsystem"
@@ -2861,6 +2876,22 @@ llama-index-core = ">=0.12.0,<0.13"
 llama-index-utils-huggingface = ">=0.3.0,<0.4"
 
 [[package]]
+name = "llama-index-embeddings-mistralai"
+version = "0.3.0"
+description = "llama-index embeddings mistralai integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "llama_index_embeddings_mistralai-0.3.0-py3-none-any.whl", hash = "sha256:27a3604e6dd10a376a6af2ddf1d890ca2110ae0d0a2a15f3066e892e6a0c8cfb"},
+    {file = "llama_index_embeddings_mistralai-0.3.0.tar.gz", hash = "sha256:272f68ac46ec38ec4281d8044f83ea6128527cc4858e21a5cb3e131a9fbf8634"},
+]
+
+[package.dependencies]
+llama-index-core = ">=0.12.0,<0.13.0"
+mistralai = ">=1.0.0"
+
+[[package]]
 name = "llama-index-embeddings-ollama"
 version = "0.5.0"
 description = "llama-index embeddings ollama integration"
@@ -3022,6 +3053,22 @@ files = [
 [package.dependencies]
 huggingface-hub = ">=0.23.0"
 llama-index-core = ">=0.12.0,<0.13.0"
+
+[[package]]
+name = "llama-index-llms-mistralai"
+version = "0.6.1"
+description = "llama-index llms mistral ai integration"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "llama_index_llms_mistralai-0.6.1-py3-none-any.whl", hash = "sha256:2d7fe37837d5c5f1d490a6b4e2577938b3b9027c9eeb6499d5f6ae7a6a9aebc3"},
+    {file = "llama_index_llms_mistralai-0.6.1.tar.gz", hash = "sha256:2e8d5b451ae93619891b84c821ef7d3506aea6e2db8f1b923946d283537bf8c0"},
+]
+
+[package.dependencies]
+llama-index-core = ">=0.12.0,<0.13"
+mistralai = ">=1.8.2"
 
 [[package]]
 name = "llama-index-llms-ollama"
@@ -3737,6 +3784,29 @@ files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
+
+[[package]]
+name = "mistralai"
+version = "1.9.1"
+description = "Python Client SDK for the Mistral AI API."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "mistralai-1.9.1-py3-none-any.whl", hash = "sha256:250ec26534db6f4a4d5e6292b0801a64da2ab1f0d4c63a20d8ce27e3a427e402"},
+    {file = "mistralai-1.9.1.tar.gz", hash = "sha256:89eb1d48e9555c8289c02ddea966115eba0516355731726ea0a24eabb42f8419"},
+]
+
+[package.dependencies]
+eval-type-backport = ">=0.2.0"
+httpx = ">=0.28.1"
+pydantic = ">=2.10.3"
+python-dateutil = ">=2.8.2"
+typing-inspection = ">=0.4.0"
+
+[package.extras]
+agents = ["authlib (>=1.5.2,<2.0)", "griffe (>=1.7.3,<2.0)", "mcp (>=1.0,<2.0) ; python_version >= \"3.10\""]
+gcp = ["google-auth (>=2.27.0)", "requests (>=2.32.3)"]
 
 [[package]]
 name = "mistune"
@@ -8495,4 +8565,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "0d125621f655f5eb9527c831124218b120981460285a10070990e4d5aecd9c3c"
+content-hash = "58a6260a9dc4bc5637793474da1ec126f42dcbbbbca024b5fc7136f64eec8e08"

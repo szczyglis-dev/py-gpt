@@ -69,6 +69,7 @@ setup(
         'llama-index-embeddings-azure-openai>=0.3.8,<0.4.0',
         'llama-index-embeddings-gemini>=0.3.2,<0.4.0',
         'llama-index-embeddings-huggingface-api>=0.3.1,<0.4.0',
+        'llama-index-embeddings-mistralai>=0.3.0,<0.4.0'
         'llama-index-embeddings-ollama>=0.5.0,<0.6.0',
         'llama-index-embeddings-openai>=0.3.1,<0.4.0',
         'llama-index-llms-anthropic>=0.6.12,<0.7.0',
@@ -76,6 +77,7 @@ setup(
         'llama-index-llms-deepseek>=0.1.1,<0.2.0',
         'llama-index-llms-gemini>=0.5.0,<0.6.0',
         'llama-index-llms-huggingface-api>=0.3.1,<0.4.0',
+        'llama-index-llms-mistralai>=0.6.1,<0.7.0'
         'llama-index-llms-ollama>=0.5.6,<0.6.0',
         'llama-index-llms-openai>=0.4.7,<0.5.0',
         'llama-index-llms-openai-like>=0.4.0,<0.5.0',

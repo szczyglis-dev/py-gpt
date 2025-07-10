@@ -27,6 +27,7 @@ class ModelItem:
         "azure_openai",
         "google",
         "local_ai",
+        "mistral_ai",
         "perplexity",
         "deepseek_api",
         "x_ai",

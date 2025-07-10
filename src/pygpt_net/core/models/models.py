@@ -501,6 +501,11 @@ class Models:
                 args["api_key"] = self.window.core.config.get('api_key_deepseek', "")
                 args["base_url"] = self.window.core.config.get('api_endpoint_deepseek', "")
                 self.window.core.debug.info("[api] Using client: Deepseek API")
+            # Mistral AI
+            elif model.provider == "mistral_ai":
+                args["api_key"] = self.window.core.config.get('api_key_mistral', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_mistral', "")
+                self.window.core.debug.info("[api] Using client: Mistral AI API")
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")
 

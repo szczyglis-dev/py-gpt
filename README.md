@@ -982,6 +982,7 @@ There is built-in support for those LLM providers:
 - Google
 - HuggingFace
 - Local models (OpenAI API compatible)
+- Mistral AI
 - Ollama
 - OpenAI
 - Perplexity
@@ -1096,6 +1097,38 @@ Required ENV:
 Required **kwargs:
 
 - model
+
+**Mistral AI**
+
+Required ENV:
+
+- MISTRAL_API_KEY = {api_key_mistral}
+
+Required **kwargs:
+
+- model
+
+**Perplexity**
+
+Required ENV:
+
+- PPLX_API_KEY = {api_key_perplexity}
+
+Required **kwargs:
+
+- model
+
+**HuggingFace API**
+
+Required ENV:
+
+- HUGGING_FACE_TOKEN = {api_key_hugging_face}
+
+Required **kwargs:
+
+- model_name | model
+- token
+- provider = auto
 
 
 # Plugins
@@ -2824,11 +2857,19 @@ Config -> Settings...
 
 - `Proxy address`: Proxy address to be used for connection; supports HTTP/SOCKS.
 
-- `Google API KEY`: Required for the Google API and Gemini models.
-
 - `Anthropic API KEY`: Required for the Anthropic API and Claude models.
 
+- `Deepseek API KEY`: Required for the Deepseek API.
+
+- `Google API KEY`: Required for the Google API and Gemini models.
+
 - `HuggingFace API KEY`: Required for the HuggingFace API.
+
+- `Mistral AI API KEY`: Required for the Mistral AI API.
+
+- `Perplexity API KEY`: Required for the Perplexity API and Sonar models.
+
+- `xAI API KEY`: Required for the xAI API and Grok models.
 
 - `OpenAI API version`: Azure OpenAI API version, e.g. 2023-07-01-preview
 

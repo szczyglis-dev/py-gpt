@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.10 01:00:00                  #
 # ================================================== #
 
 import json
@@ -211,6 +211,57 @@ class Chat:
             ctx.add_doc_meta(self.get_metadata(nodes))
         return True
 
+    def retrieve(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Retrieve best matched documents from index only
+
+        :param context: Bridge context
+        :param extra: Extra arguments
+        :return: True if success
+        """
+        idx = context.idx
+        model = context.model
+        stream = context.stream
+        ctx = context.ctx
+        query = ctx.input  # user input
+        verbose = self.window.core.config.get("log.llama", False)
+
+        self.log("Retrieve nodes...")
+        self.log("Idx: {}, retrieve only: {}".format(
+            idx,
+            query,
+        ))
+
+        index, llm = self.get_index(idx, model, stream=stream)
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(query)
+        outputs = []
+        self.log("Retrieved {} nodes...".format(len(nodes)))
+        responses = []
+        for node in nodes:
+            if node.text in responses:
+                continue
+            responses.append(node.text)
+            outputs.append({
+                "text": node.text,
+                "score": node.score,
+            })
+        if outputs:
+            response = ""
+            for output in outputs:
+                score = output["score"]
+                if score < 0.5:
+                    continue
+                if output != outputs[-1]:
+                    response += "\n\n"
+            ctx.set_output(response)
+            ctx.add_doc_meta(self.get_metadata(nodes))
+        return True
+
     def chat(
             self,
             context: BridgeContext,
@@ -249,6 +300,21 @@ class Chat:
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
+        # retrieve additional context from index if tools enabled
+        additional_ctx = None
+        if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
+            if use_index and cmd_enabled and use_react:
+                response = self.query_retrieval(
+                    query=query,
+                    idx=idx,
+                    model=model,
+                )
+                if response:
+                    additional_ctx = response
+            if additional_ctx is not None:
+                system_prompt += "\n\n# Additional context:\n\n" + additional_ctx  # append additional context
+
+        # -- log ---
         self.log("Chat with index...")
         self.log("Idx: {idx}, "
                  "chat_mode: {mode}, "
@@ -258,6 +324,7 @@ class Chat:
                  "use react: {react}, "
                  "use index: {use_index}, "
                  "cmd enabled: {cmd_enabled}, "
+                 "additional ctx: {additional_ctx}, "
                  "query: {query}".format(
             idx=idx,
             mode=chat_mode,
@@ -267,6 +334,7 @@ class Chat:
             react=use_react,
             use_index=use_index,
             cmd_enabled=cmd_enabled,
+            additional_ctx=additional_ctx,
             query=query,
         ))
 

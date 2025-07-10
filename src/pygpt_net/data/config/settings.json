@@ -320,6 +320,40 @@
         "advanced": false,
         "tab": "Perplexity"
     },
+    "api_key_mistral": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.mistral",
+        "description": "settings.api_key.mistral.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Mistral AI"
+    },
+    "api_endpoint_mistral": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_mistral",
+        "description": "settings.api_endpoint_mistral.desc",
+        "value": "https://api.mistral.ai/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Mistral AI"
+    },
     "app.env": {
         "section": "general",
         "type": "dict",
@@ -1393,21 +1427,7 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    },
-    "llama.idx.react": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.llama.idx.react",
-        "description": "settings.llama.idx.react.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "secret": false,
-        "advanced": false
-    },
+    },    
     "llama.idx.storage": {
         "section": "llama-index",
         "type": "combo",
@@ -1684,6 +1704,54 @@
         "advanced": false,
         "tab": "update"
     },
+    "llama.idx.chat.mode": {
+        "section": "llama-index",
+        "type": "combo",
+        "use": "llama_index_chat_modes",
+        "slider": false,
+        "label": "settings.llama.idx.chat.mode",
+        "description": "settings.llama.idx.chat.mode.desc",
+        "urls": {
+            "Help": "https://docs.llamaindex.ai/en/stable/module_guides/deploying/chat_engines/usage_pattern/#available-chat-modes"
+        },
+        "value": "default",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "chat"
+    },
+    "llama.idx.react": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.react",
+        "description": "settings.llama.idx.react.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "chat"
+    },
+    "llama.idx.chat.auto_retrieve": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.chat.auto_retrieve",
+        "description": "settings.llama.idx.chat.auto_retrieve.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "chat"
+    },
     "agent.llama.steps": {
         "section": "agent",
         "description": "settings.agent.llama.steps.desc",
@@ -1783,25 +1851,7 @@
         "step": null,
         "advanced": false,
         "tab": "autonomous"
-    },
-    "llama.idx.chat.mode": {
-        "section": "llama-index",
-        "type": "combo",
-        "use": "llama_index_chat_modes",
-        "slider": false,
-        "label": "settings.llama.idx.chat.mode",
-        "description": "settings.llama.idx.chat.mode.desc",
-        "urls": {
-            "Help": "https://docs.llamaindex.ai/en/stable/module_guides/deploying/chat_engines/usage_pattern/#available-chat-modes"
-        },
-        "value": "default",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "chat"
-    },
+    },    
     "agent.goal.notify": {
         "section": "agent",
         "type": "bool",
