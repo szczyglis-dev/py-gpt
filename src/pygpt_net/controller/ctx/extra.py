@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.10 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -228,7 +228,7 @@ class Extra:
         prev_item = self.window.core.ctx.get_previous_item(item_id)
         current_item = self.window.core.ctx.get_item_by_id(item_id)
         if prev_item is not None and current_item is not None:
-            prev_item.output += current_item.output
+            prev_item.output += "\n\n" + current_item.output
             self.window.core.ctx.update_item(prev_item)
             self.window.core.ctx.remove_item(current_item.id)
             self.window.controller.ctx.refresh()
