@@ -645,8 +645,6 @@ The vector database in use will be displayed in the list of uploaded files, on t
 
 ##  Agent (LlamaIndex) 
 
-**Currently in beta version** -- introduced in `2.4.10` (2024-11-14)
-
 Mode that allows the use of agents offered by `LlamaIndex`.
 
 Includes built-in agents:
@@ -654,6 +652,9 @@ Includes built-in agents:
 - OpenAI
 - ReAct
 - Structured Planner (sub-tasks)
+- CodeAct (connected to Code Interpreter plugin)
+
+CodeAct is currently in beta, only code execute, without rest of tools.
 
 In the future, the list of built-in agents will be expanded.
 
@@ -661,11 +662,11 @@ You can also create your own agent by creating a new provider that inherits from
 
 **Tools and Plugins**  
 
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
+In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly). Unavailable in CodeAct agent (only code execute tool is active).
 
 **RAG - using indexes**  
 
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically. Unavailable in CodeAct agent.
 
 Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
 
@@ -678,6 +679,8 @@ Setting the expected (required) score to `0%` means that the response will be ev
 You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompt used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
+
+Unavailable in CodeAct agent.
 
 ##  Agent (Autonomous) 
 
