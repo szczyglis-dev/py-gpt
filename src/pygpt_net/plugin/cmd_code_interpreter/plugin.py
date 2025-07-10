@@ -251,7 +251,7 @@ class Plugin(BasePlugin):
     @Slot()
     def handle_interpreter_clear(self):
         """Handle interpreter clear"""
-        self.window.tools.get("interpreter").clear_all()
+        self.window.tools.get("interpreter").clear_output()
 
     @Slot(object)
     def handle_html_output(self, data):

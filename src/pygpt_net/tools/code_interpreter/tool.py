@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+from time import strftime
 from typing import Dict
 
 from PySide6.QtCore import QTimer
@@ -19,7 +20,7 @@ from PySide6.QtWidgets import QWidget
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
-from pygpt_net.core.events import Event
+from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -292,6 +293,10 @@ class CodeInterpreter(BaseTool):
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)
         self.signals.focus_input.emit()
+        event = KernelEvent(KernelEvent.STATUS, {
+            'status': "[OK] Kernel restarted at " + strftime("%H:%M:%S") + ".",
+        })
+        self.window.dispatch(event)
 
     def send_input(self, widget: ToolWidget):
         """
