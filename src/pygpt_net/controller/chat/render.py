@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.10 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -565,11 +565,13 @@ class Render:
         plain = self.window.core.config.get('render.plain')
         if plain:
             self.window.controller.theme.markdown.clear()
+            self.window.ui.nodes['output.timestamp'].setVisible(True)
             for pid in self.window.ui.nodes['output_plain']:
                 if self.window.ui.nodes['output_plain'][pid] is not None:
                     self.window.ui.nodes['output'][pid].setVisible(False)
                     self.window.ui.nodes['output_plain'][pid].setVisible(True)
         else:
+            self.window.ui.nodes['output.timestamp'].setVisible(False)
             self.window.controller.ctx.refresh()  # TODO: move to on_switch
             self.window.controller.theme.markdown.update(force=True)
             for pid in self.window.ui.nodes['output']:

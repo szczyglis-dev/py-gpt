@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.22 01:00:00                  #
+# Updated Date: 2025.07.10 19:00:00                  #
 # ================================================== #
 
 import os
@@ -78,10 +78,12 @@ class Common:
         plain = self.window.core.config.get('render.plain')
         self.window.ui.nodes['output.raw'].setChecked(plain)
         if plain:
+            self.window.ui.nodes['output.timestamp'].setVisible(True)
             for pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].setVisible(False)
                 self.window.ui.nodes['output_plain'][pid].setVisible(True)
         else:
+            self.window.ui.nodes['output.timestamp'].setVisible(False)
             for pid in self.window.ui.nodes['output']:
                 self.window.ui.nodes['output'][pid].setVisible(True)
                 self.window.ui.nodes['output_plain'][pid].setVisible(False)

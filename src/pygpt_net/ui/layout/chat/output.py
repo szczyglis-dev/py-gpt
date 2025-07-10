@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.07.10 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -164,9 +164,10 @@ class Output:
         opts_layout = QHBoxLayout()
         # opts_layout.setSpacing(2)  #
         opts_layout.setContentsMargins(0, 0, 0, 0)
+        opts_layout.addWidget(self.window.ui.nodes['output.raw'])
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         # opts_layout.addWidget(self.window.ui.nodes['output.edit'])
-        opts_layout.addWidget(self.window.ui.nodes['output.raw'])
+        
         opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.setAlignment(Qt.AlignLeft)
 
