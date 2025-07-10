@@ -342,7 +342,10 @@ class Files:
                 url = QUrl.fromLocalFile(path)
                 QDesktopServices.openUrl(url)
             else:
-                subprocess.run(['xdg-open', path])
+                path = self.window.core.filesystem.get_path(path)
+                url = QUrl.fromLocalFile(path)
+                QDesktopServices.openUrl(url)
+                #subprocess.run(['gio', 'open', path])
 
     def open_in_file_manager(
             self,
