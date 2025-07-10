@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.10 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -324,12 +324,18 @@ class Files:
 
     def open(self, path: str):
         """
-        Open file or directory
+        Open path in file manager or with default application
 
         :param path: path to file or directory
         """
         if os.path.isdir(path):
-            self.open_dir(path)
+            if not self.window.core.platforms.is_snap():
+                url = QUrl.fromLocalFile(path)
+                QDesktopServices.openUrl(url)
+            else:
+                url = QUrl.fromLocalFile(path)
+                if not QDesktopServices.openUrl(url):
+                    subprocess.run(['gio', 'open', path])
         else:
             if not self.window.core.platforms.is_snap():
                 path = self.window.core.filesystem.get_path(path)
@@ -361,7 +367,9 @@ class Files:
                 QDesktopServices.openUrl(url)
                 # show_in_file_manager(path, select)
             else:
-                subprocess.run(['xdg-open', path])
+                url = QUrl.fromLocalFile(path)
+                if not QDesktopServices.openUrl(url):
+                    subprocess.run(['gio', 'open', path])
 
     def make_dir_dialog(self, path: str):
         """
