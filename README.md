@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.31** | build: **2025-07-10** | Python: **>=3.10, <3.13**
+Release: **2.5.32** | build: **2025-07-10** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4059,6 +4059,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.32 (2025-07-10)**
+
+- Fixed: File manager opening in Snap version.
+- Fixed: Maximum scroll position calculation in the notepad.
+- Fixed: Updating the message list after regenerating/editing a response.
+- Added: Option to hide timestamps in the web view.
 
 **2.5.31 (2025-07-10)**
 
