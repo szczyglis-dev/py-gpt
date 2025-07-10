@@ -536,7 +536,7 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 
 From version `2.0.107` the `davinci` models are deprecated and has been replaced with `gpt-3.5-turbo-instruct` model in Completion mode.
 
-## Image generation (DALL-E)
+## Image generation
 
 ### DALL-E 3
 
@@ -582,9 +582,9 @@ prompts for creating new images.
 Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 
-## Vision (GPT-4 Vision)
+## Vision
 
-This mode enables image analysis using the `gpt-4o` and `gpt-4-vision` models. Functioning much like the chat mode, 
+This mode enables image analysis using the `gpt-4o`, `gpt-4-vision` and other vision (multimodal) models. Functioning much like the chat mode, 
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
