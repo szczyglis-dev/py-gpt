@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.07.10 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -860,12 +860,8 @@ class Ctx:
         :param item_id: item_id
         """
         items = self.get_items()
-        remove = False
-        for item in items:
-            if item.id == item_id:
-                remove = True
-            if remove:
-                items.remove(item)
+        items = [item for item in items if item.id < item_id]
+        self.set_items(items)  # update items in container
         return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):
