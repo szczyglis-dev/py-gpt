@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.30** | build: **2025-07-09** | Python: **>=3.10, <3.13**
+Release: **2.5.31** | build: **2025-07-10** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,11 +4060,17 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.31 (2025-07-10)**
+
+- Added: Mistral AI provider - feature #99.
+- Added: A new option in Config -> Settings -> Indexes (LlamaIndex) -> Chat -> Auto-retrieve additional context.
+- Fixed: Voice control using local Whisper model empty context - issue #113.
+
 **2.5.30 (2025-07-09)**
 
-- Fixed: Passing config to placeholders in LlamaIndex model kwargs - issue #112
-- Fixed: Custom commands plugin unhashable dict bug - issue #108
-- Fixed: Attempt to read .env in the /home directory in Snap - issue #116
+- Fixed: Passing config to placeholders in LlamaIndex model kwargs - issue #112.
+- Fixed: Custom commands plugin unhashable dict bug - issue #108.
+- Fixed: Attempt to read .env in the /home directory in Snap - issue #116.
 - Downgraded Numpy to < 2.0.
 
 **2.5.29 (2025-07-09)**
@@ -4136,23 +4142,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new model `gpt-image-1` and improved image generation.
 - Other small fixes.
 
-**2.5.17 (2025-06-25)**
-
-- Added settings for enable/disable Remote Tools via Responses API in Chat mode: Config -> Settings -> Remote tools. Currently only web-search-preview tool is available, rest of tools coming soon.
-- Fixed context summarization in Ollama provider.
-
-**2.5.16 (2025-06-25)**
-
-- OpenAI API upgraded to 1.91.0.
-- Chat mode migrated to Responses API with native built-in web search tool. (beta)
-- Fixed file_read tool in I/O plugin.
-
-**2.5.15 (2025-06-24)**
-
-- Added Ollama models importer in "Settings -> Models -> Import from Ollama".
-- Fixed Ollama provider in the newest LlamaIndex.
-- Added the ability to set a custom base URL for Ollama -> ENV: OLLAMA_API_BASE.
-
 # Credits and links
 
 **Official website:** <https://pygpt.net>
@@ -4186,6 +4175,8 @@ GitHub's community:
 - [@glinkot](https://github.com/glinkot)
 
 - [@kaneda2004](https://github.com/kaneda2004)
+
+- [@KingOfTheCastle] (https://github.com/KingOfTheCastle)
 
 - [@linnflux](https://github.com/linnflux)
 

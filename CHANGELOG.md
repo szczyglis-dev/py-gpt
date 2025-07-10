@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## 2.5.31 (2025-07-10)
+
+- Added: Mistral AI provider - feature #99.
+- Added: A new option in Config -> Settings -> Indexes (LlamaIndex) -> Chat -> Auto-retrieve additional context.
+- Fixed: Voice control using local Whisper model empty context - issue #113.
+
 ## 2.5.30 (2025-07-09)
 
-- Fixed: Passing config to placeholders in LlamaIndex model kwargs - issue #112
-- Fixed: Custom commands plugin unhashable dict bug - issue #108
-- Fixed: Attempt to read .env in the /home directory in Snap - issue #116
+- Fixed: Passing config to placeholders in LlamaIndex model kwargs - issue #112.
+- Fixed: Custom commands plugin unhashable dict bug - issue #108.
+- Fixed: Attempt to read .env in the /home directory in Snap - issue #116.
 - Downgraded Numpy to < 2.0.
 
 ## 2.5.29 (2025-07-09)

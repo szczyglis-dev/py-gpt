@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.5.30'
+VERSION = '2.5.31'
 DESCRIPTION = 'Desktop AI Assistant powered by models: OpenAI o1, o3, GPT-4o, GPT-4, GPT-4 Vision, GPT-3.5, DALL-E 3, Llama 3, Mistral, Gemini, Claude, Bielik, and other models supported by Langchain, Llama Index, and Ollama. Features include chatbot, text completion, image generation, vision analysis, speech-to-text, internet access, file handling, command execution and more.'
 LONG_DESCRIPTION = 'Package contains a gpt-4, gpt-4V, gpt-3.5, DALL-E 3, and Llama-index powered ' \
                    'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \

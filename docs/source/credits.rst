@@ -43,6 +43,7 @@ GitHub's community:
 * **gfsysa**
 * **glinkot**
 * **kaneda2004**
+* **KingOfTheCastle**
 * **linnflux**
 * **lukasz-pekala**
 * **moritz-t-w**
