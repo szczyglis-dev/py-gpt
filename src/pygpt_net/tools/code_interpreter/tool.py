@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 import os
@@ -128,7 +128,7 @@ class CodeInterpreter(BaseTool):
         :param type: Output type
         :param kwargs: Additional parameters
         """
-        self.signals.update.emit(output, type)
+        self.signals.update.emit(output, type, True)
         self.save_output()
         self.load_history()
 
@@ -204,7 +204,7 @@ class CodeInterpreter(BaseTool):
     def load_output(self):
         """Load output data from file"""
         data = self.get_output()
-        self.signals.update.emit(data, "stdout")
+        self.signals.update.emit(data, "stdout", False)
         self.signals.focus_input.emit()
 
     def save_output(self):

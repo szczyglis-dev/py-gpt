@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -165,27 +165,31 @@ class ToolWidget:
         return layout
 
     @Slot(str, str)
-    def set_output(self, output: str, type="stdout"):
+    def set_output(self, output: str, type="stdout", live: bool = True):
         """
         Set output content
 
         :param output: Content
         :param type: Output type
+        :param live: Live output
         """
         area = self.output
         if type == "stdin":
             data = ">> " + str(output)
         else:
             data = str(output)
-        cur = area.textCursor()
-        cur.movePosition(QTextCursor.End)
-        s = data + "\n"
-        while s:
-            head, sep, s = s.partition("\n")
-            cur.insertText(head)
-            if sep:  # New line if LF
-                cur.insertText("\n")
-        area.setTextCursor(cur)
+        if live:
+            cur = area.textCursor()
+            cur.movePosition(QTextCursor.End)
+            s = data + "\n"
+            while s:
+                head, sep, s = s.partition("\n")
+                cur.insertText(head)
+                if sep:  # New line if LF
+                    cur.insertText("\n")
+            area.setTextCursor(cur)
+        else:
+            area.setPlainText(data)
 
     @Slot()
     def set_history(self, data: str):
@@ -427,7 +431,7 @@ class PythonOutput(BaseCodeEditor):
 
 
 class ToolSignals(QObject):
-    update = Signal(str, str)  # content, type
+    update = Signal(str, str, bool)  # content, type, live
     update_history = Signal(str)  # content
     update_input = Signal(str) # content
     append_input = Signal(str) # content
