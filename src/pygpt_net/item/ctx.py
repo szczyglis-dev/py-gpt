@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -81,6 +81,8 @@ class CtxItem:
         self.audio_output = None
         self.audio_expires_ts = 0
         self.response = None  # response object
+        self.async_disabled = False  # async disabled
+        self.bag = None
 
 
     @property

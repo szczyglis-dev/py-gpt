@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -29,6 +30,8 @@ class Tools:
         self.window = window
         self.cmd_blacklist = []
         self.verbose = False
+        self.code_execute_fn = CodeExecutor(window)
+        self.last_tool_output = None
 
     def prepare(
             self,
@@ -174,3 +177,80 @@ class PluginToolMetadata(ToolMetadata):
             if k in ["type", "properties", "required", "definitions"]
         }
         return parameters
+
+class CodeExecutor:
+    """Code executor for codeAct agent"""
+
+    def __init__(self, window = None):
+        """
+        Initialize the code executor.
+
+        :param window: Window instance
+        """
+        self.window = window
+
+    def execute(self, code: str) -> str:
+        """
+        Execute Python code and capture output and return values.
+
+        :param code: Python code to execute
+        :return: Output from the code execution
+        """
+        self.window.core.agents.tools.last_tool_output = None
+        if code == "/restart":
+            commands = [
+                {
+                    "cmd": "ipython_kernel_restart",
+                    "params": {},
+                    "silent": True,
+                    "force": True,
+                }
+            ]
+        else:
+            commands = [
+                {
+                    "cmd": "ipython_execute",
+                    "params": {
+                        "code": code,
+                        "path": ".interpreter.current.py",
+                    },
+                    "silent": True,
+                    "force": True,
+                }
+            ]
+        event = Event(Event.CMD_EXECUTE, {
+            'commands': commands,
+            'silent': True,
+        })
+        event.ctx = CtxItem()  # tmp
+        event.ctx.async_disabled = True  # disable async for this event
+        self.window.controller.command.dispatch_only(event)
+
+        # if restart command was executed, return success message
+        if code == "/restart":
+            return "IPython kernel restarted successfully."
+
+        response = event.ctx.bag  # tmp response
+        output = ""
+
+        # store tool output if available
+        if "code" in response:
+            if "output" in response["code"]:
+                output = response["code"]["output"]["content"]
+                tool_output = {
+                    "cmd": "ipython_execute",
+                    "code": {
+                        "input": {
+                            "content": response["code"]["input"]["content"],
+                            "lang": "python"
+                        },
+                        "output": {
+                            "content": response["code"]["output"]["content"],
+                            "lang": "python"
+                        }
+                    },
+                    "plugin": response["plugin"],
+                    "result": response["result"]
+                }
+                self.window.core.agents.tools.last_tool_output = tool_output
+        return output

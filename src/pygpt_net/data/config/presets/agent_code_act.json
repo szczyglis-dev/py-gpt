@@ -1,0 +1,34 @@
+{
+    "uuid": "c4816ada-1f9f-4564-ae35-08cf8107d0ac",
+    "name": "CodeAct Agent",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "temperature": 1.0,
+    "filename": "code_act",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "assistant_id": "",
+    "enabled": true,
+    "__meta__": {
+        "version": "2.5.32",
+        "app.version": "2.5.32",
+        "updated_at": "2025-07-10T22:36:40"
+    }
+}

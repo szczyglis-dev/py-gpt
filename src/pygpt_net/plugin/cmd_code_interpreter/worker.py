@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.19 03:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -59,16 +59,19 @@ class Worker(BaseWorker):
                     elif item["cmd"] == "ipython_execute_new":
                         response = self.cmd_ipython_execute_new(item)
                         if "silent" in item:
+                            self.ctx.bag = response  # store tmp response
                             response = None
 
                     elif item["cmd"] == "ipython_execute":
                         response = self.cmd_ipython_execute(item)
                         if "silent" in item:
+                            self.ctx.bag = response  # store tmp response
                             response = None
 
                     elif item["cmd"] == "ipython_kernel_restart":
                         response = self.cmd_ipython_kernel_restart(item)
                         if "silent" in item:
+                            self.ctx.bag = response  # store tmp response
                             response = None
 
                     elif item["cmd"] == "get_python_output":

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
 import os
@@ -211,7 +211,7 @@ class Plugin(BasePlugin):
             self.get_interpreter().attach_signals(worker.signals)
             self.runner.attach_signals(worker.signals)
 
-            if not self.is_async(ctx) and not force:
+            if (not self.is_async(ctx) and not force) or ctx.async_disabled:
                 worker.run()
                 return
             worker.run_async()

@@ -6,12 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.10 23:00:00                  #
 # ================================================== #
 
+import asyncio
 from typing import Optional, Dict, Any, List
 
 from llama_index.core.tools import FunctionTool
+from llama_index.core.workflow import Context
+from llama_index.core.agent.workflow import (
+    ToolCall,
+    ToolCallResult,
+    AgentStream,
+)
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
@@ -61,6 +68,7 @@ class Runner:
 
             # prepare agent
             model = context.model
+            system_prompt = context.system_prompt
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             tools = self.window.core.agents.tools.prepare(context, extra)
             history = self.window.core.agents.memory.prepare(context)
@@ -76,14 +84,15 @@ class Runner:
                     "chat_history": history,
                     "max_iterations": max_steps,
                     "verbose": verbose,
+                    "system_prompt": system_prompt,
                 }
                 provider = self.window.core.agents.provider.get(id)
                 agent = provider.get_agent(self.window, kwargs)
                 if verbose:
-                    print("Using Agent: " + id + ", model: " + model.id)
+                    print("Using Agent: " + str(id) + ", model: " + str(model.id))
 
             if agent is None:
-                raise Exception("Agent not found: " + id)
+                raise Exception("Agent not found: " + str(id))
 
             # run agent
             mode = provider.get_mode()
@@ -100,11 +109,94 @@ class Runner:
                 return self.run_steps(**kwargs)
             elif mode == "assistant":
                 return self.run_assistant(**kwargs)
+            elif mode == "workflow":
+                kwargs["history"] = history
+                kwargs["llm"] = llm
+                return asyncio.run(self.run_workflow(**kwargs))
 
         except Exception as err:
             self.window.core.debug.error(err)
             self.error = err
             return False
+
+    async def run_agent_workflow(self, agent, ctx, query, memory, verbose=False):
+        """
+        Run agent workflow
+        This method runs the agent's workflow, processes tool calls, and streams events.
+
+        :param agent: Agent instance
+        :param ctx: Context
+        :param query: Input query string
+        :param memory: Memory buffer for the agent
+        :param verbose: Verbose mode (default: False)
+        :return: handler for the agent workflow
+        """
+        handler = agent.run(query, ctx=ctx, memory=memory, verbose=verbose)
+        print(f"User:  {query}")
+        async for event in handler.stream_events():
+            if self.is_stopped():
+                break
+            if isinstance(event, ToolCallResult):
+                print(
+                    f"\n-----------\nCode execution result:\n{event.tool_output}"
+                )
+            elif isinstance(event, ToolCall):
+                print(f"\n-----------\nParsed code:\n{event.tool_kwargs['code']}")
+            elif isinstance(event, AgentStream):
+                print(f"{event.delta}", end="", flush=True)
+
+        return await handler
+
+    async def run_workflow(
+            self,
+            agent: Any,
+            ctx: CtxItem,
+            prompt: str,
+            signals: BridgeSignals,
+            verbose: bool = False,
+            history: List[CtxItem] = None,
+            llm: Any = None,
+    ) -> bool:
+        """
+        Run agent workflow
+
+        :param agent: Agent instance
+        :param ctx: Input context
+        :param prompt: input text
+        :param signals: BridgeSignals
+        :param verbose: verbose mode
+        :param history: chat history
+        :param llm: LLM instance
+        :return: True if success
+        """
+        if self.is_stopped():
+            return True  # abort if stopped
+
+        agent_ctx = Context(agent)
+        memory = self.window.core.idx.chat.get_memory_buffer(history, llm)
+        self.set_busy(signals)
+        response = await self.run_agent_workflow(
+            agent=agent,
+            ctx=agent_ctx,
+            query=prompt,
+            memory=memory,
+            verbose=verbose,
+        )
+        response_ctx = self.add_ctx(ctx)
+        response_ctx.set_input("inp")
+        response_ctx.set_output(str(response))
+        response_ctx.extra["agent_output"] = True  # mark as output response
+        response_ctx.extra["agent_finish"] = True  # mark as finished
+
+        # if there is a tool output, append it to the response context
+        if self.window.core.agents.tools.last_tool_output:
+            response_ctx.extra["tool_output"] = [self.window.core.agents.tools.last_tool_output]
+            self.window.core.agents.tools.last_tool_output = None  # reset last tool output
+
+        # send response
+        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+        self.set_idle(signals)
+        return True
 
     def run_steps(
             self,
