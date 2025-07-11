@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.34** | build: **2025-07-11** | Python: **>=3.10, <3.13**
+Release: **2.5.35** | build: **2025-07-11** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,6 +4060,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.35 (2025-07-11)**
+
+- Improved CodeAct Agent: extended prompt, added work directory handling, auto-installation of missing libraries, and generation of images and plots.
 
 **2.5.34 (2025-07-11)**
 

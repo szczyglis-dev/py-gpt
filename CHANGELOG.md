@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.35 (2025-07-11)
+
+- Improved CodeAct Agent: extended prompt, added work directory handling, auto-installation of missing libraries, and generation of images and plots.
+
 ## 2.5.34 (2025-07-11)
 
 - Added: tool calls in CodeAct Agent.

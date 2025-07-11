@@ -1937,6 +1937,12 @@ class Patch:
                     data["api_endpoint_mistral"] = "https://api.mistral.ai/v1"
                 updated = True
 
+            # < 2.5.35
+            if old < parse_version("2.5.35"):
+                print("Migrating config from < 2.5.35...")
+                data["img_dialog_open"] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:
