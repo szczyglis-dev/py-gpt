@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.33** | build: **2025-07-10** | Python: **>=3.10, <3.13**
+Release: **2.5.34** | build: **2025-07-11** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,6 +4060,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.34 (2025-07-11)**
+
+- Added: tool calls in CodeAct Agent.
+- Added: multimodal/vision in Chat with Files mode.
 
 **2.5.33 (2025-07-10)**
 

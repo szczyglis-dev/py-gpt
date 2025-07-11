@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.34 (2025-07-11)
+
+- Added: tool calls in CodeAct Agent.
+- Added: multimodal/vision in Chat with Files mode.
+
 ## 2.5.33 (2025-07-10)
 
 - Added: CodeAct Agent, integrated with Code Interpreter plugin (beta).
