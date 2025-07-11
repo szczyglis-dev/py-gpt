@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.11 03:00:00                  #
 # ================================================== #
 
 import json
@@ -32,6 +32,8 @@ class Tools:
         self.verbose = False
         self.code_execute_fn = CodeExecutor(window)
         self.last_tool_output = None
+        self.agent_idx = None  # agent index, used for query engine tool
+        self.context = None  # BridgeContext instance, used for tool execution
 
     def prepare(
             self,
@@ -127,6 +129,169 @@ class Tools:
             except Exception as e:
                 print(e)
         return tools
+
+    def get_plugin_tools(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            verbose: bool = False
+    ) -> dict:
+        """
+        Parse plugin functions
+
+        :param context: BridgeContext
+        :param extra: extra data
+        :param verbose: verbose mode
+        """
+        tools = {}
+        functions = self.window.core.command.get_functions()
+        for func in functions:
+            try:
+                name = func['name']
+                if name in self.cmd_blacklist:
+                    continue  # skip blacklisted commands
+
+                description = func['desc']
+                schema = json.loads(func['params'])  # from JSON to dict
+
+                def make_func(name):
+                    def func(**kwargs):
+                        self.log("[Plugin] Tool call: " + name + " " + str(kwargs))
+                        cmd = {
+                            "cmd": name,
+                            "params": kwargs,
+                        }
+                        response = self.window.controller.plugins.apply_cmds_all(
+                            context.ctx,  # current ctx
+                            [cmd],  # commands
+                        )
+                        return str(response)  # return response as string
+
+                    return func
+
+                func = make_func(name)
+                tools[name] = func
+            except Exception as e:
+                print(e)
+
+        # add query engine tool if idx is provided
+        if self.agent_idx is not None and self.agent_idx  != "_":
+            tools["query_engine"] = None  # placeholder for query engine tool
+
+        return tools
+
+
+    def get_plugin_specs(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            verbose: bool = False
+    ) -> list:
+        """
+        Parse plugin functions
+
+        :param context: BridgeContext
+        :param extra: extra data
+        :param verbose: verbose mode
+        """
+        specs = []
+        functions = self.window.core.command.get_functions()
+
+        # add query engine tool spec if idx is provided
+        if self.agent_idx is not None and self.agent_idx  != "_":
+            specs.append("**query_engine**: "
+                         "Provides additional context and access to the indexed documents, "
+                         "available params: {'query': {'type': 'string', 'description': 'query string'}}, required: [query]")
+
+        for func in functions:
+            try:
+                name = func['name']
+                if name in self.cmd_blacklist:
+                    continue  # skip blacklisted commands
+                description = func['desc']
+                schema = json.loads(func['params'])  # from JSON to dict
+                spec = "**{}**: {}, available params: {}, required: {}\n".format(name, description, schema.get("properties", {}), schema.get("required", []))
+                specs.append(spec)
+            except Exception as e:
+                print(e)
+        return specs
+
+    def tool_exec(self, cmd: str, params: Dict[str, Any]) -> str:
+        """
+        Execute tool command
+
+        :param cmd: command name
+        :param params: command parameters
+        :return: command output
+        """
+        print("[Plugin] Tool call: " + cmd + " " + str(params))
+        # special case for query engine tool
+        if cmd == "query_engine":
+            if "query" not in params:
+                return "Query parameter is required for query_engine tool."
+            if self.context is None:
+                return "Context is not set for query_engine tool."
+            if self.agent_idx is None or self.agent_idx == "_":
+                return "Agent index is not set for query_engine tool."
+            llm, embed_model = self.window.core.idx.llm.get_service_context(model=self.context.model)
+            index = self.window.core.idx.storage.get(self.agent_idx, llm, embed_model)  # get index
+            if index is not None:
+                query_engine = index.as_query_engine(similarity_top_k=3)
+                response = query_engine.query(params["query"])
+                print("[Plugin] Query engine response: " + str(response))
+                self.log("[Plugin] Query engine response: " + str(response))
+                return str(response)
+            else:
+                return "Index not found for query_engine tool."
+
+        # rest of the plugin commands
+        cmd = {
+            "cmd": cmd,
+            "params": params,
+        }
+        ctx = CtxItem()
+        ctx.extra["agent_input"] = True  # mark as user input
+        ctx.agent_call = True  # disables reply from plugin commands
+        response = self.window.controller.plugins.apply_cmds_all(
+            ctx,  # current ctx
+            [cmd],  # commands
+        )
+        return response
+
+    def get_retriever_tool(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            verbose: bool = False
+    ) -> List[BaseTool]:
+        """
+        Prepare tools for agent
+
+        :param context: BridgeContext
+        :param extra: extra data
+        :param verbose: verbose mode
+        :return: list of tools
+        """
+        tool = None
+        # add query engine tool if idx is provided
+        idx = extra.get("agent_idx", None)
+        if idx is not None and idx != "_":
+            llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
+            index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
+            if index is not None:
+                query_engine = index.as_query_engine(similarity_top_k=3)
+                tool = [
+                    QueryEngineTool(
+                        query_engine=query_engine,
+                        metadata=ToolMetadata(
+                            name="query_engine",
+                            description=(
+                                "Provides additional context and access to the indexed documents."
+                            ),
+                        ),
+                    ),
+                ]
+        return tool
 
     def export_sources(
             self,

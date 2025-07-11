@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.11 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
-from llama_index.core.agent.workflow import CodeActAgent as Agent
+# from llama_index.core.agent.workflow import CodeActAgent as Agent
+from .codeact_agent_custom import CodeActAgent as Agent  # <-- custom version with tools
 
 from .base import BaseAgent
 
@@ -67,14 +68,22 @@ class CodeActAgent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
-        tools = kwargs.get("tools", [])
+        tools = kwargs.get("plugin_tools", {})
+        specs = kwargs.get("plugin_specs", [])
+        retriever_tool = kwargs.get("retriever_tools", None)
         llm = kwargs.get("llm", None)
         system_prompt = kwargs.get("system_prompt", "")
-
-        return Agent(
-            code_execute_fn=window.core.agents.tools.code_execute_fn.execute,
-            # tools=tools,  # TODO: implement tools for code_act agent
-            llm=llm,
-            code_act_system_prompt=self.DEFAULT_CODE_ACT_PROMPT,
-            system_prompt=system_prompt,
-        )
+        are_cmds = kwargs.get("are_commands", True)
+        kwargs = {
+            "code_execute_fn": window.core.agents.tools.code_execute_fn.execute,
+            "plugin_tool_fn": window.core.agents.tools.tool_exec,
+            "plugin_tools": tools,
+            "plugin_specs": specs,
+            "tool_retriever": retriever_tool,
+            "llm": llm,
+            "system_prompt": system_prompt,
+        }
+        # if no tools are provided, use default code act prompt
+        # if not are_cmds:
+            # kwargs["code_act_system_prompt"] = self.DEFAULT_CODE_ACT_PROMPT
+        return Agent(**kwargs)

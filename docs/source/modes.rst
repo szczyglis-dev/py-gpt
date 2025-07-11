@@ -301,19 +301,17 @@ Includes built-in agents:
 * Structured Planner (sub-tasks)
 * CodeAct (connected to Code Interpreter plugin)
 
-CodeAct is currently in beta, only code execute, without rest of tools.
-
 In the future, the list of built-in agents will be expanded.
 
 You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
 
 **Tools and Plugins**
 
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly). Unavailable in CodeAct agent (only code execute tool is active).
+In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
 
 **RAG - using indexes**
 
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically. Unavailable in CodeAct agent.
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
 
 Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
 

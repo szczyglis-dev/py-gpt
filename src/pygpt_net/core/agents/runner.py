@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.11 03:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -68,9 +68,15 @@ class Runner:
 
             # prepare agent
             model = context.model
+            agent_idx = extra.get("agent_idx", None)
+            self.window.core.agents.tools.context = context
+            self.window.core.agents.tools.agent_idx = agent_idx
             system_prompt = context.system_prompt
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             tools = self.window.core.agents.tools.prepare(context, extra)
+            plugin_tools = self.window.core.agents.tools.get_plugin_tools(context, extra)
+            plugin_specs = self.window.core.agents.tools.get_plugin_specs(context, extra)
+            retriever_tool = self.window.core.agents.tools.get_retriever_tool(context, extra)
             history = self.window.core.agents.memory.prepare(context)
             llm = self.window.core.idx.llm.get(model, stream=False)
 
@@ -80,11 +86,15 @@ class Runner:
                 kwargs = {
                     "context": context,
                     "tools": tools,
+                    "plugin_tools": plugin_tools,
+                    "plugin_specs": plugin_specs,
+                    "retriever_tool": retriever_tool,
                     "llm": llm,
                     "chat_history": history,
                     "max_iterations": max_steps,
                     "verbose": verbose,
                     "system_prompt": system_prompt,
+                    "are_commands": self.window.core.config.get("cmd"),
                 }
                 provider = self.window.core.agents.provider.get(id)
                 agent = provider.get_agent(self.window, kwargs)
@@ -141,7 +151,8 @@ class Runner:
                     f"\n-----------\nCode execution result:\n{event.tool_output}"
                 )
             elif isinstance(event, ToolCall):
-                print(f"\n-----------\nParsed code:\n{event.tool_kwargs['code']}")
+                if "code" in event.tool_kwargs:
+                    print(f"\n-----------\nParsed code:\n{event.tool_kwargs['code']}")
             elif isinstance(event, AgentStream):
                 print(f"{event.delta}", end="", flush=True)
 
