@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.11 19:00:00                  #
 # ================================================== #
 
 import os
@@ -113,11 +113,19 @@ class Plugin(BasePlugin):
                         cmd["instruction"] += (
                             "\nIPython works in Docker container. Directory /data is the container's workdir - "
                             "directory is mapped as volume in host machine to: {}").format(ipython_data)
+                    else:
+                        cmd["instruction"] += (
+                            "\nIPython works in local environment. Directory {} is the workdir - "
+                            "use it by default to save files: {}").format(ipython_data, legacy_data)
                 elif item in ["code_execute", "code_execute_file", "code_execute_all"]:
                     if self.get_option_value("sandbox_docker"):
                         cmd["instruction"] += (
                             "\nPython works in Docker container. Directory /data is the container's workdir - "
                             "directory is mapped as volume in host machine to: {}").format(legacy_data)
+                    else:
+                        cmd["instruction"] += (
+                            "\nPython works in local environment. Directory {} is the workdir - "
+                            "use it by default to save files: {}").format(legacy_data, legacy_data)
                 data['cmd'].append(cmd)  # append command
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):

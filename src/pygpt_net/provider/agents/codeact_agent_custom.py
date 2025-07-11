@@ -36,8 +36,12 @@ You will be given a task to perform. You should output:
 - Python code wrapped in <execute>...</execute> tags that provides the solution to the task, or a step towards the solution.
 - If you want to call a tool, include a tool call as described above.
 - Text to be shown directly to the user, if you want to ask for more information or provide the final answer.
+
 You are in a IPython environment, so in your code, you can reference any previously used variables or functions.
 To restart the IPython kernel, type the code: `<execute>/restart</execute>`. This will clear all variables and functions.
+If any missing python modules are required, install them using the command: `<execute>!pip install module_name</execute>`.
+When generating any images or plots, use the `matplotlib` library and return only the path to the saved image file instead of showing it.
+By default, store all files in the current working directory, which is `{workdir}`.
 
 ## Response Format:
 Example of a proper code block:

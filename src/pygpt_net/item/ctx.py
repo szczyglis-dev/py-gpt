@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.11 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -122,8 +122,10 @@ class CtxItem:
     def from_previous(self):
         """Copy data from previous context reply to current context"""
         if self.prev_ctx is not None:
-            self.urls = copy.deepcopy(self.prev_ctx.urls)
-            self.images = copy.deepcopy(self.prev_ctx.images)
+            if self.prev_ctx.urls:
+                self.urls = copy.deepcopy(self.prev_ctx.urls)
+            if self.prev_ctx.images:
+                self.images = copy.deepcopy(self.prev_ctx.images)
             if self.prev_ctx.images_before:
                 self.images = copy.deepcopy(self.prev_ctx.images_before)
             if self.prev_ctx.files_before:

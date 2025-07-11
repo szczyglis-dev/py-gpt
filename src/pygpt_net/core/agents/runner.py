@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 03:00:00                  #
+# Updated Date: 2025.07.11 19:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -79,6 +79,9 @@ class Runner:
             retriever_tool = self.window.core.agents.tools.get_retriever_tool(context, extra)
             history = self.window.core.agents.memory.prepare(context)
             llm = self.window.core.idx.llm.get(model, stream=False)
+            workdir = self.window.core.config.get_user_dir('data')
+            if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
+                workdir = "/data"
 
             provider = None
             agent = None
@@ -95,6 +98,7 @@ class Runner:
                     "verbose": verbose,
                     "system_prompt": system_prompt,
                     "are_commands": self.window.core.config.get("cmd"),
+                    "workdir": workdir,
                 }
                 provider = self.window.core.agents.provider.get(id)
                 agent = provider.get_agent(self.window, kwargs)
@@ -155,6 +159,7 @@ class Runner:
                     print(f"\n-----------\nParsed code:\n{event.tool_kwargs['code']}")
             elif isinstance(event, AgentStream):
                 print(f"{event.delta}", end="", flush=True)
+                # TODO: send stream to webview
 
         return await handler
 
@@ -199,10 +204,8 @@ class Runner:
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
 
-        # if there is a tool output, append it to the response context
-        if self.window.core.agents.tools.last_tool_output:
-            response_ctx.extra["tool_output"] = [self.window.core.agents.tools.last_tool_output]
-            self.window.core.agents.tools.last_tool_output = None  # reset last tool output
+        # if there are tool outputs, img, files, append it to the response context
+        self.window.core.agents.tools.append_tool_outputs(response_ctx)
 
         # send response
         self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)

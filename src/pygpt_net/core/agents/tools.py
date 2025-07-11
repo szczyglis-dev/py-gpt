@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 03:00:00                  #
+# Updated Date: 2025.07.11 19:00:00                  #
 # ================================================== #
 
 import json
+import os
+import re
 from typing import List, Dict, Any
 
 from llama_index.core.chat_engine.types import AgentChatResponse
@@ -314,6 +316,93 @@ class Tools:
             }
             data.append(item)
         return data
+
+    def get_last_tool_output(self) -> dict:
+        """
+        Get last tool output
+
+        :return: last tool output
+        """
+        if self.window.core.agents.tools.last_tool_output is None:
+            return {}
+        return self.window.core.agents.tools.last_tool_output
+
+    def has_last_tool_output(self) -> bool:
+        """
+        Check if there is a last tool output
+
+        :return: True if last tool output exists, False otherwise
+        """
+        return self.window.core.agents.tools.last_tool_output is not None
+
+    def clear_last_tool_output(self):
+        """
+        Clear last tool output
+        """
+        self.window.core.agents.tools.last_tool_output = None
+
+    def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
+        """
+        Append tool outputs to context
+        :param ctx: CtxItem
+        :param clear: clear last tool output after appending
+        """
+        if self.has_last_tool_output():
+            outputs = [self.get_last_tool_output()]
+            ctx.extra["tool_output"] = [self.get_last_tool_output()]
+            self.extract_files(ctx, outputs) # img, files
+            if clear:
+                self.clear_last_tool_output()  # clear after use
+
+    def extract_data_paths(self, text):
+        """
+        Extracts all file paths starting with '/data' from the given text.
+
+        Parameters:
+        text (str): The input text from which to extract paths.
+
+        Returns:
+        list: A list of paths starting with '/data'.
+        """
+        if text is None:
+            return []
+        pattern = r"(/data/[^\s'\";]+)"
+        paths = re.findall(pattern, text)
+        return paths
+
+    def extract_files(self, ctx: CtxItem, tool_outputs: list = None) -> list:
+        """
+        Extract files from response
+
+        :param ctx: CtxItem
+        :param tool_outputs: list of tool outputs
+        :return: files list
+        """
+        if tool_outputs is None:
+            return []
+        response = ""
+        for output in tool_outputs:
+            if ("code" in output
+                    and "output" in output["code"]
+                    and "content" in output["code"]["output"]):
+                response += str(output["code"]["output"]["content"])
+
+        images_list = []
+        local_path = os.path.join(self.window.core.config.get_user_dir('data'))
+        paths = self.extract_data_paths(response)
+        dir_suffix = "/"
+        if self.window.core.platforms.is_windows():
+            dir_suffix = "\\"
+        for i, file in enumerate(paths):
+            paths[i] = file.replace("/data/", local_path + dir_suffix)
+        for path in paths:
+            if path.strip().split(".")[-1].lower() in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
+                images_list.append(path)
+        local_images = self.window.core.filesystem.make_local_list(list(images_list))
+        # append to ctx
+        ctx.files = paths
+        ctx.images = local_images
+        return paths
 
     def log(self, msg: str):
         """
