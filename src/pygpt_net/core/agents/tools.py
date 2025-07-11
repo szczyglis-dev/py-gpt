@@ -356,53 +356,72 @@ class Tools:
 
     def extract_data_paths(self, text):
         """
-        Extracts all file paths starting with '/data' from the given text.
+        Extract file paths from text that contain 'data' segment.
 
-        Parameters:
-        text (str): The input text from which to extract paths.
-
-        Returns:
-        list: A list of paths starting with '/data'.
+        :param text: input text
+        :return: list of file paths containing 'data' segment
         """
         if text is None:
             return []
-        pattern = r"(/data/[^\s'\";]+)"
-        paths = re.findall(pattern, text)
-        return paths
+        path_pattern = r"(?:[A-Za-z]:)?(?:[\\/][^\s'\";]+)+"
+        candidates = re.findall(path_pattern, text)
+        filtered = [
+            p for p in candidates
+            if re.search(r"(?:^|[\\/])data(?:[\\/]|$)", p)
+        ]
+        return filtered
 
     def extract_files(self, ctx: CtxItem, tool_outputs: list = None) -> list:
         """
-        Extract files from response
+        Extract files from tool outputs and return list of file paths.
 
         :param ctx: CtxItem
         :param tool_outputs: list of tool outputs
-        :return: files list
+        :return: list of file paths
         """
         if tool_outputs is None:
             return []
+
         response = ""
         for output in tool_outputs:
-            if ("code" in output
-                    and "output" in output["code"]
-                    and "content" in output["code"]["output"]):
+            if ("code" in output and "output" in output["code"] and
+                    "content" in output["code"]["output"]):
                 response += str(output["code"]["output"]["content"])
 
         images_list = []
-        local_path = os.path.join(self.window.core.config.get_user_dir('data'))
-        paths = self.extract_data_paths(response)
-        dir_suffix = "/"
-        if self.window.core.platforms.is_windows():
-            dir_suffix = "\\"
-        for i, file in enumerate(paths):
-            paths[i] = file.replace("/data/", local_path + dir_suffix)
-        for path in paths:
-            if path.strip().split(".")[-1].lower() in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
+        local_data_dir = self.window.core.config.get_user_dir('data')
+        raw_paths = self.extract_data_paths(response)
+
+        def replace_with_local(path):
+            """
+            Replace the path with local data directory path.
+
+            :param path: original path
+            :return: modified path
+            """
+            segments = re.split(r"[\\/]+", path)
+            try:
+                data_index = segments.index("data")
+            except ValueError:
+                return path
+            tail = segments[data_index + 1:]
+            new_path = os.path.join(local_data_dir, *tail) if tail else local_data_dir
+            return new_path
+
+        processed_paths = []
+        for file in raw_paths:
+            new_file = replace_with_local(file)
+            processed_paths.append(new_file)
+
+        for path in processed_paths:
+            ext = os.path.splitext(path)[1].lower().lstrip(".")
+            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
                 images_list.append(path)
-        local_images = self.window.core.filesystem.make_local_list(list(images_list))
-        # append to ctx
-        ctx.files = paths
+
+        local_images = self.window.core.filesystem.make_local_list(images_list)
+        ctx.files = processed_paths
         ctx.images = local_images
-        return paths
+        return processed_paths
 
     def log(self, msg: str):
         """

@@ -102,21 +102,22 @@ class Runner:
         )
         return result
 
-    def extract_data_paths(self, text):
+    def extract_data_paths(self, text) -> list:
         """
-        Extracts all file paths starting with '/data' from the given text.
+        Extract file paths from text that contain 'data' segment.
 
-        Parameters:
-        text (str): The input text from which to extract paths.
-
-        Returns:
-        list: A list of paths starting with '/data'.
+        :param text: input text
+        :return: list of file paths containing 'data' segment
         """
         if text is None:
             return []
-        pattern = r"(/data/[^\s'\";]+)"
-        paths = re.findall(pattern, text)
-        return paths
+        path_pattern = r"(?:[A-Za-z]:)?(?:[\\/][^\s'\";]+)+"
+        candidates = re.findall(path_pattern, text)
+        filtered = [
+            p for p in candidates
+            if re.search(r"(?:^|[\\/])data(?:[\\/]|$)", p)
+        ]
+        return filtered
 
     def extract_files(self, ctx: CtxItem, response: str) -> list:
         """
@@ -127,21 +128,39 @@ class Runner:
         :return: files list
         """
         images_list = []
-        local_path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), "ipython")
-        paths = self.extract_data_paths(response)
-        dir_suffix = "/"
-        if self.plugin.window.core.platforms.is_windows():
-            dir_suffix = "\\"
-        for i, file in enumerate(paths):
-            paths[i] = file.replace("/data/", local_path + dir_suffix)
-        for path in paths:
-            if path.strip().split(".")[-1].lower() in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
+        local_data_dir = self.plugin.window.core.config.get_user_dir('data')
+        raw_paths = self.extract_data_paths(response)
+
+        def replace_with_local(path):
+            """
+            Replace the path with local data directory path.
+
+            :param path: original path
+            :return: modified path
+            """
+            segments = re.split(r"[\\/]+", path)
+            try:
+                data_index = segments.index("data")
+            except ValueError:
+                return path
+            tail = segments[data_index + 1:]
+            new_path = os.path.join(local_data_dir, *tail) if tail else local_data_dir
+            return new_path
+
+        processed_paths = []
+        for file in raw_paths:
+            new_file = replace_with_local(file)
+            processed_paths.append(new_file)
+
+        for path in processed_paths:
+            ext = os.path.splitext(path)[1].lower().lstrip(".")
+            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
                 images_list.append(path)
 
-        # append to ctx
-        ctx.files = paths
-        ctx.images = self.plugin.window.core.filesystem.make_local_list(list(images_list))
-        return paths
+        local_images = self.plugin.window.core.filesystem.make_local_list(images_list)
+        ctx.files = processed_paths
+        ctx.images = local_images
+        return processed_paths
 
     def handle_result_ipython(self, ctx: CtxItem, response) -> str:
         """
