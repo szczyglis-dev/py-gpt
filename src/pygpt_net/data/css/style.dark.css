@@ -26,6 +26,27 @@ QListView::item {{
   padding: 4px;
   min-height: 20px;
 }}
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #ffffff;
+  selection-color: #ffffff;
+}}
+QComboBox::item:selected {{
+  color: #000;
+  selection-color: #000;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #ffffff;
+  selection-color: #000000;
+}}
+QMenuBar::item:selected {{ 
+  color: #000000;
+}} 
+QMenu::item:selected {{ 
+  color: #000000;
+}} 
 .label-title {{
   font-weight: bold;
 }}
@@ -48,4 +69,11 @@ QListView::item {{
   font-family: 'Monaspace Neon';
   background: #232629; 
   color: #fff;
+}}
+QComboBox::item:disabled {{
+  color: #d1d2d2;
+}}
+* {{
+  selection-background-color: #fff;
+  selection-color: #000;
 }}

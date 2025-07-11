@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
-from pygpt_net.ui.widget.lists.base_list_combo import BaseListCombo
+from pygpt_net.ui.widget.lists.base_list_combo_separator import BaseListComboSeparator
 
 
-class ModelCombo(BaseListCombo):
+class ModelCombo(BaseListComboSeparator):
     def __init__(self, window=None, id=None):
         """
         Model select menu

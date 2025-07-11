@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 16:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -687,6 +687,19 @@ class Tabs:
             tab = self.window.core.tabs.get_tab_by_pid(pid)
             if tab is not None and tab.tool_id == tool_id:
                 return True
+
+    def get_tool_column(self, tool_id: str) -> int:
+        """
+        Check if one of current tabs is of given tool ID
+
+        :param tool_id: tool ID
+        :return: column index if one of tab is of given tool ID, None otherwise
+        """
+        for col in self.col:
+            pid = self.col[col]
+            tab = self.window.core.tabs.get_tab_by_pid(pid)
+            if tab is not None and tab.tool_id == tool_id:
+                return col
 
     def switch_to_first_chat(self):
         """Switch to first chat tab"""

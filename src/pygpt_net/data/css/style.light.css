@@ -14,11 +14,14 @@ QTreeView {{
   border: 1px solid #c0c0c0;
 }}
 QListView::item:selected, 
-QTreeView::item:selected,
+QTreeView::item:selected {{
+  color: #fff;
+  selection-color: #000000;
+}}
 QListView::item:selected:focus, 
 QTreeView::item:selected:focus {{
   color: #fff;
-  selection-color: {QTMATERIAL_PRIMARYTEXTCOLOR};
+  selection-color: #000;
 }}
 
 QTabBar::tab:selected {{
@@ -99,4 +102,16 @@ QCalendarWidget QWidget {{
 }}
 QScrollBar::handle {{
   background: {QTMATERIAL_PRIMARYCOLOR};
+}}
+QTreeView::item:disabled,
+QComboBox::item:disabled {{
+  color: #000;
+  font-weight: bold
+}}
+QComboBox::item {{
+  color: #000;
+}}
+* {{
+  selection-background-color: #353535;
+  selection-color: #fff;
 }}

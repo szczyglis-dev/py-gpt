@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 import re
@@ -343,6 +343,15 @@ class Bridge(QObject):
         :param text: text
         """
         self.window.controller.ctx.extra.copy_code_text(text)
+
+    @Slot(str)
+    def preview_text(self, text: str):
+        """
+        Preview code
+
+        :param text: text
+        """
+        self.window.controller.ctx.extra.preview_code_text(text)
 
     @Slot(int)
     def update_scroll_position(self, pos: int):

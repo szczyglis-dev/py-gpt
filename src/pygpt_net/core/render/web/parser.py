@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.07 01:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 import os
@@ -170,6 +170,9 @@ class Parser:
             wrapper = soup.new_tag('div', **{'class': "code-wrapper"})
             wrapper.append(header)
 
+            # add data-index to wrapper with self.block_idx
+            wrapper['data-index'] = str(self.block_idx)
+
             new_code = soup.new_tag('code')
             new_pre = soup.new_tag('pre')
             new_code.string = content
@@ -185,7 +188,11 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
-        icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "copy.png")
+        copy_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "copy.png")
+        preview_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "preview.png")
+        collapse_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "collapse.png")
+
+        # syntax highlighting style
         style = self.window.core.config.get("render.code_syntax")
         if style is None or style == "":
             style = "default"
@@ -200,12 +207,24 @@ class Parser:
 
             header = soup.new_tag('p', **{'class': "code-header-wrapper"})
             link_wrapper = soup.new_tag('span')
-            a = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
-            a['class'] = "code-header-copy"
-            a.string = trans('ctx.extra.copy_code')
 
-            icon = soup.new_tag('img', src=icon_path, **{'class': "action-img"})
-            a.insert(0, icon)
+            # copy
+            copy = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+            copy['class'] = "code-header-action code-header-copy"
+            copy_span = soup.new_tag('span')
+            copy_span.string = trans('ctx.extra.copy_code')
+            icon = soup.new_tag('img', src=copy_icon_path, **{'class': "action-img"})
+            copy.insert(0, icon)
+            copy.append(copy_span)
+
+            # collapse
+            collapse = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+            collapse['class'] = "code-header-action code-header-collapse"
+            collapse_span = soup.new_tag('span')
+            collapse_span.string = trans('ctx.extra.collapse')
+            icon = soup.new_tag('img', src=collapse_icon_path, **{'class': "action-img"})
+            collapse.insert(0, icon)
+            collapse.append(collapse_span)
 
             # Get the class of <code> to determine the language (if available)
             code = el.find('code')
@@ -220,7 +239,18 @@ class Parser:
                 lang_span.string = "code "
 
             link_wrapper.append(lang_span)
-            link_wrapper.append(a)
+
+            # html preview
+            if language == 'html':
+                preview = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+                preview['class'] = "code-header-action code-header-preview"
+                preview.string = trans('ctx.extra.preview')
+                preview_icon = soup.new_tag('img', src=preview_icon_path, **{'class': "action-img"})
+                preview.insert(0, preview_icon)
+                link_wrapper.append(preview)
+
+            link_wrapper.append(collapse)
+            link_wrapper.append(copy)
             header.append(link_wrapper)
 
             # Create wrapper to hold both the header and the code block
@@ -253,9 +283,13 @@ class Parser:
                 code['class'] = 'language-' + language
             code.string = content
             pre.append(code)
+            wrapper['data-index'] = str(self.block_idx)
+            wrapper['data-locale-collapse'] = trans('ctx.extra.collapse')
+            wrapper['data-locale-expand'] = trans('ctx.extra.expand')
+            wrapper['data-locale-copy'] = trans('ctx.extra.copy_code')
+            wrapper['data-locale-copied'] = trans('ctx.extra.copied')
             wrapper.append(pre)
             el.replace_with(wrapper)
-
             self.block_idx += 1
 
     def convert_lists_to_paragraphs(self, soup):

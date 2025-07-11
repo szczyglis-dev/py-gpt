@@ -47,14 +47,14 @@ code {{
     color: #fff;
     background: #e1e1e1;
 }}
-.code-header-copy {{
+.code-header-action {{
     color: #444444 !important;
 }}
-.code-header-copy:hover {{
+.code-header-action:hover {{
     color: #000 !important;
     cursor: pointer;
 }}
-.code-header-copy:hover img {{
+.code-header-action:hover img {{
     filter: brightness(60%);
 }}
 .code-header-lang {{

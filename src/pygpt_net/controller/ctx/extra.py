@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 18:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -69,6 +69,14 @@ class Extra:
         QApplication.clipboard().setText(value.strip())
         suffix = value[:20] + "..." if len(value) > 20 else value
         self.window.update_status(trans("clipboard.copied_to") + " " + suffix)
+
+    def preview_code_text(self, value: str):
+        """
+        Copy code block to clipboard
+
+        :param value: block text
+        """
+        self.window.core.plugins.get("cmd_code_interpreter").handle_html_output(value)
 
     def edit_item(self, item_id: int):
         """

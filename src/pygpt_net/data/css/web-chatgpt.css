@@ -101,23 +101,29 @@ code {{
     padding-top: 4px;
     padding-left: .25rem;
 }}
-.code-header-copy {{
+.code-header-action {{
     text-align: right;
     text-decoration: none;
     font-weight: bold;
     display: inline-block;
     color: #6e6e6e;
     padding-right: .25rem;
+    vertical-align: middle;
+    padding-left: 5px;
+    padding-right: 5px;
 }}
-.code-header-copy img {{
+.code-header-action span {{
+    font-family: "Lato" !important;
+}}
+.code-header-action img {{
     vertical-align: middle;
     padding-right: 5px;
 }}
-.code-header-copy:hover {{
+.code-header-action:hover, {{
     text-decoration: none;
     cursor: pointer;
 }}
-.code-header-copy:hover img {{
+.code-header-action:hover img {{
     filter: brightness(130%);
 }}
 .code-wrapper {{

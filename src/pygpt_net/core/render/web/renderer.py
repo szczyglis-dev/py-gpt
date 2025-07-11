@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 22:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 import json
@@ -60,6 +60,11 @@ class Renderer(BaseRenderer):
         node = self.get_output_node(meta)
         node.set_meta(meta)
         self.reset(meta)
+        self.parser.reset()
+        try:
+            node.page().runJavaScript(f"if (typeof window.prepare !== 'undefined') prepare();")
+        except Exception as e:
+            pass
 
     def on_page_loaded(
             self,

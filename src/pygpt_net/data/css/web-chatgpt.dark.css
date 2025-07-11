@@ -41,13 +41,13 @@ code {{
 .code-header-wrapper {{
     background-color: #303030;
 }}
-.code-header-copy {{
+.code-header-action {{
     color: silver !important;
 }}
-.code-header-copy:hover {{
+.code-header-action:hover {{
     color: #fff;
 }}
-.code-header-copy:hover img {{
+.code-header-action:hover img {{
     filter: brightness(130%);
 }}
 .code-header-lang {{

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.21 16:00:00                  #
+# Updated Date: 2025.07.12 00:00:00                  #
 # ================================================== #
 
 import os
@@ -393,6 +393,7 @@ class Body:
         new QWebChannel(qt.webChannelTransport, function (channel) {
             bridge = channel.objects.bridge;
         });
+        var collapsed_idx = [];
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
@@ -409,6 +410,9 @@ class Body:
                 window.location.href = 'bridge://focus';
             }
         });
+        function prepare() {        
+            collapsed_idx = [];  // clear collapsed code
+        }
         function sanitize(content) {
             var parser = new DOMParser();
             var doc = parser.parseFromString(content, "text/html");
@@ -424,7 +428,8 @@ class Body:
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
             });
-            renderMath();            
+            renderMath();         
+            restoreCollapsedCode();   
         }
         function renderMath() {
               const scripts = document.querySelectorAll('script[type^="math/tex"]');
@@ -741,9 +746,44 @@ class Body:
             }
             document.head.appendChild(style);
         }
+        function restoreCollapsedCode() {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(function(wrapper) {
+                const index = wrapper.getAttribute('data-index');
+                const localeCollapse = wrapper.getAttribute('data-locale-collapse');
+                const localeExpand = wrapper.getAttribute('data-locale-expand');
+                const source = wrapper.querySelector('code');                
+                if (source && collapsed_idx.includes(index)) {
+                    source.style.display = 'none';
+                    const collapseBtn = wrapper.querySelector('.code-header-collapse');                    
+                    if (collapseBtn) {
+                        const collapseSpan = collapseBtn.querySelector('span');
+                        if (collapseSpan) {
+                            collapseSpan.textContent = localeExpand;
+                        }
+                        collapseBtn.classList.add('collapsed');
+                    }
+                } else if (source) {
+                    source.style.display = 'block';
+                    const collapseBtn = wrapper.querySelector('.code-header-collapse');
+                    if (collapseBtn) {
+                        const collapseSpan = collapseBtn.querySelector('span');
+                        if (collapseSpan) {
+                            collapseSpan.textContent = localeCollapse;
+                        }
+                        collapseBtn.classList.remove('collapsed');
+                    }
+                }
+            });
+        }
         function bridgeCopyCode(text) {
             if (bridge) {
                 bridge.copy_text(text);
+            }
+        }
+        function bridgePreviewCode(text) {
+            if (bridge) {
+                bridge.preview_text(text);
             }
         }
         function bridgeUpdateScrollPosition(pos) {
@@ -785,14 +825,70 @@ class Body:
                 }
             });
             container.addEventListener('click', function(event) {
-                if (event.target.classList.contains('code-header-copy')) {
+                // btn copy
+                const copyButton = event.target.closest('.code-header-copy');
+                if (copyButton) {
+                    event.preventDefault();
+                    const parent = event.target.closest('.code-wrapper');
+                    const source = parent.querySelector('code');
+                    const localeCopy = parent.getAttribute('data-locale-copy');
+                    const localeCopied = parent.getAttribute('data-locale-copied');
+                    if (source) {
+                        const text = source.textContent || source.innerText;
+                        bridgeCopyCode(text);
+                        const copySpan = copyButton.querySelector('span');
+                        if (copySpan) {
+                            copySpan.textContent = localeCopied;
+                            setTimeout(function() {
+                                copySpan.textContent = localeCopy;
+                            }, 1000);
+                        }
+                    }                        
+                }                
+                // btn preview
+                const previewButton = event.target.closest('.code-header-preview');
+                if (previewButton) {
                     event.preventDefault();
                     const parent = event.target.closest('.code-wrapper');
                     const source = parent.querySelector('code');
                     if (source) {
                         const text = source.textContent || source.innerText;
-                        bridgeCopyCode(text);
+                        bridgePreviewCode(text);
                     }                        
+                }
+                // btn collapse
+                const collapseButton = event.target.closest('.code-header-collapse');
+                if (collapseButton) {
+                    event.preventDefault();
+                    const parent = collapseButton.closest('.code-wrapper');
+                    const index = parent.getAttribute('data-index');
+                    const source = parent.querySelector('code');
+                    const localeCollapse = parent.getAttribute('data-locale-collapse');
+                    const localeExpand = parent.getAttribute('data-locale-expand');
+                    if (source) {
+                        if (source.style.display === 'none') {
+                            source.style.display = 'block';
+                            collapseButton.classList.remove('collapsed');
+                            const idx = collapsed_idx.indexOf(index);
+                            if (idx !== -1) {
+                                collapsed_idx.splice(idx, 1);
+                                const collapseSpan = collapseButton.querySelector('span');
+                                if (collapseSpan) {
+                                    collapseSpan.textContent = localeCollapse;
+                                }
+                            }
+                        } else {
+                            source.style.display = 'none';
+                            collapseButton.classList.add('collapsed');
+                            if (!collapsed_idx.includes(index)) {
+                                collapsed_idx.push(index);
+                                const collapseSpan = collapseButton.querySelector('span');
+                                if (collapseSpan) {
+                                    collapseSpan.textContent = localeExpand;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         });
