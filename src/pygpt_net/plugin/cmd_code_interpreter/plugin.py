@@ -103,7 +103,7 @@ class Plugin(BasePlugin):
         """
         # get current working directory
         legacy_data = self.window.core.config.get_user_dir('data')
-        ipython_data = os.path.join(legacy_data, 'ipython')
+        ipython_data = legacy_data
 
         for item in self.allowed_cmds:
             if self.has_cmd(item):

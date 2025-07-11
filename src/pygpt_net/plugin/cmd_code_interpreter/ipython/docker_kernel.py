@@ -341,7 +341,7 @@ class DockerKernel:
 
         :return: Local data directory.
         """
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), "ipython")
+        return os.path.join(self.plugin.window.core.config.get_user_dir("data"))
 
     def execute(self, code: str, current: bool = False) -> str:
         """

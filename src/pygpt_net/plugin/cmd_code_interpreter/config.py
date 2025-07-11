@@ -38,7 +38,7 @@ class Config(BaseConfig):
         # Expose the necessary ports for Jupyter kernel communication
         EXPOSE 5555 5556 5557 5558 5559
 
-        # Data directory, bound as a volume to the local 'data/ipython' directory
+        # Data directory, bound as a volume to the local 'data' directory
         WORKDIR /data
 
         # Start the IPython kernel with specified ports and settings
