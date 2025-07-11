@@ -17,6 +17,12 @@ copy "%BuildDir%\_internal\pywin32_system32\pythoncom310.dll" "%BuildDir%\_inter
 copy "%BuildDir%\_internal\pywin32_system32\pywintypes310.dll" "%BuildDir%\"
 copy "%BuildDir%\_internal\pywin32_system32\pythoncom310.dll" "%BuildDir%\"
 
+mkdir "%BuildDir%\_internal\win32\lib"
+copy "%BuildDir%\_internal\pywin32_system32\pywintypes310.dll" "%BuildDir%\_internal\win32\"
+copy "%BuildDir%\_internal\pywin32_system32\pythoncom310.dll" "%BuildDir%\_internal\win32\"
+copy "%BuildDir%\_internal\pywin32_system32\pywintypes310.dll" "%BuildDir%\_internal\win32\lib\"
+copy "%BuildDir%\_internal\pywin32_system32\pythoncom310.dll" "%BuildDir%\_internal\win32\lib\"
+
 REM Copy ffmpg
 copy "%BinDir%\ffmpeg.exe" "%BuildDir%\"
 copy "%BinDir%\ffplay.exe" "%BuildDir%\"

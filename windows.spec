@@ -96,7 +96,7 @@ a = Analysis(
     'pywin32-ctypes',
     'pywintypes',
     'tweepy'],
-    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert', 'onnxruntime',  'pywin32', 'pywin32-ctypes', 'pywintypes'],
+    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert', 'onnxruntime',  'pywin32', 'pywin32-ctypes', 'pywintypes', 'win32'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
