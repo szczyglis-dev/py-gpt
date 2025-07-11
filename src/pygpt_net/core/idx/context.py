@@ -6,14 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.11 01:00:00                  #
 # ================================================== #
 
 import os
+import re
 from typing import Optional, List, Dict
 
 from llama_index.core.schema import ImageDocument
-from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.llms import (
+    ChatMessage,
+    ImageBlock,
+    TextBlock,
+    MessageRole,
+)
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -28,6 +34,8 @@ class Context:
         :param window: Window instance
         """
         self.window = window
+        self.attachments = {}
+        self.urls = []
 
     def get_messages(
             self,
@@ -148,20 +156,45 @@ class Context:
         :param query: input query
         :param attachments: attachments
         """
-        return ChatMessage(
-            role=MessageRole.USER,
-            content=query,
+        blocks = []
+        blocks.append(
+            TextBlock(text=query)
         )
 
-        # TODO: multimodal support
-        # --------------------------
-        urls = []
+        self.attachments = {}  # reset attachments, only current prompt
+        self.urls = []
+
+        #https://pygpt.net/assets/img/img3.jpg?v=2024-11-28
+
+        # extract URLs from prompt
+        urls = self.extract_urls(query)
+        if len(urls) > 0:
+            for url in urls:
+                blocks.append(
+                    ImageBlock(url=url)
+                )
+                self.urls.append(url)
+
+        # if attachments are provided, add them to blocks
         if attachments is not None and len(attachments) > 0:
             for id in attachments:
                 attachment = attachments[id]
                 if os.path.exists(attachment.path):
                     if is_image(attachment.path):
-                        urls.append(attachment.path)
+                        blocks.append(
+                            ImageBlock(path=attachment.path)
+                        )
+                        self.attachments[id] = attachment.path
+
+        msg = ChatMessage(
+            role=MessageRole.USER,
+            blocks=blocks,
+        )
+        return msg
+
+
+
+        urls.append(attachment.path)
         msg = ChatMessage(
             role=MessageRole.USER,
             content=query,
@@ -186,3 +219,63 @@ class Context:
             role=MessageRole.SYSTEM,
             content=prompt,
         )
+
+    def append_images(self, ctx: CtxItem):
+        """
+        Append images content to context item
+
+        :param ctx: context
+        """
+        images = self.get_attachments()  # dict -> key: id, value: path
+        urls = self.get_urls()  # list
+
+        # store sent images in ctx
+        if len(images) > 0:
+            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
+        if len(urls) > 0:
+            ctx.images = urls
+            ctx.urls = urls
+
+    def extract_urls(self, text: str) -> List[str]:
+        """
+        Extract img urls from text
+
+        :param text: text
+        :return: list of img urls
+        """
+        urls = re.findall(r'(https?://\S+)', text)
+        img_urls = []
+        for url in urls:
+            if self.is_image(url):
+                img_urls.append(url)
+
+        # if single url, return it
+        if "".join(urls).strip() == text.strip():
+            return urls
+
+        return img_urls
+
+    def is_image(self, path: str) -> bool:
+        """
+        Check if url is image
+
+        :param path: url
+        :return: True if image
+        """
+        return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))
+
+    def get_attachments(self) -> Dict[str, str]:
+        """
+        Get attachments
+
+        :return: attachments dict
+        """
+        return self.attachments
+
+    def get_urls(self) -> List[str]:
+        """
+        Get urls
+
+        :return: urls list
+        """
+        return self.urls

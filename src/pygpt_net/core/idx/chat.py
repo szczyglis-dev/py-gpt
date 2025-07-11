@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 01:00:00                  #
+# Updated Date: 2025.07.11 01:00:00                  #
 # ================================================== #
 
 import json
@@ -211,57 +211,6 @@ class Chat:
             ctx.add_doc_meta(self.get_metadata(nodes))
         return True
 
-    def retrieve(
-            self,
-            context: BridgeContext,
-            extra: Optional[Dict[str, Any]] = None
-    ) -> bool:
-        """
-        Retrieve best matched documents from index only
-
-        :param context: Bridge context
-        :param extra: Extra arguments
-        :return: True if success
-        """
-        idx = context.idx
-        model = context.model
-        stream = context.stream
-        ctx = context.ctx
-        query = ctx.input  # user input
-        verbose = self.window.core.config.get("log.llama", False)
-
-        self.log("Retrieve nodes...")
-        self.log("Idx: {}, retrieve only: {}".format(
-            idx,
-            query,
-        ))
-
-        index, llm = self.get_index(idx, model, stream=stream)
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
-        outputs = []
-        self.log("Retrieved {} nodes...".format(len(nodes)))
-        responses = []
-        for node in nodes:
-            if node.text in responses:
-                continue
-            responses.append(node.text)
-            outputs.append({
-                "text": node.text,
-                "score": node.score,
-            })
-        if outputs:
-            response = ""
-            for output in outputs:
-                score = output["score"]
-                if score < 0.5:
-                    continue
-                if output != outputs[-1]:
-                    response += "\n\n"
-            ctx.set_output(response)
-            ctx.add_doc_meta(self.get_metadata(nodes))
-        return True
-
     def chat(
             self,
             context: BridgeContext,
@@ -286,6 +235,7 @@ class Chat:
         verbose = self.window.core.config.get("log.llama", False)
         allow_native_tool_calls = True
         response = None
+        attachments = context.attachments  # attachments
         cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
         use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
@@ -324,6 +274,7 @@ class Chat:
                  "use react: {react}, "
                  "use index: {use_index}, "
                  "cmd enabled: {cmd_enabled}, "
+                 "num_attachments: {num_attachments}, "
                  "additional ctx: {additional_ctx}, "
                  "query: {query}".format(
             idx=idx,
@@ -334,6 +285,7 @@ class Chat:
             react=use_react,
             use_index=use_index,
             cmd_enabled=cmd_enabled,
+            num_attachments=len(context.attachments) if context.attachments else 0,
             additional_ctx=additional_ctx,
             query=query,
         ))
@@ -356,7 +308,7 @@ class Chat:
             history=context.history,
             allow_native_tool_calls=allow_native_tool_calls,
             prev_message=self.prev_message,
-            attachments=context.attachments,
+            attachments=attachments,
         )
 
         self.prev_message = None  # reset previous message
@@ -511,6 +463,9 @@ class Chat:
                         self.response.from_index(ctx, model, response) # INDEX
                     else:
                         self.response.from_llm(ctx, model, llm, response) # LLM
+
+            # append attachment images to context
+            self.context.append_images(ctx)
 
             if not stream:
                 # store output tokens

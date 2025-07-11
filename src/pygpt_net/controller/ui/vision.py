@@ -6,13 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.07.11 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_IMAGE,
-    MODE_VISION, MULTIMODAL_IMAGE,
+    MODE_LLAMA_INDEX,
+    MODE_AGENT,
+    MODE_RESEARCH,
+    MODE_EXPERT,
+    MODE_AGENT_LLAMA,
+    MODE_VISION,
+    MULTIMODAL_IMAGE,
 )
 
 class Vision:
@@ -37,7 +43,13 @@ class Vision:
             return True
         if self.window.controller.plugins.is_type_enabled('vision'):
             return True
-        if self.is_vision_model() and mode in [MODE_CHAT]:
+        if self.is_vision_model() and mode in [
+            MODE_CHAT,
+            MODE_LLAMA_INDEX,
+            MODE_AGENT,
+            MODE_RESEARCH,
+            MODE_EXPERT,
+        ]:
             return True
         return False
 
