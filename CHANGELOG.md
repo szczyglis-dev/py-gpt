@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.37 (2025-07-13)
+
+- Improved multi-threading and async calls.
+- Added loading spinner.
+- Added live output from CodeAct agent.
+- UI fixes.
+
 ## 2.5.36 (2025-07-12)
 
 - Improved UI, updated CSS.

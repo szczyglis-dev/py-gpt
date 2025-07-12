@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.36** | build: **2025-07-12** | Python: **>=3.10, <3.13**
+Release: **2.5.37** | build: **2025-07-13** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,6 +4060,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.37 (2025-07-13)**
+
+- Improved multi-threading and async calls.
+- Added loading spinner.
+- Added live output from CodeAct agent.
+- UI fixes.
 
 **2.5.36 (2025-07-12)**
 
