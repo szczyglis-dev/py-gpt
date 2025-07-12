@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 00:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import os
@@ -70,11 +70,58 @@ class Body:
         if syntax_style is None or syntax_style == "":
             syntax_style = "default"
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
-        stylesheet = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
+        # loader
+        stylesheet = """
+        .lds-ring {
+          /* change color here */
+          color: #1c4c5b
+        }
+        .lds-ring,
+        .lds-ring div {
+          box-sizing: border-box;
+        }
+        .lds-ring {
+          display: inline-block;
+          position: relative;
+          width: 80px;
+          height: 80px;
+        }
+        .lds-ring div {
+          box-sizing: border-box;
+          display: block;
+          position: absolute;
+          width: 64px;
+          height: 64px;
+          margin: 8px;
+          border: 8px solid currentColor;
+          border-radius: 50%;
+          animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+          border-color: currentColor transparent transparent transparent;
+        }
+        .lds-ring div:nth-child(1) {
+          animation-delay: -0.45s;
+        }
+        .lds-ring div:nth-child(2) {
+          animation-delay: -0.3s;
+        }
+        .lds-ring div:nth-child(3) {
+          animation-delay: -0.15s;
+        }
+        @keyframes lds-ring {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        """
+        stylesheet += self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
         if syntax_style in syntax_dark:
             stylesheet += "pre { color: #fff; }"
         else:
             stylesheet += "pre { color: #000; }"
+
         return stylesheet + " " + self.highlight.get_style_defs()
 
     def prepare_action_icons(
@@ -798,6 +845,18 @@ class Body:
             window.scrollTo(0, pos);
             prevScroll = parseInt(pos);
         }  
+        function showLoading() {
+            const el = document.getElementById('_loader_');
+            if (el) {
+                el.style.display = 'block';
+            }
+        }
+        function hideLoading() {
+            const el = document.getElementById('_loader_');
+            if (el) {
+                el.style.display = 'none';
+            }
+        }
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('container');
             function addClassToMsg(id, className) {
@@ -900,6 +959,9 @@ class Body:
             <div id="_append_input_" class="append_input"></div>
             <div id="_append_output_" class="append_output"></div>
             <div id="_footer_" class="footer"></div>
+            <div id="_loader_" class="loader-global" style="display: none">
+                <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+            </div>
         </div>
         </body>
         </html>

@@ -363,3 +363,22 @@ think {{
     padding: 10px;
     font-size: 0.9rem;
 }}
+
+/* loader */
+.loader-global {{
+   text-align: center;
+   margin-top: 2rem;
+   margin-bottom: 2rem;
+}}
+.lds-ring {{
+   opacity: 0.75;
+}}
+.loader-global .lds-ring {{
+  width: 40px;
+  height: 40px;
+}}
+.loader-global .lds-ring div {{
+  width: 32px;
+  height: 32px;
+  border-width: 5px;
+}}

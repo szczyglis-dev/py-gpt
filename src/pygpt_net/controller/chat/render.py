@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 19:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -142,6 +142,23 @@ class Render:
         elif name == RenderEvent.ACTION_EDIT_SUBMIT:
             self.on_edit_submit(ctx)
 
+        # kernel state changed
+        elif name in [
+            RenderEvent.STATE_IDLE,
+            RenderEvent.STATE_BUSY,
+            RenderEvent.STATE_ERROR
+        ]:
+            meta = meta or self.window.core.ctx.get_current_meta()
+            self.on_state_changed(name, meta)
+
+    def on_state_changed(self, state: str, meta: Optional[CtxMeta] = None):
+        """
+        Handle state change event
+
+        :param state: State name
+        :param meta: Context meta
+        """
+        self.instance().state_changed(state, meta)
 
     def get_pid(self, meta: CtxMeta) -> int:
         """

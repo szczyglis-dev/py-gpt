@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -55,6 +55,10 @@ class RenderEvent(BaseEvent):
 
     ACTION_REGEN_SUBMIT = "render.action.regen.submit"
     ACTION_EDIT_SUBMIT = "render.action.edit.submit"
+
+    STATE_IDLE = "render.state.idle"
+    STATE_BUSY = "render.state.busy"
+    STATE_ERROR = "render.state.error"
 
     def __init__(
             self,

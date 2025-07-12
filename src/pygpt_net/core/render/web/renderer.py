@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 00:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import json
@@ -26,6 +26,8 @@ from .body import Body
 from .helpers import Helpers
 from .parser import Parser
 from .pid import PidData
+
+from pygpt_net.core.events import RenderEvent
 
 
 class Renderer(BaseRenderer):
@@ -135,6 +137,42 @@ class Renderer(BaseRenderer):
             self.pids[pid].initialized = True
         else:
             self.clear_chunks(pid)
+
+    def state_changed(
+            self,
+            state: str,
+            meta: CtxMeta,
+    ):
+        """
+        On kernel state changed event
+
+        :param state: state name
+        :param meta: context meta
+        """
+        # BUSY: current pid only
+        if state == RenderEvent.STATE_BUSY:
+            if meta:
+                pid = self.get_pid(meta)
+                if pid:
+                    node = self.get_output_node_by_pid(pid)
+                    node.page().runJavaScript(
+                        f"if (typeof window.showLoading !== 'undefined') showLoading();")
+
+        # IDLE: all pids
+        elif state == RenderEvent.STATE_IDLE:
+            for pid in self.pids:
+                node = self.get_output_node_by_pid(pid)
+                if node is not None:
+                    node.page().runJavaScript(
+                        f"if (typeof window.hideLoading !== 'undefined') hideLoading();")
+
+        # ERROR: all pids
+        elif state == RenderEvent.STATE_ERROR:
+            for pid in self.pids:
+                node = self.get_output_node_by_pid(pid)
+                if node is not None:
+                    node.page().runJavaScript(
+                        f"if (typeof window.hideLoading !== 'undefined') hideLoading();")
 
     def begin(
             self,

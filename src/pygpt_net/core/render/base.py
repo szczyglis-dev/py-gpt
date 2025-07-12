@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -413,4 +413,17 @@ class BaseRenderer:
 
     def tool_output_end(self):
         """End tool output"""
+        pass
+
+    def state_changed(
+            self,
+            state: str,
+            meta: CtxMeta,
+    ):
+        """
+        Render end
+
+        :param state: state name
+        :param meta: context meta
+        """
         pass

@@ -62,3 +62,8 @@ code {{
 .name-user::before {{
     background-color: silver;
 }}
+
+/* loader */
+.lds-ring {{
+   color: #fff;
+}}
