@@ -152,29 +152,7 @@ QRadioButton::indicator:unchecked {{
   border: 1px solid #828282 !important;
   background-color: #fff;
 }}
-QSlider::handle {{
-  image: none;
-  border-radius: 0;
-  background-color: #000;
-  width: 3px;
-  text-align: center;
-  color: transparent;
-}}
-QSlider::sub-page {{
-  background-color: #adadad;
-}}
-QSlider:horizontal {{
-  background-color: #adadad;
-  min-height: {{24|density(density_scale)}}px;
-  max-height: {{24|density(density_scale)}}px;
-}}
-QSlider::handle:horizontal {{
-  image: none;
-  background-color: #adadad;
-  width: {{18|density(density_scale)}}px;
-  height: {{18|density(density_scale)}}px;
-  margin: -{{18|density(density_scale)}}px -{{9|density(density_scale)}}px;
-}}
+
 
 QMenu::indicator {{
   border: 1px solid #828282 !important;
