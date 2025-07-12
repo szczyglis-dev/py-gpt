@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.35** | build: **2025-07-11** | Python: **>=3.10, <3.13**
+Release: **2.5.36** | build: **2025-07-12** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,6 +4060,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.36 (2025-07-12)**
+
+- Improved UI, updated CSS.
+- Added: collapse/expand button to code blocks.
+- Added: preview code button to HTML code blocks.
+- Added: provider separators in models list.
+- Added: grok-4 model.
 
 **2.5.35 (2025-07-11)**
 

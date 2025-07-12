@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.35",
-        "app.version": "2.5.35",
-        "updated_at": "2025-07-11T01:31:35"
+        "version": "2.5.36",
+        "app.version": "2.5.36",
+        "updated_at": "2025-07-12T01:31:35"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -1927,6 +1927,40 @@
             "tokens": 16384,
             "default": false,
             "input": ["text", "image"],
+            "output": ["text"],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai"
+        },
+        "grok-4": {
+            "id": "grok-4",
+            "name": "grok-4",
+            "mode": [
+                "chat"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-4",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 256000,
+            "tokens": 16384,
+            "default": false,
+            "input": ["text"],
             "output": ["text"],
             "extra": {},
             "imported": false,

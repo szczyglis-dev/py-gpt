@@ -1,3 +1,11 @@
+2.5.36 (2025-07-12)
+
+- Improved UI, updated CSS.
+- Added: collapse/expand button to code blocks.
+- Added: preview code button to HTML code blocks.
+- Added: provider separators in models list.
+- Added: grok-4 model.
+
 2.5.35 (2025-07-11)
 
 - Improved CodeAct Agent: extended prompt, added work directory handling, auto-installation of missing libraries, and generation of images and plots.

@@ -41,6 +41,10 @@ QTreeView::item:selected:focus {{
   color: #ffffff;
   selection-color: #000000;
 }}
+QListView::item::disabled {{
+   color: #959595;
+   font-weight: bold;
+}}
 QMenuBar::item:selected {{ 
   color: #000000;
 }} 
@@ -76,4 +80,24 @@ QComboBox::item:disabled {{
 * {{
   selection-background-color: #fff;
   selection-color: #000;
+}}
+QSlider::handle {{
+  image: none;
+  border-radius: 0;
+  background-color: #000;
+  width: 3px;
+  text-align: center;
+  color: transparent;
+}}
+QSlider:horizontal {{
+  background-color: #828282;
+  min-height: {{24|density(density_scale)}}px;
+  max-height: {{24|density(density_scale)}}px;
+}}
+QSlider::handle:horizontal {{
+  image: none;
+  background-color: {QTMATERIAL_PRIMARYCOLOR};
+  width: {{18|density(density_scale)}}px;
+  height: {{18|density(density_scale)}}px;
+  margin: -{{18|density(density_scale)}}px -{{9|density(density_scale)}}px;
 }}

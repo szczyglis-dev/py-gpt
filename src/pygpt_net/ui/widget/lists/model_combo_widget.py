@@ -16,9 +16,13 @@ class ModelComboBox(QComboBox):
     def addSeparator(self, text):
         """
         Adds a separator item to the combo box.
+
+        :param text: The text to display for the separator.
         """
         index = self.count()
         self.addItem(text)
-        item = self.model().item(index)
-        if item is not None:
-            item.setFlags(item.flags() & ~Qt.ItemIsSelectable & ~Qt.ItemIsEnabled)
+        try:
+            role = Qt.UserRole - 1
+            self.setItemData(index, 0, role)
+        except:
+            pass

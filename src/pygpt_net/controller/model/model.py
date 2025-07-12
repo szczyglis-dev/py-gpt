@@ -160,8 +160,8 @@ class Model:
         data = self.window.core.models.get_by_mode(mode)
         for k in data:
             suffix = ""
-            if data[k].provider == "ollama":
-                suffix = " (Ollama)"
+            # if data[k].provider == "ollama":
+                # suffix = " (Ollama)"
             items[k] = data[k].name + suffix
 
         providers = self.window.core.llm.get_choices()

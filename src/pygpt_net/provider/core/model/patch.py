@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.12 01:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -645,6 +645,11 @@ class Patch:
             # < 2.5.29 <--- add multimodal
             if old < parse_version("2.5.29"):
                 print("Migrating models from < 2.5.29...")
+                updated = True
+
+            # < 2.5.36 <--- add grok-4
+            if old < parse_version("2.5.36"):
+                print("Migrating models from < 2.5.36...")
                 updated = True
 
         # update file
