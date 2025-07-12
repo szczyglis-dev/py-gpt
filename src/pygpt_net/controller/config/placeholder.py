@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.12 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -331,7 +331,7 @@ class Placeholder:
 
     def get_models(self, params: dict = None) -> List[Dict[str, str]]:
         """
-        Get models placeholders list
+        Get models placeholders list (+ provider separators)
 
         :param params: Additional parameters for specific placeholders
         :return: Models placeholders list
@@ -340,6 +340,7 @@ class Placeholder:
             params = {}
         models = self.window.core.models.get_all()
         data = []
+        items = {}
         for id in models:
             model = models[id]
             allowed = True
@@ -350,12 +351,21 @@ class Placeholder:
                         break
             if not allowed:
                 continue
+            items[id] = model.name
 
-            suffix = ""
-            if model.provider == "ollama":
-                suffix = " (Ollama)"
-            name = model.name + suffix
-            data.append({id: name})
+        # sort by providers
+        providers = self.window.core.llm.get_choices()
+        sorted_items = {}
+        for provider in providers.keys():
+            provider_items = {k: v for k, v in items.items() if models[k].provider == provider}
+            if provider_items:
+                sorted_items[f"separator::{provider}"] = providers[provider]
+                sorted_items.update(provider_items)
+
+        # make choices
+        for id in sorted_items:
+            data.append({id: sorted_items[id]})
+
         return data
 
     def get_agent_modes(self) -> List[Dict[str, str]]:

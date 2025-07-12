@@ -6,15 +6,35 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2025.07.12 19:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 
 from pygpt_net.utils import trans
 
+class SeparatorComboBox(QComboBox):
+    """A combo box that supports adding separator items."""
 
-class NoScrollCombo(QComboBox):
+    def addSeparator(self, text):
+        """
+        Adds a separator item to the combo box.
+
+        :param text: The text to display for the separator.
+        """
+        index = self.count()
+        self.addItem(text)
+        try:
+            role = Qt.UserRole - 1
+            self.setItemData(index, 0, role)
+        except:
+            pass
+
+
+class NoScrollCombo(SeparatorComboBox):
+    """A combo box that disables mouse wheel scrolling."""
+
     def __init__(self, parent=None):
         super(NoScrollCombo, self).__init__(parent)
 
@@ -23,6 +43,8 @@ class NoScrollCombo(QComboBox):
 
 
 class OptionCombo(QWidget):
+    """A combobox for selecting options in the settings."""
+
     def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
         Settings combobox
@@ -73,7 +95,10 @@ class OptionCombo(QWidget):
             for item in self.keys:
                 if type(item) is dict:
                     for key, value in item.items():
-                        self.combo.addItem(value, key)
+                        if key.startswith("separator::"):
+                            self.combo.addSeparator(value)
+                        else:
+                            self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item, item)
 
