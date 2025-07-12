@@ -116,6 +116,7 @@ setup(
         'pyserial>=3.5,<4.0',
         'PySide6==6.6.2',
         'python-markdown-math>=0.8,<0.9',
+        'qasync>=0.27.1,<0.1.0',
         'redis>=5.3.0,<6.0.0',
         'qt-material>=2.17,<3.0',
         'SpeechRecognition>=3.14.3,<4.0.0',

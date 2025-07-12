@@ -6634,6 +6634,18 @@ files = [
 cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
+name = "qasync"
+version = "0.27.1"
+description = "Python library for using asyncio in Qt-based applications"
+optional = false
+python-versions = ">=3.8,<4.0"
+groups = ["main"]
+files = [
+    {file = "qasync-0.27.1-py3-none-any.whl", hash = "sha256:5d57335723bc7d9b328dadd8cb2ed7978640e4bf2da184889ce50ee3ad2602c7"},
+    {file = "qasync-0.27.1.tar.gz", hash = "sha256:8dc768fd1ee5de1044c7c305eccf2d39d24d87803ea71189d4024fb475f4985f"},
+]
+
+[[package]]
 name = "qt-material"
 version = "2.17"
 description = "Material inspired stylesheet for PySide6 and PyQt6."
@@ -8565,4 +8577,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "58a6260a9dc4bc5637793474da1ec126f42dcbbbbca024b5fc7136f64eec8e08"
+content-hash = "fba7e110a9afa959186e94a3dc4f90cb35ffe1859d1d7388585f01a162d9709d"

@@ -2626,6 +2626,9 @@ pyzmq==27.0.0 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:ee05728c0b0b2484a9fc20466fa776fffb65d95f7317a3419985b8c908563861 \
     --hash=sha256:f4162dbbd9c5c84fb930a36f290b08c93e35fce020d768a16fc8891a2f72bab8 \
     --hash=sha256:f7bbe9e1ed2c8d3da736a15694d87c12493e54cc9dc9790796f0321794bbc91f
+qasync==0.27.1 ; python_version >= "3.10" and python_version < "3.13" \
+    --hash=sha256:5d57335723bc7d9b328dadd8cb2ed7978640e4bf2da184889ce50ee3ad2602c7 \
+    --hash=sha256:8dc768fd1ee5de1044c7c305eccf2d39d24d87803ea71189d4024fb475f4985f
 qt-material==2.17 ; python_version >= "3.10" and python_version < "3.13" \
     --hash=sha256:660523341ae45b79d222bf15e202ec76ba3bf5e7e82170b66759738d7bb4873d \
     --hash=sha256:b500a0c1f5ef8f46a8cf037d1aa5bdf9ea4eb618180b6332539dfbdd0647ad0d
