@@ -113,7 +113,7 @@ QComboBox::item {{
   color: #000;
 }}
 * {{
-  selection-background-color: #353535;
+  selection-background-color: #3390ff;
   selection-color: #fff;
 }}
 QCheckBox::indicator,

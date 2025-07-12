@@ -78,7 +78,7 @@ QComboBox::item:disabled {{
   color: #d1d2d2;
 }}
 * {{
-  selection-background-color: #fff;
-  selection-color: #000;
+  selection-background-color: #0765d4;
+  selection-color: #fff;
 }}
 
