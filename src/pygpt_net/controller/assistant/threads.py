@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 04:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import json
@@ -62,14 +62,50 @@ class Threads(QObject):
         ctx.from_previous()  # append previous result if exists
         self.window.core.ctx.update_item(ctx)
         self.window.controller.chat.output.handle(ctx, 'assistant', stream)
+        if stream:
+            return  # handled in: self.handle_output_message_after_stream() after stream:handleEvent
 
-        if stream:  # append all output to chat
-            event = RenderEvent(RenderEvent.END, {
-                "meta": ctx.meta,
-                "ctx": ctx,
-                "stream": stream,
-            })  # extra reload for stream markdown needed here
-            self.window.dispatch(event)
+        ctx.clear_reply()  # reset results
+
+        self.log("Handling output message...")
+
+        has_cmd = self.window.core.command.has_cmds(ctx.output)
+        if has_cmd:
+            self.log("Handling message command...")
+            self.window.controller.chat.command.handle(ctx)
+
+        # update ctx
+        ctx.from_previous()  # append previous result again before save
+        self.window.core.ctx.update_item(ctx)
+
+        # index ctx (llama-index)
+        self.window.controller.idx.on_ctx_end(ctx, mode="assistant")
+
+        # update ctx list
+        self.window.controller.ctx.update()
+
+        # if is command execute and not locked yet (not executing)
+        if has_cmd and self.window.controller.kernel.stack.waiting():
+            self.log("Replying for message command...")
+            self.window.controller.kernel.stack.handle()
+
+        self.log("Handled output message.")
+
+    def handle_output_message_after_stream(
+            self,
+            ctx: CtxItem
+    ):
+        """
+        Handle output message (not stream ONLY)
+
+        :param ctx: CtxItem
+        """
+        event = RenderEvent(RenderEvent.END, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "stream": True,
+        })  # extra reload for stream markdown needed here
+        self.window.dispatch(event)
 
         ctx.clear_reply()  # reset results
 

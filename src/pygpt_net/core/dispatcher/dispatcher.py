@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 17:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -30,6 +30,7 @@ class Dispatcher:
         self.window = window
         self.nolog_events = ["system.prompt", "render.stream.append"]
         self.call_id = 0
+        self._pending_tasks = []
 
     def dispatch(
             self,
@@ -78,7 +79,22 @@ class Dispatcher:
 
         # render events
         elif isinstance(event, RenderEvent):
-            # dispatch event to render controller
+            """
+            # async dispatch event to render controller
+            try:
+                asyncio.get_running_loop()
+                is_async = True
+            except RuntimeError:
+                is_async = False
+            if is_async:
+                task = asyncio.create_task(self.window.controller.chat.render.handle(event))
+                task.add_done_callback(lambda t: self._pending_tasks.remove(t))
+                self._pending_tasks.append(task)
+            else:
+                asyncio.run(self.window.controller.chat.render.handle(event))
+            """
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(self.window.controller.chat.render.handle(event))
             self.window.controller.chat.render.handle(event)
             if self.is_log(event):
                 self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")

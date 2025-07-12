@@ -1960,8 +1960,15 @@ class Patch:
             # < 2.5.37
             if old < parse_version("2.5.37"):
                 print("Migrating config from < 2.5.37...")
-                self.window.core.updater.patch_css('style.dark.css', True)  # changed selection color
-                self.window.core.updater.patch_css('style.light.css', True)  # changed selection color
+                self.window.core.updater.patch_css('style.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
         # update file

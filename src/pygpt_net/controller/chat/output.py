@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -37,7 +37,10 @@ class Output:
             self,
             ctx: CtxItem,
             mode: str,
-            stream_mode: bool = False
+            stream_mode: bool = False,
+            is_response: bool = False,
+            reply: bool = False,
+            internal: bool = False,
     ):
         """
         Handle response from LLM
@@ -45,15 +48,45 @@ class Output:
         :param ctx: CtxItem
         :param mode: mode (global)
         :param stream_mode: stream mode
+        :param is_response: Is response output
+        :param reply: is reply
+        :param internal: is internal command
         """
         self.window.stateChanged.emit(self.window.STATE_BUSY)
 
         # if stream mode then append chunk by chunk
-        stream_enabled = self.window.core.config.get("stream")  # global stream enabled
+        end = True
         if stream_mode:  # local stream enabled
             if mode not in self.not_stream_modes:
-                self.window.controller.chat.stream.append(ctx)
+                end = False  # don't end stream mode, append chunk by chunk
+                self.window.controller.chat.stream.append(
+                    ctx=ctx,
+                    mode=mode,
+                    is_response=is_response,
+                    reply=reply,
+                    internal=internal,
+                )
 
+        if end:
+            self.handle_after(
+                ctx=ctx,
+                mode=mode,
+                stream=stream_mode
+            )
+
+    def handle_after(
+            self,
+            ctx: CtxItem,
+            mode: str,
+            stream: bool = False
+    ):
+        """
+        Handle response from LLM
+
+        :param ctx: CtxItem
+        :param mode: mode (global)
+        :param stream: stream mode
+        """
         # check if tool calls detected
         if ctx.tool_calls:
             # if not internal commands in a text body then append tool calls as commands (prevent double commands)
@@ -62,7 +95,7 @@ class Output:
                 if not isinstance(ctx.extra, dict):
                     ctx.extra = {}
                 ctx.extra["tool_calls"] = ctx.tool_calls
-                stream_mode = False  # disable stream mode, show tool calls at the end
+                stream = False  # disable stream mode, show tool calls at the end
                 self.log("Tool call received...")
             else:  # prevent execute twice
                 self.log("Ignoring tool call because command received...")
@@ -79,7 +112,8 @@ class Output:
         self.log("Appending output to chat window...")
 
         # only append output if not in stream mode, TODO: plugin output add
-        if not stream_mode:
+        stream_enabled = self.window.core.config.get('stream', False)
+        if not stream:
             if stream_enabled:  # use global stream settings here to persist previously added input
                 data = {
                     "meta": ctx.meta,

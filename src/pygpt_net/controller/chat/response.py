@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -18,6 +18,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import RenderEvent, KernelEvent
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -90,12 +91,45 @@ class Response:
                     ctx,
                     mode,
                     stream,
+                    is_response=True,
+                    reply=reply,
+                    internal=internal,
                 )
         except Exception as e:
             extra["error"] = e
             self.failed(context, extra)
 
+
+        if stream: 
+            if mode not in self.window.controller.chat.output.not_stream_modes:
+                return # handled in stream:handleEnd()
+
         # post-handle, execute cmd, etc.
+        self.post_handle(
+            ctx=ctx,
+            mode=mode,
+            stream=stream,
+            reply=reply,
+            internal=internal
+        )
+
+    def post_handle(
+            self,
+            ctx: CtxItem,
+            mode: str,
+            stream: bool,
+            reply: bool,
+            internal: bool
+    ):
+        """
+        Post-handle response
+
+        :param ctx: CtxItem
+        :param mode: Mode of operation
+        :param stream: True if stream mode
+        :param reply: True if reply mode
+        :param internal: True if internal mode
+        """
         self.window.controller.chat.output.post_handle(ctx, mode, stream, reply, internal)
         self.window.controller.chat.output.handle_end(ctx, mode)  # handle end.
 

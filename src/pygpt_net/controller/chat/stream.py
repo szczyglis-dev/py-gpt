@@ -6,70 +6,62 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
-import base64
-import uuid
-from typing import Any
 
-from PySide6.QtWidgets import QApplication
+import base64
+from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 
 
-class Stream:
-    def __init__(self, window=None):
-        """
-        Stream controller
+class StreamWorker(QObject, QRunnable):
+    end = Signal(object)
+    errorOccurred = Signal(Exception)
+    eventReady = Signal(object)
 
-        :param window: Window instance
-        """
+    def __init__(self, ctx: CtxItem, window, parent=None):
+        QObject.__init__(self)
+        QRunnable.__init__(self)
+        self.ctx = ctx
         self.window = window
 
-    def append(self, ctx: CtxItem):
-        """
-        Handle stream response
-
-        :param ctx: CtxItem
-        """
+    @Slot()
+    def run(self):
         output = ""
         output_tokens = 0
         begin = True
         error = None
         fn_args_buffers = {}
         citations = []
-        img_path = self.window.core.image.gen_unique_path(ctx)
+        img_path = self.window.core.image.gen_unique_path(self.ctx)
         is_image = False
         is_code = False
 
-        # chunks: stream begin
         data = {
-            "meta": ctx.meta,
-            "ctx": ctx,
+            "meta": self.ctx.meta,
+            "ctx": self.ctx
         }
         event = RenderEvent(RenderEvent.STREAM_BEGIN, data)
-        self.window.dispatch(event)
+        self.eventReady.emit(event)
 
-        # read stream
         try:
-            if ctx.stream is not None:
-                self.log("[chat] Stream begin...")  # log
-
+            if self.ctx.stream is not None:
                 tool_calls = []
-
-                for chunk in ctx.stream:
+                for chunk in self.ctx.stream:
                     # if force stop then break
                     if self.window.controller.kernel.stopped():
                         break
-
                     if error is not None:
                         break  # break if error
 
                     etype = None
                     response = None
                     chunk_type = "raw"
-                    if ctx.use_responses_api:
+
+                    if self.ctx.use_responses_api:
                         if hasattr(chunk, 'type'):  # streaming event type
                             etype = chunk.type
                             chunk_type = "api_chat_responses"  # responses API
@@ -100,8 +92,9 @@ class Stream:
                             if citations is None:
                                 if chunk and hasattr(chunk, 'citations') and chunk.citations is not None:
                                     citations = chunk.citations
-                                    ctx.urls = citations
+                                    self.ctx.urls = citations
                             response = chunk.choices[0].delta.content
+
                         if chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
                             tool_chunks = chunk.choices[0].delta.tool_calls
                             for tool_chunk in tool_chunks:
@@ -137,13 +130,14 @@ class Stream:
                                 "id": chunk.item.id,
                                 "call_id": chunk.item.call_id,
                                 "type": "function",
-                                "function": {"name": chunk.item.name, "arguments": ""}
+                                "function": {
+                                    "name": chunk.item.name,
+                                    "arguments": ""
+                                }
                             })
                             fn_args_buffers[chunk.item.id] = ""
-
                         elif etype == "response.function_call_arguments.delta":
                             fn_args_buffers[chunk.item_id] += chunk.delta
-
                         elif etype == "response.function_call_arguments.done":
                             for tc in tool_calls:
                                 if tc["id"] == chunk.item_id:
@@ -158,7 +152,7 @@ class Stream:
                                     citations = []
                                 url_citation = chunk.annotation['url']
                                 citations.append(url_citation)
-                                ctx.urls = citations
+                                self.ctx.urls = citations
 
                         # ---------- code interpreter ----------
                         elif etype == "response.code_interpreter_call_code.delta":
@@ -180,7 +174,7 @@ class Stream:
 
                         # ---------- response ID ----------
                         elif etype == "response.created":
-                            ctx.msg_id = chunk.response.id # store previous response ID
+                            self.ctx.msg_id = chunk.response.id
 
                         # ---------- end / error ----------
                         elif etype in {"response.done", "response.failed", "error"}:
@@ -203,7 +197,7 @@ class Stream:
                         tool_chunks = chunk.message.additional_kwargs.get("tool_calls", [])
                         if tool_chunks:
                             for tool_chunk in tool_chunks:
-                                id = None
+                                id_val = None
                                 name = None
                                 args = {}
                                 if hasattr(tool_chunk, 'arguments'):
@@ -211,24 +205,24 @@ class Stream:
                                 elif hasattr(tool_chunk, 'function') and hasattr(tool_chunk.function, 'arguments'):
                                     args = tool_chunk.function.arguments
                                 if hasattr(tool_chunk, 'call_id'):
-                                    id = tool_chunk.call_id
+                                    id_val = tool_chunk.call_id
                                 elif hasattr(tool_chunk, 'id'):
-                                    id = tool_chunk.id
+                                    id_val = tool_chunk.id
                                 if hasattr(tool_chunk, 'name'):
                                     name = tool_chunk.name
                                 elif hasattr(tool_chunk, 'function') and hasattr(tool_chunk.function, 'name'):
                                     name = tool_chunk.function.name
-                                if id:
+                                if id_val:
                                     if not args:
                                         args = "{}"  # JSON encoded
                                     tool_call = {
-                                            "id": id,
-                                            "type": "function",
-                                            "function": {
-                                                "name": name,
-                                                "arguments": args
-                                            }
+                                        "id": id_val,
+                                        "type": "function",
+                                        "function": {
+                                            "name": name,
+                                            "arguments": args
                                         }
+                                    }
                                     tool_calls.clear()
                                     tool_calls.append(tool_call)
 
@@ -243,54 +237,140 @@ class Stream:
                         output += response
                         output_tokens += 1
                         data = {
-                            "meta": ctx.meta,
-                            "ctx": ctx,
+                            "meta": self.ctx.meta,
+                            "ctx": self.ctx,
                             "chunk": response,
                             "begin": begin,
                         }
                         event = RenderEvent(RenderEvent.STREAM_APPEND, data)
-                        self.window.dispatch(event)
-                        QApplication.processEvents()  # process events to update UI after each chunk
+                        self.eventReady.emit(event)
                         begin = False
 
                 # unpack and store tool calls
                 if tool_calls:
                     self.window.core.debug.info("[chat] Tool calls found, unpacking...")
-                    self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
+                    self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls)
 
                 # append images
                 if is_image:
                     self.window.core.debug.info("[chat] Image generation call found")
-                    ctx.images = [img_path]  # save image path to ctx
+                    self.ctx.images = [img_path]  # save image path to ctx
 
         except Exception as e:
-            self.window.core.debug.log(e)
             error = e
 
-        self.window.controller.ui.update_tokens()  # update UI tokens
-
         # update ctx
-        ctx.output = output
-        ctx.set_tokens(ctx.input_tokens, output_tokens)
+        self.ctx.output = output
+        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
 
-        # chunks: stream end
-        data = {
-            "meta": ctx.meta,
-            "ctx": ctx,
-        }
+        self.end.emit(self.ctx)
+        if error:
+            self.errorOccurred.emit(error)
+
+
+class Stream:
+    def __init__(self, window=None):
+        """
+        Stream controller
+
+        :param window: Window instance
+        """
+        self.window = window
+        self.ctx = None
+        self.mode = None
+        self.thread = None
+        self.worker = None
+        self.is_response = False
+        self.reply = False
+        self.internal = False
+
+    def append(
+            self,
+            ctx: CtxItem,
+            mode: str = None,
+            is_response: bool = False,
+            reply: str = False,
+            internal: bool = False
+    ):
+        """
+        Asynchronous append of stream worker to the thread.
+
+        :param ctx: CtxItem
+        :param mode: Mode of stream processing
+        :param is_response: Is this a response stream?
+        :param reply: Reply text
+        :param internal: Internal flag for handling
+        """
+        self.ctx = ctx
+        self.mode = mode
+        self.is_response = is_response
+        self.reply = reply
+        self.internal = internal
+
+        self.worker = StreamWorker(ctx, self.window)
+        self.worker.eventReady.connect(self.handleEvent)
+        self.worker.errorOccurred.connect(self.handleError)
+        self.worker.end.connect(self.handleEnd)
+
+        self.window.core.debug.info("[chat] Stream begin...")
+        self.window.threadpool.start(self.worker)
+
+    @Slot(object)
+    def handleEnd(self, ctx: CtxItem):
+        """
+        Slot for handling end of stream
+
+        This method is called when the stream processing is finished.
+
+        :param ctx: CtxItem
+        """
+        self.window.controller.ui.update_tokens()
+
+        data = {"meta": self.ctx.meta, "ctx": self.ctx}
         event = RenderEvent(RenderEvent.STREAM_END, data)
         self.window.dispatch(event)
+        self.window.controller.chat.output.handle_after(
+            ctx=ctx,
+            mode=self.mode,
+            stream=True,
+        )
 
-        # log
-        self.log("[chat] Stream end.")
+        # finish: assistant thread run
+        if self.mode == MODE_ASSISTANT:
+            self.window.controller.assistant.threads.handle_output_message_after_stream(ctx)
+        else:
+            # finish: KernelEvent.RESPONSE_OK, KernelEvent.RESPONSE_ERROR
+            if self.is_response:
+                # post-handle, execute cmd, etc.
+                self.window.controller.chat.response.post_handle(
+                    ctx=ctx,
+                    mode=self.mode,
+                    stream=True,
+                    reply=self.reply,
+                    internal=self.internal
+                )
 
-        if error is not None:
-            raise error  # raise error if any, to display in UI
-
-    def log(self, data: Any):
+    def handleEvent(self, event):
         """
-        Log data to debug
+        Slot for handling RenderEvent
 
-        :param data: Data to log
+        :param event: RenderEvent
+        """
+        self.window.dispatch(event)
+
+    def handleError(self, error):
+        """
+        Slot for handling errors
+
+        :param error: Exception
+        """
+        self.window.core.debug.log(error)
+        raise error  # raise error if any, to display in UI
+
+    def log(self, data: object):
+        """
+        Save debug log data
+
+        :param data: Dane do logowania
         """
         self.window.core.debug.info(data)

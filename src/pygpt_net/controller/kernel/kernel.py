@@ -6,9 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
+import asyncio
+import threading
 import time
 from typing import Any, Dict, Optional, Union, List
 
@@ -20,7 +22,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_EXPERT, MODE_LLAMA_INDEX,
 )
-from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -199,7 +201,11 @@ class Kernel(QObject):
             return
 
         if event.name == KernelEvent.REQUEST:
-            return self.window.core.bridge.request(context, extra)
+            #loop = asyncio.get_event_loop()
+            asyncio.create_task(self.window.core.bridge.request(context, extra))
+            return True
+            #return self.window.core.bridge.request(context, extra)
+            #return asyncio.gather(self.window.core.bridge.request(context, extra))
         elif event.name == KernelEvent.REQUEST_NEXT:
             return self.window.core.bridge.request_next(context, extra)
         elif event.name == KernelEvent.CALL:
@@ -293,17 +299,23 @@ class Kernel(QObject):
             self.state = self.STATE_BUSY
             self.window.ui.tray.set_icon(self.STATE_BUSY)
             if not self.halt:
-                self.window.ui.show_loading()
+                if self.is_main_thread():
+                    self.window.dispatch(RenderEvent(RenderEvent.STATE_BUSY))
+               # self.window.ui.show_loading()
         elif event.name == KernelEvent.STATE_IDLE:
             self.busy = False
             self.state = self.STATE_IDLE
             self.window.ui.tray.set_icon(self.STATE_IDLE)
-            self.window.ui.hide_loading()
+           # self.window.ui.hide_loading()
+            if self.is_main_thread():
+                self.window.dispatch(RenderEvent(RenderEvent.STATE_IDLE))
         elif event.name == KernelEvent.STATE_ERROR:
             self.busy = False
             self.state = self.STATE_ERROR
             self.window.ui.tray.set_icon(self.STATE_ERROR)
-            self.window.ui.hide_loading()
+            # self.window.ui.hide_loading()
+            if self.is_main_thread():
+                self.window.dispatch(RenderEvent(RenderEvent.STATE_ERROR))
 
         # update message if provided
         msg = event.data.get("msg", None)
@@ -368,3 +380,13 @@ class Kernel(QObject):
         if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
             return True
         return False
+
+    def is_main_thread(self) -> bool:
+        """
+        Check if current thread is main thread
+
+        :return: True if main thread
+        """
+        if threading.current_thread() is not threading.main_thread():
+            return False
+        return True

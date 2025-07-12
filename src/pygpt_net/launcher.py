@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
+
+import asyncio
+from qasync import QEventLoop
 
 import os
 import sys
@@ -39,6 +42,7 @@ class Launcher:
     def __init__(self):
         """Launcher"""
         self.app = None
+        self.loop = None
         self.window = None
         self.debug = False
         self.force_legacy = False
@@ -115,6 +119,8 @@ class Launcher:
         QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
         self.app = QApplication(sys.argv)
         self.app.setAttribute(QtCore.Qt.AA_DontUseNativeMenuBar)
+        self.loop = QEventLoop(self.app)
+        asyncio.set_event_loop(self.loop)
         self.window = MainWindow(self.app, args=args)
         self.shortcut_filter = GlobalShortcutFilter(self.window)
 
@@ -268,4 +274,6 @@ class Launcher:
         self.window.controller.after_setup()
         self.window.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
         self.window.setup_global_shortcuts()
-        sys.exit(self.app.exec())
+        with self.loop:
+            self.loop.run_forever()
+        #sys.exit(self.app.exec())
