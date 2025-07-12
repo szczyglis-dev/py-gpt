@@ -722,6 +722,18 @@ class Body:
                 }
             }
         }
+        function replaceLive(content) {
+            const element = document.getElementById('_append_live_');
+            if (element) {
+                if (element.classList.contains('hidden')) {
+                    element.classList.remove('hidden');
+                    element.classList.add('visible');
+                }
+                element.innerHTML = sanitize(content);
+            }
+            highlightCode();
+            scrollToBottom();
+        }
         function updateFooter(content) {
             const element = document.getElementById('_footer_');
             if (element) {
@@ -746,6 +758,21 @@ class Body:
             const element = document.getElementById('_append_output_');
             if (element) {
                 element.textContent = '';
+            }
+        }
+        function clearLive() {
+            const element = document.getElementById('_append_live_');
+            if (element) {
+                if (element.classList.contains('visible')) {
+                    element.classList.remove('visible');
+                    element.classList.add('hidden');
+                    // timeout to clear content
+                    setTimeout(function() {
+                        element.textContent = '';
+                    }, 1000);
+                } else {
+                    element.textContent = '';
+                }
             }
         }
         function enableEditIcons() {
@@ -848,13 +875,19 @@ class Body:
         function showLoading() {
             const el = document.getElementById('_loader_');
             if (el) {
-                el.style.display = 'block';
+                if (el.classList.contains('hidden')) {
+                    el.classList.remove('hidden');
+                }
+                el.classList.add('visible');
             }
         }
         function hideLoading() {
             const el = document.getElementById('_loader_');
             if (el) {
-                el.style.display = 'none';
+                if (el.classList.contains('visible')) {
+                    el.classList.remove('visible');
+                }
+                el.classList.add('hidden');
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
@@ -957,9 +990,10 @@ class Body:
         <div id="container">
             <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>
-            <div id="_append_output_" class="append_output"></div>
+            <div id="_append_output_" class="append_output"></div>            
+            <div id="_append_live_" class="append_live hidden"></div>
             <div id="_footer_" class="footer"></div>
-            <div id="_loader_" class="loader-global" style="display: none">
+            <div id="_loader_" class="loader-global hidden">
                 <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
             </div>
         </div>

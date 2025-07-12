@@ -101,6 +101,8 @@ class Kernel(QObject):
             KernelEvent.AGENT_CONTINUE,
             KernelEvent.AGENT_CALL,
             KernelEvent.CALL,
+            KernelEvent.LIVE_APPEND,
+            KernelEvent.LIVE_CLEAR,
         ]:
             response = self.queue(context, extra, event)
         elif name in [
@@ -172,6 +174,8 @@ class Kernel(QObject):
             KernelEvent.APPEND_BEGIN,
             KernelEvent.APPEND_DATA,
             KernelEvent.APPEND_END,
+            KernelEvent.LIVE_APPEND,
+            KernelEvent.LIVE_CLEAR,
         ]:
             return self.output(context, extra, event)
         elif event.name in [
@@ -261,6 +265,10 @@ class Kernel(QObject):
             return self.window.controller.chat.response.append(context, extra)
         elif event.name == KernelEvent.APPEND_END:
             return self.window.controller.chat.response.end(context, extra)
+        elif event.name == KernelEvent.LIVE_APPEND:
+            return self.window.controller.chat.response.live_append(context, extra)
+        elif event.name == KernelEvent.LIVE_CLEAR:
+            return self.window.controller.chat.response.live_clear(context, extra)
 
     def restart(self):
         """Restart kernel"""

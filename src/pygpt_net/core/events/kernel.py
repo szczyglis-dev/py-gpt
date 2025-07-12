@@ -52,6 +52,9 @@ class KernelEvent(BaseEvent):
     STATE_ERROR = "kernel.state.error"
     STATUS = "kernel.status"
 
+    LIVE_APPEND = "kernel.live.append"
+    LIVE_CLEAR = "kernel.live.clear"
+
     def __init__(
             self,
             name: Optional[str] = None,

@@ -137,6 +137,11 @@ class Render:
         elif name == RenderEvent.EXTRA_END:
             self.end_extra(meta, ctx)
 
+        elif name == RenderEvent.LIVE_APPEND:
+            self.append_live(meta, ctx, chunk, begin)
+        elif name == RenderEvent.LIVE_CLEAR:
+            self.clear_live(meta, ctx)
+
         elif name == RenderEvent.ACTION_REGEN_SUBMIT:
             self.on_reply_submit(ctx)
         elif name == RenderEvent.ACTION_EDIT_SUBMIT:
@@ -146,7 +151,7 @@ class Render:
         elif name in [
             RenderEvent.STATE_IDLE,
             RenderEvent.STATE_BUSY,
-            RenderEvent.STATE_ERROR
+            RenderEvent.STATE_ERROR,
         ]:
             meta = meta or self.window.core.ctx.get_current_meta()
             self.on_state_changed(name, meta)
@@ -159,6 +164,28 @@ class Render:
         :param meta: Context meta
         """
         self.instance().state_changed(state, meta)
+
+    def append_live(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+        """
+        Append live text chunk to output
+
+        :param meta: context meta
+        :param ctx: context item
+        :param text_chunk: text chunk
+        :param begin: if it is the beginning of the stream
+        """
+        self.instance().append_live(meta, ctx, text_chunk, begin)
+        self.update()
+
+    def clear_live(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Clear live output
+
+        :param meta: context meta
+        :param ctx: context item
+        """
+        self.instance().clear_live(meta, ctx)
+        self.update()
 
     def get_pid(self, meta: CtxMeta) -> int:
         """

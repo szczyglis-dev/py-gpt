@@ -133,7 +133,15 @@ class Runner:
             self.error = err
             return False
 
-    async def run_agent_workflow(self, agent, ctx, query, memory, verbose=False):
+    async def run_agent_workflow(
+            self,
+            agent,
+            ctx,
+            query,
+            memory,
+            verbose=False,
+            item_ctx: Optional[CtxItem] = None,
+            signals: Optional[BridgeSignals] = None):
         """
         Run agent workflow
         This method runs the agent's workflow, processes tool calls, and streams events.
@@ -143,23 +151,29 @@ class Runner:
         :param query: Input query string
         :param memory: Memory buffer for the agent
         :param verbose: Verbose mode (default: False)
+        :param item_ctx: Optional CtxItem for additional context
+        :param signals: Optional BridgeSignals for communication
         :return: handler for the agent workflow
         """
         handler = agent.run(query, ctx=ctx, memory=memory, verbose=verbose)
         print(f"User:  {query}")
+        begin = True
         async for event in handler.stream_events():
             if self.is_stopped():
                 break
             if isinstance(event, ToolCallResult):
-                print(
-                    f"\n-----------\nCode execution result:\n{event.tool_output}"
-                )
+                output = f"\n-----------\nCode execution result:\n{event.tool_output}"
+                print(output)
+                self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
-                    print(f"\n-----------\nParsed code:\n{event.tool_kwargs['code']}")
+                    output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
+                    print(output)
+                    self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, AgentStream):
                 print(f"{event.delta}", end="", flush=True)
-                # TODO: send stream to webview
+                self.send_live_append(item_ctx, signals, event.delta, begin)  # send stream to webview
+                begin = False
 
         return await handler
 
@@ -197,6 +211,8 @@ class Runner:
             query=prompt,
             memory=memory,
             verbose=verbose,
+            item_ctx=ctx,
+            signals=signals,
         )
         response_ctx = self.add_ctx(ctx)
         response_ctx.set_input("inp")
@@ -206,6 +222,7 @@ class Runner:
 
         # if there are tool outputs, img, files, append it to the response context
         self.window.core.agents.tools.append_tool_outputs(response_ctx)
+        self.send_live_clear(response_ctx, signals)
 
         # send response
         self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
@@ -701,6 +718,49 @@ class Runner:
         ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
         ctx.live = True
         return ctx
+
+    def send_live_append(
+            self,
+            ctx: CtxItem,
+            signals: BridgeSignals,
+            text: str,
+            begin: bool=False
+    ):
+        """
+        Send live response to chat window (BridgeSignals)
+
+        :param ctx: CtxItem
+        :param signals: BridgeSignals
+        :param text: text to send
+        :param begin: True if it is the beginning of the text
+        """
+        context = BridgeContext()
+        context.ctx = ctx
+        extra = {
+            "chunk": str(text),
+            "begin": begin,
+        }
+        event = KernelEvent(KernelEvent.LIVE_APPEND, {
+            'context': context,
+            'extra': extra,
+        })
+        signals.response.emit(event)
+
+    def send_live_clear(self, ctx: CtxItem, signals: BridgeSignals):
+        """
+        Send live clear response to chat window (BridgeSignals)
+
+        :param ctx: CtxItem
+        :param signals: BridgeSignals
+        """
+        context = BridgeContext()
+        context.ctx = ctx
+        extra = {}
+        event = KernelEvent(KernelEvent.LIVE_CLEAR, {
+            'context': context,
+            'extra': extra,
+        })
+        signals.response.emit(event)
 
     def send_response(
             self,

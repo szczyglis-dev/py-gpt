@@ -378,3 +378,18 @@ think {{
   height: 32px;
   border-width: 5px;
 }}
+.append_live {{
+  font-size: 0.8rem;
+}}
+.hidden {{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+
+.visible {{
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}

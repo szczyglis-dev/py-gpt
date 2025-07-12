@@ -310,3 +310,37 @@ class Response:
         """
         msg = extra.get("msg", "")
         self.window.update_status(msg)
+
+    def live_append(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any]
+    ):
+        ctx = context.ctx
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "chunk": extra.get("chunk", ""),
+            "begin": extra.get("begin", False),
+        }
+        event = RenderEvent(RenderEvent.LIVE_APPEND, data)
+        self.window.dispatch(event)
+
+    def live_clear(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any]
+    ):
+        """
+        Handle Bridge live clear
+
+        :param context: BridgeContext
+        :param extra: Extra data
+        """
+        ctx = context.ctx
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.LIVE_CLEAR, data)
+        self.window.dispatch(event)

@@ -427,3 +427,29 @@ class BaseRenderer:
         :param meta: context meta
         """
         pass
+
+    def append_live(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
+        """
+        Append live output chunk to output
+
+        :param meta: context meta
+        :param ctx: context item
+        :param text_chunk: text chunk
+        :param begin: if it is the beginning of the text
+        """
+        pass
+
+    def clear_live(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Clear live output
+
+        :param meta: context meta
+        :param ctx: context item
+        """
+        pass

@@ -470,6 +470,85 @@ class Renderer(BaseRenderer):
         except Exception as e:
             pass
 
+    def append_live(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False
+    ):
+        """
+        Append live output chunk to output
+
+        :param meta: context meta
+        :param ctx: context item
+        :param text_chunk: text chunk
+        :param begin: if it is the beginning of the text
+        """
+        pid = self.get_or_create_pid(meta)
+        self.pids[pid].item = ctx
+        if text_chunk is None or text_chunk == "":
+            if begin:
+                self.pids[pid].live_buffer = ""  # always reset buffer
+            return
+        self.update_names(meta, ctx)
+        raw_chunk = str(text_chunk)
+        raw_chunk = raw_chunk.replace("<", "&lt;")
+        raw_chunk = raw_chunk.replace(">", "&gt;")
+        if begin:
+            # debug
+            debug = ""
+            if self.is_debug():
+                debug = self.append_debug(ctx, pid, "stream")
+            if debug:
+                raw_chunk = debug + raw_chunk
+            self.pids[pid].live_buffer = ""  # reset buffer
+            self.pids[pid].is_cmd = False  # reset command flag
+            self.clear_live(meta, ctx)  # clear live output
+        self.pids[pid].live_buffer += raw_chunk
+
+        """
+        # cooldown (throttling) to prevent high CPU usage on huge text chunks
+        if len(self.buffer) > self.throttling_min_chars:
+            current_time = time.time()
+            if current_time - self.last_time_called <= self.cooldown:
+                return  # wait a moment
+            else:
+                self.last_time_called = current_time
+        """
+
+        # parse chunks
+        to_append = self.pids[pid].live_buffer
+        if has_unclosed_code_tag(self.pids[pid].live_buffer):
+            to_append += "\n```"  # fix for code block without closing ```
+        html = self.parser.parse(to_append)
+        escaped_chunk = json.dumps(html)
+        try:
+            self.get_output_node(meta).page().runJavaScript(
+                f"replaceLive({escaped_chunk});")
+        except Exception as e:
+            pass
+
+    def clear_live(self, meta: CtxMeta, ctx: CtxItem):
+        """
+        Clear live output
+
+        :param meta: context meta
+        :param ctx: context item
+        """
+        if meta is None:
+            return
+        pid = self.get_or_create_pid(meta)
+        if not self.pids[pid].loaded:
+            js = "var element = document.getElementById('_append_live_');"
+            js += "if (element) { element.innerHTML = ''; }"
+        else:
+            js = "clearLive();"
+        try:
+            self.get_output_node_by_pid(pid).page().runJavaScript(js)
+        except Exception as e:
+            pass
+
     def append_node(
             self,
             meta: CtxMeta,
@@ -695,6 +774,9 @@ class Renderer(BaseRenderer):
                 # create new PID using only meta
                 pid = self.get_or_create_pid(meta)
                 self.reset_by_pid(pid)
+
+        # clear live output
+        self.clear_live(meta, CtxItem())
 
     def reset_by_pid(self, pid: Optional[int]):
         """

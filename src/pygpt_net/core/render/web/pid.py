@@ -22,6 +22,7 @@ class PidData():
         self.urls_appended = []
         self.files_appended = []
         self.buffer = ""  # stream buffer
+        self.live_buffer = ""  # live stream buffer
         self.is_cmd = False
         self.html = ""  # html buffer
         self.document = ""

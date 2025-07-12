@@ -60,6 +60,9 @@ class RenderEvent(BaseEvent):
     STATE_BUSY = "render.state.busy"
     STATE_ERROR = "render.state.error"
 
+    LIVE_APPEND = "render.live.append"
+    LIVE_CLEAR = "render.live.clear"
+
     def __init__(
             self,
             name: Optional[str] = None,
