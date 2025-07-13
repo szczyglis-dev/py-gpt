@@ -160,7 +160,7 @@ class Patch:
                             print("Patched file: {}.".format(dst))
 
                         updated = True
-                        is_agent_code_act = True  # prevent multiple copies
+                        is_agent_react_workflow = True  # prevent multiple copies
 
             # update file
             if updated:
