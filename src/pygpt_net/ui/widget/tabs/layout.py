@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2025.07.13 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QObject, QEvent
@@ -86,6 +86,7 @@ class OutputLayout(QWidget):
         super(OutputLayout, self).__init__(window)
         self.window = window
         self.columns = []
+        self._was_width_zero = None
 
         column1 = OutputColumn(self.window)
         column2 = OutputColumn(self.window)
@@ -96,6 +97,7 @@ class OutputLayout(QWidget):
         self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         for column in self.columns:
             self.splitter.addWidget(column)
+        self.splitter.splitterMoved.connect(self.handle_splitter_moved)
 
         self.window.ui.splitters['columns'] = self.splitter
 
@@ -103,6 +105,24 @@ class OutputLayout(QWidget):
         self.layout.addWidget(self.splitter, stretch=1)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
+
+    def handle_splitter_moved(self, pos, index):
+        """
+        Handle splitter moved event
+        :param pos: Position of the splitter
+        :param index: Index of the widget that was moved
+        """
+        widget = self.splitter.widget(1)
+        if widget:
+            current_width = widget.width()
+            if current_width == 0:
+                if self._was_width_zero is not True:
+                    self._was_width_zero = True
+                    self.window.controller.ui.tabs.on_split_screen_changed(False)
+            else:
+                if self._was_width_zero is not False:
+                    self._was_width_zero = False
+                    self.window.controller.ui.tabs.on_split_screen_changed(True)
 
     def get_next_idx(self) -> int:
         """

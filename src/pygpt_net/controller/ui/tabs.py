@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 00:00:00                  #
+# Updated Date: 2025.07.13 15:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -644,24 +644,6 @@ class Tabs:
         # switch to new tab
         self.switch_tab_by_idx(tab.idx, new_column_idx)
 
-    def toggle_split_screen(self, state):
-        """
-        Toggle split screen mode
-
-        :param state: True if split screen is enabled
-        """
-        if state:
-            # self.rightWidget.show()
-            self.window.ui.splitters['columns'].setSizes([1, 1])
-        else:
-            # self.rightWidget.hide()
-            self.window.ui.splitters['columns'].setSizes([1, 0])
-            # set to first column
-            self.column_idx = 0
-            self.on_column_changed()
-        self.window.core.config.set("layout.split", state)
-        self.window.core.config.save()
-
     def is_current_by_type(self, type: int) -> bool:
         """
         Check if one of current tabs is of given type
@@ -715,3 +697,46 @@ class Tabs:
             if tab is not None and tab.type == Tab.TAB_CHAT:
                 self.switch_tab_by_idx(tab.idx, col)
                 return
+
+    def on_split_screen_changed(self, state: bool):
+        """
+        On split screen mode changed
+
+        :param state: True if split screen is enabled
+        """
+        prev_state = self.window.core.config.get("layout.split", False)
+        self.window.core.config.set("layout.split", state)
+        if prev_state != state:
+            if self.window.ui.nodes['layout.split'].box.isChecked() != state:
+                self.window.ui.nodes['layout.split'].box.setChecked(state)
+            self.window.core.config.save()
+
+    def enable_split_screen(self):
+        """
+        Enable split screen mode
+        """
+        self.window.ui.splitters['columns'].setSizes([1, 1])
+        self.window.core.config.set("layout.split", True)
+        self.window.core.config.save()
+
+    def disable_split_screen(self):
+        """
+        Disable split screen mode
+        """
+        self.window.ui.splitters['columns'].setSizes([1, 0])
+        # switch to first column
+        self.column_idx = 0
+        self.on_column_changed()
+        self.window.core.config.set("layout.split", False)
+        self.window.core.config.save()
+
+    def toggle_split_screen(self, state):
+        """
+        Toggle split screen mode
+
+        :param state: True if split screen is enabled
+        """
+        if state:
+            self.enable_split_screen()
+        else:
+            self.disable_split_screen()
