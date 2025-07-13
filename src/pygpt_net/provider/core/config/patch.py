@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 00:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -1970,6 +1970,27 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
                 self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
+
+            # < 2.5.40 - update tool prompts
+            if old < parse_version("2.5.40"):
+                print("Migrating config from < 2.5.40...")
+
+                # config
+                data['prompt.agent.goal'] = self.window.core.config.get_base('prompt.agent.goal')
+                data['prompt.agent.instruction'] = self.window.core.config.get_base('prompt.agent.instruction')
+                data['prompt.ctx.auto_summary.user'] = self.window.core.config.get_base('prompt.ctx.auto_summary.user')
+                data['prompt.cmd'] = self.window.core.config.get_base('prompt.cmd')
+                data['prompt.cmd.extra'] = self.window.core.config.get_base('prompt.cmd.extra')
+                data['prompt.cmd.extra.assistants'] = self.window.core.config.get_base('prompt.cmd.extra.assistants')
+                data['prompt.expert'] = self.window.core.config.get_base('prompt.expert')
+
+                # plugins
+                if 'openai_dalle' in data['plugins'] \
+                        and 'prompt' in data['plugins']['openai_dalle']:
+                    del data['plugins']['openai_dalle']['prompt']
+                if 'idx_llama_index' in data['plugins'] \
+                        and 'prompt' in data['plugins']['idx_llama_index']:
+                    del data['plugins']['idx_llama_index']['prompt']
 
         # update file
         migrated = False

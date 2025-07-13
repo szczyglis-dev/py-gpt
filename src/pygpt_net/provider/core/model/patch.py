@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 01:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -26,6 +26,7 @@ class Patch:
         :return: True if migrated
         """
         data = self.window.core.models.items
+        base_data = self.window.core.models.get_base()
         updated = False
 
         # get version of models config
@@ -650,6 +651,15 @@ class Patch:
             # < 2.5.36 <--- add grok-4
             if old < parse_version("2.5.36"):
                 print("Migrating models from < 2.5.36...")
+                updated = True
+
+            # < 2.5.40 <--- add tool calls flag
+            if old < parse_version("2.5.40"):
+                print("Migrating models from < 2.5.40...")
+                for id in data:
+                    model = data[id]
+                    if id in base_data:
+                        model.tool_calls = base_data[id].tool_calls
                 updated = True
 
         # update file

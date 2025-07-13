@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -178,7 +178,7 @@ class Experts:
             14. Always execute only one function call at a time.
             15. Always use the language used by user in conversation.
             16. Never write as an called expert and do not imagine response from him.
-            17. Your response cannot include ~###~{...}~###~ commands in the conversation body - this syntax is reserved only for response purposes.
+            17. Your response cannot include <tool>...</tool> commands in the conversation body - this syntax is reserved only for response purposes.
             18. First message after your query is always a response from asked expert, not from me.
 
             List of available experts, along with their IDs:

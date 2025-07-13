@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import json
@@ -169,6 +169,7 @@ class JsonFileProvider(BaseProvider):
             'extra': item.extra,
             'imported': item.imported,
             'provider': item.provider,
+            'tool_calls': item.tool_calls,
         }
 
     @staticmethod
@@ -205,6 +206,8 @@ class JsonFileProvider(BaseProvider):
             item.imported = data['imported']
         if 'provider' in data:
             item.provider = data['provider']
+        if 'tool_calls' in data:
+            item.tool_calls = data['tool_calls']
 
     def dump(self, item: ModelItem) -> str:
         """

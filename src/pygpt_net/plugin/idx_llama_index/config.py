@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -28,9 +28,9 @@ class Config(BaseConfig):
                  'When it is provided, then use this data as additional context and use it in your response. ' \
                  'Additional context will be prefixed with an "ADDITIONAL CONTEXT:" prefix. You can also provide a ' \
                  'command to query my context database anytime you need any additional context - to do this, return ' \
-                 'to me the prepared prompt in JSON format, all in one line, using the following syntax: ' \
-                 '~###~{"cmd": "get_context", "params": {"query": "<simple question here>"}}~###~. ' \
-                 'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other ' \
+                 'to me the prepared prompt in JSON format, all in one line, using the following syntax: <tool>...</tool>, ' \
+                 'example: <tool>{"cmd": "get_context", "params": {"query": "<simple question here>"}}</tool>. ' \
+                 'Use ONLY this syntax and remember to surround the JSON string with <tool> tags. DO NOT use any other ' \
                  'syntax. When making query use language that I spoke to you.'
 
         plugin.add_option(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -24,6 +24,13 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
+        plugin.add_option(
+            "auto_cwd",
+            type="bool",
+            value=True,
+            label="Auto-append CWD to system prompt",
+            description="Automatically append current working directory to system prompt",
+        )
         plugin.add_option(
             "model_tmp_query",
             type="combo",

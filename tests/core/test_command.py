@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.17 13:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import json
@@ -35,7 +35,7 @@ def test_extract_cmds_only():
     cmd = Command()
     cmd1 = '{"cmd": "command1", "params": {"arg1": "some arg"}}'
     cmd2 = '{"cmd": "command2", "params": {"query": "some other arg"}}'
-    response = '~###~ ' + cmd1 + ' ~###~ ' + cmd2
+    response = '<tool> ' + cmd1 + ' </tool> <tool>' + cmd2 + ' </tool>'
 
     json1 = json.loads(cmd1.strip())
     json2 = json.loads(cmd2.strip())
@@ -49,7 +49,7 @@ def test_extract_cmds_with_text():
     cmd = Command()
     cmd1 = '{"cmd": "command1", "params": {"arg1": "some arg"}}'
     cmd2 = '{"cmd": "command2", "params": {"query": "some other arg"}}'
-    response = 'bla bla bla ~###~ ' + cmd1 + ' ~###~ ' + cmd2
+    response = 'bla bla bla <tool> ' + cmd1 + ' </tool> <tool>' + cmd2  + '</tool> bla bla bla'
 
     json1 = json.loads(cmd1.strip())
     json2 = json.loads(cmd2.strip())

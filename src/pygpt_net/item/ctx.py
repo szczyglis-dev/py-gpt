@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 19:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -150,7 +150,7 @@ class CtxItem:
         :return: True if audio read allowed
         """
         allowed = True
-        if self.has_commands() or '~###~{"cmd":' in self.output:
+        if self.has_commands() or '<tool>{"cmd":' in self.output:
             allowed = False
         return allowed
 

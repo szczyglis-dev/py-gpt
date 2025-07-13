@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 17:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import re
@@ -147,7 +147,7 @@ class Audio:
         :param text: text
         :return: cleaned text
         """
-        return re.sub(r'~###~.*?~###~', '', str(text))
+        return re.sub(r'<tool>.*?</tool>', '', str(text))
 
     def get_last_error(self) -> str:
         """

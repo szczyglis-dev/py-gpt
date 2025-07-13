@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -526,23 +526,9 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
-        if self.window.core.config.get("llama.idx.react", False):
-            return True # allow all for ReAct agent
-
-        stream = self.window.core.config.get("stream", False)
-        not_allowed_providers = [
-            "ollama",
-            "hugging_face_api",
-            "deepseek_api",
-            "perplexity",
-            # "x_ai",
-        ]
-        if mode == MODE_LLAMA_INDEX:
-            if model.provider == "google" and stream:
-                not_allowed_providers.append("google")
-        if model.provider in not_allowed_providers:
-            return False
-        return True
+        if model.tool_calls:
+            return True
+        return False
 
     def get_version(self) -> str:
         """

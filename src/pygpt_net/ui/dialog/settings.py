@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -138,6 +138,8 @@ class Settings(BaseConfigDialog):
                     )
                 elif fields[key]['type'] == 'combo':
                     options[key] = self.add_option(widgets[key], fields[key])  # combobox
+                elif fields[key]['type'] == 'bool_list':
+                    options[key] = self.add_option(widgets[key], fields[key])  # bool list
 
             #self.window.ui.nodes['settings.api_key.label'].setMinimumHeight(60)
 

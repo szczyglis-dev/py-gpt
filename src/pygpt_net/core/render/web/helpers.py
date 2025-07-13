@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.05 23:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import re
@@ -30,7 +30,7 @@ class Helpers:
         :param text:
         :return: replaced text
         """
-        pattern = r"~###~(.*?)~###~"
+        pattern = r"&lt;tool&gt;(.*?)&lt;/tool&gt;"
         def repl(match):
             code = match.group(1)
             # restore tags first
@@ -48,8 +48,8 @@ class Helpers:
         :return: formatted text
         """
         text = text.strip()
-        text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
-        text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
+        #text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
+        #text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
 
         # replace HTML tags
         text = text.replace("<think>", "{{{{think}}}}")

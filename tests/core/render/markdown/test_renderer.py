@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -236,7 +236,7 @@ def test_append_timestamp(mock_window):
     """Test append timestamp"""
     render = Render(mock_window)
     render.is_timestamp_enabled = MagicMock(return_value=True)
-    text = "test ~###~test~###~ test"
+    text = "test <tool>test</tool> test"
     ctx = CtxItem()
     ctx.input_timestamp = 1234567890
     assert render.append_timestamp(ctx, text, "msg-user").startswith("<span class=\"ts\">") is True
@@ -247,7 +247,7 @@ def test_replace_code_tags(mock_window):
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    text = "test ~###~test~###~ test"
+    text = "test <tool>test</tool> test"
     expected = "test <p class=\"cmd\">test</p> test"
     assert render.helpers.replace_code_tags(text) == expected
 
@@ -257,7 +257,7 @@ def test_pre_format_text(mock_window):
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    text = "test ~###~test~###~ test"
+    text = "test <tool>test</tool> test"
     expected = "test <p class=\"cmd\">test</p> test"
     assert render.helpers.pre_format_text(text) == expected
 
@@ -267,8 +267,8 @@ def test_post_format_text(mock_window):
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    text = " test ~###~test~###~ test "
-    expected = "test ~###~test~###~ test"
+    text = " test <tool>test</tool> test "
+    expected = "test <tool>test</tool> test"
     assert render.helpers.post_format_text(text) == expected
 
 
@@ -277,8 +277,8 @@ def test_format_user_text(mock_window):
     render = Render(mock_window)
     render.body = Body(mock_window)
     render.helpers = Helpers(mock_window)
-    text = " test ~###~test~###~ test "
-    expected = " test ~###~test~###~ test "  # no strip here
+    text = " test <tool>test</tool> test "
+    expected = " test &lt;tool&gt;test&lt;/tool&gt; test "  # no strip here
     assert render.helpers.format_user_text(text) == expected
 
 

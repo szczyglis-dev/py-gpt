@@ -32,7 +32,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "chatgpt-4o-latest": {
             "id": "chatgpt-4o-latest",
@@ -80,7 +81,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "claude-3-5-sonnet-20240620": {
             "id": "claude-3-5-sonnet-20240620",
@@ -115,7 +117,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "anthropic"
+            "provider": "anthropic",
+            "tool_calls": true
         },
         "claude-3-7-sonnet-latest": {
             "id": "claude-3-7-sonnet-latest",
@@ -150,7 +153,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "anthropic"
+            "provider": "anthropic",
+            "tool_calls": true
         },
         "claude-3-opus-latest": {
             "id": "claude-3-opus-latest",
@@ -185,7 +189,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "anthropic"
+            "provider": "anthropic",
+            "tool_calls": true
         },
         "claude-opus-4-0": {
             "id": "claude-opus-4-0",
@@ -220,7 +225,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "anthropic"
+            "provider": "anthropic",
+            "tool_calls": false
         },
         "claude-sonnet-4-0": {
             "id": "claude-sonnet-4-0",
@@ -255,7 +261,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "anthropic"
+            "provider": "anthropic",
+            "tool_calls": false
         },
         "codellama": {
             "id": "codellama",
@@ -284,7 +291,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "codex-mini-latest": {
             "id": "codex-mini-latest",
@@ -327,7 +335,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "dall-e-2": {
             "id": "dall-e-2",
@@ -346,7 +355,8 @@
             "output": ["image"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": false
         },
         "dall-e-3": {
             "id": "dall-e-3",
@@ -365,7 +375,8 @@
             "output": ["image"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": false
         },
         "deepseek-r1:1.5b": {
             "id": "deepseek-r1:1.5b",
@@ -399,7 +410,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-r1:14b": {
             "id": "deepseek-r1:14b",
@@ -433,7 +445,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-r1:32b": {
             "id": "deepseek-r1:32b",
@@ -467,7 +480,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-r1:671b": {
             "id": "deepseek-r1:671b",
@@ -501,7 +515,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-r1:70b": {
             "id": "deepseek-r1:70b",
@@ -535,7 +550,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-r1:7b": {
             "id": "deepseek-r1:7b",
@@ -569,7 +585,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek-v3:671b": {
             "id": "deepseek-v3:671b",
@@ -603,7 +620,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "deepseek_api_chat": {
             "id": "deepseek-chat",
@@ -642,7 +660,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "deepseek_api"
+            "provider": "deepseek_api",
+            "tool_calls": true
         },
         "deepseek_api_reasoner": {
             "id": "deepseek-reasoner",
@@ -681,7 +700,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "deepseek_api"
+            "provider": "deepseek_api",
+            "tool_calls": true
         },
         "gemini-1.5-flash": {
             "id": "gemini-1.5-flash",
@@ -716,7 +736,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "google"
+            "provider": "google",
+            "tool_calls": true
         },
         "gemini-1.5-pro": {
             "id": "gemini-1.5-pro",
@@ -751,7 +772,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "google"
+            "provider": "google",
+            "tool_calls": true
         },
         "gemini-2.0-flash-exp": {
             "id": "gemini-2.0-flash-exp",
@@ -786,7 +808,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "google"
+            "provider": "google",
+            "tool_calls": true
         },
         "gemini-2.5-flash": {
             "id": "gemini-2.5-flash",
@@ -821,7 +844,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "google"
+            "provider": "google",
+            "tool_calls": true
         },
         "gemini-2.5-pro": {
             "id": "gemini-2.5-pro",
@@ -856,7 +880,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "google"
+            "provider": "google",
+            "tool_calls": true
         },
         "gpt-3.5-turbo": {
             "id": "gpt-3.5-turbo",
@@ -903,7 +928,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-3.5-turbo-1106": {
             "id": "gpt-3.5-turbo-1106",
@@ -949,7 +975,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-3.5-turbo-16k": {
             "id": "gpt-3.5-turbo-16k",
@@ -996,7 +1023,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-3.5-turbo-instruct": {
             "id": "gpt-3.5-turbo-instruct",
@@ -1015,7 +1043,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4": {
             "id": "gpt-4",
@@ -1062,7 +1091,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-0125-preview": {
             "id": "gpt-4-0125-preview",
@@ -1109,7 +1139,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-1106-preview": {
             "id": "gpt-4-1106-preview",
@@ -1156,7 +1187,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-32k": {
             "id": "gpt-4-32k",
@@ -1203,7 +1235,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-turbo": {
             "id": "gpt-4-turbo",
@@ -1251,7 +1284,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-turbo-2024-04-09": {
             "id": "gpt-4-turbo-2024-04-09",
@@ -1299,7 +1333,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-turbo-preview": {
             "id": "gpt-4-turbo-preview",
@@ -1346,7 +1381,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4-vision-preview": {
             "id": "gpt-4-vision-preview",
@@ -1368,7 +1404,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4.1": {
             "id": "gpt-4.1",
@@ -1416,7 +1453,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4.1-mini": {
             "id": "gpt-4.1-mini",
@@ -1464,7 +1502,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4.5-preview": {
             "id": "gpt-4.5-preview",
@@ -1512,7 +1551,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4o": {
             "id": "gpt-4o",
@@ -1560,7 +1600,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4o-2024-11-20": {
             "id": "gpt-4o-2024-11-20",
@@ -1608,7 +1649,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4o-audio-preview": {
             "id": "gpt-4o-audio-preview",
@@ -1650,7 +1692,8 @@
             "output": ["text", "audio"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4o-mini": {
             "id": "gpt-4o-mini",
@@ -1698,7 +1741,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-4o-mini-audio-preview": {
             "id": "gpt-4o-mini-audio-preview",
@@ -1740,7 +1784,8 @@
             "output": ["text", "audio"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "gpt-image-1": {
             "id": "gpt-image-1",
@@ -1759,7 +1804,8 @@
             "output": ["image"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "grok-3": {
             "id": "grok-3",
@@ -1793,7 +1839,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "grok-3-fast": {
             "id": "grok-3-fast",
@@ -1827,7 +1874,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "grok-3-mini": {
             "id": "grok-3-mini",
@@ -1861,7 +1909,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "grok-3-mini-fast": {
             "id": "grok-3-mini-fast",
@@ -1895,7 +1944,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "grok-2-vision": {
             "id": "grok-2-vision",
@@ -1930,7 +1980,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "grok-4": {
             "id": "grok-4",
@@ -1964,7 +2015,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "x_ai"
+            "provider": "x_ai",
+            "tool_calls": true
         },
         "llama2-uncensored": {
             "id": "llama2-uncensored",
@@ -1993,7 +2045,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "llama3.1": {
             "id": "llama3.1",
@@ -2022,7 +2075,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "llama3.1:405b": {
             "id": "llama3.1:405b",
@@ -2051,7 +2105,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "llama3.1:70b": {
             "id": "llama3.1:70b",
@@ -2080,7 +2135,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "llama3.3:70b": {
             "id": "llama3.3:70b",
@@ -2109,7 +2165,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "mistral": {
             "id": "mistral",
@@ -2138,7 +2195,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "mistral-large": {
             "id": "mistral-large",
@@ -2167,7 +2225,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "o1": {
             "id": "o1",
@@ -2214,7 +2273,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o1-mini": {
             "id": "o1-mini",
@@ -2260,7 +2320,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o1-preview": {
             "id": "o1-preview",
@@ -2306,7 +2367,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o1-pro": {
             "id": "o1-pro",
@@ -2353,7 +2415,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3": {
             "id": "o3",
@@ -2400,7 +2463,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3-mini-high": {
             "id": "o3-mini",
@@ -2448,7 +2512,8 @@
                 "reasoning_effort": "high"
             },
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3-mini-low": {
             "id": "o3-mini",
@@ -2496,7 +2561,8 @@
                 "reasoning_effort": "low"
             },
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3-mini-medium": {
             "id": "o3-mini",
@@ -2544,7 +2610,8 @@
                 "reasoning_effort": "medium"
             },
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3-pro": {
             "id": "o3-pro",
@@ -2591,7 +2658,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o3-deep-research": {
             "id": "o3-deep-research",
@@ -2634,7 +2702,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o4-mini": {
             "id": "o4-mini",
@@ -2680,7 +2749,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "o4-mini-deep-research": {
             "id": "o4-mini-deep-research",
@@ -2723,7 +2793,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "openai"
+            "provider": "openai",
+            "tool_calls": true
         },
         "qwen2.5-coder:7b": {
             "id": "qwen2.5-coder:7b",
@@ -2752,7 +2823,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "qwen2:7b": {
             "id": "qwen2:7b",
@@ -2781,7 +2853,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "qwen3:30b-a3b": {
             "id": "qwen3:30b-a3b",
@@ -2810,7 +2883,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "qwen3:8b": {
             "id": "qwen3:8b",
@@ -2839,7 +2913,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "qwen:7b": {
             "id": "qwen:7b",
@@ -2868,7 +2943,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "ollama"
+            "provider": "ollama",
+            "tool_calls": false
         },
         "r1-1776": {
             "id": "r1-1776",
@@ -2907,7 +2983,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         },
         "sonar": {
             "id": "sonar",
@@ -2946,7 +3023,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         },
         "sonar-deep-research": {
             "id": "sonar-deep-research",
@@ -2985,7 +3063,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         },
         "sonar-pro": {
             "id": "sonar-pro",
@@ -3024,7 +3103,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         },
         "sonar-reasoning": {
             "id": "sonar-reasoning",
@@ -3063,7 +3143,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         },
         "sonar-reasoning-pro": {
             "id": "sonar-reasoning-pro",
@@ -3102,7 +3183,8 @@
             "output": ["text"],
             "extra": {},
             "imported": false,
-            "provider": "perplexity"
+            "provider": "perplexity",
+            "tool_calls": true
         }
     }
 }

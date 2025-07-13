@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import json
@@ -1053,8 +1053,10 @@ class Renderer(BaseRenderer):
             if (
                     next_ctx is None and
                     (
-                            ctx.output.startswith("~###~{\"cmd\"") or
-                            ctx.output.strip().endswith("}~###~") or
+                            ctx.output.startswith("<tool>{\"cmd\"") or
+                            ctx.output.strip().endswith("}</tool>") or
+                            ctx.output.startswith("&lt;tool&gt;{\"cmd\"") or
+                            ctx.output.strip().endswith("}&lt;/tool&gt;") or
                             len(ctx.cmds) > 0
                     )
             ):

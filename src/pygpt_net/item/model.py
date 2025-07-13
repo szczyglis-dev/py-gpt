@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import json
@@ -52,6 +52,7 @@ class ModelItem:
         self.default = False
         self.imported = False
         self.provider = "openai"  # default provider
+        self.tool_calls = False  # native tool calls available
         self.extra = {}
 
     def from_dict(self, data: dict):
@@ -85,6 +86,8 @@ class ModelItem:
             self.imported = data['imported']
         if 'provider' in data:
             self.provider = data['provider']
+        if 'tool_calls' in data:
+            self.tool_calls = data['tool_calls']
 
         # langchain
         """
@@ -137,6 +140,7 @@ class ModelItem:
         data['extra'] = self.extra
         data['imported'] = self.imported
         data['provider'] = self.provider
+        data['tool_calls'] = self.tool_calls
 
         # data['langchain.provider'] = None
         # data['langchain.mode'] = ""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -90,6 +90,28 @@ class Plugin(BasePlugin):
         elif name == Event.MODELS_CHANGED:
             # update models list
             self.refresh_option("model_tmp_query")
+
+        elif name == Event.POST_PROMPT_END:
+            # ignore if reply for command or internal
+            if ctx.reply or data["reply"]:
+                return
+
+            data['value'] = self.on_post_prompt(
+                data['value'],
+                ctx,
+            )
+
+    def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
+        """
+        Event: POST_PROMPT
+
+        :param prompt: system prompt
+        :param ctx: CtxItem
+        :return: updated system prompt
+        """
+        if self.get_option_value("auto_cwd"):
+            prompt += "\n\nCURRENT WORKING DIRECTORY: " + self.window.core.config.get_user_dir('data')
+        return prompt
 
     def cmd_syntax(self, data: dict):
         """

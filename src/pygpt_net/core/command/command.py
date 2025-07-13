@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -128,7 +128,7 @@ class Command:
         """
         if text is None:
             return False
-        regex_cmd = r'~###~\s*{.*}\s*~###~'
+        regex_cmd = r'<tool>\s*{.*}\s*</tool>'
         return bool(re.search(regex_cmd, text))
 
     def extract_cmds(self, text: str) -> List[Dict[str, Any]]:
@@ -140,7 +140,7 @@ class Command:
         """
         cmds = []
         try:
-            chunks = text.split('~###~')
+            chunks = re.findall(r'<tool>(.*?)</tool>', text, re.DOTALL)
             for chunk in chunks:
                 cmd = self.extract_cmd(chunk)  # extract JSON string to dict
                 if cmd is not None:
@@ -355,7 +355,7 @@ class Command:
         """
         packed = ""
         for cmd in cmds:
-            packed += "~###~" + json.dumps(cmd) + "~###~"
+            packed += "<tool>" + json.dumps(cmd) + "</tool>"
         return packed
 
     def append_tool_calls(self, ctx: CtxItem):
