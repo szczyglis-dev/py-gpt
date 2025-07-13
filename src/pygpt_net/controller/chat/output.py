@@ -9,8 +9,9 @@
 # Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
-from typing import Any
+from typing import Any, Optional
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_ASSISTANT,
@@ -41,6 +42,8 @@ class Output:
             is_response: bool = False,
             reply: bool = False,
             internal: bool = False,
+            context: Optional[BridgeContext] = None,
+            extra: Optional[dict] = None
     ):
         """
         Handle response from LLM
@@ -51,6 +54,8 @@ class Output:
         :param is_response: Is response output
         :param reply: is reply
         :param internal: is internal command
+        :param context: BridgeContext (optional)
+        :param extra: Extra data (optional)
         """
         self.window.stateChanged.emit(self.window.STATE_BUSY)
 
@@ -65,6 +70,8 @@ class Output:
                     is_response=is_response,
                     reply=reply,
                     internal=internal,
+                    context=context,
+                    extra=extra,
                 )
 
         if end:

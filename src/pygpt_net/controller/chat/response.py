@@ -94,6 +94,8 @@ class Response:
                     is_response=True,
                     reply=reply,
                     internal=internal,
+                    context=context,
+                    extra=extra,
                 )
         except Exception as e:
             extra["error"] = e

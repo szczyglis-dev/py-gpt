@@ -10,8 +10,11 @@
 # ================================================== #
 
 import base64
+from typing import Optional
+
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
+from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
@@ -283,6 +286,8 @@ class Stream:
         self.is_response = False
         self.reply = False
         self.internal = False
+        self.context = None
+        self.extra = {}
 
     def append(
             self,
@@ -290,7 +295,9 @@ class Stream:
             mode: str = None,
             is_response: bool = False,
             reply: str = False,
-            internal: bool = False
+            internal: bool = False,
+            context: Optional[BridgeContext] = None,
+            extra: Optional[dict] = None
     ):
         """
         Asynchronous append of stream worker to the thread.
@@ -300,12 +307,16 @@ class Stream:
         :param is_response: Is this a response stream?
         :param reply: Reply text
         :param internal: Internal flag for handling
+        :param context: Optional BridgeContext for additional context
+        :param extra: Optional extra data for the stream
         """
         self.ctx = ctx
         self.mode = mode
         self.is_response = is_response
         self.reply = reply
         self.internal = internal
+        self.context = context
+        self.extra = extra if extra is not None else {}
 
         self.worker = StreamWorker(ctx, self.window)
         self.worker.eventReady.connect(self.handleEvent)
@@ -365,12 +376,26 @@ class Stream:
         :param error: Exception
         """
         self.window.core.debug.log(error)
-        raise error  # raise error if any, to display in UI
+        if self.is_response:
+            if not isinstance(self.extra, dict):
+                self.extra = {}
+            self.extra["error"] = error
+            self.window.controller.chat.response.failed(self.context, self.extra) # send error
+            # post-handle, execute cmd, etc.
+            self.window.controller.chat.response.post_handle(
+                ctx=self.ctx,
+                mode=self.mode,
+                stream=True,
+                reply=self.reply,
+                internal=self.internal,
+            )
+        else:
+            raise error  # raise error if any, to display in UI
 
     def log(self, data: object):
         """
         Save debug log data
 
-        :param data: Dane do logowania
+        :param data: log data
         """
         self.window.core.debug.info(data)
