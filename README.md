@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.37** | build: **2025-07-13** | Python: **>=3.10, <3.13**
+Release: **2.5.38** | build: **2025-07-13** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4060,6 +4060,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.38 (2025-07-13)**
+
+- Fixed: empty models list in presets editor.
+- Fixed: focus to second column on open Code Interpreter dialog.
+- Added: agent providers names.
+- Added: ReAct (Workflow) agent.
+- Improved: split-screen switch.
 
 **2.5.37 (2025-07-13)**
 

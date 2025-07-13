@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.37",
-    "app.version": "2.5.37",
+    "version": "2.5.38",
+    "app.version": "2.5.38",
     "updated_at": "2025-07-13T00:00:00"
   },
   "access.audio.event.speech": false,
