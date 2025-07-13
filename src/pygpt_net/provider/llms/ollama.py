@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.07.14 00:00:00                  #
 # ================================================== #
 
 import os
@@ -95,6 +95,8 @@ class OllamaLLM(BaseLLM):
                 args["base_url"] = os.environ['OLLAMA_API_BASE']
         if "model" not in args:
             args["model"] = model.id
+        if "request_timeout" not in args:
+            args["request_timeout"] = 300
         return Ollama(**args)
 
     def get_embeddings_model(
