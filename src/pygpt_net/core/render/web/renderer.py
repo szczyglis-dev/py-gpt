@@ -153,7 +153,7 @@ class Renderer(BaseRenderer):
         if state == RenderEvent.STATE_BUSY:
             if meta:
                 pid = self.get_pid(meta)
-                if pid:
+                if pid is not None:
                     node = self.get_output_node_by_pid(pid)
                     node.page().runJavaScript(
                         f"if (typeof window.showLoading !== 'undefined') showLoading();")
