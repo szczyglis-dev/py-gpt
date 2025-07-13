@@ -51,6 +51,20 @@ class Notepad:
                 continue
         return idx + 1
 
+    def is_opened(self, idx: int) -> bool:
+        """
+        Get next available notepad index
+
+        :return: next available notepad index
+        """
+        tabs = self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
+        opened = False
+        for tab in tabs:
+            if tab.data_id == idx:
+                opened = True
+                break
+        return opened
+
     def create(
             self,
             idx: Optional[int] = None,
@@ -68,6 +82,11 @@ class Notepad:
             suffix = self.get_next_suffix()
         else:
             suffix = self.get_next_suffix()
+
+        while self.is_opened(idx):
+            idx += 1
+            suffix = self.get_next_suffix()
+
         data_id = idx
         self.window.ui.notepad[data_id] = NotepadWidget(self.window)
         self.window.ui.notepad[data_id].id = idx

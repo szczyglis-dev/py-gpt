@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.39 (2025-07-13)
+
+- Improved multiple notepads handling.
+
 ## 2.5.38 (2025-07-13)
 
 - Fixed: empty models list in presets editor.
