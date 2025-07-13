@@ -6,20 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
 from llama_index.agent.openai import OpenAIAgent as Agent
 
+from pygpt_net.core.types import (
+    AGENT_MODE_STEP,
+)
 from .base import BaseAgent
 
 class OpenAIAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(OpenAIAgent, self).__init__(*args, **kwargs)
         self.id = "openai"
-        self.mode = "step"  # step|plan
+        self.mode = AGENT_MODE_STEP
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

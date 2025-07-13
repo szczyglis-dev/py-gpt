@@ -16,7 +16,7 @@
     "audio": false,
     "research": false,
     "temperature": 1.0,
-    "filename": "code_act",
+    "filename": "agent_code_act",
     "model": "gpt-4o",
     "tools": {
         "function": []
