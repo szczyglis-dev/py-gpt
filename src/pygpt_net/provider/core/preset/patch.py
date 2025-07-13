@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import os
@@ -32,6 +32,7 @@ class Patch:
         is_agent_llama = False
         is_agent_assistant = False
         is_agent_code_act = False
+        is_agent_react_workflow = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -133,6 +134,23 @@ class Patch:
                         print("Migrating preset file from < 2.5.33...")
                         files = [
                             'agent_code_act.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+
+                        updated = True
+                        is_agent_code_act = True  # prevent multiple copies
+
+                # < 2.5.38
+                if old < parse_version("2.5.38"):
+                    if 'agent_react_workflow' not in self.window.core.presets.items and not is_agent_react_workflow:
+                        print("Migrating preset file from < 2.5.38...")
+                        files = [
+                            'agent_react_workflow.json',
                         ]
                         for file in files:
                             dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)

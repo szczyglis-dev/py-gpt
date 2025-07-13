@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 19:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -22,6 +22,12 @@ from llama_index.core.agent.workflow import (
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
+from pygpt_net.core.types import (
+    AGENT_MODE_ASSISTANT,
+    AGENT_MODE_PLAN,
+    AGENT_MODE_STEP,
+    AGENT_MODE_WORKFLOW,
+)
 from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -117,13 +123,13 @@ class Runner:
                 "signals": signals,
                 "verbose": verbose,
             }
-            if mode == "plan":
+            if mode == AGENT_MODE_PLAN:
                 return self.run_plan(**kwargs)
-            elif mode == "step":
+            elif mode == AGENT_MODE_STEP:
                 return self.run_steps(**kwargs)
-            elif mode == "assistant":
+            elif mode == AGENT_MODE_ASSISTANT:
                 return self.run_assistant(**kwargs)
-            elif mode == "workflow":
+            elif mode == AGENT_MODE_WORKFLOW:
                 kwargs["history"] = history
                 kwargs["llm"] = llm
                 return asyncio.run(self.run_workflow(**kwargs))
@@ -156,22 +162,27 @@ class Runner:
         :return: handler for the agent workflow
         """
         handler = agent.run(query, ctx=ctx, memory=memory, verbose=verbose)
-        print(f"User:  {query}")
+        if verbose:
+            print(f"User:  {query}")
         begin = True
         async for event in handler.stream_events():
             if self.is_stopped():
+                self.send_live_clear(item_ctx, signals)
                 break
             if isinstance(event, ToolCallResult):
                 output = f"\n-----------\nCode execution result:\n{event.tool_output}"
-                print(output)
+                if verbose:
+                    print(output)
                 self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
-                    print(output)
+                    if verbose:
+                        print(output)
                     self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, AgentStream):
-                print(f"{event.delta}", end="", flush=True)
+                if verbose:
+                    print(f"{event.delta}", end="", flush=True)
                 self.send_live_append(item_ctx, signals, event.delta, begin)  # send stream to webview
                 begin = False
 
