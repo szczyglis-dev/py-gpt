@@ -919,7 +919,7 @@ class Worker(BaseWorker):
                 }
             }
         }
-        extra["context"] = str(context)
+        # extra["context"] = str(context)
         return extra
 
     def get_extra_data(self) -> dict:
