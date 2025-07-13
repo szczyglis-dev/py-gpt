@@ -23,6 +23,7 @@ class OpenAIAgent(BaseAgent):
         super(OpenAIAgent, self).__init__(*args, **kwargs)
         self.id = "openai"
         self.mode = AGENT_MODE_STEP
+        self.name = "OpenAI"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

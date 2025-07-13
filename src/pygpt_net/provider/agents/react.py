@@ -30,6 +30,7 @@ class ReactAgent(BaseAgent):
         super(ReactAgent, self).__init__(*args, **kwargs)
         self.id = "react"
         self.mode = AGENT_MODE_STEP
+        self.name = "ReAct"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

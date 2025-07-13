@@ -27,6 +27,7 @@ class PlannerAgent(BaseAgent):
         super(PlannerAgent, self).__init__(*args, **kwargs)
         self.id = "planner"
         self.mode = AGENT_MODE_PLAN
+        self.name = "Planner (sub-tasks)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

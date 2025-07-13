@@ -29,6 +29,7 @@ class ReactWorkflowAgent(BaseAgent):
         super(ReactWorkflowAgent, self).__init__(*args, **kwargs)
         self.id = "react_workflow"
         self.mode = AGENT_MODE_WORKFLOW
+        self.name = "ReAct (Workflow)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

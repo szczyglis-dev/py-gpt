@@ -15,7 +15,8 @@ from typing import Dict, Any
 class BaseAgent:
     def __init__(self, *args, **kwargs):
         self.id = ""
-        self.mode = "step"  # step|plan
+        self.mode = ""
+        self.name = ""
 
     def get_mode(self) -> str:
         """

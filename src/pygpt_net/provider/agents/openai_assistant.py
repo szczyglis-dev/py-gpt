@@ -25,6 +25,7 @@ class OpenAIAssistantAgent(BaseAgent):
         super(OpenAIAssistantAgent, self).__init__(*args, **kwargs)
         self.id = "openai_assistant"
         self.mode = AGENT_MODE_ASSISTANT
+        self.name = "OpenAI Assistant"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

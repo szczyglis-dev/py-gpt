@@ -69,6 +69,12 @@ class BaseCombo(QWidget):
                         self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item, item)
+        elif type(self.keys) is dict:
+            for key, value in self.keys.items():
+                if key.startswith("separator::"):
+                    self.combo.addSeparator(value)
+                else:
+                    self.combo.addItem(value, key)
 
     def set_value(self, value):
         """

@@ -25,6 +25,7 @@ class CodeActAgent(BaseAgent):
         super(CodeActAgent, self).__init__(*args, **kwargs)
         self.id = "code_act"
         self.mode = AGENT_MODE_WORKFLOW
+        self.name = "CodeAct (Workflow)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

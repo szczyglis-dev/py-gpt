@@ -91,6 +91,8 @@ class Preset(BaseConfigDialog):
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'combo':
+                self.window.controller.config.placeholder.apply(fields[key])
+                print(fields[key])
                 options[key] = self.add_option(widgets[key], fields[key])
 
         self.window.ui.nodes['preset.tool.function.label'].setVisible(False)  # hide label
