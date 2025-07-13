@@ -526,6 +526,15 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
+        if mode == MODE_LLAMA_INDEX:
+            if model.provider == "google":
+                stream = self.window.core.config.get('stream', False)
+                use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
+                if stream:
+                    if use_react:
+                        return True
+                    else:
+                        return False
         if model.tool_calls:
             return True
         return False
