@@ -471,7 +471,7 @@ class Tabs:
         tab.parent = tabs.get_column()
         if tab.data_id is not None:
             idx = tab.data_id  # restore prev idx
-        tab.child, idx, data_id = self.window.controller.notepad.create(idx)
+        tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab)
         tab.data_id = data_id  # notepad idx in db, enumerated from 1
         if tab.new_idx is not None:
             tab.idx = tabs.insertTab(tab.new_idx, tab.child, tab.title)

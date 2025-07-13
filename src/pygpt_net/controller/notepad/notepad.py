@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.08 01:00:00                  #
+# Updated Date: 2025.07.13 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -34,24 +34,49 @@ class Notepad:
         self.opened_once = False
         self.opened_idx = []
 
+
+    def get_next_suffix(self) -> int:
+        """
+        Get next notepad suffix
+
+        :return: next notepad suffix
+        """
+        idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD)
+        for tab in self.window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD):
+            try:
+                num = int(tab.title.split(" ")[-1])
+                if num >= idx:
+                    idx = num
+            except ValueError:
+                continue
+        return idx + 1
+
     def create(
             self,
-            idx: Optional[int] = None
+            idx: Optional[int] = None,
+            tab: Optional[Tab] = None,
     ) -> Tuple[TabBody, int, int]:
         """
         Create notepad widget
 
         :param idx: notepad idx
+        :param tab: existing tab to use (optional)
         :return: notepad widget (TabBody)
         """
         if idx is None:
             idx = self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) + 1
+            suffix = self.get_next_suffix()
+        else:
+            suffix = self.get_next_suffix()
         data_id = idx
         self.window.ui.notepad[data_id] = NotepadWidget(self.window)
         self.window.ui.notepad[data_id].id = idx
         self.window.ui.notepad[data_id].textarea.id = idx
         title = trans('output.tab.notepad')
-        title += " " + str(idx)
+        title += " " + str(suffix)
+        if tab:
+            if not tab.title:
+                tab.title = title
         children = self.window.core.tabs.from_widget(self.window.ui.notepad[data_id])
         return children, idx, data_id
 
@@ -68,11 +93,7 @@ class Notepad:
                     items[idx] = item
 
         if num_notepads > 0:
-            for idx in range(1, num_notepads + 1):
-                if idx not in items:
-                    item = NotepadItem()
-                    item.idx = idx
-                    items[idx] = item
+            for idx in items:
                 if idx in self.window.ui.notepad:
                     self.window.ui.notepad[idx].setText(items[idx].content)
 
