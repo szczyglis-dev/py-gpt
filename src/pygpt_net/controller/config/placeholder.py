@@ -211,11 +211,7 @@ class Placeholder:
 
         :return: placeholders list
         """
-        ids = self.window.core.agents.provider.get_providers()
-        data = []
-        for id in ids:
-            data.append({id: id})
-        return data
+        return self.window.core.agents.provider.get_choices()
 
     def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """
@@ -356,16 +352,21 @@ class Placeholder:
         # sort by providers
         providers = self.window.core.llm.get_choices()
         sorted_items = {}
-        for provider in providers.keys():
-            provider_items = {k: v for k, v in items.items() if models[k].provider == provider}
-            if provider_items:
-                sorted_items[f"separator::{provider}"] = providers[provider]
-                sorted_items.update(provider_items)
+        if len(providers) == 0:
+            for id in items:
+                sorted_items[id] = items[id]
+            # sort by name
+            sorted_items = dict(sorted(sorted_items.items(), key=lambda item: item[1].lower()))
+        else:
+            for provider in providers.keys():
+                provider_items = {k: v for k, v in items.items() if models[k].provider == provider}
+                if provider_items:
+                    sorted_items[f"separator::{provider}"] = providers[provider]
+                    sorted_items.update(provider_items)
 
         # make choices
         for id in sorted_items:
             data.append({id: sorted_items[id]})
-
         return data
 
     def get_agent_modes(self) -> List[Dict[str, str]]:

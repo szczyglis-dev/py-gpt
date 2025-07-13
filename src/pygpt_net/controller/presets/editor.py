@@ -110,7 +110,6 @@ class Editor:
                 "label": "toolbox.model.label",
                 "type": "combo",
                 "use": "models",
-                "keys": [],
             },
             "temperature": {
                 "type": "float",
