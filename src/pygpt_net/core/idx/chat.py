@@ -470,10 +470,11 @@ class Chat:
             if not stream:
                 # store output tokens
                 ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-                    response.response,
+                    response,
                     [],
                     model.id,
                 )
+
                 # store prev message
                 if (cmd_enabled and not use_react and not use_index) or (not cmd_enabled and not use_index):
                     self.prev_message = response.message
