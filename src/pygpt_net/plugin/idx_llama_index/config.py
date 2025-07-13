@@ -9,6 +9,7 @@
 # Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import MODEL_DEFAULT_MINI
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
 
 
@@ -62,9 +63,9 @@ class Config(BaseConfig):
             "model_prepare_question",
             type="combo",
             use="models",
-            value="gpt-4o-mini",
+            value=MODEL_DEFAULT_MINI,
             label="Model for question preparation",
-            description="Model used to prepare question before asking Llama-index, default: gpt-3.5-turbo",
+            description="Model used to prepare question before asking Llama-index, default: gpt-40-mini",
             tooltip="Model",
         )
         plugin.add_option(
@@ -79,9 +80,9 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_query",
             type="combo",
-            value="gpt-4o-mini",
+            value=MODEL_DEFAULT_MINI,
             label="Model",
-            description="Model used for querying Llama-index, default: gpt-3.5-turbo",
+            description="Model used for querying Llama-index, default: gpt-4o-mini",
             tooltip="Query model",
             use="models",
         )

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -19,6 +19,7 @@ from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODEL_DEFAULT_MINI,
 )
 from pygpt_net.item.model import ModelItem
 
@@ -31,7 +32,7 @@ class Llm:
         :param window: Window instance
         """
         self.window = window
-        self.default_model = "gpt-4o-mini"
+        self.default_model = MODEL_DEFAULT_MINI
         self.default_embed = "openai"
         self.initialized = False
 

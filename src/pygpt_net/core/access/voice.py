@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 01:00:00                  #
+# Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ from typing import Optional, Dict, List, Any
 from pygpt_net.core.bridge.context import BridgeContext
 
 from pygpt_net.core.events import ControlEvent, AppEvent, KernelEvent
+from pygpt_net.core.types import MODEL_DEFAULT_MINI
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -217,7 +218,7 @@ class Voice:
         """
         prompt = self.get_prompt(text)
         model = self.window.core.models.from_defaults()
-        tmp_model = self.window.core.config.get("access.voice_control.model", "gpt-4o-mini")
+        tmp_model = self.window.core.config.get("access.voice_control.model", MODEL_DEFAULT_MINI)
         if self.window.core.models.has(tmp_model):
             model = self.window.core.models.get(tmp_model)
         ctx = CtxItem()

@@ -9,6 +9,7 @@
 # Updated Date: 2025.06.30 02:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import MODEL_DEFAULT_MINI
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
 
 
@@ -26,10 +27,10 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_tmp_query",
             type="combo",
-            value="gpt-4o-mini",
+            value=MODEL_DEFAULT_MINI,
             label="Model for query in-memory index",
             description="Model used for query in-memory index for `query_file` command, "
-                        "default: gpt-3.5-turbo",
+                        "default: gpt-4o-mini",
             tooltip="Query model",
             use="models",
             tab="indexing",

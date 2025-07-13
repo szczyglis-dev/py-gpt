@@ -9,6 +9,7 @@
 # Updated Date: 2024.12.14 19:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.types import MODEL_DEFAULT_MINI
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
 
 
@@ -34,9 +35,9 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_summarize",
             type="combo",
-            value="gpt-4o-mini",
+            value=MODEL_DEFAULT_MINI,
             label="Model",
-            description="Model used for summarize, default: gpt-3.5-turbo",
+            description="Model used for summarize, default: gpt-4o-mini",
             tooltip="Summarize model",
             use="models",
         )
