@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.13 16:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -41,6 +41,15 @@ class ToolWidget:
         self.btn_clear = None  # clear button
         self.label_output = None  # output label
         self.label_history = None  # history label
+        self.is_dialog = False
+
+    def set_is_dialog(self, is_dialog: bool):
+        """
+        Set if dialog
+
+        :param is_dialog: bool
+        """
+        self.is_dialog = is_dialog
 
     def set_tab(self, tab):
         """
@@ -242,7 +251,8 @@ class ToolWidget:
     @Slot()
     def set_focus(self):
         """Set focus to input"""
-        self.input.setFocus()
+        if self.is_dialog:
+            self.input.setFocus()
 
     @Slot(bool)
     def set_checkbox_all(self, value: bool):
@@ -329,7 +339,7 @@ class PythonInput(QTextEdit):
         :param event: event
         """
         if event.type() == event.Type.FocusIn:
-            if self.tab is not None:
+            if self.tab is not None and not self.widget.is_dialog:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)

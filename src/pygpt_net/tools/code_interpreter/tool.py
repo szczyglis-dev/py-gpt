@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.13 16:00:00                  #
 # ================================================== #
 
 import os
@@ -538,7 +538,8 @@ class CodeInterpreter(BaseTool):
         :param tab: Parent Tab instance
         :return: Tab widget instance
         """
-        tool = Tool(window=self.window, tool=self)
+        tool = Tool(window=self.window, tool=self)  # dialog
+        tool.widget.set_is_dialog(False)
         layout = tool.widget.setup(all=False)
         widget = QWidget()
         widget.setLayout(layout)
@@ -551,6 +552,7 @@ class CodeInterpreter(BaseTool):
         """Setup dialogs (static)"""
         self.dialog = Tool(self.window, self)
         self.dialog.setup()
+        self.dialog.set_is_dialog(True)
 
     def setup_theme(self):
         """Setup theme"""

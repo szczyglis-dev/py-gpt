@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.13 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -33,6 +33,16 @@ class Tool:
         self.menu_bar = None
         self.menu = {}
         self.actions = {}  # menu actions
+        self.is_dialog = False
+
+    def set_is_dialog(self, is_dialog: bool):
+        """
+        Set if dialog
+
+        :param is_dialog: bool
+        """
+        self.is_dialog = is_dialog
+        self.widget.set_is_dialog(is_dialog)
 
     def set_tab(self, tab: Tab):
         """
