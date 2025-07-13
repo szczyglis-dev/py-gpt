@@ -389,8 +389,6 @@ class Stream:
                 reply=self.reply,
                 internal=self.internal,
             )
-        else:
-            raise error  # raise error if any, to display in UI
 
     def log(self, data: object):
         """
