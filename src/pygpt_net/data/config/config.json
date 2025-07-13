@@ -332,7 +332,7 @@
           "pid": 0,
           "idx": 0,
           "type": 0,
-          "data_id": null,
+          "data_id": 1,
           "title": "Chat",
           "custom_name": false
       },
@@ -371,6 +371,30 @@
           "data_id": 1,
           "title": "Notepad",
           "custom_name": false
+      },
+      "5": {
+          "uuid": "4e90829a-a2c9-4006-a46e-e18460673948",
+          "pid": 5,
+          "idx": 0,
+          "type": 100,
+          "data_id": null,
+          "title": "Python Code Interpreter",
+          "tooltip": "",
+          "custom_name": false,
+          "column_idx": 1,
+          "tool_id": "interpreter"
+      },
+      "6": {
+          "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9",
+          "pid": 6,
+          "idx": 1,
+          "type": 100,
+          "data_id": null,
+          "title": "HTML/JS Canvas",
+          "tooltip": "",
+          "custom_name": false,
+          "column_idx": 1,
+          "tool_id": "html_canvas"
       }
   },
   "temperature": 1.0,
