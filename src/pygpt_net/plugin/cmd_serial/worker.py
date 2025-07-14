@@ -81,7 +81,7 @@ class Worker(BaseWorker):
         """
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
-        timeout = self.plugin.get_option_value("timeout")
+        timeout = int(self.plugin.get_option_value("timeout") or 1)
         sleep = self.plugin.get_option_value("sleep")
         self.log("Using serial port: {} @ {} bps".format(port, speed))
         try:
@@ -110,7 +110,7 @@ class Worker(BaseWorker):
         """
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
-        timeout = self.plugin.get_option_value("timeout")
+        timeout = int(self.plugin.get_option_value("timeout") or 1)
         sleep = self.plugin.get_option_value("sleep")
         self.log("Using serial port: {} @ {} bps".format(port, speed))
         try:
@@ -139,7 +139,7 @@ class Worker(BaseWorker):
         """
         port = self.plugin.get_option_value("serial_port")
         speed = self.plugin.get_option_value("serial_bps")
-        timeout = self.plugin.get_option_value("timeout")
+        timeout = int(self.plugin.get_option_value("timeout") or 1)
         duration = int(item["params"]['duration']) \
             if self.has_param(item, "duration") else 3
         self.log("Using serial port: {} @ {} bps".format(port, speed))
