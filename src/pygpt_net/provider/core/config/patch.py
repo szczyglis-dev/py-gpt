@@ -1992,6 +1992,13 @@ class Patch:
                         and 'prompt' in data['plugins']['idx_llama_index']:
                     del data['plugins']['idx_llama_index']['prompt']
 
+            # < 2.5.41
+            if old < parse_version("2.5.41"):
+                print("Migrating config from < 2.5.41...")
+                if "max_output_tokens" in data and "max_output_tokens" == 1024:
+                    data["max_output_tokens"] = 0  # update default value
+                updated = True
+
         # update file
         migrated = False
         if updated:

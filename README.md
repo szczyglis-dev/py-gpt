@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.40** | build: **2025-07-14** | Python: **>=3.10, <3.13**
+Release: **2.5.41** | build: **2025-07-14** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4074,6 +4074,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.41 (2025-07-14)**
+
+- Fixed: vector stores handling in Assistants API SDK.
+- Added: Run button to Python code blocks for real-time code executing in Code Interpreter.
+- Updated documentation.
 
 **2.5.40 (2025-07-14)**
 

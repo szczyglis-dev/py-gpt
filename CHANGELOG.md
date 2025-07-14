@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.41 (2025-07-14)
+
+- Fixed: vector stores handling in Assistants API SDK.
+- Added: Run button to Python code blocks for real-time code executing in Code Interpreter.
+- Updated documentation.
+
 ## 2.5.40 (2025-07-14)
 
 - Enhanced system prompts.
