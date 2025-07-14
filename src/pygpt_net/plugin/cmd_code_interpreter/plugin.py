@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 19:00:00                  #
+# Updated Date: 2025.07.14 18:00:00                  #
 # ================================================== #
 
 import os
@@ -270,6 +270,36 @@ class Plugin(BasePlugin):
         """
         self.window.tools.get("html_canvas").set_output(data)
         self.window.tools.get("html_canvas").auto_open()
+
+    @Slot(str)
+    def handle_python_run(self, code: str):
+        """
+        Handle Python code run
+
+        :param code: Python code to execute
+        """
+        cmd = "code_execute"
+        if self.get_option_value("fresh_kernel"):
+            self.get_interpreter().restart_kernel()
+            self.window.tools.get("interpreter").clear_output()
+        commands = [
+            {
+                "cmd": cmd,
+                "params": {
+                    "code": code,
+                    "path": ".interpreter.current.py",
+                },
+                "silent": True,
+                "force": True,
+            }
+        ]
+        event = Event(Event.CMD_EXECUTE, {
+            'commands': commands,
+            'silent': True,
+        })
+        event.ctx = CtxItem()  # tmp
+        self.handle(event)
+        self.window.tools.get("interpreter").auto_open()
 
     def get_interpreter(self):
         """

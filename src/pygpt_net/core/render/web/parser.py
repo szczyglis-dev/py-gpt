@@ -190,6 +190,7 @@ class Parser:
         """
         copy_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "copy.png")
         preview_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "preview.png")
+        run_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "run.png")
         collapse_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "collapse.png")
 
         # syntax highlighting style
@@ -248,6 +249,14 @@ class Parser:
                 preview_icon = soup.new_tag('img', src=preview_icon_path, **{'class': "action-img"})
                 preview.insert(0, preview_icon)
                 link_wrapper.append(preview)
+
+            elif language == 'python':
+                run = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+                run['class'] = "code-header-action code-header-run"
+                run.string = trans('ctx.extra.run')
+                run_icon = soup.new_tag('img', src=run_icon_path, **{'class': "action-img"})
+                run.insert(0, run_icon)
+                link_wrapper.append(run)
 
             link_wrapper.append(collapse)
             link_wrapper.append(copy)

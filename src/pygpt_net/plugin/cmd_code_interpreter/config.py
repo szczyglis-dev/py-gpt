@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
+# Updated Date: 2025.07.14 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -285,6 +285,14 @@ class Config(BaseConfig):
             value=True,
             label="Connect to the Python code interpreter window",
             description="Attach code input/output to the Python code interpreter window.",
+            tab="general",
+        )
+        plugin.add_option(
+            "fresh_kernel",
+            type="bool",
+            value=True,
+            label="Always run code in a fresh kernel",
+            description="Always run code using Run in a fresh kernel.",
             tab="general",
         )
 

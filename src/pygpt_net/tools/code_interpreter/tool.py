@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 16:00:00                  #
+# Updated Date: 2025.07.14 18:00:00                  #
 # ================================================== #
 
 import os
@@ -44,6 +44,7 @@ class CodeInterpreter(BaseTool):
         self.auto_clear = False
         self.dialog = None
         self.ipython = True
+        self.auto_opened = False
         self.signals = ToolSignals()
 
         # interpreter data files in /data directory
@@ -352,6 +353,47 @@ class CodeInterpreter(BaseTool):
         input_textarea.clear()
         input_textarea.setFocus()
 
+    def run_input(self, input: str):
+        """
+        Run input code directly
+
+        :param input: Code to execute
+        """
+        if input == "/restart":
+            self.restart_kernel()
+            return
+        elif input == "/clear":
+            self.clear(force=True)
+            return
+
+        if self.is_all():
+            cmd = "code_execute_all"
+        else:
+            if input == "":
+                return
+            cmd = "code_execute"
+
+        if self.ipython:
+            cmd = "ipython_execute"
+
+        commands = [
+            {
+                "cmd": cmd,
+                "params": {
+                    "code": input,
+                    "path": self.file_current,
+                },
+                "silent": True,
+                "force": True,
+            }
+        ]
+        event = Event(Event.CMD_EXECUTE, {
+            'commands': commands,
+            'silent': True,
+        })
+        event.ctx = CtxItem()  # tmp
+        self.window.controller.command.dispatch_only(event)
+
     def update_input(self):
         """Update input data"""
         data = self.get_widget_input().toPlainText()
@@ -405,6 +447,19 @@ class CodeInterpreter(BaseTool):
         self.opened = False
         self.window.ui.dialogs.close('interpreter')
         self.update()
+
+    def auto_open(self):
+        """Auto open dialog or tab"""
+        if self.window.controller.ui.tabs.is_current_tool(self.id):
+            tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
+            current_col = self.window.controller.ui.tabs.column_idx
+            if tool_col == 1 and tool_col != current_col:
+                self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                return
+            return # do not open if already opened in tab
+        if not self.auto_opened:
+            self.auto_opened = True
+            self.open()
 
     def scroll_to_bottom(self):
         """Scroll down"""

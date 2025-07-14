@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 15:00:00                  #
+# Updated Date: 2025.07.14 18:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -711,13 +711,18 @@ class Tabs:
                 self.window.ui.nodes['layout.split'].box.setChecked(state)
             self.window.core.config.save()
 
-    def enable_split_screen(self):
+    def enable_split_screen(self, update_switch: bool = False):
         """
         Enable split screen mode
+
+        :param update_switch: True if switch should be updated
         """
         self.window.ui.splitters['columns'].setSizes([1, 1])
         self.window.core.config.set("layout.split", True)
         self.window.core.config.save()
+
+        if update_switch:
+            self.window.ui.nodes['layout.split'].box.setChecked(True)
 
     def disable_split_screen(self):
         """
