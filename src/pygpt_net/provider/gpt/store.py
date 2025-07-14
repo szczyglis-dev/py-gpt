@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.07.14 18:00:00                  #
 # ================================================== #
 
 import os
@@ -224,7 +224,7 @@ class Store:
         }
         if after is not None:
             args['after'] = after
-        stores = client.beta.vector_stores.list(**args)
+        stores = client.vector_stores.list(**args)
         if stores is not None:
             for remote in stores.data:
                 id = remote.id
@@ -270,7 +270,7 @@ class Store:
         }
         if expire_days <= 0:
             expires_after = None
-        vector_store = client.beta.vector_stores.create(
+        vector_store = client.vector_stores.create(
             name=name,
             expires_after=expires_after,
         )
@@ -298,7 +298,7 @@ class Store:
         }
         if expire_days <= 0:
             expires_after = None
-        vector_store = client.beta.vector_stores.update(
+        vector_store = client.vector_stores.update(
             vector_store_id=id,
             name=name,
             expires_after=expires_after,
@@ -314,7 +314,7 @@ class Store:
         :return: vector store
         """
         client = self.get_client()
-        vector_store = client.beta.vector_stores.retrieve(
+        vector_store = client.vector_stores.retrieve(
             vector_store_id=id,
         )
         if vector_store is not None:
@@ -328,7 +328,7 @@ class Store:
         :return: vector store object
         """
         client = self.get_client()
-        vector_store = client.beta.vector_stores.delete(
+        vector_store = client.vector_stores.delete(
             vector_store_id=id,
         )
         if vector_store is not None:
@@ -357,7 +357,7 @@ class Store:
         }
         if after is not None:
             args['after'] = after
-        stores = client.beta.vector_stores.list(**args)
+        stores = client.vector_stores.list(**args)
         if stores is not None:
             for remote in stores.data:
                 id = remote.id
@@ -399,7 +399,7 @@ class Store:
         }
         if after is not None:
             args['after'] = after
-        files = client.beta.vector_stores.files.list(**args)
+        files = client.vector_stores.files.list(**args)
         if files is not None:
             for remote in files.data:
                 id = remote.id
@@ -482,7 +482,7 @@ class Store:
         :return: vector store file
         """
         client = self.get_client()
-        vector_store_file = client.beta.vector_stores.files.create(
+        vector_store_file = client.vector_stores.files.create(
             vector_store_id=store_id,
             file_id=file_id,
         )
@@ -520,7 +520,7 @@ class Store:
         :return: vector store file
         """
         client = self.get_client()
-        vector_store_file = client.beta.vector_stores.files.delete(
+        vector_store_file = client.vector_stores.files.delete(
             vector_store_id=store_id,
             file_id=file_id,
         )
@@ -581,7 +581,7 @@ class Store:
         }
         if after is not None:
             args['after'] = after
-        files = client.beta.vector_stores.files.list(**args)
+        files = client.vector_stores.files.list(**args)
         if files is not None:
             for remote in files.data:
                 try:
