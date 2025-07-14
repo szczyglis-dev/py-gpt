@@ -22,7 +22,7 @@ It is a JSON object wrapped between ``<tool>`` tags. The application extracts th
 
 When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the ``+ Tools`` option is active.
 
-However, there is an additional possibility to define your own commands and execute them with the help of GPT.
+However, there is an additional possibility to define your own commands and execute them with the help of model.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:
 
 https://platform.openai.com/docs/guides/function-calling

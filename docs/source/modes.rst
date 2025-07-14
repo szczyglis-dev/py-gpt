@@ -6,10 +6,10 @@ Chat
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``Claude``, ``Gemini``, ``Grok``, ``Deepseek``, etc. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API (or compatible). You can select the API endpoint to use in: ``Config -> Settings -> API Keys``.
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``o1``, ``o3``, ``GPT-4``, ``GPT-4o`` and ``Claude``, ``Gemini``, ``Grok``, ``Perplexity``, ``Deepseek``, etc. It works by using the ``Responses`` and ``ChatCompletions`` OpenAI API (or compatible). You can select the API endpoint to use in: ``Config -> Settings -> API Keys``.
 
 .. note::
-   **Tip:** This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints, which the application switches to in the background when working with models other than OpenAI.
+   **Tip:** This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, Grok, Perplexity, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -41,7 +41,7 @@ Chat with Files (LlamaIndex)
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. Tool calls in Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: ``Settings -> Indexes (LlamaIndex) -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. Tool calls in Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
 
 **Querying single files**
 
@@ -86,7 +86,7 @@ Built-in file loaders:
 * JSON files (json)
 * Markdown files (md)
 * PDF documents (pdf)
-* Txt/raw files (txt)
+* Plain-text files (txt)
 * Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
 * Word .docx documents (docx)
 * XML files (xml)
@@ -201,7 +201,7 @@ There is an option for switching prompt generation mode.
    :width: 400
 
 If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
-If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
+If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
 
 **Image storage**
 

@@ -14,7 +14,7 @@ Release: **2.5.40** | build: **2025-07-14** | Python: **>=3.10, <3.13**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `o3`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini`, `Anthropic Claude`, and `xAI Grok`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `o3`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini`, `Anthropic Claude`, `Perplexity Sonar`, and `xAI Grok`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -37,7 +37,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Agents and Autonomous Mode.
-- Supports multiple models: `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Bielik`, etc.
+- Supports multiple models: `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity Sonar`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -368,9 +368,9 @@ Your API keys will be available here:
 
 **+ Inline Vision and Image generation**
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and  `Claude`, `Gemini`, `Grok`, `Deepseek`. It works by using the `Responses` and `ChatCompletions` OpenAI API (or compatible). You can select the API endpoint to use in: `Config -> Settings -> API Keys`.
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `o1`, `o3`, `GPT-4`, `GPT-4o` and  `Claude`, `Gemini`, `Grok`, `Perplexity`, `Deepseek`. It works by using the `Responses` and `ChatCompletions` OpenAI API (or compatible). You can select the API endpoint to use in: `Config -> Settings -> API Keys`.
 
-**Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints, which the application switches to in the background when working with models other than OpenAI.**
+**Tip: This mode directly uses the OpenAI API. Other models, such as Gemini, Claude, Grok, Sonar, or Llama3, are supported in Chat mode via LlamaIndex or OpenAI API compatible endpoints (if available), which the application switches to in the background when working with models other than OpenAI.**
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -396,7 +396,7 @@ Plugin allows you to generate images in Chat mode:
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox `+Tools`. It will speed up the response time when using local models. Tool calls Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: `Settings -> Indexes (LlamaIndex) -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled if the ReAct agent and `+Tools` checkbox are active.
+**Tip:** If you do not want to call tools/commands, disable the checkbox `+Tools`. It will speed up the response time when using local models. Tool calls Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: `Settings -> Indexes / LlamaIndex -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled if the ReAct agent and `+Tools` checkbox are active.
 
 **Querying single files**
 
@@ -447,7 +447,7 @@ Built-in file loaders:
 - JSON files (json)
 - Markdown files (md)
 - PDF documents (pdf)
-- Txt/raw files (txt)
+- Plain-text files (txt)
 - Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
 - Word .docx documents (docx)
 - XML files (xml)
@@ -472,11 +472,11 @@ Built-in file loaders:
 - Webpages (crawling any webpage content)
 - YouTube (transcriptions)
 
-You can configure data loaders in `Settings / Indexes (LlamaIndex) / Data Loaders` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in `Settings / Indexes / LlamaIndex / Data Loaders` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
 LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Indexes (LlamaIndex)` section.
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Indexes / LlamaIndex` section.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
@@ -562,7 +562,7 @@ the bottom of the screen. This replaces the conversation temperature slider when
 There is an option for switching prompt generation mode.
 
 If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
-If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
+If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
 
 ### Image storage
 
@@ -1055,7 +1055,7 @@ Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedd
 
 You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
 
-```Config -> Settings -> Indexes (LlamaIndex) -> Embeddings -> Embeddings provider```
+```Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Embeddings provider```
 
 Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
 
@@ -1153,13 +1153,13 @@ The following plugins are currently available, and model can use them instantly:
 - `API calls` - plugin lets you connect the model to the external services using custom defined API calls.
 
 - `Code Interpreter` - responsible for generating and executing Python code, functioning much like 
-the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
+the Code Interpreter on ChatGPT, but locally. This means a model can interface with any script, application, or code. 
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
-Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
+Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
 
 - `Custom Commands` - allows you to create and execute custom commands on your system.
 
-- `Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
+- `Files I/O` - provides access to the local filesystem, enabling a model to read and write files, 
 as well as list and create directories.
 
 - `System (OS)` - allows you to create and execute custom commands on your system.
@@ -1435,7 +1435,7 @@ Voice ID. Voices: https://elevenlabs.io/voice-library
 Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
 
 
-If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
+If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
 
 Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
 
@@ -1740,17 +1740,17 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 ## Custom Commands
 
-With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 ![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_custom_cmd.png)
 
 To add a new custom command, click the **ADD** button and then:
 
-1. Provide a name for your command: this is a unique identifier for GPT.
-2. Provide an `instruction` explaining what this command does; GPT will know when to use the command based on this instruction.
-3. Define `params`, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the `cmd` field. For example:
+1. Provide a name for your command: this is a unique identifier for model.
+2. Provide an `instruction` explaining what this command does; model will know when to use the command based on this instruction.
+3. Define `params`, separated by commas - model will send data to your commands using these params. These params will be placed into placeholders you have defined in the `cmd` field. For example:
 
-If you want instruct GPT to execute your Python script named `smart_home_lights.py` with an argument, such as `1` to turn the light ON, and `0` to turn it OFF, define it as follows:
+If you want instruct model to execute your Python script named `smart_home_lights.py` with an argument, such as `1` to turn the light ON, and `0` to turn it OFF, define it as follows:
 
 - **name**: lights_cmd
 - **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
@@ -1759,11 +1759,11 @@ If you want instruct GPT to execute your Python script named `smart_home_lights.
 
 The setup defined above will work as follows:
 
-When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command `python /path/to/smart_home_lights.py {arg}` with `{arg}` replaced with `1`. On your system, it will execute the command:
+When you ask model to turn your lights ON, model will locate this command and prepare the command `python /path/to/smart_home_lights.py {arg}` with `{arg}` replaced with `1`. On your system, it will execute the command:
 
 ```python /path/to/smart_home_lights.py 1```
 
-And that's all. GPT will take care of the rest when you ask to turn ON the lights.
+And that's all. model will take care of the rest when you ask to turn ON the lights.
 
 You can define as many placeholders and parameters as you desire.
 
@@ -1785,7 +1785,7 @@ You can connect predefined placeholders with your own params.
 - **cmd**: `echo "{song_text}" > {_home}/{title}.txt`
 
 
-With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
+With the setup above, every time you ask model to generate a song for you and save it to the disk, it will:
 
 1. Generate a song.
 2. Locate your command.
@@ -1794,7 +1794,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 **Example tutorial command**
 
-**PyGPT** provides simple tutorial command to show how it works, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+**PyGPT** provides simple tutorial command to show how it works, to run it just ask model for execute `tutorial test command` and it will show you how it works:
 
 ```> please execute tutorial test command```
 
@@ -2032,7 +2032,7 @@ Allows `keyboard_type` command execution. *Default:* `True`
 
 ## Web Search
 
-**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
 
 To activate this feature, turn on the `Web Search` plugin found in the `Plugins` menu.
 
@@ -2447,7 +2447,7 @@ SMTP Password.
 This plugin automatically adds the current date and time to each system prompt you send. 
 You have the option to include just the date, just the time, or both.
 
-When enabled, it quietly enhances each system prompt with current time information before sending it to GPT.
+When enabled, it quietly enhances each system prompt with current time information before sending it to model.
 
 **Options**
 
@@ -2527,7 +2527,7 @@ It is a JSON object wrapped between `<tool>` tags. The application extracts the 
 
 When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `+ Tools` option is active.
 
-However, there is an additional possibility to define your own commands and execute them with the help of GPT.
+However, there is an additional possibility to define your own commands and execute them with the help of model.
 These are functions - defined on the OpenAI API side and described using JSON objects. You can find a complete guide on how to define functions here:
 
 https://platform.openai.com/docs/guides/function-calling
@@ -2578,7 +2578,7 @@ Then, in the `Custom Commands` plugin, create a new command with the same name a
 
 At next, enable the `+ Tools` option and enable the plugin.
 
-Ask GPT in Chat mode:
+Ask model in Chat mode:
 
 ```Create a funny quote and email it```
 
@@ -3032,75 +3032,91 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Sampling Rate`: Sampling rate, default: 44100
 
-**Indexes (LlamaIndex)**
+**Indexes / LlamaIndex**
 
-- `Indexes`: List of created indexes.
+**General**
 
-- `Use ReAct agent for Tool calls in Chat with Files mode` - enable ReAct agent for tool calls in Chat with Files mode.
+* `Indexes`: List of created indexes.
 
-- `Vector Store`: Vector store to use (vector database provided by LlamaIndex).
+**Vector Store**
 
-- `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
+* `Vector Store`: Vector store to use (vector database provided by LlamaIndex).
 
-- `Embeddings provider`: Embeddings provider.
+* `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
 
-- `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
+**Chat**
 
-- `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
+* `Chat mode`: LlamIndex chat mode for use in query engine, default: context
 
-- `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
+* `Use ReAct agent for Tool calls in Chat with Files mode`: enable ReAct agent for tool calls in Chat with Files mode.
 
-- `Recursive directory indexing`: Enables recursive directory indexing, default is False.
+* `Auto-retrieve additional context`: enable automatic retrieve of additional context from vector store in every query.
 
-- `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
+**Embeddings**
 
-- `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
+* `Embeddings provider`: Embeddings provider.
 
-- `Force exclude files`: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
+* `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
 
-- `Stop indexing on error`: If enabled, indexing will stop whenever an error occurs Default: True.
+* `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
 
-- `Custom metadata to append/replace to indexed documents (file)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}. Use * (asterisk) as extension if you want to apply field to all files. Set empty value to remove field with specified key from metadata.
+* `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
 
-- `Custom metadata to append/replace to indexed documents (web)`: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
+**Indexing**
 
-- `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
+* `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
-- `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
+* `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
 
-- `Auto-index DB in real time`: Enables conversation context auto-indexing in defined modes.
+* `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
 
-- `ID of index for auto-indexing`: Index to use if auto-indexing of conversation context is enabled.
+* `Force exclude files`: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
 
-- `Enable auto-index in modes`: List of modes with enabled context auto-index, separated by comma.
+* `Stop indexing on error`: If enabled, indexing will stop whenever an error occurs Default: True.
 
-- `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
+* `Custom metadata to append/replace to indexed documents (files)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}. Use * (asterisk) as extension if you want to apply field to all files. Set empty value to remove field with specified key from metadata.
 
-- `Chat mode`: chat mode for use in query engine, default: context
+* `Custom metadata to append/replace to indexed documents (web)`: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
+
+**Data Loaders**
+
+* `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
+
+* `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
+
+**Update**
+
+* `Auto-index DB in real time`: Enables conversation context auto-indexing in defined modes.
+
+* `ID of index for auto-indexing`: Index to use if auto-indexing of conversation context is enabled.
+
+* `Enable auto-index in modes`: List of modes with enabled context auto-index, separated by comma.
+
+* `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
 
 **Agent and experts**
 
 **General**
 
-- `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
+* `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
-**LlamaIndex Agents**
+**Agents (LlamaIndex)**
 
-- `Max steps (per iteration)` - Max steps is one iteration before goal achieved
+* `Max steps (per iteration)` - Max steps is one iteration before goal achieved
 
-- `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
+* `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
 
-- `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
+* `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
 
-- `Verbose` - enables verbose mode.
+* `Verbose` - enables verbose mode.
 
-**Legacy (Autonomous)**
+**Autonomous (Legacy)**
 
-- `Sub-mode for agents`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+* `Sub-mode for agents`: Sub-mode to use in Agent (Autonomous) mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
-- `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+* `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
-- `Index to use`: Only if sub-mode is llama_index (Chat with Files), choose the index to use in both Agent and Expert modes.
+* `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
 **Accessibility**
 
@@ -3175,7 +3191,7 @@ You can manually edit the configuration files in this directory (this is your wo
 - `idx` - `LlamaIndex` indexes
 - `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
 - `locale` - a directory for locales (user override)
-- `data` - a directory for data files and files downloaded/generated by GPT.
+- `data` - a directory for data files and files downloaded/generated by models.
 - `presets` - a directory for presets stored as `.json` files.
 - `upload` - a directory for local copies of attachments coming from outside the workdir
 - `db.sqlite` - a database with contexts, notepads and indexes data records
@@ -4107,96 +4123,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added: CodeAct Agent, integrated with Code Interpreter plugin (beta).
 - Fixed: IPython kernel restarting in Code Interpreter plugin.
 
-
-**2.5.32 (2025-07-10)**
-
-- Fixed: File manager opening in Snap version.
-- Fixed: Maximum scroll position calculation in the notepad.
-- Fixed: Updating the message list after regenerating/editing a response.
-- Added: Option to hide timestamps in the web view.
-
-**2.5.31 (2025-07-10)**
-
-- Added: Mistral AI provider - feature #99.
-- Added: A new option in Config -> Settings -> Indexes (LlamaIndex) -> Chat -> Auto-retrieve additional context.
-- Fixed: Voice control using local Whisper model empty context - issue #113.
-
-**2.5.30 (2025-07-09)**
-
-- Fixed: Passing config to placeholders in LlamaIndex model kwargs - issue #112.
-- Fixed: Custom commands plugin unhashable dict bug - issue #108.
-- Fixed: Attempt to read .env in the /home directory in Snap - issue #116.
-- Downgraded Numpy to < 2.0.
-
-**2.5.29 (2025-07-09)**
-
-- Fixed: context auto-summary if history is disable.
-- Added: Anthropic base provider.
-- Added: multimodal config in models.
-- Added: vision in non-GPT models in Chat mode.
-
-**2.5.28 (2025-07-08)**
-
-- Fixed: Restoring the scrollbar value in the notepad.
-- Fixed: Improved math formula rendering.
-- Fixed: "Save as Text" option functionality.
-- Added: Set the model key to equal the model ID when saving in the model editor.
-
-**2.5.27 (2025-07-01)**
-
-- Added Code Interpreter tool to Responses API. Disabled by default, you can enable in: Settings -> Remote Tools.
-- Added a new models: o3-deep-research, o4-mini-deep-research, codex-mini-latest.
-- Added a new option in Settings -> Indexes: Use ReAct agent for Tool calls in Chat with Files mode.
-
-**2.5.26 (2025-07-01)**
-
-- Improved mode switch in background.
-
-**2.5.25 (2025-07-01)**
-
-- Tool calls in Chat with Files mode moved to ReAct agent.
-
-**2.5.24 (2025-06-30)**
-
-- Added attachments and image edits in Image mode.
-- Extended tool calls in LlamaIndex mode.
-- Added llama-index-llms-google-genai to dependencies.
-
-**2.5.23 (2025-06-30)**
-
-- Perplexity added to LlamaIndex providers.
-- OpenAI Responses API support (with built-in tools) added to LlamaIndex and Agent modes.
-- Improved models and indexes configuration in plugins.
-
-**2.5.22 (2025-06-29)**
-
-- Improved models editor.
-
-**2.5.21 (2025-06-28)**
-
-- Fixed JS errors in logger.
-- Updated CSS.
-
-**2.5.20 (2025-06-28)**
-
-- LlamaIndex upgraded to 0.12.44.
-- Langchain removed from the list of modes and dependencies.
-- Improved tools execution.
-- Simplified model configuration.
-- Added endpoint configuration for non-OpenAI APIs.
-
-**2.5.19 (2025-06-27)**
-
-- Added option to enable/disable `Responses API` in `Config -> Settings -> API Keys -> OpenAI`.
-- Added support for xAI / Grok models, added grok-3 models.
-
-**2.5.18 (2025-06-26)**
-
-- Non-GPT models are now available in standard Chat mode.
-- Added a new remote tool: `image_generation` in Responses API -> disabled by default, enable in `Config -> Settings -> Remote Tools`. Enables native image generation and editing of uploaded images in Chat mode.
-- Added a new model `gpt-image-1` and improved image generation.
-- Other small fixes.
-
 # Credits and links
 
 **Official website:** <https://pygpt.net>
@@ -4233,7 +4159,7 @@ GitHub's community:
 
 - [@kaneda2004](https://github.com/kaneda2004)
 
-- [@KingOfTheCastle] (https://github.com/KingOfTheCastle)
+- [@KingOfTheCastle](https://github.com/KingOfTheCastle)
 
 - [@linnflux](https://github.com/linnflux)
 

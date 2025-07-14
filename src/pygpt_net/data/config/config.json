@@ -262,7 +262,7 @@
   "log.level": "error",
   "log.llama": false,
   "log.plugins": false,
-  "max_output_tokens": 1024,
+  "max_output_tokens": 0,
   "max_requests_limit": 60,
   "max_tokens_length": 32000,
   "max_total_tokens": 128000,

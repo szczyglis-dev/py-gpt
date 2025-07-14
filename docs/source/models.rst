@@ -180,7 +180,7 @@ You can use an Ollama instance for embeddings. Simply select the ``ollama`` prov
 
 .. code-block:: sh
 
-    Config -> Settings -> Indexes (LlamaIndex) -> Embeddings -> Embeddings provider
+    Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Embeddings provider
 
 Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
 

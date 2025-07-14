@@ -15,9 +15,9 @@ The following plugins are currently available, and model can use them instantly:
 * ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 * ``Chat with files (LlamaIndex, inline)`` - plugin integrates LlamaIndex storage in any chat and provides additional knowledge into context (from indexed files).
 * ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
-* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
+* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
 * ``Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
+* ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
 * ``System (OS)`` - provides access to the operating system and executes system commands.
 * ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
 * ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
@@ -289,7 +289,7 @@ Voice ID. Voices: https://elevenlabs.io/voice-library
 Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
 
 
-If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
+If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
 
 Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
@@ -600,18 +600,18 @@ Docker image to use for sandbox *Default:* ``python:3.8-alpine``
 Custom Commands
 ------------------------
 
-With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 .. image:: images/v2_custom_cmd.png
    :width: 800
 
 To add a new custom command, click the **ADD** button and then:
 
-1. Provide a name for your command: this is a unique identifier for GPT.
-2. Provide an ``instruction`` explaining what this command does; GPT will know when to use the command based on this instruction.
-3. Define ``params``, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the ``cmd`` field. For example:
+1. Provide a name for your command: this is a unique identifier for model.
+2. Provide an ``instruction`` explaining what this command does; model will know when to use the command based on this instruction.
+3. Define ``params``, separated by commas - model will send data to your commands using these params. These params will be placed into placeholders you have defined in the ``cmd`` field. For example:
 
-If you want instruct GPT to execute your Python script named ``smart_home_lights.py`` with an argument, such as ``1`` to turn the light ON, and ``0`` to turn it OFF, define it as follows:
+If you want instruct model to execute your Python script named ``smart_home_lights.py`` with an argument, such as ``1`` to turn the light ON, and ``0`` to turn it OFF, define it as follows:
 
 - **name**: lights_cmd
 - **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
@@ -620,13 +620,13 @@ If you want instruct GPT to execute your Python script named ``smart_home_lights
 
 The setup defined above will work as follows:
 
-When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command ``python /path/to/smart_home_lights.py {arg}`` with ``{arg}`` replaced with ``1``. On your system, it will execute the command:
+When you ask model to turn your lights ON, model will locate this command and prepare the command ``python /path/to/smart_home_lights.py {arg}`` with ``{arg}`` replaced with ``1``. On your system, it will execute the command:
 
 .. code-block:: console
 
   python /path/to/smart_home_lights.py 1
 
-And that's all. GPT will take care of the rest when you ask to turn ON the lights.
+And that's all. Model will take care of the rest when you ask to turn ON the lights.
 
 You can define as many placeholders and parameters as you desire.
 
@@ -647,7 +647,7 @@ You can connect predefined placeholders with your own params.
 - **params**: song_text, title
 - **cmd**: ``echo "{song_text}" > {_home}/{title}.txt``
 
-With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
+With the setup above, every time you ask model to generate a song for you and save it to the disk, it will:
 
 1. Generate a song.
 2. Locate your command.
@@ -656,7 +656,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 **Example tutorial command**
 
-**PyGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute ``tutorial test command`` and it will show you how it works:
+**PyGPT** provides simple tutorial command to show how it work, to run it just ask model for execute ``tutorial test command`` and it will show you how it works:
 
 .. code-block:: console
 
@@ -907,7 +907,7 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 Web Search
 -----------
 
-**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
 
 To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
 
@@ -1344,7 +1344,7 @@ Real Time
 This plugin automatically adds the current date and time to each system prompt you send. 
 You have the option to include just the date, just the time, or both.
 
-When enabled, it quietly enhances each system prompt with current time information before sending it to GPT.
+When enabled, it quietly enhances each system prompt with current time information before sending it to model.
 
 **Options**
 
