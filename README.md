@@ -26,9 +26,9 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 **Screenshots** (version `2.5.40`, build `2025-07-14`):
 
-![v2_main](https://github.com/user-attachments/assets/fde80a00-3379-46ed-8c2d-fad63be0e24f)
+![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
 
-![v2_main2](https://github.com/user-attachments/assets/26c9a586-3a5b-4191-bf6d-732e3461b863)
+![v2_main2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main2.png)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
 
@@ -350,7 +350,7 @@ Config -> Settings -> API Keys
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_api_keys](https://github.com/user-attachments/assets/36fcb304-9a78-46fb-a6df-820a7b3a78c9)
+![v2_api_keys](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_api_keys.png)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -376,20 +376,20 @@ The main part of the interface is a chat window where you see your conversations
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the `Files and Attachments` section for more information on how to use attachments.
 
-![v2_mode_chat](https://github.com/user-attachments/assets/159b15ee-842b-4c9e-82c7-c2e8a2cded14)
+![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
 
 **Vision:** If you want to send photos from your disk or images from your camera for analysis, and the selected model does not support Vision, you must enable the `GPT-4 Vision (inline)` plugin in the Plugins menu. This plugin allows you to send photos or images from your camera for analysis in any Chat mode.
 
-![v3_vision_plugins](https://github.com/user-attachments/assets/13b0dab4-e833-4ffc-a149-c1bd9f43d742)
+![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_plugins.png)
 
 With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
 
-![v3_vision_chat](https://github.com/user-attachments/assets/e19d8ffc-5fdb-4880-b605-57a4b9fd33e8)
+![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
 **Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin `DALL-E 3 (inline)` in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
-![v3_img_chat](https://github.com/user-attachments/assets/4d045aa5-98c6-40a6-88ff-1b5ad8fe323d)
+![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
 ##  Chat with Files (LlamaIndex)
 
@@ -432,7 +432,7 @@ To index your files, simply copy or upload them  into the `data` directory and i
 
 After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode:
 
-![v2_idx2](https://github.com/user-attachments/assets/2d2edb2a-4964-421b-be23-bcd58ec63a28)
+![v2_idx2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx2.png)
 
 Built-in file loaders: 
 
@@ -542,14 +542,14 @@ From version `2.0.107` the `davinci` models are deprecated and has been replaced
 The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
 
-![v3_img](https://github.com/user-attachments/assets/23609767-a039-4e01-a20c-8c41358e5253)
+![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
 Image generation using DALL-E is available in every mode via plugin `DALL-E 3 Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.
 
 If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
-![v3_img_chat](https://github.com/user-attachments/assets/4d045aa5-98c6-40a6-88ff-1b5ad8fe323d)
+![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
 ### Multiple variants
 
@@ -590,15 +590,15 @@ Vision mode also includes real-time video capture from camera. To capture image 
 
 **1) Video camera real-time image capture**
 
-![v3_vision_chat](https://github.com/user-attachments/assets/e19d8ffc-5fdb-4880-b605-57a4b9fd33e8)
+![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
 **2) you can also provide an image URL**
 
-![v2_mode_vision](https://github.com/user-attachments/assets/e706b273-a0d5-434f-a394-aafbe0dc965c)
+![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_vision.png)
 
 **3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
 
-![v2_mode_vision_upload](https://github.com/user-attachments/assets/7a765540-f56e-4698-b46d-9187c6e1a44f)
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_vision_upload.png)
 
 **Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` label will appear at the bottom of the Chat window.
 
@@ -610,11 +610,11 @@ This mode expands on the basic chat functionality by including additional extern
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
-![v2_mode_assistant](https://github.com/user-attachments/assets/e69f2f28-9a43-44d9-b5fb-787e63e5df49)
+![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_assistant.png)
 
 In Assistant mode you are allowed to storage your files in remote vector store (per Assistant) and manage them easily from app:
 
-![v2_mode_assistant_upload](https://github.com/user-attachments/assets/1ddd2cec-5245-4e62-b602-6e6556cd469a)
+![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_assistant_upload.png)
 
 Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
 uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
@@ -628,13 +628,13 @@ To enable the use of vector stores, enable the `Chat with Files` checkbox in the
 
 To manage external vector databases, click the DB icon next to the vector database selection list in the Assistant creation and editing window (screen below). In this management window, you can create a new vector database, edit an existing one, or import a list of all existing databases from the OpenAI server:
 
-![v2_assistant_stores](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2f605326-5bf5-4c82-8dfd-cb1c0edf6724)
+![v2_assistant_stores](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_assistant_stores.png)
 
 You can define, using `Expire days`, how long files should be automatically kept in the database before deletion (as storing files on OpenAI incurs costs). If the value is set to 0, files will not be automatically deleted.
 
 The vector database in use will be displayed in the list of uploaded files, on the field to the right—if a file is stored in a database, the name of the database will be displayed there; if not, information will be shown indicating that the file is only accessible within the thread:
 
-![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f13c2eb-f961-4eae-b08b-0b4937f06ca9)
+![v2_assistant_stores_upload](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_assistant_stores_upload.png)
 
 
 ##  Agent (LlamaIndex) 
@@ -711,7 +711,7 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 
 ```Settings / Agents and experts / Index to use```
 
-![v2_agent_settings](https://github.com/user-attachments/assets/1a56fd74-c125-4e4b-bf13-ff96e89bca09)
+![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_agent_settings.png)
 
 ##  Experts (co-op, co-operation mode)
 
@@ -754,7 +754,7 @@ Give me a list of active experts.
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
-![v2_context_list](https://github.com/user-attachments/assets/f99e9338-5732-464e-92b5-4b3c23e843d3)
+![v2_context_list](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_context_list.png)
 
 You can disable context support in the settings by using the following option:
 
@@ -791,7 +791,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **Tip: Attachments uploaded in group are available in all contexts in group**.
 
-![v2_file_input](https://github.com/user-attachments/assets/2924ba4c-c24b-4950-b85a-c69dc1fa89c9)
+![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
 You can use attachments to provide additional context to the conversation. Uploaded files will be converted into text using loaders from LlamaIndex, and then embedded into the vector store. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
@@ -847,11 +847,11 @@ This `data` directory is also where the application stores files that are genera
 
 The `Files I/O` plugin takes care of file operations in the `data` directory, while the `Code Interpreter` plugin allows for the execution of code from these files.
 
-![v2_file_output](https://github.com/user-attachments/assets/f770fcc2-c9fe-4686-aba0-d4203598eb8d)
+![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
 To allow the model to manage files or python code execution, the `+ Tools` option must be active, along with the above-mentioned plugins:
 
-![v2_code_execute](https://github.com/user-attachments/assets/0b96b362-52ca-4928-9675-a39038d787a1)
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_code_execute.png)
 
 # Presets
 
@@ -861,7 +861,7 @@ Presets in **PyGPT** are essentially templates used to store and quickly apply d
 
 The application lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
-![v2_preset](https://github.com/user-attachments/assets/84b4ea59-84b1-4254-a365-c562bfe121e7)
+![v2_preset](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_preset.png)
 
 ## Example usage
 
@@ -1342,7 +1342,7 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 The plugin lets you turn text into speech using the TTS model from OpenAI or other services like `Microsoft Azure`, `Google`, and `Eleven Labs`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, `Google` or `Eleven Labs`, you must configure the audio plugin with your API keys, regions and voices if required.
 
-![v2_azure](https://github.com/user-attachments/assets/830cf272-61c0-4dcf-b2a6-996b50cf87c2)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_azure.png)
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
@@ -1600,7 +1600,7 @@ sudo snap connect pygpt:docker docker:docker-daemon
 
 **Code interpreter:** a real-time Python Code Interpreter is built-in. Click the `<>` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
-![v2_python](https://github.com/szczyglis-dev/py-gpt/assets/61396542/793e554c-7619-402a-8370-ab89c7464fec)
+![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
 
 
 **Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
@@ -1742,7 +1742,7 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/user-attachments/assets/f0133a12-3c97-4bd1-9f00-19506c06e0ff)
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_custom_cmd.png)
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -1798,7 +1798,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 ```> please execute tutorial test command```
 
-![v2_custom_cmd_example](https://github.com/user-attachments/assets/449d652d-5374-4817-b516-eaaac50b2309)
+![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_custom_cmd_example.png)
 
 ## Files I/O
 
@@ -2067,7 +2067,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/user-attachments/assets/86364599-3f2a-47e2-92d7-b6e97343ad50)
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_plugin_google.png)
 
 - `Google Custom Search API KEY` *google_api_key*
 
@@ -2189,7 +2189,7 @@ Provides commands for reading and sending data to USB ports.
 
 You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
 
-![v2_serial](https://github.com/szczyglis-dev/py-gpt/assets/61396542/0753a840-722e-49d6-beee-992dd841e168)
+![v2_serial](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_serial.png)
 
 Above is an example of co-operation with the following code uploaded to `Arduino Uno` and connected via USB:
 
@@ -2334,7 +2334,7 @@ Prompt for use @ tag (summary).
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-![v2_crontab](https://github.com/user-attachments/assets/ac597018-897c-4238-8c9c-6b758f8c96e3)
+![v2_crontab](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_crontab.png)
 
 - `Your tasks` *crontab*
 
@@ -2344,7 +2344,7 @@ If you are unfamiliar with Cron, consider visiting the Cron Guru page for assist
 
 Number of active tasks is always displayed in a tray dropdown menu:
 
-![v2_crontab_tray](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f9d1825f-4511-4b7f-bdce-45ee18408021)
+![v2_crontab_tray](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_crontab_tray.png)
 
 - `Create a new context on job run` *new_ctx*
 
@@ -2523,7 +2523,7 @@ It is a JSON object wrapped between `~###~`. The application extracts the JSON o
 
 **Tip:** The `+ Tools` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
 
-![v2_code_execute](https://github.com/user-attachments/assets/0b96b362-52ca-4928-9675-a39038d787a1)
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_code_execute.png)
 
 When native API function calls are disabled, a special system prompt responsible for invoking commands is added to the main system prompt if the `+ Tools` option is active.
 
@@ -2614,30 +2614,30 @@ PyGPT features several useful tools, including:
 - Python Code Interpreter
 - HTML/JS Canvas (built-in HTML renderer)
 
-![v2_tool_menu](https://github.com/user-attachments/assets/c8041cdc-64fd-41a5-b1af-8c987b06e5f0)
+![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
 
 ## Notepad
 
 The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
 
-![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f6aa0126-bad1-4e6c-ace6-72e979186433)
+![v2_notepad](hhttps://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_notepad.png)
 
 ## Painter
 
 Using the `Painter` tool, you can create quick sketches and submit them to the model for analysis. You can also edit opened from disk or captured from camera images, for example, by adding elements like arrows or outlines to objects. Additionally, you can capture screenshots from the system - the captured image is placed in the drawing tool and attached to the query being sent.
 
-![v2_draw](https://github.com/szczyglis-dev/py-gpt/assets/61396542/09c1de36-1241-4330-9fd7-67c6e09888fa)
+![v2_draw](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_draw.png)
 
 To capture the screenshot just click on the `Ask with screenshot` option in a tray-icon dropdown:
 
-![v2_screenshot](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7305a814-ca76-4f8f-8908-47f6a9496fa5)
+![v2_screenshot](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_screenshot.png)
 
 ## Calendar
 
 Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting `Set label color`. By clicking on a particular day of the week, conversations from that day will be displayed.
 
-![v2_calendar](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c7d17375-b61f-452c-81bc-62a7d466fc18)
+![v2_calendar](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_calendar.png)
 
 
 ## Indexer
@@ -2645,7 +2645,7 @@ Using the calendar, you can go back to selected conversations from a specific da
 
 This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the `Chat with Files` mode. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
 
-![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1caeab6e-6119-44e2-a7cb-ed34f8fe9e30)
+![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_indexer.png)
 
 ## Media Player
 
@@ -2692,13 +2692,13 @@ the system prompt, any additional data, and those used within the context (the m
 
 **Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by some plugins. You can find the exact number of tokens used on the OpenAI website.**
 
-![v2_tokens1](https://github.com/user-attachments/assets/e131a880-986d-4014-b5fd-9820516c6a10)
+![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tokens1.png)
 
 ## Total tokens
 
 After receiving a response from the model, the application displays the actual total number of tokens used for the query (received from the API).
 
-![v2_tokens2](https://github.com/user-attachments/assets/52cd355f-c7b0-432b-9ff9-31c8a6a60b89)
+![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tokens2.png)
 
 
 # Accessibility
@@ -2822,7 +2822,7 @@ For voice translation of on-screen events and information about completed comman
 ```bash
 Use voice synthesis to describe events on the screen.
 ```
-![v2_access](https://github.com/user-attachments/assets/ebd81471-5bfc-4ca3-9cac-864222b38095)
+![v2_access](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_access.png)
 
 # Configuration
 
@@ -2834,7 +2834,7 @@ The following basic options can be modified directly within the application:
 Config -> Settings...
 ```
 
-![v2_settings](https://github.com/user-attachments/assets/f6ac784c-6635-41f8-86fa-02d6b8686848)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
 **General**
 
@@ -3094,7 +3094,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Verbose` - enables verbose mode.
 
-**Legacy**
+**Legacy (Autonomous)**
 
 - `Sub-mode for agents`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
