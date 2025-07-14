@@ -253,7 +253,7 @@ class Chat:
         # retrieve additional context from index if tools enabled
         additional_ctx = None
         if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
-            if use_index and cmd_enabled and use_react:
+            if use_index and cmd_enabled:
                 response = self.query_retrieval(
                     query=query,
                     idx=idx,
@@ -347,22 +347,7 @@ class Chat:
                     )
                     response = agent.chat(query)
                 else:
-                    chat_engine = index.as_chat_engine(
-                        llm=llm,
-                        chat_mode=chat_mode,
-                        memory=memory,
-                        verbose=verbose,
-                        system_prompt=system_prompt,
-                    )
-                    if stream:
-                        response = chat_engine.stream_chat(query) # TOOLS + INDEX + STREAM
-                    else:
-                        response = chat_engine.chat(query) # TOOLS + INDEX
-
-                    # check for not empty
-                    if hasattr(response, "source_nodes") and len(response.source_nodes) == 0:
-                        self.log("No source nodes found in response, fallback to LLM directly...")
-                        use_index = False # fallback
+                    use_index = False # fallback to LLM if tools enabled but not using ReAct
             else:
                 # 2) if tools disabled, use index as chat engine
                 chat_engine = index.as_chat_engine(

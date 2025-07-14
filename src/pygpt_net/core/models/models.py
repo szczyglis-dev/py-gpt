@@ -527,6 +527,11 @@ class Models:
         :return: True if tool call is allowed, False otherwise
         """
         if mode == MODE_LLAMA_INDEX:
+            idx = self.window.core.config.get('llama.idx.current')
+            cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
+            use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
+            if idx is not None and idx != "_" and cmd_enabled and not use_react:
+                return False # do not use native tool calls in Llama Index mode if ReAct agent is not used and idx is set
             if model.provider == "google":
                 stream = self.window.core.config.get('stream', False)
                 use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
