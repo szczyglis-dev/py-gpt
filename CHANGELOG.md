@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.40 (2025-07-14)
+
+- Enhanced system prompts.
+- Increased default Ollama request timeout to 300s.
+- Improved function calling.
+- Added option 'Tool calls (native)' to models config.
+
 ## 2.5.39 (2025-07-13)
 
 - Improved multiple notepads handling.

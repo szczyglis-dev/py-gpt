@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has built-in support for models (as of 2025-06-27):
+PyGPT has built-in support for models (as of 2025-07-14):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -15,6 +15,7 @@ PyGPT has built-in support for models (as of 2025-06-27):
 - ``claude-opus-4-0`` (Anthropic)
 - ``claude-sonnet-4-0`` (Anthropic)
 - ``codellama`` (Ollama)
+- ``codex-mini`` (OpenAI)
 - ``dall-e-2`` (OpenAI)
 - ``dall-e-3`` (OpenAI)
 - ``deepseek-chat`` (DeepSeek)
@@ -50,10 +51,13 @@ PyGPT has built-in support for models (as of 2025-06-27):
 - ``gpt-4o-2024-11-20`` (OpenAI)
 - ``gpt-4o-audio-preview`` (OpenAI)
 - ``gpt-4o-mini`` (OpenAI)
+- ``gpt-image-1`` (OpenAI)
+- ``grok-2-vision`` (xAI)
 - ``grok-3`` (xAI)
 - ``grok-3-fast`` (xAI)
 - ``grok-3-mini`` (xAI)
 - ``grok-3-mini-fast`` (xAI)
+- ``grok-4`` (xAI)
 - ``llama2-uncensored`` (Ollama)
 - ``llama3.1`` (Ollama)
 - ``llama3.1:405b`` (Ollama)
@@ -64,8 +68,11 @@ PyGPT has built-in support for models (as of 2025-06-27):
 - ``o1-mini`` (OpenAI)
 - ``o1-pro`` (OpenAI)
 - ``o3`` (OpenAI)
+- ``o3-deep-research`` (OpenAI)
 - ``o3-mini`` (OpenAI)
 - ``o3-pro`` (OpenAI)
+- ``o4-mini`` (OpenAI)
+- ``o4-mini-deep-research`` (OpenAI)
 - ``qwen:7b`` (Ollama)
 - ``qwen2:7b`` (Ollama)
 - ``qwen2.5-coder:7b`` (Ollama)
