@@ -17,6 +17,9 @@ Multiple operation modes are included, such as chatbot, text completion, assista
 .. image:: images/v2_main.png
    :width: 800
 
+.. image:: images/v2_main2.png
+   :width: 800
+
 Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
