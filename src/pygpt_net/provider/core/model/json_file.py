@@ -88,7 +88,9 @@ class JsonFileProvider(BaseProvider):
                         self.deserialize(item, model)
                         items[id] = model
                     items = dict(sorted(items.items(), key=lambda item: item[0]))  # sort by key
-                    print("Loaded models: {}".format(path))
+                    if self.window.core.config.path in path:
+                        # only if path is in config path, otherwise it's base config
+                        print("Loaded models: {}".format(path))
                     print("Migrating old version: {}".format(path))
                     self.save(items)
                     return items
@@ -100,7 +102,9 @@ class JsonFileProvider(BaseProvider):
                     self.deserialize(item, model)
                     items[id] = model
                 items = dict(sorted(items.items(), key=lambda x: x[1].name.lower()))
-                print("Loaded models: {}".format(path))
+                if self.window.core.config.path in path:
+                    # only if path is in config path, otherwise it's base config
+                    print("Loaded models: {}".format(path))
 
         except Exception as e:
             self.window.core.debug.log(e)
