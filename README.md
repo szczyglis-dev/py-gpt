@@ -428,7 +428,7 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 
 To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (LlamaIndex, inline)` plugin.
 
-![v2_idx1](https://github.com/user-attachments/assets/04d7145f-5b2d-4395-8f3d-b01adbbb1761)
+![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
 
 After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode:
 
@@ -2621,7 +2621,7 @@ PyGPT features several useful tools, including:
 
 The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
 
-![v2_notepad](hhttps://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_notepad.png)
+![v2_notepad](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_notepad.png)
 
 ## Painter
 
