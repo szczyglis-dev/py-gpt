@@ -299,6 +299,14 @@ class CodeInterpreter(BaseTool):
         })
         self.window.dispatch(event)
 
+    def is_ipython(self) -> bool:
+        """
+        Check if ipython is enabled
+
+        :return: True if ipython is enabled, False otherwise
+        """
+        return self.ipython
+
     def send_input(self, widget: ToolWidget):
         """
         Send input to interpreter
@@ -434,6 +442,7 @@ class CodeInterpreter(BaseTool):
     def open(self):
         """Open interpreter dialog"""
         self.opened = True
+        self.auto_opened = False
         self.load_history()
         self.load_output()
         self.window.ui.dialogs.open('interpreter', width=800, height=600)

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.42 (2025-07-15)
+
+- Connected Run code button in python code blocks to IPython (if enabled).
+- Updated CSS.
+
 ## 2.5.41 (2025-07-14)
 
 - Fixed: vector stores handling in Assistants API SDK.

@@ -44,7 +44,7 @@
 </Fragment>
 <Fragment>
   <DirectoryRef Id="ApplicationProgramsFolder">
-    <Component Id="DocumentationShortcutComponent" Guid="D84D270D-41AE-4540-AF7C-022BDCB3E6FE">
+    <Component Id="DocumentationShortcutComponent" Guid="AB041112-5C9F-4F72-AC34-EE2F581AE950">
       <Shortcut Id="DocumentationShortcut" Directory="ApplicationProgramsFolder" Name="Documentation" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://pygpt.readthedocs.io" />
       <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="docs" Type="integer" Value="1" KeyPath="yes"/>
     </Component>
