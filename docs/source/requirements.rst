@@ -230,6 +230,40 @@ To use microphone in Snap version you must connect the microphone with:
 
     $ sudo snap connect pygpt:audio-record :audio-record
 
+**Snap and AppArmor permission denied**
+
+Snap installs AppArmor profiles for each application by default. The profile for PyGPT is created at:
+
+``/var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt``
+
+The application should work with the default profile; however, if you encounter errors like:
+
+.. code-block:: console
+
+    PermissionError: [Errno 13] Permission denied: '/etc/httpd/conf/mime.types'
+
+add the appropriate access rules to the profile file, for example:
+
+.. code-block:: console
+
+    # /var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt
+
+    ...
+
+    /etc/httpd/conf/mime.types r
+
+and reload the profiles.
+
+Alternatively, you can try removing snap and reinstalling it:
+
+.. code-block:: console
+
+    $ sudo snap remove --purge pygpt
+
+.. code-block:: console
+
+    $ sudo snap install pygpt
+
 
 **Problems with GLIBC on Linux**
 

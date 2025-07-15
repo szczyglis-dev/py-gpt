@@ -24,6 +24,10 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
+**Showcase** (mp4, version `2.5.41`, build `2025-07-14`):
+
+https://github.com/user-attachments/assets/f48deef7-5c1b-43f4-99d0-0acbe7dcc656
+
 **Screenshots** (version `2.5.40`, build `2025-07-14`):
 
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
@@ -287,6 +291,35 @@ To use microphone in Snap version you must connect the microphone with:
 ```commandline
 sudo snap connect pygpt:audio-record :audio-record
 ```
+
+**Snap and AppArmor permission denied**
+
+Snap installs AppArmor profiles for each application by default. The profile for PyGPT is created at:
+
+`/var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt`
+
+The application should work with the default profile; however, if you encounter errors like:
+
+`PermissionError: [Errno 13] Permission denied: '/etc/httpd/conf/mime.types'`
+
+add the appropriate access rules to the profile file, for example:
+
+```
+# /var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt
+
+...
+
+/etc/httpd/conf/mime.types r
+```
+
+and reload the profiles.
+
+Alternatively, you can try removing snap and reinstalling it:
+
+`sudo snap remove --purge pygpt`
+
+`sudo snap install pygpt`
+
 
 **Access to microphone and audio in Windows version:**
 

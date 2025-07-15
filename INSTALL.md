@@ -170,6 +170,35 @@ To use camera in Vision mode in Snap version you must connect the camera with:
 sudo snap connect pygpt:camera
 ```
 
+**Snap and AppArmor permission denied**
+
+Snap installs AppArmor profiles for each application by default. The profile for PyGPT is created at:
+
+`/var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt`
+
+The application should work with the default profile; however, if you encounter errors like:
+
+`PermissionError: [Errno 13] Permission denied: '/etc/httpd/conf/mime.types'`
+
+add the appropriate access rules to the profile file, for example:
+
+```
+# /var/lib/snapd/apparmor/profiles/snap.pygpt.pygpt
+
+...
+
+/etc/httpd/conf/mime.types r
+```
+
+and reload the profiles.
+
+Alternatively, you can try removing snap and reinstalling it:
+
+`sudo snap remove --purge pygpt`
+
+`sudo snap install pygpt`
+
+
 **Windows and VC++ Redistributable**
 
 On Windows, the proper functioning requires the installation of the `VC++ Redistributable`, which can be found on the Microsoft website:
