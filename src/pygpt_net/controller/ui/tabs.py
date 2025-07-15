@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -717,6 +717,9 @@ class Tabs:
 
         :param update_switch: True if switch should be updated
         """
+        if self.window.core.config.get("layout.split", False):
+            return
+
         self.window.ui.splitters['columns'].setSizes([1, 1])
         self.window.core.config.set("layout.split", True)
         self.window.core.config.save()

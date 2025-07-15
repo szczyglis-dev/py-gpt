@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 19:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 import json
@@ -336,92 +336,28 @@ class Tools:
         return self.window.core.agents.tools.last_tool_output is not None
 
     def clear_last_tool_output(self):
-        """
-        Clear last tool output
-        """
+        """Clear last tool output"""
         self.window.core.agents.tools.last_tool_output = None
 
     def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
         """
         Append tool outputs to context
+
         :param ctx: CtxItem
         :param clear: clear last tool output after appending
         """
         if self.has_last_tool_output():
             outputs = [self.get_last_tool_output()]
             ctx.extra["tool_output"] = [self.get_last_tool_output()]
-            self.extract_files(ctx, outputs) # img, files
+            if outputs is not None:
+                response = ""
+                for output in outputs:
+                    if ("code" in output and "output" in output["code"] and
+                            "content" in output["code"]["output"]):
+                        response += str(output["code"]["output"]["content"])
+                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
             if clear:
                 self.clear_last_tool_output()  # clear after use
-
-    def extract_data_paths(self, text):
-        """
-        Extract file paths from text that contain 'data' segment.
-
-        :param text: input text
-        :return: list of file paths containing 'data' segment
-        """
-        if text is None:
-            return []
-        path_pattern = r"(?:[A-Za-z]:)?(?:[\\/][^\s'\";]+)+"
-        candidates = re.findall(path_pattern, text)
-        filtered = [
-            p for p in candidates
-            if re.search(r"(?:^|[\\/])data(?:[\\/]|$)", p)
-        ]
-        return filtered
-
-    def extract_files(self, ctx: CtxItem, tool_outputs: list = None) -> list:
-        """
-        Extract files from tool outputs and return list of file paths.
-
-        :param ctx: CtxItem
-        :param tool_outputs: list of tool outputs
-        :return: list of file paths
-        """
-        if tool_outputs is None:
-            return []
-
-        response = ""
-        for output in tool_outputs:
-            if ("code" in output and "output" in output["code"] and
-                    "content" in output["code"]["output"]):
-                response += str(output["code"]["output"]["content"])
-
-        images_list = []
-        local_data_dir = self.window.core.config.get_user_dir('data')
-        raw_paths = self.extract_data_paths(response)
-
-        def replace_with_local(path):
-            """
-            Replace the path with local data directory path.
-
-            :param path: original path
-            :return: modified path
-            """
-            segments = re.split(r"[\\/]+", path)
-            try:
-                data_index = segments.index("data")
-            except ValueError:
-                return path
-            tail = segments[data_index + 1:]
-            new_path = os.path.join(local_data_dir, *tail) if tail else local_data_dir
-            return new_path
-
-        processed_paths = []
-        for file in raw_paths:
-            new_file = replace_with_local(file)
-            processed_paths.append(new_file)
-
-        for path in processed_paths:
-            ext = os.path.splitext(path)[1].lower().lstrip(".")
-            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
-                images_list.append(path)
-
-        local_images = self.window.core.filesystem.make_local_list(images_list)
-        ctx.files = processed_paths
-        ctx.images = local_images
-        return processed_paths
 
     def log(self, msg: str):
         """

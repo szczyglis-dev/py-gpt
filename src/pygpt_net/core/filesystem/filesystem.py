@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 import os
@@ -21,6 +21,7 @@ from PySide6.QtCore import QUrl
 from .actions import Actions
 from .editor import Editor
 from .packer import Packer
+from .parser import Parser
 from .types import Types
 from .url import Url
 
@@ -35,6 +36,7 @@ class Filesystem:
         self.actions = Actions(window)
         self.editor = Editor(window)
         self.packer = Packer(window)
+        self.parser = Parser(window)
         self.types = Types(window)
         self.url = Url(window)
         self.workdir_placeholder = "%workdir%"

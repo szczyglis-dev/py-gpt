@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 16:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -15,8 +15,10 @@ from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QTextEdit, QApplication, QVBoxLayout, QLabel, QCheckBox, QPushButton, QWidget, QSplitter, \
     QHBoxLayout
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.editor import BaseCodeEditor
 
+from .html import HtmlOutput, CustomWebEnginePage
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
@@ -43,6 +45,12 @@ class ToolWidget:
         self.label_history = None  # history label
         self.is_dialog = False
 
+    def on_open(self):
+        """On open"""
+        self.output.is_dialog = True
+        self.output.init(force=True)
+        self.output.from_plaintext()
+
     def set_is_dialog(self, is_dialog: bool):
         """
         Set if dialog
@@ -67,8 +75,12 @@ class ToolWidget:
         :param all: with all widgets
         :return: QVBoxLayout
         """
-        self.output = PythonOutput(self.window, self.tool)
-        self.output.setReadOnly(True)
+        self.output = HtmlOutput(self.window, self.tool)
+        self.output.setPage(
+            CustomWebEnginePage(self.window, self.output)
+        )
+        self.output.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
+        self.output.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
         if all:
             self.history = PythonOutput(self.window, self.tool)
@@ -78,7 +90,7 @@ class ToolWidget:
             self.history.setReadOnly(False)
             self.history.excluded_copy_to = ["interpreter_edit"]
 
-        self.label_output = QLabel(trans("interpreter.edit_label.output"))
+        #self.label_output = QLabel(trans("interpreter.edit_label.output"))
         self.label_history = QLabel(trans("interpreter.edit_label.edit"))
 
         if all:
@@ -115,7 +127,7 @@ class ToolWidget:
         self.input.excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
-        left_layout.addWidget(self.label_output)
+        #left_layout.addWidget(self.label_output)
         left_layout.addWidget(self.output)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_widget = QWidget()
@@ -160,6 +172,9 @@ class ToolWidget:
         self.tool.signals.update_history.connect(self.set_history)
         self.tool.signals.clear_history.connect(self.clear_history)
         self.tool.signals.clear_output.connect(self.clear_output)
+        self.tool.signals.begin_output.connect(self.begin_output)
+        self.tool.signals.end_output.connect(self.end_output)
+        self.tool.signals.restore_nodes.connect(self.restore_nodes)
         self.tool.signals.focus_input.connect(self.set_focus)
         self.tool.signals.append_input.connect(self.append_to_input)
         self.tool.signals.update_input.connect(self.set_input)
@@ -167,11 +182,59 @@ class ToolWidget:
         self.tool.signals.set_checkbox_auto_clear.connect(self.set_checkbox_auto_clear)
         self.tool.signals.set_checkbox_ipython.connect(self.set_checkbox_ipython)
         self.tool.signals.toggle_all_visible.connect(self.toggle_all_visible)
+        self.tool.signals.reload_view.connect(self.reload)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['interpreter'])
         layout.addLayout(bottom_layout)
         return layout
+
+    @Slot()
+    def reload(self):
+        """Reload view"""
+        self.output.reload()
+
+    def get_nodes(self) -> list:
+        """
+        Get output nodes
+
+        :return: Nodes
+        """
+        return self.output.buffer_output
+
+    @Slot(list)
+    def restore_nodes(self, nodes: list):
+        """
+        Restore output nodes
+
+        :param nodes: Nodes
+        """
+        self.output.restore_nodes(nodes)
+
+    @Slot(str)
+    def begin_output(self, type: str = "stdout"):
+        """
+        Begin output content
+
+        :param type: Output type
+        """
+        self.output.init()
+        if not self.output:
+            return
+        self.output.begin_output(type=type)
+
+    @Slot(str, object)
+    def end_output(self, type: str = "stdout", ctx: CtxItem = None):
+        """
+        End output content
+
+        :param type: Output type
+        :param ctx: Context item
+        """
+        self.output.init()
+        if not self.output:
+            return
+        self.output.end_output(type=type, ctx=ctx)
 
     @Slot(str, str)
     def set_output(self, output: str, type="stdout", live: bool = True):
@@ -182,23 +245,24 @@ class ToolWidget:
         :param type: Output type
         :param live: Live output
         """
-        area = self.output
+        if not self.output:
+            return
+        self.output.init()
         if type == "stdin":
             data = ">> " + str(output)
         else:
             data = str(output)
+        if type == "stdout" and data == "":
+            return # do not append empty output
         if live:
-            cur = area.textCursor()
-            cur.movePosition(QTextCursor.End)
-            s = data + "\n"
+            s = data
             while s:
                 head, sep, s = s.partition("\n")
-                cur.insertText(head)
+                self.output.append_output(head)
                 if sep:  # New line if LF
-                    cur.insertText("\n")
-            area.setTextCursor(cur)
+                    self.output.append_output("\n")
         else:
-            area.setPlainText(data)
+            self.output.set_output(data)
 
     @Slot()
     def set_history(self, data: str):
@@ -448,8 +512,12 @@ class ToolSignals(QObject):
     reload = Signal(str)  # path
     clear_history = Signal()
     clear_output = Signal()
+    begin_output = Signal(str)  # type
+    end_output = Signal(str, object)  # type
     focus_input = Signal()
+    reload_view = Signal()
     set_checkbox_all = Signal(bool)
     set_checkbox_auto_clear = Signal(bool)
     set_checkbox_ipython = Signal(bool)
     toggle_all_visible = Signal(bool)
+    restore_nodes = Signal(list)  # nodes

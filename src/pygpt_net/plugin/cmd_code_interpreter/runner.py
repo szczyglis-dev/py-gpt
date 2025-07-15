@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 01:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -41,8 +41,11 @@ class Runner:
 
         :param data: input text
         """
+        type = "stdin"
         if self.signals is not None:
-            self.signals.output.emit(data, "stdin")
+            self.send_interpreter_output_begin(type)
+            self.signals.output.emit(data, type)
+            self.send_interpreter_output_end(type)
 
     def send_interpreter_output(self, data: str, type: str):
         """
@@ -53,6 +56,24 @@ class Runner:
         """
         if self.signals is not None:
             self.signals.output.emit(data, type)
+
+    def send_interpreter_output_begin(self, type: str):
+        """
+        Send output begin to interpreter
+
+        :param type: output type (stdout/stderr)
+        """
+        if self.signals is not None:
+            self.signals.output_begin.emit(type)
+
+    def send_interpreter_output_end(self, type: str):
+        """
+        Send output end to interpreter
+
+        :param type: output type (stdout/stderr)
+        """
+        if self.signals is not None:
+            self.signals.output_end.emit(type)
 
     def send_html_output(self, data: str):
         """
@@ -102,66 +123,6 @@ class Runner:
         )
         return result
 
-    def extract_data_paths(self, text) -> list:
-        """
-        Extract file paths from text that contain 'data' segment.
-
-        :param text: input text
-        :return: list of file paths containing 'data' segment
-        """
-        if text is None:
-            return []
-        path_pattern = r"(?:[A-Za-z]:)?(?:[\\/][^\s'\";]+)+"
-        candidates = re.findall(path_pattern, text)
-        filtered = [
-            p for p in candidates
-            if re.search(r"(?:^|[\\/])data(?:[\\/]|$)", p)
-        ]
-        return filtered
-
-    def extract_files(self, ctx: CtxItem, response: str) -> list:
-        """
-        Extract files from response
-
-        :param ctx: CtxItem
-        :param response: response
-        :return: files list
-        """
-        images_list = []
-        local_data_dir = self.plugin.window.core.config.get_user_dir('data')
-        raw_paths = self.extract_data_paths(response)
-
-        def replace_with_local(path):
-            """
-            Replace the path with local data directory path.
-
-            :param path: original path
-            :return: modified path
-            """
-            segments = re.split(r"[\\/]+", path)
-            try:
-                data_index = segments.index("data")
-            except ValueError:
-                return path
-            tail = segments[data_index + 1:]
-            new_path = os.path.join(local_data_dir, *tail) if tail else local_data_dir
-            return new_path
-
-        processed_paths = []
-        for file in raw_paths:
-            new_file = replace_with_local(file)
-            processed_paths.append(new_file)
-
-        for path in processed_paths:
-            ext = os.path.splitext(path)[1].lower().lstrip(".")
-            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
-                images_list.append(path)
-
-        local_images = self.plugin.window.core.filesystem.make_local_list(images_list)
-        ctx.files = processed_paths
-        ctx.images = local_images
-        return processed_paths
-
     def handle_result_ipython(self, ctx: CtxItem, response) -> str:
         """
         Handle result from ipython container, check for files and images
@@ -170,9 +131,9 @@ class Runner:
         :param response: response
         :return: result
         """
-        paths = self.extract_files(ctx, response)
+        paths = self.plugin.window.core.filesystem.parser.extract_data_files(ctx, response)
         if len(paths) == 0:
-            self.extract_files(ctx, ctx.input)
+            self.plugin.window.core.filesystem.parser.extract_data_files(ctx, ctx.input)
         return response
 
     def is_sandbox(self) -> bool:
@@ -268,6 +229,7 @@ class Runner:
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
         self.log("Running command: {}".format(cmd))
         try:
+            self.send_interpreter_output_begin("stdout")
             process = subprocess.Popen(
                 cmd,
                 shell=True,
@@ -280,6 +242,7 @@ class Runner:
             stdout = None
             stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -311,8 +274,10 @@ class Runner:
         """
 
         self.log("Running command: {}".format(cmd), sandbox=True)
+        self.send_interpreter_output_begin("stdout")
         response = self.run_docker(cmd)
         result = self.handle_result_docker(response)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -350,6 +315,7 @@ class Runner:
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
         self.log("Running command: {}".format(cmd))
         try:
+            self.send_interpreter_output_begin("stdout")
             process = subprocess.Popen(
                 cmd,
                 shell=True,
@@ -362,6 +328,7 @@ class Runner:
             stdout = None
             stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -401,8 +368,10 @@ class Runner:
             filename=path,
         )
         self.log("Running command: {}".format(cmd), sandbox=True)
+        self.send_interpreter_output_begin("stdout")
         response = self.run_docker(cmd)
         result = self.handle_result_docker(response)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -444,12 +413,14 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
             self.log("Please wait...", sandbox=sandbox)
+            self.send_interpreter_output_begin("stdout")
             result = self.plugin.get_interpreter().execute(data, current=False)
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
             self.error(e)
             result = str(e)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
@@ -491,12 +462,14 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
             self.log("Please wait...", sandbox=sandbox)
+            self.send_interpreter_output_begin("stdout")
             result = self.plugin.get_interpreter().execute(data, current=True)
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
             self.error(e)
             result = str(e)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),

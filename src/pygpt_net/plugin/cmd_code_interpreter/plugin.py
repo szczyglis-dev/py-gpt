@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 03:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 import os
@@ -214,6 +214,8 @@ class Plugin(BasePlugin):
 
             # connect signals
             worker.signals.output.connect(self.handle_interpreter_output)
+            worker.signals.output_begin.connect(self.handle_interpreter_output_begin)
+            worker.signals.output_end.connect(self.handle_interpreter_output_end)
             worker.signals.clear.connect(self.handle_interpreter_clear)
             worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
@@ -242,7 +244,7 @@ class Plugin(BasePlugin):
         # print(data)
         cleaned_data = self.get_interpreter().remove_ansi(data)
         self.window.tools.get("interpreter").append_output(cleaned_data)
-        if self.window.tools.get("interpreter").opened:
+        if self.window.tools.get("interpreter").is_opened():
             self.window.update_status("")
 
     @Slot(object, str)
@@ -256,6 +258,24 @@ class Plugin(BasePlugin):
         if not self.get_option_value("attach_output"):
             return
         self.window.tools.get("interpreter").append_output(data, type)
+
+    @Slot(str)
+    def handle_interpreter_output_begin(self, type: str):
+        """
+        Handle interpreter output begin
+
+        :param type: output type
+        """
+        self.window.tools.get("interpreter").output_begin(type)
+
+    @Slot(str)
+    def handle_interpreter_output_end(self, type: str):
+        """
+        Handle interpreter output end
+
+        :param type: output type
+        """
+        self.window.tools.get("interpreter").output_end(type)
 
     @Slot()
     def handle_interpreter_clear(self):

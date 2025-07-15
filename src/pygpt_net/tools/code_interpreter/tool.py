@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
+import json
 import os
 from time import strftime
 from typing import Dict
@@ -23,6 +24,7 @@ from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
 from pygpt_net.core.events import Event, KernelEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+from .ui.html import HtmlOutput, CodeBlock
 
 from .ui.widgets import PythonInput, PythonOutput, ToolWidget, ToolSignals
 
@@ -51,6 +53,11 @@ class CodeInterpreter(BaseTool):
         self.file_current = ".interpreter.current.py"
         self.file_input = ".interpreter.input.py"
         self.file_output = ".interpreter.output.py"
+        self.file_output_json = ".interpreter.output.json"
+
+        # buffers
+        self.input_buffer = ""
+        self.output_buffer = ""
 
     def setup(self):
         """Setup"""
@@ -108,6 +115,11 @@ class CodeInterpreter(BaseTool):
     def on_reload(self):
         """On app profile reload"""
         self.setup()
+        self.reload_view()
+
+    def reload_view(self):
+        """Reload view"""
+        self.signals.reload_view.emit()
 
     def update(self):
         """Update menu"""
@@ -122,15 +134,56 @@ class CodeInterpreter(BaseTool):
             self.window.ui.menu['tools.interpreter'].setChecked(False)
         """
 
-    def append_output(self, output: str, type="stdout", **kwargs):
+    def output_begin(self, type: str = "stdout"):
+        """
+        Begin output
+
+        :param type: Output type (stdout, stderr, etc.)
+        """
+        if type == "stdout":
+            self.output_buffer = ""
+        elif type == "stdin":
+            self.input_buffer = ""
+        self.signals.begin_output.emit(type)
+
+    def output_end(self, type: str = "stdout"):
+        """
+        End output
+
+        :param type: Output type (stdout, stderr, etc.)
+        """
+        # extract data files from output buffer
+        ctx = CtxItem()
+        images = []
+        files = []
+        if type == "stdout":
+            if self.output_buffer:
+                self.window.core.filesystem.parser.extract_data_files(ctx, self.output_buffer)
+                if ctx.images:
+                    images = ctx.images
+                if ctx.files:
+                    files = ctx.files
+            self.output_buffer = ""  # clear buffer
+        elif type == "stdin":
+            self.input_buffer = ""
+        self.signals.end_output.emit(type, ctx)
+
+        if images or files:
+            self.save_output_nodes()  # update nodes
+
+    def append_output(self, data: str, type="stdout", **kwargs):
         """
         Append output to the interpreter window
 
-        :param output: Output data
+        :param data: Data to append
         :param type: Output type
         :param kwargs: Additional parameters
         """
-        self.signals.update.emit(output, type, True)
+        if type in ["stdout", "stderr"]:
+            self.output_buffer += str(data)
+        elif type == "stdin":
+            self.input_buffer += str(data)
+        self.signals.update.emit(data, type, True)
         self.save_output()
         self.load_history()
 
@@ -150,6 +203,14 @@ class CodeInterpreter(BaseTool):
         """
         return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output)
 
+    def get_path_output_json(self) -> str:
+        """
+        Get output path for JSON files
+
+        :return: Output path
+        """
+        return os.path.join(self.window.core.config.get_user_dir("data"), self.file_output_json)
+
     def get_widget(self) -> ToolWidget:
         """
         Get tool widget
@@ -166,7 +227,7 @@ class CodeInterpreter(BaseTool):
         """
         return self.dialog.widget.history
 
-    def get_widget_output(self) -> PythonOutput:
+    def get_widget_output(self) -> HtmlOutput:
         """
         Get output widget
 
@@ -206,14 +267,54 @@ class CodeInterpreter(BaseTool):
     def load_output(self):
         """Load output data from file"""
         data = self.get_output()
-        self.signals.update.emit(data, "stdout", False)
+        # self.signals.update.emit(data, "stdout", False)
         self.signals.focus_input.emit()
+
+        # from nodes
+        items = []
+        path_json = self.get_path_output_json()
+        if os.path.exists(path_json):
+            with open(path_json, "r", encoding="utf-8") as f:
+                try:
+                    items = json.load(f)
+                except:
+                    pass
+        nodes = []
+        for item in items:
+            node = CodeBlock(
+                content=item.get("content", ""),
+                type=item.get("type", "text"),
+                images=item.get("images", []),
+                files=item.get("files", []),
+            )
+            nodes.append(node)
+        self.signals.restore_nodes.emit(nodes)
 
     def save_output(self):
         """Save output data to file"""
         path = self.get_path_output()
-        data = self.get_widget_output().toPlainText()
+        data = self.get_widget_output().get_plaintext()
         with open(path, "w", encoding="utf-8") as f:
+            f.write(data)
+
+        # save nodes
+        self.save_output_nodes()
+
+    def save_output_nodes(self):
+        """Save output nodes to file"""
+        nodes = self.get_widget_output().get_nodes()
+        items = []
+        for node in nodes:
+            item = {
+                "content": node.content,
+                "type": node.type,
+                "images": node.images,
+                "files": node.files,
+            }
+            items.append(item)
+        data = json.dumps(items, indent=4, ensure_ascii=False)
+        path_json = self.get_path_output_json()
+        with open(path_json, "w", encoding="utf-8") as f:
             f.write(data)
 
     def get_history(self) -> str:
@@ -306,6 +407,14 @@ class CodeInterpreter(BaseTool):
         :return: True if ipython is enabled, False otherwise
         """
         return self.ipython
+
+    def is_opened(self) -> bool:
+        """
+        Check if interpreter dialog is opened
+
+        :return: True if dialog is opened, False otherwise
+        """
+        return self.opened
 
     def send_input(self, widget: ToolWidget):
         """
@@ -447,6 +556,7 @@ class CodeInterpreter(BaseTool):
         self.load_output()
         self.window.ui.dialogs.open('interpreter', width=800, height=600)
         self.get_widget_input().setFocus()
+        self.dialog.widget.on_open()
         self.cursor_to_end()
         self.scroll_to_bottom()
         self.update()
@@ -475,9 +585,7 @@ class CodeInterpreter(BaseTool):
         self.get_widget_history().verticalScrollBar().setValue(
             self.get_widget_history().verticalScrollBar().maximum()
         )
-        self.get_widget_output().verticalScrollBar().setValue(
-            self.get_widget_output().verticalScrollBar().maximum()
-        )
+        self.get_widget_output().scroll_to_bottom()
 
     def toggle(self):
         """Toggle interpreter dialog open/close"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.16 02:00:00                  #
 # ================================================== #
 
 import os
@@ -179,6 +179,7 @@ class HtmlCanvas(BaseTool):
             self.auto_opened = False
             self.load_output()
             self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
+            self.dialog.widget.on_open()
             self.update()
 
     def auto_open(self):
