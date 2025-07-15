@@ -2006,6 +2006,14 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
                 updated = True
 
+            # < 2.5.43 - remove cmd_code_interpreter fresh_kernel option
+            if old < parse_version("2.5.43"):
+                print("Migrating config from < 2.5.43...")
+                # plugins
+                if 'cmd_code_interpreter' in data['plugins'] \
+                        and 'fresh_kernel' in data['plugins']['cmd_code_interpreter']:
+                    del data['plugins']['cmd_code_interpreter']['fresh_kernel']
+
         # update file
         migrated = False
         if updated:

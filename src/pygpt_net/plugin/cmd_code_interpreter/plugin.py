@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import time
 
 from PySide6.QtCore import Slot
 
@@ -281,9 +282,10 @@ class Plugin(BasePlugin):
         cmd = "code_execute"
         if self.window.tools.get("interpreter").is_ipython():
             cmd = "ipython_execute"
-        if self.get_option_value("fresh_kernel"):
-            self.get_interpreter().restart_kernel()
-            self.window.tools.get("interpreter").clear_output()
+            if self.get_option_value("fresh_kernel"):
+                self.get_interpreter().restart_kernel()
+                time.sleep(1)
+        self.window.tools.get("interpreter").clear_output()
         commands = [
             {
                 "cmd": cmd,

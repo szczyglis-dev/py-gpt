@@ -12,6 +12,8 @@
 import os
 import json
 import re
+import time
+
 import docker
 import io
 import tarfile
@@ -38,6 +40,7 @@ class DockerKernel:
             "hb": 5559,
         }
         self.signals = None
+        self.restarting = False
 
     def get_dockerfile(self) -> str:
         """
@@ -341,7 +344,7 @@ class DockerKernel:
 
         :return: Local data directory.
         """
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"))
+        return str(os.path.join(self.plugin.window.core.config.get_user_dir("data")))
 
     def execute(self, code: str, current: bool = False) -> str:
         """
@@ -354,6 +357,7 @@ class DockerKernel:
         self.init()
         if not current:
             self.restart_kernel()
+            time.sleep(1)
 
         self.log("Executing code: " + str(code)[:100] + "...")
 
@@ -363,7 +367,7 @@ class DockerKernel:
             try:
                 msg = self.client.get_iopub_msg(timeout=1)
             except:
-                continue
+                break
 
             if msg['parent_header'].get('msg_id') != msg_id:
                 continue
@@ -385,6 +389,11 @@ class DockerKernel:
 
         :return: True if the kernel was restarted successfully, False otherwise.
         """
+        if self.restarting:
+            self.log("Kernel is already restarting.")
+            return False
+
+        self.restarting = True
         self.send_output("Restarting...")
         self.restart_container(self.get_container_name())
         if self.client is not None:
@@ -396,6 +405,7 @@ class DockerKernel:
         self.client.wait_for_ready()
         self.log("Connected to IPython kernel.")
         self.send_output("Restarted.")
+        self.restarting = False
         return True
 
     def send_output(self, output: str):

@@ -290,7 +290,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "fresh_kernel",
             type="bool",
-            value=True,
+            value=False,
             label="Always run code in a fresh kernel",
             description="Always run code using Run in a fresh kernel.",
             tab="general",

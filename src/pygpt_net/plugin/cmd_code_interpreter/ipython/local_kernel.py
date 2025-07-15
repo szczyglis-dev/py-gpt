@@ -10,6 +10,8 @@
 # ================================================== #
 
 import re
+import time
+
 from jupyter_client import KernelManager
 
 class LocalKernel:
@@ -19,6 +21,7 @@ class LocalKernel:
         self.manager = None
         self.initialized = False
         self.signals = None
+        self.restarting = False
 
     def restart_kernel(self) -> bool:
         """
@@ -26,6 +29,11 @@ class LocalKernel:
 
         :return: True if successful.
         """
+        if self.restarting:
+            self.log("IPython kernel is already restarting.")
+            return False
+
+        self.restarting = True
         if self.initialized:
             self.client.stop_channels()
             self.manager.restart_kernel(now=True)
@@ -35,6 +43,8 @@ class LocalKernel:
         else:
             self.init()
             self.log("IPython kernel started.")
+        self.client.wait_for_ready()
+        self.restarting = False
         return True
 
     def shutdown_kernel(self):
@@ -106,8 +116,10 @@ class LocalKernel:
         self.init()
         if not current:
             self.restart_kernel()
+            time.sleep(1)
 
         self.log("Executing code: " + str(code)[:100] + "...")
+        self.client.wait_for_ready()
 
         msg_id = self.client.execute(code)
         output = ""
@@ -115,7 +127,7 @@ class LocalKernel:
             try:
                 msg = self.client.get_iopub_msg(timeout=1)
             except:
-                continue
+                break
 
             if msg['parent_header'].get('msg_id') != msg_id:
                 continue
