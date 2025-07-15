@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.15 03:00:00                  #
 # ================================================== #
 
 import os
@@ -279,6 +279,8 @@ class Plugin(BasePlugin):
         :param code: Python code to execute
         """
         cmd = "code_execute"
+        if self.window.tools.get("interpreter").is_ipython():
+            cmd = "ipython_execute"
         if self.get_option_value("fresh_kernel"):
             self.get_interpreter().restart_kernel()
             self.window.tools.get("interpreter").clear_output()
