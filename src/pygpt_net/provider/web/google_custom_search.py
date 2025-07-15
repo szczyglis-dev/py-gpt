@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.07.15 03:00:00                  #
 # ================================================== #
 
 import json
@@ -100,13 +100,16 @@ class GoogleCustomSearch(BaseProvider):
         url += '&q=' + quote(query)
 
         data = self.plugin.get_url(url)
-        res = json.loads(data)
+        res = {}
+        try:
+            res = json.loads(data)
+        except Exception as e:
+            print(e)
 
-        if 'items' not in res:
+        if 'items' not in res or not isinstance(res, dict):
             return []
         for item in res['items']:
             urls.append(item['link'])
-
         return urls
 
     def is_configured(self, cmds: List[Dict]) -> bool:
