@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.42** | build: **2025-07-15** | Python: **>=3.10, <3.13**
+Release: **2.5.43** | build: **2025-07-15** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4107,6 +4107,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.43 (2025-07-15)**
+
+- Improved IPython code execution.
+- Added lock for kernel restarting in Code Interepreter to prevent crash if kernel not ready.
 
 **2.5.42 (2025-07-15)**
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.43 (2025-07-15)
+
+- Improved IPython code execution.
+- Added lock for kernel restarting in Code Interepreter to prevent crash if kernel not ready.
+
 ## 2.5.42 (2025-07-15)
 
 - Connected Run code button in python code blocks to IPython (if enabled).
