@@ -115,6 +115,7 @@ code {{
 .code-header-action img {{
     vertical-align: middle;
     padding-right: 5px;
+    padding-bottom: 3px;
 }}
 .code-header-action:hover, {{
     text-decoration: none;
