@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2025.07.15 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.docker import Docker as BaseDocker
@@ -29,6 +29,7 @@ class Docker(BaseDocker):
     def build_and_restart(self):
         """Run image build and restart container"""
         self.builder.build_image(restart=True)
+        self.window.update_status("Please wait...")
 
     def get_dockerfile(self) -> str:
         """

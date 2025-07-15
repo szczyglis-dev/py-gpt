@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
+# Updated Date: 2025.07.15 00:00:00                  #
 # ================================================== #
 
 import os
@@ -159,11 +159,11 @@ class DockerKernel:
         """Prepare the connection file."""
         ports = self.get_ports()
         conn = {
-            "shell_port": ports["shell"],
-            "iopub_port": ports["iopub"],
-            "stdin_port": ports["stdin"],
-            "control_port": ports["control"],
-            "hb_port": ports["hb"],
+            "shell_port": int(ports["shell"]),
+            "iopub_port": int(ports["iopub"]),
+            "stdin_port": int(ports["stdin"]),
+            "control_port": int(ports["control"]),
+            "hb_port": int(ports["hb"]),
             "ip": self.get_conn_address(),
             "key": self.get_key(),
             "transport": "tcp",
@@ -323,11 +323,11 @@ class DockerKernel:
         :return: Ports.
         """
         ports = {}
-        ports['shell'] = self.plugin.get_option_value('ipython_port_shell')
-        ports['iopub'] = self.plugin.get_option_value('ipython_port_iopub')
-        ports['stdin'] = self.plugin.get_option_value('ipython_port_stdin')
-        ports['control'] = self.plugin.get_option_value('ipython_port_control')
-        ports['hb'] = self.plugin.get_option_value('ipython_port_hb')
+        ports['shell'] = int(self.plugin.get_option_value('ipython_port_shell'))
+        ports['iopub'] = int(self.plugin.get_option_value('ipython_port_iopub'))
+        ports['stdin'] = int(self.plugin.get_option_value('ipython_port_stdin'))
+        ports['control'] = int(self.plugin.get_option_value('ipython_port_control'))
+        ports['hb'] = int(self.plugin.get_option_value('ipython_port_hb'))
         return ports
 
     def get_kernel_file_path(self) -> str:
@@ -554,3 +554,4 @@ class DockerKernel:
         :param msg: Message to log.
         """
         print(msg)
+        self.plugin.window.update_status(msg)

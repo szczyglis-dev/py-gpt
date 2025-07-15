@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 23:00:00                  #
+# Updated Date: 2025.07.15 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -221,6 +221,13 @@ class BasePlugin(QObject):
         :return: option value
         """
         if self.has_option(name):
+            value = self.options[name]["value"]
+            if self.options[name]["type"] == "bool":
+                return bool(value)
+            elif self.options[name]["type"] == "int":
+                return int(value)
+            elif self.options[name]["type"] == "float":
+                return float(value)
             return self.options[name]["value"]
 
     def attach(self, window):

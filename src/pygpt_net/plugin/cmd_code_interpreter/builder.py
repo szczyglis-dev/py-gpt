@@ -32,6 +32,7 @@ class Builder(QObject):
         :param restart: Restart container
         """
         try:
+            self.plugin.window.update_status("Please wait... building...")
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.restart = restart

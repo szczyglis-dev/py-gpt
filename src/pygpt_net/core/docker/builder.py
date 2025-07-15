@@ -28,7 +28,8 @@ class Builder(QObject):
 
     def build_image(self, restart: bool = False):
         """Run image build"""
-        try:
+        try:            
+            self.plugin.window.update_status("Please wait... building...")
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.docker = self.docker
