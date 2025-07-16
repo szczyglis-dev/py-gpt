@@ -39,6 +39,20 @@ class ChatOutput(QTextBrowser):
         self.anchorClicked.connect(self.open_external_link)
         self.setWordWrapMode(QTextOption.WordWrap)
         self.tab = None
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """
+        Focus event filter
+
+        :param source: source
+        :param event: event
+        """
+        if event.type() == event.Type.FocusIn:
+            if self.tab is not None:
+                col_idx = self.tab.column_idx
+                self.window.controller.ui.tabs.on_column_focus(col_idx)
+        return super().eventFilter(source, event)
 
     def set_tab(self, tab):
         """
