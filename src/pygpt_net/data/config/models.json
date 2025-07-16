@@ -370,7 +370,7 @@
             },
             "ctx": 0,
             "tokens": 0,
-            "default": true,
+            "default": false,
             "input": ["image"],
             "output": ["image"],
             "extra": {},

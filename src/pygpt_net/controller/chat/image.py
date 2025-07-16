@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 18:00:00                  #
+# Updated Date: 2025.07.16 15:00:00                  #
 # ================================================== #
-
+import os
 from typing import Optional, List
 
 from PySide6.QtCore import Slot
@@ -145,7 +145,8 @@ class Image:
         string = ""
         i = 1
         for path in paths:
-            string += "{}) `{}`".format(i, path) + "\n"
+            basename = os.path.basename(path)
+            string += "[{}]({})".format(basename, path) + "\n"
             i += 1
 
         if self.window.core.config.get('img_dialog_open'):
