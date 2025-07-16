@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.44** | build: **2025-07-16** | Python: **>=3.10, <3.13**
+Release: **2.5.45** | build: **2025-07-16** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -55,6 +55,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 - Custom commands creation and execution.
 - Crontab / Task scheduler included.
+- Built-in real-time Python Code Interepreter.
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
@@ -4111,6 +4112,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.45 (2025-07-16)**
+
+- Improved IPython kernel restart in Docker container.
+- Fixed Ctrl+F Find shortcut.
+- Decreased tabulation size in text inputs.
+- Added kernel restart and clear output to Code Interpreter RMB context menu.
 
 **2.5.44 (2025-07-16)**
 

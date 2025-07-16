@@ -39,6 +39,7 @@ Features
 * Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
 * Custom commands creation and execution.
 * Crontab / Task scheduler included.
+* Built-in real-time Python Code Interepreter.
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory).
 * Allows you to easily manage prompts with handy editable presets.

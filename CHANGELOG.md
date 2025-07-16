@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.45 (2025-07-16)
+
+- Improved IPython kernel restart in Docker container.
+- Fixed Ctrl+F Find shortcut.
+- Decreased tabulation size in text inputs.
+- Added kernel restart and clear output to Code Interpreter RMB context menu.
+
 ## 2.5.44 (2025-07-16)
 
 - Code syntax highlighting added to the Code Interpreter tool.
