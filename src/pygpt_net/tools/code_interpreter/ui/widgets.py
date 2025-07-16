@@ -75,7 +75,7 @@ class ToolWidget:
         """
         Setup widget body
 
-        :param all: with all widgets
+        :param all: with all widgets (dialog)
         :return: QVBoxLayout
         """
         self.output = HtmlOutput(self.window, self.tool)
@@ -92,11 +92,8 @@ class ToolWidget:
             )
             self.history.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
             self.history.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
-
-        self.label_output = QLabel(trans("interpreter.edit_label.output"))
-        self.label_history = QLabel(trans("interpreter.edit_label.edit"))
-
-        if all:
+            self.label_output = QLabel(trans("interpreter.edit_label.output"))
+            self.label_history = QLabel(trans("interpreter.edit_label.edit"))
             self.checkbox_all = QCheckBox(trans("interpreter.all"))
             self.checkbox_all.setChecked(True)
             self.checkbox_all.clicked.connect(
@@ -130,7 +127,8 @@ class ToolWidget:
         self.input.excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
-        left_layout.addWidget(self.label_output, stretch=0)
+        if all:
+            left_layout.addWidget(self.label_output, stretch=0)
         left_layout.addWidget(self.output, stretch=1)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_widget = QWidget()
