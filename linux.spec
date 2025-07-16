@@ -86,7 +86,11 @@ a = Analysis(
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'pydub',
-    'tweepy'],
+    'tweepy'
+    'ipykernel',
+    'IPython.core.display',
+    'IPython.core.interactiveshell',
+    'jupyter_client'],
     collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'httpx', 'httpx-socks', 'nbconvert'],
     hookspath=[],
     hooksconfig={},

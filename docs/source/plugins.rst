@@ -465,6 +465,8 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 .. image:: images/v2_python.png
    :width: 600
 
+**INFO:** Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via ``Plugins -> Settings``.
+
 **Tip:** always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
 
 **Options:**

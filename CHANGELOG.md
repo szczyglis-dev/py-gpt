@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.44 (2025-07-16)
+
+- Code syntax highlighting added to the Code Interpreter tool.
+- Image output functionality integrated into the Code Interpreter tool.
+- Improved/fixed connection with Docker containers.
+- Fixed parsing of integer parameters from plugins.
+
 ## 2.5.43 (2025-07-15)
 
 - Improved IPython code execution.
