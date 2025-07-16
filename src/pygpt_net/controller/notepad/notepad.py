@@ -163,11 +163,12 @@ class Notepad:
             for tab in tabs:
                 idx = tab.data_id
                 if idx in self.window.ui.notepad:
-                    prev_content = str(items[idx].content)
-                    items[idx].content = self.window.ui.notepad[idx].toPlainText()
-                    # update only if content changed
-                    if prev_content != items[idx].content:
-                        self.window.core.notepad.update(items[idx])
+                    if idx in items:
+                        prev_content = str(items[idx].content)
+                        items[idx].content = self.window.ui.notepad[idx].toPlainText()
+                        # update only if content changed
+                        if prev_content != items[idx].content:
+                            self.window.core.notepad.update(items[idx])
             self.update()
 
     def setup(self):
