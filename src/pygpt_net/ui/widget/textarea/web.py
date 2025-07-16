@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.16 15:00:00                  #
 # ================================================== #
 
 import re
@@ -165,7 +165,7 @@ class ChatWebOutput(QWebEngineView):
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        #action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))

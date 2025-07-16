@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.16 15:00:00                  #
 # ================================================== #
 
 import re
@@ -146,7 +146,7 @@ class HtmlOutput(QWebEngineView):
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        # action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
@@ -240,6 +240,9 @@ class HtmlOutput(QWebEngineView):
             if self.tab:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
+        elif event.type() == QEvent.KeyPress:
+            if event.key() == Qt.Key_F and (event.modifiers() & Qt.ControlModifier):
+                self.find_open()
         return super().eventFilter(source, event)
 
 

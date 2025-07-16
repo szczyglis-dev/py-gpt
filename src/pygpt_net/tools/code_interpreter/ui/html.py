@@ -444,7 +444,7 @@ class HtmlOutput(QWebEngineView):
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
-        action.setShortcut(QKeySequence("Ctrl+F"))
+        #action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
@@ -551,6 +551,9 @@ class HtmlOutput(QWebEngineView):
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
+        elif event.type() == QEvent.KeyPress:
+            if event.key() == Qt.Key_F and (event.modifiers() & Qt.ControlModifier):
+                self.find_open()
         return super().eventFilter(source, event)
 
 
