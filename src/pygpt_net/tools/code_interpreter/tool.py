@@ -102,7 +102,7 @@ class CodeInterpreter(BaseTool):
                 self.window.ui.splitters['interpreter_dialog'].setSizes([size_output, size_input])
             else:
                 QTimer.singleShot(0, set_initial_splitter_dialog_height)
-        QTimer.singleShot(0, set_initial_splitter__dialogheight)
+        QTimer.singleShot(0, set_initial_splitter_dialog_height)
 
         def set_initial_splitter_width():
             total_width = self.window.ui.splitters['interpreter.columns'].size().width()
