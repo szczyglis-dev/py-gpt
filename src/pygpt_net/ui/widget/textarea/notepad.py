@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
-from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor, QFontMetrics
 from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 
 from pygpt_net.core.tabs.tab import Tab
@@ -97,6 +97,11 @@ class NotepadOutput(QTextEdit):
         self.tab = None
         self.last_scroll_pos = None
         self.installEventFilter(self)
+
+        # tabulation
+        metrics = QFontMetrics(self.font())
+        space_width = metrics.horizontalAdvance(" ")
+        self.setTabStopDistance(4 * space_width)
 
     def showEvent(self, event):
         super().showEvent(event)

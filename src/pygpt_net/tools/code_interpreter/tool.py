@@ -439,6 +439,9 @@ class CodeInterpreter(BaseTool):
         input_textarea = widget.input
         input = str(input_textarea.toPlainText()).strip()
 
+        # replace tab with 4 spaces
+        input = input.replace("\t", "    ")
+
         if input == "/restart":
             self.restart_kernel()
             input_textarea.clear()

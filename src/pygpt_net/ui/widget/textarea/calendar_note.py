@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QFontMetrics
 from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.tabs.tab import Tab
@@ -37,6 +37,11 @@ class CalendarNote(QTextEdit):
         self.min_font_size = 8
         self.tab = None
         self.installEventFilter(self)
+
+        # tabulation
+        metrics = QFontMetrics(self.font())
+        space_width = metrics.horizontalAdvance(" ")
+        self.setTabStopDistance(4 * space_width)
 
     def eventFilter(self, source, event):
         """

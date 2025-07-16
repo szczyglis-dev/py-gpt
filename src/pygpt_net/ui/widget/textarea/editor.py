@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QTextCursor, QFontMetrics
 from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.text.finder import Finder
@@ -39,6 +39,11 @@ class BaseCodeEditor(QTextEdit):
         self.setStyleSheet(self.default_stylesheet)
         self.excluded_copy_to = []
         self.textChanged.connect(self.text_changed)
+
+        # tabulation
+        metrics = QFontMetrics(self.font())
+        space_width = metrics.horizontalAdvance(" ")
+        self.setTabStopDistance(4 * space_width)
 
     def text_changed(self):
         """On text changed"""

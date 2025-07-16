@@ -11,6 +11,7 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot
+from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import QTextEdit, QApplication, QVBoxLayout, QLabel, QCheckBox, QPushButton, QWidget, QSplitter, \
     QHBoxLayout
 
@@ -389,6 +390,11 @@ class PythonInput(QTextEdit):
         self.setFocus()
         self.tab = None
         self.installEventFilter(self)
+
+        # tabulation
+        metrics = QFontMetrics(self.font())
+        space_width = metrics.horizontalAdvance(" ")
+        self.setTabStopDistance(4 * space_width)
 
     def set_tab(self, tab):
         """
