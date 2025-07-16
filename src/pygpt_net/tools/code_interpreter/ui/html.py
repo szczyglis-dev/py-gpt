@@ -442,6 +442,25 @@ class HtmlOutput(QWebEngineView):
             )
             menu.addAction(action)
 
+        # restart and close
+        menu.addSeparator()
+        action = QAction(QIcon(":/icons/close.svg"), trans('interpreter.menu.file.clear_output'), self)
+        action.triggered.connect(
+            lambda: self.tool.clear_output()
+        )
+        menu.addAction(action)
+        action = QAction(QIcon(":/icons/close.svg"), trans('interpreter.menu.file.clear_history'), self)
+        action.triggered.connect(
+            lambda: self.tool.clear_history()
+        )
+        menu.addAction(action)
+        action = QAction(QIcon(":/icons/reload.svg"), trans('interpreter.menu.kernel.restart'), self)
+        action.triggered.connect(
+            lambda: self.tool.restart_kernel()
+        )
+        menu.addAction(action)
+
+        menu.addSeparator()
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
         #action.setShortcut(QKeySequence("Ctrl+F"))
