@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.17 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -94,7 +94,6 @@ class Render:
             self.on_page_loaded(meta, tab)
         elif name == RenderEvent.ON_THEME_CHANGE:
             self.on_theme_change()
-            self.window.tools.get("interpreter").reload_view()  # reload interpreter view on theme change
         elif name == RenderEvent.ON_LOAD:
             self.on_load(meta)
         elif name == RenderEvent.ON_TS_ENABLE:

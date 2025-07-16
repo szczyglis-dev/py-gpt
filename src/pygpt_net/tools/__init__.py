@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.07.17 01:00:00                  #
 # ================================================== #
 
 from typing import Dict, Optional
@@ -14,7 +14,9 @@ from typing import Dict, Optional
 from PySide6.QtGui import QAction
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
+from pygpt_net.core.events import BaseEvent
 from .base import BaseTool
+
 
 class Tools:
     def __init__(self, window=None):
@@ -86,6 +88,17 @@ class Tools:
         """On app profile reload"""
         for id in self.tools:
             self.tools[id].on_reload()
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle event
+
+        :param event: BaseEvent instance
+        """
+        for id in self.tools:
+            if event.stop:
+                break
+            self.tools[id].handle(event)
 
     def setup_menu_actions(self) -> Dict[str, QAction]:
         """

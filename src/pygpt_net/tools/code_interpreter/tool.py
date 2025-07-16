@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.17 01:00:00                  #
 # ================================================== #
 
 import json
@@ -21,7 +21,7 @@ from PySide6.QtWidgets import QWidget
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
-from pygpt_net.core.events import Event, KernelEvent
+from pygpt_net.core.events import Event, KernelEvent, BaseEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 from .ui.html import HtmlOutput, CodeBlock
@@ -81,6 +81,16 @@ class CodeInterpreter(BaseTool):
         if not self.window.core.config.has("interpreter.dialog.initialized"):
             self.set_initial_size()
             self.window.core.config.set("interpreter.dialog.initialized", True)
+
+    def handle(self, event: BaseEvent):
+        """
+        Handle event
+
+        :param event: Event instance
+        """
+        name = event.name
+        if name == RenderEvent.ON_THEME_CHANGE:
+            self.reload_view()  # reload web view on theme change
 
     def set_initial_size(self):
         """Set default sizes"""

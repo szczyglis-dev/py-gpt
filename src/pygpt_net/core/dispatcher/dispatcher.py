@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.17 01:00:00                  #
 # ================================================== #
 
 from typing import List, Tuple
@@ -28,7 +28,10 @@ class Dispatcher:
         :param window: Window instance
         """
         self.window = window
-        self.nolog_events = ["system.prompt", "render.stream.append"]
+        self.nolog_events = [
+            "system.prompt",
+            "render.stream.append",
+        ]
         self.call_id = 0
         self._pending_tasks = []
 
@@ -56,6 +59,8 @@ class Dispatcher:
             self.window.core.debug.info("[event] Skipping... (stopped): " + str(event.name))
             return [], event
 
+        handled = False
+
         # kernel events
         if isinstance(event, KernelEvent):
             # dispatch event to kernel controller
@@ -75,7 +80,7 @@ class Dispatcher:
                 KernelEvent.STOP,
                 KernelEvent.TERMINATE,
             ]:
-                return [], event # kernel events finish here
+                handled = True
 
         # render events
         elif isinstance(event, RenderEvent):
@@ -99,6 +104,13 @@ class Dispatcher:
             if self.is_log(event):
                 self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
             self.call_id += 1
+            handled = True
+
+        # dispatch in tools (all events)
+        self.window.tools.handle(event)
+
+        # if event is handled, skip further processing
+        if handled:
             return [], event
 
         # accessibility events
