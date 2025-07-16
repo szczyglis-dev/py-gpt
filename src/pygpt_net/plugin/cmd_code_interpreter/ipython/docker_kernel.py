@@ -384,11 +384,7 @@ class DockerKernel:
         return self.remove_ansi(output).strip()
 
     def restart_kernel(self) -> bool:
-        """
-        Restart the IPython kernel and reconnect.
-
-        :return: True if the kernel was restarted successfully, False otherwise.
-        """
+        """Restart kernel"""
         if self.restarting:
             self.log("Kernel is already restarting.")
             return False
@@ -396,10 +392,15 @@ class DockerKernel:
         self.restarting = True
         self.send_output("Restarting...")
         self.restart_container(self.get_container_name())
+
         if self.client is not None:
             self.client.stop_channels()
-        else:
-            self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
+            try:
+                self.client.close()  # if close() exists
+            except Exception as e:
+                pass
+
+        self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
         self.client.load_connection_file()
         self.client.start_channels()
         self.client.wait_for_ready()
