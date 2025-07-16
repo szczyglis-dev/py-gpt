@@ -4118,6 +4118,7 @@ may consume additional tokens that are not displayed in the main window.
 - Image output functionality integrated into the Code Interpreter tool.
 - Improved/fixed connection with Docker containers.
 - Fixed parsing of integer parameters from plugins.
+- Fixed 'Add tool' option in tabs + button.
 
 **2.5.43 (2025-07-15)**
 

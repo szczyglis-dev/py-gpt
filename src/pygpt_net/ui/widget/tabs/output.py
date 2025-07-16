@@ -81,7 +81,7 @@ class AddButton(QPushButton):
         menu.addAction(actions['add_notepad'])
 
         # add tools submenu
-        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx)
+        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self.tabs)
 
         return menu
 
@@ -205,7 +205,7 @@ class OutputTabs(QTabWidget):
         menu.addAction(actions['add_notepad'])
 
         # add tools submenu
-        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx)
+        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self)
 
         # rename tab
         menu.addAction(actions['edit'])

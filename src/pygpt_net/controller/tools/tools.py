@@ -56,7 +56,8 @@ class Tools:
             parent: QTabWidget,
             menu: QMenu,
             idx: int,
-            column_idx: int
+            column_idx: int,
+            caller: QTabWidget = None
     ) -> QMenu:
         """
         Append tab menu
@@ -65,6 +66,7 @@ class Tools:
         :param menu: menu
         :param idx: tab index
         :param column_idx: column index
+        :param caller: caller widget (default: None)
         :return: tab add submenu
         """
         submenu = menu.addMenu(QIcon(":/icons/add.svg"), trans("action.tab.add.tool"))
@@ -75,9 +77,11 @@ class Tools:
                 continue
             icon = tool.tab_icon
             title = trans(tool.tab_title)
+            if hasattr(parent, 'add_tab'):
+                caller = parent
             action = QAction(QIcon(icon), title, parent)
             action.triggered.connect(
-                lambda idx=idx, column_idx=column_idx, id=id: parent.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
+                lambda idx=idx, column_idx=column_idx, id=id, caller=caller: caller.add_tab(idx, column_idx, Tab.TAB_TOOL, id)
             )
             submenu.addAction(action)
         return submenu
