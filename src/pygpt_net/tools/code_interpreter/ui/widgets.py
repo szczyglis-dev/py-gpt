@@ -11,7 +11,6 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot
-from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QTextEdit, QApplication, QVBoxLayout, QLabel, QCheckBox, QPushButton, QWidget, QSplitter, \
     QHBoxLayout
 
@@ -51,6 +50,10 @@ class ToolWidget:
         self.output.init(force=True)
         self.output.from_plaintext()
 
+        self.history.is_dialog = True
+        self.history.init(force=True)
+        self.history.from_plaintext()
+
     def set_is_dialog(self, is_dialog: bool):
         """
         Set if dialog
@@ -83,14 +86,14 @@ class ToolWidget:
         self.output.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
         if all:
-            self.history = PythonOutput(self.window, self.tool)
-            self.history.textChanged.connect(
-                lambda: self.tool.store_history(self)
+            self.history = HtmlOutput(self.window, self.tool)
+            self.history.setPage(
+                CustomWebEnginePage(self.window, self.history)
             )
-            self.history.setReadOnly(False)
-            self.history.excluded_copy_to = ["interpreter_edit"]
+            self.history.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
+            self.history.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
-        #self.label_output = QLabel(trans("interpreter.edit_label.output"))
+        self.label_output = QLabel(trans("interpreter.edit_label.output"))
         self.label_history = QLabel(trans("interpreter.edit_label.edit"))
 
         if all:
@@ -127,8 +130,8 @@ class ToolWidget:
         self.input.excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
-        #left_layout.addWidget(self.label_output)
-        left_layout.addWidget(self.output)
+        left_layout.addWidget(self.label_output, stretch=0)
+        left_layout.addWidget(self.output, stretch=1)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_widget = QWidget()
         left_widget.setLayout(left_layout)
@@ -138,8 +141,8 @@ class ToolWidget:
 
         if all:
             right_layout = QVBoxLayout()
-            right_layout.addWidget(self.label_history)
-            right_layout.addWidget(self.history)
+            right_layout.addWidget(self.label_history, stretch=0)
+            right_layout.addWidget(self.history, stretch=1)
             right_layout.setContentsMargins(0, 0, 0, 0)
             right_widget = QWidget()
             right_widget.setLayout(right_layout)
@@ -161,11 +164,14 @@ class ToolWidget:
         edit_widget = QWidget()
         edit_widget.setLayout(edit_layout)
 
-        self.window.ui.splitters['interpreter'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['interpreter'].addWidget(edit_widget)
-        self.window.ui.splitters['interpreter'].addWidget(self.input)
-        self.window.ui.splitters['interpreter'].setStretchFactor(0, 4)
-        self.window.ui.splitters['interpreter'].setStretchFactor(1, 1)
+        splitter_id = 'interpreter'
+        if all:
+            splitter_id = 'interpreter_dialog'
+        self.window.ui.splitters[splitter_id] = QSplitter(Qt.Vertical)
+        self.window.ui.splitters[splitter_id].addWidget(edit_widget)
+        self.window.ui.splitters[splitter_id].addWidget(self.input)
+        self.window.ui.splitters[splitter_id].setStretchFactor(0, 9)
+        self.window.ui.splitters[splitter_id].setStretchFactor(1, 1)
 
         # connect signals
         self.tool.signals.update.connect(self.set_output)
@@ -185,7 +191,7 @@ class ToolWidget:
         self.tool.signals.reload_view.connect(self.reload)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.splitters['interpreter'])
+        layout.addWidget(self.window.ui.splitters[splitter_id])
         layout.addLayout(bottom_layout)
         return layout
 
@@ -193,6 +199,8 @@ class ToolWidget:
     def reload(self):
         """Reload view"""
         self.output.reload()
+        if self.history:
+            self.history.reload()
 
     def get_nodes(self) -> list:
         """
@@ -273,10 +281,7 @@ class ToolWidget:
         """
         if not self.history:
             return
-        self.history.setPlainText(data)
-        cur = self.history.textCursor()
-        cur.movePosition(QTextCursor.End)
-        self.history.setTextCursor(cur)
+        self.history.set_history(data)
 
     @Slot()
     def append_to_input(self, data: str):

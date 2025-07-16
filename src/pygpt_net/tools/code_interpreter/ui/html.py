@@ -328,6 +328,26 @@ class HtmlOutput(QWebEngineView):
             print(e)
         self.update_current_content()
 
+    def set_history(self, content: str):
+        """
+        Set history content
+
+        :param content: Content
+        """
+        self.set_plaintext(content)
+        self.nodes = []
+        self.nodes.append(CodeBlock(content))
+        try:
+            if not self.loaded:
+                return  # wait for page to load
+            self.init()
+            escaped_chunk = json.dumps(content)
+            self.page().runJavaScript(
+                f"replaceOutput({escaped_chunk});")
+        except Exception as e:
+            print(e)
+        self.update_current_content()
+
     def append_output(self, content: str, type: str = "stdout"):
         """
         Append output content

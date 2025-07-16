@@ -94,6 +94,16 @@ class CodeInterpreter(BaseTool):
                 QTimer.singleShot(0, set_initial_splitter_height)
         QTimer.singleShot(0, set_initial_splitter_height)
 
+        def set_initial_splitter_dialog_height():
+            total_height = self.window.ui.splitters['interpreter_dialog'].size().height()
+            if total_height > 0:
+                size_output = int(total_height * 0.85)
+                size_input = total_height - size_output
+                self.window.ui.splitters['interpreter_dialog'].setSizes([size_output, size_input])
+            else:
+                QTimer.singleShot(0, set_initial_splitter_dialog_height)
+        QTimer.singleShot(0, set_initial_splitter__dialogheight)
+
         def set_initial_splitter_width():
             total_width = self.window.ui.splitters['interpreter.columns'].size().width()
             if total_width > 0:
@@ -219,7 +229,7 @@ class CodeInterpreter(BaseTool):
         """
         return self.dialog.widget
 
-    def get_widget_history(self) -> PythonOutput:
+    def get_widget_history(self) -> HtmlOutput:
         """
         Get history widget
 
@@ -545,7 +555,7 @@ class CodeInterpreter(BaseTool):
         """
         if not widget.history:
             return
-        data = widget.history.toPlainText()
+        data = widget.history.get_plaintext()
         self.save_history(data)
 
     def open(self):
@@ -582,9 +592,7 @@ class CodeInterpreter(BaseTool):
 
     def scroll_to_bottom(self):
         """Scroll down"""
-        self.get_widget_history().verticalScrollBar().setValue(
-            self.get_widget_history().verticalScrollBar().maximum()
-        )
+        self.get_widget_history().scroll_to_bottom()
         self.get_widget_output().scroll_to_bottom()
 
     def toggle(self):
@@ -681,9 +689,7 @@ class CodeInterpreter(BaseTool):
 
     def cursor_to_end(self):
         """Move cursor to end"""
-        cur = self.get_widget_history().textCursor()
-        cur.movePosition(QTextCursor.End)
-        self.get_widget_history().setTextCursor(cur)
+        self.get_widget_history().scroll_to_bottom()
 
     def setup_menu(self) -> Dict[str, QAction]:
         """
