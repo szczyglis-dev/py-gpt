@@ -115,7 +115,10 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries + [('msvcp100.dll', 'C:\\Windows\\System32\\msvcp100.dll', 'BINARY'),
+    a.binaries + [
+              ('pywintypes310.dll', 'venv\\Lib\\site-packages\\pywin32_system32\\pywintypes310.dll', 'BINARY'),
+              ('pythoncom310.dll', 'venv\\Lib\\site-packages\\pywin32_system32\\pythoncom310.dll', 'BINARY'),
+              ('msvcp100.dll', 'C:\\Windows\\System32\\msvcp100.dll', 'BINARY'),
               ('msvcr100.dll', 'C:\\Windows\\System32\\msvcr100.dll', 'BINARY')]
     if sys.platform == 'win32' else a.binaries,
     exclude_binaries=True,

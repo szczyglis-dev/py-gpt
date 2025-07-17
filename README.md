@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.45** | build: **2025-07-16** | Python: **>=3.10, <3.13**
+Release: **2.5.46** | build: **2025-07-17** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4112,6 +4112,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.46 (2025-07-17)**
+
+- Fix: kernel resume after Docker image rebuild.
+- Fix: update history after output clear in Code Interpreter.
 
 **2.5.45 (2025-07-16)**
 

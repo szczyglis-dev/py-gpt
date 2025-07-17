@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.5.45",
-    "app.version": "2.5.45",
-    "updated_at": "2025-07-16T00:00:00"
+    "version": "2.5.46",
+    "app.version": "2.5.46",
+    "updated_at": "2025-07-17T00:00:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -205,7 +205,7 @@
   "llama.hub.loaders.use_local": false,
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
-  "llama.idx.auto.modes": "chat,completion,vision,assistant,langchain,llama_index,agent",
+  "llama.idx.auto.modes": "chat,completion,vision,assistant,research,llama_index,agent",
   "llama.idx.chat.auto_retrieve": true,
   "llama.idx.chat.mode": "context",
   "llama.idx.current": null,

@@ -17,7 +17,7 @@
     "research": false,
     "temperature": 1.0,
     "filename": "agent_code_act",
-    "model": "gpt-4o",
+    "model": "codex-mini-latest",
     "tools": {
         "function": []
     },
