@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import re
@@ -450,8 +450,8 @@ class Renderer(BaseRenderer):
         """
         if type != "msg-user":  # markdown for bot messages
             text = self.helpers.pre_format_text(text)
-            text = self.append_timestamp(ctx, text)
             text = self.parser.parse(text)
+            text = self.append_timestamp(ctx, text)
         else:
             content = self.append_timestamp(ctx, self.helpers.format_user_text(text), type=type)
             text = "<div><p>" + content + "</p></div>"

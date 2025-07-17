@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import json
@@ -1007,9 +1007,9 @@ class Renderer(BaseRenderer):
         msg_id = "msg-bot-" + str(ctx.id) if ctx is not None else ""
         # if is_cmd:
         # html = self.helpers.format_cmd_text(html)
-        html = self.helpers.pre_format_text(html)
-        html = self.append_timestamp(ctx, html, type=self.NODE_OUTPUT)
+        html = self.helpers.pre_format_text(html)        
         html = self.parser.parse(html)
+        html = self.append_timestamp(ctx, html, type=self.NODE_OUTPUT)
         html = self.helpers.post_format_text(html)
         extra = self.append_extra(meta, ctx, footer=True, render=False)
         footer = self.body.prepare_action_icons(ctx)
