@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -22,7 +22,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_EXPERT, MODE_LLAMA_INDEX,
 )
-from pygpt_net.core.events import KernelEvent, RenderEvent
+from pygpt_net.core.events import KernelEvent, RenderEvent, BaseEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -57,7 +57,7 @@ class Kernel(QObject):
         self.status = ""
 
     @Slot(object)
-    def listener(self, event: KernelEvent):
+    def listener(self, event: BaseEvent):
         """
         Async listener for kernel events
 

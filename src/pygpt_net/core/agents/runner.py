@@ -30,7 +30,7 @@ from pygpt_net.core.types import (
     AGENT_MODE_STEP,
     AGENT_MODE_WORKFLOW,
 )
-from pygpt_net.core.events import Event, KernelEvent
+from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -133,7 +133,6 @@ class Runner:
             elif mode == AGENT_MODE_ASSISTANT:
                 return self.run_assistant(**kwargs)
             elif mode == AGENT_MODE_WORKFLOW:
-                print("CALL WORKFLOW")
                 kwargs["history"] = history
                 kwargs["llm"] = llm
                 return asyncio.run(self.run_workflow(**kwargs))
@@ -168,9 +167,14 @@ class Runner:
         handler = agent.run(query, ctx=ctx, memory=memory, verbose=verbose)
         if verbose:
             print(f"User:  {query}")
+
         begin = True
         if item_ctx.live_output is None:
             item_ctx.live_output = ""
+        if item_ctx.output is None:
+            item_ctx.output = ""
+        if item_ctx.stream is None:
+            item_ctx.stream = ""
 
         async for event in handler.stream_events():
             if self.is_stopped():
@@ -180,20 +184,25 @@ class Runner:
                 output = f"\n-----------\nExecution result:\n{event.tool_output}"
                 if verbose:
                     print(output)
-                item_ctx.live_output += "\n```output\n" + str(event.tool_output) + "\n```\n"
+                formatted = "\n```output\n" + str(event.tool_output) + "\n```\n"
+                item_ctx.live_output += formatted
+                item_ctx.stream = formatted
                 self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
                     if verbose:
                         print(output)
-                    item_ctx.live_output += "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
+                    formatted = "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
+                    item_ctx.live_output += formatted
+                    item_ctx.stream = formatted
                     self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, AgentStream):
                 if verbose:
                     print(f"{event.delta}", end="", flush=True)
                 if event.delta:
                     item_ctx.live_output += event.delta
+                    item_ctx.stream = event.delta
                 self.send_live_append(item_ctx, signals, event.delta, begin)  # send stream to webview
                 begin = False
 
@@ -765,16 +774,14 @@ class Runner:
         :param text: text to send
         :param begin: True if it is the beginning of the text
         """
-        context = BridgeContext()
-        context.ctx = ctx
-        extra = {
-            "chunk": str(text),
+        chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n")
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+            "chunk": chunk, # use stream for live output
             "begin": begin,
         }
-        event = KernelEvent(KernelEvent.LIVE_APPEND, {
-            'context': context,
-            'extra': extra,
-        })
+        event = RenderEvent(RenderEvent.STREAM_APPEND, data)
         signals.response.emit(event)
 
     def send_live_clear(self, ctx: CtxItem, signals: BridgeSignals):
@@ -784,13 +791,11 @@ class Runner:
         :param ctx: CtxItem
         :param signals: BridgeSignals
         """
-        context = BridgeContext()
-        context.ctx = ctx
-        extra = {}
-        event = KernelEvent(KernelEvent.LIVE_CLEAR, {
-            'context': context,
-            'extra': extra,
-        })
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.STREAM_END, data)
         signals.response.emit(event)
 
     def send_response(
