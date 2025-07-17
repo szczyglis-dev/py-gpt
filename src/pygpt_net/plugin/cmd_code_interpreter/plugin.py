@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import os
 import time
+import uuid
 
 from PySide6.QtCore import Slot
 
@@ -68,6 +69,19 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
+
+    def make_temp_file_path(self, extension: str = "png"):
+        """
+        Make temporary file path for code execution
+
+        :param extension: file extension
+        :return: temporary file path
+        """
+        name = uuid.uuid4().hex + f".{extension}"
+        dir = os.path.join(self.window.core.config.get_user_dir('data'), "tmp")
+        if not os.path.exists(dir):
+            os.makedirs(dir, exist_ok=True)
+        return os.path.join(dir, name)
 
     def handle(self, event: Event, *args, **kwargs):
         """
