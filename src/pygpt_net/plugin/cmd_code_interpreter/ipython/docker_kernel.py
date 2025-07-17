@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
-
+import base64
 import os
 import json
 import re
@@ -429,6 +429,26 @@ class DockerKernel:
 
             if msg['parent_header'].get('msg_id') != msg_id:
                 continue
+
+            # receive binary image data
+            if msg['msg_type'] in ['display_data', 'execute_result']:
+                data = msg['content'].get('data', {})
+                if 'image/png' in data:
+                    b64_image = data['image/png']
+                    binary_image = base64.b64decode(b64_image)
+                    self.log("Received binary image data.")
+                    if binary_image:
+                        path_to_save = self.plugin.make_temp_file_path('png')
+                        try:
+                            with open(path_to_save, 'wb') as f:
+                                f.write(binary_image)
+                            self.log(f"Image saved to: {path_to_save}")
+                            self.send_output(path_to_save)
+                            return str(path_to_save)
+                        except Exception as e:
+                            self.log(f"Error saving image: {e}")
+                            self.send_output(f"Error saving image: {e}")
+                            return f"Error saving image: {e}"
 
             chunk = str(self.process_message(msg))
             if chunk.strip() != "":

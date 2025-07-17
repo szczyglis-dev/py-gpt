@@ -173,11 +173,16 @@ class LocalKernel:
                     self.log("Received binary image data.")
                     if binary_image:
                         path_to_save = self.plugin.make_temp_file_path('png')
-                        with open(path_to_save, 'wb') as f:
-                            f.write(binary_image)
-                        self.log(f"Image saved to: {path_to_save}")
-                        self.send_output(path_to_save)
-                        return str(path_to_save)
+                        try:
+                            with open(path_to_save, 'wb') as f:
+                                f.write(binary_image)
+                            self.log(f"Image saved to: {path_to_save}")
+                            self.send_output(path_to_save)
+                            return str(path_to_save)
+                        except Exception as e:
+                            self.log(f"Error saving image: {e}")
+                            self.send_output(f"Error saving image: {e}")
+                            return f"Error saving image: {e}"
 
             chunk = str(self.process_message(msg))
             if chunk.strip() != "":
