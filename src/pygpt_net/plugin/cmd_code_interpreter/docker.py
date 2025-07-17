@@ -29,7 +29,7 @@ class Docker(BaseDocker):
     def build_and_restart(self):
         """Run image build and restart container"""
         self.builder.build_image(restart=True)
-        self.window.update_status("Please wait...")
+        self.plugin.window.update_status("Please wait...")
 
     def get_dockerfile(self) -> str:
         """

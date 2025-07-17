@@ -375,6 +375,9 @@ class CodeInterpreter(BaseTool):
         path = self.get_path_output()
         if os.path.exists(path):
             os.remove(path)
+        path_json = self.get_path_output_json()
+        if os.path.exists(path_json):
+            os.remove(path_json)
         self.signals.clear_output.emit()
 
     def clear(self, force: bool = False):
@@ -399,6 +402,7 @@ class CodeInterpreter(BaseTool):
 
     def restart_kernel(self):
         """Restart kernel"""
+        self.window.controller.kernel.resume()
         print("Sending restart event...")
         commands = [
             {
@@ -442,6 +446,7 @@ class CodeInterpreter(BaseTool):
 
         :param widget: PythonInput widget
         """
+        self.window.controller.kernel.resume()
         self.store_history(widget)
         if self.auto_clear:
             self.clear_output()
@@ -499,6 +504,7 @@ class CodeInterpreter(BaseTool):
 
         :param input: Code to execute
         """
+        self.window.controller.kernel.resume()
         if input == "/restart":
             self.restart_kernel()
             return
