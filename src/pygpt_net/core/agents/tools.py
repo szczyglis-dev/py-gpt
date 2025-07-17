@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import json
@@ -349,6 +349,25 @@ class Tools:
         if self.has_last_tool_output():
             outputs = [self.get_last_tool_output()]
             ctx.extra["tool_output"] = [self.get_last_tool_output()]
+            if outputs is not None:
+                response = ""
+                for output in outputs:
+                    if ("code" in output and "output" in output["code"] and
+                            "content" in output["code"]["output"]):
+                        response += str(output["code"]["output"]["content"])
+                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
+            if clear:
+                self.clear_last_tool_output()  # clear after use
+
+    def extract_tool_outputs(self, ctx: CtxItem, clear: bool = True):
+        """
+        Append tool outputs to context
+
+        :param ctx: CtxItem
+        :param clear: clear last tool output after appending
+        """
+        if self.has_last_tool_output():
+            outputs = [self.get_last_tool_output()]
             if outputs is not None:
                 response = ""
                 for output in outputs:
