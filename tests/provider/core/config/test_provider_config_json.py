@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 13:00:00                  #
+# Updated Date: 2025.07.17 21:00:00                  #
 # ================================================== #
 
 import json
@@ -25,7 +25,7 @@ def test_install(mock_window):
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value = True
         provider.install()
-        os_path_exists.assert_called_once()
+        os_path_exists.assert_called()
 
 
 def test_get_version(mock_window):

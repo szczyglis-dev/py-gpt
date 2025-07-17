@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.17 21:00:00                  #
 # ================================================== #
 
 import json
@@ -37,6 +37,22 @@ class JsonFileProvider(BaseProvider):
         if not os.path.exists(dst):
             src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
+        else:
+            # check if models file is correct - if not, then restore from base models
+            try:
+                with open(dst, 'r', encoding="utf-8") as file:
+                    json.load(file)
+            except json.JSONDecodeError:
+                print("RECOVERY: Models file `{}` is corrupted. Restoring from base models.".format(dst))
+                backup_dst = os.path.join(self.window.core.config.path, 'models.bak.json')
+                if os.path.exists(backup_dst):
+                    os.remove(backup_dst)
+                shutil.copyfile(dst, backup_dst)
+                os.remove(dst)
+                print("RECOVERY: Backup of corrupted models file created: {}".format(backup_dst))
+                src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
+                shutil.copyfile(src, dst)
+                print("RECOVERY: Restored models file from base models: {}".format(src))
 
     def get_version(self) -> Optional[str]:
         """
@@ -64,6 +80,8 @@ class JsonFileProvider(BaseProvider):
     def load(self, path: Optional[str] = None) -> Optional[Dict[str, ModelItem]]:
         """
         Load models config from JSON file
+
+        :param path: path to JSON file, if None then use default path
         """
         items = {}
         if path is None:

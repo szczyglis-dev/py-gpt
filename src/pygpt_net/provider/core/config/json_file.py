@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.07.17 21:00:00                  #
 # ================================================== #
 
 import json
@@ -32,13 +32,36 @@ class JsonFileProvider(BaseProvider):
         self.sections_file = 'settings_section.json'
 
     def install(self):
-        """
-        Install provider data files
-        """
+        """Install provider data files"""
+        # config file
         dst = os.path.join(self.path, self.config_file)
         if not os.path.exists(dst):
             src = os.path.join(self.path_app, 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
+        else:
+            # check if config file is correct - if not, then restore from base config
+            try:
+                with open(dst, 'r', encoding="utf-8") as file:
+                    json.load(file)
+            except json.JSONDecodeError:
+                print("RECOVERY: Config file `{}` is corrupted. Restoring from base config.".format(dst))
+                backup_dst = os.path.join(self.path, 'config.bak.json')
+                if os.path.exists(backup_dst):
+                    os.remove(backup_dst)
+                shutil.copyfile(dst, backup_dst)
+                os.remove(dst)
+                print("RECOVERY: Backup of corrupted config file created: {}".format(backup_dst))
+                src = os.path.join(self.path_app, 'data', 'config', self.config_file)
+                shutil.copyfile(src, dst)
+                print("RECOVERY: Restored config file from base config: {}".format(src))
+
+        # tmp directory
+        tmp_dir = os.path.join(self.path, 'tmp')
+        if not os.path.exists(tmp_dir):
+            try:
+                os.makedirs(tmp_dir, exist_ok=True)
+            except Exception as e:
+                print("WARNING: Cannot create ``{}`` temp directory: {}".format(tmp_dir, e))
 
     def get_version(self) -> Optional[str]:
         """
@@ -58,6 +81,7 @@ class JsonFileProvider(BaseProvider):
         """
         Load config from JSON file
 
+        :param all: if True, print loaded config message
         :return: dict with data or None if file not found
         """
         data = {}
