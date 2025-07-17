@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.47** | build: **2025-07-17** | Python: **>=3.10, <3.13**
+Release: **2.5.48** | build: **2025-07-17** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4112,6 +4112,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.48 (2025-07-17)**
+
+- Added binary image output handling from Code Interpreter.
+- Added auto-restart IPython kernel on failure or not initialized.
+- Improved agents loop and evaluation.
+- Added LlamaIndex provider config for Grok.
 
 **2.5.47 (2025-07-17)**
 
