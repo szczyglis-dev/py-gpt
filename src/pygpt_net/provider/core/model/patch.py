@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.17 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -660,6 +660,23 @@ class Patch:
                     model = data[id]
                     if id in base_data:
                         model.tool_calls = base_data[id].tool_calls
+                updated = True
+
+            # < 2.5.48 <--- add LlamaIndex modes to x_ai
+            if old < parse_version("2.5.48"):
+                print("Migrating models from < 2.5.48...")
+                for id in data:
+                    model = data[id]
+                    if model.provider == "x_ai":
+                        if model.id != "grok-2-vision":
+                            if "llama_index" not in model.mode:
+                                model.mode.append("llama_index")
+                            if "agent" not in model.mode:
+                                model.mode.append("agent")
+                            if "agent_llama" not in model.mode:
+                                model.mode.append("agent_llama")
+                            if "expert" not in model.mode:
+                                model.mode.append("expert")
                 updated = True
 
         # update file

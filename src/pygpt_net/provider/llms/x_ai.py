@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.17 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
 
+from llama_index.llms.openai_like import OpenAILike
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 
 from pygpt_net.core.types import (
     MODE_CHAT,
+    MODE_LLAMA_INDEX,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -27,7 +29,7 @@ class xAILLM(BaseLLM):
         super(xAILLM, self).__init__(*args, **kwargs)
         self.id = "x_ai"
         self.name = "xAI"
-        self.type = [MODE_CHAT]
+        self.type = [MODE_CHAT, MODE_LLAMA_INDEX]
 
     def completion(
             self,
@@ -75,7 +77,8 @@ class xAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        pass
+        args = self.parse_args(model.llama_index, window)
+        return OpenAILike(**args)
 
     def llama_multimodal(
             self,

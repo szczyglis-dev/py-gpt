@@ -299,8 +299,7 @@
             "name": "codex-mini-latest",
             "mode": [
                 "chat",
-                "vision",
-                "agent_llama"
+                "vision"
             ],
             "llama_index": {
                 "args": [
@@ -1812,7 +1811,11 @@
             "id": "grok-3",
             "name": "grok-3",
             "mode": [
-                "chat"
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -1847,7 +1850,11 @@
             "id": "grok-3-fast",
             "name": "grok-3-fast",
             "mode": [
-                "chat"
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -1882,7 +1889,11 @@
             "id": "grok-3-mini",
             "name": "grok-3-mini",
             "mode": [
-                "chat"
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -1917,7 +1928,11 @@
             "id": "grok-3-mini-fast",
             "name": "grok-3-mini-fast",
             "mode": [
-                "chat"
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -1988,7 +2003,11 @@
             "id": "grok-4",
             "name": "grok-4",
             "mode": [
-                "chat"
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert"
             ],
             "llama_index": {
                 "args": [
