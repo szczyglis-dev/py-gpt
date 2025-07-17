@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -439,6 +439,16 @@ class Runner:
         """
         sandbox = self.is_sandbox_ipython()
         data = item["params"]['code']
+
+        # auto-init after error (enable only for manual call)
+        auto_init = False
+        if "auto_init" in item["params"]:
+            auto_init = item["params"]['auto_init']
+
+        # check if command is to restart the kernel
+        if data.strip().startswith("/restart"):
+            return self.ipython_kernel_restart(ctx, item, request, all)
+
         if not all:
             path = self.plugin.window.tools.get("interpreter").file_current
             if "path" in item["params"]:
@@ -463,7 +473,11 @@ class Runner:
         try:
             self.log("Please wait...", sandbox=sandbox)
             self.send_interpreter_output_begin("stdout")
-            result = self.plugin.get_interpreter().execute(data, current=True)
+            result = self.plugin.get_interpreter().execute(
+                data,
+                current=True,
+                auto_init=auto_init,  # auto initialize after error
+            )
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
