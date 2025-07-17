@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 00:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import os
@@ -22,6 +22,9 @@ from jupyter_client import BlockingKernelClient
 from docker.errors import DockerException
 
 class DockerKernel:
+
+    NOT_READY_MSG = "IPython kernel is not initialized... try to restart the kernel with: /restart"
+
     def __init__(self, plugin = None):
         self.plugin = plugin
         self.kernel_file = ".interpreter.kernel.json"
@@ -41,6 +44,7 @@ class DockerKernel:
         }
         self.signals = None
         self.restarting = False
+        self.allow_auto_restart = True
 
     def get_dockerfile(self) -> str:
         """
@@ -118,24 +122,46 @@ class DockerKernel:
             if 'stream' in chunk:
                 self.log(chunk['stream'].strip())
 
-    def init(self, force: bool = False):
+    def init(
+            self,
+            force: bool = False,
+            auto_init: bool = False) -> None:
         """
         Initialize the IPython kernel client.
 
         :param force: Force reinitialization.
+        :param auto_init: Automatically initialize the kernel if not initialized after error.
         """
         if self.initialized and not force:
             return
+
         self.prepare_local_data_dir()
         self.start_container(self.get_container_name())
         self.prepare_conn()
         self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
         self.client.load_connection_file()
         self.client.start_channels()
-        self.client.wait_for_ready()
+
+        try:
+            self.client.wait_for_ready()
+        except RuntimeError as e:
+            print(e)
+            self.log(f"Error connecting to IPython kernel: {e}")
+            self.initialized = False
+
+            # try to restart the container if auto-restart is allowed
+            if self.allow_auto_restart:
+                self.allow_auto_restart = False  # Disable auto-restart again to prevent infinite loop
+                self.log("Trying to auto-restart the container...")
+                self.restart()
+                if auto_init:
+                    self.init()
+            return
+
         self.log("Connected to IPython kernel.")
         self.initialized = True
         self.log("IPython kernel is ready.")
+        self.allow_auto_restart = True  # Re-enable auto-restart after successful connection
 
     def prepare_local_data_dir(self):
         """
@@ -346,18 +372,50 @@ class DockerKernel:
         """
         return str(os.path.join(self.plugin.window.core.config.get_user_dir("data")))
 
-    def execute(self, code: str, current: bool = False) -> str:
+    def check_ready(self):
+        """
+        Check if the IPython kernel is ready.
+
+        :return: True if the kernel is ready, False otherwise.
+        """
+        try:
+            if self.client is not None:
+                self.client.wait_for_ready(timeout=1)
+                return True
+        except Exception as e:
+            self.log(f"Error checking IPython kernel readiness: {e}")
+        return False
+
+    def execute(
+            self,
+            code: str,
+            current: bool = False,
+            auto_init: bool = False) -> str:
         """
         Execute the code in the IPython kernel.
 
         :param code: Python code to execute.
         :param current: Use the current kernel.
+        :param auto_init: Automatically initialize the kernel if not initialized after error.
         :return: Output from the kernel.
         """
-        self.init()
+        self.init(
+            force=False,
+            auto_init=auto_init,
+        )
+        if not self.initialized:
+            self.log("IPython kernel is not initialized.")
+            self.send_output(self.NOT_READY_MSG)
+            return self.NOT_READY_MSG
+
         if not current:
             self.restart_kernel()
             time.sleep(1)
+
+        if not self.check_ready():
+            self.log("IPython kernel is not ready.")
+            self.send_output(self.NOT_READY_MSG)
+            return self.NOT_READY_MSG
 
         self.log("Executing code: " + str(code)[:100] + "...")
 

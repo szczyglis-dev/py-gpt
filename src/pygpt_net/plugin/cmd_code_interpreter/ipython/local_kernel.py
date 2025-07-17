@@ -8,13 +8,16 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.07.10 20:00:00                  #
 # ================================================== #
-
+import base64
 import re
 import time
 
 from jupyter_client import KernelManager
 
 class LocalKernel:
+
+    NOT_READY_MSG = "IPython kernel is not initialized... try to restart the kernel with: /restart"
+
     def __init__(self, plugin = None):
         self.plugin = plugin
         self.client = None
@@ -105,21 +108,50 @@ class LocalKernel:
         self.client.stop_channels()  # stop the client
         self.manager.shutdown_kernel()
 
-    def execute(self, code: str, current: bool = False) -> str:
+    def check_ready(self):
+        """
+        Check if the IPython kernel is ready.
+
+        :return: True if the kernel is ready, False otherwise.
+        """
+        try:
+            if self.client is not None:
+                self.client.wait_for_ready(timeout=1)
+                return True
+        except Exception as e:
+            self.log(f"Error checking IPython kernel readiness: {e}")
+        return False
+
+    def execute(
+            self,
+            code: str,
+            current: bool = False,
+            auto_init: bool = False
+    ) -> str:
         """
         Execute the code in the IPython kernel.
 
         :param code: Python code to execute.
         :param current: Use the current kernel.
+        :param auto_init: Automatically initialize the kernel if not initialized after error.
         :return: Output from the kernel.
         """
         self.init()
+        if not self.initialized:
+            self.log("IPython kernel is not initialized.")
+            self.send_output(self.NOT_READY_MSG)
+            return self.NOT_READY_MSG
+
         if not current:
             self.restart_kernel()
             time.sleep(1)
 
         self.log("Executing code: " + str(code)[:100] + "...")
-        self.client.wait_for_ready()
+
+        if not self.check_ready():
+            self.log("IPython kernel is not ready.")
+            self.send_output(self.NOT_READY_MSG)
+            return self.NOT_READY_MSG
 
         msg_id = self.client.execute(code)
         output = ""
@@ -131,6 +163,21 @@ class LocalKernel:
 
             if msg['parent_header'].get('msg_id') != msg_id:
                 continue
+
+            # receive binary image data
+            if msg['msg_type'] in ['display_data', 'execute_result']:
+                data = msg['content'].get('data', {})
+                if 'image/png' in data:
+                    b64_image = data['image/png']
+                    binary_image = base64.b64decode(b64_image)
+                    self.log("Received binary image data.")
+                    if binary_image:
+                        path_to_save = self.plugin.make_temp_file_path('png')
+                        with open(path_to_save, 'wb') as f:
+                            f.write(binary_image)
+                        self.log(f"Image saved to: {path_to_save}")
+                        self.send_output(path_to_save)
+                        return str(path_to_save)
 
             chunk = str(self.process_message(msg))
             if chunk.strip() != "":
