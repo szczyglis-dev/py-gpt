@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.47 (2025-07-17)
+
+- Disabled output clear on kernel restart in Code Interpreter.
+
 ## 2.5.46 (2025-07-17)
 
 - Fix: kernel resume after Docker image rebuild.

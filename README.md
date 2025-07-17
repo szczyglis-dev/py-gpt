@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.46** | build: **2025-07-17** | Python: **>=3.10, <3.13**
+Release: **2.5.47** | build: **2025-07-17** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4112,6 +4112,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.47 (2025-07-17)**
+
+- Disabled output clear on kernel restart in Code Interpreter.
 
 **2.5.46 (2025-07-17)**
 
