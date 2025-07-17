@@ -956,15 +956,17 @@ class Renderer(BaseRenderer):
         if self.is_debug():
             debug = self.append_debug(ctx, pid, "input")
 
+        extra_style = ""
         extra = ""
         if ctx.extra is not None and "footer" in ctx.extra:
             extra = ctx.extra["footer"]
+            extra_style = "display:block;"
         html = (
             '<div class="msg-box msg-user" id="{msg_id}">'
             '<div class="name-header name-user">{name}</div>'
             '<div class="msg">'
             '{html}'
-            '<div class="msg-extra">{extra}</div>'
+            '<div class="msg-extra" style="{extra_style}">{extra}</div>'
             '{debug}'
             '</div>'
             '</div>'
@@ -973,6 +975,7 @@ class Renderer(BaseRenderer):
             name=name,
             html=html,
             extra=extra,
+            extra_style=extra_style,
             debug=debug,
         )
 

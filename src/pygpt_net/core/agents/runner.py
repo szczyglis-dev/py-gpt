@@ -169,12 +169,9 @@ class Runner:
             print(f"User:  {query}")
 
         begin = True
-        if item_ctx.live_output is None:
-            item_ctx.live_output = ""
-        if item_ctx.output is None:
-            item_ctx.output = ""
-        if item_ctx.stream is None:
-            item_ctx.stream = ""
+        item_ctx.live_output = ""
+        item_ctx.output = ""
+        item_ctx.stream = ""
 
         async for event in handler.stream_events():
             if self.is_stopped():
@@ -560,7 +557,7 @@ class Runner:
             if self.is_stopped():
                 return True  # abort if stopped
 
-            # the is no tool calls here, only final response
+            # there is no tool calls here, only final response
             if step_output.is_last:
                 response = agent.finalize_response(task.task_id, step_output=step_output)
                 response_ctx = self.add_ctx(ctx)
