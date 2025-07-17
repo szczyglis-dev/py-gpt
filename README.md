@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.48** | build: **2025-07-17** | Python: **>=3.10, <3.13**
+Release: **2.5.49** | build: **2025-07-18** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4112,6 +4112,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.49 (2025-07-18)**
+
+- Added binary image output handling to docker kernel in Code Interpreter.
+- Added score display in agent loop/evaluation mode.
+- Added auto-recovery from base config if config file is corrupted.
+- Profile move and duplicate moved to separated thread.
 
 **2.5.48 (2025-07-17)**
 

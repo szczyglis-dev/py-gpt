@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.49 (2025-07-18)
+
+- Added binary image output handling to docker kernel in Code Interpreter.
+- Added score display in agent loop/evaluation mode.
+- Added auto-recovery from base config if config file is corrupted.
+- Profile move and duplicate moved to separated thread.
+
 ## 2.5.48 (2025-07-17)
 
 - Added binary image output handling from Code Interpreter.
