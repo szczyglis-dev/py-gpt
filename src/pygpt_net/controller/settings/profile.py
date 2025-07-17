@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.18 00:00:00                  #
 # ================================================== #
 
-import copy
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
-from uuid import uuid4
 
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QAction
 
 from pygpt_net.utils import trans
@@ -41,6 +40,14 @@ class Profile:
             self.window.profiles.setup()  # widget dialog
             self.dialog_initialized = True
 
+    def switch_current(self, uuid: str):
+        """
+        Switch to current profile (force reload)
+
+        :param uuid: Profile UUID
+        """
+        self.switch(uuid, force=True, save_current=False)
+
     def switch(
             self,
             uuid: str,
@@ -58,6 +65,7 @@ class Profile:
         if uuid == current and not force:
             self.update_menu()
             return
+
         profile = self.window.core.config.profile.get(uuid)
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
@@ -73,12 +81,28 @@ class Profile:
         # switch to profile workdir
         path = self.window.core.config.profile.get_current_workdir()
         if path and os.path.exists(path):
-            self.window.controller.settings.workdir.update(path, force=True)
+            self.window.controller.settings.workdir.update(
+                path,
+                force=True,
+                profile_name= profile['name']
+            )  # self.after_update() is called in update worker on success
+        else:
+            self.after_update(profile['name'])
 
+
+    def after_update(
+            self,
+            name: str,
+    ):
+        """
+        After profile switch
+
+        :param name: Profile name
+        """
         self.update_menu()
         self.update_list()
         self.window.ui.update_title()
-        self.window.update_status(trans("dialog.profile.status.changed") + ": " + profile['name'])
+        self.window.update_status(trans("dialog.profile.status.changed") + ": " + name)
         self.select_current_on_list()
 
     def select_current_on_list(self):
@@ -252,8 +276,8 @@ class Profile:
             # make duplicate
             self.duplicate(uuid, name, path)
             self.window.update_status(trans("dialog.profile.status.duplicated"))
-            if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
-                self.switch(uuid, force=True)
+            # if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
+                # self.switch(uuid, force=True)
 
         # close dialog and update list
         self.window.ui.dialogs.close('profile.item')
@@ -340,83 +364,6 @@ class Profile:
             return
         self.delete_all(uuid)
 
-    def delete_all(self, uuid: str):
-        """
-        Delete profile with files
-
-        :param uuid: profile ID
-        """
-        profiles = self.get_profiles()
-        remove_datadir = True
-        remove_db = True
-        if uuid in profiles:
-            profile = profiles[uuid]
-            name = profile['name']
-            path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            # remove profile
-            if self.window.core.config.profile.remove(uuid):
-                if not os.path.exists(path) or not os.path.isdir(path):
-                    self.window.ui.dialogs.alert(trans("dialog.profile.alert.path.not_exists"))
-                    return
-                print("Clearing workdir: ", path)
-                self.window.core.filesystem.clear_workdir(
-                    path,
-                    remove_db=remove_db,
-                    remove_datadir=remove_datadir,
-                )
-                self.window.update_status(trans("dialog.profile.status.deleted") + ": " + name)
-                self.update_list()
-                self.update_menu()
-
-    def duplicate(
-            self,
-            uuid: str,
-            new_name: str,
-            new_path: str
-    ):
-        """
-        Duplicate profile
-
-        :param uuid: profile ID
-        :param new_name: new profile name
-        :param new_path: new profile path
-        """
-        profiles = self.get_profiles()
-        if uuid not in profiles:
-            self.window.ui.dialogs.alert("Profile not found!")
-            return
-        profile = profiles[uuid]
-
-        copy_datadir = self.is_include_datadir()
-        copy_db = self.is_include_db()
-
-        # make copy
-        duplicate = copy.deepcopy(profile)
-        new_uuid = str(uuid4())
-        duplicate['name'] = new_name
-        duplicate['workdir'] = new_path
-        self.window.core.config.profile.append(new_uuid, duplicate)
-
-        # copy files from workdir
-        path_from = profile['workdir'].replace("%HOME%", str(Path.home()))
-        path_to = new_path
-        print("Copying all files from {} to: {}".format(path_from, path_to))
-        self.window.update_status("Copying files...")
-        result = self.window.core.filesystem.copy_workdir(
-            path_from,
-            path_to,
-            copy_db=copy_db,
-            copy_datadir=copy_datadir,
-        )
-        if not result:
-            self.window.ui.dialogs.alert("Error copying files!")
-            self.window.update_status("Error copying files!")
-            return
-        print("[OK] All files copied successfully.")
-        self.window.update_status("Files copied.")
-        self.update_list()
-        self.update_menu()
-
     def duplicate_by_idx(self, idx: int):
         """
         Duplicate profile by index
@@ -438,32 +385,65 @@ class Profile:
         self.window.ui.dialog['profile.item'].prepare()
         self.window.ui.dialog['profile.item'].show()
 
+    def delete_all(self, uuid: str):
+        """
+        Delete profile with files
+
+        :param uuid: profile ID
+        """
+        self.window.controller.settings.workdir.delete_files(uuid)
+
+    @Slot(str)
+    def after_delete(self, name: str):
+        """
+        After files deletion (called from worker)
+
+        :param name: profile name
+        """
+        self.window.update_status(trans("dialog.profile.status.deleted") + ": " + name)
+        self.update_list()
+        self.update_menu()
+
+    def duplicate(
+            self,
+            uuid: str,
+            new_name: str,
+            new_path: str
+    ):
+        """
+        Duplicate profile
+
+        :param uuid: profile ID
+        :param new_name: new profile name
+        :param new_path: new profile path
+        """
+        self.window.controller.settings.workdir.duplicate(
+            profile_uuid=uuid,
+            new_name=new_name,
+            new_path=new_path,
+        )
+
+    @Slot(str, str)
+    def after_duplicate(self, uuid: str, name: str):
+        """
+        After profile duplication (called from worker)
+
+        :param uuid: new profile ID
+        :param name: new profile name
+        """
+        self.window.update_status("Files copied to new profile: " + name)
+        self.update_list()
+        self.update_menu()
+        if self.window.ui.nodes['dialog.profile.checkbox.switch'].isChecked():
+            self.switch(uuid, force=True)
+
     def reset(self, uuid: str):
         """
         Reset profile
 
         :param uuid: profile ID
         """
-        profiles = self.get_profiles()
-        current = self.window.core.config.profile.get_current()
-        remove_datadir = False
-        remove_db = True
-        if uuid in profiles:
-            profile = profiles[uuid]
-            path = profile['workdir'].replace("%HOME%", str(Path.home()))
-            if not os.path.exists(path) or not os.path.isdir(path):
-                self.window.ui.dialogs.alert("Directory not exists!")
-                return
-            print("Clearing workdir: ", path)
-            self.window.core.db.close()
-            self.window.core.filesystem.clear_workdir(
-                path,
-                remove_db=remove_db,
-                remove_datadir=remove_datadir,
-            )
-            if uuid == current:
-                self.switch(uuid, force=True, save_current=False)  # reload current profile
-            self.window.update_status("Profile cleared: " + profile['name'])
+        self.window.controller.settings.workdir.reset(uuid)
 
     def reset_by_idx(self, idx: int, force: bool = False):
         """
