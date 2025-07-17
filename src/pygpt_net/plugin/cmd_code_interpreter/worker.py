@@ -164,7 +164,7 @@ class Worker(BaseWorker):
         extra = {
             'plugin': "cmd_code_interpreter",
         }
-        self.cmd_clear_python_output(item)
+        # self.cmd_clear_python_output(item)
         return self.make_response(item, result, extra=extra)
 
     def cmd_code_execute_file(self, item: dict) -> dict:
