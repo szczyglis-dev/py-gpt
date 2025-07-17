@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 01:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import json
@@ -457,12 +457,12 @@ class CodeInterpreter(BaseTool):
         # replace tab with 4 spaces
         input = input.replace("\t", "    ")
 
-        if input == "/restart":
+        if input.strip().startswith("/restart"):
             self.restart_kernel()
             input_textarea.clear()
             input_textarea.setFocus()
             return
-        elif input == "/clear":
+        elif input.strip().startswith("/clear"):
             self.clear(force=True)
             input_textarea.clear()
             input_textarea.setFocus()
@@ -484,6 +484,7 @@ class CodeInterpreter(BaseTool):
                 "params": {
                     "code": input,
                     "path": self.file_current,
+                    "auto_init": True,  # auto initialize kernel if not initialized after error
                 },
                 "silent": True,
                 "force": True,

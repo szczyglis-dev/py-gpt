@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import asyncio
+import copy
+import re
 from typing import Optional, Dict, Any, List
 
 from llama_index.core.tools import FunctionTool
@@ -123,6 +125,7 @@ class Runner:
                 "signals": signals,
                 "verbose": verbose,
             }
+
             if mode == AGENT_MODE_PLAN:
                 return self.run_plan(**kwargs)
             elif mode == AGENT_MODE_STEP:
@@ -130,6 +133,7 @@ class Runner:
             elif mode == AGENT_MODE_ASSISTANT:
                 return self.run_assistant(**kwargs)
             elif mode == AGENT_MODE_WORKFLOW:
+                print("CALL WORKFLOW")
                 kwargs["history"] = history
                 kwargs["llm"] = llm
                 return asyncio.run(self.run_workflow(**kwargs))
@@ -165,24 +169,31 @@ class Runner:
         if verbose:
             print(f"User:  {query}")
         begin = True
+        if item_ctx.live_output is None:
+            item_ctx.live_output = ""
+
         async for event in handler.stream_events():
             if self.is_stopped():
                 self.send_live_clear(item_ctx, signals)
                 break
             if isinstance(event, ToolCallResult):
-                output = f"\n-----------\nCode execution result:\n{event.tool_output}"
+                output = f"\n-----------\nExecution result:\n{event.tool_output}"
                 if verbose:
                     print(output)
+                item_ctx.live_output += "\n```output\n" + str(event.tool_output) + "\n```\n"
                 self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
                     if verbose:
                         print(output)
+                    item_ctx.live_output += "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
                     self.send_live_append(item_ctx, signals, output, begin)
             elif isinstance(event, AgentStream):
                 if verbose:
                     print(f"{event.delta}", end="", flush=True)
+                if event.delta:
+                    item_ctx.live_output += event.delta
                 self.send_live_append(item_ctx, signals, event.delta, begin)  # send stream to webview
                 begin = False
 
@@ -227,12 +238,18 @@ class Runner:
         )
         response_ctx = self.add_ctx(ctx)
         response_ctx.set_input("inp")
-        response_ctx.set_output(str(response))
+
+        prev_output = ctx.live_output
+        # remove all <execute>...</execute>
+        if prev_output:
+            prev_output = re.sub(r'<execute>.*?</execute>', '', prev_output, flags=re.DOTALL)
+        response_ctx.set_output(prev_output)
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
 
         # if there are tool outputs, img, files, append it to the response context
-        self.window.core.agents.tools.append_tool_outputs(response_ctx)
+        # self.window.core.agents.tools.append_tool_outputs(response_ctx)
+        self.window.core.agents.tools.extract_tool_outputs(response_ctx)
         self.send_live_clear(response_ctx, signals)
 
         # send response
@@ -634,6 +651,8 @@ class Runner:
         self.set_busy(signals)
         self.next_instruction = ""  # reset
         self.prev_score = -1  # reset
+
+        # run agent once
         self.run_once(prompt, tools, ctx.model)  # tool will update evaluation
         return self.handle_evaluation(ctx, self.next_instruction, self.prev_score, signals)
 
@@ -699,6 +718,7 @@ class Runner:
         context = BridgeContext()
         context.ctx = step_ctx
         context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
+        context.prompt = instruction  # use instruction as prompt
         preset = self.window.controller.presets.get_current()
         extra = {
             "agent_idx": preset.idx,

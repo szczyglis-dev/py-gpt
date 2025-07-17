@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 00:00:00                  #
+# Updated Date: 2025.07.17 19:00:00                  #
 # ================================================== #
 
 import os
@@ -229,7 +229,14 @@ class Parser:
 
             # Get the class of <code> to determine the language (if available)
             code = el.find('code')
+            is_output = False
             language = code['class'][0] if (code and code.has_attr('class') and 'language-' in code['class'][0]) else ''
+
+            # tool output
+            if language == "language-output":
+                language = "language-python"
+                code['class'] = "language-python"
+                is_output = True
 
             lang_span = soup.new_tag('span', **{'class': "code-header-lang"})
             lang_span['class'] = "code-header-lang"
@@ -238,6 +245,10 @@ class Parser:
                 lang_span.string = language + "   "
             else:
                 lang_span.string = "code "
+
+            # if tool output, change the title to "output"
+            if is_output:
+                lang_span.string = "output"
 
             link_wrapper.append(lang_span)
 
@@ -250,7 +261,7 @@ class Parser:
                 preview.insert(0, preview_icon)
                 link_wrapper.append(preview)
 
-            elif language == 'python':
+            elif language == 'python' and not is_output:
                 run = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
                 run['class'] = "code-header-action code-header-run"
                 run.string = trans('ctx.extra.run')
