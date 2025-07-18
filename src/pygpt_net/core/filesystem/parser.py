@@ -74,12 +74,14 @@ class Parser:
         processed_paths = []
         for file in raw_paths:
             new_file = replace_with_local(file)
-            processed_paths.append(new_file)
+            if new_file not in processed_paths:
+                processed_paths.append(new_file)
 
         for path in processed_paths:
             ext = os.path.splitext(path)[1].lower().lstrip(".")
-            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]:
-                images_list.append(path)
+            if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
+                if path not in images_list:
+                    images_list.append(path)
 
         local_images = self.window.core.filesystem.make_local_list(images_list)
         ctx.files = processed_paths
