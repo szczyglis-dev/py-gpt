@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.18 19:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -697,6 +697,44 @@ class Tabs:
             if tab is not None and tab.type == Tab.TAB_CHAT:
                 self.switch_tab_by_idx(tab.idx, col)
                 return
+
+    def focus_by_type(
+            self,
+            type: str,
+            data_id: Optional[int] = None,
+            title: Optional[str] = None
+    ):
+        """
+        Focus by type and optionally update tab data ID and name
+
+        :param type: tab type
+        :param data_id: data ID (optional, for chat tab)
+        :param title: new tab name (optional, for chat tab)
+        """
+        # first try to focus current tab
+        if self.get_current_type() != type:
+            idx, column_idx, exists = self.window.core.tabs.get_min_idx_by_type_exists(type)
+            if exists:
+                tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+                if tabs and idx:
+                    tabs.setCurrentIndex(idx)
+                    return
+            else:
+                # if current is not type, find first tab
+                tab = self.window.core.tabs.get_first_by_type(type)
+                if tab:
+                    tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+                    if tabs:
+                        idx = tab.idx
+                        if data_id is not None:
+                            tab.pid = data_id
+                            tab.data_id = data_id
+                            self.on_column_focus(tab.column_idx)
+                            if title is not None:
+                                self.update_title_current(title)
+                        else:
+                            self.on_column_focus(tab.column_idx)
+                        tabs.setCurrentIndex(idx)
 
     def on_split_screen_changed(self, state: bool):
         """
