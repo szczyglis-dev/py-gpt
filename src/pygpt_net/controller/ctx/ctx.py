@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.18 03:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -148,16 +148,16 @@ class Ctx:
         """
         prev_id = self.window.core.ctx.get_current()
         self.window.core.ctx.set_current(id)
+        meta = self.window.core.ctx.get_meta_by_id(id)
         if prev_id != id or force:
             self.load(id)
             self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
         else:
             # only update current group if defined
-            meta = self.window.core.ctx.get_meta_by_id(id)
             if meta is not None:
                 self.set_group(meta.group_id)
 
-        self.common.focus_chat()
+        self.common.focus_chat(meta)
         # update additional context attachments
         self.window.controller.chat.attachment.update()
 
@@ -287,7 +287,7 @@ class Ctx:
             self.window.controller.assistant.files.update()  # always update assistant files
 
         self.common.update_label(mode, assistant_id)
-        self.common.focus_chat()
+        self.common.focus_chat(meta)
 
         # update tab title
         if meta is not None:

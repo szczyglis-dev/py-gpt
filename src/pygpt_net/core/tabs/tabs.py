@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.07.18 03:00:00                  #
 # ================================================== #
 
 import uuid
 from datetime import datetime
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, Tuple
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
@@ -416,8 +416,35 @@ class Tabs:
             if (tab.type == type
                     and tab.column_idx == column_idx
                     and tab.idx < min):
+                print(tab)
                 min = tab.idx
         return min
+
+    def get_min_idx_by_type_exists(
+            self,
+            type: int,
+            column_idx: int = 0
+    ) -> Tuple[int, int, bool]:
+        """
+        Get min index by type
+
+        :param type: Tab type
+        :param column_idx: Column index
+        :return: Min index
+        """
+        min = 999999
+        column_idx = None
+        exists = False
+        for pid in self.pids:
+            tab = self.pids[pid]
+            if (tab.type == type
+                    and tab.column_idx == column_idx
+                    and tab.idx < min):
+                print(tab)
+                min = tab.idx
+                exists = True
+                column_idx = tab.column_idx
+        return min, column_idx, exists
 
     def update(self):
         """Update tabs data (pids) from UI (all columns)"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.18 03:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
+from pygpt_net.item.ctx import CtxMeta
 from .summarizer import Summarizer
 
 
@@ -95,13 +96,35 @@ class Common:
         """Dismiss rename dialog"""
         self.window.ui.dialog['rename'].close()
 
-    def focus_chat(self):
-        """Focus chat"""
-        tabs = self.window.ui.layout.get_active_tabs()
+    def focus_chat(self, meta: CtxMeta):
+        """
+        Focus chat
+
+        :param meta: CtxMeta instance
+        """
+        # first try to focus current chat tab
         if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
-            idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_CHAT)
-            if idx is not None:
-                tabs.setCurrentIndex(idx)
+            idx, column_idx, exists = self.window.core.tabs.get_min_idx_by_type_exists(Tab.TAB_CHAT)
+            if exists:
+                tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+                if tabs and idx:
+                    tabs.setCurrentIndex(idx)
+                    return
+            else:
+                # if current is not chat, find first chat tab
+                tab = self.window.core.tabs.get_first_by_type(Tab.TAB_CHAT)
+                if tab:
+                    tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+                    if tabs:
+                        idx = tab.idx
+                        if meta:
+                            tab.pid = meta.id
+                            tab.data_id = meta.id
+                            self.window.controller.ui.tabs.on_column_focus(tab.column_idx)
+                            self.window.controller.ui.tabs.update_title_current(meta.name)
+                        else:
+                            self.window.controller.ui.tabs.on_column_focus(tab.column_idx)
+                        tabs.setCurrentIndex(idx)
 
     def restore_display_filter(self):
         """Restore display filter"""
