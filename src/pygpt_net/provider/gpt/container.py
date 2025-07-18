@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import time
 
 import requests
 from typing import List
@@ -76,23 +77,24 @@ class Container:
 
             # prepare the path to save the file
             if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
-                path = os.path.join(
+                dir = os.path.join(
                     self.window.core.config.get_user_dir('data'),
                     self.window.core.config.get("download.dir"),
-                    file_name,
                 )
             else:
-                path = os.path.join(
-                    self.window.core.config.get_user_dir('data'),
-                    file_name,
-                )
+                dir = self.window.core.config.get_user_dir('data')
+
+            path = os.path.join(dir, file_name)
+            if os.path.exists(path):
+                prefix = time.strftime("%Y%m%d_%H%M%S_")
+                path = os.path.join(dir, f"{prefix}{file_name}")
 
             # download the file
             try:
                 response = requests.get(url, headers=headers)
                 if response.status_code == 200:
                     file_content = response.content
-                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    os.makedirs(dir, exist_ok=True)
                     with open(path, 'wb') as f:
                         f.write(file_content)
                     downloaded_files.append(str(path))
