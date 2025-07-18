@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.19 00:00:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, List, Dict
 
+from httpx_socks import SyncProxyTransport
+from openai import DefaultHttpxClient
 from packaging.version import Version
 
 from pygpt_net.core.types import (
@@ -463,18 +465,34 @@ class Models:
 
     def prepare_client_args(
             self,
-            args: dict,
             mode: str = MODE_CHAT,
             model: ModelItem = None
     ) -> Dict[str, str]:
         """
         Prepare chat client arguments
 
-        :param args: client arguments
         :param mode: mode name
         :param model: ModelItem
         :return: client arguments dict
         """
+        args = {
+            "api_key": self.window.core.config.get('api_key'),
+            "organization": self.window.core.config.get('organization_key'),
+        }
+        # api endpoint
+        if self.window.core.config.has('api_endpoint'):
+            endpoint = self.window.core.config.get('api_endpoint')
+            if endpoint:
+                args["base_url"] = endpoint
+        # proxy
+        if self.window.core.config.has('api_proxy'):
+            proxy = self.window.core.config.get('api_proxy')
+            if proxy:
+                transport = SyncProxyTransport.from_url(proxy)
+                args["http_client"] = DefaultHttpxClient(
+                    transport=transport,
+                )
+
         # research mode endpoint - Perplexity
         if model is not None:
             # xAI / grok

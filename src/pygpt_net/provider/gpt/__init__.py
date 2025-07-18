@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.19 00:00:00                  #
 # ================================================== #
+
 import base64
 
-from httpx_socks import SyncProxyTransport
-
-from openai import OpenAI, DefaultHttpxClient
+from openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -29,6 +28,7 @@ from .audio import Audio
 from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
+from .container import Container
 from .image import Image
 from .responses import Responses
 from .store import Store
@@ -49,6 +49,7 @@ class Gpt:
         self.audio = Audio(window)
         self.chat = Chat(window)
         self.completion = Completion(window)
+        self.container = Container(window)
         self.image = Image(window)
         self.responses = Responses(window)
         self.store = Store(window)
@@ -67,26 +68,8 @@ class Gpt:
         :param model: Model
         :return: OpenAI client
         """
-        args = {
-            "api_key": self.window.core.config.get('api_key'),
-            "organization": self.window.core.config.get('organization_key'),
-        }
-        # api endpoint
-        if self.window.core.config.has('api_endpoint'):
-            endpoint = self.window.core.config.get('api_endpoint')
-            if endpoint:
-                args["base_url"] = endpoint
-        # proxy
-        if self.window.core.config.has('api_proxy'):
-            proxy = self.window.core.config.get('api_proxy')
-            if proxy:
-                transport = SyncProxyTransport.from_url(proxy)
-                args["http_client"] = DefaultHttpxClient(
-                    transport=transport,
-                )
-
         # update client args by mode and model
-        args = self.window.core.models.prepare_client_args(args, mode, model)
+        args = self.window.core.models.prepare_client_args(mode, model)
         return OpenAI(**args)
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.19 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -39,6 +39,7 @@ class StreamWorker(QObject, QRunnable):
         error = None
         fn_args_buffers = {}
         citations = []
+        files = []
         img_path = self.window.core.image.gen_unique_path(self.ctx)
         is_image = False
         is_code = False
@@ -156,6 +157,13 @@ class StreamWorker(QObject, QRunnable):
                                 url_citation = chunk.annotation['url']
                                 citations.append(url_citation)
                                 self.ctx.urls = citations
+                            if chunk.annotation['type'] == "container_file_citation":
+                                container_id = chunk.annotation['container_id']
+                                file_id = chunk.annotation['file_id']
+                                files.append({
+                                    "container_id": container_id,
+                                    "file_id": file_id,
+                                })
 
                         # ---------- code interpreter ----------
                         elif etype == "response.code_interpreter_call_code.delta":
@@ -265,6 +273,14 @@ class StreamWorker(QObject, QRunnable):
         # update ctx
         self.ctx.output = output
         self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+
+        # if files from container are found, download them and append to ctx
+        if files:
+            self.window.core.debug.info("[chat] Container files found, downloading...")
+            try:
+                self.window.core.gpt.container.download_files(self.ctx, files)
+            except Exception as e:
+                self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
         self.end.emit(self.ctx)
         if error:
