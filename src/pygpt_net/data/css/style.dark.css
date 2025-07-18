@@ -60,6 +60,9 @@ QMenu::item:selected {{
 QPushButton {{
   text-transform: none;
 }}
+QHeaderView::section {{
+  text-transform: none;
+}}
 
 .label-title {{
   font-weight: bold;

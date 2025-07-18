@@ -35,14 +35,12 @@ QTabBar::tab:top:selected,
 QTabBar::tab:top:hover {{
   color: #000;
 }}
-
 QPushButton {{
   color: #3e3e3e;
   text-transform: none;
   background-color: {QTMATERIAL_SECONDARYCOLOR};
   border: 1px solid #fff;
 }}
-
 QLineEdit {{
   color: #000000; 
   border: 1px solid #c0c0c0;
@@ -133,6 +131,9 @@ QRadioButton::indicator:unchecked {{
   image: none;
   border: 1px solid #828282 !important;
   background-color: #fff;
+}}
+QHeaderView::section {{
+  text-transform: none;
 }}
 
 QMenu::indicator {{
