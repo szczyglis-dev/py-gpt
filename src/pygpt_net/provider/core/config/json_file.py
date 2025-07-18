@@ -55,8 +55,8 @@ class JsonFileProvider(BaseProvider):
                 shutil.copyfile(src, dst)
                 print("RECOVERY: Restored config file from base config: {}".format(src))
 
-        # tmp directory
-        tmp_dir = os.path.join(self.path, 'tmp')
+        # data/tmp directory
+        tmp_dir = os.path.join(self.window.core.config.get_user_dir('data'), 'tmp')
         if not os.path.exists(tmp_dir):
             try:
                 os.makedirs(tmp_dir, exist_ok=True)
