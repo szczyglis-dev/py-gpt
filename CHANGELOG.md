@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.50 (2025-07-18)
+
+- Improved tabs handling in split-screen.
+
 ## 2.5.49 (2025-07-18)
 
 - Added binary image output handling to docker kernel in Code Interpreter.
