@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.52 (2025-07-19)
+
+- Added automatic files and images download from Response API / remote Code Interpreter containers.
+
 ## 2.5.51 (2025-07-18)
 
 - Updated CSS, removed uppercase from tabs and buttons.

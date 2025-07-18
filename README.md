@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.51** | build: **2025-07-18** | Python: **>=3.10, <3.13**
+Release: **2.5.52** | build: **2025-07-19** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4112,6 +4112,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.52 (2025-07-19)**
+
+- Added automatic files and images download from Response API / remote Code Interpreter containers.
 
 **2.5.51 (2025-07-18)**
 
