@@ -169,13 +169,13 @@ class Runner:
             print(f"User:  {query}")
 
         begin = True
-        item_ctx.live_output = ""
-        item_ctx.output = ""
-        item_ctx.stream = ""
+        item_ctx.live_output = ""  # to response append
+        item_ctx.output = ""  # empty to prevent render
+        item_ctx.stream = ""  # for stream
 
         async for event in handler.stream_events():
             if self.is_stopped():
-                self.send_live_clear(item_ctx, signals)
+                self.end_stream(item_ctx, signals)
                 break
             if isinstance(event, ToolCallResult):
                 output = f"\n-----------\nExecution result:\n{event.tool_output}"
@@ -184,7 +184,7 @@ class Runner:
                 formatted = "\n```output\n" + str(event.tool_output) + "\n```\n"
                 item_ctx.live_output += formatted
                 item_ctx.stream = formatted
-                self.send_live_append(item_ctx, signals, output, begin)
+                self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
@@ -193,15 +193,15 @@ class Runner:
                     formatted = "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
                     item_ctx.live_output += formatted
                     item_ctx.stream = formatted
-                    self.send_live_append(item_ctx, signals, output, begin)
+                    self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, AgentStream):
                 if verbose:
                     print(f"{event.delta}", end="", flush=True)
                 if event.delta:
                     item_ctx.live_output += event.delta
                     item_ctx.stream = event.delta
-                self.send_live_append(item_ctx, signals, event.delta, begin)  # send stream to webview
-                begin = False
+                    self.send_stream(item_ctx, signals, begin)  # send stream to webview
+                    begin = False
 
         return await handler
 
@@ -249,14 +249,14 @@ class Runner:
         # remove all <execute>...</execute>
         if prev_output:
             prev_output = re.sub(r'<execute>.*?</execute>', '', prev_output, flags=re.DOTALL)
-        response_ctx.set_output(prev_output)
+        response_ctx.set_output(prev_output)  # append from stream
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
 
         # if there are tool outputs, img, files, append it to the response context
         # self.window.core.agents.tools.append_tool_outputs(response_ctx)
         self.window.core.agents.tools.extract_tool_outputs(response_ctx)
-        self.send_live_clear(response_ctx, signals)
+        self.end_stream(response_ctx, signals)
 
         # send response
         self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
@@ -756,19 +756,17 @@ class Runner:
         ctx.live = True
         return ctx
 
-    def send_live_append(
+    def send_stream(
             self,
             ctx: CtxItem,
             signals: BridgeSignals,
-            text: str,
             begin: bool=False
     ):
         """
-        Send live response to chat window (BridgeSignals)
+        Send stream chunk to chat window (BridgeSignals)
 
         :param ctx: CtxItem
         :param signals: BridgeSignals
-        :param text: text to send
         :param begin: True if it is the beginning of the text
         """
         chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n")
@@ -781,9 +779,9 @@ class Runner:
         event = RenderEvent(RenderEvent.STREAM_APPEND, data)
         signals.response.emit(event)
 
-    def send_live_clear(self, ctx: CtxItem, signals: BridgeSignals):
+    def end_stream(self, ctx: CtxItem, signals: BridgeSignals):
         """
-        Send live clear response to chat window (BridgeSignals)
+        End of stream in chat window (BridgeSignals)
 
         :param ctx: CtxItem
         :param signals: BridgeSignals
