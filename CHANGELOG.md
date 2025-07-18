@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.51 (2025-07-18)
+
+- Updated CSS, removed uppercase from tabs and buttons.
+- Fixed tab names translations.
+
 ## 2.5.50 (2025-07-18)
 
 - Improved tabs handling in split-screen.
