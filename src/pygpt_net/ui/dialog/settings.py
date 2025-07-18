@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.18 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -222,7 +222,11 @@ class Settings(BaseConfigDialog):
                         name_key = trans("settings.section.tab.general")
                     else:
                         name_key = trans("settings.section." + section_id + "." + tab_id)
-                    tab_name = trans(name_key.replace(" ", "_").lower())
+                    tab_name = name_key
+                    trans_key = name_key.replace(" ", "_").lower()
+                    translated = trans(trans_key)
+                    if translated != trans_key:
+                        tab_name = translated
                     scroll_widget = QWidget()
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)

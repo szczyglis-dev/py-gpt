@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2025.07.18 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -54,7 +54,7 @@ class Settings:
         sections = self.window.core.settings.get_sections()
         i = 0
         for section_id in sections.keys():
-            key = 'settings.section.' + section_id.replace("-", "_")
+            key = 'settings.section.' + section_id
             self.window.ui.tabs['settings.section'].setTabText(i, trans(key))
             i += 1
 
