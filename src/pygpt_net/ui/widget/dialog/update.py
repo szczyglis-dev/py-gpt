@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 17:00:00                  #
+# Updated Date: 2025.07.18 17:00:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, 
 
 from pygpt_net.ui.widget.element.labels import TitleLabel, CmdLabel
 from pygpt_net.utils import trans
+
 from .base import BaseDialog
 
 
@@ -164,6 +165,12 @@ class UpdateDialog(BaseDialog):
         else:
             self.info_upgrade.setVisible(False)
 
+        # Microsoft policy: hide download button if from MS Store
+        is_store = False
+        if self.window.core.platforms.is_ms_store():
+            self.www.setVisible(False)
+            is_store = True
+
         # check platform
         self.cmd.setVisible(False)
         self.download_file.setVisible(False)
@@ -177,8 +184,14 @@ class UpdateDialog(BaseDialog):
                 if self.window.core.platforms.is_windows():
                     self.download_link = download_windows
                     self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
-                    self.download_file.setVisible(False)  # Windows Store: disabled
-                    self.info_upgrade.setVisible(False)  # Windows Store: disabled
+                    if is_store:
+                        self.download_file.setVisible(False)  # Windows Store: disabled
+                        self.info_upgrade.setVisible(False)  # Windows Store: disabled
+                        self.www.setVisible(False)
+                    else:
+                        self.download_file.setVisible(True)
+                        self.info_upgrade.setVisible(True)
+                        self.www.setVisible(False)
                 elif self.window.core.platforms.is_linux():
                     self.download_link = download_linux
                     self.download_file.setText("{} .tar.gz ({})".format(trans("action.download"), version))
@@ -186,6 +199,7 @@ class UpdateDialog(BaseDialog):
             else:  # pip
                 self.cmd.setText(self.cmd_pip)
                 self.cmd.setVisible(True)
+                
 
         # show snap store button
         if self.window.core.platforms.is_linux():

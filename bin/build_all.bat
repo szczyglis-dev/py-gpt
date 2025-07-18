@@ -11,6 +11,24 @@ cd "%CurrentDir%"
 
 "%SIGNTOOL%\signtool.exe" sign /t http://time.certum.pl "%CD%\..\dist\Windows\pygpt.exe"
 
-REM Create installer
+REM Create installer (download)
 call build_installer.bat
-"%SIGNTOOL%\signtool.exe" sign /t http://time.certum.pl "%CD%\..\dist\pygpt-%ProductVersion%.msi"
+
+REM Sign
+IF EXIST "%CD%\..\dist\pygpt-%ProductVersion%.msi" (
+    echo "Installer (download) found, signing..."
+    "%SIGNTOOL%\signtool.exe" sign /t http://time.certum.pl "%CD%\..\dist\pygpt-%ProductVersion%.msi"
+) ELSE (
+    echo "Installer (download) not found, aborting..."
+)
+
+REM Create installer (MS Store)
+call build_installer_store.bat
+
+REM Sign
+IF EXIST "%CD%\..\dist\store\pygpt-%ProductVersion%.msi" (
+    echo "Installer (MS Store) found, signing..."
+    "%SIGNTOOL%\signtool.exe" sign /t http://time.certum.pl "%CD%\..\dist\store\pygpt-%ProductVersion%.msi"
+) ELSE (
+    echo "Installer (MS Store) not found, aborting..."
+)

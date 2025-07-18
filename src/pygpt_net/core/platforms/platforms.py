@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 06:00:00                  #
+# Updated Date: 2025.07.18 17:00:00                  #
 # ================================================== #
 
 import platform
@@ -115,6 +115,17 @@ class Platforms:
                and "SNAP_NAME" in os.environ \
                and os.environ["SNAP_NAME"] == Config.SNAP_NAME
 
+    def is_ms_store(self) -> bool:
+        """
+        Return True if app is running as Microsoft Store app
+
+        :return: True if app is running as Microsoft Store app
+        """
+        path = os.path.join(self.window.core.config.get_app_path(), '.ms_store')
+        if os.path.exists(path):
+            return True
+        return False
+
     def get_as_string(self, env_suffix: bool = True) -> str:
         """
         Return platform as string
@@ -137,6 +148,11 @@ class Platforms:
             suffix = ' (snap)'
         elif self.window.core.config.is_compiled():
             suffix = ' (standalone)'
+            if self.is_windows():
+                if not self.is_ms_store():
+                    suffix = ' (standalone)'
+                else:
+                    suffix = ' (MS Store)'
         return suffix
 
     def is_svg_supported(self) -> bool:
