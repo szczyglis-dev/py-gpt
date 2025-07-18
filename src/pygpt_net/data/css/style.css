@@ -2,13 +2,9 @@
   font-family: 'Lato' !important; 
 }}
 
-/*
 QPushButton {{
-  color: {QTMATERIAL_SECONDARYCOLOR};
   text-transform: none;
-  background-color: {QTMATERIAL_PRIMARYCOLOR};
 }}
-*/
 
 QLineEdit {{
   color: #ffffff; 

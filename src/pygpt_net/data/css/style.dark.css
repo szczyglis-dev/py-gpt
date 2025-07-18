@@ -1,7 +1,8 @@
 * {{ 
   font-family: 'Lato' !important; 
+  selection-background-color: #0765d4;
+  selection-color: #fff;
 }}
-
 QLineEdit {{
   color: #ffffff; 
   border: 1px solid #5c5c5c;
@@ -10,7 +11,9 @@ QTextEdit {{
   color: #ffffff; 
   border: 1px solid #5c5c5c;
 }}
-
+QTabBar {{
+  text-transform: none;
+}}
 QComboBox {{
   color: #fff;
 }}
@@ -35,6 +38,9 @@ QComboBox::item:selected {{
   color: #000;
   selection-color: #000;
 }}
+QComboBox::item:disabled {{
+  color: #d1d2d2;
+}}
 QListView::item:selected:focus, 
 QComboBox::item:selected:focus,
 QTreeView::item:selected:focus {{
@@ -51,6 +57,10 @@ QMenuBar::item:selected {{
 QMenu::item:selected {{ 
   color: #000000;
 }} 
+QPushButton {{
+  text-transform: none;
+}}
+
 .label-title {{
   font-weight: bold;
 }}
@@ -74,11 +84,3 @@ QMenu::item:selected {{
   background: #232629; 
   color: #fff;
 }}
-QComboBox::item:disabled {{
-  color: #d1d2d2;
-}}
-* {{
-  selection-background-color: #0765d4;
-  selection-color: #fff;
-}}
-

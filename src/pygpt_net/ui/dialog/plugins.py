@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.18 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -190,10 +190,13 @@ class Plugins:
 
                 for tab_id in content_tabs:
                     tab_name = tab_id
+                    # if translation, translate tab name
                     if tab_id in plugin.tabs:
                         tab_name = plugin.tabs[tab_id]
                         if tab_id == "general":
                             tab_name = trans("plugin.tab.general")
+                    else:
+                        tab_name = tab_name.replace("_", " ").capitalize()
                     scroll_widget = QWidget()
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)

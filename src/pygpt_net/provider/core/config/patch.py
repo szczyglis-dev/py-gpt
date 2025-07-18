@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.18 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -2013,6 +2013,14 @@ class Patch:
                 if 'cmd_code_interpreter' in data['plugins'] \
                         and 'fresh_kernel' in data['plugins']['cmd_code_interpreter']:
                     del data['plugins']['cmd_code_interpreter']['fresh_kernel']
+
+            # < 2.5.51
+            if old < parse_version("2.5.51"):
+                print("Migrating config from < 2.5.51...")
+                self.window.core.updater.patch_css('style.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
+                updated = True
 
         # update file
         migrated = False

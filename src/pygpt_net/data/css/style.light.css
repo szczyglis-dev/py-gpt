@@ -1,5 +1,7 @@
 * {{ 
   font-family: 'Lato' !important; 
+  selection-background-color: #3390ff;
+  selection-color: #fff;
 }}
 QWidget {{
   background-color: #e7e7e7;
@@ -23,7 +25,9 @@ QTreeView::item:selected:focus {{
   color: #fff;
   selection-color: #000;
 }}
-
+QTabBar {{
+  text-transform: none;
+}}
 QTabBar::tab:selected {{
   color: #000 !important;
 }}
@@ -79,24 +83,6 @@ QListView::item {{
   padding: 4px;
   min-height: 20px;
 }}
-.label-title {{
-  font-weight: bold;
-}}
-.label-help {{
-  color: #414141;
-}}
-.label-chat-status {{
-  color: #414141;
-}}
-.interpreter-input {{
-  font-family: 'Monaspace Neon';
-}}
-.interpreter-output,
-.code-editor {{
-  font-family: 'Monaspace Neon';
-  background: #fff; 
-  color: #000;
-}}
 QCalendarWidget QWidget {{
   background: #fff;
 }}
@@ -111,10 +97,6 @@ QComboBox::item:disabled {{
 }}
 QComboBox::item {{
   color: #000;
-}}
-* {{
-  selection-background-color: #3390ff;
-  selection-color: #fff;
 }}
 QCheckBox::indicator,
 QRadioButton::indicator {{
@@ -153,7 +135,6 @@ QRadioButton::indicator:unchecked {{
   background-color: #fff;
 }}
 
-
 QMenu::indicator {{
   border: 1px solid #828282 !important;
   width: 16px;
@@ -164,38 +145,53 @@ QMenu::indicator:non-exclusive:unchecked {{
   image: none;
   background-color: #fff;
 }}
-
 QMenu::indicator:non-exclusive:unchecked:selected {{
   image: none;
   background-color: #fff;
 }}
-
 QMenu::indicator:non-exclusive:checked {{
   image: none;
   background-color: #c1c2c2;
 }}
-
 QMenu::indicator:non-exclusive:checked:selected {{
   image: none;
   background-color: #c1c2c2;
 }}
-
 QMenu::indicator:exclusive:unchecked {{
   image: none;
   background-color: #fff;
 }}
-
 QMenu::indicator:exclusive:unchecked:selected {{
   image: none;
   background-color: #fff;
 }}
-
 QMenu::indicator:exclusive:checked {{
   image: none;
   background-color: #c1c2c2;
 }}
-
 QMenu::indicator:exclusive:checked:selected {{
   image: none;
   background-color: #c1c2c2;
+}}
+QPushButton {{
+  text-transform: none;
+}}
+
+.label-title {{
+  font-weight: bold;
+}}
+.label-help {{
+  color: #414141;
+}}
+.label-chat-status {{
+  color: #414141;
+}}
+.interpreter-input {{
+  font-family: 'Monaspace Neon';
+}}
+.interpreter-output,
+.code-editor {{
+  font-family: 'Monaspace Neon';
+  background: #fff; 
+  color: #000;
 }}
