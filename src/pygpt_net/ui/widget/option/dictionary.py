@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 00:00:00                  #
+# Updated Date: 2025.07.18 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
@@ -252,7 +252,11 @@ class OptionDictModel(QAbstractItemModel):
         :return: Header data
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.headers[section]
+            title = self.headers[section]
+            if title == "id":
+                return title.upper()
+            else:
+                return title.capitalize()
         return None
 
     def rowCount(self, parent=QModelIndex()):
@@ -299,7 +303,7 @@ class OptionDictModel(QAbstractItemModel):
         :param role: Role
         :return: Set data
         """
-        if index.isValid() and role == Qt.CheckStateRole and self.headers[index.column()] == "enabled":
+        if index.isValid() and role == Qt.CheckStateRole and self.headers[index.column()].lower() == "enabled":
             self.items[index.row()]['enabled'] = (value == Qt.Checked)
             self.dataChanged.emit(index, index, [Qt.CheckStateRole])
             return True
@@ -320,7 +324,7 @@ class OptionDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
-        if index.column() == 0 and self.headers[index.column()] == "enabled":
+        if index.column() == 0 and self.headers[index.column()].lower() == "enabled":
             return super(OptionDictModel, self).flags(index) | Qt.ItemIsUserCheckable | Qt.ItemIsEditable
         return super(OptionDictModel, self).flags(index) | Qt.ItemIsEditable
 
