@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import re
@@ -37,6 +37,7 @@ class Presets:
         self.window = window
         self.editor = Editor(window)
         self.locked = False
+        self.selected = []
 
     def setup(self):
         """Setup presets"""
@@ -58,6 +59,7 @@ class Presets:
         self.window.controller.ui.update()
         self.window.controller.model.select_current()
         self.window.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
+        self.set_selected(idx)
 
     def get_current(self) -> Optional[PresetItem]:
         """
@@ -421,6 +423,7 @@ class Presets:
         mode = self.window.core.config.get('mode')
         items = self.window.core.presets.get_by_mode(mode)
         self.window.ui.toolbox.presets.update_presets(items)
+        self.clear_selected()
 
     def reset(self):
         """Reset preset data"""
@@ -618,3 +621,33 @@ class Presets:
         self.window.core.presets.load()
         self.refresh()
         self.locked = False
+
+    def add_selected(self, id: int):
+        """
+        Add selection ID to selected list
+
+        :param id: preset ID
+        """
+        if id not in self.selected:
+            self.selected.append(id)
+
+    def remove_selected(self, id: int):
+        """
+        Remove selection ID from selected list
+
+        :param id: preset ID
+        """
+        if id in self.selected:
+            self.selected.remove(id)
+
+    def set_selected(self, id: int):
+        """
+        Set selected ID in selected list
+
+        :param id: preset ID
+        """
+        self.selected = [id] if id is not None else []
+
+    def clear_selected(self):
+        """Clear selected list"""
+        self.selected = []

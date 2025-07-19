@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QItemSelectionModel
@@ -67,7 +67,27 @@ class BaseList(QTreeView):
         # check tmp unlock
         if self.unlocked:
             return super().selectionCommand(index, event)
-
         if self.selection_locked is not None and self.selection_locked():
             return QItemSelectionModel.NoUpdate
         return super().selectionCommand(index, event)
+
+    def select_by_idx(self, idx: int):
+        """
+        Select item by index
+
+        :param idx: index
+        """
+        if idx < 0:
+            return
+        model = self.model()
+        if model.rowCount() > idx:
+            index = model.index(idx, 0)
+            prev_unlocked = self.unlocked
+            self.unlocked = True
+            self.selectionModel().select(
+                index, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows
+            )
+            self.setCurrentIndex(index)
+            self.setFocus()
+            self.scrollTo(index)
+            self.unlocked = prev_unlocked

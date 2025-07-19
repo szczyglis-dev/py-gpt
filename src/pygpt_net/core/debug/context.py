@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 import json
 
@@ -60,7 +60,8 @@ class ContextDebug:
 
         if self.window.core.ctx.get_tmp_meta() is not None:
             self.window.core.debug.add(self.id, 'tmp meta', str(self.window.core.ctx.get_tmp_meta().to_dict()))
-            
+
+        self.window.core.debug.add(self.id, 'selected[]', str(self.window.controller.ctx.selected))
         self.window.core.debug.add(self.id, 'group_id (active)', str(self.window.controller.ctx.group_id))
         self.window.core.debug.add(self.id, 'assistant', str(self.window.core.ctx.get_assistant()))
         self.window.core.debug.add(self.id, 'mode', str(self.window.core.ctx.get_mode()))

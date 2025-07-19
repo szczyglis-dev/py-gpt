@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -292,6 +292,12 @@ class Confirm:
             self.window.tools.get("editor").close(id)
         elif type == 'editor.changed.restore':
             self.window.tools.get("editor").restore(id=id, force=True)
+        elif type in [
+            'idx.index.db',
+            'ctx.delete',
+            'ctx.reset_meta',
+        ]:
+            self.window.controller.ctx.select_by_current()
 
         self.window.ui.dialog['confirm'].close()
 

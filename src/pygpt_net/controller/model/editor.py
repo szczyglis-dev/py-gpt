@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -30,6 +30,7 @@ class Editor:
         self.previous = None  # previous models
         self.width = 800
         self.height = 500
+        self.selected = []
         self.options = {
             "id": {
                 "type": "text",
@@ -441,3 +442,33 @@ class Editor:
             return
         self.current = model
         self.open(force=True)
+
+    def add_selected(self, id: int):
+        """
+        Add selection ID to selected list
+
+        :param id: model ID
+        """
+        if id not in self.selected:
+            self.selected.append(id)
+
+    def remove_selected(self, id: int):
+        """
+        Remove selection ID from selected list
+
+        :param id: model ID
+        """
+        if id in self.selected:
+            self.selected.remove(id)
+
+    def set_selected(self, id: int):
+        """
+        Set selected ID in selected list
+
+        :param id: model ID
+        """
+        self.selected = [id] if id is not None else []
+
+    def clear_selected(self):
+        """Clear selected list"""
+        self.selected = []

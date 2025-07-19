@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 00:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -26,6 +26,7 @@ def test_setup(mock_window):
 
     ctx.load = MagicMock()
     ctx.search_string_change = MagicMock()
+    ctx.select_by_current = MagicMock()
     mock_window.core.ctx.get_current = MagicMock(return_value=3)
 
     # fake search string
@@ -49,6 +50,7 @@ def test_setup_new(mock_window):
     ctx.load = MagicMock()
     ctx.new = MagicMock()
     ctx.search_string_change = MagicMock()
+    ctx.select_by_current = MagicMock()
 
     # fake search string
     mock_window.core.config.data["ctx.search.string"] = "test"
@@ -296,7 +298,6 @@ def test_rename(mock_window):
     mock_window.ui.dialog['rename'].input.setText.assert_called_once_with('new_name')
     assert mock_window.ui.dialog['rename'].current == 2
     mock_window.ui.dialog['rename'].show.assert_called_once()
-    ctx.update.assert_called_once()
 
 
 def test_update_name(mock_window):

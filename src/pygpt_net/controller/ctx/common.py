@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 19:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -90,7 +90,7 @@ class Common:
             self.window.update_status(
                 "Context duplicated, new ctx id: {}".format(new_id)
             )
-            self.window.controller.ctx.update()
+            self.window.controller.ctx.update(no_scroll=True)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""
@@ -192,4 +192,5 @@ class Common:
             return
         self.window.core.ctx.reset_meta(meta_id)
         self.window.core.attachments.context.reset_by_meta_id(meta_id, delete_files=True)
-        self.window.controller.ctx.load(meta_id)
+        if self.window.core.ctx.get_current() == meta_id:
+            self.window.controller.ctx.load(meta_id)

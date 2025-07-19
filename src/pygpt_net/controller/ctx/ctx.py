@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 03:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -43,6 +43,7 @@ class Ctx:
 
         # current group ID
         self.group_id = None
+        self.selected = []
 
     def setup(self):
         """Setup ctx"""
@@ -77,6 +78,7 @@ class Ctx:
 
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
+        self.select_by_current(focus=True)  # scroll to current ctx
 
     def update_mode_in_current(self):
         """Update current ctx mode"""
@@ -101,7 +103,8 @@ class Ctx:
             self,
             reload: bool = True,
             all: bool = True,
-            select: bool = True
+            select: bool = True,
+            no_scroll: bool = False
     ):
         """
         Update ctx list
@@ -109,6 +112,7 @@ class Ctx:
         :param reload: reload ctx list items
         :param all: update all
         :param select: select current ctx
+        :param no_scroll: do not scroll to selected item
         """
         # reload ctx list items
         if reload:
@@ -116,7 +120,11 @@ class Ctx:
 
         # select current ctx on list
         if select:
+            if no_scroll:  # store scroll position
+                self.window.ui.nodes['ctx.list'].store_scroll_position()
             self.select_by_current()
+            if no_scroll:  # restore scroll position
+                self.window.ui.nodes['ctx.list'].restore_scroll_position()
 
         # update all
         if all:
@@ -160,6 +168,7 @@ class Ctx:
         self.common.focus_chat(meta)
         # update additional context attachments
         self.window.controller.chat.attachment.update()
+        self.set_selected(id)
 
     def select_on_list_only(self, id: int):
         """
@@ -173,6 +182,7 @@ class Ctx:
         self.select_by_current()
         self.reload_config(all=False)
         self.update()
+        self.set_selected(id)
 
     def select_by_idx(self, idx: int):
         """
@@ -218,6 +228,7 @@ class Ctx:
         """Unselect ctx"""
         self.set_group(None)
         self.window.ui.nodes['ctx.list'].clearSelection()
+        self.clear_selected()
 
     def set_group(self, group_id: Optional[int] = None):
         """
@@ -363,14 +374,24 @@ class Ctx:
     def load(
             self,
             id: int,
-            restore_model: bool = True
+            restore_model: bool = True,
+            select_idx: Optional[int] = None,
+            new_tab: Optional[bool] = False
     ):
         """
         Load ctx data
 
         :param id: context ID
         :param restore_model: restore model if defined in ctx
+        :param select_idx: select index on list after loading
+        :param new_tab: open in new tab
         """
+        # if new_tab is True then first open new tab
+        if new_tab:
+            col_idx = self.window.controller.ui.tabs.column_idx
+            self.window.controller.ui.tabs.create_new_on_tab = False  # disable create new ctx on tab create
+            self.window.controller.ui.tabs.new_tab(col_idx)
+
         # select ctx by id
         self.window.core.ctx.clear_thread()  # reset thread id
         self.window.core.ctx.select(id, restore_model=restore_model)
@@ -394,6 +415,11 @@ class Ctx:
         # update tab title
         if meta is not None:
             self.window.controller.ui.tabs.on_load_ctx(meta)
+
+        # if select by Open on list
+        if select_idx is not None:
+            self.select(id)
+            self.window.ui.nodes['ctx.list'].select_by_idx(select_idx)
 
     def reload_config(self, all: bool = True):
         """
@@ -470,7 +496,7 @@ class Ctx:
         """
         Delete ctx by idx
 
-        :param id: context id
+        :param id: context meta idx on list
         :param force: force delete
         """
         if not force:
@@ -493,13 +519,14 @@ class Ctx:
         self.window.core.history.remove_items(items)  # remove txt history items
         self.window.core.attachments.context.delete_by_meta_id(id)
         self.window.core.ctx.remove(id)  # remove ctx from db
+        self.remove_selected(id)  # remove from selected list
 
         # reset current if current ctx deleted
         if self.window.core.ctx.get_current() == id:
             self.window.core.ctx.clear_current()
             event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
             self.window.dispatch(event)
-        self.update()
+        self.update(no_scroll=True)
 
         # update tab title
         self.window.controller.ui.tabs.update_title_current("...")
@@ -540,7 +567,7 @@ class Ctx:
             return
         self.window.core.ctx.remove_item(id)
         self.refresh()
-        self.update()
+        self.update(no_scroll=True)
 
     def delete_history(self, force: bool = False):
         """
@@ -569,6 +596,7 @@ class Ctx:
         self.window.core.ctx.truncate()
         self.window.core.history.truncate()
         self.window.core.attachments.context.truncate()
+        self.clear_selected()
         self.update()
         self.new()
 
@@ -600,6 +628,7 @@ class Ctx:
         self.window.core.history.truncate()
         self.window.core.ctx.truncate_groups()
         self.window.core.attachments.context.truncate()
+        self.clear_selected()
         self.update()
         self.new()
 
@@ -620,7 +649,6 @@ class Ctx:
         self.window.ui.dialog['rename'].input.setText(meta.name)
         self.window.ui.dialog['rename'].current = id
         self.window.ui.dialog['rename'].show()
-        self.update()
 
     def set_important(
             self,
@@ -637,7 +665,7 @@ class Ctx:
         if meta is not None:
             meta.important = value
             self.window.core.ctx.save(id)
-            self.update()
+            self.update(no_scroll=True)
 
     def is_important(self, idx: int) -> bool:
         """
@@ -667,7 +695,7 @@ class Ctx:
         if meta is not None:
             meta.label = label_id
             self.window.core.ctx.save(id)
-            self.update()
+            self.update(no_scroll=True)
 
     def update_name(
             self,
@@ -693,9 +721,9 @@ class Ctx:
             self.window.ui.dialog['rename'].close()
 
         if refresh:
-            self.update()
+            self.update(no_scroll=True)
         else:
-            self.update(True, False)
+            self.update(reload=True, all=False, no_scroll=True)
 
         # update tab title
         meta = self.window.core.ctx.get_meta_by_id(id)
@@ -943,7 +971,7 @@ class Ctx:
         self.window.core.ctx.update_meta_group_id(meta_id, group_id)
         self.group_id = group_id
         if update:
-            self.update()
+            self.update(no_scroll=True)
 
     def remove_from_group(self, meta_id):
         """
@@ -953,7 +981,7 @@ class Ctx:
         """
         self.window.core.ctx.update_meta_group_id(meta_id, None)
         self.group_id = None
-        self.update()
+        self.update(no_scroll=True)
 
     def new_group(
             self,
@@ -1040,7 +1068,12 @@ class Ctx:
             self.window.core.ctx.update_group(group)
             if close:
                 self.window.ui.dialog['rename'].close()
-            self.update(True, False, False)
+            self.update(
+                reload=True,
+                all=False,
+                select=False,
+                no_scroll=True
+            )
             self.select_group(id)
 
     def get_group_name(self, id: int) -> str:
@@ -1090,7 +1123,7 @@ class Ctx:
             self.window.core.ctx.remove_group(group, all=False)
             if self.group_id == id:
                 self.group_id = None
-            self.update()
+            self.update(no_scroll=True)
 
     def delete_group_all(
             self,
@@ -1127,3 +1160,42 @@ class Ctx:
     def reload_after(self):
         """After reload"""
         self.new_if_empty()
+
+    def add_selected(self, id: int):
+        """
+        Add selection ID to selected list
+
+        :param id: context meta ID
+        """
+        if id not in self.selected:
+            self.selected.append(id)
+    def remove_selected(self, id: int):
+        """
+        Remove selection ID from selected list
+
+        :param id: context meta ID
+        """
+        if id in self.selected:
+            self.selected.remove(id)
+
+    def set_selected(self, id: int):
+        """
+        Set selected ID in selected list
+
+        :param id: context meta ID
+        """
+        self.selected = [id] if id is not None else []
+
+    def set_selected_by_idx(self, idx: int):
+        """
+        Set selected ID by index
+
+        :param idx: context meta index
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        if id is not None:
+            self.set_selected(id)
+
+    def clear_selected(self):
+        """Clear selected list"""
+        self.selected = []

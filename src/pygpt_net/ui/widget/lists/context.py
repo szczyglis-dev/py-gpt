@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 16:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import datetime
 
 from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6.QtCore import Qt, QPoint, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QColor, QPixmap, QStandardItem
 from PySide6.QtWidgets import QMenu
 from overrides import overrides
@@ -34,7 +35,12 @@ class ContextList(BaseList):
         self.id = id
         self.expanded_items = set()
         self.setItemDelegate(ImportantItemDelegate())
-
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
+        self._backup_selection = None
+        self.restore_after_ctx_menu = True
+        self._v_scroll_value = 0
+        self._h_scroll_value = 0
 
     def click(self, index):
         """
@@ -42,6 +48,7 @@ class ContextList(BaseList):
 
         :param index: index
         """
+        # only if left mouse button:
         item = self.window.ui.models['ctx.list'].itemFromIndex(index)
         if item is not None:
             if not hasattr(item, 'isFolder'):
@@ -82,23 +89,32 @@ class ContextList(BaseList):
         print("dblclick")
 
     def mousePressEvent(self, event):
-        """
-        Mouse press event
-        :param event: event
-        """
-        index = self.indexAt(event.pos())
-        if not index.isValid():
-            self.window.controller.ctx.unselect()
-            return
-        super(BaseList, self).mousePressEvent(event)
+        if event.button() == Qt.LeftButton:
+            index = self.indexAt(event.pos())
+            if not index.isValid():
+                self.window.controller.ctx.unselect()
+                return
+            super().mousePressEvent(event)
+        elif event.button() == Qt.RightButton:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self._backup_selection = list(self.selectionModel().selectedIndexes())
+                self.selectionModel().clearSelection()
+                self.selectionModel().select(
+                    index, QItemSelectionModel.Select | QItemSelectionModel.Rows
+                )
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
-    def contextMenuEvent(self, event):
+    def show_context_menu(self, pos: QPoint):
         """
         Context menu event
 
-        :param event: context menu event
+        :param pos: QPoint
         """
-        index = self.indexAt(event.pos())
+        global_pos = self.viewport().mapToGlobal(pos)
+        index = self.indexAt(pos)
         item = self.window.ui.models['ctx.list'].itemFromIndex(index)
 
         if (item is not None
@@ -135,7 +151,7 @@ class ContextList(BaseList):
                 menu.addAction(actions['delete_all'])  # delete group and all contexts
 
                 if idx >= 0:
-                    menu.exec_(event.globalPos())
+                    menu.exec_(global_pos)
 
             # children context menu
             else:
@@ -147,6 +163,16 @@ class ContextList(BaseList):
                 is_important = ctx.important
 
                 actions = {}
+                actions['open'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open'), self)
+                actions['open'].triggered.connect(
+                    lambda checked=False, ctx_id=ctx_id: self.action_open(ctx_id, idx)
+                )
+
+                actions['open_new_tab'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_new_tab'), self)
+                actions['open_new_tab'].triggered.connect(
+                    lambda checked=False, ctx_id=ctx_id: self.action_open_new_tab(ctx_id, idx)
+                )
+
                 actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
                 actions['rename'].triggered.connect(
                     lambda checked=False, ctx_id=ctx_id: self.action_rename(ctx_id)
@@ -184,6 +210,8 @@ class ContextList(BaseList):
                 )
 
                 menu = QMenu(self)
+                menu.addAction(actions['open'])
+                menu.addAction(actions['open_new_tab'])
                 menu.addAction(actions['rename'])
                 menu.addAction(actions['duplicate'])
                 menu.addAction(actions['important'])
@@ -306,8 +334,55 @@ class ContextList(BaseList):
                 menu.addAction(actions['reset'])
 
                 if idx >= 0:
-                    self.window.controller.ctx.select_by_id(ctx_id)
-                    menu.exec_(event.globalPos())
+                    self.window.controller.ctx.set_selected(ctx_id)
+                    menu.exec_(global_pos)
+
+        # store previous scroll position
+        self.store_scroll_position()
+
+        # restore selection if it was backed up
+        if self.restore_after_ctx_menu:
+            if self._backup_selection is not None:
+                self.selectionModel().clearSelection()
+                for idx in self._backup_selection:
+                    self.selectionModel().select(
+                        idx, QItemSelectionModel.Select | QItemSelectionModel.Rows
+                    )
+                self._backup_selection = None
+
+        # restore scroll position
+        self.restore_after_ctx_menu = True
+        self.restore_scroll_position()
+
+    def store_scroll_position(self):
+        """Store current scroll position"""
+        self._v_scroll_value = self.verticalScrollBar().value()
+        self._h_scroll_value = self.horizontalScrollBar().value()
+
+    def restore_scroll_position(self):
+        """Restore scroll position"""
+        self.verticalScrollBar().setValue(self._v_scroll_value)
+        self.horizontalScrollBar().setValue(self._h_scroll_value)
+
+    def action_open(self, id: int, idx: int = None):
+        """
+        Open context action handler
+
+        :param id: context id
+        :param idx: index id (optional)
+        """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
+        self.window.controller.ctx.load(id, select_idx=idx)
+
+    def action_open_new_tab(self, id: int, idx: int = None):
+        """
+        Open context action handler
+
+        :param id: context id
+         :param idx: index id (optional)
+        """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
+        self.window.controller.ctx.load(id, select_idx=idx, new_tab=True)
 
     def action_idx(self, id: int, idx: int):
         """
@@ -316,6 +391,7 @@ class ContextList(BaseList):
         :param id: context id
         :param idx: index name
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.idx.indexer.index_ctx_meta(id, idx)
 
     def action_idx_remove(self, idx: str, meta_id: int):
@@ -325,6 +401,7 @@ class ContextList(BaseList):
         :param idx: index id
         :param meta_id: meta id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.idx.indexer.index_ctx_meta_remove(idx, meta_id)
 
     def action_rename(self, id):
@@ -333,6 +410,7 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.rename(id)
 
     def action_pin(self, id):
@@ -373,6 +451,7 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.delete(id)
 
     def action_copy_id(self, id):
@@ -389,7 +468,17 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.common.reset(id)
+
+
+    def selectionCommand(self, index, event=None):
+        """
+        Selection command
+        :param index: Index
+        :param event: Event
+        """
+        return super().selectionCommand(index, event)
 
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):

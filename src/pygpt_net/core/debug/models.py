@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.15 00:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import os
@@ -28,6 +28,7 @@ class ModelsDebug:
 
         path = os.path.join(self.window.core.config.path, '', 'models.json')
         self.window.core.debug.add(self.id, 'Models File', str(path))
+        self.window.core.debug.add(self.id, 'editor.selected[]', str(self.window.controller.models.editor.selected))
 
         self.window.core.debug.add(
             self.id, 'Options',

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -634,6 +634,7 @@ class Indexer(QObject):
 
         self.window.tools.get("indexer").refresh()
         self.window.controller.idx.on_idx_end()  # on end
+        self.window.controller.ctx.select_by_current()
 
     @Slot(str, object, object, bool)
     def handle_finished_file(

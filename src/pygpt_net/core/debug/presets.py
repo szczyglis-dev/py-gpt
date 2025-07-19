@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import os
@@ -44,6 +44,8 @@ class PresetsDebug:
             self.id, 'Options',
             str(self.window.controller.presets.editor.get_options())
         )
+
+        self.window.core.debug.add(self.id, 'selected[]', str(self.window.controller.presets.selected))
 
         # presets
         for key in list(dict(self.window.core.presets.items)):
