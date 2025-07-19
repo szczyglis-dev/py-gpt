@@ -53,3 +53,12 @@ class ConfirmDialog(QDialog):
         self.layout.addWidget(self.message)
         self.layout.addLayout(bottom)
         self.setLayout(self.layout)
+
+    def closeEvent(self, event):
+        """
+        Close event handler
+
+        :param event: close event
+        """
+        self.window.controller.dialogs.confirm.dismiss(self.type, self.id)
+        super(ConfirmDialog, self).closeEvent(event)

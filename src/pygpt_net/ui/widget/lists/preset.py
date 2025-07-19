@@ -162,6 +162,7 @@ class PresetList(BaseList):
         """
         idx = item.row()
         if idx >= 0:
+            self.restore_after_ctx_menu = False  # do not restore selection after context menu
             self.window.controller.presets.delete(idx)
 
     def action_restore(self, item):

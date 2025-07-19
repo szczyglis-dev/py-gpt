@@ -300,6 +300,8 @@ class Confirm:
             self.window.controller.ctx.select_by_current()
         elif type == "assistant.delete":
             self.window.controller.assistant.select_current()
+        elif type == "preset_delete":
+            self.window.controller.presets.select_current()
 
         self.window.ui.dialog['confirm'].close()
 
