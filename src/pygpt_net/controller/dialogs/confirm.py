@@ -298,6 +298,8 @@ class Confirm:
             'ctx.reset_meta',
         ]:
             self.window.controller.ctx.select_by_current()
+        elif type == "assistant.delete":
+            self.window.controller.assistant.select_current()
 
         self.window.ui.dialog['confirm'].close()
 

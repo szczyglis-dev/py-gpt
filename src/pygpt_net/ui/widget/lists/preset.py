@@ -38,8 +38,6 @@ class PresetList(BaseList):
         self.customContextMenuRequested.connect(self.show_context_menu)
         self._backup_selection = None
         self.restore_after_ctx_menu = True
-        self._v_scroll_value = 0
-        self._h_scroll_value = 0
 
     def click(self, val):
         self.window.controller.presets.select(val.row())

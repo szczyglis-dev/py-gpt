@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,6 +14,7 @@ from typing import Optional
 
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.types import MODEL_DEFAULT
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.utils import trans
 
@@ -183,6 +184,9 @@ class Editor:
     def close(self):
         """Close assistant editor"""
         self.window.ui.dialogs.close('editor.assistants')
+        id = self.window.core.config.get('assistant', None)
+        if id:
+            self.window.controller.assistant.select_by_id(id)
 
     def init(self, id: Optional[str] = None):
         """
@@ -191,7 +195,7 @@ class Editor:
         :param id: assistant ID (in API)
         """
         assistant = self.window.core.assistants.create()
-        assistant.model = "gpt-4-1106-preview"  # default model
+        assistant.model = MODEL_DEFAULT  # default model
 
         # if editing existing assistant
         if id is not None and id != "":
@@ -373,8 +377,9 @@ class Editor:
         self.window.ui.dialogs.close('editor.assistants')
         self.window.update_status(trans('status.assistant.saved'))
 
-        # switch to edited assistant
-        self.window.controller.assistant.select_by_id(id)
+        # switch to created assistant
+        if created:
+            self.window.controller.assistant.select_by_id(id)
 
     def assign_data(self, assistant: AssistantItem):
         """
