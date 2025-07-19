@@ -230,6 +230,11 @@ class Output:
                 self.log("Calling for prepare context name...")
                 self.window.controller.ctx.prepare_name(ctx)  # async
 
+        if self.window.state != self.window.STATE_ERROR:
+            self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+                "id": "chat",
+            }))
+
     def handle_end(
             self,
             ctx: CtxItem,
