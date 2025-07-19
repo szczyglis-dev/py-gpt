@@ -35,16 +35,19 @@ class Container:
         :param ctx: Context item
         :param files: List of files to download
         """
+        if not files or not isinstance(files, list):
+            return []
+
         model_data = self.window.core.models.get(ctx.model)
         args = self.window.core.models.prepare_client_args(ctx.mode, model_data)
         base_url = args.get('base_url', '')
         api_key = args.get('api_key', '')
-
-        if not files or not isinstance(files, list):
-            return []
-
+        organization_key = args.get('organization_key', '')
         headers = {}
         headers["Authorization"] = f"Bearer {api_key}"
+        if organization_key:
+            headers["OpenAI-Organization"] = organization_key
+
         downloaded_files = []
 
         for file in files:
