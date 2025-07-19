@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.08.20 00:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -166,3 +166,9 @@ class Assistant(BaseConfigDialog):
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
         self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
         self.window.ui.dialog['editor.' + self.dialog_id].setWindowTitle(trans('dialog.assistant'))
+        self.window.ui.dialog['editor.' + self.dialog_id].on_close_callback = self.on_close
+
+
+    def on_close(self):
+        """Close event callback"""
+        self.window.controller.assistant.select_current(no_scroll=True)

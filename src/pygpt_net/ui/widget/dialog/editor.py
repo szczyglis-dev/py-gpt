@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.09 17:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -29,6 +29,7 @@ class EditorDialog(BaseDialog):
         self.data = None  # data values
         self.options = None  # options dict
         self.idx = None  # current editing idx
+        self.on_close_callback = None
 
     def closeEvent(self, event):
         """
@@ -37,6 +38,8 @@ class EditorDialog(BaseDialog):
         :param event: close event
         """
         self.cleanup()
+        if self.on_close_callback:
+            self.on_close_callback()
         super(EditorDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):

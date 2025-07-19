@@ -171,16 +171,24 @@ class Assistant:
                 assistant = self.window.core.assistants.get_by_id(id)
                 assistant.instructions = self.window.core.config.get('prompt')
 
-    def select_current(self):
-        """Select assistant by current"""
+    def select_current(self, no_scroll: bool = False):
+        """
+        Select assistant by current
+
+        :param no_scroll: True if do not scroll to selected item
+        """
         assistant_id = self.window.core.config.get('assistant')
         items = self.window.core.assistants.get_all()
         if assistant_id in items:
+            if no_scroll:
+                self.window.ui.nodes['assistants'].store_scroll_position()
             idx = list(items.keys()).index(assistant_id)
             current = self.window.ui.models['assistants'].index(idx, 0)
             self.window.ui.nodes['assistants'].setCurrentIndex(current)
             self.window.core.config.set('prompt', items[assistant_id].instructions)
             self.window.ui.nodes['preset.prompt'].setPlainText(items[assistant_id].instructions)
+            if no_scroll:
+                self.window.ui.nodes['assistants'].restore_scroll_position()
 
     def select_default(self):
         """Set default assistant"""

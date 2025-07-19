@@ -282,15 +282,23 @@ class Presets:
         # select model
         self.select_model()
 
-    def select_current(self):
-        """Select preset by current"""
+    def select_current(self, no_scroll: bool = False):
+        """
+        Select preset by current
+
+        :param no_scroll: do not scroll to current preset
+        """
         mode = self.window.core.config.get('mode')
         preset_id = self.window.core.config.get('preset')
         items = self.window.core.presets.get_by_mode(mode)
         if preset_id in items:
             idx = list(items.keys()).index(preset_id)
             # current = self.window.ui.models['preset.presets'].index(idx, 0)
+            if no_scroll:
+                self.window.ui.nodes['preset.presets'].store_scroll_position()
             self.window.ui.nodes['preset.presets'].select_by_idx(idx)
+            if no_scroll:
+                self.window.ui.nodes['preset.presets'].restore_scroll_position()
 
     def select_default(self):
         """Set default preset"""
