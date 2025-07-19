@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import os
@@ -188,10 +188,10 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
-        copy_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "copy.png")
-        preview_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "preview.png")
-        run_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "run.png")
-        collapse_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", "collapse.png")
+        copy_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "copy.svg")
+        preview_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "view.svg")
+        run_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "play.svg")
+        collapse_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "menu.svg")
 
         # syntax highlighting style
         style = self.window.core.config.get("render.code_syntax")

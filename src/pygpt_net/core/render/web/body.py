@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import os
@@ -163,7 +163,7 @@ class Body:
                 '<a href="extra-audio-read:{}" class="action-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                     ctx.id,
                     ctx.id,
-                    self.get_icon("audio", trans("ctx.extra.audio"), ctx)
+                    self.get_icon("volume", trans("ctx.extra.audio"), ctx)
                 )
             )
             # copy ctx
@@ -205,7 +205,7 @@ class Body:
                     '<a href="extra-join:{}" class="action-icon edit-icon" data-id="{}" role="button"><span class="cmd">{}</span></a>'.format(
                         ctx.id,
                         ctx.id,
-                        self.get_icon("join", trans("ctx.extra.join"), ctx)
+                        self.get_icon("playlist_add", trans("ctx.extra.join"), ctx)
                     )
                 )
         return icons
@@ -224,7 +224,7 @@ class Body:
         :param item: context item
         :return: icon HTML
         """
-        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "chat", icon + ".png")
+        icon = os.path.join(self.window.core.config.get_app_path(), "data", "icons", icon + ".svg")
         return '<img src="file://{}" class="action-img" title="{}" alt="{}" data-id="{}">'.format(
             icon, title, title, item.id)
 
