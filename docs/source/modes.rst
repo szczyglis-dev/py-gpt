@@ -41,7 +41,7 @@ Chat with Files (LlamaIndex)
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. Tool calls in Chat with Files work by default by calling the ReAct agent. You can disable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+**Tip:** If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
 
 **Querying single files**
 
