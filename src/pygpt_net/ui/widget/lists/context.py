@@ -161,12 +161,12 @@ class ContextList(BaseList):
                 is_important = ctx.important
 
                 actions = {}
-                actions['open'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open'), self)
+                actions['open'] = QAction(QIcon(":/icons/chat.svg"), trans('action.open'), self)
                 actions['open'].triggered.connect(
                     lambda checked=False, ctx_id=ctx_id: self.action_open(ctx_id, idx)
                 )
 
-                actions['open_new_tab'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_new_tab'), self)
+                actions['open_new_tab'] = QAction(QIcon(":/icons/chat.svg"), trans('action.open_new_tab'), self)
                 actions['open_new_tab'].triggered.connect(
                     lambda checked=False, ctx_id=ctx_id: self.action_open_new_tab(ctx_id, idx)
                 )
