@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.52** | build: **2025-07-19** | Python: **>=3.10, <3.13**
+Release: **2.5.53** | build: **2025-07-19** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4113,6 +4113,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.53 (2025-07-19)**
+
+- Improved context list context menu.
+- Improved presets list context menu.
+- Chat icons changed to SVG.
+- API organization key added to container file download request.
+- Fixed switch to idle after tool call in agent mode.
+
 **2.5.52 (2025-07-19)**
 
 - Added automatic files and images download from Response API / remote Code Interpreter containers.
@@ -4139,94 +4147,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added auto-restart IPython kernel on failure or not initialized.
 - Improved agents loop and evaluation.
 - Added LlamaIndex provider config for Grok.
-
-**2.5.47 (2025-07-17)**
-
-- Disabled output clear on kernel restart in Code Interpreter.
-
-**2.5.46 (2025-07-17)**
-
-- Fix: kernel resume after Docker image rebuild.
-- Fix: update history after output clear in Code Interpreter.
-
-**2.5.45 (2025-07-16)**
-
-- Improved IPython kernel restart in Docker container.
-- Fixed Ctrl+F Find shortcut.
-- Decreased tabulation size in text inputs.
-- Added kernel restart and clear output to Code Interpreter RMB context menu.
-
-**2.5.44 (2025-07-16)**
-
-- Code syntax highlighting added to the Code Interpreter tool.
-- Image output functionality integrated into the Code Interpreter tool.
-- Improved/fixed connection with Docker containers.
-- Fixed parsing of integer parameters from plugins.
-- Fixed 'Add tool' option in tabs + button.
-
-**2.5.43 (2025-07-15)**
-
-- Improved IPython code execution.
-- Added lock for kernel restarting in Code Interepreter to prevent crash if kernel not ready.
-
-**2.5.42 (2025-07-15)**
-
-- Connected Run code button in python code blocks to IPython (if enabled).
-- Updated CSS.
-
-**2.5.41 (2025-07-14)**
-
-- Fixed: vector stores handling in Assistants API SDK.
-- Added: Run button to Python code blocks for real-time code executing in Code Interpreter.
-- Updated documentation.
-
-**2.5.40 (2025-07-14)**
-
-- Enhanced system prompts.
-- Increased default Ollama request timeout to 300s.
-- Improved function calling.
-- Added option 'Tool calls (native)' to models config.
-
-**2.5.39 (2025-07-13)**
-
-- Improved multiple notepads handling.
-
-**2.5.38 (2025-07-13)**
-
-- Fixed: empty models list in presets editor.
-- Fixed: focus to second column on open Code Interpreter dialog.
-- Added: agent providers names.
-- Added: ReAct (Workflow) agent.
-- Improved: split-screen switch.
-
-**2.5.37 (2025-07-13)**
-
-- Improved multi-threading and async calls.
-- Added loading spinner.
-- Added live output from CodeAct agent.
-- UI fixes.
-
-**2.5.36 (2025-07-12)**
-
-- Improved UI, updated CSS.
-- Added: collapse/expand button to code blocks.
-- Added: preview code button to HTML code blocks.
-- Added: provider separators in models list.
-- Added: grok-4 model.
-
-**2.5.35 (2025-07-11)**
-
-- Improved CodeAct Agent: extended prompt, added work directory handling, auto-installation of missing libraries, and generation of images and plots.
-
-**2.5.34 (2025-07-11)**
-
-- Added: tool calls in CodeAct Agent.
-- Added: multimodal/vision in Chat with Files mode.
-
-**2.5.33 (2025-07-10)**
-
-- Added: CodeAct Agent, integrated with Code Interpreter plugin (beta).
-- Fixed: IPython kernel restarting in Code Interpreter plugin.
 
 # Credits and links
 

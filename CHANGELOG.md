@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.5.53 (2025-07-19)
+
+- Improved context list context menu.
+- Improved presets list context menu.
+- Chat icons changed to SVG.
+- API organization key added to container file download request.
+- Fixed switch to idle after tool call in agent mode.
+
 ## 2.5.52 (2025-07-19)
 
 - Added automatic files and images download from Response API / remote Code Interpreter containers.
