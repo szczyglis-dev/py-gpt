@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -407,7 +407,9 @@ class Editor:
 
         # validate filename
         id = self.window.controller.presets.validate_filename(id)
+        is_new = False
         if id not in self.window.core.presets.items:
+            is_new = True
             self.window.core.presets.items[id] = self.window.core.presets.build()
         elif not force:
             self.window.ui.dialogs.confirm(
@@ -450,8 +452,11 @@ class Editor:
         self.current = self.window.core.presets.items[id].uuid
 
         # save
+        no_scroll = False
+        if not is_new:
+            no_scroll = True
         self.window.core.presets.save(id)
-        self.window.controller.presets.refresh()
+        self.window.controller.presets.refresh(no_scroll=no_scroll)
 
         # close dialog
         if close:
@@ -469,11 +474,15 @@ class Editor:
         # sort by name
         self.window.core.presets.sort_by_name()
 
-        # switch to editing preset
-        self.window.controller.presets.set(mode, id)
+        # switch to editing preset, if new
+        if is_new:
+            self.window.controller.presets.set(mode, id)
 
         # update presets list
-        self.window.controller.presets.refresh()
+        no_scroll = False
+        if not is_new:
+            no_scroll = True
+        self.window.controller.presets.refresh(no_scroll=no_scroll)
 
     def assign_data(self, id: str):
         """

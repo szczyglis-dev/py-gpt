@@ -33,6 +33,8 @@ class BaseList(QTreeView):
         self.unlocked = False
         self.clicked.connect(self.click)
         self.header().hide()
+        self.v_scroll_value = 0
+        self.h_scroll_value = 0
 
     def click(self, val):
         self.window.controller.mode.select(self.id)
@@ -91,3 +93,13 @@ class BaseList(QTreeView):
             self.setFocus()
             self.scrollTo(index)
             self.unlocked = prev_unlocked
+
+    def store_scroll_position(self):
+        """Store current scroll position"""
+        self.v_scroll_value = self.verticalScrollBar().value()
+        self.h_scroll_value = self.horizontalScrollBar().value()
+
+    def restore_scroll_position(self):
+        """Restore scroll position"""
+        self.verticalScrollBar().setValue(self.v_scroll_value)
+        self.horizontalScrollBar().setValue(self.h_scroll_value)

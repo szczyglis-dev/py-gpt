@@ -39,8 +39,6 @@ class ContextList(BaseList):
         self.customContextMenuRequested.connect(self.show_context_menu)
         self._backup_selection = None
         self.restore_after_ctx_menu = True
-        self._v_scroll_value = 0
-        self._h_scroll_value = 0
 
     def click(self, index):
         """
@@ -353,16 +351,6 @@ class ContextList(BaseList):
         # restore scroll position
         self.restore_after_ctx_menu = True
         self.restore_scroll_position()
-
-    def store_scroll_position(self):
-        """Store current scroll position"""
-        self._v_scroll_value = self.verticalScrollBar().value()
-        self._h_scroll_value = self.horizontalScrollBar().value()
-
-    def restore_scroll_position(self):
-        """Restore scroll position"""
-        self.verticalScrollBar().setValue(self._v_scroll_value)
-        self.horizontalScrollBar().setValue(self._h_scroll_value)
 
     def action_open(self, id: int, idx: int = None):
         """

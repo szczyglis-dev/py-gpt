@@ -289,8 +289,8 @@ class Presets:
         items = self.window.core.presets.get_by_mode(mode)
         if preset_id in items:
             idx = list(items.keys()).index(preset_id)
-            current = self.window.ui.models['preset.presets'].index(idx, 0)
-            self.window.ui.nodes['preset.presets'].setCurrentIndex(current)
+            # current = self.window.ui.models['preset.presets'].index(idx, 0)
+            self.window.ui.nodes['preset.presets'].select_by_idx(idx)
 
     def select_default(self):
         """Set default preset"""
@@ -405,18 +405,27 @@ class Presets:
                             self.window.controller.model.init_list()
                             self.window.controller.model.select_current()
 
-    def refresh(self):
-        """Refresh presets"""
+    def refresh(self, no_scroll: bool = False):
+        """
+        Refresh presets
+
+        :param no_scroll: do not scroll to current
+        """
         mode = self.window.core.config.get('mode')
         if mode == MODE_ASSISTANT:
             return
 
+        if no_scroll:
+            self.window.ui.nodes['preset.presets'].store_scroll_position()
         self.select_default()  # if no preset then select previous from current presets
         self.update_current()  # apply preset data to current config
         self.update_data()  # update config and prompt from preset data
         self.window.controller.mode.update_temperature()
         self.update_list()  # update presets list only
         self.select_current()  # select current preset on list
+        if no_scroll:
+            self.window.ui.nodes['preset.presets'].restore_scroll_position()
+
 
     def update_list(self):
         """Update presets list"""
@@ -454,11 +463,14 @@ class Presets:
             if preset is not None and preset != "":
                 if preset in self.window.core.presets.items:
                     new_id = self.window.core.presets.duplicate(preset)
-                    self.window.core.config.set('preset', new_id)
-                    self.refresh()
+                    #self.window.core.config.set('preset', new_id)
+                    self.update_list()
+                    self.refresh(no_scroll=True)
                     idx = self.window.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
                     self.window.update_status(trans('status.preset.duplicated'))
+
+
 
     def enable(self, idx: Optional[int] = None):
         """
@@ -553,7 +565,7 @@ class Presets:
                         self.window.core.config.set('preset', None)
                         self.window.ui.nodes['preset.prompt'].setPlainText("")
                     self.window.core.presets.remove(preset_id, True)
-                    self.refresh()
+                    self.refresh(no_scroll=True)
                     self.window.update_status(trans('status.preset.deleted'))
 
     def restore(self, force: bool = False):

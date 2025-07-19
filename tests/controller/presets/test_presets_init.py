@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 17:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -61,9 +61,9 @@ def test_select_current(mock_window):
     mock_window.core.config.get = MagicMock(side_effect=["chat", "preset_id"])
     mock_window.core.presets.get_by_mode = MagicMock(return_value={"preset_id": PresetItem()})
     mock_window.ui.models['preset.presets'].index = MagicMock(return_value="current")
-    mock_window.ui.nodes['preset.presets'].setCurrentIndex = MagicMock()
+    mock_window.ui.nodes['preset.presets'].select_by_idx = MagicMock()
     presets.select_current()
-    mock_window.ui.nodes['preset.presets'].setCurrentIndex.assert_called_once_with("current")
+    mock_window.ui.nodes['preset.presets'].select_by_idx.assert_called_once()
 
 
 def test_select_default(mock_window):
@@ -200,7 +200,7 @@ def test_duplicate(mock_window):
     mock_window.ui.nodes['presets'].edit = MagicMock()
 
     presets.duplicate(2)
-    assert mock_window.core.config.data['preset'] == "new_id"
+    assert mock_window.core.config.data['preset'] == "preset_id"
     presets.editor.edit.assert_called_once_with(3)
     presets.refresh.assert_called_once()
 

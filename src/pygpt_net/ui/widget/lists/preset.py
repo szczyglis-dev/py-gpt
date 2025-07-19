@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.07.19 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtCore import QPoint, QItemSelectionModel
+from PySide6.QtGui import QAction, QIcon, Qt
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.core.types import (
@@ -33,6 +34,12 @@ class PresetList(BaseList):
         self.id = id
 
         self.doubleClicked.connect(self.dblclick)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
+        self._backup_selection = None
+        self.restore_after_ctx_menu = True
+        self._v_scroll_value = 0
+        self._h_scroll_value = 0
 
     def click(self, val):
         self.window.controller.presets.select(val.row())
@@ -46,14 +53,15 @@ class PresetList(BaseList):
         """
         self.window.controller.presets.editor.edit(val.row())
 
-    def contextMenuEvent(self, event):
+    def show_context_menu(self, pos: QPoint):
         """
         Context menu event
 
-        :param event: context menu event
+        :param pos: QPoint
         """
+        global_pos = self.viewport().mapToGlobal(pos)
         mode = self.window.core.config.get('mode')
-        item = self.indexAt(event.pos())
+        item = self.indexAt(pos)
         idx = item.row()
 
         preset = None
@@ -66,20 +74,20 @@ class PresetList(BaseList):
 
         actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
         actions['edit'].triggered.connect(
-            lambda: self.action_edit(event))
+            lambda checked=False, item=item: self.action_edit(item))
 
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('preset.action.duplicate'), self)
         actions['duplicate'].triggered.connect(
-            lambda: self.action_duplicate(event))
+            lambda checked=False, item=item: self.action_duplicate(item))
 
         if self.window.controller.presets.is_current(idx):
             actions['restore'] = QAction(QIcon(":/icons/undo.svg"), trans('dialog.editor.btn.defaults'), self)
             actions['restore'].triggered.connect(
-                lambda: self.action_restore(event))
+                lambda checked=False, item=item: self.action_restore(item))
         else:
             actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
             actions['delete'].triggered.connect(
-                lambda: self.action_delete(event))
+                lambda checked=False, item=item: self.action_delete(item))
 
         menu = QMenu(self)
         menu.addAction(actions['edit'])
@@ -88,12 +96,12 @@ class PresetList(BaseList):
                 if not preset.enabled:
                     actions['enable'] = QAction(QIcon(":/icons/check.svg"), trans('preset.action.enable'), self)
                     actions['enable'].triggered.connect(
-                        lambda: self.action_enable(event))
+                        lambda checked=False, item=item: self.action_enable(item))
                     menu.addAction(actions['enable'])
                 else:
                     actions['disable'] = QAction(QIcon(":/icons/close.svg"), trans('preset.action.disable'), self)
                     actions['disable'].triggered.connect(
-                        lambda: self.action_disable(event))
+                        lambda checked=False, item=item: self.action_disable(item))
                     menu.addAction(actions['disable'])
         if self.window.controller.presets.is_current(idx):
             actions['edit'].setEnabled(False)
@@ -104,72 +112,112 @@ class PresetList(BaseList):
             menu.addAction(actions['delete'])
 
         if idx >= 0:
-            self.window.controller.presets.select(idx)
+            #self.window.controller.presets.select(idx)
             self.selection = self.selectionModel().selection()
             # self.window.controller.mode.select(self.id, item.row())
-            menu.exec_(event.globalPos())
+            menu.exec_(global_pos)
 
-    def action_edit(self, event):
+        # store previous scroll position
+        self.store_scroll_position()
+
+        # restore selection if it was backed up
+        if self.restore_after_ctx_menu:
+            if self._backup_selection is not None:
+                self.selectionModel().clearSelection()
+                for idx in self._backup_selection:
+                    self.selectionModel().select(
+                        idx, QItemSelectionModel.Select | QItemSelectionModel.Rows
+                    )
+                self._backup_selection = None
+
+        # restore scroll position
+        self.restore_after_ctx_menu = True
+        self.restore_scroll_position()
+
+    def action_edit(self, item):
         """
         Edit action handler
 
-        :param event: mouse event
+        :param item: list item
         """
-        item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
+            self.restore_after_ctx_menu = False  # do not restore selection after context menu
             self.window.controller.presets.editor.edit(idx)
 
-    def action_duplicate(self, event):
+    def action_duplicate(self, item):
         """
         Duplicate action handler
 
-        :param event: mouse event
+        :param item: list item
         """
-        item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
+            self.restore_after_ctx_menu = False  # do not restore selection after context menu
             self.window.controller.presets.duplicate(idx)
 
-    def action_delete(self, event):
+    def action_delete(self, item):
         """
         Delete action handler
 
-        :param event: mouse event
+       :param item: list item
         """
-        item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.delete(idx)
 
-    def action_restore(self, event):
+    def action_restore(self, item):
         """
         Restore action handler
 
-        :param event: mouse event
+        :param item: list item
         """
         self.window.controller.presets.restore()
 
 
-    def action_enable(self, event):
+    def action_enable(self, item):
         """
         Enable action handler
 
-        :param event: mouse event
+        :param item: list item
         """
-        item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.enable(idx)
 
 
-    def action_disable(self, event):
+    def action_disable(self, item):
         """
         Disable action handler
 
-        :param event: mouse event
+        :param item: list item
         """
-        item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.disable(idx)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            index = self.indexAt(event.pos())
+            if not index.isValid():
+                return
+            super().mousePressEvent(event)
+        elif event.button() == Qt.RightButton:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self._backup_selection = list(self.selectionModel().selectedIndexes())
+                self.selectionModel().clearSelection()
+                self.selectionModel().select(
+                    index, QItemSelectionModel.Select | QItemSelectionModel.Rows
+                )
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def selectionCommand(self, index, event=None):
+        """
+        Selection command
+        :param index: Index
+        :param event: Event
+        """
+        return super().selectionCommand(index, event)
