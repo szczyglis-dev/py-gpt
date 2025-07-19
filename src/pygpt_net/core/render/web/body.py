@@ -663,6 +663,7 @@ class Body:
             }
         }
         function showToolOutputLoader() {
+            return; // disabled
             const elements = document.querySelectorAll('.msg-bot');
             if (elements.length > 0) {
                 const last = elements[elements.length - 1];

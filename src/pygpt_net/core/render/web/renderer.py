@@ -1078,7 +1078,6 @@ class Renderer(BaseRenderer):
                 )
 
         html_tools = (
-                spinner +
                 '<div class="tool-output" style="{}">'.format(output_class) +
                 expand_btn +
                 '<div class="content" style="display:none">' +
