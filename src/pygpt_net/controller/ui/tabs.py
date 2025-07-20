@@ -185,7 +185,9 @@ class Tabs:
             self.window.controller.notepad.on_open(idx, column_idx)
         elif tab.type == Tab.TAB_CHAT:
             # get meta for selected tab, if not loaded yet then append meta here
-            meta_id = self.window.core.ctx.output.prepare_meta(tab)
+            meta_id = tab.data_id
+            if meta_id is None:
+                meta_id = self.window.core.ctx.output.prepare_meta(tab)
             meta = self.window.core.ctx.get_meta_by_id(meta_id)
             if meta is not None:
                 self.window.controller.ctx.load(meta.id)  # reload renderer
