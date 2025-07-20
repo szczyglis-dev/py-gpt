@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.07.20 16:00:00                  #
 # ================================================== #
 
 import os
@@ -189,8 +189,16 @@ class HtmlCanvas(BaseTool):
             current_col = self.window.controller.ui.tabs.column_idx
             if tool_col == 1 and tool_col != current_col:
                 self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
-                return
             return # do not open if already opened in tab
+        elif self.window.controller.ui.tabs.is_tool(self.id):
+            tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+            if tab:
+                tool_col = tab.column_idx
+                current_col = self.window.controller.ui.tabs.column_idx
+                self.window.controller.ui.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
+                if tool_col == 1 and tool_col != current_col:
+                    self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                return
         if not self.auto_opened:
             self.auto_opened = True
             self.open()

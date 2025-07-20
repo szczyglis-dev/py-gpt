@@ -674,6 +674,46 @@ class Tabs:
             tab = self.window.core.tabs.get_tab_by_pid(pid)
             if tab is not None and tab.tool_id == tool_id:
                 return True
+        return False
+
+    def is_tool(self, tool_id: str) -> bool:
+        """
+        Check if one of any tabs is of given tool ID
+
+        :param tool_id: tool ID
+        :return: True if one of tab is of given tool ID
+        """
+        for col in self.col:
+            tabs = self.window.ui.layout.get_tabs_by_idx(col)
+            for i in range(tabs.count()):
+                tab = self.window.core.tabs.get_tab_by_index(i, col)
+                if tab is not None and tab.tool_id == tool_id:
+                    return True
+        return False
+
+    def get_first_tab_by_tool(self, tool_id: str) -> Tab:
+        """
+        Get first tab index by tool ID
+
+        :param tool_id: tool ID
+        :return: tab index if one of tab is of given tool ID, None otherwise
+        """
+        for col in self.col:
+            tabs = self.window.ui.layout.get_tabs_by_idx(col)
+            for i in range(tabs.count()):
+                tab = self.window.core.tabs.get_tab_by_index(i, col)
+                if tab is not None and tab.tool_id == tool_id:
+                    return tab
+
+    def switch_to_first_tab_by_tool(self, tool_id: str):
+        """
+        Switch to first tab by tool ID
+
+        :param tool_id: tool ID
+        """
+        tab = self.get_first_tab_by_tool(tool_id)
+        if tab is not None:
+            self.switch_tab_by_idx(tab.idx, tab.column_idx)
 
     def get_tool_column(self, tool_id: str) -> int:
         """
