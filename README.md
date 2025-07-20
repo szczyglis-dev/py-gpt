@@ -963,7 +963,6 @@ PyGPT has built-in support for models (as of 2025-07-14):
 - `gpt-4-vision-preview` (OpenAI)
 - `gpt-4.1` (OpenAI)
 - `gpt-4.1-mini` (OpenAI)
-- `gpt-4.5-preview` (OpenAI)
 - `gpt-4o` (OpenAI)
 - `gpt-4o-2024-11-20` (OpenAI)
 - `gpt-4o-audio-preview` (OpenAI)

@@ -1505,55 +1505,6 @@
             "provider": "openai",
             "tool_calls": true
         },
-        "gpt-4.5-preview": {
-            "id": "gpt-4.5-preview",
-            "name": "gpt-4.5-preview",
-            "mode": [
-                "chat",
-                "assistant",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4.5-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 128000,
-            "tokens": 16384,
-            "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
         "gpt-4o": {
             "id": "gpt-4o",
             "name": "gpt-4o",
