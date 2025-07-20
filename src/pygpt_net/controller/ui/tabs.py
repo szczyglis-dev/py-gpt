@@ -823,10 +823,10 @@ class Tabs:
                                 self.update_title_current(title)
                         else:
                             self.on_column_focus(tab.column_idx)
-                        tabs.setCurrentIndex(idx)
                         if meta is not None:
                             self.on_column_focus(tab.column_idx)
-                            self.window.controller.ctx.after_load(meta.id)
+                            self.window.controller.ctx.load(meta.id)
+                        tabs.setCurrentIndex(idx)
         self.debug()
 
 
