@@ -2028,6 +2028,12 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
+            # < 2.5.55
+            if old < parse_version("2.5.55"):
+                print("Migrating config from < 2.5.55...")
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:

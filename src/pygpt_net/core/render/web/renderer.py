@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 import json
@@ -1030,9 +1030,9 @@ class Renderer(BaseRenderer):
             .format(icon)
         )
         expand_btn = (
-            "<span class='toggle-cmd-output' onclick='toggleToolOutput({});' "
-            "role='button'>{} {}</span>"
-            .format(str(ctx.id), cmd_icon, trans('action.cmd.expand'))
+            "<span class='toggle-cmd-output' onclick='toggleToolOutput({});' title='{}' "
+            "role='button'>{}</span>"
+            .format(str(ctx.id), trans('action.cmd.expand'), cmd_icon)
         )
 
         # check if next ctx is internal and current ctx has commands
