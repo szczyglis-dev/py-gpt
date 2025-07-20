@@ -34,14 +34,6 @@ class Launcher:
 
     def post_setup(self):
         """Post setup launcher"""
-        # show welcome API KEY dialog (disable for langchain mode)
-        if not self.window.core.config.get('mode') in self.no_api_key_allowed and \
-                (self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == ''):
-
-            if not self.window.core.config.get('api_key.monit.displayed', False):
-                self.show_api_monit()
-                self.window.core.config.set('api_key.monit.displayed', True)
-
         # check for updates
         if self.window.core.config.get('updater.check.launch'):
             self.window.core.updater.check()
