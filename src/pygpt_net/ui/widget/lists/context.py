@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -407,6 +407,7 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.set_important(id, True)
 
     def action_unpin(self, id):
@@ -415,6 +416,7 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.set_important(id, False)
 
     def action_important(self, id):
@@ -423,6 +425,7 @@ class ContextList(BaseList):
 
         :param id: context id
         """
+        self.restore_after_ctx_menu = False  # do not restore selection after context menu
         self.window.controller.ctx.set_important(id)
 
     def action_duplicate(self, id):

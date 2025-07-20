@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -421,6 +421,37 @@ class Ctx:
             self.select(id)
             self.window.ui.nodes['ctx.list'].select_by_idx(select_idx)
 
+    def after_load(
+            self,
+            id: int,
+    ):
+        """
+        Load ctx data
+
+        :param id: context ID
+        """
+        # select ctx by id
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            self.set_group(meta.group_id)  # set current group if defined
+
+        # reset appended data / prepare new ctx
+        if meta is not None:
+            data = {
+                "meta": meta,
+            }
+            event = RenderEvent(RenderEvent.ON_LOAD, data)
+            self.window.dispatch(event)
+
+        self.reload_config()
+
+        # reload ctx list and select current ctx on list, without reloading all
+        self.update(reload=False, all=True)
+
+        # update tab title
+        if meta is not None:
+            self.window.controller.ui.tabs.on_load_ctx(meta)
+
     def reload_config(self, all: bool = True):
         """
         Reload config
@@ -666,6 +697,7 @@ class Ctx:
             meta.important = value
             self.window.core.ctx.save(id)
             self.update(no_scroll=True)
+            self.select_by_current()
 
     def is_important(self, idx: int) -> bool:
         """
