@@ -778,7 +778,6 @@ class Tabs:
                 tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
                 if tabs and idx:
                     tabs.setCurrentIndex(idx)
-                    print("0")
                     return
             else:
                 # if current is not type, find first tab

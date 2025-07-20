@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.54 (2025-07-20)
+
+- Fixed reloading chat items if second column is focused.
+- Increased chat tab titles to 15 chars.
+- Removed gpt-4.5-preview from models - issue #121.
+- Updated CSS for images.
+
 ## 2.5.53 (2025-07-19)
 
 - Improved context list context menu.
