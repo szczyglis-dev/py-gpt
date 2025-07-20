@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 03:00:00                  #
+# Updated Date: 2025.07.20 16:00:00                  #
 # ================================================== #
 
 import uuid
@@ -416,7 +416,6 @@ class Tabs:
             if (tab.type == type
                     and tab.column_idx == column_idx
                     and tab.idx < min):
-                print(tab)
                 min = tab.idx
         return min
 
@@ -440,7 +439,6 @@ class Tabs:
             if (tab.type == type
                     and tab.column_idx == column_idx
                     and tab.idx < min):
-                print(tab)
                 min = tab.idx
                 exists = True
                 column_idx = tab.column_idx

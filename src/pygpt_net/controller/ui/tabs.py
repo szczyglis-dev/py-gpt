@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.20 16:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -18,6 +18,9 @@ from pygpt_net.utils import trans
 
 
 class Tabs:
+
+    TAB_CHAT_MAX_CHARS = 15  # max chars for chat tab title
+
     def __init__(self, window=None):
         """
         UI tabs controller
@@ -187,7 +190,6 @@ class Tabs:
             self.window.dispatch(AppEvent(AppEvent.TAB_SELECTED))  # app event
 
         self.on_changed()
-
         self.window.controller.ui.update()
         self.update_current()
 
@@ -559,8 +561,8 @@ class Tabs:
         tabs = self.window.ui.layout.get_active_tabs()
         tooltip = title
         tabs.setTabToolTip(idx, tooltip)
-        if len(title) > 8:
-            title = title[:8] + '...'  # truncate to max 8 chars
+        if len(title) > self.TAB_CHAT_MAX_CHARS:
+            title = title[:self.TAB_CHAT_MAX_CHARS] + '...'  # truncate to max 8 chars
         self.window.core.tabs.update_title(idx, title, tooltip)
 
     def update_title_current(self, title: str):
