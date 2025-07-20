@@ -778,6 +778,7 @@ class Tabs:
                 tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
                 if tabs and idx:
                     tabs.setCurrentIndex(idx)
+                    print("0")
                     return
             else:
                 # if current is not type, find first tab
@@ -785,12 +786,15 @@ class Tabs:
                 if tab:
                     tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
                     if tabs:
+                        idx = tab.idx
                         if data_id is not None:
                             tab.data_id = data_id
+                            self.on_column_focus(tab.column_idx)
                             if title is not None:
                                 self.update_title_current(title)
                         else:
                             self.on_column_focus(tab.column_idx)
+                        tabs.setCurrentIndex(idx)
                         if meta is not None:
                             self.on_column_focus(tab.column_idx)
                             self.window.controller.ctx.load(meta.id)
