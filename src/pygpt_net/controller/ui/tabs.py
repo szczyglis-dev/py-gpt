@@ -676,6 +676,19 @@ class Tabs:
                 return True
         return False
 
+    def get_current_by_column(self, column_idx: int) -> Optional[Tab]:
+        """
+        Get current tab by column index
+
+        :param column_idx: column index
+        :return: current tab in given column or None if not found
+        """
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if tabs is None:
+            return None
+        idx = tabs.currentIndex()
+        return self.window.core.tabs.get_tab_by_index(idx, column_idx)
+
     def is_tool(self, tool_id: str) -> bool:
         """
         Check if one of any tabs is of given tool ID
@@ -747,7 +760,8 @@ class Tabs:
             self,
             type: str,
             data_id: Optional[int] = None,
-            title: Optional[str] = None
+            title: Optional[str] = None,
+            meta: Optional[CtxMeta] = None
     ):
         """
         Focus by type and optionally update tab data ID and name
@@ -755,6 +769,7 @@ class Tabs:
         :param type: tab type
         :param data_id: data ID (optional, for chat tab)
         :param title: new tab name (optional, for chat tab)
+        :param meta: context meta (optional, for chat tab)
         """
         # first try to focus current tab
         if self.get_current_type() != type:
@@ -770,16 +785,16 @@ class Tabs:
                 if tab:
                     tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
                     if tabs:
-                        idx = tab.idx
                         if data_id is not None:
-                            tab.pid = data_id
                             tab.data_id = data_id
-                            self.on_column_focus(tab.column_idx)
                             if title is not None:
                                 self.update_title_current(title)
                         else:
                             self.on_column_focus(tab.column_idx)
-                        tabs.setCurrentIndex(idx)
+                        if meta is not None:
+                            self.on_column_focus(tab.column_idx)
+                            self.window.controller.ctx.load(meta.id)
+
 
     def on_split_screen_changed(self, state: bool):
         """

@@ -107,7 +107,7 @@ class Common:
         if meta:
             data_id = meta.id
             title = meta.name
-        self.window.controller.ui.tabs.focus_by_type(Tab.TAB_CHAT, data_id=data_id, title=title)
+        self.window.controller.ui.tabs.focus_by_type(Tab.TAB_CHAT, data_id=data_id, title=title, meta=meta)
 
     def restore_display_filter(self):
         """Restore display filter"""
