@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 16:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -52,6 +52,11 @@ class Tabs:
         self.window.ui.nodes['layout.split'].setChecked(state)
         if not state:
             self.window.ui.splitters['columns'].setSizes([1, 0])
+
+    def debug(self):
+        """Debug tabs if enabled"""
+        if self.window.controller.dialogs.debug.is_active("tabs"):
+            self.window.core.tabs.toggle_debug(True)
 
     def add(
             self,
@@ -105,10 +110,12 @@ class Tabs:
             tool_id=tool_id
         )
         self.switch_tab_by_idx(tab.idx, column_idx)  # switch to new tab
+        self.debug()
 
     def reload_titles(self):
         """Reload tab titles"""
         self.window.core.tabs.reload_titles()
+        self.debug()
 
     def update_current(self):
         """Update current tab"""
@@ -118,12 +125,14 @@ class Tabs:
             self.col[curr_column] = -1
         if curr_tab is not None:
             self.col[curr_column] = curr_tab.pid
+        self.debug()
 
     def reload(self):
         """Reload tabs"""
         self.window.core.tabs.reload()
         event = RenderEvent(RenderEvent.PREPARE)
         self.window.dispatch(event)
+        self.debug()
 
     def reload_after(self):
         """Reload tabs after"""
@@ -135,6 +144,7 @@ class Tabs:
                 self.window.ui.nodes['output_plain'][pid].setVisible(False)
                 self.window.ui.nodes['output'][pid].setVisible(True)
         #self.switch_tab(Tab.TAB_CHAT)
+        self.debug()
 
     def on_tab_changed(
             self,
@@ -192,6 +202,7 @@ class Tabs:
         self.on_changed()
         self.window.controller.ui.update()
         self.update_current()
+        self.debug()
 
     def on_changed(self):
         """On Tab or column changed event (any)"""
@@ -199,6 +210,7 @@ class Tabs:
         if tab is None:
             return
         self.window.controller.audio.on_tab_changed(tab)
+        self.debug()
 
     def get_current_idx(self, column_idx: int = 0) -> int:
         """
@@ -292,6 +304,7 @@ class Tabs:
                 self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
         self.update_current()
+        self.debug()
 
     def on_tab_clicked(
             self,
@@ -309,6 +322,7 @@ class Tabs:
         self.on_column_changed()
         self.on_changed()
         self.update_current()
+        self.debug()
 
     def on_column_focus(self, idx: int):
         """
@@ -322,6 +336,7 @@ class Tabs:
         self.on_column_changed()
         self.on_changed()
         self.update_current()
+        self.debug()
 
     def on_tab_dbl_clicked(
             self,
@@ -337,6 +352,7 @@ class Tabs:
         self.column_idx = column_idx
         self.on_tab_changed(idx, column_idx)
         self.update_current()
+        self.debug()
 
     def on_tab_closed(
             self,
@@ -354,6 +370,7 @@ class Tabs:
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
         self.on_changed()
         self.update_current()
+        self.debug()
 
     def on_tab_moved(
             self,
@@ -370,6 +387,7 @@ class Tabs:
             return
         self.window.core.tabs.update()
         self.update_current()
+        self.debug()
 
     def close(
             self,
@@ -384,6 +402,7 @@ class Tabs:
         """
         self.on_tab_closed(idx, column_idx)
         self.update_current()
+        self.debug()
 
     def close_all(
             self,
@@ -410,6 +429,7 @@ class Tabs:
         self.window.core.tabs.remove_all_by_type(type, column_idx)
         self.on_changed()
         self.update_current()
+        self.debug()
 
     def next_tab(self):
         """Switch to next tab"""
@@ -497,6 +517,7 @@ class Tabs:
         """
         tabs = self.window.ui.layout.get_active_tabs()
         tabs.setTabToolTip(self.current, tooltip)
+        self.debug()
 
     def rename(
             self,
@@ -535,6 +556,7 @@ class Tabs:
         self.window.core.tabs.update_title(idx, name)
         if close:
             self.window.ui.dialog['rename'].close()
+        self.debug()
 
     def update_current_name(self, name: str):
         """
@@ -564,6 +586,7 @@ class Tabs:
         if len(title) > self.TAB_CHAT_MAX_CHARS:
             title = title[:self.TAB_CHAT_MAX_CHARS] + '...'  # truncate to max 8 chars
         self.window.core.tabs.update_title(idx, title, tooltip)
+        self.debug()
 
     def update_title_current(self, title: str):
         """
@@ -584,6 +607,7 @@ class Tabs:
         if tab is not None and tab.type == Tab.TAB_CHAT:
             tab.data_id = meta.id
         self.update_title_current(meta.name)
+        self.debug()
 
     def open_by_type(self, type: int):
         """
@@ -625,6 +649,7 @@ class Tabs:
         # set default column to 0
         self.column_idx = 0
         self.on_column_changed()
+        self.debug()
 
     def move_tab(
             self,
@@ -648,6 +673,7 @@ class Tabs:
         self.on_column_changed()
         # switch to new tab
         self.switch_tab_by_idx(tab.idx, new_column_idx)
+        self.debug()
 
     def is_current_by_type(self, type: int) -> bool:
         """
@@ -778,6 +804,7 @@ class Tabs:
                 tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
                 if tabs and idx:
                     tabs.setCurrentIndex(idx)
+                    self.debug()
                     return
             else:
                 # if current is not type, find first tab
@@ -787,6 +814,7 @@ class Tabs:
                     if tabs:
                         idx = tab.idx
                         if data_id is not None:
+                            tab.pid = meta.get_pid()
                             tab.data_id = data_id
                             self.on_column_focus(tab.column_idx)
                             if title is not None:
@@ -796,7 +824,8 @@ class Tabs:
                         tabs.setCurrentIndex(idx)
                         if meta is not None:
                             self.on_column_focus(tab.column_idx)
-                            self.window.controller.ctx.load(meta.id)
+                            self.window.controller.ctx.after_load(meta.id)
+        self.debug()
 
 
     def on_split_screen_changed(self, state: bool):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 16:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 import uuid
@@ -744,13 +744,18 @@ class Tabs:
         data = {}
         for pid in self.pids:
             tab = self.pids[pid]
+            title = tab.title
+            if title is None:
+                title = ""
+            if title.startswith("[i:"):
+                title = title.split("] ", 1)[-1]  # remove debug info
             data[pid] = {
                 "uuid": str(tab.uuid),
                 "pid": tab.pid,
                 "idx": tab.idx,
                 "type": tab.type,
                 "data_id": tab.data_id,
-                "title": tab.title,
+                "title": title,
                 "tooltip": tab.tooltip,
                 "custom_name": tab.custom_name,
                 "column_idx": tab.column_idx,
@@ -820,6 +825,37 @@ class Tabs:
                 tabs.setTabText(tab.idx, tab.title)
                 tabs.setTabToolTip(tab.idx, tab.title)
                 processed.append(pid)
+
+    def toggle_debug(self, enabled: bool = False):
+        """
+        Toggle debug mode for all tabs
+
+        :param enabled: Enable debug mode
+        """
+        for column_idx in range(0, self.NUM_COLS):
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            for idx in range(tabs.count()):
+                tab = self.get_tab_by_index(idx, column_idx)
+                if tab is None:
+                    continue
+                title = tab.title  # remove prev debug from all [...], using regex
+                if title.startswith("[i:"):
+                    title = title.split("] ", 1)[-1]  # remove debug info
+                if enabled:
+                    debug_info = f"[i: {tab.idx}, p: {tab.pid}"
+                    if tab.data_id is not None:
+                        debug_info += f", d: {tab.data_id}"
+                    debug_info += f", c: {tab.column_idx}] {title}"
+                    tabs.setTabText(idx, debug_info)
+                    tabs.setTabToolTip(idx, tab.tooltip)
+                else:
+                    tabs.setTabText(idx, title)
+                    if tab.tooltip is not None:
+                        tabs.setTabToolTip(idx, tab.tooltip)
+                    else:
+                        tabs.setTabToolTip(idx, "")
+        if not enabled:
+            self.save()
 
     def from_widget(self, widget: QWidget) -> TabBody:
         """

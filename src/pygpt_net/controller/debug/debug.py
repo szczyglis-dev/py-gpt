@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -227,9 +227,13 @@ class Debug(QObject):
         """
         if self.window.controller.dialogs.debug.is_active(id):
             self.window.controller.dialogs.debug.hide(id)
+            if id == "tabs":
+                self.window.core.tabs.toggle_debug(False)
         else:
             if id == "db":
                 self.window.ui.dialogs.database.viewer.update_table_view()  # update view on load
+            elif id == "tabs":
+                self.window.core.tabs.toggle_debug(True)
             self.window.controller.dialogs.debug.show(id)
             self.on_post_update(True)
 
@@ -237,6 +241,17 @@ class Debug(QObject):
 
         # update menu
         self.update()
+
+    def on_close(self, id: str):
+        """
+        Handle debug window close event
+
+        :param id: debug window id
+        """
+        self.window.controller.dialogs.debug.active[id] = False
+        self.window.controller.debug.update_menu()
+        if id == "tabs":
+            self.window.core.tabs.toggle_debug(False)
 
     def toggle_app_log(self):
         """

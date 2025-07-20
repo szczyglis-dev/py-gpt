@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.05 12:00:00                  #
+# Updated Date: 2025.07.20 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -48,8 +48,5 @@ class DebugDialog(BaseDialog):
             super(DebugDialog, self).keyPressEvent(event)
 
     def cleanup(self):
-        """
-        Cleanup on close
-        """
-        self.window.controller.dialogs.debug.active[self.id] = False
-        self.window.controller.debug.update_menu()
+        """Cleanup on close"""
+        self.window.controller.debug.on_close(self.id)
