@@ -1,3 +1,10 @@
+2.5.55 (2025-07-21)
+
+- Fixed tab title reload.
+- Fixed restore selection after pin/unpin.
+- Added tabs debugger.
+- Removed JSON output string from tool output.
+
 2.5.54 (2025-07-20)
 
 - Fixed reloading chat items if second column is focused.

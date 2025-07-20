@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.54** | build: **2025-07-20** | Python: **>=3.10, <3.13**
+Release: **2.5.55** | build: **2025-07-21** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4111,6 +4111,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.55 (2025-07-21)**
+
+- Fixed tab title reload.
+- Fixed restore selection after pin/unpin.
+- Added tabs debugger.
+- Removed JSON output string from tool output.
 
 **2.5.54 (2025-07-20)**
 
