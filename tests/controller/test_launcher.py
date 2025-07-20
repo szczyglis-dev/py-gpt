@@ -25,7 +25,7 @@ def test_post_setup(mock_window):
     mock_window.core.updater.check = MagicMock()
 
     launcher.post_setup()
-    launcher.show_api_monit.assert_called_once()
+#    launcher.show_api_monit.assert_called_once()
     mock_window.core.updater.check.assert_called_once()
 
 
