@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.07.21 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -26,6 +26,7 @@ class Summarizer:
         :param window: Window instance
         """
         self.window = window
+        self.worker = None
 
     def summarize(
             self,
@@ -73,14 +74,14 @@ class Summarizer:
         :param id: CtxMeta ID
         :param ctx: CtxItem
         """
-        worker = Worker(self.summarizer)
-        worker.signals = WorkerSignals()
-        worker.signals.updated.connect(self.handle_update)
-        worker.kwargs['id'] = id
-        worker.kwargs['ctx'] = ctx
-        worker.kwargs['window'] = self.window
-        worker.kwargs['updated_signal'] = worker.signals.updated
-        self.window.threadpool.start(worker)
+        self.worker = Worker(self.summarizer)
+        self.worker.signals = WorkerSignals()
+        self.worker.signals.updated.connect(self.handle_update)
+        self.worker.kwargs['id'] = id
+        self.worker.kwargs['ctx'] = ctx
+        self.worker.kwargs['window'] = self.window
+        self.worker.kwargs['updated_signal'] = self.worker.signals.updated
+        self.window.threadpool.start(self.worker)
 
     @Slot(int, object, str)
     def handle_update(
