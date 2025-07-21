@@ -286,6 +286,7 @@ class Tabs:
         """Remove all tabs"""
         for pid in list(self.pids):
             self.remove(pid)  # delete from PIDs and UI
+        self.pids = {}
         self.window.core.ctx.output.clear()  # clear mapping
 
     def remove_all_by_type(

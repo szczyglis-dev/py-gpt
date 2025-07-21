@@ -11,6 +11,8 @@
 
 from typing import Any, Optional
 
+from PySide6.QtCore import QTimer
+
 from pygpt_net.core.events import AppEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxMeta
@@ -801,6 +803,21 @@ class Tabs:
         """
         # first try to focus current tab
         if self.get_current_type() != type:
+            # first, check in second column
+            second_column_idx = 1 if self.column_idx == 0 else 0
+            # get current tab from second column
+            tabs = self.window.ui.layout.get_tabs_by_idx(second_column_idx)
+            second_tabs_idx = tabs.currentIndex()
+            second_tab = self.window.core.tabs.get_tab_by_index(second_tabs_idx, second_column_idx)
+            if second_tab is not None and second_tab.type == type:
+                # switch to second column
+                self.on_column_focus(second_column_idx)
+                tabs.setCurrentIndex(second_tabs_idx)
+                if meta:
+                    QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+                self.debug()
+                return
+
             idx, column_idx, exists = self.window.core.tabs.get_min_idx_by_type_exists(type)
             if exists:
                 tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
@@ -816,9 +833,7 @@ class Tabs:
                     if tabs:
                         idx = tab.idx
                         if data_id is not None:
-                            tab.pid = meta.get_pid()
                             tab.data_id = data_id
-                            self.on_column_focus(tab.column_idx)
                             if title is not None:
                                 self.update_title_current(title)
                         else:
@@ -826,7 +841,10 @@ class Tabs:
                         if meta is not None:
                             self.on_column_focus(tab.column_idx)
                             self.window.controller.ctx.load(meta.id)
+                            QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+                            self.on_column_focus(tab.column_idx)
                         tabs.setCurrentIndex(idx)
+
         self.debug()
 
 
