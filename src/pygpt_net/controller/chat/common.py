@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 19:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans
 
 
@@ -284,20 +285,53 @@ class Common:
         if not exit:
             self.window.dispatch(AppEvent(AppEvent.INPUT_STOPPED))  # app event
 
-    def check_api_key(self, monit: bool = True) -> bool:
+    def check_api_key(
+            self,
+            mode: str,
+            model: ModelItem,
+            monit: bool = True
+    ) -> bool:
         """
         Check if API KEY is set
 
+        :param mode: current mode
+        :param model: ModelItem instance
         :param monit: True if monitor should be shown
         :return: True if API KEY is set, False otherwise
         """
-        result = True
-        if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-            if monit:
-                self.window.controller.launcher.show_api_monit()
-            self.window.update_status("Missing API KEY!")
-            result = False
-        return result
+        if model is None:
+            return True
+
+        provider_keys = {
+            "openai": self.window.core.config.get('api_key', None),
+            "azure_openai": self.window.core.config.get('api_key', None),
+            "anthropic": self.window.core.config.get('api_key_anthropic', None),
+            "google": self.window.core.config.get('api_key_google', None),
+            "x_ai": self.window.core.config.get('api_key_xai', None),
+            "perplexity": self.window.core.config.get('api_key_perplexity', None),
+            "deepseek_api": self.window.core.config.get('api_key_deepseek', None),
+            "mistral_ai": self.window.core.config.get('api_key_mistral', None),
+        }
+
+        if model.provider in provider_keys:
+            api_key = provider_keys[model.provider]
+            name = self.window.core.llm.get_provider_name(model.provider)
+            if model.provider == 'openai':
+                # allow empty key for models other than GPT
+                if model.is_gpt() and (api_key is None or api_key == ''):
+                    if monit:
+                        self.window.ui.nodes['start.api_key.provider'].setText(name)
+                        self.window.controller.launcher.show_api_monit()
+                    self.window.update_status("Missing API KEY for provider: {}".format(name))
+                    return False
+            else:
+                if api_key is None or api_key == '':
+                    if monit:
+                        self.window.ui.nodes['start.api_key.provider'].setText(name)
+                        self.window.controller.launcher.show_api_monit()
+                    self.window.update_status("Missing API KEY for provider: {}".format(name))
+                    return False
+        return True
 
     def toggle_timestamp(self, value: bool):
         """

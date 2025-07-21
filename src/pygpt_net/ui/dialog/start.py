@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 03:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 import os
@@ -16,21 +16,21 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
-from pygpt_net.ui.widget.element.labels import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel, TitleLabel
 from pygpt_net.utils import trans
 
 
 class Start:
     def __init__(self, window=None):
         """
-        Start dialog
+        API KEY dialog
 
         :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setup start dialog"""
+        """Setup API KEY dialog"""
         id = 'start'
 
         self.window.ui.nodes['start.btn'] = QPushButton(trans('dialog.start.btn'))
@@ -45,17 +45,20 @@ class Start:
         logo_label.setPixmap(pixmap)
 
         self.window.ui.nodes['start.title'] = QLabel(trans('dialog.start.title.text'))
-        link = UrlLabel('', trans('dialog.start.link'))
-        self.window.ui.nodes['start.settings'] = QLabel(trans('dialog.start.settings.text'))
-        self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['start.api_key.provider'] = TitleLabel(trans('dialog.start.link'))
+        # self.window.ui.nodes['start.settings'] = QLabel(trans('dialog.start.settings.text'))
+        # self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
 
         self.window.ui.nodes['start.title'].setAlignment(Qt.AlignCenter)
 
         layout = QVBoxLayout()
         layout.addWidget(logo_label, alignment=Qt.AlignCenter)
+        layout.addStretch(1)
         layout.addWidget(self.window.ui.nodes['start.title'], alignment=Qt.AlignCenter)
-        layout.addWidget(link, alignment=Qt.AlignCenter)
-        layout.addWidget(self.window.ui.nodes['start.settings'], alignment=Qt.AlignCenter)
+        layout.addStretch(1)
+        layout.addWidget(self.window.ui.nodes['start.api_key.provider'], alignment=Qt.AlignCenter)
+        layout.addStretch(1)
+        # layout.addWidget(self.window.ui.nodes['start.settings'], alignment=Qt.AlignCenter)
         layout.addWidget(self.window.ui.nodes['start.btn'])
 
         self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)

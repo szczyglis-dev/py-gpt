@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -57,6 +57,15 @@ class LLM:
 
         # sorted by name
         return dict(sorted(choices.items(), key=lambda item: item[1].lower()))
+
+    def get_provider_name(self, id: str) -> str:
+        """
+        Get provider name by id
+
+        :param id: LLM id
+        :return: provider name
+        """
+        return self.llms[id].name if id in self.llms else id
 
     def register(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -97,6 +97,9 @@ class Custom:
         # settings: llama-idx
         self.window.controller.idx.settings.update_text_last_updated()
         self.window.controller.idx.settings.update_text_loaders()
+
+        # mode
+        self.window.controller.mode.init_list()
 
         # theme menu
         self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))

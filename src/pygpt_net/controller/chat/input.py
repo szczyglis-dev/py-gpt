@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 import os
@@ -251,19 +251,17 @@ class Input:
             self.generating = False  # unlock as not generating
             return
 
-        # check OpenAI API key, show monit if no API key
-        if mode not in self.window.controller.launcher.no_api_key_allowed:
-            if not self.window.controller.chat.common.check_api_key(monit=False):
-                model = self.window.core.config.get('model')
-                if model:
-                    model_data = self.window.core.models.get(model)
-                    if model_data is not None and model_data.is_gpt():
-                        self.window.controller.chat.common.check_api_key(monit=True)
-                        self.generating = False
-                        self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
-                            "id": "chat",
-                        }))
-                        return
+        # check API key, show monit if no API key for current provider
+        model = self.window.core.config.get('model')
+        if model:
+            model_data = self.window.core.models.get(model)
+            if not self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=False):
+                self.window.controller.chat.common.check_api_key(mode=mode, model=model_data, monit=True)
+                self.generating = False
+                self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                    "id": "chat",
+                }))
+                return
 
         # set state to: busy
         self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
