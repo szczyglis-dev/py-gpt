@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.57 (2025-07-21)
+
+- Fix: context summary worker initialization.
+- Fix: loading spinner in Assistants mode.
+
 ## 2.5.56 (2025-07-21)
 
 - Improved data reload after profile switch.
