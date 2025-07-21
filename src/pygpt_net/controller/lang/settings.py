@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 18:00:00                  #
+# Updated Date: 2025.07.22 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -31,22 +31,28 @@ class Settings:
         for id in self.window.controller.settings.editor.options:
             option = self.window.controller.settings.editor.options[id]
             option_label = 'settings.{}.label'.format(id)  # TODO: check
-            option_desc = 'settings.{}.desc'.format(id)  # TODO: check
             trans_key = '{}'.format(option['label'])
 
             # label
             if option['type'] == 'bool':
                 if id in self.window.ui.config['config']:
+                    if hasattr(self.window.ui.config['config'][id], 'setText'):
+                        self.window.ui.config['config'][id].setText(trans(trans_key))
                     self.window.ui.config['config'][id].box.setText(trans(trans_key))
             else:
                 if option_label in self.window.ui.nodes:
                     self.window.ui.nodes[option_label].setText(trans(trans_key))
 
             # description
-            if option_desc in self.window.ui.nodes:
-                if 'description' in option \
-                        and option['description'] is not None \
-                        and option['description'].strip() != "":
+            if 'description' in option \
+                    and option['description'] is not None \
+                    and option['description'].strip() != "":
+                option_desc = 'settings.{}.desc'.format(id)  # TODO: check
+                if option_desc in self.window.ui.nodes:
+                    trans_desc_key = '{}'.format(option['description'])
+                    self.window.ui.nodes[option_desc].setText(trans(trans_desc_key))
+                option_desc = option["description"]
+                if option_desc in self.window.ui.nodes:
                     trans_desc_key = '{}'.format(option['description'])
                     self.window.ui.nodes[option_desc].setText(trans(trans_desc_key))
 
