@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 17:00:00                  #
+# Updated Date: 2025.07.21 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -19,6 +19,7 @@ from packaging.version import Version
 
 from pygpt_net.core.profile import Profile
 from pygpt_net.provider.core.config.json_file import JsonFileProvider
+from pygpt_net.core.types.console import Color
 
 
 class Config:
@@ -220,18 +221,19 @@ class Config:
             # if app initialization
             if all:
                 v = self.get_version()
-                build = self.get_build()
+                build = self.get_build().replace('.', '-')
                 os = self.window.core.platforms.get_os()
                 architecture = self.window.core.platforms.get_architecture()
+
                 print("===================================================")
-                print(" PyGPT    {} build {} ({}, {})".format(v, build.replace('.', '-'), os, architecture))
+                print(f" {Color.BOLD}PyGPT    {v}{Color.ENDC} build {build} ({os}, {architecture})")
                 print(" Author:  Marcin Szczyglinski")
                 print(" GitHub:  https://github.com/szczyglis-dev/py-gpt")
                 print(" Website: https://pygpt.net")
                 print(" Email:   info@pygpt.net")
                 print("===================================================")
                 print("")
-                print("Initializing...")
+                print(f"{Color.BOLD}Initializing...{Color.ENDC}")
 
                 # prepare and install
                 self.window.core.installer.install()

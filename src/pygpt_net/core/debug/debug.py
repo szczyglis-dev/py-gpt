@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.07.21 15:00:00                  #
 # ================================================== #
 
 import os
 import sys
 import threading
+import time
 import traceback
 import logging
 
@@ -19,7 +20,7 @@ from pathlib import Path
 from typing import Any, Tuple
 
 from pygpt_net.config import Config
-
+from pygpt_net.core.types.console import Color
 
 class Debug:
     def __init__(self, window=None):
@@ -29,6 +30,7 @@ class Debug:
         :param window: Window instance
         """
         self.window = window
+        self.pause_idx = 1
 
     @staticmethod
     def init(level: int = logging.ERROR):
@@ -327,3 +329,30 @@ class Debug:
         :param v: value
         """
         self.window.controller.dialogs.debug.add(id, k, v)
+
+    def pause(self, *args):
+        """
+        Pause execution
+
+        Pause execution and print traceback.
+
+        :param args: objects to dump
+        """
+        dt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        thread_info = "[MAIN THREAD]" if threading.current_thread() is threading.main_thread() \
+            else f"[THREAD: {threading.current_thread().ident}]"
+        print(f"\n{Color.FAIL}{Color.BOLD}<DEBUG: PAUSED> #{self.pause_idx} {dt}{Color.ENDC}")
+        print(f"\n{Color.BOLD}{thread_info}{Color.ENDC}")
+        print("------------------------------>")
+        self.pause_idx += 1
+
+        traceback.print_stack()
+
+        # dump args
+        for index, arg in enumerate(args):
+            print(f"\n{Color.BOLD}Dump {index + 1}:{Color.ENDC}")
+            print(f"{Color.BOLD}Type: {type(arg)}{Color.ENDC}")
+            print(arg)
+
+        input(f"<------------------------------\n\n{Color.OKGREEN}Paused. Press Enter to continue...{Color.ENDC}")
+        print(f"------------------------------\n{Color.OKGREEN}{Color.BOLD}<RESUMED>{Color.ENDC}\n")

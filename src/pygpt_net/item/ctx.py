@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.07.21 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -512,6 +512,22 @@ class CtxMeta:
     def get_pid(self):
         return 0
 
+    def dump(self) -> str:
+        """
+        Dump context item to JSON string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+        return ""
+
+    def __str__(self):
+        """To string"""
+        return self.dump()
+
 class CtxGroup:
     def __init__(self, id=None, name=None):
         """
@@ -593,3 +609,19 @@ class CtxGroup:
         self.created = data.get("created", None)
         self.updated = data.get("updated", None)
         self.count = data.get("count", 0)
+
+    def dump(self) -> str:
+        """
+        Dump context item to JSON string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+        return ""
+
+    def __str__(self):
+        """To string"""
+        return self.dump()
