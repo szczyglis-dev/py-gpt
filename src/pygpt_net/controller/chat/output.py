@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.21 19:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -231,9 +231,10 @@ class Output:
                 self.window.controller.ctx.prepare_name(ctx)  # async
 
         if self.window.state != self.window.STATE_ERROR:
-            self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
-                "id": "chat",
-            }))
+            if mode != MODE_ASSISTANT:
+                self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+                    "id": "chat",
+                }))
 
     def handle_end(
             self,
