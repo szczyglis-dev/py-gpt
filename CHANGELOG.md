@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.56 (2025-07-21)
+
+- Improved data reload after profile switch.
+
 ## 2.5.55 (2025-07-21)
 
 - Fixed tab title reload.
