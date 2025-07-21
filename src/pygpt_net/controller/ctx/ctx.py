@@ -760,7 +760,8 @@ class Ctx:
         # update tab title
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
-            self.window.controller.ui.tabs.update_title_current(meta.name)
+            if id == self.window.core.ctx.get_current():
+                self.window.controller.ui.tabs.update_title_current(meta.name)
 
     def update_name_current(self, name: str):
         """
