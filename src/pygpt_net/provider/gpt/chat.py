@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.21 21:00:00                  #
 # ================================================== #
 
 import json
@@ -102,6 +102,15 @@ class Chat:
                 params = {}
                 if function['params'] is not None and function['params'] != "":
                     params = json.loads(function['params'])  # unpack JSON from string
+
+                    # Google API fix:
+                    if model.provider == "google":
+                        if "properties" in params:
+                            for k, v in params["properties"].items():
+                                if "type" in v and v["type"] != "string":
+                                    if "enum" in v:
+                                        del v["enum"]
+
                 tools.append({
                     "type": "function",
                     "function": {
