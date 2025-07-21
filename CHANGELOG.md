@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.58 (2025-07-21)
+
+- Fix: Google API tool prepare requests.
+- Added delay to search input update.
+- Added per provider empty API key monits.
+
 ## 2.5.57 (2025-07-21)
 
 - Fix: context summary worker initialization.

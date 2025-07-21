@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.57** | build: **2025-07-21** | Python: **>=3.10, <3.13**
+Release: **2.5.58** | build: **2025-07-21** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4111,6 +4111,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.58 (2025-07-21)**
+
+- Fix: Google API tool prepare requests.
+- Added delay to search input update.
+- Added per provider empty API key monits.
 
 **2.5.57 (2025-07-21)**
 
