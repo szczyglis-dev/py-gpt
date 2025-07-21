@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.58** | build: **2025-07-21** | Python: **>=3.10, <3.13**
+Release: **2.5.59** | build: **2025-07-22** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4111,6 +4111,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.59 (2025-07-22)**
+
+- Added missing locales.
+- Fix tab title rename on context rename.
 
 **2.5.58 (2025-07-21)**
 

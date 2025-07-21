@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.59 (2025-07-22)
+
+- Added missing locales.
+- Fix tab title rename on context rename.
+
 ## 2.5.58 (2025-07-21)
 
 - Fix: Google API tool prepare requests.

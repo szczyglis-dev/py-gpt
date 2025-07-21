@@ -47,7 +47,7 @@ class Settings:
             if 'description' in option \
                     and option['description'] is not None \
                     and option['description'].strip() != "":
-                option_desc = 'settings.{}.desc'.format(id)  # TODO: check
+                option_desc = 'settings.{}.desc'.format(id)
                 if option_desc in self.window.ui.nodes:
                     trans_desc_key = '{}'.format(option['description'])
                     self.window.ui.nodes[option_desc].setText(trans(trans_desc_key))
