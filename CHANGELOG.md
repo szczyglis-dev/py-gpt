@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.60 (2025-07-22)
+
+- Improved CSS.
+- Added a new color themes: Light, Light:Gray, Dark, Dark:Gray, Dark:Darker.
+
 ## 2.5.59 (2025-07-22)
 
 - Added missing locales.

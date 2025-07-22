@@ -1740,7 +1740,8 @@
     },
     "llama.idx.auto.modes": {
         "section": "llama-index",
-        "type": "text",
+        "type": "bool_list",
+        "use": "modes",
         "slider": false,
         "label": "settings.llama.extra.btn.idx_auto.modes",
         "description": "model.mode.desc",
