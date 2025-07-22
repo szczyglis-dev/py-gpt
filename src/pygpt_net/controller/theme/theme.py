@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 import os
@@ -228,6 +228,16 @@ class Theme:
 
         if is_custom:
             path = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes', theme_name + '.css')
+            if os.path.exists(path):
+                with open(path) as file:
+                    content += file.read()
+
+        # windows fixes
+        if self.window.core.platforms.is_windows():
+            if theme.startswith('light'):
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'fix_windows.light.css')
+            else:
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'fix_windows.dark.css')
             if os.path.exists(path):
                 with open(path) as file:
                     content += file.read()
