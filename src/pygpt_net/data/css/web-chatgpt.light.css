@@ -73,6 +73,9 @@ code {{
 .action-icons a:hover {{
     filter: brightness(60%);
 }}
+.extra-src-img-box .img-wrapper {{
+    background: #fff;
+}}
 
 /* loader */
 .lds-ring {{

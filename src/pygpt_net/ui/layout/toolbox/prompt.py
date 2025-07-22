@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt, QIcon
@@ -35,7 +35,11 @@ class Prompt:
         :return: QWidget
         """
         # cmd enable/disable
-        self.window.ui.nodes['cmd.enabled'] = ToggleLabel(trans('cmd.enabled'), label_position="left",icon = ":/icons/build.svg")
+        self.window.ui.nodes['cmd.enabled'] = ToggleLabel(trans('cmd.enabled'), 
+            label_position="left", 
+            icon = ":/icons/build.svg", 
+            parent=self.window
+        )
         self.window.ui.nodes['cmd.enabled'].box.stateChanged.connect(
             lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].box.isChecked())
         )

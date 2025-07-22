@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 import os
@@ -36,9 +36,9 @@ class Common:
         if filename is not None:
             # per theme mode (light / dark)
             tmp = None
-            if name.startswith('light_'):
+            if name.startswith('light_') or name == 'light':
                 tmp = 'style.light.css'
-            elif name.startswith('dark_'):
+            elif name.startswith('dark_') or name == 'dark':
                 tmp = 'style.dark.css'
             if tmp is not None:
                 paths = []
@@ -51,6 +51,15 @@ class Common:
                         filename = tmp
                         break
         return filename
+
+    def is_light_theme(self) -> bool:
+        """
+        Check if current theme is light
+
+        :return: True if light theme, False otherwise
+        """
+        theme = self.window.core.config.get('theme')
+        return theme.startswith('light_') or theme == 'light'
 
     def toggle_tooltips(self):
         """Toggle visibility of static tooltips"""
@@ -136,6 +145,21 @@ class Common:
             'light_teal',
             'light_yellow',
         ]
+
+    def get_custom_themes_list(self) -> List[str]:
+        """
+        Return a list of custom themes
+
+        :return: list of themes names
+        """
+        dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
+        if not os.path.exists(dir):
+            return []
+        themes = []
+        for file in os.listdir(dir):
+            if file.endswith('.xml'):
+                themes.append(file.replace('.xml', ''))
+        return sorted(themes)
 
     def get_windows_fix(self) -> str:
         """

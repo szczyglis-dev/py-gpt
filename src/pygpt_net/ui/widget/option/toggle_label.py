@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
@@ -32,7 +32,7 @@ class ToggleLabel(QWidget):
         super(ToggleLabel, self).__init__()
         self.title = title
         self.label = QLabel(self.title)
-        self.box = AnimToggle()
+        self.box = AnimToggle('', parent)
 
         ico = None
         if icon is not None:

@@ -4,7 +4,6 @@
   selection-color: #fff;
 }}
 QWidget {{
-  background-color: #e7e7e7;
   color: #000;
   margin: 1px;
 }}
@@ -58,6 +57,7 @@ QTextEdit {{
 }}
 QMenu {{ 
   background-color: #fff; 
+  border: none;
 }} 
 QMenu::item {{ 
   color: #0e0e0e;
@@ -137,7 +137,7 @@ QHeaderView::section {{
 }}
 
 QMenu::indicator {{
-  border: 1px solid #828282 !important;
+  border: none !important;
   width: 16px;
   height: 16px;
   image: none;
@@ -182,10 +182,10 @@ QPushButton {{
   font-weight: bold;
 }}
 .label-help {{
-  color: #414141;
+  color: #5d5d5d;
 }}
 .label-chat-status {{
-  color: #414141;
+  color: #5d5d5d;
 }}
 .interpreter-input {{
   font-family: 'Monaspace Neon';
@@ -195,4 +195,34 @@ QPushButton {{
   font-family: 'Monaspace Neon';
   background: #fff; 
   color: #000;
+}}
+
+/* radius */
+QPushButton,
+QTextEdit,
+QListView,
+QTreeView,
+QComboBox,
+QLineEdit,
+QWebView {{
+  border-radius: 10px
+}}
+QMenu,
+.layout-input {{
+  border-top-right-radius: 10px;
+  border-top-left-radius: 0px;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+}}
+.layout-search {{
+  height: 35px;
+}}
+.layout-output-web {{
+  border-radius: 10px;
+}}
+QListView,
+QTreeView,
+QTextEdit,
+QLineEdit {{
+ border: none;
 }}

@@ -87,3 +87,32 @@ QHeaderView::section {{
   background: #232629; 
   color: #fff;
 }}
+
+/* radius */
+QPushButton,
+QTextEdit,
+QListView,
+QTreeView,
+QComboBox,
+QLineEdit,
+QWebView {{
+  border-radius: 10px
+}}
+QMenu,
+.layout-input,
+.layout-notepad {{
+  border-top-right-radius: 10px;
+  border-top-left-radius: 0px;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+}}
+.layout-search {{
+  height: 35px;
+}}
+.layout-output-web {{
+  border-radius: 10px;
+}}
+QTextEdit,
+QLineEdit {{
+ border: none;
+}}

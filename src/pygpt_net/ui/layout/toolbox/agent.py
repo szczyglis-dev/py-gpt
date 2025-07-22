@@ -44,7 +44,7 @@ class Agent:
         self.window.ui.config['global']['agent.iterations'] = self.window.ui.nodes['agent.iterations']
 
         # auto stop
-        self.window.ui.nodes['agent.auto_stop'] = ToggleLabel(trans("toolbox.agent.auto_stop.label"))
+        self.window.ui.nodes['agent.auto_stop'] = ToggleLabel(trans("toolbox.agent.auto_stop.label"), parent=self.window)
         self.window.ui.nodes['agent.auto_stop'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_auto_stop(
@@ -53,7 +53,7 @@ class Agent:
         self.window.ui.config['global']['agent.auto_stop'] = self.window.ui.nodes['agent.auto_stop']
 
         # continue more
-        self.window.ui.nodes['agent.continue'] = ToggleLabel(trans("toolbox.agent.continue.label"))
+        self.window.ui.nodes['agent.continue'] = ToggleLabel(trans("toolbox.agent.continue.label"), parent=self.window)
         self.window.ui.nodes['agent.continue'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_continue(

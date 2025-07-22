@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 03:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -101,7 +101,7 @@ class AudioInputButton(QWidget):
         btn_widget = QWidget()
         btn_widget.setLayout(btn_layout)
 
-        self.continuous = ToggleLabel(trans('audio.speak.btn.continuous'), label_position="right")
+        self.continuous = ToggleLabel(trans('audio.speak.btn.continuous'), label_position="right", parent=self.window)
         self.continuous.box.stateChanged.connect(
             lambda: self.window.controller.audio.toggle_continuous(
                 self.continuous.box.isChecked())

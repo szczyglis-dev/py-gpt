@@ -1,0 +1,43 @@
+
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #000000;
+  selection-color: #000000;
+  font-weight: bold;
+}}
+QComboBox::item:selected {{
+  color: #000;
+  selection-color: #000;
+}}
+QComboBox::item:disabled {{
+  color: #d1d2d2;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #000000;
+  selection-color: #ffffff;
+  font-weight: bold;
+}}
+QListView::item::disabled {{
+   color: #959595;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #000000;
+}} 
+QMenu::item:selected {{ 
+  color: #000000;
+}} 
+QWidget,
+.layout-notepad {{
+  background-color: #fff;
+}}
+QPushButton,
+QTextEdit,
+QLineEdit, 
+QListView, 
+QComboBox,
+QTreeView {{
+  background-color: #efefef;
+}}

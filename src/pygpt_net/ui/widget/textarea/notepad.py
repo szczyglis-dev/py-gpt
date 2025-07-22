@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 18:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
@@ -40,6 +40,7 @@ class NotepadWidget(QWidget):
         layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self.setProperty('class', 'layout-notepad')
 
     def set_tab(self, tab: Tab):
         """
@@ -97,6 +98,7 @@ class NotepadOutput(QTextEdit):
         self.tab = None
         self.last_scroll_pos = None
         self.installEventFilter(self)
+        self.setProperty('class', 'layout-notepad')
 
         # tabulation
         metrics = QFontMetrics(self.font())

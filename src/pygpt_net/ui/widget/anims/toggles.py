@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import (
@@ -29,6 +29,7 @@ class AnimToggle(QCheckBox):
         super().__init__()
         self.setText(title)
         self.option = None
+        self.window = parent
 
         # Initialize the colors based on the current palette
         self.updateColors()
@@ -65,6 +66,10 @@ class AnimToggle(QCheckBox):
         bar_color.setAlpha(0x80)
         handle_color = palette.color(QPalette.Dark)
         handle_checked_color = palette.color(QPalette.ButtonText)
+
+        if self.window:
+            if self.window.controller.theme.common.is_light_theme():
+                handle_checked_color = QColor("#6a6969")
 
         # Create semi-transparent colors for the pulse effect
         pulse_unchecked_color = bar_color.darker(110)

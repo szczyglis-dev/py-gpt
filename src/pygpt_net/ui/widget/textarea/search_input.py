@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -27,6 +27,7 @@ class CtxSearchInput(QLineEdit):
         super(CtxSearchInput, self).__init__(window)
         self.window = window
         self.setPlaceholderText(trans('ctx.list.search.placeholder'))
+        self.setProperty('class', 'layout-search')
 
         # action for clearing the search
         self.clear_action = QAction(self)

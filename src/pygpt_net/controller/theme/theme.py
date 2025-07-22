@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 import os
@@ -65,7 +65,17 @@ class Theme:
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
         self.nodes.apply_all()
-        self.apply(name + '.xml', self.common.get_extra_css(name))  # style.css = additional custom stylesheet
+
+        is_custom = False
+        custom_themes = self.window.controller.theme.common.get_custom_themes_list()
+        if name in custom_themes:
+            is_custom = True
+
+        self.apply(
+            name + '.xml',
+            self.common.get_extra_css(name),
+            is_custom=is_custom,
+        )  # style.css = additional custom stylesheet
 
         # apply markdown CSS
         self.markdown.update(force=False)
@@ -174,30 +184,38 @@ class Theme:
     def apply(
             self,
             theme: str = 'dark_teal.xml',
-            custom: Optional[str] = None
+            custom: Optional[str] = None,
+            is_custom: bool = False
     ):
         """
         Update material theme and apply custom CSS
 
         :param theme: material theme filename (e.g. dark_teal.xml)
-        :param custom: additional custom stylesheet filename (e.g. style.css)
+        :param custom: additional stylesheet filename (e.g. style.css)
+        :param is_custom: is custom base theme
         """
         inverse = False
+        theme_name = theme.split('.')[0]  # get theme name without extension
         if theme.startswith('light'):
             inverse = True
         extra = {
             'density_scale': self.window.core.config.get('layout.density'),
             'pyside6': True,
         }
+
+        if is_custom:  # load from app path
+            theme = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes', theme)
+
         self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
 
-        # append custom stylesheet
+        # append custom stylesheets
+        content = ''
+        stylesheet = self.window.styleSheet()  # get current stylesheet
         if custom is not None:
-            stylesheet = self.window.styleSheet()  # get current stylesheet
             paths = []
             paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom))
             paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', custom))
-            content = ''
+
             for path in paths:
                 if os.path.exists(path):
                     with open(path) as file:
@@ -207,6 +225,14 @@ class Theme:
             # when missing DLLs in PySide6, VC++ redistributable required
             if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
                 content += self.common.get_windows_fix()
+
+        if is_custom:
+            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes', theme_name + '.css')
+            if os.path.exists(path):
+                with open(path) as file:
+                    content += file.read()
+
+        if custom is not None or is_custom:
             try:
                 self.window.setStyleSheet(stylesheet + content.format(**os.environ))  # apply stylesheet
             except KeyError as e:

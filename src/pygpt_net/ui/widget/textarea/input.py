@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 22:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -33,6 +33,7 @@ class ChatInput(QTextEdit):
         self.max_font_size = 42
         self.min_font_size = 8
         self.textChanged.connect(self.window.controller.ui.update_tokens)
+        self.setProperty('class', 'layout-input')
 
     def insertFromMimeData(self, source):
         """

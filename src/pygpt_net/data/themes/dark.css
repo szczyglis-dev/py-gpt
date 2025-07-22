@@ -1,0 +1,29 @@
+
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #ffffff;
+  selection-color: #ffffff;
+}}
+QComboBox::item:selected {{
+  color: #000;
+  selection-color: #000;
+}}
+QComboBox::item:disabled {{
+  color: #d1d2d2;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #ffffff;
+  selection-color: #000000;
+}}
+QListView::item::disabled {{
+   color: #959595;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #000000;
+}} 
+QMenu::item:selected {{ 
+  color: #000000;
+}} 

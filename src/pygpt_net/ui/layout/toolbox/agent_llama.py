@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -46,7 +46,7 @@ class AgentLlama:
         self.window.ui.config['global']['agent.llama.loop.score'] = self.window.ui.nodes['agent.llama.loop.score']
 
         # loop enabled
-        self.window.ui.nodes['agent.llama.loop.enabled'] = ToggleLabel(trans("toolbox.agent.llama.loop.enabled.label"))
+        self.window.ui.nodes['agent.llama.loop.enabled'] = ToggleLabel(trans("toolbox.agent.llama.loop.enabled.label"), parent=self.window)
         self.window.ui.nodes['agent.llama.loop.enabled'].box.stateChanged.connect(
             lambda:
             self.window.controller.agent.common.toggle_loop(

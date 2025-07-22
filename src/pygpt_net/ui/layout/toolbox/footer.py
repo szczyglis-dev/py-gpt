@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.09 03:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 import os
@@ -77,7 +77,8 @@ class Footer:
         rows.setContentsMargins(2, 0, 0, 0)
 
         self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
-                                                          icon=":/icons/split_screen.svg")
+                                                          icon=":/icons/split_screen.svg",
+                                                          parent=self.window)
         self.window.ui.nodes['layout.split'].box.stateChanged.connect(
             lambda: self.window.controller.ui.tabs.toggle_split_screen(self.window.ui.nodes['layout.split'].box.isChecked())
         )

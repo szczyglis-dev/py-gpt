@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -47,6 +47,9 @@ class Menu:
 
         # color themes
         themes = self.window.controller.theme.common.get_themes_list()
+        custom_themes = self.window.controller.theme.common.get_custom_themes_list()
+        themes += custom_themes
+        themes.sort()
         for theme in themes:
             name = self.window.controller.theme.common.translate(theme)
             self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
