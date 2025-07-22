@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 01:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
-
+import asyncio
 import json
 from typing import Optional, Dict, Any, List
 
-from llama_index.core.agent import AgentRunner
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
@@ -22,10 +21,10 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_LLAMA,
 )
+from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
-
 from .context import Context
 from .response import Response
 
@@ -46,13 +45,15 @@ class Chat:
     def call(
             self,
             context: BridgeContext,
-            extra: Optional[Dict[str, Any]] = None
+            extra: Optional[Dict[str, Any]] = None,
+            signals: Optional[BridgeSignals] = None
     ) -> bool:
         """
         Call chat, complete or query mode
 
         :param context: Bridge context
         :param extra: Extra arguments
+        :param signals: Bridge signals
         :return: True if success
         """
         model = context.model
@@ -76,6 +77,7 @@ class Chat:
         return self.chat(
             context=context,
             extra=extra,
+            signals=signals,
         )
 
     def raw_query(
@@ -216,6 +218,7 @@ class Chat:
             context: BridgeContext,
             extra: Optional[Dict[str, Any]] = None,
             disable_cmd: bool = False,
+            signals: Optional[BridgeSignals] = None
     ) -> bool:
         """
         Chat mode (conversation, using context from index) and append result to the context
@@ -223,6 +226,7 @@ class Chat:
         :param context: Bridge context
         :param extra: Extra arguments
         :param disable_cmd: Disable tools
+        :param signals: Bridge signals
         """
         idx = context.idx
         model = context.model
@@ -325,27 +329,21 @@ class Chat:
             # 1) if tools enabled use agent engine
             if cmd_enabled:
                 if use_react: # TOOLS + REACT + INDEX
-                    ctx.agent_call = True
-                    query_engine = index.as_query_engine(
+                    ctx.agent_call = True  # directly return tool call response
+                    ctx.use_agent_final_response = True  # use agent final response as output
+                    response = self.call_agent(
+                        context=context,
+                        signals=signals,
+                        tools=tools,
+                        ctx=ctx,
+                        query=query,
+                        history=history,
                         llm=llm,
+                        index=index,
+                        system_prompt=system_prompt,
                         chat_mode=chat_mode,
                         verbose=verbose,
                     )
-                    index_tool = QueryEngineTool.from_defaults(
-                        query_engine=query_engine,
-                        name="get_context",
-                        description="Get additional context to answer the question.",
-                        return_direct=True,  # return direct response from index
-                    )
-                    tools.append(index_tool)
-                    agent = AgentRunner.from_llm(
-                        tools=tools,
-                        llm=llm,
-                        memory=memory,
-                        verbose=True,
-                        system_prompt=system_prompt,
-                    )
-                    response = agent.chat(query)
                 else:
                     use_index = False # fallback to LLM if tools enabled but not using ReAct
             else:
@@ -370,15 +368,21 @@ class Chat:
         if not use_index:
             if cmd_enabled:
                 if use_react:  # TOOLS + REACT + NO INDEX
-                    ctx.agent_call = True
-                    agent = AgentRunner.from_llm(
+                    ctx.agent_call = True  # directly return tool call response
+                    ctx.use_agent_final_response = True  # use agent final response as output
+                    response = self.call_agent(
+                        context=context,
+                        signals=signals,
                         tools=tools,
+                        ctx=ctx,
+                        query=query,
+                        history=history,
                         llm=llm,
-                        memory=memory,
-                        verbose=True,
+                        index=index,
                         system_prompt=system_prompt,
+                        chat_mode=chat_mode,
+                        verbose=verbose,
                     )
-                    response = agent.chat(query)
                 else:
                     history.insert(0, self.context.add_system(system_prompt))
                     history.append(self.context.add_user(query, attachments=context.attachments))
@@ -471,6 +475,82 @@ class Chat:
 
         return False
 
+    def call_agent(
+            self,
+            context: BridgeContext,
+            signals: Optional[BridgeSignals] = None,
+            tools: Optional[List[QueryEngineTool]] = None,
+            ctx: Optional[CtxItem] = None,
+            query: str = "",
+            history: Optional[List[ChatMessage]] = None,
+            llm=None,
+            index=None,
+            system_prompt: str = "",
+            chat_mode: str = MODE_CHAT,
+            verbose: bool = False,
+
+    ) -> bool:
+        """
+        Call agent with tools and index
+
+        :param context: Bridge context
+        :param signals: Bridge signals
+        :param tools: Tools
+        :param ctx: CtxItem
+        :param query: Input prompt
+        :param history: Chat history
+        :param llm: LLM provider
+        :param index: Index to use for additional context
+        :param system_prompt: System prompt to use for agent
+        :param chat_mode: Chat mode to use for agent, default is MODE_CHAT
+        :param verbose: Verbose mode, default is False
+        :return: True if success, False otherwise
+        """
+        index_tool = None
+        if index:
+            query_engine = index.as_query_engine(
+                llm=llm,
+                chat_mode=chat_mode,
+                verbose=verbose,
+            )
+            index_tool = QueryEngineTool.from_defaults(
+                query_engine=query_engine,
+                name="get_context",
+                description="Get additional context to answer the question.",
+                return_direct=True,  # return direct response from index
+            )
+            tools.append(index_tool)
+
+        workdir = self.window.core.config.get_user_dir('data')
+        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
+            workdir = "/data"
+
+        kwargs = {
+            "context": context,
+            "tools": tools,
+            "retriever_tool": index_tool,
+            "llm": llm,
+            "chat_history": history,
+            "max_iterations": 0,
+            "verbose": verbose,
+            "system_prompt": system_prompt,
+            "are_commands": True,
+            "workdir": workdir,
+        }
+        provider = self.window.core.agents.provider.get("react_workflow")
+        agent = provider.get_agent(self.window, kwargs)
+
+        kwargs = {
+            "agent": agent,
+            "ctx": ctx,
+            "prompt": query,
+            "signals": signals,
+            "verbose": verbose,
+            "history": history,
+            "llm": llm,
+        }
+        return asyncio.run(self.window.core.agents.runner.run_workflow(**kwargs))
+
     def is_stream_allowed(self) -> bool:
         """
         Return if stream mode allowed
@@ -481,7 +561,7 @@ class Chat:
         is_cmd = self.window.core.config.get("cmd", False)
         if is_cmd:
             if use_react:
-                return False
+                return False  # do not append twice response from agent
         return True
 
     def query_file(

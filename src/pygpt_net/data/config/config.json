@@ -206,6 +206,7 @@
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
   "llama.idx.auto.modes": "chat,completion,vision,assistant,research,llama_index,agent",
+  "llama.idx.chat.agent.render.all": false,
   "llama.idx.chat.auto_retrieve": true,
   "llama.idx.chat.mode": "context",
   "llama.idx.current": null,

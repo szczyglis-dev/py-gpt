@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import os
@@ -381,7 +381,8 @@ class Body:
                 })
                 event.ctx = ctx
                 self.window.dispatch(event, all=True)  # handle by plugins
-                html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
+                if event.data['html']:
+                    html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
 
             # multiple tools, list
             elif "tool_output" in ctx.extra and isinstance(ctx.extra["tool_output"], list):
@@ -396,7 +397,8 @@ class Body:
                     })
                     event.ctx = ctx
                     self.window.dispatch(event, all=True)
-                    html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
+                    if event.data['html']:
+                        html += "<div class=\"tool-output-block\">" + event.data['html'] + "</div>"
             html += "</div>"
         return html
 

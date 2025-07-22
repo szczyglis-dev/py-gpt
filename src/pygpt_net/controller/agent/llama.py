@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 from typing import Any
 
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.types import MODE_LLAMA_INDEX
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -89,10 +90,12 @@ class Llama:
         """End of run"""
         self.eval_step = 0  # reset evaluation step
         if self.window.core.config.get("agent.goal.notify"):
-            self.window.ui.tray.show_msg(
-                trans("notify.agent.goal.title"),
-                trans("notify.agent.goal.content"),
-            )
+            # show notification if enabled and mode is not llama_index
+            if self.window.core.config.get("mode") != MODE_LLAMA_INDEX:
+                self.window.ui.tray.show_msg(
+                    trans("notify.agent.goal.title"),
+                    trans("notify.agent.goal.content"),
+                )
 
     def on_finish(self, ctx: CtxItem):
         """

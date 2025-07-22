@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 23:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import json
@@ -370,12 +370,21 @@ class Renderer(BaseRenderer):
         :param next_ctx: next context
         """
         self.tool_output_end()  # reset tools
-        if ctx.output is None or ctx.output == "":
-            return
+        output = ctx.output
+        if (isinstance(ctx.extra, dict)
+                and "output" in ctx.extra
+                and ctx.extra["output"]):
+            if self.window.core.config.get("llama.idx.chat.agent.render.all", False):
+                output = "__agent_begin__" + ctx.output + "__agent_end__" + ctx.extra["output"]
+            else:
+                output = ctx.extra["output"]
+        else:
+            if ctx.output is None or ctx.output == "":
+                return
         self.append_node(
             meta=meta,
             ctx=ctx,
-            html=ctx.output.strip(),
+            html=output.strip(),
             type=self.NODE_OUTPUT,
             prev_ctx=prev_ctx,
             next_ctx=next_ctx

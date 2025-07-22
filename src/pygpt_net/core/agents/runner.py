@@ -6,20 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import asyncio
 import copy
 import re
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 
+from llama_index.core.agent.react.output_parser import ReActOutputParser
 from llama_index.core.tools import FunctionTool
 from llama_index.core.workflow import Context
 from llama_index.core.agent.workflow import (
     ToolCall,
     ToolCallResult,
     AgentStream,
+    AgentOutput,
 )
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -184,7 +186,8 @@ class Runner:
                 formatted = "\n```output\n" + str(event.tool_output) + "\n```\n"
                 item_ctx.live_output += formatted
                 item_ctx.stream = formatted
-                self.send_stream(item_ctx, signals, begin)
+                if item_ctx.stream_agent_output:
+                    self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, ToolCall):
                 if "code" in event.tool_kwargs:
                     output = f"\n-----------\nTool call code:\n{event.tool_kwargs['code']}"
@@ -193,15 +196,23 @@ class Runner:
                     formatted = "\n```python\n" + str(event.tool_kwargs['code']) + "\n```\n"
                     item_ctx.live_output += formatted
                     item_ctx.stream = formatted
-                    self.send_stream(item_ctx, signals, begin)
+                    if item_ctx.stream_agent_output:
+                        self.send_stream(item_ctx, signals, begin)
             elif isinstance(event, AgentStream):
                 if verbose:
                     print(f"{event.delta}", end="", flush=True)
                 if event.delta:
                     item_ctx.live_output += event.delta
                     item_ctx.stream = event.delta
-                    self.send_stream(item_ctx, signals, begin)  # send stream to webview
+                    if item_ctx.stream_agent_output:
+                        self.send_stream(item_ctx, signals, begin)  # send stream to webview
                     begin = False
+            elif isinstance(event, AgentOutput):
+                thought, answer = self.extract_final_response(str(event))
+                if answer:
+                    item_ctx.set_agent_final_response(answer)
+                    if verbose:
+                        print(f"\nFinal response: {answer}")
 
         return await handler
 
@@ -233,7 +244,7 @@ class Runner:
         agent_ctx = Context(agent)
         memory = self.window.core.idx.chat.get_memory_buffer(history, llm)
         self.set_busy(signals)
-        response = await self.run_agent_workflow(
+        await self.run_agent_workflow(
             agent=agent,
             ctx=agent_ctx,
             query=prompt,
@@ -242,20 +253,27 @@ class Runner:
             item_ctx=ctx,
             signals=signals,
         )
-        response_ctx = self.add_ctx(ctx)
+        response_ctx = self.add_ctx(ctx, with_tool_outputs=True)
         response_ctx.set_input("inp")
 
         prev_output = ctx.live_output
         # remove all <execute>...</execute>
         if prev_output:
             prev_output = re.sub(r'<execute>.*?</execute>', '', prev_output, flags=re.DOTALL)
+
+        response_ctx.set_agent_final_response(ctx.agent_final_response)  # always set to further use
         response_ctx.set_output(prev_output)  # append from stream
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
 
+        if ctx.agent_final_response:  # only if not empty
+            response_ctx.extra["output"] = ctx.agent_final_response
+
         # if there are tool outputs, img, files, append it to the response context
-        # self.window.core.agents.tools.append_tool_outputs(response_ctx)
-        self.window.core.agents.tools.extract_tool_outputs(response_ctx)
+        if ctx.use_agent_final_response:
+            self.window.core.agents.tools.append_tool_outputs(response_ctx)
+        else:
+            self.window.core.agents.tools.extract_tool_outputs(response_ctx)
         self.end_stream(response_ctx, signals)
 
         # send response
@@ -735,12 +753,14 @@ class Runner:
 
     def add_ctx(
             self,
-            from_ctx: CtxItem
+            from_ctx: CtxItem,
+            with_tool_outputs: bool = False
     ) -> CtxItem:
         """
         Add context item
 
         :param from_ctx: CtxItem (parent, source)
+        :param with_tool_outputs: True if tool outputs should be copied
         :return: CtxItem
         """
         ctx = CtxItem()
@@ -754,6 +774,13 @@ class Runner:
         ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
         ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
         ctx.live = True
+
+        if with_tool_outputs:
+            # copy tool outputs from parent context item
+            ctx.cmds = copy.deepcopy(from_ctx.cmds)
+            ctx.results = copy.deepcopy(from_ctx.results)
+            if "tool_output" in from_ctx.extra:
+                ctx.extra["tool_output"] = copy.deepcopy(from_ctx.extra["tool_output"])
         return ctx
 
     def send_stream(
@@ -897,3 +924,14 @@ class Runner:
         :return: last exception or None if no error
         """
         return self.error
+
+    def extract_final_response(self, input_text: str) -> Tuple[str, str]:
+        pattern = r"\s*Thought:(.*?)Answer:(.*?)(?:$)"
+
+        match = re.search(pattern, input_text, re.DOTALL)
+        if not match:
+            return "", ""
+
+        thought = match.group(1).strip()
+        answer = match.group(2).strip()
+        return thought, answer

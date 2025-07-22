@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -2046,6 +2046,13 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
                 self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
                 self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                updated = True
+
+            # < 2.5.61
+            if old < parse_version("2.5.61"):
+                print("Migrating config from < 2.5.61..")
+                if "llama.idx.chat.agent.render.all" not in data:
+                    data["llama.idx.chat.agent.render.all"] = False
                 updated = True
 
         # update file

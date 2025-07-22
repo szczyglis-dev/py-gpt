@@ -23,7 +23,7 @@
     },
     "experts": [],
     "idx": "_",
-    "agent_provider": "agent_react_workflow",
+    "agent_provider": "react_workflow",
     "assistant_id": "",
     "enabled": true,
     "__meta__": {

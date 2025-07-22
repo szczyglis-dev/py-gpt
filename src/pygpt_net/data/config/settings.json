@@ -1492,6 +1492,20 @@
         "secret": false,
         "advanced": false,
         "tab": "chat"
+    },    
+    "llama.idx.chat.agent.render.all": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.chat.agent.render.all",
+        "description": "settings.llama.idx.chat.agent.render.all.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "chat"
     },
     "llama.idx.chat.auto_retrieve": {
         "section": "llama-index",
@@ -1865,7 +1879,7 @@
         "step": 1,
         "advanced": false,
         "tab": "general"
-    },
+    },    
     "updater.check.launch": {
         "section": "updates",
         "type": "bool",

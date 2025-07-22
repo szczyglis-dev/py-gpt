@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -66,6 +66,7 @@ class Editor:
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
         self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
         self.window.ui.add_hook("update.config.theme.style", self.hook_update)
+        self.window.ui.add_hook("update.config.llama.idx.chat.agent.render.all", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -200,6 +201,9 @@ class Editor:
         if self.config_changed('ctx.sources') or self.config_changed('ctx.audio'):
             self.window.controller.ctx.refresh()
 
+        if self.config_changed('llama.idx.chat.agent.render.all'):
+            self.window.controller.chat.render.reload()
+
         # update global shortcuts
         if self.config_changed('access.shortcuts'):
             self.window.setup_global_shortcuts()
@@ -286,6 +290,10 @@ class Editor:
         elif key == "ctx.records.folders.top":
             self.window.core.config.set(key, value)
             self.window.controller.ctx.update()
+
+        elif key == "llama.idx.chat.agent.render.all":
+            self.window.core.config.set(key, value)
+            self.window.controller.chat.render.reload()
 
         # update layout tooltips
         elif key == "layout.tooltips":

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import json
@@ -348,7 +348,7 @@ class Tools:
         """
         if self.has_last_tool_output():
             outputs = [self.get_last_tool_output()]
-            ctx.extra["tool_output"] = [self.get_last_tool_output()]
+            ctx.extra["tool_output"] = outputs
             if outputs is not None:
                 response = ""
                 for output in outputs:

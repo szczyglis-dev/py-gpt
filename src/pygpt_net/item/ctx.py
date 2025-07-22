@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 15:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -66,6 +66,9 @@ class CtxItem:
         self.first = False
         self.live = False  # True if is current flow (not loaded from DB)
         self.agent_call = False # prevents plugin reply if True
+        self.agent_final_response = ""
+        self.use_agent_final_response = False  # use agent final response
+        self.stream_agent_output = True  # stream agent output in real-time
         self.tool_calls = []  # API tool calls
         self.index_meta = {}  # llama-index metadata ctx used
         self.doc_ids = []  # document ids
@@ -185,6 +188,14 @@ class CtxItem:
         self.output = output
         self.output_name = name
         self.output_timestamp = int(time.time())
+
+    def set_agent_final_response(self, output: str):
+        """
+        Set agent final response
+
+        :param output: final response output
+        """
+        self.agent_final_response = output
 
     def set_tokens(self, input_tokens: int, output_tokens: int):
         """

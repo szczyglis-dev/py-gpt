@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 import re
@@ -80,6 +80,8 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
+        if self.window.core.config.get("llama.idx.chat.agent.render.all", False):
+            text = text.replace("__agent_begin__", "<div class=\"msg-agent\">").replace("__agent_end__", "</div>")
         return text.strip()
 
     def format_user_text(self, text: str) -> str:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.07.22 22:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -23,6 +23,7 @@ def test_call(mock_window):
     chat = Chat(mock_window)
     chat.chat = MagicMock(return_value=True)
     chat.query = MagicMock(return_value=True)
+    signals = MagicMock()
     model = ModelItem()
     model.llama_index = {"mode": ["chat"]}
     ctx = CtxItem()
@@ -40,10 +41,12 @@ def test_call(mock_window):
     chat.call(
         context=bridge_context,
         extra=extra,
+        signals=signals,
     )
     chat.chat.assert_called_once_with(
         context=bridge_context,
         extra=extra,
+        signals=signals,
     )
 
 
