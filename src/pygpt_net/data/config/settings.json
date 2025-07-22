@@ -1852,6 +1852,20 @@
         "advanced": false,
         "tab": "experts"
     },
+    "experts.use_agent": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.experts.use_agent",
+        "description": "settings.experts.use_agent.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "experts"
+    },
     "agent.idx": {
         "section": "agent",
         "type": "combo",

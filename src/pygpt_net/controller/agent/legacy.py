@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -289,26 +289,30 @@ class Legacy:
             self,
             ctx: CtxItem,
             cmds: List[Dict[str, Any]],
+            cmds_raw: List[Dict[str, Any]] = None,
     ):
         """
         Event: On commands
 
         :param ctx: CtxItem
         :param cmds: commands dict
+        :param cmds_raw: commands raw
         """
         if self.window.core.config.get('agent.auto_stop'):
-            self.cmd(ctx, cmds)
+            self.cmd(ctx, cmds, cmds_raw)
 
     def cmd(
             self,
             ctx: CtxItem,
             cmds: List[Dict[str, Any]],
+            cmds_raw: List[Dict[str, Any]] = None,
     ):
         """
         Event: On command
 
         :param ctx: CtxItem
         :param cmds: commands dict
+        :param cmds_raw: commands raw
         """
         is_cmd = False
         my_commands = []
@@ -316,6 +320,12 @@ class Legacy:
             if item["cmd"] in self.allowed_cmds:
                 my_commands.append(item)
                 is_cmd = True
+
+        if cmds_raw and not is_cmd:
+            for item in cmds_raw:
+                if item["cmd"] in self.allowed_cmds:
+                    my_commands.append(item)
+                    is_cmd = True
 
         if not is_cmd:
             return

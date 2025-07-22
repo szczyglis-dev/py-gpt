@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 import asyncio
 import copy
 import re
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List, Tuple, Union
 
-from llama_index.core.agent.react.output_parser import ReActOutputParser
 from llama_index.core.tools import FunctionTool
 from llama_index.core.workflow import Context
 from llama_index.core.agent.workflow import (
@@ -379,6 +378,90 @@ class Runner:
         self.set_idle(signals)
         return True
 
+    def run_steps_once(
+            self,
+            agent: Any,
+            ctx: CtxItem,
+            prompt: str,
+            verbose: bool = False
+    ) -> Union[CtxItem, None]:
+        """
+        Run agent steps
+
+        :param agent: Agent instance
+        :param ctx: Input context
+        :param prompt: input text
+        :param verbose: verbose mode
+        :return: CtxItem with final response or True if stopped
+        """
+        if self.is_stopped():
+            return  # abort if stopped
+
+        is_last = False
+        task = agent.create_task(self.prepare_input(prompt))
+        tools_output = None
+
+        # run steps
+        i = 1
+        idx = 0
+        while not is_last:
+            if self.is_stopped():
+                break  # handle force stop
+
+            if verbose:
+                print ("\n----------- BEGIN STEP {} ----------\n".format(i))
+
+            step_output = agent.run_step(task.task_id)
+            is_last = step_output.is_last
+
+            # append each step to chat output, last step = final response, so we skip it
+            tools_output = self.window.core.agents.tools.export_sources(step_output.output)
+
+            if verbose:
+                print("\n")
+                print("Step: " + str(i))
+                print("Is last: " + str(is_last))
+                print("Tool calls: " + str(tools_output))
+                print("\n")
+
+            if not is_last:
+                step_ctx = self.add_ctx(ctx)
+                step_ctx.set_input(str(tools_output))
+                step_ctx.set_output("`{step_label} {i}`".format(
+                    step_label=trans('msg.agent.step'),
+                    i=str(i)
+                ))
+                step_ctx.cmds = tools_output
+                step_ctx.results = ctx.results  # get results from base ctx
+                ctx.results = []  # reset results
+
+                # copy extra data (output from plugins)
+                if tools_output:
+                    for k in ctx.extra:
+                        if not k.startswith("agent_"):
+                            step_ctx.extra[k] = ctx.extra[k]
+
+                # reset input ctx
+                for k in list(ctx.extra.keys()):
+                    if k != "agent_input":
+                        del ctx.extra[k]
+
+                step_ctx.extra["agent_step"] = True
+            i += 1
+            idx += 1
+
+        # final response
+        if is_last:
+            if self.is_stopped():
+                return  # abort if stopped
+            response = agent.finalize_response(task.task_id)
+            response_ctx = self.add_ctx(ctx)
+            response_ctx.set_input(str(tools_output))
+            response_ctx.set_output(str(response))
+            response_ctx.extra["agent_output"] = True  # mark as output response
+            response_ctx.extra["agent_finish"] = True  # mark as finished
+            return response_ctx
+
     def run_assistant(
             self,
             agent: Any,
@@ -446,20 +529,14 @@ class Runner:
         :return: True if success
         """
         if self.is_stopped():
-            return True  # abort if stopped
+            return True
 
         self.set_busy(signals)
-        plan_id = agent.create_plan(
-            self.prepare_input(prompt)
-        )
+        plan_id = agent.create_plan(self.prepare_input(prompt))
         plan = agent.state.plan_dict[plan_id]
         c = len(plan.sub_tasks)
 
-        # prepare plan description
-        plan_desc = "`{current_plan}:`\n".format(
-            current_plan=trans('msg.agent.plan.current')
-        )
-        i = 1
+        plan_desc = "`{current_plan}:`\n".format(current_plan=trans('msg.agent.plan.current'))
         for sub_task in plan.sub_tasks:
             plan_desc += "\n\n"
             plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
@@ -474,12 +551,9 @@ class Runner:
                 deps_label=trans('msg.agent.plan.deps'),
                 dependencies=str(sub_task.dependencies),
             )
-            i += 1
 
         if verbose:
             print(plan_desc)
-
-        # -----------------------------------------------------------
 
         step_ctx = self.add_ctx(ctx)
         step_ctx.set_input("{num_subtasks_label}: {count}, {plan_label}: {plan_id}".format(
@@ -490,7 +564,7 @@ class Runner:
         ))
         step_ctx.set_output(plan_desc)
         step_ctx.cmds = []
-        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)  # send plan description
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
         i = 1
         for sub_task in plan.sub_tasks:
@@ -498,7 +572,6 @@ class Runner:
                 break
 
             self.set_busy(signals)
-
             j = 1
             task = agent.state.get_task(sub_task.name)
 
@@ -521,9 +594,8 @@ class Runner:
             if verbose:
                 print(task_header)
 
-            # this can be the last step in current sub-task, so send it first
             step_ctx = self.add_ctx(ctx)
-            step_ctx.set_input(str(tools_output)) # TODO: tool_outputs?
+            step_ctx.set_input(str(tools_output))
             step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
                 sub_task_label=trans('msg.agent.plan.subtask'),
                 i=str(i),
@@ -536,19 +608,14 @@ class Runner:
             step_ctx.extra["agent_step"] = True
             self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
-            # -----------------------------------------------------------
-
-            # loop until the last step is reached, if first step is not last
             while not step_output.is_last:
                 if self.is_stopped():
                     break
 
                 self.set_busy(signals)
-
                 step_output = agent.run_step(task.task_id)
                 tools_output = self.window.core.agents.tools.export_sources(step_output.output)
-
-                # do not send again the first step (it was sent before the loop)
+                j += 1
                 if j > 1:
                     step_ctx = self.add_ctx(ctx)
                     step_ctx.set_input(str(tools_output))
@@ -563,29 +630,166 @@ class Runner:
                     self.copy_step_results(step_ctx, ctx, tools_output)
                     step_ctx.extra["agent_step"] = True
                     self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
-                j += 1
-
-            # finalize the response and commit to memory
-            extra = {}
-            extra["agent_output"] = True,  # mark as output response (will be attached to ctx items on continue)
-
-            if i == c:  # if last subtask
-                extra["agent_finish"] = True
 
             if self.is_stopped():
-                return True  # abort if stopped
+                break
 
-            # there is no tool calls here, only final response
-            if step_output.is_last:
+            if i == c and step_output.is_last:
+                extra = {}
+                extra["agent_output"] = True
+                extra["agent_finish"] = True
                 response = agent.finalize_response(task.task_id, step_output=step_output)
                 response_ctx = self.add_ctx(ctx)
                 response_ctx.set_input(str(tools_output))
                 response_ctx.set_output(str(response))
-                response_ctx.extra.update(extra)  # extend with `agent_output` and `agent_finish`
+                response_ctx.extra.update(extra)
                 self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
 
         return True
+
+    def run_plan_once(
+            self,
+            agent: Any,
+            ctx: CtxItem,
+            prompt: str,
+            verbose: bool = False
+    ) -> Union[None, CtxItem]:
+        """
+        Run agent sub-tasks
+
+        :param agent: Agent instance
+        :param ctx: Input context
+        :param prompt: input text
+        :param verbose: verbose mode
+        :return: CtxItem with final response or None if stopped
+        """
+
+        verbose = True
+        if self.is_stopped():
+            return  # abort if stopped
+
+        plan_id = agent.create_plan(self.prepare_input(prompt))
+        plan = agent.state.plan_dict[plan_id]
+        c = len(plan.sub_tasks)
+
+        # prepare plan description
+        plan_desc = "`{current_plan}:`\n".format(
+            current_plan=trans('msg.agent.plan.current')
+        )
+        for sub_task in plan.sub_tasks:
+            plan_desc += "\n\n"
+            plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
+                sub_task_label=trans('msg.agent.plan.subtask'),
+                sub_task_name=sub_task.name,
+            )
+            plan_desc += "\n{expected_label}: {expected_output}".format(
+                expected_label=trans('msg.agent.plan.expected'),
+                expected_output=str(sub_task.expected_output),
+            )
+            plan_desc += "\n{deps_label}: {dependencies}".format(
+                deps_label=trans('msg.agent.plan.deps'),
+                dependencies=str(sub_task.dependencies),
+            )
+
+        if verbose:
+            print(plan_desc)
+
+        plan_ctx = self.add_ctx(ctx)
+        plan_ctx.set_input("{num_subtasks_label}: {count}, {plan_label}: {plan_id}".format(
+            num_subtasks_label=trans('msg.agent.plan.num_subtasks'),
+            count=str(c),
+            plan_label=trans('msg.agent.plan'),
+            plan_id=plan_id,
+        ))
+        plan_ctx.set_output(plan_desc)
+        plan_ctx.cmds = []
+
+        all_steps_results = []
+
+        i = 1
+        for sub_task in plan.sub_tasks:
+            if self.is_stopped():
+                break
+
+            j = 1
+            task = agent.state.get_task(sub_task.name)
+            step_output = agent.run_step(task.task_id)
+            tools_output = self.window.core.agents.tools.export_sources(step_output.output)
+
+            task_header = "\n"
+            task_header += "\n**===== Sub Task {index}: {sub_task_name} =====**".format(
+                index=str(i),
+                sub_task_name=sub_task.name
+            )
+            task_header += "\nExpected output: {expected_output}".format(
+                expected_output=str(sub_task.expected_output)
+            )
+            task_header += "\nDependencies: {dependencies}".format(
+                dependencies=str(sub_task.dependencies)
+            )
+
+            if verbose:
+                print(task_header)
+
+            step_ctx = self.add_ctx(ctx)
+            step_ctx.set_input(str(tools_output))
+            step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
+                sub_task_label=trans('msg.agent.plan.subtask'),
+                i=str(i),
+                c=str(c),
+                step_label=trans('msg.agent.step'),
+                j=str(j),
+                task_header=task_header
+            ))
+            self.copy_step_results(step_ctx, ctx, tools_output)
+            step_ctx.extra["agent_step"] = True
+
+            all_steps_results.append(step_ctx)
+
+            # -----------------------------------------------------------
+            while not step_output.is_last:
+                if self.is_stopped():
+                    break
+
+                step_output = agent.run_step(task.task_id)
+                tools_output = self.window.core.agents.tools.export_sources(step_output.output)
+                j += 1
+                step_ctx = self.add_ctx(ctx)
+                step_ctx.set_input(str(tools_output))
+                step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
+                    sub_task_label=trans('msg.agent.plan.subtask'),
+                    i=str(i),
+                    c=str(c),
+                    step_label=trans('msg.agent.step'),
+                    j=str(j),
+                    task_header=task_header
+                ))
+                self.copy_step_results(step_ctx, ctx, tools_output)
+                step_ctx.extra["agent_step"] = True
+
+                all_steps_results.append(step_ctx)
+
+            extra = {}
+            extra["agent_output"] = True
+            if i == c:
+                extra["agent_finish"] = True
+
+            if self.is_stopped():
+                return  # abort if stopped
+
+            if step_output.is_last:
+                response = agent.finalize_response(task.task_id, step_output=step_output)
+                final_ctx = self.add_ctx(ctx)
+                final_ctx.set_input(str(tools_output))
+                final_ctx.set_output(str(response))
+                final_ctx.extra.update(extra)
+                all_steps_results.append(final_ctx)
+            i += 1
+
+        if all_steps_results:
+            return all_steps_results[-1]
+
 
     def copy_step_results(
             self,
@@ -796,6 +1000,8 @@ class Runner:
         :param signals: BridgeSignals
         :param begin: True if it is the beginning of the text
         """
+        if signals is None:
+            return
         chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n")
         data = {
             "meta": ctx.meta,
@@ -813,6 +1019,8 @@ class Runner:
         :param ctx: CtxItem
         :param signals: BridgeSignals
         """
+        if signals is None:
+            return
         data = {
             "meta": ctx.meta,
             "ctx": ctx,
@@ -835,6 +1043,8 @@ class Runner:
         :param event_name: kernel event
         :param kwargs: extra data
         """
+        if signals is None:
+            return
         context = BridgeContext()
         context.ctx = ctx
         event = KernelEvent(event_name, {
@@ -854,6 +1064,8 @@ class Runner:
         :param signals: BridgeSignals
         :param kwargs: extra data
         """
+        if signals is None:
+            return
         data = {
             "id": "agent",
             "msg": trans("status.agent.reasoning"),
@@ -873,6 +1085,8 @@ class Runner:
         :param signals: BridgeSignals
         :param kwargs: extra data
         """
+        if signals is None:
+            return
         data = {
             "id": "agent",
         }
@@ -891,6 +1105,8 @@ class Runner:
         :param signals: BridgeSignals
         :param msg: status message
         """
+        if signals is None:
+            return
         data = {
             "status": msg,
         }

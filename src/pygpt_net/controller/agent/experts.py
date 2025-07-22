@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any
@@ -141,6 +141,7 @@ class Experts:
                             reply.ctx = ctx
                             reply.parent_id = expert_id
                             reply.input = mentions[expert_id]
+
                             # send to kernel
                             context = BridgeContext()
                             context.ctx = ctx
@@ -154,6 +155,7 @@ class Experts:
                             num_calls += 1
                         if num_calls > 0:
                             return num_calls  # abort continue if expert call detected
+
         return num_calls
 
     def log(self, data: Any):

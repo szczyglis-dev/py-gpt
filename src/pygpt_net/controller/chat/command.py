@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
+import copy
 from typing import Any
 
 from pygpt_net.core.types import (
@@ -46,17 +47,13 @@ class Command:
             cmds = self.window.core.command.extract_cmds(ctx.output)
 
         if len(cmds) > 0:
+            all_cmds = copy.deepcopy(cmds)
             # check if commands are enabled, leave only enabled commands
             for cmd in cmds:
                 cmd_id = str(cmd["cmd"])
                 if not self.window.core.command.is_enabled(cmd_id):
                     self.log("[cmd] Command not allowed: " + cmd_id)
                     cmds.remove(cmd)  # remove command from execution list
-            if len(cmds) == 0:
-                return  # abort if no commands
-
-            ctx.cmds = cmds  # append commands to ctx
-            self.log("[cmd] Command call received...")
 
             # agent mode
             if mode == MODE_AGENT:
@@ -64,7 +61,14 @@ class Command:
                 self.window.controller.agent.legacy.on_cmd(
                     ctx,
                     commands,
+                    all_cmds,
                 )
+
+            if len(cmds) == 0:
+                return  # abort if no commands
+
+            ctx.cmds = cmds  # append commands to ctx
+            self.log("[cmd] Command call received...")
 
             # plugins
             self.log("[cmd] Preparing command reply context...")

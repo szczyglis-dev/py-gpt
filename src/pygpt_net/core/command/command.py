@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -410,17 +410,19 @@ class Command:
 
     def get_functions(
             self,
-            parent_id: Optional[str] = None
+            parent_id: Optional[str] = None,
+            force: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Get current functions list
 
         :param parent_id: parent ID
+        :param force: force to get native functions
         :return: functions list
         """
         func = []
         func_user = self.window.controller.presets.get_current_functions()
-        if self.is_native_enabled():
+        if self.is_native_enabled(force=force):
             func = self.as_native_functions(all=False, parent_id=parent_id)
         if func_user is None:
             func_user = []
@@ -610,10 +612,11 @@ class Command:
                     pass
         return params
 
-    def is_native_enabled(self) -> bool:
+    def is_native_enabled(self, force: bool = False) -> bool:
         """
         Check if native tool calls are enabled
 
+        :param force: force check, ignore config
         :return: True if enabled
         """
         disabled_modes = [
@@ -624,7 +627,7 @@ class Command:
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:
             return False  # disabled for specific modes
-        if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
+        if (self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled()) and not force:
             return False
         model = self.window.core.config.get('model')
         if model:

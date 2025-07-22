@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.23 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -2053,6 +2053,10 @@ class Patch:
                 print("Migrating config from < 2.5.61..")
                 if "llama.idx.chat.agent.render.all" not in data:
                     data["llama.idx.chat.agent.render.all"] = False
+                data["prompt.expert"] = self.window.core.config.get_base(
+                    'prompt.expert')
+                if "experts.use_agent" not in data:
+                    data["experts.use_agent"] = True
                 updated = True
 
         # update file
