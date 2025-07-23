@@ -164,16 +164,6 @@ class Prompt:
         force_native_tools = False
         force_syntax_tools = False
 
-        # --- tool calls in Chat with files ---
-        if mode == MODE_LLAMA_INDEX:
-            # if index is selected use syntax prompt
-            if self.window.controller.idx.index_selected():
-                force_syntax_tools = True
-                # native func calls are allowed only for LLM call, not for the query engine
-                if self.window.core.config.get("llama.idx.react", False):
-                    # if react enabled, then re-allow native tool calls
-                    force_syntax_tools = False
-
         # always enable native tool calls from experts if agent used
         if is_expert:
             if self.window.core.config.get('experts.use_agent', False):
