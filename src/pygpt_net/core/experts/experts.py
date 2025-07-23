@@ -13,6 +13,7 @@ import json
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import QRunnable, QObject, Signal, Slot
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
@@ -762,6 +763,12 @@ class ExpertWorker(QObject, QRunnable):
         :return: True if success, False otherwise
         """
         history = self.window.core.agents.memory.prepare(context)
+        if system_prompt:
+            msg = ChatMessage(
+                role=MessageRole.SYSTEM,
+                content=system_prompt
+            )
+            history.insert(0, msg)
         kwargs = {
             "context": context,
             "tools": tools,
