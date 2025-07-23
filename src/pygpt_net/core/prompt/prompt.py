@@ -16,6 +16,7 @@ from pygpt_net.item.model import ModelItem
 from .base import Base
 from .custom import Custom
 from .template import Template
+from ..types import MODE_AGENT, MODE_EXPERT
 
 
 class Prompt:
@@ -163,10 +164,20 @@ class Prompt:
         event.ctx = ctx
         self.window.dispatch(event)
         sys_prompt = event.data['value']
+        force = False
+
+        # if expert mode or agent mode, and agent call enable native tools calls
+        if (self.window.core.config.get('experts.use_agent', False)
+                and mode in [
+                    MODE_AGENT,
+                    MODE_EXPERT,
+                ]):
+            disable_native_tool_calls = False
+            force = True
 
         # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            if self.window.core.command.is_native_enabled() and not disable_native_tool_calls:
+            if self.window.core.command.is_native_enabled(force=force) and not disable_native_tool_calls:
                 return sys_prompt  # abort if native func call enabled
 
             # abort if model not supported

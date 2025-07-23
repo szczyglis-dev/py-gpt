@@ -52,6 +52,7 @@ class Experts:
             MODE_RESEARCH,
         ]
         self.allowed_cmds = ["expert_call"]
+        self.worker = None
 
     def get_mode(self) -> str:
         """
@@ -306,26 +307,26 @@ class Experts:
         if self.stopped():
             return
 
-        worker = ExpertWorker(
+        self.worker = ExpertWorker(
             window=self.window,
             master_ctx=master_ctx,
             expert_id=expert_id,
             query=query
         )
-        worker.signals.response.connect(self.handle_response)  # connect to finished signal
-        worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
-        worker.signals.error.connect(self.handle_error)  # connect to error signal
-        worker.signals.event.connect(self.handle_event)  # connect to event signal
-        worker.signals.output.connect(self.handle_output)  # connect to output signal
-        worker.signals.lock_input.connect(self.handle_input_locked)  # connect to lock input signal
-        worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
+        self.worker.signals.response.connect(self.handle_response)  # connect to finished signal
+        self.worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
+        self.worker.signals.error.connect(self.handle_error)  # connect to error signal
+        self.worker.signals.event.connect(self.handle_event)  # connect to event signal
+        self.worker.signals.output.connect(self.handle_output)  # connect to output signal
+        self.worker.signals.lock_input.connect(self.handle_input_locked)  # connect to lock input signal
+        self.worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
 
         # start worker in thread pool
         event = KernelEvent(KernelEvent.STATE_BUSY, {
             "msg": trans("expert.wait.status") + " ({})".format(expert_id),
         })
         self.window.dispatch(event)  # dispatch busy event
-        self.window.threadpool.start(worker)
+        self.window.threadpool.start(self.worker)
 
     @Slot(CtxItem, str)
     def handle_output(self, ctx: CtxItem, mode: str):
@@ -593,7 +594,6 @@ class ExpertWorker(QObject, QRunnable):
                 'is_expert': True,
             })
             self.signals.event.emit(event)  # dispatch pre-prompt event
-
             sys_prompt = event.data['value']
             sys_prompt = self.window.core.prompt.prepare_sys_prompt(
                 mode,
@@ -644,7 +644,14 @@ class ExpertWorker(QObject, QRunnable):
                 extra = {}
                 if use_index:
                     extra["agent_idx"] = db_idx
-                tools = self.window.core.agents.tools.prepare(bridge_context, extra, verbose=False, force=True)
+                tools = self.window.core.agents.tools.prepare(
+                    bridge_context, extra, verbose=False, force=True)
+
+                # remove expert_call tool from tools
+                for tool in list(tools):
+                    if tool.metadata.name == "expert_call":
+                        tools.remove(tool)
+
                 result = self.call_agent(
                     context=bridge_context,
                     tools=tools,

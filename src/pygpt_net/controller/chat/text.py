@@ -160,6 +160,9 @@ class Text:
             if self.window.controller.idx.index_selected():
                 disable_native_func_calls = True
                 # ^^^ native func calls allowed only for LLM call, not for the query engine
+                if self.window.core.config.get("llama.idx.react", False):
+                    # if react mode, then allow native tool calls
+                    disable_native_func_calls = False
 
         # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(

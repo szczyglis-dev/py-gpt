@@ -627,7 +627,8 @@ class Command:
         mode = self.window.core.config.get('mode')
         if mode in disabled_modes:
             return False  # disabled for specific modes
-        if (self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled()) and not force:
+        if ((self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled())
+                and not force):
             return False
         model = self.window.core.config.get('model')
         if model:
