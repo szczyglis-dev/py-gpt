@@ -1,3 +1,8 @@
+2.5.63 (2025-07-23)
+
+- Agent mode improvements.
+- Custom system prompt allowed for all agent types.
+
 2.5.62 (2025-07-23)
 
 - Enhanced system prompt append to planner agent in Experts.

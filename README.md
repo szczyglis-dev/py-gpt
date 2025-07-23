@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.62** | build: **2025-07-23** | Python: **>=3.10, <3.13**
+Release: **2.5.63** | build: **2025-07-23** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4111,6 +4111,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.63 (2025-07-23)**
+
+- Agent mode improvements.
+- Custom system prompt allowed for all agent types.
 
 **2.5.62 (2025-07-23)**
 
