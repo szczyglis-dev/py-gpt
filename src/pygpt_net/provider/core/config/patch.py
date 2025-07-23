@@ -2067,6 +2067,17 @@ class Patch:
                     del data['plugins']['real_time']['cmd.get_time']
                 updated = True
 
+            # < 2.5.64
+            if old < parse_version("2.5.64"):
+                print("Migrating config from < 2.5.64..")
+                data["prompt.cmd"] = self.window.core.config.get_base(
+                    'prompt.cmd')
+                data["prompt.cmd.extra"] = self.window.core.config.get_base(
+                    'prompt.cmd.extra')
+                data["prompt.expert"] = self.window.core.config.get_base(
+                    'prompt.expert')
+                updated = True
+
         # update file
         migrated = False
         if updated:
