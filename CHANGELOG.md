@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.62 (2025-07-23)
+
+- Enhanced system prompt append to planner agent in Experts.
+
 ## 2.5.61 (2025-07-23)
 
 - Enhanced expert and autonomous agent modes.
