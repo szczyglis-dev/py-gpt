@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
+import json
 from typing import Dict, Any
 
 from pygpt_net.item.ctx import CtxItem
@@ -57,6 +58,7 @@ class BridgeContext:
         """
         data = {
             "ctx": self.ctx,
+            "reply_context": self.reply_context.to_dict() if self.reply_context else None,
             "history": len(self.history),
             "mode": self.mode,
             "parent_mode": self.parent_mode,
@@ -77,13 +79,29 @@ class BridgeContext:
             "file_ids": self.file_ids,
         }
         if self.ctx is not None:
-            data["ctx"] = self.ctx.to_dict()
+            data["ctx"] = self.ctx.to_dict(True)
         if self.model is not None:
             data["model"] = self.model.to_dict()
 
         # sort by keys
         data = dict(sorted(data.items(), key=lambda item: item[0]))
         return data
+
+    def dump(self) -> str:
+        """
+        Dump context item to JSON string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
+        except Exception as e:
+            pass
+        return ""
+
+    def __str__(self):
+        """To string"""
+        return self.dump()
 
 class MultimodalContext:
     def __init__(self, **kwargs):

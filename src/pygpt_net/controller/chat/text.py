@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -118,8 +118,12 @@ class Text:
             ctx.sub_reply = True  # mark as sub reply
             ctx.input_name = prev_ctx.input_name
             ctx.output_name = prev_ctx.output_name
+            ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
         else:
             self.window.core.ctx.set_last_item(ctx)  # store last item
+
+        if reply:
+            ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 
         self.window.controller.files.uploaded_ids = []  # clear uploaded files ids at the beginning
 

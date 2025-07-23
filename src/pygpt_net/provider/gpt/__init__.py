@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 00:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import base64
@@ -38,6 +38,13 @@ from pygpt_net.item.model import ModelItem
 
 
 class Gpt:
+
+    # Responses API modes
+    RESPONSES_ALLOWED_MODES = [
+        MODE_CHAT,
+        MODE_RESEARCH,
+    ]
+
     def __init__(self, window=None):
         """
         OpenAI API wrapper core
@@ -81,6 +88,7 @@ class Gpt:
         :return: result
         """
         mode = context.mode
+        parent_mode = context.parent_mode  # real mode (global)
         prompt = context.prompt
         stream = context.stream
         model = context.model  # model instance (item, not id)
@@ -93,7 +101,7 @@ class Gpt:
         ai_name = ctx.output_name
         thread_id = ctx.thread  # from ctx
 
-        # --- Responses API ---- /beta/
+        # --- Responses API ----
         use_responses_api = False
 
         # get model id
@@ -104,7 +112,9 @@ class Gpt:
                 max_tokens = model.tokens
 
             if model.is_gpt():
-                if (mode in [MODE_CHAT, MODE_RESEARCH]
+                print("mode: " + str(mode) + ", parent_mode: " + str(parent_mode))
+                if (mode in self.RESPONSES_ALLOWED_MODES
+                        and parent_mode in self.RESPONSES_ALLOWED_MODES
                         and self.window.core.config.get('api_use_responses', False)):
                     use_responses_api = True  # use responses API for chat mode, only OpenAI models
 

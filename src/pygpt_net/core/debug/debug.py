@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 15:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import os
@@ -346,13 +346,16 @@ class Debug:
         print("------------------------------>")
         self.pause_idx += 1
 
-        traceback.print_stack()
-
         # dump args
         for index, arg in enumerate(args):
             print(f"\n{Color.BOLD}Dump {index + 1}:{Color.ENDC}")
             print(f"{Color.BOLD}Type: {type(arg)}{Color.ENDC}")
             print(arg)
+
+        if args:
+            print("\n\n")
+
+        traceback.print_stack()
 
         input(f"<------------------------------\n\n{Color.OKGREEN}Paused. Press Enter to continue...{Color.ENDC}")
         print(f"------------------------------\n{Color.OKGREEN}{Color.BOLD}<RESUMED>{Color.ENDC}\n")

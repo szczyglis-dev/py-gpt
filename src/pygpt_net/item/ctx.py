@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -77,6 +77,7 @@ class CtxItem:
         self.sub_calls = 0  # sub calls count
         self.sub_call = False  # is sub call
         self.sub_reply = False  # sub call reply
+        self.sub_tool_call = False  # sub tool call
         self.hidden = False  # hidden context
         self.use_responses_api = False  # use responses API format
         self.pid = 0
@@ -211,13 +212,14 @@ class CtxItem:
     def get_pid(self):
         return 0
 
-    def to_dict(self) -> dict:
+    def to_dict(self, dump: bool = False) -> dict:
         """
         Dump context item to dict
 
+        :param dump: if True, dump meta to dict
         :return: dict
         """
-        return {
+        data = {
             "id": self.id,
             "meta_id": self.meta_id,
             "idx": self.idx,
@@ -239,6 +241,7 @@ class CtxItem:
             "sub_calls": 0,
             "sub_call": False,
             "sub_reply": False,
+            "sub_tool_call": False,
             "extra": self.extra,
             "extra_ctx": self.extra_ctx,
             "cmds": self.cmds,
@@ -273,6 +276,13 @@ class CtxItem:
             "total_tokens": self.total_tokens,
             "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
         }
+        if dump:
+            data["hidden"] = self.hidden
+            data["sub_calls"] = self.sub_calls
+            data["sub_call"] = self.sub_call
+            data["sub_reply"] = self.sub_reply
+            data["sub_tool_call"] = self.sub_tool_call
+        return data
 
     def from_dict(self, data: dict):
         """
@@ -328,24 +338,26 @@ class CtxItem:
         self.sub_calls = data.get("sub_calls", 0)
         self.sub_call = data.get("sub_call", False)
         self.sub_reply = data.get("sub_reply", False)
+        self.sub_tool_call = data.get("sub_tool_call", False)
         self.hidden = data.get("hidden", False)
 
 
-    def dump(self) -> str:
+    def dump(self, dump: bool = True) -> str:
         """
         Dump context item to JSON string
 
+        :param dump: if True, dump meta to dict
         :return: JSON string
         """
         try:
-            return json.dumps(self.to_dict())
+            return json.dumps(self.to_dict(dump), ensure_ascii=False, indent=2)
         except Exception as e:
             pass
         return ""
 
     def __str__(self):
         """To string"""
-        return self.dump()
+        return self.dump(True)
 
 
 class CtxMeta:
@@ -530,7 +542,7 @@ class CtxMeta:
         :return: JSON string
         """
         try:
-            return json.dumps(self.to_dict())
+            return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
         except Exception as e:
             pass
         return ""
@@ -628,7 +640,7 @@ class CtxGroup:
         :return: JSON string
         """
         try:
-            return json.dumps(self.to_dict())
+            return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
         except Exception as e:
             pass
         return ""

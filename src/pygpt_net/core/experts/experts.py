@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import json
@@ -269,9 +269,12 @@ class Experts:
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
         reply_ctx.from_dict(ctx.to_dict())
+        expert_id = ""
+        if ctx.meta:
+            expert_id = ctx.meta.preset
 
         # reply ctx has no meta here!!!!
-        reply_ctx.input_name = "Expert"
+        reply_ctx.input_name = expert_id
         reply_ctx.output_name = ""
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
@@ -285,7 +288,14 @@ class Experts:
 
         context = BridgeContext()
         context.ctx = reply_ctx
-        context.prompt = "Result from expert:\n\n" + str(response)
+        result = {
+            "expert_id": expert_id,
+            "result": str(response),
+        }
+        context.prompt = str(response)
+        if ctx.sub_reply:
+            reply_ctx.extra["sub_reply"] = True  # mark as sub-reply
+            context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # to master
         extra = {
             "force": True,
             "reply": True,
@@ -352,17 +362,55 @@ class Experts:
             stream_mode=False,
         )
 
-    @Slot(CtxItem)
-    def handle_cmd(self, ctx: CtxItem):
+    @Slot(CtxItem, CtxItem, str, str, str)
+    def handle_cmd(
+            self,
+            ctx: CtxItem,
+            master_ctx: CtxItem,
+            expert_id: str,
+            expert_name: str,
+            result: str
+    ):
         """
         Handle command from worker
 
         :param ctx: CtxItem
+        :param master_ctx: master context item
+        :param expert_id: expert id
+        :param expert_name: expert name
+        :param result: result of command execution
         """
         if self.stopped():
             return
         self.window.controller.chat.command.handle(ctx)  # handle cmds
         self.window.controller.kernel.stack.handle()  # handle command queue
+
+        ctx.from_previous()  # append previous result again before save
+        self.window.core.ctx.update_item(ctx)  # update ctx in DB
+
+        # if commands reply after bridge call, then stop (already handled in sync dispatcher)
+        if ctx.reply:
+            self.handle_finished()
+            return
+
+        # make copy of ctx for reply, and change input name to expert name
+        reply_ctx = CtxItem()
+
+        reply_ctx.from_dict(ctx.to_dict())
+        reply_ctx.meta = master_ctx.meta
+
+        # assign expert output
+        reply_ctx.output = result
+        reply_ctx.input_name = expert_name
+        reply_ctx.output_name = ""
+        reply_ctx.cmds = []  # clear cmds
+        reply_ctx.sub_call = True  # this flag is not copied in to_dict
+
+        # reply to main thread
+        # send to reply()
+        # input: something (no tool results here)
+        # output: ... (call the master)
+        self.handle_response(reply_ctx, str(expert_id))
 
     @Slot()
     def handle_input_locked(self):
@@ -373,7 +421,7 @@ class Experts:
         """
         if self.stopped():
             return
-        self.window.controller.chat.input.lock()
+        self.window.controller.chat.common.lock_input()
 
     @Slot(Event)
     def handle_event(self, event: Event):
@@ -445,7 +493,7 @@ class Experts:
         context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # prepare prompt for reply
         extra = {
             "force": True,
-            "reply": False,
+            "reply": True,
             "internal": False,
         }
         # reply to master
@@ -511,7 +559,7 @@ class WorkerSignals(QObject):
     event = Signal(object)  # when worker has event to dispatch
     output = Signal(object, str)  # when worker has output to handle
     lock_input = Signal()  # when worker locks input for UI
-    cmd = Signal(object)  # when worker has command to execute
+    cmd = Signal(object, object, str, str, str)  # when worker has command to handle
 
 
 class ExpertWorker(QObject, QRunnable):
@@ -703,6 +751,10 @@ class ExpertWorker(QObject, QRunnable):
                 })
                 self.window.dispatch(event)
                 result = event.data.get("response")
+                # result: <tool>{"cmd": "read_file", "params": {"path": ["xxxx.txt"]}}</tool>
+                # ctx:
+                # input: please read the file xxx.txt
+                # output: <tool>cmd read</tool>                
 
             if not result:  # abort if bridge call failed
                 self.signals.finished.emit()
@@ -716,17 +768,20 @@ class ExpertWorker(QObject, QRunnable):
 
             ctx.from_previous()  # append previous result if exists
 
-            # self.window.core.debug.pause()  # pause debug if enabled
-
             # tmp switch meta for render purposes
             ctx.meta = master_ctx.meta
-            self.signals.output.emit(ctx, mode)  # emit output signal
+
+            if use_agent:
+                self.signals.output.emit(ctx, mode)  # emit output signal, only if final response from agent
 
             ctx.clear_reply()  # reset results
             ctx.meta = slave  # restore before cmd execute
 
             if not use_agent:
-                self.signals.cmd.emit(ctx)  # emit cmd signal to handle commands
+                ctx.sub_tool_call = True
+                self.signals.cmd.emit(ctx, master_ctx, expert_id, expert_name, result)  # emit cmd signal
+                # tool call here and reply to window, from <tool></tool>
+                return
 
             # if command to execute then end here, and reply is returned to reply() above from stack, and ctx.reply = TRUE here
             ctx.from_previous()  # append previous result again before save
@@ -751,6 +806,10 @@ class ExpertWorker(QObject, QRunnable):
             reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
             # reply to main thread
+
+            # send to reply()
+            # input: something (no tool results here)
+            # output: ... (call the master)
             self.signals.response.emit(reply_ctx, str(expert_id))
         except Exception as e:
             self.window.core.debug.log(e)

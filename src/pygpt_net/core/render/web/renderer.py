@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import json
@@ -332,6 +332,17 @@ class Renderer(BaseRenderer):
             return
 
         text = ctx.input
+
+        # if sub-reply
+        if isinstance(ctx.extra, dict) and "sub_reply" in ctx.extra and ctx.extra["sub_reply"]:
+            try:
+                json_encoded = json.loads(text)
+                if isinstance(json_encoded, dict):
+                    if "expert_id" in json_encoded and "result" in json_encoded:
+                        tmp = "@" + str(ctx.input_name) + ":\n\n" + str(json_encoded["result"])
+                        text = tmp
+            except json.JSONDecodeError:
+                pass
 
         # hidden internal call
         if ctx.internal \

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -90,9 +90,11 @@ class Command:
             }
             event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
             self.window.dispatch(event)  # show waiting
+
             context = BridgeContext()
             context.ctx = ctx
             context.reply_context = reply
+
             event = KernelEvent(KernelEvent.TOOL_CALL, {
                 'context': context,
                 'extra': {},

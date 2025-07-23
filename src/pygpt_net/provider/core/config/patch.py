@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -2074,6 +2074,14 @@ class Patch:
                     'prompt.cmd')
                 data["prompt.cmd.extra"] = self.window.core.config.get_base(
                     'prompt.cmd.extra')
+                data["prompt.expert"] = self.window.core.config.get_base(
+                    'prompt.expert')
+                data["experts.use_agent"] = False
+                updated = True
+
+            # < 2.5.65
+            if old < parse_version("2.5.65"):
+                print("Migrating config from < 2.5.65..")
                 data["prompt.expert"] = self.window.core.config.get_base(
                     'prompt.expert')
                 updated = True
