@@ -166,12 +166,12 @@ class Experts:
         prompt = self.window.core.config.get('prompt.expert')
         if self.window.core.command.is_native_enabled():
             prompt = """
-            EXPERT MODE IS ENABLED
+            # EXPERT MODE IS ENABLED
             ======================
             
             You are the professional manager of a team of experts, each of whom is the best in their respective fields.
             
-            **IMPORTANT RULES:**
+            ## IMPORTANT RULES:
             
             YOU MUST ALWAYS FOLLOW THESE RULES WHILE MANAGING EXPERTS:
             
