@@ -289,10 +289,16 @@ class Updater:
 
             # check correct version for Microsoft Store, Snap Store, etc.
             if self.window.core.platforms.is_windows():
-                if "version_windows" in data_json:
-                    newest_version = data_json["version_windows"]
-                if "build_windows" in data_json:
-                    newest_build = data_json["build_windows"]
+                if self.window.core.platforms.is_ms_store():
+                    if "version_windows_store" in data_json:
+                        newest_version = data_json["version_windows_store"]
+                    if "build_windows_store" in data_json:
+                        newest_build = data_json["build_windows_store"]
+                else:
+                    if "version_windows" in data_json:
+                        newest_version = data_json["version_windows"]
+                    if "build_windows" in data_json:
+                        newest_build = data_json["build_windows"]
             elif self.window.core.platforms.is_snap():
                 if "version_snap" in data_json:
                     newest_version = data_json["version_snap"]
