@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -14,6 +14,7 @@ import copy
 import re
 from typing import Optional, Dict, Any, List, Tuple, Union
 
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.tools import FunctionTool
 from llama_index.core.workflow import Context
 from llama_index.core.agent.workflow import (
@@ -82,15 +83,33 @@ class Runner:
             self.window.core.agents.tools.agent_idx = agent_idx
             system_prompt = context.system_prompt
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
-            tools = self.window.core.agents.tools.prepare(context, extra)
-            plugin_tools = self.window.core.agents.tools.get_plugin_tools(context, extra)
-            plugin_specs = self.window.core.agents.tools.get_plugin_specs(context, extra)
+            tools = self.window.core.agents.tools.prepare(context, extra, force=True)
+            plugin_tools = self.window.core.agents.tools.get_plugin_tools(context, extra, force=True)
+            plugin_specs = self.window.core.agents.tools.get_plugin_specs(context, extra, force=True)
             retriever_tool = self.window.core.agents.tools.get_retriever_tool(context, extra)
             history = self.window.core.agents.memory.prepare(context)
             llm = self.window.core.idx.llm.get(model, stream=False)
             workdir = self.window.core.config.get_user_dir('data')
             if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
                 workdir = "/data"
+
+            # append system prompt
+            if id not in [
+                "openai_assistant",
+                "code_act",
+            ]:
+                if system_prompt:
+                    msg = ChatMessage(
+                        role=MessageRole.SYSTEM,
+                        content=system_prompt,
+                    )
+                    history.insert(0, msg)
+
+            # disable tools if cmd is not enabled
+            if not self.window.core.command.is_cmd():
+                tools = []
+                plugin_tools = []
+                plugin_specs = []
 
             provider = None
             agent = None
@@ -529,14 +548,20 @@ class Runner:
         :return: True if success
         """
         if self.is_stopped():
-            return True
+            return True  # abort if stopped
 
         self.set_busy(signals)
-        plan_id = agent.create_plan(self.prepare_input(prompt))
+        plan_id = agent.create_plan(
+            self.prepare_input(prompt)
+        )
         plan = agent.state.plan_dict[plan_id]
         c = len(plan.sub_tasks)
 
-        plan_desc = "`{current_plan}:`\n".format(current_plan=trans('msg.agent.plan.current'))
+        # prepare plan description
+        plan_desc = "`{current_plan}:`\n".format(
+            current_plan=trans('msg.agent.plan.current')
+        )
+        i = 1
         for sub_task in plan.sub_tasks:
             plan_desc += "\n\n"
             plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
@@ -551,9 +576,12 @@ class Runner:
                 deps_label=trans('msg.agent.plan.deps'),
                 dependencies=str(sub_task.dependencies),
             )
+            i += 1
 
         if verbose:
             print(plan_desc)
+
+        # -----------------------------------------------------------
 
         step_ctx = self.add_ctx(ctx)
         step_ctx.set_input("{num_subtasks_label}: {count}, {plan_label}: {plan_id}".format(
@@ -564,7 +592,7 @@ class Runner:
         ))
         step_ctx.set_output(plan_desc)
         step_ctx.cmds = []
-        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)  # send plan description
 
         i = 1
         for sub_task in plan.sub_tasks:
@@ -572,6 +600,7 @@ class Runner:
                 break
 
             self.set_busy(signals)
+
             j = 1
             task = agent.state.get_task(sub_task.name)
 
@@ -594,8 +623,9 @@ class Runner:
             if verbose:
                 print(task_header)
 
+            # this can be the last step in current sub-task, so send it first
             step_ctx = self.add_ctx(ctx)
-            step_ctx.set_input(str(tools_output))
+            step_ctx.set_input(str(tools_output))  # TODO: tool_outputs?
             step_ctx.set_output("`{sub_task_label} {i}/{c}, {step_label} {j}`\n{task_header}".format(
                 sub_task_label=trans('msg.agent.plan.subtask'),
                 i=str(i),
@@ -608,14 +638,19 @@ class Runner:
             step_ctx.extra["agent_step"] = True
             self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
+            # -----------------------------------------------------------
+
+            # loop until the last step is reached, if first step is not last
             while not step_output.is_last:
                 if self.is_stopped():
                     break
 
                 self.set_busy(signals)
+
                 step_output = agent.run_step(task.task_id)
                 tools_output = self.window.core.agents.tools.export_sources(step_output.output)
-                j += 1
+
+                # do not send again the first step (it was sent before the loop)
                 if j > 1:
                     step_ctx = self.add_ctx(ctx)
                     step_ctx.set_input(str(tools_output))
@@ -630,19 +665,25 @@ class Runner:
                     self.copy_step_results(step_ctx, ctx, tools_output)
                     step_ctx.extra["agent_step"] = True
                     self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+                j += 1
+
+            # finalize the response and commit to memory
+            extra = {}
+            extra["agent_output"] = True,  # mark as output response (will be attached to ctx items on continue)
+
+            if i == c:  # if last subtask
+                extra["agent_finish"] = True
 
             if self.is_stopped():
-                break
+                return True  # abort if stopped
 
-            if i == c and step_output.is_last:
-                extra = {}
-                extra["agent_output"] = True
-                extra["agent_finish"] = True
+            # there is no tool calls here, only final response
+            if step_output.is_last:
                 response = agent.finalize_response(task.task_id, step_output=step_output)
                 response_ctx = self.add_ctx(ctx)
                 response_ctx.set_input(str(tools_output))
                 response_ctx.set_output(str(response))
-                response_ctx.extra.update(extra)
+                response_ctx.extra.update(extra)  # extend with `agent_output` and `agent_finish`
                 self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
             i += 1
 

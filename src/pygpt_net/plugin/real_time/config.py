@@ -56,6 +56,6 @@ class Config(BaseConfig):
             "get_time",
             instruction="get current time and date",
             params=[],
-            enabled=True,
+            enabled=False,
             description="Enable: Get current time and date.",
         )

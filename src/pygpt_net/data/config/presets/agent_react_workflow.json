@@ -17,7 +17,7 @@
     "research": false,
     "temperature": 1.0,
     "filename": "",
-    "model": null,
+    "model": "gpt-4o",
     "tools": {
         "function": []
     },

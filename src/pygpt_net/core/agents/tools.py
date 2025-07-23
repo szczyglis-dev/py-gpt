@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import json
@@ -140,7 +140,8 @@ class Tools:
             self,
             context: BridgeContext,
             extra: Dict[str, Any],
-            verbose: bool = False
+            verbose: bool = False,
+            force: bool = False
     ) -> dict:
         """
         Parse plugin functions
@@ -148,9 +149,10 @@ class Tools:
         :param context: BridgeContext
         :param extra: extra data
         :param verbose: verbose mode
+        :param force: force to get functions even if not needed
         """
         tools = {}
-        functions = self.window.core.command.get_functions()
+        functions = self.window.core.command.get_functions(force=force)
         for func in functions:
             try:
                 name = func['name']
@@ -191,7 +193,8 @@ class Tools:
             self,
             context: BridgeContext,
             extra: Dict[str, Any],
-            verbose: bool = False
+            verbose: bool = False,
+            force: bool = False
     ) -> list:
         """
         Parse plugin functions
@@ -199,9 +202,10 @@ class Tools:
         :param context: BridgeContext
         :param extra: extra data
         :param verbose: verbose mode
+        :param force: force to get functions even if not needed
         """
         specs = []
-        functions = self.window.core.command.get_functions()
+        functions = self.window.core.command.get_functions(force=force)
 
         # add query engine tool spec if idx is provided
         if self.agent_idx is not None and self.agent_idx  != "_":

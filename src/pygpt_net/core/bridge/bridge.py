@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import time
@@ -103,9 +103,9 @@ class Bridge:
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
             context.idx_mode = MODE_CHAT  # default in sub-mode
 
-        if is_virtual:
+        if is_virtual: # agent or expert mode
             if mode == MODE_LLAMA_INDEX:  # after switch
-                idx = self.window.core.agents.legacy.get_idx()  # get index, idx is common for agent and expert
+                idx = self.window.core.agents.legacy.get_idx()  # get index, idx is shared for agent and expert
                 if idx is not None and idx != "_":
                     context.idx = idx
                     self.window.core.debug.info("[agent/expert] Using index: " + idx)

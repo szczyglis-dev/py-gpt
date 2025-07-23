@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -625,34 +625,42 @@ class Command:
             MODE_COMPLETION,
         ]
         mode = self.window.core.config.get('mode')
+
+        # force disabled for specific modes
         if mode in disabled_modes:
-            return False  # disabled for specific modes
-        if ((self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled())
-                and not force):
             return False
-        model = self.window.core.config.get('model')
-        if model:
-            model_data = self.window.core.models.get(model)
-            if model_data:
-                if not self.window.core.models.is_tool_call_allowed(mode, model_data):
-                    return False
-        enabled = self.window.core.config.get('func_call.native', False)  # otherwise check config
-        # if enabled:
-            # self.window.core.debug.info("[cmd] Native tool calls enabled")
-        return enabled
 
-    def is_cmd_prompt_enabled(self):
-        """
-        Check if command prompt is enabled
+        if not force:
+            # check model
+            model = self.window.core.config.get('model')
+            if model:
+                model_data = self.window.core.models.get(model)
+                if model_data:
+                    if not self.window.core.models.is_tool_call_allowed(mode, model_data):
+                        return False
 
-        :return: True if command prompt is enabled
-        """
-        mode = self.window.core.config.get('mode')
-        return True
-        if mode == MODE_LLAMA_INDEX:
-            if self.window.controller.idx.index_selected():
+            # check mode
+            if self.window.controller.agent.legacy.enabled() or self.window.controller.agent.experts.enabled():
                 return False
-        return True
+
+        # otherwise check config
+        return self.window.core.config.get('func_call.native', False)
+
+    def is_cmd(self):
+        """
+        Check if tool execute is enabled
+
+        :return: True if command is enabled
+        """
+        # check if cmd is enabled in config
+        if self.window.core.config.get('cmd'):
+            return True
+
+        # check if cmd inline plugin is enabled
+        if self.window.controller.plugins.is_type_enabled("cmd.inline"):
+            return True
+
+        return False
 
     def is_enabled(self, cmd: str) -> bool:
         """

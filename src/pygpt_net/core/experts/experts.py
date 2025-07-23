@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import json
@@ -656,8 +656,13 @@ class ExpertWorker(QObject, QRunnable):
                 extra = {}
                 if use_index:
                     extra["agent_idx"] = db_idx
+                    
                 tools = self.window.core.agents.tools.prepare(
                     bridge_context, extra, verbose=False, force=True)
+
+                # disable tools if cmd is not enabled
+                if not self.window.core.command.is_cmd():
+                    tools = []
 
                 # remove expert_call tool from tools
                 for tool in list(tools):

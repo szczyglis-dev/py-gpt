@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -49,7 +49,11 @@ class Command:
         if len(cmds) > 0:
             all_cmds = copy.deepcopy(cmds)
             # check if commands are enabled, leave only enabled commands
-            for cmd in cmds:
+            for cmd in list(cmds):
+                if "cmd" not in cmd:
+                    self.log("[cmd] Command without 'cmd' key: " + str(cmd))
+                    cmds.remove(cmd)
+                    continue
                 cmd_id = str(cmd["cmd"])
                 if not self.window.core.command.is_enabled(cmd_id):
                     self.log("[cmd] Command not allowed: " + cmd_id)

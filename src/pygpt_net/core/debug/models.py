@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import os
@@ -29,6 +29,7 @@ class ModelsDebug:
         path = os.path.join(self.window.core.config.path, '', 'models.json')
         self.window.core.debug.add(self.id, 'Models File', str(path))
         self.window.core.debug.add(self.id, 'editor.selected[]', str(self.window.controller.models.editor.selected))
+        self.window.core.debug.add(self.id, '[func] is_native_enabled()', str(self.window.core.command.is_native_enabled()))
 
         self.window.core.debug.add(
             self.id, 'Options',
@@ -44,13 +45,18 @@ class ModelsDebug:
             data = {
                 'id': model.id,
                 'name': model.name,
+                'provider': model.provider,
                 'mode': model.mode,
-                'multimodal': model.multimodal,
+                # 'multimodal': model.multimodal,
+                'input': model.input,
+                'output': model.output,
                 'langchain': model.langchain,
                 'llama_index': model.llama_index,
+                'tool_calls': model.tool_calls,
                 'tokens': model.tokens,
                 'ctx': model.ctx,
                 'default': model.default,
+                'imported': model.imported,
             }
             self.window.core.debug.add(self.id, str(key), str(data))
 

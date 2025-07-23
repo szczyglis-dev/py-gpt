@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -2057,6 +2057,14 @@ class Patch:
                     'prompt.expert')
                 if "experts.use_agent" not in data:
                     data["experts.use_agent"] = True
+                updated = True
+
+            # < 2.5.63 - disable cmd.get_time in real_time plugin by default
+            if old < parse_version("2.5.63"):
+                print("Migrating config from < 2.5.63...")
+                if 'real_time' in data['plugins'] \
+                        and 'cmd.get_time' in data['plugins']['real_time']:
+                    del data['plugins']['real_time']['cmd.get_time']
                 updated = True
 
         # update file

@@ -6,18 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
+from pygpt_net.core.types import MODE_AGENT, MODE_EXPERT, MODE_LLAMA_INDEX
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 from .base import Base
 from .custom import Custom
 from .template import Template
-from ..types import MODE_AGENT, MODE_EXPERT
-
 
 class Prompt:
     def __init__(self, window=None):
@@ -96,27 +95,26 @@ class Prompt:
             # IMPORTANT: append command syntax only if at least one command is detected
             # tmp dispatch event: command syntax apply
             # full execute cmd syntax
-            if self.window.core.command.is_cmd_prompt_enabled():
-                if self.window.core.config.get('cmd'):
-                    event = Event(Event.CMD_SYNTAX, data)
-                    self.window.dispatch(event)
-                    if event.data and "cmd" in event.data and event.data["cmd"]:
-                        prompt = self.window.core.command.append_syntax(
-                            data=event.data,
-                            mode=mode,
-                            model=model,
-                        )
+            if self.window.core.config.get('cmd'):
+                event = Event(Event.CMD_SYNTAX, data)
+                self.window.dispatch(event)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
-                # inline cmd syntax only
-                elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
-                    event = Event(Event.CMD_SYNTAX_INLINE, data)
-                    self.window.dispatch(event)
-                    if event.data and "cmd" in event.data and event.data["cmd"]:
-                        prompt = self.window.core.command.append_syntax(
-                            data=event.data,
-                            mode=mode,
-                            model=model,
-                        )
+            # inline cmd syntax only
+            elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
+                event = Event(Event.CMD_SYNTAX_INLINE, data)
+                self.window.dispatch(event)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
         return prompt
 
@@ -129,7 +127,6 @@ class Prompt:
             reply: bool,
             internal: bool,
             is_expert: bool = False,
-            disable_native_tool_calls: bool = False,
     ) -> str:
         """
         Prepare system prompt
@@ -141,7 +138,6 @@ class Prompt:
         :param reply: reply from plugins
         :param internal: internal call
         :param is_expert: called from expert
-        :param disable_native_tool_calls: True to disable native func calls
         :return: system prompt
         """
         # event: system prompt (append to system prompt)
@@ -164,25 +160,30 @@ class Prompt:
         event.ctx = ctx
         self.window.dispatch(event)
         sys_prompt = event.data['value']
-        force = False
 
-        # if expert mode or agent mode, and agent call enable native tools calls
-        if (self.window.core.config.get('experts.use_agent', False)
-                and mode in [
-                    MODE_AGENT,
-                    MODE_EXPERT,
-                ]):
-            disable_native_tool_calls = False
-            force = True
+        force_native_tools = False
+        force_syntax_tools = False
 
-        # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
+        # --- tool calls in Chat with files ---
+        if mode == MODE_LLAMA_INDEX:
+            # if index is selected use syntax prompt
+            if self.window.controller.idx.index_selected():
+                force_syntax_tools = True
+                # native func calls are allowed only for LLM call, not for the query engine
+                if self.window.core.config.get("llama.idx.react", False):
+                    # if react enabled, then re-allow native tool calls
+                    force_syntax_tools = False
+
+        # always enable native tool calls from experts if agent used
+        if is_expert:
+            if self.window.core.config.get('experts.use_agent', False):
+                force_syntax_tools = False
+                force_native_tools = True
+
+        # event: tools syntax apply (if tools enabled or inline plugin then append tools prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
-            if self.window.core.command.is_native_enabled(force=force) and not disable_native_tool_calls:
-                return sys_prompt  # abort if native func call enabled
-
-            # abort if model not supported
-            # if not self.window.core.command.is_model_supports_tools(mode, model):
-                # return sys_prompt
+            if self.window.core.command.is_native_enabled(force=force_native_tools) and not force_syntax_tools:
+                return sys_prompt  # abort syntax if native func calls enabled
 
             data = {
                 'mode': mode,
@@ -191,28 +192,27 @@ class Prompt:
                 'cmd': [],
                 'is_expert': is_expert,
             }
-            # IMPORTANT: append command syntax only if at least one command is detected
+            # IMPORTANT: append tools syntax only if at least one tool is detected
             # full execute cmd syntax
-            if self.window.core.command.is_cmd_prompt_enabled():
-                if self.window.core.config.get('cmd'):
-                    event = Event(Event.CMD_SYNTAX, data)
-                    self.window.dispatch(event)
-                    if event.data and "cmd" in event.data and event.data["cmd"]:
-                        sys_prompt = self.window.core.command.append_syntax(
-                            data=event.data,
-                            mode=mode,
-                            model=model,
-                        )
+            if self.window.core.config.get('cmd'):
+                event = Event(Event.CMD_SYNTAX, data)
+                self.window.dispatch(event)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    sys_prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
-                # inline cmd syntax only
-                elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
-                    event = Event(Event.CMD_SYNTAX_INLINE, data)
-                    self.window.dispatch(event)
-                    if event.data and "cmd" in event.data and event.data["cmd"]:
-                        sys_prompt = self.window.core.command.append_syntax(
-                            data=event.data,
-                            mode=mode,
-                            model=model,
-                        )
+            # inline cmd syntax only
+            elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
+                event = Event(Event.CMD_SYNTAX_INLINE, data)
+                self.window.dispatch(event)
+                if event.data and "cmd" in event.data and event.data["cmd"]:
+                    sys_prompt = self.window.core.command.append_syntax(
+                        data=event.data,
+                        mode=mode,
+                        model=model,
+                    )
 
         return sys_prompt

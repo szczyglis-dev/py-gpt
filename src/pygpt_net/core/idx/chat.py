@@ -323,7 +323,7 @@ class Chat:
             model.id,
         )
         ctx.input_tokens = input_tokens
-        tools = self.window.core.agents.tools.prepare(context, extra)
+        tools = self.window.core.agents.tools.prepare(context, extra, force=True)  # prepare tools for agent
 
         if use_index:
             # 1) if tools enabled use agent engine

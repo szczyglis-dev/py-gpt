@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.23 15:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -153,17 +153,6 @@ class Text:
         self.window.dispatch(event)
         sys_prompt = event.data['value']
 
-        # tool calls
-        disable_native_func_calls = False
-        if mode == MODE_LLAMA_INDEX:
-            # check if index is selected
-            if self.window.controller.idx.index_selected():
-                disable_native_func_calls = True
-                # ^^^ native func calls allowed only for LLM call, not for the query engine
-                if self.window.core.config.get("llama.idx.react", False):
-                    # if react mode, then allow native tool calls
-                    disable_native_func_calls = False
-
         # build final prompt (+plugins)
         sys_prompt = self.window.core.prompt.prepare_sys_prompt(
             mode=mode,
@@ -172,7 +161,6 @@ class Text:
             ctx=ctx,
             reply=reply,
             internal=internal,
-            disable_native_tool_calls=disable_native_func_calls,
         )
 
         self.window.controller.chat.log("Appending input to chat window...")
