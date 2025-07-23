@@ -130,6 +130,17 @@ class Experts:
                 experts[k] = presets[k].name
         return experts
 
+    def get_expert_name_by_id(self, id: str) -> str:
+        """
+        Get expert name by id
+
+        :param id: expert id
+        :return: expert name
+        """
+        experts = self.get_experts()
+        if id in experts:
+            return experts[id]
+
     def count_experts(self, uuid: str) -> int:
         """
         Count experts in agent
@@ -322,8 +333,9 @@ class Experts:
         self.worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
 
         # start worker in thread pool
+        expert_name = self.get_expert_name_by_id(expert_id)
         event = KernelEvent(KernelEvent.STATE_BUSY, {
-            "msg": trans("expert.wait.status") + " ({})".format(expert_id),
+            "msg": trans("expert.wait.status") + " ({})".format(expert_name),
         })
         self.window.dispatch(event)  # dispatch busy event
         self.window.threadpool.start(self.worker)
