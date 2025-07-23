@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.60** | build: **2025-07-22** | Python: **>=3.10, <3.13**
+Release: **2.5.61** | build: **2025-07-23** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4111,6 +4111,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.61 (2025-07-23)**
+
+- Enhanced expert and autonomous agent modes.
+- Added streaming output from the agent in Chat with Files mode.
+- Introduced a planner agent as the engine for experts.
+- Fixed issue with goal completion in autonomous agent mode.
+- Resolved CSS issues with sliders on Windows.
 
 **2.5.60 (2025-07-22)**
 

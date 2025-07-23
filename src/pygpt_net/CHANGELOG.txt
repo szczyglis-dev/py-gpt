@@ -1,3 +1,11 @@
+2.5.61 (2025-07-23)
+
+- Enhanced expert and autonomous agent modes.
+- Added streaming output from the agent in Chat with Files mode.
+- Introduced a planner agent as the engine for experts.
+- Fixed issue with goal completion in autonomous agent mode.
+- Resolved CSS issues with sliders on Windows.
+
 2.5.60 (2025-07-22)
 
 - Improved CSS.
