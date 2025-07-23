@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.64 (2025-07-23)
+
+- Updated the system prompts.
+- Allowed native tool calls in Chat with Files when the agent is not enabled.
+
 ## 2.5.63 (2025-07-23)
 
 - Agent mode improvements.

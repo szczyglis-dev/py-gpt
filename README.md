@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.63** | build: **2025-07-23** | Python: **>=3.10, <3.13**
+Release: **2.5.64** | build: **2025-07-23** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -28,10 +28,12 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 https://github.com/user-attachments/assets/f48deef7-5c1b-43f4-99d0-0acbe7dcc656
 
-**Screenshots** (version `2.5.40`, build `2025-07-14`):
+**Screenshots** (version `2.5.64`, build `2025-07-23`):
 
+Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
 
+Light theme:
 ![v2_main2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main2.png)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
@@ -4111,6 +4113,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.64 (2025-07-23)**
+
+- Updated the system prompts.
+- Allowed native tool calls in Chat with Files when the agent is not enabled.
 
 **2.5.63 (2025-07-23)**
 
