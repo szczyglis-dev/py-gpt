@@ -34,7 +34,7 @@ Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
 
 Light theme:
-![v2_main2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main2.png)
+![v2_light](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_light.png)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
 
