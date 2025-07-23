@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.24 01:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -204,6 +204,9 @@ class Legacy:
             self.prev_output = None
             return
 
+        if ctx.sub_reply:
+            return
+
         # if ctx has commands to execute then abort sending reply (command response will be sent)
         reply_abort = False
         if len(ctx.cmds) > 0:
@@ -221,7 +224,6 @@ class Legacy:
             self.iteration += 1
             self.window.controller.agent.legacy.update()  # update status
             if self.prev_output is not None and self.prev_output != "":
-
                 # always abort if already waiting for reply from expert or command
                 if not self.window.controller.kernel.stack.waiting():
                     # add to reply stack
@@ -346,6 +348,7 @@ class Legacy:
                         self.on_stop(auto=True)
                         self.window.update_status(trans('status.finished'))  # show info
                         self.finished = True
+                    break
             except Exception as e:
                 self.window.core.debug.error(e)
                 return
