@@ -36,6 +36,7 @@ a = Analysis(
         ('src/pygpt_net/data/prompts.csv', 'data'),
         ('src/pygpt_net/data/logo.png', 'data'),
         ('src/pygpt_net/data/icon.ico', 'data'),
+        ('src/pygpt_net/data/icon_web.ico', 'data'),
         ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),
         ('src/pygpt_net/data/icon_tray_busy.ico', 'data'),
         ('src/pygpt_net/data/icon_tray_error.ico', 'data'),
@@ -43,6 +44,8 @@ a = Analysis(
         ('src/pygpt_net/LICENSE', '.'),
         ('src/pygpt_net/data/icon.png', '.'),
         ('src/pygpt_net/data/icon.ico', '.'),
+        ('src/pygpt_net/data/icon_web.png', '.'),
+        ('src/pygpt_net/data/icon_web.ico', '.'),
         ('README.md', '.'),
         ('src/pygpt_net/__init__.py', '.'),
         ('venv/lib/python3.10/site-packages/onnxruntime/*', 'onnxruntime/'),  # onnxruntime
