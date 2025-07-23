@@ -1,0 +1,9 @@
+QSlider::add-page {{
+  background: transparent;
+}}
+QSlider::sub-page {{
+  background: transparent;
+}}
+QSlider::sub-page:disabled {{
+  background: transparent;
+}}

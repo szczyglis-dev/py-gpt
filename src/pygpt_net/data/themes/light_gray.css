@@ -1,4 +1,7 @@
-
+QWidget,
+.layout-notepad {{
+  background-color: #efefef;
+}}
 QListView::item:selected,
 QTreeView::item:selected {{
   color: #000000;
@@ -29,3 +32,14 @@ QMenuBar::item:selected {{
 QMenu::item:selected {{ 
   color: #000000;
 }} 
+QPushButton,
+QTextEdit,
+QLineEdit, 
+QListView, 
+QComboBox,
+QTreeView {{
+  background-color: #ffffff;
+}}
+QMenu {{ 
+  background-color: #ffffff;
+}}

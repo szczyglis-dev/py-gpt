@@ -41,3 +41,6 @@ QComboBox,
 QTreeView {{
   background-color: #efefef;
 }}
+QMenu {{ 
+  background-color: #efefef;
+}}
