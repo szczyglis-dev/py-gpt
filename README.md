@@ -2993,7 +2993,7 @@ Config -> Settings...
 
 - `Convert lists to paragraphs`: If enabled, lists (ul, ol) will be converted to paragraphs (p), Default: True.
 
-- `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
+- `Model used for auto-summary`: Model used for context auto-summary (generating titles in context list) (default: *gpt-4o-mini*). **Tip:** If you prefer to use local models, you should change the model here as well
 
 **Remote tools**
 
@@ -3017,7 +3017,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Prompts**
 
-- `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - Chat and Assistants modes ONLY, default: True
+- `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - disabled in Autonomous and Experts modes, default: True
 
 - `Command execute: instruction`: Prompt for appending command execution instructions. Placeholders: {schema}, {extra}
 
@@ -3075,93 +3075,93 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **General**
 
-* `Indexes`: List of created indexes.
+- `Indexes`: List of created indexes.
 
 **Vector Store**
 
-* `Vector Store`: Vector store to use (vector database provided by LlamaIndex).
+- `Vector Store`: Vector store to use (vector database provided by LlamaIndex).
 
-* `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
+- `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
 
 **Chat**
 
-* `Chat mode`: LlamIndex chat mode for use in query engine, default: context
+- `Chat mode`: LlamIndex chat mode for use in query engine, default: context
 
-* `Use ReAct agent for Tool calls in Chat with Files mode`: Enable ReAct agent for tool calls in Chat with Files mode.
+- `Use ReAct agent for Tool calls in Chat with Files mode`: Enable ReAct agent for tool calls in Chat with Files mode.
 
-* `Display full agent output in chat window`: If enabled, a real-time output from agent reasoning will be displayed with the response.
+- `Display full agent output in chat window`: If enabled, a real-time output from agent reasoning will be displayed with the response.
 
-* `Auto-retrieve additional context`: Enable automatic retrieve of additional context from vector store in every query.
+- `Auto-retrieve additional context`: Enable automatic retrieve of additional context from vector store in every query.
 
 **Embeddings**
 
-* `Embeddings provider`: Embeddings provider.
+- `Embeddings provider`: Embeddings provider.
 
-* `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
+- `Embeddings provider (ENV)`: ENV vars to embeddings provider (API keys, etc.).
 
-* `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
+- `Embeddings provider (**kwargs)`: Keyword arguments for embeddings provider (model name, etc.).
 
-* `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
+- `RPM limit for embeddings API calls`: Specify the limit of maximum requests per minute (RPM), 0 = no limit.
 
 **Indexing**
 
-* `Recursive directory indexing`: Enables recursive directory indexing, default is False.
+- `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
-* `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
+- `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
 
-* `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
+- `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
 
-* `Force exclude files`: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
+- `Force exclude files`: If enabled, the exclusion list will be applied even when the data loader for the extension is active. Default: False.
 
-* `Stop indexing on error`: If enabled, indexing will stop whenever an error occurs Default: True.
+- `Stop indexing on error`: If enabled, indexing will stop whenever an error occurs Default: True.
 
-* `Custom metadata to append/replace to indexed documents (files)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}. Use * (asterisk) as extension if you want to apply field to all files. Set empty value to remove field with specified key from metadata.
+- `Custom metadata to append/replace to indexed documents (files)`: Define custom metadata key => value fields for specified file extensions, separate extensions by comma.\nAllowed placeholders: {path}, {relative_path} {filename}, {dirname}, {relative_dir} {ext}, {size}, {mtime}, {date}, {date_time}, {time}, {timestamp}. Use * (asterisk) as extension if you want to apply field to all files. Set empty value to remove field with specified key from metadata.
 
-* `Custom metadata to append/replace to indexed documents (web)`: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
+- `Custom metadata to append/replace to indexed documents (web)`: Define custom metadata key => value fields for specified external data loaders.\nAllowed placeholders: {date}, {date_time}, {time}, {timestamp} + {data loader args}
 
 **Data Loaders**
 
-* `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
+- `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the LlamaIndex or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
-* `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
+- `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
 
 **Update**
 
-* `Auto-index DB in real time`: Enables conversation context auto-indexing in defined modes.
+- `Auto-index DB in real time`: Enables conversation context auto-indexing in defined modes.
 
-* `ID of index for auto-indexing`: Index to use if auto-indexing of conversation context is enabled.
+- `ID of index for auto-indexing`: Index to use if auto-indexing of conversation context is enabled.
 
-* `Enable auto-index in modes`: List of modes with enabled context auto-index, separated by comma.
+- `Enable auto-index in modes`: List of modes with enabled context auto-index, separated by comma.
 
-* `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
+- `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
 
 **Agent and experts**
 
 **General**
 
-* `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
+- `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
 **Agents (LlamaIndex)**
 
-* `Max steps (per iteration)` - Max steps is one iteration before goal achieved
+- `Max steps (per iteration)` - Max steps is one iteration before goal achieved
 
-* `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
+- `Max evaluation steps in loop` - Maximum evaluation steps to achieve the final result, set 0 to infinity
 
-* `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
+- `Append and compare previous evaluation prompt in next evaluation` - If enabled, previous improvement prompt will be checked in next eval in loop, default: False
 
-* `Verbose` - enables verbose mode.
+- `Verbose` - enables verbose mode.
 
 **Autonomous (Legacy agents)**
 
-* `Sub-mode for agents`: Sub-mode to use in Agent (Autonomous) mode (chat, llama_index, etc.). Default: chat.
+- `Sub-mode for agents`: Sub-mode to use in Agent (Autonomous) mode (chat, llama_index, etc.). Default: chat.
 
-* `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
+- `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
 **Experts**
 
-* `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
+- `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
 
-* `Use planner agent for expert reasoning`: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
+- `Use planner agent for expert reasoning`: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
 
 **Accessibility**
 

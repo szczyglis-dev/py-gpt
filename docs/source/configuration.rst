@@ -133,7 +133,7 @@ The following basic options can be modified directly within the application:
 
 * ``Convert lists to paragraphs``: If enabled, lists (ul, ol) will be converted to paragraphs (p), Default: True.
 
-* ``Model used for auto-summary``: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
+* ``Model used for auto-summary``: Model used for context auto-summary (generating titles in context list) (default: *gpt-4o-mini*). **Tip:** If you prefer to use local models, you should change the model here as well
 
 **Remote tools**
 
@@ -157,7 +157,7 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Prompts**
 
-* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Chat and Assistants modes ONLY, default: True
+* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - disabled in Autonomous and Experts modes, default: True
 
 * ``Command execute: instruction``: Prompt for appending command execution instructions. Placeholders: {schema}, {extra}
 
