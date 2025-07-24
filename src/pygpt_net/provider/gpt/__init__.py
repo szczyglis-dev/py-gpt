@@ -112,7 +112,6 @@ class Gpt:
                 max_tokens = model.tokens
 
             if model.is_gpt():
-                print("mode: " + str(mode) + ", parent_mode: " + str(parent_mode))
                 if (mode in self.RESPONSES_ALLOWED_MODES
                         and parent_mode in self.RESPONSES_ALLOWED_MODES
                         and self.window.core.config.get('api_use_responses', False)):
