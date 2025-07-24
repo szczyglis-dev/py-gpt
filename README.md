@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.64** | build: **2025-07-23** | Python: **>=3.10, <3.13**
+Release: **2.5.65** | build: **2025-07-24** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4113,6 +4113,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.65 (2025-07-24)**
+
+- Improved expert and agent calls and response rendering.
+- Fixed duplicate goal completion in autonomous mode
 
 **2.5.64 (2025-07-23)**
 
