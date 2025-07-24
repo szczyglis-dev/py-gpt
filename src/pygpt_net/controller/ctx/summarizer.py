@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 16:00:00                  #
+# Updated Date: 2025.07.24 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -106,4 +106,5 @@ class Summarizer:
             title,
             refresh=refresh,
         )
+        self.window.controller.chat.common.focus_input()  # restore focus
 
