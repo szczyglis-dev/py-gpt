@@ -229,9 +229,11 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Chat mode``: LlamIndex chat mode for use in query engine, default: context
 
-* ``Use ReAct agent for Tool calls in Chat with Files mode``: enable ReAct agent for tool calls in Chat with Files mode.
+* ``Use ReAct agent for Tool calls in Chat with Files mode``: Enable ReAct agent for tool calls in Chat with Files mode.
 
-* ``Auto-retrieve additional context``: enable automatic retrieve of additional context from vector store in every query.
+* ``Display full agent output in chat window``: If enabled, a real-time output from agent reasoning will be displayed with the response.
+
+* ``Auto-retrieve additional context``: Enable automatic retrieve of additional context from vector store in every query.
 
 **Embeddings**
 
@@ -291,13 +293,17 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Verbose`` - enables verbose mode.
 
-**Autonomous (Legacy)**
+**Autonomous (Legacy agents)**
 
-* ``Sub-mode for agents``: Sub-mode to use in Agent (Autonomous) mode (chat, completion, langchain, llama_index, etc.). Default: chat.
-
-* ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+* ``Sub-mode for agents``: Sub-mode to use in Agent (Autonomous) mode (chat, llama_index, etc.). Default: chat.
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
+
+**Experts**
+
+* ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
+
+* ``Use planner agent for expert reasoning``: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
 
 **Accessibility**
 
