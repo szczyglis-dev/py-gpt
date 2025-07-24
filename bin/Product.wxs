@@ -23,19 +23,12 @@
     <Feature Id="MainFeature" Title="PyGPT - Desktop AI Assistant" Level="1">
       <ComponentGroupRef Id="PYGPTFiles" />
       <ComponentRef Id="ApplicationComponent" />
-      <ComponentRef Id="DocumentationShortcutComponent" />
-      <ComponentRef Id="WebsiteShortcutComponent" />
-      <ComponentRef Id="SupportShortcutComponent" />
     </Feature>
   </Product>
 
   <Fragment>
     <!-- Define the icons -->
     <Icon Id="PyGPTIcon.ico" SourceFile="$(var.SourceDir)\_internal\icon.ico" />
-    <Icon Id="DocsIcon.ico" SourceFile="$(var.SourceDir)\_internal\icon_web.ico" />
-    <Icon Id="WebsiteIcon.ico" SourceFile="$(var.SourceDir)\_internal\icon_web.ico" />
-    <Icon Id="SupportIcon.ico" SourceFile="$(var.SourceDir)\_internal\icon_web.ico" />
-
     <Property Id="ARPPRODUCTICON" Value="PyGPTIcon.ico" />
   </Fragment>
 
@@ -47,22 +40,6 @@
         <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
       </File>
       <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1"/>
-    </Component>
-  </DirectoryRef>
-</Fragment>
-<Fragment>
-  <DirectoryRef Id="ApplicationProgramsFolder">
-    <Component Id="DocumentationShortcutComponent" Guid="AB041112-5C9F-4F72-AC34-EE2F581AE950">
-      <Shortcut Id="DocumentationShortcut" Directory="ApplicationProgramsFolder" Name="Documentation" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://pygpt.readthedocs.io" Icon="DocsIcon.ico"/>
-      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="docs" Type="integer" Value="1" KeyPath="yes"/>
-    </Component>
-    <Component Id="WebsiteShortcutComponent" Guid="162ECC1B-EBD9-43DF-9F12-4429412C55AB">
-      <Shortcut Id="WebsiteShortcut" Directory="ApplicationProgramsFolder" Name="Official Website" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://pygpt.net" Icon="WebsiteIcon.ico"/>
-      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="website" Type="integer" Value="1" KeyPath="yes"/>
-    </Component>
-    <Component Id="SupportShortcutComponent" Guid="05FC5020-6E2A-4C14-8A45-71B61190E7D4">
-      <Shortcut Id="SupportShortcut" Directory="ApplicationProgramsFolder" Name="GitHub" Target="[SystemFolder]rundll32.exe" Arguments="url.dll,FileProtocolHandler https://github.com/szczyglis-dev/py-gpt" Icon="SupportIcon.ico"/>
-      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="support" Type="integer" Value="1" KeyPath="yes"/>
     </Component>
   </DirectoryRef>
 </Fragment>
