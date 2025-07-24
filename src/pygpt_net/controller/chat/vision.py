@@ -94,10 +94,17 @@ class Vision:
 
         :return: True if vision model
         """
+        allowed_modes = [
+            MODE_CHAT,
+            MODE_COMPLETION,
+            MODE_LANGCHAIN,
+            MODE_LLAMA_INDEX,
+            MODE_RESEARCH,
+        ]
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        if MULTIMODAL_IMAGE in model_data.input and mode in self.allowed_modes:
+        if MULTIMODAL_IMAGE in model_data.input and mode in allowed_modes:
             return True
         return False
 

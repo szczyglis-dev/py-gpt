@@ -178,9 +178,13 @@ class Plugin(BasePlugin):
 
         # only if vision model is not used
         if self.has_cmd("analyze_image_attachment"):
-            if not self.window.controller.vision.is_vision_model:
+            allow_inline = True
+            if self.window.controller.vision.is_vision_model():
+                if self.is_attachment_provided():
+                    # don't allow inline if global image attachment is provided
+                    allow_inline = False
+            if allow_inline:
                 data['cmd'].append(self.get_cmd("analyze_image_attachment"))
-
         if self.has_cmd("analyze_screenshot"):
             data['cmd'].append(self.get_cmd("analyze_screenshot"))
         if self.has_cmd("analyze_camera_capture"):
@@ -278,6 +282,24 @@ class Plugin(BasePlugin):
             return self.get_option_value("prompt")
         else:
             return prompt
+
+    def is_attachment_provided(self) -> bool:
+        """
+        Check if attachment is provided in this ctx
+
+        :return: True if attachment is provided in this ctx
+        """
+        mode = self.window.core.config.get('mode')
+        attachments = self.window.core.attachments.get_all(mode)
+        self.window.core.gpt.vision.build_content(
+            str(self.prompt),
+            attachments,
+        )  # tmp build content, provide attachments from global mode
+
+        built_attachments = self.window.core.gpt.vision.attachments
+        if len(built_attachments) > 0:
+            return True
+        return False
 
     def is_vision_provided(self) -> bool:
         """
