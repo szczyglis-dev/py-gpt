@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 23:00:00                  #
+# Updated Date: 2025.07.24 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
 
-from PySide6.QtCore import QModelIndex
+from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent
@@ -79,6 +79,10 @@ class Ctx:
         self.window.ui.nodes['ctx.list'].collapseAll()  # collapse all items at start
         self.restore_expanded_groups()  # restore expanded groups
         self.select_by_current(focus=True)  # scroll to current ctx
+
+        # focus input after loading
+        QTimer.singleShot(100, self.window.controller.chat.common.focus_input)
+
 
     def update_mode_in_current(self):
         """Update current ctx mode"""
