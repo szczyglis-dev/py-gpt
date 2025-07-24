@@ -17,7 +17,7 @@ Multiple operation modes are included, such as chatbot, text completion, assista
 .. image:: images/v2_main.png
    :width: 800
 
-.. image:: images/v2_main_light.png
+.. image:: images/v2_light.png
    :width: 800
 
 Features
