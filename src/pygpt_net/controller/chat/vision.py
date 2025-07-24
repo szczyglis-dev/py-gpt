@@ -17,7 +17,7 @@ from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_VISION,
-    MODE_RESEARCH,
+    MODE_RESEARCH, MULTIMODAL_IMAGE,
 )
 
 class Vision:
@@ -85,6 +85,19 @@ class Vision:
         """
         if self.window.controller.plugins.is_enabled('openai_vision') \
                 or self.window.core.config.get('mode') in self.allowed_modes:
+            return True
+        return False
+
+    def is_vision_model(self) -> bool:
+        """
+        Check if current model is vision model
+
+        :return: True if vision model
+        """
+        mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        model_data = self.window.core.models.get(model)
+        if MULTIMODAL_IMAGE in model_data.input and mode in self.allowed_modes:
             return True
         return False
 

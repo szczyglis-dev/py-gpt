@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.24 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -175,8 +175,12 @@ class Plugin(BasePlugin):
         if self.has_cmd("make_screenshot"):
             data['cmd'].append(self.get_cmd("make_screenshot"))
         """
+
+        # only if vision model is not used
         if self.has_cmd("analyze_image_attachment"):
-            data['cmd'].append(self.get_cmd("analyze_image_attachment"))
+            if not self.window.controller.vision.is_vision_model:
+                data['cmd'].append(self.get_cmd("analyze_image_attachment"))
+
         if self.has_cmd("analyze_screenshot"):
             data['cmd'].append(self.get_cmd("analyze_screenshot"))
         if self.has_cmd("analyze_camera_capture"):
