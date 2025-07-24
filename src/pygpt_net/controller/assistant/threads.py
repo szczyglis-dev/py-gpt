@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.25 17:00:00                  #
 # ================================================== #
 
 import json
@@ -176,8 +176,10 @@ class Threads(QObject):
                                 "end_idx": item.end_index,
                             }
                             if item.file_citation:
-                                data["file_id"] = item.file_citation.file_id
-                                data["quote"] = item.file_citation.quote
+                                if hasattr(item.file_citation, 'file_id'):
+                                    data["file_id"] = item.file_citation.file_id
+                                if hasattr(item.file_citation, 'quote'):
+                                    data["quote"] = item.file_citation.quote
                             citations.append(data)
 
             # image file
