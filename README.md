@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.65** | build: **2025-07-24** | Python: **>=3.10, <3.13**
+Release: **2.5.66** | build: **2025-07-24** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -24,9 +24,9 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Chat with Files (via `LlamaIndex`), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
-**Showcase** (mp4, version `2.5.41`, build `2025-07-14`):
+**Showcase** (mp4, version `2.5.66`, build `2025-07-24`):
 
-https://github.com/user-attachments/assets/f48deef7-5c1b-43f4-99d0-0acbe7dcc656
+https://github.com/user-attachments/assets/d8305109-8b1b-41cb-b3ba-8c654271a95c
 
 **Screenshots** (version `2.5.64`, build `2025-07-23`):
 
@@ -4119,6 +4119,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.66 (2025-07-24)**
+
+- Fixed the issue where input focus was lost on the initial context summary.
+- Added input focus at application startup.
 
 **2.5.65 (2025-07-24)**
 

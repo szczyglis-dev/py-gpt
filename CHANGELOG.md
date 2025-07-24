@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.66 (2025-07-24)
+
+- Fixed the issue where input focus was lost on the initial context summary.
+- Added input focus at application startup.
+
 ## 2.5.65 (2025-07-24)
 
 - Improved expert and agent calls and response rendering.

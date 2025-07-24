@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.65",
-    "app.version": "2.5.65",
+    "version": "2.5.66",
+    "app.version": "2.5.66",
     "updated_at": "2025-07-24T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -400,7 +400,7 @@
       }
   },
   "temperature": 1.0,
-  "theme": "dark_cyan",
+  "theme": "dark",
   "theme.markdown": true,
   "theme.style": "chatgpt",
   "top_p": 1.0,
