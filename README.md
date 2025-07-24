@@ -4117,7 +4117,7 @@ may consume additional tokens that are not displayed in the main window.
 **2.5.65 (2025-07-24)**
 
 - Improved expert and agent calls and response rendering.
-- Fixed duplicate goal completion in autonomous mode
+- Fixed duplicate goal completion in autonomous mode.
 
 **2.5.64 (2025-07-23)**
 
