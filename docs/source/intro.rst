@@ -14,8 +14,13 @@ For audio interactions, **PyGPT** includes speech synthesis using the ``Microsof
 
 Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Chat with Files (via ``LlamaIndex``), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
+*Dark theme*
+
 .. image:: images/v2_main.png
    :width: 800
+
+
+*Light theme*
 
 .. image:: images/v2_light.png
    :width: 800
@@ -25,7 +30,7 @@ Features
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Agents and Autonomous Mode.
-* Supports multiple models: ``o1``, ``o3``, `GPT-4o``, ``GPT-4``, ``GPT-3.5``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Llama 3``, ``Mistral``, ``Google Gemini``, ``xAI Grok``, ``Anthropic Claude``, ``DeepSeek V3/R1``, ``Perplexity Sonar``, ``Bielik``, etc.
+* Supports multiple models: ``o1``, ``o3``, ``GPT-4o``, ``GPT-4``, ``GPT-3.5``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Llama 3``, ``Mistral``, ``Google Gemini``, ``xAI Grok``, ``Anthropic Claude``, ``DeepSeek V3/R1``, ``Perplexity Sonar``, ``Bielik``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
