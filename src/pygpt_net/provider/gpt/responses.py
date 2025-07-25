@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.01 01:00:00                  #
+# Updated Date: 2025.07.25 18:00:00                  #
 # ================================================== #
 
+import base64
 import json
 import time
 from typing import Optional, Dict, Any, List
@@ -20,7 +21,7 @@ from pygpt_net.core.types import (
     OPENAI_DISABLE_TOOLS,
     OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
     OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
-    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH, MODE_RESEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -341,3 +342,81 @@ class Responses:
         :return: input tokens
         """
         return self.input_tokens
+
+    def unpack_response(self, mode: str, response, ctx: CtxItem):
+        """
+        Unpack response from OpenAI API and set context
+
+        :param mode: str - mode of the response (chat, vision, audio)
+        :param response: OpenAI API response object
+        :param ctx: CtxItem - context item to set the response data
+        """
+        output = ""
+
+        if mode in [
+            MODE_CHAT,
+            MODE_VISION,
+            MODE_RESEARCH,
+        ]:
+            if response.output_text:
+                output = response.output_text
+            if response.output:
+                ctx.tool_calls = self.window.core.command.unpack_tool_calls_responses(
+                    response.output,
+                )
+
+        ctx.output = output.strip() if output else ""
+        ctx.msg_id = response.id
+        ctx.set_tokens(
+            response.usage.input_tokens,
+            response.usage.output_tokens,
+        )
+        if mode == MODE_CHAT:
+            files = []
+            # image generation
+            image_data = [
+                output.result
+                for output in response.output
+                if output.type == "image_generation_call"
+            ]
+            if image_data:
+                img_path = self.window.core.image.gen_unique_path(ctx)
+                image_base64 = image_data[0]
+                with open(img_path, "wb") as f:
+                    f.write(base64.b64decode(image_base64))
+                ctx.images = [img_path]
+
+            for output in response.output:
+                # code interpreter call
+                if output.type == "code_interpreter_call":
+                    code_response = ("\n\n**Code interpreter**\n```python\n"
+                                     + output.code
+                                     + "\n\n```\n-----------\n"
+                                     + response.output_text.strip())
+                    ctx.output = code_response
+                elif output.type == "message":
+                    if output.content:
+                        for content in output.content:
+                            if content.annotations:
+                                for annotation in content.annotations:
+                                    # url citation
+                                    if annotation.type == "url_citation":
+                                        if ctx.urls is None:
+                                            ctx.urls = []
+                                        ctx.urls.append(annotation.url)
+                                    # container file citation
+                                    elif annotation.type == "container_file_citation":
+                                        container_id = annotation.container_id
+                                        file_id = annotation.file_id
+                                        files.append({
+                                            "container_id": container_id,
+                                            "file_id": file_id,
+                                        })
+
+            # if files from container are found, download them and append to ctx
+            if files:
+                self.window.core.debug.info("[chat] Container files found, downloading...")
+                try:
+                    self.window.core.gpt.container.download_files(ctx, files)
+                except Exception as e:
+                    self.window.core.debug.error(f"[chat] Error downloading container files: {e}")

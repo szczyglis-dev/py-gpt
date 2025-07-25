@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.25 18:00:00                  #
 # ================================================== #
-
-import base64
 
 from openai import OpenAI
 
@@ -198,12 +196,15 @@ class Gpt:
                 )
             return True  # if assistant mode then return here, will be handled async
 
-        # if stream
+        # ------- streaming response -------
+
         if stream:
             ctx.stream = response  # generator
             ctx.set_output("", ai_name)  # set empty output
             ctx.input_tokens = used_tokens  # get from input tokens calculation
-            return True
+            return True  # <-- end here, will be handled in chat stream controller
+
+        # ------- non-streaming response -------
 
         if response is None:
             return False
@@ -213,76 +214,14 @@ class Gpt:
             print("Error in GPT response: " + str(response["error"]))
             return False
 
-        # get output text from response (not-stream mode)
-        output = ""
-        if mode == MODE_COMPLETION:
-            output = response.choices[0].text.strip()
-        elif mode in [
-            MODE_CHAT, 
-            MODE_VISION, 
-            MODE_RESEARCH
-        ]:
-            if use_responses_api:
-                if response.output_text:
-                    output = response.output_text.strip()
-                if response.output:
-                    ctx.tool_calls = self.window.core.command.unpack_tool_calls_responses(
-                        response.output,
-                    )
-            else:
-                if response.choices[0]:
-                    print(response.choices[0].message)
-                    if response.choices[0].message.content:
-                        output = response.choices[0].message.content.strip()
-                    elif response.choices[0].message.tool_calls:
-                        ctx.tool_calls = self.window.core.command.unpack_tool_calls(
-                            response.choices[0].message.tool_calls,
-                        )
-        # audio
-        elif mode in [MODE_AUDIO]:
-            if response.choices[0]:
-                if response.choices[0].message and response.choices[0].message.audio:
-                    ctx.audio_output = response.choices[0].message.audio.data
-                    ctx.audio_id = response.choices[0].message.audio.id
-                    ctx.audio_expires_ts = response.choices[0].message.audio.expires_at
-                    ctx.is_audio = True
-                    output = response.choices[0].message.audio.transcript  # from transcript
-                    self.chat.audio_prev_expires_ts = ctx.audio_expires_ts
-                    self.chat.audio_prev_id = ctx.audio_id
-                elif response.choices[0].message and not response.choices[0].message.audio:
-                    output = response.choices[0].message.content
-                    ctx.audio_id = self.chat.audio_prev_id
-                    ctx.audio_expires_ts = self.chat.audio_prev_expires_ts
-                if response.choices[0].message.tool_calls:
-                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
-                        response.choices[0].message.tool_calls,
-                    )
+        ctx.ai_name = ai_name
 
-        ctx.set_output(output, ai_name)
-
+        # post-unpack response data, like: output text, tool calls, images, file citations, etc.
         if not use_responses_api:
-            ctx.set_tokens(
-                response.usage.prompt_tokens,
-                response.usage.completion_tokens,
-            )
+            self.chat.unpack_response(mode, response, ctx)
         else:
-            ctx.set_tokens(
-                response.usage.input_tokens,
-                response.usage.output_tokens,
-            )
-            if mode == MODE_CHAT:
-                # if image generation call in responses API
-                image_data = [
-                    output.result
-                    for output in response.output
-                    if output.type == "image_generation_call"
-                ]
-                if image_data:
-                    img_path = self.window.core.image.gen_unique_path(ctx)
-                    image_base64 = image_data[0]
-                    with open(img_path, "wb") as f:
-                        f.write(base64.b64decode(image_base64))
-                    ctx.images = [img_path]
+            self.responses.unpack_response(mode, response, ctx)
+
         return True
 
     def quick_call(self, context: BridgeContext, extra: dict = None) -> str:

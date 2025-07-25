@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.25 18:00:00                  #
 # ================================================== #
 
 import json
@@ -16,7 +16,7 @@ from typing import Optional, Dict, Any, List
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
-    MODE_AUDIO, MULTIMODAL_IMAGE,
+    MODE_AUDIO, MULTIMODAL_IMAGE, MODE_RESEARCH, MODE_COMPLETION,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -349,3 +349,52 @@ class Chat:
         :return: input tokens
         """
         return self.input_tokens
+
+    def unpack_response(self, mode: str, response, ctx: CtxItem):
+        """
+        Unpack response from OpenAI API and set context
+
+        :param mode: str - mode of the response (chat, vision, audio)
+        :param response: OpenAI API response object
+        :param ctx: CtxItem - context item to set the response data
+        """
+        output = ""
+        if mode == MODE_COMPLETION:
+            output = response.choices[0].text.strip()
+        elif mode in [
+            MODE_CHAT,
+            MODE_VISION,
+            MODE_RESEARCH,
+        ]:
+            if response.choices[0]:
+                if response.choices[0].message.content:
+                    output = response.choices[0].message.content.strip()
+                if response.choices[0].message.tool_calls:
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                        response.choices[0].message.tool_calls,
+                    )
+        # audio
+        elif mode in [MODE_AUDIO]:
+            if response.choices[0]:
+                if response.choices[0].message and response.choices[0].message.audio:
+                    ctx.audio_output = response.choices[0].message.audio.data
+                    ctx.audio_id = response.choices[0].message.audio.id
+                    ctx.audio_expires_ts = response.choices[0].message.audio.expires_at
+                    ctx.is_audio = True
+                    output = response.choices[0].message.audio.transcript  # from transcript
+                    self.audio_prev_expires_ts = ctx.audio_expires_ts
+                    self.audio_prev_id = ctx.audio_id
+                elif response.choices[0].message and not response.choices[0].message.audio:
+                    output = response.choices[0].message.content
+                    ctx.audio_id = self.audio_prev_id
+                    ctx.audio_expires_ts = self.audio_prev_expires_ts
+                if response.choices[0].message.tool_calls:
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                        response.choices[0].message.tool_calls,
+                    )
+
+        ctx.output = output  # set output text
+        ctx.set_tokens(
+            response.usage.prompt_tokens,
+            response.usage.completion_tokens,
+        )
