@@ -475,11 +475,11 @@ class Responses:
                         if not self.window.core.config.get('experts.api_use_responses', False):
                             allowed = False
 
-                        # expert instance call
-                        if is_expert_call:
-                            if self.window.core.config.get('experts.internal.api_use_responses', False):
-                                allowed = True
-                            else:
-                                allowed = False
+                    # expert instance call
+                    if is_expert_call:
+                        if self.window.core.config.get('experts.internal.api_use_responses', False):
+                            allowed = True
+                        else:
+                            allowed = False
         return allowed
 
