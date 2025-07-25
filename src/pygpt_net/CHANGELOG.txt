@@ -1,3 +1,7 @@
+2.5.68 (2025-07-25)
+
+- Added a separate configuration to enable or disable native function calls in both agent and expert modes.
+
 2.5.67 (2025-07-25)
 
 - Added native tool call functionality in Experts.
