@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.67 (2025-07-25)
+
+- Added native tool call functionality in Experts.
+- Enhanced the use of multiple tool calls in Experts.
+- Fixed the display of Expert names when responding.
+- Improved context history handling in Experts.
+
 ## 2.5.66 (2025-07-24)
 
 - Fixed the issue where input focus was lost on the initial context summary.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.66** | build: **2025-07-24** | Python: **>=3.10, <3.13**
+Release: **2.5.67** | build: **2025-07-25** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4119,6 +4119,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.67 (2025-07-25)**
+
+- Added native tool call functionality in Experts.
+- Enhanced the use of multiple tool calls in Experts.
+- Fixed the display of Expert names when responding.
+- Improved context history handling in Experts.
 
 **2.5.66 (2025-07-24)**
 
