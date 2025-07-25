@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.69",
-        "app.version": "2.5.69",
-        "updated_at": "2025-07-25T01:31:35"
+        "version": "2.5.70",
+        "app.version": "2.5.70",
+        "updated_at": "2025-07-26T01:31:35"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -2201,7 +2201,7 @@
         },
         "mistral-small3.1:latest": {
             "id": "mistral-small3.1:latest",
-            "name": "mistral-small3.1:latest",
+            "name": "mistral-small3.1",
             "mode": [
                 "llama_index",
                 "agent",

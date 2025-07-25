@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.69** | build: **2025-07-25** | Python: **>=3.10, <3.13**
+Release: **2.5.70** | build: **2025-07-26** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4130,6 +4130,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.70 (2025-07-26)**
+
+- Added separate config for Responses API for expert instances.
+- Added a new model: mistral-small3.1.
 
 **2.5.69 (2025-07-25)**
 
