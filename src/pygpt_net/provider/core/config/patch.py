@@ -2095,9 +2095,9 @@ class Patch:
                     data["experts.func_call.native"] = False
                 updated = True
 
-            # < 2.5.89
-            if old < parse_version("2.5.89"):
-                print("Migrating config from < 2.5.89.")
+            # < 2.5.69
+            if old < parse_version("2.5.69"):
+                print("Migrating config from < 2.5.69.")
                 data["prompt.agent.continue"] = self.window.core.config.get_base(
                     'prompt.agent.continue')
                 data["prompt.agent.goal"] = self.window.core.config.get_base(
