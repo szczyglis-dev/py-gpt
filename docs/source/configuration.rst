@@ -301,6 +301,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Autonomous mode only, default: False
 
+* ``Use Responses API in Agent mode``: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False
+
 **Experts**
 
 * ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
@@ -308,6 +310,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 * ``Use planner agent for expert reasoning``: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
 
 * ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Experts only, default: False
+
+* ``Use Responses API in Experts mode (master)``: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False
+
+* ``Use Responses API in Experts (slaves)``: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False
 
 **Accessibility**
 

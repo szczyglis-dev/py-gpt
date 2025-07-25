@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -2093,6 +2093,23 @@ class Patch:
                     data["agent.func_call.native"] = False
                 if "experts.func_call.native" not in data:
                     data["experts.func_call.native"] = False
+                updated = True
+
+            # < 2.5.89
+            if old < parse_version("2.5.89"):
+                print("Migrating config from < 2.5.89.")
+                data["prompt.agent.continue"] = self.window.core.config.get_base(
+                    'prompt.agent.continue')
+                data["prompt.agent.goal"] = self.window.core.config.get_base(
+                    'prompt.agent.goal')
+                data["prompt.expert"] = self.window.core.config.get_base(
+                    'prompt.expert')
+                if "agent.api_use_responses" not in data:
+                    data["agent.api_use_responses"] = False
+                if "experts.api_use_responses" not in data:
+                    data["experts.api_use_responses"] = False
+                if "experts.internal.api_use_responses" not in data:
+                    data["experts.internal.api_use_responses"] = False
                 updated = True
 
         # update file

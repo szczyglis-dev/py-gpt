@@ -76,6 +76,6 @@ you must have a registered OpenAI account and your own API key. Local models do 
    This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
    resulting from the use of this application. It is provided "as is," without any form of warranty. 
    Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
-   the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search, 
+   the API website and engage with the application responsibly. Activating plugins, such as Web Search, 
    may consume additional tokens that are not displayed in the main window. 
-   **Always monitor your actual token usage on the OpenAI website.**
+   **Always monitor your actual token usage on the OpenAI, Google, Anthropic, etc. websites.**

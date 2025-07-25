@@ -3159,6 +3159,8 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - Autonomous agent mode only, default: False
 
+- `Use Responses API in Agent mode`: Use Responses API instead of ChatCompletions API in Agent (autonomous) mode. OpenAI models only. Default: False
+
 **Experts**
 
 - `Sub-mode for experts`: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
@@ -3166,6 +3168,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 - `Use planner agent for expert reasoning`: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
 
 - `Use native API function calls`: Use API function calls to run commands from plugins instead of using command prompts - Experts only, default: False
+
+- `Use Responses API in Experts mode (master)`: Use Responses API instead of ChatCompletions API in Experts (master model). OpenAI models only. Default: False
+
+- `Use Responses API in Experts (slaves)`: Use Responses API instead of ChatCompletions API for Expert instances (slave models). OpenAI models only. Default: False
 
 **Accessibility**
 
@@ -4113,16 +4119,22 @@ You can review the code of the built-in loaders in `pygpt_net.provider.loaders` 
 This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
 resulting from the use of this application. It is provided "as is," without any form of warranty. 
 Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
-the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search,
+the API website and engage with the application responsibly. Activating plugins, such as Web Search,
 may consume additional tokens that are not displayed in the main window. 
 
-**Always monitor your actual token usage on the OpenAI website.**
+**Always monitor your actual token usage on the OpenAI, Google, Anthropic, etc. websites.**
 
 ---
 
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.69 (2025-07-25)**
+
+- The Responses API and remote tools are now allowed in Agent (autonomous) and Expert modes. Default: disabled.
+- Added separate options in the configuration for enabling the Responses API in: Config -> Agents and Experts.
+- Improved expert and agents system prompt.
 
 **2.5.68 (2025-07-25)**
 

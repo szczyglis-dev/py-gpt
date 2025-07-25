@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -482,7 +482,8 @@ class Command:
         func_plugins = self.cmds_to_functions(cmds)  # plugin functions
         if self.window.controller.agent.legacy.enabled():
             func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())  # agent functions
-        if self.window.controller.agent.experts.enabled():
+        if (self.window.controller.agent.experts.enabled()
+                or self.window.controller.agent.legacy.enabled(check_inline=False)):
             if parent_id is None:  # don't append expert call tool for experts
                 func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())  # agent functions
         return func_plugins + func_agent + func_experts

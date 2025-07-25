@@ -361,12 +361,15 @@ class Legacy:
         """
         return self.window.controller.plugins.is_type_enabled("agent")
 
-    def enabled(self) -> bool:
+    def enabled(self, check_inline = True) -> bool:
         """
         Is agent enabled
 
+        :param check_inline: check inline mode
         :return: True if enabled
         """
+        if not check_inline:
+            return self.window.core.config.get('mode') == MODE_AGENT
         return self.window.core.config.get('mode') == MODE_AGENT or self.is_inline()
 
     def add_run(self):

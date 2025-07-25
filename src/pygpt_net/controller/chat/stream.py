@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 00:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import base64
@@ -186,6 +186,7 @@ class StreamWorker(QObject, QRunnable):
                         # ---------- response ID ----------
                         elif etype == "response.created":
                             self.ctx.msg_id = chunk.response.id
+                            self.window.core.ctx.update_item(self.ctx)  # prevent non-existing response ID
 
                         # ---------- end / error ----------
                         elif etype in {"response.done", "response.failed", "error"}:

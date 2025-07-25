@@ -38,12 +38,6 @@ from pygpt_net.item.model import ModelItem
 
 class Gpt:
 
-    # Responses API modes
-    RESPONSES_ALLOWED_MODES = [
-        MODE_CHAT,
-        MODE_RESEARCH,
-    ]
-
     def __init__(self, window=None):
         """
         OpenAI API wrapper core
@@ -96,13 +90,15 @@ class Gpt:
         assistant_id = context.assistant_id
         tools_outputs = context.tools_outputs
         max_tokens = context.max_tokens  # max output tokens
+        is_expert_call = context.is_expert_call
 
         ctx = context.ctx
         ai_name = ctx.output_name
         thread_id = ctx.thread  # from ctx
 
         # --- Responses API ----
-        use_responses_api = False
+        use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call)
+        ctx.use_responses_api = use_responses_api  # set in context
 
         # get model id
         model_id = None
@@ -110,14 +106,6 @@ class Gpt:
             model_id = model.id
             if max_tokens > model.tokens:  # check max output tokens
                 max_tokens = model.tokens
-
-            if model.is_gpt():
-                if (mode in self.RESPONSES_ALLOWED_MODES
-                        and parent_mode in self.RESPONSES_ALLOWED_MODES
-                        and self.window.core.config.get('api_use_responses', False)):
-                    use_responses_api = True  # use responses API for chat mode, only OpenAI models
-
-        ctx.use_responses_api = use_responses_api  # set in context
 
         response = None
         used_tokens = 0
@@ -232,6 +220,13 @@ class Gpt:
         :param extra: Extra arguments
         :return: response content
         """
+        # if normal request call then redirect
+        if context.request:
+            context.stream = False
+            context.mode = "chat"  # fake mode for redirect
+            result = self.call(context, extra)
+            return context.ctx.output
+
         ctx = context.ctx
         mode = context.mode
         prompt = context.prompt

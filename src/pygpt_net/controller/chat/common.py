@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import os
@@ -233,7 +233,8 @@ class Common:
         if (self.window.controller.agent.legacy.enabled() and
                 (not self.window.controller.agent.legacy.finished or self.window.controller.agent.legacy.stop)):
             unlock = False
-        if (self.window.controller.agent.experts.enabled() and
+        if ((self.window.controller.agent.experts.enabled()
+             or self.window.controller.agent.legacy.enabled(check_inline=False)) and
                 self.window.core.experts.has_calls(ctx)):
             unlock = False
         if self.window.controller.kernel.stack.waiting():

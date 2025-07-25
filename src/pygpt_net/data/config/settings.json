@@ -1836,7 +1836,22 @@
         "step": null,
         "advanced": false,
         "tab": "autonomous"
-    },
+    },    
+    "agent.idx": {
+        "section": "agent",
+        "type": "combo",
+        "use": "idx",
+        "slider": false,
+        "label": "settings.agent.idx",
+        "description": "settings.agent.idx.desc",
+        "value": "base",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "autonomous"
+    },   
     "agent.func_call.native": {
         "section": "agent",
         "type": "bool",
@@ -1848,6 +1863,21 @@
         "max": 0,
         "multiplier": 1,
         "step": 1,
+        "advanced": false,
+        "tab": "autonomous"
+    },
+    "agent.api_use_responses": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.api_use_responses",
+        "description": "settings.agent.api_use_responses.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
         "advanced": false,
         "tab": "autonomous"
     },
@@ -1894,21 +1924,36 @@
         "advanced": false,
         "tab": "experts"
     },
-    "agent.idx": {
+    "experts.api_use_responses": {
         "section": "agent",
-        "type": "combo",
-        "use": "idx",
+        "type": "bool",
         "slider": false,
-        "label": "settings.agent.idx",
-        "description": "settings.agent.idx.desc",
-        "value": "base",
+        "label": "settings.experts.api_use_responses",
+        "description": "settings.experts.api_use_responses.desc",
+        "value": true,
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
+        "secret": false,
         "advanced": false,
-        "tab": "autonomous"
-    },    
+        "tab": "experts"
+    }, 
+    "experts.internal.api_use_responses": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.experts.internal.api_use_responses",
+        "description": "settings.experts.internal.api_use_responses.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "experts"
+    }, 
     "agent.goal.notify": {
         "section": "agent",
         "type": "bool",

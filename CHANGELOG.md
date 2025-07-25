@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.69 (2025-07-25)
+
+- The Responses API and remote tools are now allowed in Agent (autonomous) and Expert modes. Default: disabled.
+- Added separate options in the configuration for enabling the Responses API in: Config -> Agents and Experts.
+- Improved expert and agents system prompt.
+
 ## 2.5.68 (2025-07-25)
 
 - Added a separate configuration to enable or disable native function calls in both agent and expert modes.

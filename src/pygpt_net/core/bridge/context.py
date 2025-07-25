@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import json
@@ -43,6 +43,9 @@ class BridgeContext:
         self.file_ids = kwargs.get("file_ids", [])
         self.reply_context = kwargs.get("reply_ctx", None)  # ReplyContext
         self.multimodal_ctx = kwargs.get("multimodal_ctx", MultimodalContext())  # AudioContext
+        self.is_expert_call = kwargs.get("is_expert_call", False)  # Expert call flag
+        self.force_sync = kwargs.get("force_sync", False)  # Force sync flag
+        self.request = kwargs.get("request", False)  # Use normal request instead of quick call
 
         # check types
         if self.ctx is not None and not isinstance(self.ctx, CtxItem):
@@ -77,6 +80,9 @@ class BridgeContext:
             "idx_mode": self.idx_mode,
             "attachments": self.attachments,
             "file_ids": self.file_ids,
+            "is_expert_call": self.is_expert_call,
+            "force_sync": self.force_sync,
+            "request": self.request,
         }
         if self.ctx is not None:
             data["ctx"] = self.ctx.to_dict(True)

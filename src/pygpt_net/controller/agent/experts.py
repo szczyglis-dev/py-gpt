@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 01:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any
@@ -49,17 +49,25 @@ class Experts:
         """Unlock experts"""
         self.is_stop = False
 
-    def enabled(self) -> bool:
+    def enabled(self, check_inline = True) -> bool:
         """
         Check if experts are enabled
 
+         :param check_inline: check inline mode
         :return: True if experts are enabled
         """
-        modes = [MODE_AGENT, MODE_EXPERT]
+        modes = [MODE_EXPERT]
         mode = self.window.core.config.get('mode')
-        if mode in modes or self.window.controller.plugins.is_type_enabled("expert"):
-            return True
-        return False
+        if not check_inline:
+            if mode in modes:
+                return True
+            else:
+                return False
+        else:
+            if mode in modes or self.window.controller.plugins.is_type_enabled("expert"):
+                return True
+            else:
+                return False
 
     def append_prompts(
             self,
@@ -82,7 +90,8 @@ class Experts:
                 sys_prompt = sys_prompt + "\n\n" + prev_prompt  # append previous prompt
 
         # expert or agent mode
-        if self.window.controller.agent.experts.enabled() and parent_id is None:  # master expert has special prompt
+        if ((self.enabled() or self.window.controller.agent.legacy.enabled(check_inline=False))
+                and parent_id is None):  # master expert has special prompt
             if self.window.controller.agent.legacy.enabled():  # if agent then leave agent prompt
                 sys_prompt += "\n\n" + self.window.core.experts.get_prompt()  # both, agent + experts
             else:
@@ -109,7 +118,7 @@ class Experts:
         num_calls = 0
 
         # extract expert mentions
-        if self.window.controller.agent.experts.enabled():
+        if self.enabled() or self.window.controller.agent.legacy.enabled(check_inline=False):
             # re-send to master
             if ctx.sub_reply:
                 self.window.core.ctx.update_item(ctx)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -30,11 +30,14 @@ class Summarizer:
         :param ctx: context item (CtxItem)
         :return: response text (generated summary)
         """
+        max_chars = 700
         model = self.window.core.models.from_defaults()
         system_prompt = self.window.core.prompt.get('ctx.auto_summary.system')
+        truncated_input = str(ctx.input)[:max_chars] + '...' if len(str(ctx.input)) > max_chars else str(ctx.input)
+        truncated_output = str(ctx.output)[:max_chars] + '...' if len(str(ctx.output)) > max_chars else str(ctx.output)
         text = (self.window.core.prompt.get('ctx.auto_summary.user').
-                replace("{input}", str(ctx.input)).
-                replace("{output}", str(ctx.output)))
+                replace("{input}", truncated_input).
+                replace("{output}", truncated_output))
 
         # custom model for auto summary
         if self.window.core.config.get('ctx.auto_summary.model') is not None \

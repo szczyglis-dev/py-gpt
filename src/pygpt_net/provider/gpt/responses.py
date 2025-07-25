@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 18:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import base64
@@ -18,10 +18,13 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_VISION,
     MODE_AUDIO,
+    MODE_RESEARCH,
+    MODE_AGENT,
+    MODE_EXPERT,
     OPENAI_DISABLE_TOOLS,
     OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
     OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
-    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH, MODE_RESEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -31,6 +34,15 @@ from pygpt_net.item.attachment import AttachmentItem
 
 
 class Responses:
+
+    # Responses API modes
+    RESPONSES_ALLOWED_MODES = [
+        MODE_CHAT,
+        MODE_RESEARCH,
+        MODE_AGENT,
+        MODE_EXPERT,
+    ]
+
     def __init__(self, window=None):
         """
         Responses API wrapper
@@ -42,6 +54,7 @@ class Responses:
         self.audio_prev_id = None
         self.audio_prev_expires_ts = None
         self.prev_response_id = None
+        self.instruction = None
 
     def send(
             self,
@@ -156,6 +169,9 @@ class Responses:
         if self.prev_response_id:
             response_kwargs['previous_response_id'] = self.prev_response_id
 
+        if system_prompt:
+            response_kwargs['instructions'] = system_prompt
+
         response = client.responses.create(
             input=messages,
             model=model.id,
@@ -220,8 +236,11 @@ class Responses:
 
         # append system prompt
         if allowed_system:
+            pass
+            '''
             if system_prompt is not None and system_prompt != "":
                 messages.append({"role": "developer", "content": system_prompt})
+            '''
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
@@ -420,3 +439,47 @@ class Responses:
                     self.window.core.gpt.container.download_files(ctx, files)
                 except Exception as e:
                     self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
+
+    def is_enabled(
+            self,
+            model: ModelItem,
+            mode: str,
+            parent_mode: str = None,
+            is_expert_call: bool = False
+    ) -> bool:
+        """
+        Check if responses API is allowed for the given model and mode
+
+        :param model:
+        :param mode:
+        :param parent_mode:
+        :param is_expert_call:
+        :return: True if responses API is allowed, False otherwise
+        """
+        allowed = False  # default is not to use responses API
+        if model is not None:
+            if model.is_gpt():
+                # check mode
+                if (mode in self.RESPONSES_ALLOWED_MODES
+                        and parent_mode in self.RESPONSES_ALLOWED_MODES
+                        and self.window.core.config.get('api_use_responses', False)):
+                    allowed = True  # use responses API for chat mode, only OpenAI models
+
+                    # agents
+                    if self.window.controller.agent.legacy.enabled():
+                        if not self.window.core.config.get('agent.api_use_responses', False):
+                            allowed = False
+
+                    # experts
+                    if self.window.controller.agent.experts.enabled():
+                        if not self.window.core.config.get('experts.api_use_responses', False):
+                            allowed = False
+
+                        # expert instance call
+                        if is_expert_call:
+                            if self.window.core.config.get('experts.internal.api_use_responses', False):
+                                allowed = True
+                            else:
+                                allowed = False
+        return allowed
+

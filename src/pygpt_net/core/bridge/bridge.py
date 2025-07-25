@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.25 22:00:00                  #
 # ================================================== #
 
 import time
@@ -60,6 +60,7 @@ class Bridge:
 
         allowed_model_change = [MODE_VISION]
         is_virtual = False
+        force_sync = False
 
         self.window.stateChanged.emit(self.window.STATE_BUSY)  # set busy
 
@@ -140,7 +141,7 @@ class Bridge:
         self.worker.mode = mode
 
         # some modes must be called synchronously
-        if mode in self.sync_modes:
+        if mode in self.sync_modes or force_sync:
             self.window.core.debug.info("[bridge] Starting worker (sync)...")
             self.worker.run()
             return True
