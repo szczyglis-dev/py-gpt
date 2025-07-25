@@ -4,7 +4,7 @@ Models
 Built-in models
 ---------------
 
-PyGPT has built-in support for models (as of 2025-07-14):
+PyGPT has built-in support for models (as of 2025-07-26):
 
 - ``bielik-11b-v2.3-instruct:Q4_K_M`` (Ollama)
 - ``chatgpt-4o-latest`` (OpenAI)
@@ -63,6 +63,7 @@ PyGPT has built-in support for models (as of 2025-07-14):
 - ``llama3.1:70b`` (Ollama)
 - ``mistral`` (Ollama)
 - ``mistral-large`` (Ollama)
+- ``mistral-small3.1`` (Ollama)
 - ``o1`` (OpenAI)
 - ``o1-mini`` (OpenAI)
 - ``o1-pro`` (OpenAI)

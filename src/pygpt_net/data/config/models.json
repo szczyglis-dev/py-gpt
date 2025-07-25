@@ -2199,6 +2199,36 @@
             "provider": "ollama",
             "tool_calls": false
         },
+        "mistral-small3.1:latest": {
+            "id": "mistral-small3.1:latest",
+            "name": "mistral-small3.1:latest",
+            "mode": [
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "mistral-small3.1:latest",
+                        "type": "str"
+                    }
+                ],
+                "env": []
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false,
+            "input": ["text", "image"],
+            "output": ["text"],
+            "extra": {},
+            "imported": false,
+            "provider": "ollama",
+            "tool_calls": false
+        },
         "o1": {
             "id": "o1",
             "name": "o1",

@@ -679,6 +679,11 @@ class Patch:
                                 model.mode.append("expert")
                 updated = True
 
+            # < 2.5.70 <--- add mistral-small3.1
+            if old < parse_version("2.5.70"):
+                print("Migrating models from < 2.5.70...")
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
