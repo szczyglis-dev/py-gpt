@@ -136,7 +136,7 @@ class Gpt:
         elif mode in [
             MODE_CHAT,
             MODE_AUDIO,
-            MODE_RESEARCH
+            MODE_RESEARCH,
         ]:
             # responses API
             if use_responses_api:
