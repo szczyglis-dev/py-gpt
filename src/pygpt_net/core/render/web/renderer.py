@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 import json
@@ -252,6 +252,8 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
         if self.window.controller.agent.legacy.enabled():
             if self.pids[pid].item is not None:
                 self.append_context_item(meta, self.pids[pid].item)
@@ -1357,6 +1359,8 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
         if ctx.input_name is not None and ctx.input_name != "":
             self.pids[pid].name_user = ctx.input_name
         if ctx.output_name is not None and ctx.output_name != "":

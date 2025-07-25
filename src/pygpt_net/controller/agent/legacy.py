@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -319,13 +319,13 @@ class Legacy:
         is_cmd = False
         my_commands = []
         for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
+            if "cmd" in item and item["cmd"] in self.allowed_cmds:
                 my_commands.append(item)
                 is_cmd = True
 
         if cmds_raw and not is_cmd:
             for item in cmds_raw:
-                if item["cmd"] in self.allowed_cmds:
+                if "cmd" in item and item["cmd"] in self.allowed_cmds:
                     my_commands.append(item)
                     is_cmd = True
 
@@ -334,7 +334,7 @@ class Legacy:
 
         for item in my_commands:
             try:
-                if item["cmd"] == "goal_update":
+                if "cmd" in item and item["cmd"] == "goal_update":
                     if item["params"]["status"] == "finished":
                         self.on_stop(auto=True)
                         self.window.update_status(trans('status.finished'))  # show info

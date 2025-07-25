@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 import base64
@@ -33,6 +33,7 @@ from .image import Image
 from .responses import Responses
 from .store import Store
 from .summarizer import Summarizer
+from .tools import Tools
 from .vision import Vision
 from pygpt_net.item.model import ModelItem
 
@@ -61,6 +62,7 @@ class Gpt:
         self.responses = Responses(window)
         self.store = Store(window)
         self.summarizer = Summarizer(window)
+        self.tools = Tools(window)
         self.vision = Vision(window)
 
     def get_client(
@@ -291,11 +293,14 @@ class Gpt:
         :param extra: Extra arguments
         :return: response content
         """
+        ctx = context.ctx
         mode = context.mode
         prompt = context.prompt
         system_prompt = context.system_prompt
         max_tokens = context.max_tokens
         temperature = context.temperature
+        functions = context.external_functions
+        history = context.history
         model = context.model
         if model is None:
             model = self.window.core.models.from_defaults()
@@ -303,10 +308,26 @@ class Gpt:
         client = self.get_client(mode, model)
         messages = []
         messages.append({"role": "system", "content": system_prompt})
+
+        if history:
+            for item in history:
+                messages.append({
+                    "role": "user",
+                    "content": str(item.final_input)
+                })
+                messages.append({
+                    "role": "assistant",
+                    "content": str(item.final_output)
+                })
         messages.append({"role": "user", "content": prompt})
         additional_kwargs = {}
         if max_tokens > 0:
             additional_kwargs["max_tokens"] = max_tokens
+
+        # tools / functions
+        tools = self.window.core.gpt.tools.prepare(model, functions)
+        if len(tools) > 0:
+            additional_kwargs["tools"] = tools
         
         try:
             response = client.chat.completions.create(
@@ -318,6 +339,11 @@ class Gpt:
                 presence_penalty=0.0,
                 **additional_kwargs,
             )
+            # extract tool calls
+            if ctx and response.choices[0].message.tool_calls:
+                ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                    response.choices[0].message.tool_calls,
+                )
             return response.choices[0].message.content
         except Exception as e:
             self.window.core.debug.log(e)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -28,6 +28,7 @@ class ReplyContext:
         self.prev_ctx = None
         self.parent_id = None
         self.input = ""
+        self.internal = False
         self.cmds = []
 
     def to_dict(self) -> Dict[str, Any]:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 import json
@@ -53,6 +53,8 @@ class Experts:
         ]
         self.allowed_cmds = ["expert_call"]
         self.worker = None
+        self.last_expert_id = None  # last expert id used in call
+        self.master_ctx = None  # master meta for expert calls
 
     def get_mode(self) -> str:
         """
@@ -269,12 +271,13 @@ class Experts:
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
         reply_ctx.from_dict(ctx.to_dict())
-        expert_id = ""
-        if ctx.meta:
-            expert_id = ctx.meta.preset
+        expert_id = self.last_expert_id
+        expert_name = ""
+        if expert_id:
+            expert_name = self.get_expert_name_by_id(expert_id)
 
         # reply ctx has no meta here!!!!
-        reply_ctx.input_name = expert_id
+        reply_ctx.input_name = expert_name
         reply_ctx.output_name = ""
         reply_ctx.sub_call = True  # this flag is not copied in to_dict
 
@@ -338,6 +341,8 @@ class Experts:
         self.worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
 
         # start worker in thread pool
+        self.last_expert_id = expert_id  # store last expert id
+        self.master_ctx = master_ctx
         expert_name = self.get_expert_name_by_id(expert_id)
         event = KernelEvent(KernelEvent.STATE_BUSY, {
             "msg": trans("expert.wait.status") + " ({})".format(expert_name),
@@ -382,16 +387,38 @@ class Experts:
         """
         if self.stopped():
             return
-        self.window.controller.chat.command.handle(ctx)  # handle cmds
-        self.window.controller.kernel.stack.handle()  # handle command queue
 
-        ctx.from_previous()  # append previous result again before save
-        self.window.core.ctx.update_item(ctx)  # update ctx in DB
+        # extract native tool calls if provided
+        if ctx.tool_calls:
+            # if not internal commands in a text body then append tool calls as commands (prevent double commands)
+            if not self.window.core.command.has_cmds(ctx.output):
+                self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["tool_calls"] = ctx.tool_calls
 
-        # if commands reply after bridge call, then stop (already handled in sync dispatcher)
+        self.window.controller.chat.command.handle(ctx, internal=True)  # handle cmds sync
         if ctx.reply:
+            self.window.update_status("")  # clear status
+
+            # prepare data to send as reply
+            tool_data = json.dumps(ctx.results)
+            # if "tool_output" in ctx.extra and ctx.extra["tool_output"]:
+               # tool_data = str(ctx.extra["tool_output"])
+
+            self.window.core.ctx.update_item(ctx)  # update context in db
+            self.window.update_status('...')
+            ctx.output = "<tool>" + str(ctx.cmds) + "</tool>"
+            self.window.core.ctx.update_item(ctx)  # update ctx in DB
             self.handle_finished()
+            self.call(
+                master_ctx=self.master_ctx,
+                expert_id=self.last_expert_id,
+                query=tool_data,
+            )
             return
+
+        # ----- no cmd reply ------ #
 
         # make copy of ctx for reply, and change input name to expert name
         reply_ctx = CtxItem()
@@ -722,7 +749,16 @@ class ExpertWorker(QObject, QRunnable):
                     verbose=verbose,
                 )
                 ctx.reply = False  # reset reply flag, we handle reply here
+
+                if not result:  # abort if bridge call failed
+                    self.signals.finished.emit()
+                    return
             else:
+                # native func call
+                if self.window.core.command.is_native_enabled():
+                    functions = self.window.core.command.get_functions(master_ctx.id)
+                    # without expert_call here
+
                 # call bridge
                 bridge_context = BridgeContext(
                     ctx=ctx,
@@ -754,11 +790,10 @@ class ExpertWorker(QObject, QRunnable):
                 # result: <tool>{"cmd": "read_file", "params": {"path": ["xxxx.txt"]}}</tool>
                 # ctx:
                 # input: please read the file xxx.txt
-                # output: <tool>cmd read</tool>                
-
-            if not result:  # abort if bridge call failed
-                self.signals.finished.emit()
-                return
+                # output: <tool>cmd read</tool>
+                if not result and not ctx.tool_calls:  # abort if bridge call failed
+                    self.signals.finished.emit()
+                    return
 
             # handle output
             ctx.current = False  # reset current state
@@ -810,7 +845,7 @@ class ExpertWorker(QObject, QRunnable):
             # send to reply()
             # input: something (no tool results here)
             # output: ... (call the master)
-            self.signals.response.emit(reply_ctx, str(expert_id))
+            self.signals.response.emit(reply_ctx, str(expert_id))  # emit response signal
         except Exception as e:
             self.window.core.debug.log(e)
             self.signals.error.emit(str(e))

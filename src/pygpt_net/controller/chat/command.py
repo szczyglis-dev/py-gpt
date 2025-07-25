@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 import copy
@@ -30,11 +30,12 @@ class Command:
         """
         self.window = window
 
-    def handle(self, ctx: CtxItem):
+    def handle(self, ctx: CtxItem, internal: bool = False) -> Any:
         """
         Handle commands and expert mentions
 
         :param ctx: CtxItem
+        :param internal: Internal flag, if True then skip some checks
         """
         if self.window.controller.kernel.stopped():
             return
@@ -80,6 +81,7 @@ class Command:
             reply = ReplyContext()
             reply.ctx = ctx
             reply.cmds = cmds
+            reply.internal = internal
             if self.window.core.config.get('cmd'):
                 reply.type = ReplyContext.CMD_EXECUTE
             else:
@@ -95,11 +97,25 @@ class Command:
             context.ctx = ctx
             context.reply_context = reply
 
-            event = KernelEvent(KernelEvent.TOOL_CALL, {
-                'context': context,
-                'extra': {},
-            })
-            self.window.dispatch(event)
+            if internal:
+                ctx.agent_call = True
+                if reply.type == ReplyContext.CMD_EXECUTE:
+                    self.window.controller.plugins.apply_cmds(
+                        reply.ctx,
+                        reply.cmds,
+                    )
+                elif reply.type == ReplyContext.CMD_EXECUTE_INLINE:
+                    self.window.controller.plugins.apply_cmds_inline(
+                        reply.ctx,
+                        reply.cmds,
+                    )
+                return ctx.results
+            else:
+                event = KernelEvent(KernelEvent.TOOL_CALL, {
+                    'context': context,
+                    'extra': {},
+                })
+                self.window.dispatch(event)
 
     def log(self, data: Any):
         """

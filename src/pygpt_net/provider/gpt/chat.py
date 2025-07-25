@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2025.07.25 06:00:00                  #
 # ================================================== #
 
 import json
@@ -94,31 +94,7 @@ class Chat:
         response_kwargs = {}
 
         # tools / functions
-        tools = []
-        if functions is not None and isinstance(functions, list):
-            for function in functions:
-                if str(function['name']).strip() == '' or function['name'] is None:
-                    continue
-                params = {}
-                if function['params'] is not None and function['params'] != "":
-                    params = json.loads(function['params'])  # unpack JSON from string
-
-                    # Google API fix:
-                    if model.provider == "google":
-                        if "properties" in params:
-                            for k, v in params["properties"].items():
-                                if "type" in v and v["type"] != "string":
-                                    if "enum" in v:
-                                        del v["enum"]
-
-                tools.append({
-                    "type": "function",
-                    "function": {
-                        "name": function['name'],
-                        "parameters": params,
-                        "description": function['desc'],
-                    }
-                })
+        tools = self.window.core.gpt.tools.prepare(model, functions)
 
         # fix: o1 compatibility
         if (model.id is not None
@@ -135,11 +111,9 @@ class Chat:
         if model.extra and "reasoning_effort" in model.extra:
             response_kwargs['reasoning_effort'] = model.extra["reasoning_effort"]
 
-        # tool calls are not supported for o1-mini and o1-preview
-        if (model.id is not None
-                and model.id not in ["o1-mini", "o1-preview"]):
-            if len(tools) > 0:
-                response_kwargs['tools'] = tools
+        # append tools
+        if len(tools) > 0:
+            response_kwargs['tools'] = tools
 
         if max_tokens > 0:
             if not model.id.startswith("o1") and not model.id.startswith("o3"):
