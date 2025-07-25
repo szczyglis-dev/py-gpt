@@ -2110,6 +2110,9 @@ class Patch:
                     data["experts.api_use_responses"] = False
                 if "experts.internal.api_use_responses" not in data:
                     data["experts.internal.api_use_responses"] = False
+                if 'cmd_web' in data['plugins'] \
+                        and 'cmd.web_search' in data['plugins']['cmd_web']:
+                    del data['plugins']['cmd_web']['cmd.web_search']
                 updated = True
 
         # update file

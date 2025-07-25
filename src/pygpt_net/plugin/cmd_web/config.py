@@ -224,7 +224,8 @@ class Config(BaseConfig):
             instruction="search the Web for list of URLs, prepare search query itself, list of "
                         "URLs will be returned, 10 links per page max. After receiving the list of URLs, "
                         "choose the best matched URLs and use the `web_url_open` command to read the content. "
-                        "Always open a max of {max_urls} URLs at a time.",
+                        "If a page does not respond, or another error occurs, automatically try with the next ones "
+                        "until successful. Always open a max of {max_urls} URLs at a time.",
             params=[
                 {
                     "name": "query",
