@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 04:00:00                  #
+# Updated Date: 2025.07.26 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -21,6 +21,9 @@ from .worker import Worker
 
 
 class Plugin(BasePlugin):
+
+    SLEEP_TIME = 1000  # 1 second
+
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_mouse_control"
@@ -138,13 +141,8 @@ class Plugin(BasePlugin):
         :param ctx: context (CtxItem)
         """
         if self.get_option_value("allow_screenshot"):
-            self.window.controller.attachment.clear_silent()
-            path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
-                                                                     silent=True)  # attach screenshot
-
-            img_path = self.window.core.filesystem.make_local(path)
-            ctx.images.append(img_path)
-            # ctx.images_before.append(path)
+            QTimer.singleShot(self.SLEEP_TIME, lambda: self.delayed_screenshot(ctx))
+            return
 
         context = BridgeContext()
         context.ctx = ctx
@@ -153,6 +151,26 @@ class Plugin(BasePlugin):
             'extra': {},
         })
         self.window.dispatch(event)
+
+    def delayed_screenshot(self, ctx: CtxItem):
+        """
+        Delayed screenshot handler
+
+        :param ctx: context (CtxItem)
+        """
+        self.window.controller.attachment.clear_silent()
+        path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
+                                                                 silent=True)  # attach screenshot
+        img_path = self.window.core.filesystem.make_local(path)
+        ctx.images.append(img_path)
+        context = BridgeContext()
+        context.ctx = ctx
+        event = KernelEvent(KernelEvent.REPLY_ADD, {
+            'context': context,
+            'extra': {},
+        })
+        self.window.dispatch(event)
+
 
     def on_system_prompt(self, prompt: str) -> str:
         """
