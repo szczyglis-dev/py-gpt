@@ -640,6 +640,12 @@ class Command:
                     if not self.window.core.models.is_tool_call_allowed(mode, model_data):
                         return False
 
+            # agents and experts
+            if self.window.controller.agent.legacy.enabled():
+                return self.window.core.config.get('agent.func_call.native', False)
+            if self.window.controller.agent.experts.enabled():
+                return self.window.core.config.get('experts.func_call.native', False)
+
         # otherwise check config
         return self.window.core.config.get('func_call.native', False)
 

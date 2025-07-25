@@ -1837,6 +1837,20 @@
         "advanced": false,
         "tab": "autonomous"
     },
+    "agent.func_call.native": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.func_call.native",
+        "description": "settings.agent.func_call.native.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "autonomous"
+    },
     "experts.mode": {
         "section": "agent",
         "type": "combo",
@@ -1863,6 +1877,20 @@
         "max": null,
         "multiplier": null,
         "step": null,
+        "advanced": false,
+        "tab": "experts"
+    },
+    "experts.func_call.native": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.experts.func_call.native",
+        "description": "settings.experts.func_call.native.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
         "advanced": false,
         "tab": "experts"
     },

@@ -2086,6 +2086,15 @@ class Patch:
                     'prompt.expert')
                 updated = True
 
+            # < 2.5.68
+            if old < parse_version("2.5.68"):
+                print("Migrating config from < 2.5.68..")
+                if "agent.func_call.native" not in data:
+                    data["agent.func_call.native"] = False
+                if "experts.func_call.native" not in data:
+                    data["experts.func_call.native"] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

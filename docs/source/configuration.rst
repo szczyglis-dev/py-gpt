@@ -299,11 +299,15 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in both Agent and Expert modes.
 
+* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Autonomous mode only, default: False
+
 **Experts**
 
 * ``Sub-mode for experts``: Sub-mode to use in Experts mode (chat, llama_index, etc.). Default: chat.
 
 * ``Use planner agent for expert reasoning``: If enabled, the Planner agent will be used for expert calls and expert reasoning. Default: False
+
+* ``Use native API function calls``: Use API function calls to run commands from plugins instead of using command prompts - Experts only, default: False
 
 **Accessibility**
 
