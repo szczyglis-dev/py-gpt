@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -2113,6 +2113,28 @@ class Patch:
                 if 'cmd_web' in data['plugins'] \
                         and 'cmd.web_search' in data['plugins']['cmd_web']:
                     del data['plugins']['cmd_web']['cmd.web_search']
+                updated = True
+
+            # < 2.5.71
+            if old < parse_version("2.5.71"):
+                print("Migrating config from < 2.5.71.")
+                if "remote_tools.computer_use.env" not in data:
+                    data["remote_tools.computer_use.env"] = "linux"
+                if "remote_tools.mcp" not in data:
+                    data["remote_tools.mcp"] = False
+                if "remote_tools.mcp.args" not in data:
+                    data["remote_tools.mcp.args"] = self.window.core.config.get_base(
+                    'remote_tools.mcp.args')
+                if "remote_tools.file_search" not in data:
+                    data["remote_tools.file_search"] = False
+                if "remote_tools.file_search.args" not in data:
+                    data["remote_tools.file_search.args"] = ""
+                if 'cmd_mouse_control' in data['plugins'] \
+                        and 'cmd.mouse_move' in data['plugins']['cmd_mouse_control']:
+                    del data['plugins']['cmd_mouse_control']['cmd.mouse_move']
+                if 'cmd_mouse_control' in data['plugins'] \
+                        and 'cmd.mouse_scroll' in data['plugins']['cmd_mouse_control']:
+                    del data['plugins']['cmd_mouse_control']['cmd.mouse_scroll']
                 updated = True
 
         # update file

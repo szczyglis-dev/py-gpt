@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -86,6 +86,23 @@ class UI:
         """Init toolbox"""
         self.window.controller.mode.init_list()
         self.window.controller.model.init_list()
+        self.init_computer_env()
+
+    def init_computer_env(self):
+        """Init computer environment"""
+        env = self.window.core.config.get("remote_tools.computer_use.env", "linux")
+        index = self.window.ui.nodes["computer_env"].findData(env)
+        if index != -1:
+            self.window.ui.nodes["computer_env"].setCurrentIndex(index)
+
+    def on_computer_env_changed(self, env: str):
+        """
+        Handle computer environment change
+
+        :param env: selected environment
+        """
+        self.window.core.config.set("remote_tools.computer_use.env", env)
+        self.window.core.config.save()
 
     def update_toolbox(self):
         """Update toolbox"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import json
@@ -29,6 +29,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.provider.core.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
@@ -197,6 +198,7 @@ class JsonFileProvider(BaseProvider):
             MODE_EXPERT: item.expert,
             MODE_AUDIO: item.audio,
             MODE_RESEARCH: item.research,
+            MODE_COMPUTER: item.computer,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
@@ -240,6 +242,8 @@ class JsonFileProvider(BaseProvider):
             item.audio = data[MODE_AUDIO]
         if MODE_RESEARCH in data:
             item.research = data[MODE_RESEARCH]
+        if MODE_COMPUTER in data:
+            item.computer = data[MODE_COMPUTER]
 
         if 'uuid' in data:
             item.uuid = data['uuid']

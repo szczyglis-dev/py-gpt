@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import base64
+import json
 from typing import Optional
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
@@ -43,6 +44,7 @@ class StreamWorker(QObject, QRunnable):
         img_path = self.window.core.image.gen_unique_path(self.ctx)
         is_image = False
         is_code = False
+        force_func_call = False
 
         data = {
             "meta": self.ctx.meta,
@@ -125,7 +127,50 @@ class StreamWorker(QObject, QRunnable):
 
                     # OpenAI Responses API
                     elif chunk_type == "api_chat_responses":
-                        if etype == "response.output_text.delta":
+                        if etype == "response.completed":
+                            # MCP tools
+                            for item in chunk.response.output:
+                                # MCP: list tools
+                                if item.type == "mcp_list_tools":
+                                    tools = item.tools
+                                    self.window.core.gpt.responses.mcp_tools = tools  # store MCP tools for later use
+                                # MCP: tool call
+                                elif item.type == "mcp_call":
+                                    call = {
+                                        "id": item.id,
+                                        "type": "mcp_call",
+                                        "approval_request_id": item.approval_request_id,
+                                        "arguments": item.arguments,
+                                        "error": item.error,
+                                        "name": item.name,
+                                        "output": item.output,
+                                        "server_label": item.server_label,
+                                    }
+                                    tool_calls.append({
+                                        "id": item.id,
+                                        "call_id": "",
+                                        "type": "function",
+                                        "function": {
+                                            "name": item.name,
+                                            "arguments": item.arguments
+                                        }
+                                    })
+                                    self.ctx.extra["mcp_call"] = call
+                                    self.window.core.ctx.update_item(self.ctx)
+                                # MCP: approval request
+                                elif item.type == "mcp_approval_request":
+                                    call = {
+                                        "id": item.id,
+                                        "type": "mcp_call",
+                                        "arguments": item.arguments,
+                                        "name": item.name,
+                                        "server_label": item.server_label,
+                                    }
+                                    self.ctx.extra["mcp_approval_request"] = call
+                                    self.window.core.ctx.update_item(self.ctx)
+
+                        # text chunk
+                        elif etype == "response.output_text.delta":
                             response = chunk.delta
 
                         # ---------- function_call ----------
@@ -164,6 +209,16 @@ class StreamWorker(QObject, QRunnable):
                                     "container_id": container_id,
                                     "file_id": file_id,
                                 })
+
+                        # ---------- computer use ----------
+                        elif etype == "response.reasoning_summary_text.delta":
+                            response = chunk.delta
+
+                        elif etype == "response.output_item.done":
+                           tool_calls, has_calls = self.window.core.gpt.computer.handle_stream_chunk(chunk, tool_calls)
+                           if has_calls:
+                               force_func_call = True  # force function call if computer use found
+
 
                         # ---------- code interpreter ----------
                         elif etype == "response.code_interpreter_call_code.delta":
@@ -260,6 +315,7 @@ class StreamWorker(QObject, QRunnable):
 
                 # unpack and store tool calls
                 if tool_calls:
+                    self.ctx.force_call = force_func_call
                     self.window.core.debug.info("[chat] Tool calls found, unpacking...")
                     self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls)
 

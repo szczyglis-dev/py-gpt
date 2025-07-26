@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 18:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -19,13 +19,16 @@ from pygpt_net.core.types import (
     MODE_IMAGE,
     MODE_VISION,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.item.model import ModelItem
 
 from .audio import Audio
 from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
+from .computer import Computer
 from .container import Container
 from .image import Image
 from .responses import Responses
@@ -33,7 +36,6 @@ from .store import Store
 from .summarizer import Summarizer
 from .tools import Tools
 from .vision import Vision
-from pygpt_net.item.model import ModelItem
 
 
 class Gpt:
@@ -50,6 +52,7 @@ class Gpt:
         self.chat = Chat(window)
         self.completion = Completion(window)
         self.container = Container(window)
+        self.computer = Computer(window)
         self.image = Image(window)
         self.responses = Responses(window)
         self.store = Store(window)
@@ -125,6 +128,7 @@ class Gpt:
             MODE_CHAT,
             MODE_AUDIO,
             MODE_RESEARCH,
+            MODE_COMPUTER,
         ]:
             # responses API
             if use_responses_api:

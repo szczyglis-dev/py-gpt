@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import json
@@ -32,6 +32,7 @@ class PresetItem:
         self.expert = False
         self.audio = False
         self.research = False
+        self.computer = False
         self.temperature = 1.0
         self.filename = None
         self.model = None
@@ -67,6 +68,7 @@ class PresetItem:
             "expert": self.expert,
             "audio": self.audio,
             "research": self.research,
+            "computer": self.computer,
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
@@ -113,6 +115,8 @@ class PresetItem:
             self.audio = data["audio"]
         if "research" in data:
             self.research = data["research"]
+        if "computer" in data:
+            self.computer = data["computer"]
         if "temperature" in data:
             self.temperature = data["temperature"]
         if "filename" in data:

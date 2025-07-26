@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 00:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -38,7 +38,9 @@ class Plugin(BasePlugin):
             "mouse_scroll",
             "get_screenshot",
             "keyboard_key",
+            "keyboard_keys",
             "keyboard_type",
+            "wait",
         ]
         self.use_locale = True
         self.worker = None
@@ -127,20 +129,26 @@ class Plugin(BasePlugin):
         :param extra_data: extra data
         """
         # dispatch response (reply) - collect all responses and make screenshot only once at the end
+        with_screenshot = True
         for response in responses:
+            if ("result" in response
+                    and "no_screenshot" in response["result"]
+                    and response["result"]["no_screenshot"]):
+                with_screenshot = False
             if ctx is not None:
                 ctx.results.append(response)
                 ctx.reply = True
-        self.handle_delayed(ctx)
+        self.handle_delayed(ctx, with_screenshot)
 
-    @Slot(object)
-    def handle_delayed(self, ctx: CtxItem):
+    @Slot(object, bool)
+    def handle_delayed(self, ctx: CtxItem, with_screenshot: bool = True):
         """
         Handle delayed screenshot
 
         :param ctx: context (CtxItem)
+        :param with_screenshot: if True then take screenshot, otherwise just dispatch context
         """
-        if self.get_option_value("allow_screenshot"):
+        if self.get_option_value("allow_screenshot") and with_screenshot:
             QTimer.singleShot(self.SLEEP_TIME, lambda: self.delayed_screenshot(ctx))
             return
 

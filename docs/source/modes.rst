@@ -405,3 +405,28 @@ You can also ask for a list of active experts at any time:
 .. code-block:: ini
 
    Give me a list of active experts.
+
+
+Computer Use
+-------------
+
+**2.5.71**: Currently in beta.
+
+This mode allows for autonomous computer control.
+
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. The ``Computer use`` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the ``Mouse and Keyboard`` plugin.
+
+**Example of use:**
+
+.. code-block:: ini
+
+   Click on the Start Menu to open it, search for the Notepad in the list, and run it.
+
+You can change the environment in which the navigation mode operates by using the list at the bottom of the toolbox.
+
+**Available Environments:**
+
+* Browser
+* Linux
+* Windows
+* Mac

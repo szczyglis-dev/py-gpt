@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.03.02 19:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 MODE_AUDIO = "audio"
@@ -21,3 +21,4 @@ MODE_AGENT = "agent"
 MODE_AGENT_LLAMA = "agent_llama"
 MODE_EXPERT = "expert"
 MODE_RESEARCH = "research"
+MODE_COMPUTER = "computer"

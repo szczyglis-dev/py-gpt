@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 13:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any
@@ -365,13 +365,17 @@ class Plugins:
     def apply_cmds(
             self,
             ctx: CtxItem,
-            cmds: List[Dict[str, Any]]
+            cmds: List[Dict[str, Any]],
+            all: bool = False,
+            execute_only: bool = False
     ):
         """
         Apply commands
 
         :param ctx: CtxItem
         :param cmds: commands list
+        :param all: True to apply all commands, False to apply only enabled commands
+        :param execute_only: True to execute commands only, without any additional event
         """
         commands = self.window.core.command.from_commands(cmds)
         if len(commands) == 0:
@@ -394,8 +398,11 @@ class Plugins:
 
         ctx.results = []
         event.ctx = ctx
-        self.window.controller.command.dispatch(event)
-
+        self.window.controller.command.dispatch(
+            event,
+            all=all,
+            execute_only=execute_only,
+        )
         # reset status if nothing executed
         current = self.window.ui.get_status()
         if current == trans('status.cmd.wait'):

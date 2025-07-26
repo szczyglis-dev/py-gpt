@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import os
@@ -18,14 +18,16 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePo
 from pygpt_net.ui.widget.textarea.name import NameInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
+from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
 from .agent import Agent
 from .agent_llama import AgentLlama
+from .computer_env import ComputerEnv
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
-from ...widget.option.toggle_label import ToggleLabel
+
 
 
 class Footer:
@@ -38,6 +40,7 @@ class Footer:
         self.window = window
         self.agent = Agent(window)
         self.agent_llama = AgentLlama(window)
+        self.env = ComputerEnv(window)
         self.image = Image(window)
         self.indexes = Indexes(window)
         self.vision = Vision(window)
@@ -73,6 +76,7 @@ class Footer:
         rows.addWidget(self.image.setup())
         # rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())
+        rows.addWidget(self.env.setup())
         rows.addWidget(self.window.ui.nodes['voice.control.btn'])
         rows.setContentsMargins(2, 0, 0, 0)
 

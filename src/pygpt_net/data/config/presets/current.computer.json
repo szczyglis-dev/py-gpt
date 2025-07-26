@@ -1,0 +1,35 @@
+{
+    "uuid": "fd5874b9-8a8b-4a7e-9005-95837031cbb6",
+    "name": "*",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "langchain": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "expert": false,
+    "audio": false,
+    "computer": true,
+    "temperature": 1.0,
+    "filename": "current.computer",
+    "model": "computer_use_preview",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": null,
+    "agent_provider": null,
+    "assistant_id": "",
+    "enabled": true,
+    "__meta__": {
+        "version": "2.4.34",
+        "app.version": "2.4.34",
+        "updated_at": "2024-11-26T22:06:18"
+    }
+}

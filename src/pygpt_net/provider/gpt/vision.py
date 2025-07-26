@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import base64
@@ -247,6 +247,26 @@ class Vision:
                         attachment.consumed = True
 
         return content
+
+    def get_attachment(
+            self,
+            attachments: Optional[Dict[str, AttachmentItem]] = None,
+    ) -> str:
+        """
+        Get attachment as base64 encoded image
+
+        :param attachments: attachments dict
+        :return: base64 encoded image or empty string if no image found
+        """
+        if attachments is not None and len(attachments) > 0:
+            for id in attachments:
+                attachment = attachments[id]
+                if os.path.exists(attachment.path):
+                    # check if it's an image
+                    if self.is_image(attachment.path):
+                        base64_image = self.encode_image(attachment.path)
+                        attachment.consumed = True
+                        return base64_image
 
     def extract_urls(self, text: str) -> List[str]:
         """

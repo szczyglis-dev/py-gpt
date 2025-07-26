@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import json
@@ -32,12 +32,18 @@ class Command:
             Event.CMD_INLINE,
         ]
 
-    def dispatch(self, event: Event, all: bool = False):
+    def dispatch(
+            self,
+            event: Event,
+            all: bool = False,
+            execute_only: bool = False
+    ):
         """
         Dispatch cmd execute event (command execution)
 
         :param event: event object
         :param all: True to dispatch to all plugins
+        :param execute_only: True to dispatch only to plugins with execute event
         """
         self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
         if self.window.core.debug.enabled():
@@ -48,7 +54,16 @@ class Command:
             self.window.controller.kernel.replies.clear()
 
         for id in self.window.core.plugins.get_ids():
-            if self.window.controller.plugins.is_enabled(id) or all:
+            force = False
+            if all:
+                if execute_only:
+                    if event.name == Event.CMD_EXECUTE:
+                        force = True
+                    else:
+                        force = False
+                else:
+                    force = True
+            if self.window.controller.plugins.is_enabled(id) or force:
                 if event.stop or (event.name == Event.CMD_EXECUTE and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here

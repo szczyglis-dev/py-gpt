@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -56,7 +56,7 @@ class Command:
                     cmds.remove(cmd)
                     continue
                 cmd_id = str(cmd["cmd"])
-                if not self.window.core.command.is_enabled(cmd_id):
+                if not self.window.core.command.is_enabled(cmd_id) and not ctx.force_call:
                     self.log("[cmd] Command not allowed: " + cmd_id)
                     cmds.remove(cmd)  # remove command from execution list
 
@@ -70,6 +70,7 @@ class Command:
                 )
 
             if len(cmds) == 0:
+                self.window.controller.chat.common.unlock_input()  # unlock input
                 return  # abort if no commands
 
             ctx.cmds = cmds  # append commands to ctx
@@ -111,11 +112,21 @@ class Command:
                     )
                 return ctx.results
             else:
-                event = KernelEvent(KernelEvent.TOOL_CALL, {
-                    'context': context,
-                    'extra': {},
-                })
-                self.window.dispatch(event)
+                # force call
+                if ctx.force_call:
+                    #ctx.agent_call = True
+                    self.window.controller.plugins.apply_cmds(
+                        reply.ctx,
+                        reply.cmds,
+                        all=True,
+                        execute_only=True,
+                    )
+                else:
+                    event = KernelEvent(KernelEvent.TOOL_CALL, {
+                        'context': context,
+                        'extra': {},
+                    })
+                    self.window.dispatch(event)
 
     def log(self, data: Any):
         """

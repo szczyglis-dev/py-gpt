@@ -29,7 +29,7 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 11 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Agents and Autonomous Mode.
+* 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer Use, Agents and Autonomous Mode.
 * Supports multiple models: ``o1``, ``o3``, ``GPT-4o``, ``GPT-4``, ``GPT-3.5``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Llama 3``, ``Mistral``, ``Google Gemini``, ``xAI Grok``, ``Anthropic Claude``, ``DeepSeek V3/R1``, ``Perplexity Sonar``, ``Bielik``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 16:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -682,6 +682,11 @@ class Patch:
             # < 2.5.70 <--- add mistral-small3.1
             if old < parse_version("2.5.70"):
                 print("Migrating models from < 2.5.70...")
+                updated = True
+
+            # < 2.5.71 <--- computer-use-preview
+            if old < parse_version("2.5.71"):
+                print("Migrating models from < 2.5.71...")
                 updated = True
 
         # update file

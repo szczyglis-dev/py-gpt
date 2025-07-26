@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 04:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import time
@@ -42,7 +42,6 @@ class Worker(BaseWorker):
             response = None
             try:
                 if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
-
                     # get mouse position
                     if item["cmd"] == "get_mouse_position":
                         response = self.cmd_mouse_get_pos(item)
@@ -72,10 +71,19 @@ class Worker(BaseWorker):
                         if self.plugin.get_option_value("allow_keyboard"):
                             response = self.cmd_keyboard_key(item)
 
+                    # keyboard key
+                    elif item["cmd"] == "keyboard_keys":
+                        if self.plugin.get_option_value("allow_keyboard"):
+                            response = self.cmd_keyboard_keys(item)
+
                     # keyboard type
                     elif item["cmd"] == "keyboard_type":
                         if self.plugin.get_option_value("allow_keyboard"):
                             response = self.cmd_keyboard_type(item)
+
+                    # wait
+                    elif item["cmd"] == "wait":
+                        response = self.cmd_wait(item)
 
                     if response:
                         responses.append(response)
@@ -92,6 +100,28 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             self.reply_more(responses)
 
+    def cmd_wait(self, item: dict) -> dict:
+        """
+        Wait
+
+        :param item: command item
+        :return: response item
+        """
+        try:
+            self.msg = "Wait"
+            self.log(self.msg)
+            result = self.get_current(item)
+            self.log("Response: {}".format(result))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
+        time.sleep(2)
+        return self.make_response(item, result)
+
     def cmd_mouse_get_pos(self, item: dict) -> dict:
         """
         Get mouse position
@@ -106,6 +136,11 @@ class Worker(BaseWorker):
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
         return self.make_response(item, result)
 
     def cmd_mouse_move(self, item: dict) -> dict:
@@ -116,6 +151,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         error = None
+        click = None
         x = 0
         y = 0
         if self.has_param(item, "x"):
@@ -126,9 +162,18 @@ class Worker(BaseWorker):
             y = self.get_param(item, "y")
         elif self.has_param(item, "mouse_y"):
             y = self.get_param(item, "mouse_y")
+
+        if self.has_param(item, "click"):
+            click = self.get_param(item, "click")
         try:
             mouse = MouseController()
             mouse.position = (x, y)
+            if click:
+                time.sleep(0.5)  # wait for a moment before clicking
+                self.cmd_mouse_click({
+                    "cmd": "mouse_click",
+                    "button": click,
+                })
         except Exception as e:
             error = str(e)
             self.log("Error: {}".format(e))
@@ -139,6 +184,11 @@ class Worker(BaseWorker):
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
         return self.make_response(item, result)
 
     def cmd_mouse_click(self, item: dict) -> dict:
@@ -165,6 +215,11 @@ class Worker(BaseWorker):
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
         return self.make_response(item, result)
 
     def cmd_mouse_scroll(self, item: dict) -> dict:
@@ -174,19 +229,101 @@ class Worker(BaseWorker):
         :param item: command item
         :return: response item
         """
-        x = 0
-        y = 0
+        x = None
+        y = None
+        if self.has_param(item, "x"):
+            x = self.get_param(item, "x")
+        elif self.has_param(item, "mouse_x"):
+            x = self.get_param(item, "mouse_x")
+        if self.has_param(item, "y"):
+            y = self.get_param(item, "y")
+        elif self.has_param(item, "mouse_y"):
+            y = self.get_param(item, "mouse_y")
+        if x is not None and y is not None:
+            try:
+                mouse = MouseController()
+                mouse.position = (x, y)
+                time.sleep(0.5)  # wait for a moment before scrolling
+            except Exception as e:
+                error = str(e)
+                self.log("Error: {}".format(e))
+        dx = 0
+        dy = 0
         if self.has_param(item, "dx"):
-            x = self.get_param(item, "dx")
+            dx = self.get_param(item, "dx")
         if self.has_param(item, "dy"):
-            y = self.get_param(item, "dy")
+            dy = self.get_param(item, "dy")
         try:
             mouse = MouseController()
-            mouse.scroll(x, y)
+            mouse.scroll(dx, dy)
             result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
+        return self.make_response(item, result)
+
+    def cmd_keyboard_keys(self, item: dict) -> dict:
+        """
+        Keyboard keys press
+
+        :param item: command item
+        :return: response item
+        """
+        keyboard = KeyboardController()
+        error = None
+        if self.has_param(item, "keys"):
+            keys = self.get_param(item, "keys")
+            for key in keys:
+                modifier = None
+                if self.has_param(item, "modifier"):
+                    tmp_modifier = self.get_param(item, "modifier")
+                    if tmp_modifier == "ctrl":
+                        modifier = Key.ctrl
+                    elif tmp_modifier == "alt":
+                        modifier = Key.alt
+                    elif tmp_modifier == "shift":
+                        modifier = Key.shift
+                    elif tmp_modifier == "cmd":
+                        modifier = Key.cmd
+
+                # autofocus on the window
+                if self.plugin.get_option_value("auto_focus"):
+                    self.set_focus()
+                    time.sleep(1)  # wait for a second
+
+                if key == "super" or key == "start":
+                    key = Key.cmd
+                try:
+                    if modifier:
+                        with keyboard.pressed(modifier):
+                            keyboard.press(key)
+                            keyboard.release(key)
+                    else:
+                        keyboard.press(key)
+                        keyboard.release(key)
+                    time.sleep(0.1)  # small delay between key presses
+
+                except Exception as e:
+                    error = str(e)
+                    self.log("Error: {}".format(e))
+
+        try:
+            result = self.get_current(item)
+            if error:
+                result["error"] = error
+            self.log("Response: {}".format(result))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
         return self.make_response(item, result)
 
     def cmd_keyboard_key(self, item: dict) -> dict:
@@ -239,6 +376,12 @@ class Worker(BaseWorker):
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
+
         return self.make_response(item, result)
 
     def cmd_keyboard_type(self, item: dict) -> dict:
@@ -279,6 +422,11 @@ class Worker(BaseWorker):
             self.log("Response: {}".format(result))
         except Exception as e:
             result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
         return self.make_response(item, result)
 
     def cmd_make_screenshot(self, item: dict):

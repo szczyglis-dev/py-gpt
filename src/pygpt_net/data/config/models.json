@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.5.70",
-        "app.version": "2.5.70",
+        "version": "2.5.71",
+        "app.version": "2.5.71",
         "updated_at": "2025-07-26T01:31:35"
     },
     "items": {
@@ -306,6 +306,49 @@
                     {
                         "name": "model",
                         "value": "codex-mini-latest",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": ["text", "image"],
+            "output": ["text"],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "computer-use-preview": {
+            "id": "computer-use-preview",
+            "name": "computer-use-preview",
+            "mode": [
+                "computer"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "computer-use-preview",
                         "type": "str"
                     }
                 ],

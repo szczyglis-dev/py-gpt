@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -23,9 +23,10 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
-    MODE_VISION, 
+    MODE_VISION,
     MODE_IMAGE,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
@@ -105,6 +106,10 @@ class Editor:
             MODE_LLAMA_INDEX: {
                 "type": "bool",
                 "label": "preset.llama_index",
+            },
+            MODE_COMPUTER: {
+                "type": "bool",
+                "label": "preset.computer",
             },
             "model": {
                 "label": "toolbox.model.label",
@@ -308,6 +313,8 @@ class Editor:
                 data.audio = True
             elif mode == MODE_RESEARCH:
                 data.research = True
+            elif mode == MODE_COMPUTER:
+                data.computer = True
 
         options = {}
         data_dict = data.to_dict()
@@ -377,6 +384,7 @@ class Editor:
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
             MODE_AUDIO,
+            MODE_COMPUTER,
         ]
 
         # disallow editing default preset

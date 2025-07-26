@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -17,6 +17,7 @@ class ReplyContext:
     AGENT_CONTINUE = "agent.continue"
     CMD_EXECUTE = "cmd.execute"
     CMD_EXECUTE_INLINE = "cmd.execute.inline"
+    CMD_EXECUTE_FORCE = "cmd.execute.force"
     EXPERT_CALL = "expert.call"
     EXPERT_RESPONSE = "expert.response"
 

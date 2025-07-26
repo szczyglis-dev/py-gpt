@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -72,6 +72,12 @@ class Stack:
             self.window.controller.plugins.apply_cmds(
                 context.ctx,  # current ctx
                 context.cmds,  # commands
+            )
+        elif context.type == ReplyContext.CMD_EXECUTE_FORCE:
+            self.window.controller.plugins.apply_cmds(
+                context.ctx,  # current ctx
+                context.cmds,  # commands
+                all=True,
             )
         elif context.type == ReplyContext.CMD_EXECUTE_INLINE:
             self.window.controller.plugins.apply_cmds_inline(

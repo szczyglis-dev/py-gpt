@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 19:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -169,6 +169,12 @@ class Config(BaseConfig):
                     "description": "Y coordinate",
                     "required": True,
                 },
+                {
+                    "name": "click",
+                    "type": "str",
+                    "description": "button to click after moving the mouse, enum: left|middle|right",
+                    "required": False,
+                },
             ],
             enabled=True,
             description="Enable: set mouse position to X,Y",
@@ -220,6 +226,18 @@ class Config(BaseConfig):
             instruction="mouse scroll",
             params=[
                 {
+                    "name": "x",
+                    "type": "int",
+                    "description": "move to initial position X before scrolling",
+                    "required": False,
+                },
+                {
+                    "name": "y",
+                    "type": "int",
+                    "description": "move to initial position Y before scrolling",
+                    "required": False,
+                },
+                {
                     "name": "dx",
                     "type": "int",
                     "description": "steps to scroll horizontally, positive to the left, negative to the right",
@@ -249,7 +267,27 @@ class Config(BaseConfig):
                     "name": "modifier",
                     "type": "str",
                     "description": "modifier key, enum: shift|ctrl|alt|cmd",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="Enable: Press keyboard key",
+        )
+        plugin.add_cmd(
+            "keyboard_keys",
+            instruction="press keyboard keys in sequence",
+            params=[
+                {
+                    "name": "keys",
+                    "type": "list",
+                    "description": "keys to press",
                     "required": True,
+                },
+                {
+                    "name": "modifier",
+                    "type": "str",
+                    "description": "modifier key, enum: shift|ctrl|alt|cmd",
+                    "required": False,
                 },
             ],
             enabled=True,
@@ -274,4 +312,11 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="Enable: Type text on keyboard",
+        )
+        plugin.add_cmd(
+            "wait",
+            instruction="wait for a moment",
+            params=[],
+            enabled=True,
+            description="Enable: Wait for a moment",
         )

@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.5.70",
-    "app.version": "2.5.70",
+    "version": "2.5.71",
+    "app.version": "2.5.71",
     "updated_at": "2025-07-26T00:00:00"
   },
   "access.audio.event.speech": false,
@@ -328,6 +328,11 @@
   "remote_tools.web_search": true,
   "remote_tools.image": false,
   "remote_tools.code_interpreter": false,
+  "remote_tools.mcp": false,
+  "remote_tools.mcp.args": "{\n    \"type\": \"mcp\",\n    \"server_label\": \"deepwiki\",\n    \"server_url\": \"https://mcp.deepwiki.com/mcp\",\n    \"require_approval\": \"never\",\n    \"allowed_tools\": [\"ask_question\"]\n}",
+  "remote_tools.file_search": false,  
+  "remote_tools.file_search.args": "",
+  "remote_tools.computer_use.env": "linux",
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -88,6 +88,7 @@ class CtxItem:
         self.async_disabled = False  # async disabled
         self.bag = None
         self.live_output = ""
+        self.force_call = False  # force call even if command is not present
 
 
     @property
@@ -274,6 +275,7 @@ class CtxItem:
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
+            "force_call": self.force_call,
             "meta": self.meta.to_dict() if type(self.meta) == CtxMeta else self.meta,
         }
         if dump:

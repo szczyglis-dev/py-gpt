@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -17,6 +17,7 @@ from pygpt_net.core.types import (
     MODE_AUDIO,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
@@ -205,6 +206,12 @@ class Text:
             tools_outputs = self.window.controller.assistant.threads.handle_tool_outputs(ctx)
             if len(tools_outputs) > 0:
                 self.window.controller.chat.log("Tool outputs sending...")
+
+        # make screenshot if computer use mode
+        if mode == MODE_COMPUTER:
+            if self.window.core.ctx.count_items() == 0:
+                self.window.controller.attachment.clear_silent()
+                self.window.controller.painter.capture.screenshot(attach_cursor=True, silent=True)  # attach screenshot
 
         # make API call
         try:

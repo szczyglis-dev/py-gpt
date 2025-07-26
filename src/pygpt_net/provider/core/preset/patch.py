@@ -33,6 +33,7 @@ class Patch:
         is_agent_assistant = False
         is_agent_code_act = False
         is_agent_react_workflow = False
+        is_computer = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -161,6 +162,17 @@ class Patch:
 
                         updated = True
                         is_agent_react_workflow = True  # prevent multiple copies
+
+                if old < parse_version("2.5.71"):
+                    if 'current.computer' not in self.window.core.presets.items and not is_computer:
+                        print("Migrating preset file from < 2.5.71...")
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.computer.json')
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
+                                           'current.computer.json')
+                        shutil.copyfile(src, dst)
+                        updated = True
+                        is_computer = True  # prevent multiple copies
+                        print("Patched file: {}.".format(dst))
 
             # update file
             if updated:

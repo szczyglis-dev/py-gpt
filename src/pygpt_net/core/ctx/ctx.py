@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 18:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -29,6 +29,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.provider.core.ctx.base import BaseProvider
@@ -83,6 +84,7 @@ class Ctx:
             MODE_EXPERT,
             MODE_AUDIO,
             MODE_RESEARCH,
+            MODE_COMPUTER,
         ]
         self.allowed_modes = {
             MODE_CHAT: self.all_modes,
@@ -97,6 +99,7 @@ class Ctx:
             MODE_AUDIO: self.all_modes,
             MODE_AGENT_LLAMA: [MODE_AGENT_LLAMA],
             MODE_RESEARCH: self.all_modes,
+            MODE_COMPUTER: [MODE_COMPUTER],
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False

@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
+import json
 from typing import Optional, List, Dict
 
 # from langchain_openai import OpenAI
@@ -27,6 +28,8 @@ from pygpt_net.core.types import (
     OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
     OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
     OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_MCP,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -121,6 +124,23 @@ class OpenAILLM(BaseLLM):
                         if stream:
                             tool["partial_images"] = 1  # required for streaming
                         tools.append(tool)
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH:
+                    if window.core.config.get("remote_tools.file_search", False):
+                        vector_store_ids = window.core.config.get("remote_tools.file_search.args", "")
+                        if vector_store_ids:
+                            vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
+                            tools.append({
+                                "type": "file_search",
+                                "vector_store_ids": vector_store_ids,
+                            })
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_MCP:
+                    if window.core.config.get("remote_tools.mcp", False):
+                        mcp_tool = window.core.config.get("remote_tools.mcp.args", "")
+                        if mcp_tool:
+                            mcp_tool = json.loads(mcp_tool)
+                            tools.append(mcp_tool)
             if tools:
                 args["built_in_tools"] = tools
             return LlamaOpenAIResponses(**args)

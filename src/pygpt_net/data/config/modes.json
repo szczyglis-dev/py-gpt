@@ -70,6 +70,12 @@
             "name": "Experts",
             "label": "mode.expert",
             "default": false
+        },
+        "computer": {
+            "id": "computer",
+            "name": "Computer",
+            "label": "mode.computer",
+            "default": false
         }
     }
 }

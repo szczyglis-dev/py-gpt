@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.07.26 18:00:00                  #
 # ================================================== #
 
 import base64
@@ -21,10 +21,14 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_AGENT,
     MODE_EXPERT,
+    MODE_COMPUTER,
     OPENAI_DISABLE_TOOLS,
     OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
+    OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE,
     OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
     OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH,
+    OPENAI_REMOTE_TOOL_DISABLE_MCP,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
@@ -41,6 +45,7 @@ class Responses:
         MODE_RESEARCH,
         MODE_AGENT,
         MODE_EXPERT,
+        MODE_COMPUTER,
     ]
 
     def __init__(self, window=None):
@@ -54,7 +59,9 @@ class Responses:
         self.audio_prev_id = None
         self.audio_prev_expires_ts = None
         self.prev_response_id = None
+        self.prev_internal_response_id = None
         self.instruction = None
+        self.mcp_tools = None
 
     def send(
             self,
@@ -77,6 +84,7 @@ class Responses:
         functions = context.external_functions
         attachments = context.attachments
         multimodal_ctx = context.multimodal_ctx
+        is_expert_call = context.is_expert_call
 
         ctx = context.ctx
         if ctx is None:
@@ -96,6 +104,7 @@ class Responses:
             ai_name=ai_name,
             user_name=user_name,
             multimodal_ctx=multimodal_ctx,
+            is_expert_call=is_expert_call,  # use separated previous response ID for expert calls
         )
 
         msg_tokens = self.window.core.tokens.from_messages(
@@ -140,24 +149,46 @@ class Responses:
         if (not model.id.startswith("o1")
                 and not model.id.startswith("o3")):  # o1, o3, o4 models do not support tools
 
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
-                if self.window.core.config.get("remote_tools.web_search", False):
-                    tools.append({"type": "web_search_preview"})
+            if mode == MODE_COMPUTER:
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
+                    tools.append(self.window.core.gpt.computer.get_tool())
+            else:
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
+                    if self.window.core.config.get("remote_tools.web_search", False):
+                        tools.append({"type": "web_search_preview"})
 
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
-                if self.window.core.config.get("remote_tools.code_interpreter", False):
-                    tools.append({
-                        "type": "code_interpreter",
-                        "container": {
-                            "type": "auto"
-                        }
-                    })
-            if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
-                if self.window.core.config.get("remote_tools.image", False):
-                    tool = {"type": "image_generation"}
-                    if stream:
-                        tool["partial_images"] = 1  # required for streaming
-                    tools.append(tool)
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
+                    if self.window.core.config.get("remote_tools.code_interpreter", False):
+                        tools.append({
+                            "type": "code_interpreter",
+                            "container": {
+                                "type": "auto"
+                            }
+                        })
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
+                    if self.window.core.config.get("remote_tools.image", False):
+                        tool = {"type": "image_generation"}
+                        if stream:
+                            tool["partial_images"] = 1  # required for streaming
+                        tools.append(tool)
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH:
+                    if self.window.core.config.get("remote_tools.file_search", False):
+                        vector_store_ids = self.window.core.config.get("remote_tools.file_search.args", "")
+                        if vector_store_ids:
+                            vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
+                            tools.append({
+                                "type": "file_search",
+                                "vector_store_ids": vector_store_ids,
+                            })
+
+                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_MCP:
+                    if self.window.core.config.get("remote_tools.mcp", False):
+                        mcp_tool = self.window.core.config.get("remote_tools.mcp.args", "")
+                        if mcp_tool:
+                            mcp_tool = json.loads(mcp_tool)
+                            tools.append(mcp_tool)
 
         # tool calls are not supported for o1-mini and o1-preview
         if (model.id is not None
@@ -166,11 +197,23 @@ class Responses:
                 response_kwargs['tools'] = tools
 
         # attach previous response ID if available
-        if self.prev_response_id:
-            response_kwargs['previous_response_id'] = self.prev_response_id
+        if is_expert_call:
+            # expert call, use previous response ID from context
+            if self.prev_internal_response_id:
+                response_kwargs['previous_response_id'] = self.prev_internal_response_id
+        else:
+            if self.prev_response_id:
+                response_kwargs['previous_response_id'] = self.prev_response_id
 
         if system_prompt:
             response_kwargs['instructions'] = system_prompt
+
+        # http://platform.openai.com/docs/guides/tools-computer-use
+        if mode == MODE_COMPUTER:
+            response_kwargs['truncation'] = "auto"
+            response_kwargs['reasoning'] = {
+                "summary": "concise",
+            }
 
         response = client.responses.create(
             input=messages,
@@ -195,6 +238,7 @@ class Responses:
             ai_name: Optional[str] = None,
             user_name: Optional[str] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
+            is_expert_call: bool = False,
     ) -> list:
         """
         Build list of chat messages
@@ -207,10 +251,15 @@ class Responses:
         :param ai_name: AI name
         :param user_name: username
         :param multimodal_ctx: Multimodal context
+        :param is_expert_call: if True then expert call, use previous response ID from context
         :return: messages list
         """
         messages = []
-        self.prev_response_id = None  # reset
+        if is_expert_call:
+            self.prev_internal_response_id = None
+        else:
+            self.prev_response_id = None
+
         is_tool_output = False  # reset
 
         # tokens config
@@ -287,40 +336,83 @@ class Responses:
                     # ---- tool output ----
                     is_tool_output = False  # reset tool output flag
                     is_last_item = item == items[-1] if items else False
+
+                    # MCP approval request
+                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                        if "mcp_approval_request" in item.extra and isinstance(item.extra["mcp_approval_request"], dict):
+                            mcp_approval_request = item.extra["mcp_approval_request"]
+                            if "id" in mcp_approval_request:
+                                msg = {
+                                    "type": "mcp_approval_response",
+                                    "approval_request_id": mcp_approval_request["id"],
+                                    "approve": True
+                                }
+                                messages.append(msg)
+
+                    # tool calls
                     if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
                         if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
                             for tool_call in item.extra["tool_calls"]:
+                                output_type = "function_call_output"
+                                if "type" in tool_call and tool_call["type"] == "function":
+                                    output_type = "function_call_output"
+                                elif "type" in tool_call and tool_call["type"] == "computer_call":
+                                    output_type = "computer_call"
+
                                 if "function" in tool_call:
                                     if "call_id" not in tool_call or "name" not in tool_call["function"]:
                                         continue
-                                    if tool_call["call_id"] and tool_call["function"]["name"]:
-                                        if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
-                                            for tool_output in item.extra["tool_output"]:
-                                                if ("cmd" in tool_output
-                                                        and tool_output["cmd"] == tool_call["function"]["name"]):
-                                                    msg = {
-                                                        "type": "function_call_output",
-                                                        "call_id": tool_call["call_id"],
-                                                        "output": str(tool_output),
-                                                    }
-                                                    is_tool_output = True
-                                                    messages.append(msg)
-                                                    break
-                                                elif "result" in tool_output:
-                                                    # if result is present, append it as function call output
-                                                    msg = {
-                                                        "type": "function_call_output",
-                                                        "call_id": tool_call["call_id"],
-                                                        "output": str(tool_output["result"]),
-                                                    }
-                                                    is_tool_output = True
-                                                    messages.append(msg)
-                                                    break
+
+                                    if output_type == "function_call_output":
+                                        if tool_call["call_id"] and tool_call["function"]["name"]:
+                                            if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                                for tool_output in item.extra["tool_output"]:
+                                                    if ("cmd" in tool_output
+                                                            and tool_output["cmd"] == tool_call["function"]["name"]):
+                                                        msg = {
+                                                            "type": "function_call_output",
+                                                            "call_id": tool_call["call_id"],
+                                                            "output": str(tool_output),
+                                                        }
+                                                        is_tool_output = True
+                                                        messages.append(msg)
+                                                        break
+                                                    elif "result" in tool_output:
+                                                        # if result is present, append it as function call output
+                                                        msg = {
+                                                            "type": "function_call_output",
+                                                            "call_id": tool_call["call_id"],
+                                                            "output": str(tool_output["result"]),
+                                                        }
+                                                        is_tool_output = True
+                                                        messages.append(msg)
+                                                        break
+
+                                    # computer call output
+                                    elif output_type == "computer_call":
+                                        base64img = self.window.core.gpt.vision.get_attachment(attachments)
+                                        if base64img and "call_id" in tool_call:
+                                            if tool_call["call_id"]:
+                                                msg = {
+                                                    "call_id": tool_call["call_id"],
+                                                    "type": "computer_call_output",
+                                                    "output": {
+                                                        "type": "input_image",
+                                                        "image_url": f"data:image/png;base64,{base64img}"
+                                                    },
+                                                }
+                                                is_tool_output = True
+                                                messages = [msg]  # replace messages with tool output
+                                                break
 
                 # --- previous message ID ---
                 if (item.msg_id
                         and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
-                    self.prev_response_id = item.msg_id  # previous response ID to use in current input
+
+                    if is_expert_call:
+                        self.prev_internal_response_id = item.msg_id
+                    else:
+                        self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
@@ -371,11 +463,13 @@ class Responses:
         :param ctx: CtxItem - context item to set the response data
         """
         output = ""
+        force_func_call = False  # force function call flag
 
         if mode in [
             MODE_CHAT,
             MODE_VISION,
             MODE_RESEARCH,
+            MODE_COMPUTER,
         ]:
             if response.output_text:
                 output = response.output_text
@@ -390,55 +484,111 @@ class Responses:
             response.usage.input_tokens,
             response.usage.output_tokens,
         )
-        if mode == MODE_CHAT:
-            files = []
-            # image generation
-            image_data = [
-                output.result
-                for output in response.output
-                if output.type == "image_generation_call"
-            ]
-            if image_data:
-                img_path = self.window.core.image.gen_unique_path(ctx)
-                image_base64 = image_data[0]
-                with open(img_path, "wb") as f:
-                    f.write(base64.b64decode(image_base64))
-                ctx.images = [img_path]
 
-            for output in response.output:
-                # code interpreter call
-                if output.type == "code_interpreter_call":
-                    code_response = ("\n\n**Code interpreter**\n```python\n"
-                                     + output.code
-                                     + "\n\n```\n-----------\n"
-                                     + response.output_text.strip())
-                    ctx.output = code_response
-                elif output.type == "message":
-                    if output.content:
-                        for content in output.content:
-                            if content.annotations:
-                                for annotation in content.annotations:
-                                    # url citation
-                                    if annotation.type == "url_citation":
-                                        if ctx.urls is None:
-                                            ctx.urls = []
-                                        ctx.urls.append(annotation.url)
-                                    # container file citation
-                                    elif annotation.type == "container_file_citation":
-                                        container_id = annotation.container_id
-                                        file_id = annotation.file_id
-                                        files.append({
-                                            "container_id": container_id,
-                                            "file_id": file_id,
-                                        })
+        files = []
+        tool_calls = []
 
-            # if files from container are found, download them and append to ctx
-            if files:
-                self.window.core.debug.info("[chat] Container files found, downloading...")
-                try:
-                    self.window.core.gpt.container.download_files(ctx, files)
-                except Exception as e:
-                    self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
+        # image generation
+        image_data = [
+            output.result
+            for output in response.output
+            if output.type == "image_generation_call"
+        ]
+        if image_data:
+            img_path = self.window.core.image.gen_unique_path(ctx)
+            image_base64 = image_data[0]
+            with open(img_path, "wb") as f:
+                f.write(base64.b64decode(image_base64))
+            ctx.images = [img_path]
+
+        for output in response.output:
+            # code interpreter call
+            if output.type == "code_interpreter_call":
+                code_response = ("\n\n**Code interpreter**\n```python\n"
+                                 + output.code
+                                 + "\n\n```\n-----------\n"
+                                 + response.output_text.strip())
+                ctx.output = code_response
+            elif output.type == "message":
+                if output.content:
+                    for content in output.content:
+                        if content.annotations:
+                            for annotation in content.annotations:
+                                # url citation
+                                if annotation.type == "url_citation":
+                                    if ctx.urls is None:
+                                        ctx.urls = []
+                                    ctx.urls.append(annotation.url)
+                                # container file citation
+                                elif annotation.type == "container_file_citation":
+                                    container_id = annotation.container_id
+                                    file_id = annotation.file_id
+                                    files.append({
+                                        "container_id": container_id,
+                                        "file_id": file_id,
+                                    })
+
+            # computer use
+            elif output.type == "computer_call":
+                id = output.id
+                call_id = output.call_id
+                action = output.action
+                tool_calls, is_call = self.window.core.gpt.computer.handle_action(
+                    id=id,
+                    call_id=call_id,
+                    action=action,
+                    tool_calls=tool_calls,
+                )
+                if is_call:
+                    force_func_call = True  # force function call for computer use
+
+            # MCP: list tools
+            elif output.type == "mcp_list_tools":
+                tools = output.tools
+                self.mcp_tools = tools  # store MCP tools for later use
+                ctx.meta.extra = {
+                    "mcp_tools": tools,
+                }
+                self.window.core.ctx.save(ctx.meta.id)
+
+            # MCP: tool call
+            elif output.type == "mcp_call":
+                call = {
+                    "id": output.id,
+                    "type": "mcp_call",
+                    "approval_request_id": output.approval_request_id,
+                    "arguments": output.arguments,
+                    "error": output.error,
+                    "name": output.name,
+                    "output": output.output,
+                    "server_label": output.server_label,
+                }
+                ctx.extra["mcp_call"] = call
+
+            # MCP: approval request
+            elif output.type == "mcp_approval_request":
+                call = {
+                    "id": output.id,
+                    "type": "mcp_call",
+                    "arguments": output.arguments,
+                    "name": output.name,
+                    "server_label": output.server_label,
+                }
+                ctx.extra["mcp_approval_request"] = call
+
+        # computer use tool calls (other functions are handled before)
+        if tool_calls:
+            ctx.force_call = force_func_call
+            self.window.core.debug.info("[chat] Tool calls found, unpacking...")
+            self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
+
+        # if files from container are found, download them and append to ctx
+        if files:
+            self.window.core.debug.info("[chat] Container files found, downloading...")
+            try:
+                self.window.core.gpt.container.download_files(ctx, files)
+            except Exception as e:
+                self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
     def is_enabled(
             self,
@@ -456,6 +606,9 @@ class Responses:
         :param is_expert_call:
         :return: True if responses API is allowed, False otherwise
         """
+        if mode == MODE_COMPUTER:
+            return True  # required, even if agent plugin active
+
         allowed = False  # default is not to use responses API
         if model is not None:
             if model.is_gpt():

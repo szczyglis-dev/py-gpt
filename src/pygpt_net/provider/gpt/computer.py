@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.07.26 18:00:00                  #
+# ================================================== #
+
+import json
+from typing import Dict, Any, List, Tuple
+
+class Computer:
+    def __init__(self, window=None):
+        """
+        Computer use mode
+
+        :param window: Window instance
+        """
+        self.window = window
+
+    def get_current_env(self) -> Dict[str, Any]:
+        """
+        Get current computer environment
+
+        :return: Dict[str, Any]
+        """
+        idx = self.window.ui.nodes["computer_env"].currentIndex()
+        return self.window.ui.nodes["computer_env"].itemData(idx)
+
+    def get_tool(self) -> dict:
+        """
+        Get Computer use tool
+        :return: dict
+        """
+        env = self.get_current_env()
+        screen = self.window.app.primaryScreen()
+        size = screen.size()
+        screen_x = size.width()
+        screen_y = size.height()
+        return {
+            "type": "computer_use_preview",
+            "display_width": screen_x,
+            "display_height": screen_y,
+            "environment": env,  # "browser", "mac", "windows", "linux"
+        }
+
+    def handle_stream_chunk(self, chunk, tool_calls: list) -> Tuple[List, bool]:
+        """
+        Handle stream chunk for computer use
+
+        :param chunk: stream chunk
+        :param tool_calls: list of tool calls
+        :return: Tool calls and a boolean indicating if there are calls
+        """
+        has_calls = False
+
+        if chunk.item.type == "computer_call":
+            id = chunk.item.id
+            call_id = chunk.item.call_id
+            action = chunk.item.action
+            tool_calls, has_calls = self.handle_action(
+                id=id,
+                call_id=call_id,
+                action=action,
+                tool_calls=tool_calls,
+            )
+        return tool_calls, has_calls
+
+    def handle_action(
+            self,
+            id: str,
+            call_id: str,
+            action,
+            tool_calls: list
+    ) -> Tuple[List, bool]:
+        """
+        Handle action for computer use
+
+        :param id: unique identifier for the action
+        :param call_id: unique identifier for the call
+        :param tool_calls: list of tool calls
+        :return: Tool calls and a boolean indicating if there are calls
+        """
+        has_calls = False
+
+        # mouse click
+        if action.type == "click":
+            button = action.button
+            x = action.x
+            y = action.y
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "mouse_move",
+                    "arguments": json.dumps({
+                        "x": x,
+                        "y": y,
+                        "click": button,
+                    })
+                }
+            })
+            has_calls = True
+
+        # mouse move
+        elif action.type == "move":
+            x = action.x
+            y = action.y
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "mouse_move",
+                    "arguments": json.dumps({
+                        "x": x,
+                        "y": y,
+                    })
+                }
+            })
+            has_calls = True
+
+        # get screenshot
+        elif action.type == "screenshot":
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "get_screenshot",
+                    "arguments": "{}"
+                }
+            })
+            has_calls = True
+
+        # keyboard type
+        elif action.type == "type":
+            text = action.text
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "keyboard_type",
+                    "arguments": json.dumps({
+                        "text": text,
+                    })
+                }
+            })
+            has_calls = True
+
+        # keyboard keys
+        elif action.type == "keypress":
+            keys = action.keys
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "keyboard_keys",
+                    "arguments": json.dumps({
+                        "keys": keys, # sequence in list
+                    })
+                }
+            })
+            has_calls = True
+
+        # mouse scroll
+        elif action.type == "scroll":
+            x = action.x
+            y = action.y
+            dx = action.scroll_x
+            dy = action.scroll_y
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "mouse_scroll",
+                    "arguments": json.dumps({
+                        "x": x,
+                        "y": y,
+                        "dx": dx,
+                        "dy": dy,
+                    })
+                }
+            })
+            has_calls = True
+
+        # wait for a while
+        elif action.type == "wait":
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "wait",
+                    "arguments": "{}"
+                }
+            })
+            has_calls = True
+
+        return tool_calls, has_calls
