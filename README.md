@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.71** | build: **2025-07-26** | Python: **>=3.10, <3.13**
+Release: **2.5.71** | build: **2025-07-27** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4154,7 +4154,7 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.5.71 (2025-07-26)**
+**2.5.71 (2025-07-27)**
 
 - Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
 - Added a new remote tool: `Remote MCP` (with configuration in Settings -> Remote Tools).
