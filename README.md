@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.71** | build: **2025-07-27** | Python: **>=3.10, <3.13**
+Release: **2.5.72** | build: **2025-07-27** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4154,6 +4154,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.72 (2025-07-27)**
+
+- Improved stop command.
+
 **2.5.71 (2025-07-27)**
 
 - Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
@@ -4182,112 +4186,6 @@ may consume additional tokens that are not displayed in the main window.
 - Enhanced the use of multiple tool calls in Experts.
 - Fixed the display of Expert names when responding.
 - Improved context history handling in Experts.
-
-**2.5.66 (2025-07-24)**
-
-- Fixed the issue where input focus was lost on the initial context summary.
-- Added input focus at application startup.
-
-**2.5.65 (2025-07-24)**
-
-- Improved expert and agent calls and response rendering.
-- Fixed duplicate goal completion in autonomous mode.
-
-**2.5.64 (2025-07-23)**
-
-- Updated the system prompts.
-- Allowed native tool calls in Chat with Files when the agent is not enabled.
-
-**2.5.63 (2025-07-23)**
-
-- Agent mode improvements.
-- Custom system prompt allowed for all agent types.
-
-**2.5.62 (2025-07-23)**
-
-- Enhanced system prompt append to planner agent in Experts.
-
-**2.5.61 (2025-07-23)**
-
-- Enhanced expert and autonomous agent modes.
-- Added streaming output from the agent in Chat with Files mode.
-- Introduced a planner agent as the engine for experts.
-- Fixed issue with goal completion in autonomous agent mode.
-- Resolved CSS issues with sliders on Windows.
-
-**2.5.60 (2025-07-22)**
-
-- Improved CSS.
-- Added a new color themes: Light, Light:Gray, Dark, Dark:Gray, Dark:Darker.
-
-**2.5.59 (2025-07-22)**
-
-- Added missing locales.
-- Fix tab title rename on context rename.
-
-**2.5.58 (2025-07-21)**
-
-- Fix: Google API tool prepare requests.
-- Added delay to search input update.
-- Added per provider empty API key monits.
-
-**2.5.57 (2025-07-21)**
-
-- Fix: context summary worker initialization.
-- Fix: loading spinner in Assistants mode.
-
-**2.5.56 (2025-07-21)**
-
-- Improved data reload after profile switch.
-
-**2.5.55 (2025-07-21)**
-
-- Fixed tab title reload.
-- Fixed restore selection after pin/unpin.
-- Added tabs debugger.
-- Removed JSON output string from tool output.
-
-**2.5.54 (2025-07-20)**
-
-- Fixed reloading chat items if second column is focused.
-- Increased chat tab titles to 15 chars.
-- Removed gpt-4.5-preview from models - issue #121.
-- Updated CSS for images.
-
-**2.5.53 (2025-07-19)**
-
-- Improved context list context menu.
-- Improved presets list context menu.
-- Chat icons changed to SVG.
-- API organization key added to container file download request.
-- Fixed switch to idle after tool call in agent mode.
-
-**2.5.52 (2025-07-19)**
-
-- Added automatic files and images download from Response API / remote Code Interpreter containers.
-
-**2.5.51 (2025-07-18)**
-
-- Updated CSS, removed uppercase from tabs and buttons.
-- Fixed tab names translations.
-
-**2.5.50 (2025-07-18)**
-
-- Improved tabs handling in split-screen.
-
-**2.5.49 (2025-07-18)**
-
-- Added binary image output handling to docker kernel in Code Interpreter.
-- Added score display in agent loop/evaluation mode.
-- Added auto-recovery from base config if config file is corrupted.
-- Profile move and duplicate moved to separated thread.
-
-**2.5.48 (2025-07-17)**
-
-- Added binary image output handling from Code Interpreter.
-- Added auto-restart IPython kernel on failure or not initialized.
-- Improved agents loop and evaluation.
-- Added LlamaIndex provider config for Grok.
 
 # Credits and links
 

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.72 (2025-07-27)
+
+- Improved stop command.
+
 ## 2.5.71 (2025-07-27)
 
 - Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
