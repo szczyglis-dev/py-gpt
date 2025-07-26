@@ -207,12 +207,6 @@ class Text:
             if len(tools_outputs) > 0:
                 self.window.controller.chat.log("Tool outputs sending...")
 
-        # make screenshot if computer use mode
-        if mode == MODE_COMPUTER:
-            if self.window.core.ctx.count_items() == 0:
-                self.window.controller.attachment.clear_silent()
-                self.window.controller.painter.capture.screenshot(attach_cursor=True, silent=True)  # attach screenshot
-
         # make API call
         try:
             # get attachments

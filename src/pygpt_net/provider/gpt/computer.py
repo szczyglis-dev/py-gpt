@@ -13,6 +13,9 @@ import json
 import time
 from typing import Dict, Any, List, Tuple
 
+from pygpt_net.item.ctx import CtxItem
+
+
 class Computer:
     def __init__(self, window=None):
         """
@@ -48,10 +51,11 @@ class Computer:
             "environment": env,  # "browser", "mac", "windows", "linux"
         }
 
-    def handle_stream_chunk(self, chunk, tool_calls: list) -> Tuple[List, bool]:
+    def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
         """
         Handle stream chunk for computer use
 
+        :param ctx: context item
         :param chunk: stream chunk
         :param tool_calls: list of tool calls
         :return: Tool calls and a boolean indicating if there are calls
@@ -68,6 +72,15 @@ class Computer:
                 action=action,
                 tool_calls=tool_calls,
             )
+            if chunk.item.pending_safety_checks:
+                ctx.extra["pending_safety_checks"] = []
+                for item in chunk.item.pending_safety_checks:
+                    check = {
+                        "id": item.id,
+                        "code": item.code,
+                        "message": item.message,
+                    }
+                    ctx.extra["pending_safety_checks"].append(check)
         return tool_calls, has_calls
 
     def handle_action(

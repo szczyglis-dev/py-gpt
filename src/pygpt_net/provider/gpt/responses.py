@@ -393,6 +393,7 @@ class Responses:
                                         base64img = self.window.core.gpt.vision.get_attachment(attachments)
                                         if base64img and "call_id" in tool_call:
                                             if tool_call["call_id"]:
+                                                # tool output
                                                 msg = {
                                                     "call_id": tool_call["call_id"],
                                                     "type": "computer_call_output",
@@ -401,6 +402,18 @@ class Responses:
                                                         "image_url": f"data:image/png;base64,{base64img}"
                                                     },
                                                 }
+                                                # safety checks
+                                                if "pending_safety_checks" in item.extra and isinstance(
+                                                        item.extra["pending_safety_checks"], list):
+                                                    safety_checks = []
+                                                    for check in item.extra["pending_safety_checks"]:
+                                                        safety_checks.append({
+                                                            "id": check["id"],
+                                                            "code": check["code"],
+                                                            "message": check["message"],
+                                                        })
+                                                    if safety_checks:
+                                                        msg["acknowledged_safety_checks"] = safety_checks
                                                 is_tool_output = True
                                                 messages = [msg]  # replace messages with tool output
                                                 break
@@ -417,7 +430,9 @@ class Responses:
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
-            if model.is_image_input():
+            if (model.is_image_input()
+                    and mode != MODE_COMPUTER
+                    and not model.id.startswith("computer-use")):
                 content = self.window.core.gpt.vision.build_content(
                     content=content,
                     attachments=attachments,
@@ -539,8 +554,23 @@ class Responses:
                     action=action,
                     tool_calls=tool_calls,
                 )
+                if output.pending_safety_checks:
+                    ctx.extra["pending_safety_checks"] = []
+                    for item in output.pending_safety_checks:
+                        check = {
+                            "id": item.id,
+                            "code": item.code,
+                            "message": item.message,
+                        }
+                        ctx.extra["pending_safety_checks"].append(check)
                 if is_call:
                     force_func_call = True  # force function call for computer use
+
+            elif output.type == "reasoning":
+                if ctx.output == "":
+                    for summary in output.summary:
+                        if summary.type == "summary_text":
+                            ctx.output += summary.text + "\n"
 
             # MCP: list tools
             elif output.type == "mcp_list_tools":

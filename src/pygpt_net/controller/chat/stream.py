@@ -236,9 +236,10 @@ class StreamWorker(QObject, QRunnable):
                             response = chunk.delta
 
                         elif etype == "response.output_item.done":
-                           tool_calls, has_calls = self.window.core.gpt.computer.handle_stream_chunk(chunk, tool_calls)
+                           tool_calls, has_calls = self.window.core.gpt.computer.handle_stream_chunk(self.ctx, chunk, tool_calls)
                            if has_calls:
                                force_func_call = True  # force function call if computer use found
+
 
                         # ---------- code interpreter ----------
                         elif etype == "response.code_interpreter_call_code.delta":
