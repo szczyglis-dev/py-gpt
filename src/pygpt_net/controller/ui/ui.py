@@ -91,6 +91,13 @@ class UI:
     def init_computer_env(self):
         """Init computer environment"""
         env = self.window.core.config.get("remote_tools.computer_use.env", "linux")
+        if env == "" or env is None:
+            if self.window.core.platforms.is_windows():
+                env = "windows"
+            elif self.window.core.platforms.is_mac():
+                env = "mac"
+            else:
+                env = "linux"
         index = self.window.ui.nodes["computer_env"].findData(env)
         if index != -1:
             self.window.ui.nodes["computer_env"].setCurrentIndex(index)

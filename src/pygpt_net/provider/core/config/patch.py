@@ -2119,7 +2119,7 @@ class Patch:
             if old < parse_version("2.5.71"):
                 print("Migrating config from < 2.5.71.")
                 if "remote_tools.computer_use.env" not in data:
-                    data["remote_tools.computer_use.env"] = "linux"
+                    data["remote_tools.computer_use.env"] = ""
                 if "remote_tools.mcp" not in data:
                     data["remote_tools.mcp"] = False
                 if "remote_tools.mcp.args" not in data:

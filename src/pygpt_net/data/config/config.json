@@ -332,7 +332,7 @@
   "remote_tools.mcp.args": "{\n    \"type\": \"mcp\",\n    \"server_label\": \"deepwiki\",\n    \"server_url\": \"https://mcp.deepwiki.com/mcp\",\n    \"require_approval\": \"never\",\n    \"allowed_tools\": [\"ask_question\"]\n}",
   "remote_tools.file_search": false,  
   "remote_tools.file_search.args": "",
-  "remote_tools.computer_use.env": "linux",
+  "remote_tools.computer_use.env": "",
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,
