@@ -261,13 +261,15 @@ class Command:
     def unpack_tool_calls_chunks(
             self,
             ctx: CtxItem,
-            tool_calls: List[Dict[str, Any]]
+            tool_calls: List[Dict[str, Any]],
+            append_output: bool = False,
     ):
         """
         Handle / unpack tool calls
 
         :param ctx: context
         :param tool_calls: tool calls
+        :param append_output: if True then append output to context output
         """
         tmp_calls = []
         for tool_call in tool_calls:
@@ -275,6 +277,8 @@ class Command:
                 if "function" not in tool_call:
                     continue
                 if "arguments" not in tool_call["function"]:
+                    continue
+                if not isinstance(tool_call["function"]["arguments"], str):
                     continue
                 tool_call["function"]["arguments"] = json.loads(
                     tool_call["function"]["arguments"]
@@ -284,6 +288,12 @@ class Command:
                 self.window.core.debug.log(e)
                 print("Error parsing tool call JSON arguments: ", tool_call["function"]["arguments"])
         ctx.tool_calls = tmp_calls
+
+        if append_output:
+            # append tool calls to context output
+            ctx.extra["tool_calls"] = ctx.tool_calls
+            ctx.extra["tool_output"] = []
+
 
     def unpack_tool_calls_from_llama(
             self,
