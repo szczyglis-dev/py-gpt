@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+import time
 from typing import Dict, Any, List, Tuple
 
 class Computer:
@@ -185,7 +186,8 @@ class Computer:
                         "x": x,
                         "y": y,
                         "dx": dx,
-                        "dy": dy,
+                        "dy": -dy,  # invert scroll direction
+                        "unit": "px",
                     })
                 }
             })
@@ -204,4 +206,124 @@ class Computer:
             })
             has_calls = True
 
+        elif action.type == "drag":
+            x = action.path[0].x
+            y = action.path[0].y
+            dx = action.path[1].x
+            dy = action.path[1].y
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "mouse_drag",
+                    "arguments": json.dumps({
+                        "x": x,
+                        "y": y,
+                        "dx": dx,
+                        "dy": dy,
+                    })
+                }
+            })
+            has_calls = True
+        else:
+            # append empty to store tool call
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "wait",
+                    "arguments": "{}"
+                }
+            })
+            has_calls = True
+            print(f"Unrecognized action type: {action.type}")
+
         return tool_calls, has_calls
+
+    def handle_browser(self,
+            id: str,
+            call_id: str,
+            action,
+            tool_calls: list,
+            page):
+        """
+        Given a computer action (e.g., click, double_click, scroll, etc.),
+        execute the corresponding operation on the Playwright page.
+
+        :param id: Unique identifier for the action
+        :param call_id: Unique identifier for the call
+        :param action: The action to be performed
+        :param tool_calls: List to store tool calls
+        :param page: The Playwright page object to interact with
+        :return: Updated tool_calls list
+        """
+        has_calls = False
+        action_type = action.type
+        try:
+            match action_type:
+                case "click":
+                    has_calls = True
+                    x, y = action.x, action.y
+                    button = action.button
+                    print(f"Action: click at ({x}, {y}) with button '{button}'")
+                    # Not handling things like middle click, etc.
+                    if button != "left" and button != "right":
+                        button = "left"
+                    page.mouse.click(x, y, button=button)
+
+                case "scroll":
+                    has_calls = True
+                    x, y = action.x, action.y
+                    scroll_x, scroll_y = action.scroll_x, action.scroll_y
+                    print(f"Action: scroll at ({x}, {y}) with offsets (scroll_x={scroll_x}, scroll_y={scroll_y})")
+                    page.mouse.move(x, y)
+                    page.evaluate(f"window.scrollBy({scroll_x}, {scroll_y})")
+
+                case "keypress":
+                    has_calls = True
+                    keys = action.keys
+                    for k in keys:
+                        print(f"Action: keypress '{k}'")
+                        # A simple mapping for common keys; expand as needed.
+                        if k.lower() == "enter":
+                            page.keyboard.press("Enter")
+                        elif k.lower() == "space":
+                            page.keyboard.press(" ")
+                        else:
+                            page.keyboard.press(k)
+
+                case "type":
+                    has_calls = True
+                    text = action.text
+                    print(f"Action: type text: {text}")
+                    page.keyboard.type(text)
+
+                case "wait":
+                    has_calls = True
+                    print(f"Action: wait")
+                    time.sleep(2)
+
+                case "screenshot":
+                    has_calls = True
+                    # Nothing to do as screenshot is taken at each turn
+                    print(f"Action: screenshot")
+
+                # Handle other actions here
+                case _:
+                    print(f"Unrecognized action: {action}")
+
+        except Exception as e:
+            print(f"Error handling action {action}: {e}")
+
+        if has_calls:
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "get_screenshot",
+                    "arguments": "{}"
+                }
+            })

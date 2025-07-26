@@ -51,6 +51,11 @@ class Worker(BaseWorker):
                         if self.plugin.get_option_value("allow_mouse_move"):
                             response = self.cmd_mouse_move(item)
 
+                    # drag mouse
+                    elif item["cmd"] == "mouse_drag":
+                        if self.plugin.get_option_value("allow_mouse_move"):
+                            response = self.cmd_mouse_drag(item)
+
                     # mouse click
                     elif item["cmd"] == "mouse_click":
                         if self.plugin.get_option_value("allow_mouse_click"):
@@ -202,9 +207,9 @@ class Worker(BaseWorker):
         num = 1
         if self.has_param(item, "button"):
             btn_name = self.get_param(item, "button")
-            if btn_name == "middle":
+            if btn_name.lower() == "middle":
                 button = Button.middle
-            elif btn_name == "right":
+            elif btn_name.lower() == "right":
                 button = Button.right
         if self.has_param(item, "num_clicks"):
             num = int(self.get_param(item, "num_clicks"))
@@ -249,13 +254,92 @@ class Worker(BaseWorker):
                 self.log("Error: {}".format(e))
         dx = 0
         dy = 0
+        unit = "step"
+        conversion_factor = 30
+        delay = 0.01
+        if self.has_param(item, "dx"):
+            dx = self.get_param(item, "dx")
+        if self.has_param(item, "dy"):
+            dy = self.get_param(item, "dy")
+        if self.has_param(item, "unit"):
+            tmp_unit = self.get_param(item, "unit")
+            if tmp_unit in ["step", "px"]:
+                unit = tmp_unit
+        try:
+            notches_x = 0
+            notches_y = 0
+            mouse = MouseController()
+            if unit == "step":
+                notches_x = dx
+                notches_y = dy
+            elif unit == "px":
+                notches_x = int(round(dx / conversion_factor))
+                notches_y = int(round(dy / conversion_factor))
+
+            # scroll x
+            for _ in range(abs(notches_x)):
+                dx = 1 if notches_x > 0 else -1
+                mouse.scroll(dx, 0)
+                time.sleep(delay)
+
+            # scroll y
+            for _ in range(abs(notches_y)):
+                dy = 1 if notches_y > 0 else -1
+                mouse.scroll(0, dy)
+                time.sleep(delay)
+
+            print("scrolling: dx={}, dy={}".format(dx, dy))
+            result = self.get_current(item)
+            self.log("Response: {}".format(result))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        # disable returning screenshot if requested
+        if self.has_param(item, "no_screenshot"):
+            result["no_screenshot"] = True
+
+        return self.make_response(item, result)
+
+    def cmd_mouse_drag(self, item: dict) -> dict:
+        """
+        Mouse scroll
+
+        :param item: command item
+        :return: response item
+        """
+        x = None
+        y = None
+        if self.has_param(item, "x"):
+            x = self.get_param(item, "x")
+        elif self.has_param(item, "mouse_x"):
+            x = self.get_param(item, "mouse_x")
+        if self.has_param(item, "y"):
+            y = self.get_param(item, "y")
+        elif self.has_param(item, "mouse_y"):
+            y = self.get_param(item, "mouse_y")
+        if x is not None and y is not None:
+            try:
+                mouse = MouseController()
+                mouse.position = (x, y)
+                time.sleep(0.5)  # wait for a moment before scrolling
+            except Exception as e:
+                error = str(e)
+                self.log("Error: {}".format(e))
+        dx = 0
+        dy = 0
+        delay = 0.02
         if self.has_param(item, "dx"):
             dx = self.get_param(item, "dx")
         if self.has_param(item, "dy"):
             dy = self.get_param(item, "dy")
         try:
             mouse = MouseController()
-            mouse.scroll(dx, dy)
+            mouse.press(Button.left)
+            time.sleep(delay)
+            mouse.position = (dx, dy)  # move to the new position
+            time.sleep(delay)
+            mouse.release(Button.left)
+            print("dragging: dx={}, dy={}".format(dx, dy))
             result = self.get_current(item)
             self.log("Response: {}".format(result))
         except Exception as e:
@@ -282,13 +366,13 @@ class Worker(BaseWorker):
                 modifier = None
                 if self.has_param(item, "modifier"):
                     tmp_modifier = self.get_param(item, "modifier")
-                    if tmp_modifier == "ctrl":
+                    if tmp_modifier.lower() == "ctrl" or tmp_modifier.lower() == "control":
                         modifier = Key.ctrl
-                    elif tmp_modifier == "alt":
+                    elif tmp_modifier.lower() == "alt":
                         modifier = Key.alt
-                    elif tmp_modifier == "shift":
+                    elif tmp_modifier.lower() == "shift":
                         modifier = Key.shift
-                    elif tmp_modifier == "cmd":
+                    elif tmp_modifier.lower() == "cmd":
                         modifier = Key.cmd
 
                 # autofocus on the window
@@ -296,9 +380,10 @@ class Worker(BaseWorker):
                     self.set_focus()
                     time.sleep(1)  # wait for a second
 
-                if key == "super" or key == "start":
+                if key.lower() == "super" or key.lower() == "start":
                     key = Key.cmd
                 try:
+                    key = self.remap_key(key)  # remap key if needed
                     if modifier:
                         with keyboard.pressed(modifier):
                             keyboard.press(key)
@@ -340,13 +425,13 @@ class Worker(BaseWorker):
             modifier = None
             if self.has_param(item, "modifier"):
                 tmp_modifier = self.get_param(item, "modifier")
-                if tmp_modifier == "ctrl":
+                if tmp_modifier.lower() == "ctrl" or tmp_modifier.lower() == "control":
                     modifier = Key.ctrl
-                elif tmp_modifier == "alt":
+                elif tmp_modifier.lower() == "alt":
                     modifier = Key.alt
-                elif tmp_modifier == "shift":
+                elif tmp_modifier.lower() == "shift":
                     modifier = Key.shift
-                elif tmp_modifier == "cmd":
+                elif tmp_modifier.lower() == "cmd":
                     modifier = Key.cmd
 
             # autofocus on the window
@@ -354,9 +439,10 @@ class Worker(BaseWorker):
                 self.set_focus()
                 time.sleep(1)  # wait for a second
 
-            if key == "super" or key == "start":
+            if key.lower() == "super" or key.lower() == "start":
                 key = Key.cmd
 
+            key = self.remap_key(key)  # remap key if needed
             try:
                 if modifier:
                     with keyboard.pressed(modifier):
@@ -397,13 +483,13 @@ class Worker(BaseWorker):
             modifier = None
             if self.has_param(item, "modifier"):
                 tmp_modifier = self.get_param(item, "modifier")
-                if tmp_modifier == "ctrl":
+                if tmp_modifier.lower() == "ctrl" or tmp_modifier.lower() == "control":
                     modifier = Key.ctrl
-                elif tmp_modifier == "alt":
+                elif tmp_modifier.lower() == "alt":
                     modifier = Key.alt
-                elif tmp_modifier == "shift":
+                elif tmp_modifier.lower() == "shift":
                     modifier = Key.shift
-                elif tmp_modifier == "cmd":
+                elif tmp_modifier.lower() == "cmd":
                     modifier = Key.cmd
 
             # autofocus on the window
@@ -451,6 +537,54 @@ class Worker(BaseWorker):
             mouse.click(Button.left, 1)
         except Exception as e:
             pass
+
+    def remap_key(self, key: str) -> str:
+        """
+        Remap key to a specific format if needed
+
+        :param key: key name
+        :return: remapped key name
+        """
+        mapping = {
+            "PAGEDOWN": Key.page_down,
+            "PAGEUP": Key.page_up,
+            "BACKSPACE": Key.backspace,
+            "RETURN": Key.enter,
+            "ENTER": Key.enter,
+            "ESCAPE": Key.esc,
+            "LEFT": Key.left,
+            "RIGHT": Key.right,
+            "UP": Key.up,
+            "DOWN": Key.down,
+            "SPACE": Key.space,
+            "TAB": Key.tab,
+            "CTRL": Key.ctrl,
+            "CONTROL": Key.ctrl,
+            "ALT": Key.alt,
+            "SHIFT": Key.shift,
+            "CMD": Key.cmd,
+            "SUPER": Key.cmd,  # remap super key to cmd
+            "START": Key.cmd,  # remap start key to cmd
+            "F1": Key.f1,
+            "F2": Key.f2,
+            "F3": Key.f3,
+            "F4": Key.f4,
+            "F5": Key.f5,
+            "F6": Key.f6,
+            "F7": Key.f7,
+            "F8": Key.f8,
+            "F9": Key.f9,
+            "F10": Key.f10,
+            "F11": Key.f11,
+            "F12": Key.f12,
+            "PRINTSCREEN": Key.print_screen,
+            "PRINT_SCREEN": Key.print_screen,
+            "PRTSC": Key.print_screen,
+            "END": Key.end,
+            "HOME": Key.home,
+        }
+        k = key.upper()
+        return mapping.get(k, key)
 
     def get_current(self, item: dict = None) -> dict:
         """
