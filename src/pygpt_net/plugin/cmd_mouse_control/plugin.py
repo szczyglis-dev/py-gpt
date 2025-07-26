@@ -36,6 +36,7 @@ class Plugin(BasePlugin):
             "mouse_move",
             "mouse_click",
             "mouse_scroll",
+            "mouse_drag",
             "get_screenshot",
             "keyboard_key",
             "keyboard_keys",
