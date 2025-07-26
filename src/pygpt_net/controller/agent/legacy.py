@@ -281,9 +281,14 @@ class Legacy:
 
         :param ctx: CtxItem
         """
+        mode = self.window.core.config.get('mode')
         self.prev_output = self.window.core.prompt.get("agent.continue")  # continue if needed...
-        if self.window.core.config.get('agent.continue.always'):
-            self.prev_output = self.window.core.prompt.get("agent.continue.always")  # continue reasoning...
+        if mode == MODE_AGENT:
+            if self.window.core.config.get('agent.continue.always'):
+                self.prev_output = self.window.core.prompt.get("agent.continue.always")  # continue reasoning...
+        elif self.is_inline():
+            if bool(self.window.core.plugins.get_option("agent", "always_continue")):
+                self.prev_output = self.window.core.prompt.get("agent.continue.always")  # continue reasoning...
         if ctx.extra_ctx is not None and ctx.extra_ctx != "":
             self.prev_output = ctx.extra_ctx
 

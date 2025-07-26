@@ -138,6 +138,13 @@ class Config(BaseConfig):
             description="If enabled, plugin will stop after goal is reached.",
         )
         plugin.add_option(
+            "always_continue",
+            type="bool",
+            value=False,
+            label="Always continue",
+            description="If enabled, plugin will always continue to the next iteration, even if the goal is reached.",
+        )
+        plugin.add_option(
             "reverse_roles",
             type="bool",
             value=True,

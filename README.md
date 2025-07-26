@@ -4159,6 +4159,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
 - Added a new remote tool: `Remote MCP` (with configuration in Settings -> Remote Tools).
 - Added a new remote tool: `File Search` (with configuration in Settings -> Remote Tools).
+- Added a new option `Always continue...` to Agent (autonomous) plugin settings.
 
 **2.5.70 (2025-07-26)**
 

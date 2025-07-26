@@ -27,6 +27,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
+    MODE_COMPUTER,
 )
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.provider.core.preset.json_file import JsonFileProvider
@@ -243,6 +244,8 @@ class Presets:
             return MODE_AUDIO
         if preset.research:
             return MODE_RESEARCH
+        if preset.computer:
+            return MODE_COMPUTER
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -314,6 +317,7 @@ class Presets:
                     or (mode == MODE_AGENT_LLAMA and self.items[id].agent_llama) \
                     or (mode == MODE_EXPERT and self.items[id].expert) \
                     or (mode == MODE_RESEARCH and self.items[id].research) \
+                    or (mode == MODE_COMPUTER and self.items[id].computer) \
                     or (mode == MODE_AUDIO and self.items[id].audio):
                 presets[id] = self.items[id]
         return presets

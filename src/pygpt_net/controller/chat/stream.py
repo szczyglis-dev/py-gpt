@@ -82,6 +82,7 @@ class StreamWorker(QObject, QRunnable):
                             self.window.core.debug.info("[chat] Image generation call found")
                             self.ctx.images = [img_path]  # save image path to ctx
                         self.window.core.ctx.update_item(self.ctx)  # update ctx
+                        stopped = True
                         break  # break if error
 
                     etype = None
