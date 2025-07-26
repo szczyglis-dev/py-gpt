@@ -360,42 +360,51 @@ class Worker(BaseWorker):
         """
         keyboard = KeyboardController()
         error = None
+        keys_list = []
+        modifier = None
+        modifiers_list = [
+            "ctrl", "control", "alt", "shift", "cmd", "super"
+        ]
         if self.has_param(item, "keys"):
             keys = self.get_param(item, "keys")
             for key in keys:
-                modifier = None
-                if self.has_param(item, "modifier"):
-                    tmp_modifier = self.get_param(item, "modifier")
-                    if tmp_modifier.lower() == "ctrl" or tmp_modifier.lower() == "control":
-                        modifier = Key.ctrl
-                    elif tmp_modifier.lower() == "alt":
-                        modifier = Key.alt
-                    elif tmp_modifier.lower() == "shift":
-                        modifier = Key.shift
-                    elif tmp_modifier.lower() == "cmd":
-                        modifier = Key.cmd
-
-                # autofocus on the window
-                if self.plugin.get_option_value("auto_focus"):
-                    self.set_focus()
-                    time.sleep(1)  # wait for a second
-
-                if key.lower() == "super" or key.lower() == "start":
-                    key = Key.cmd
-                try:
-                    key = self.remap_key(key)  # remap key if needed
-                    if modifier:
-                        with keyboard.pressed(modifier):
-                            keyboard.press(key)
-                            keyboard.release(key)
+                if isinstance(key, str):
+                    if key.lower() in modifiers_list:
+                        # check if key is modifier
+                        if key.lower() == "ctrl" or key.lower() == "control":
+                            modifier = Key.ctrl
+                        elif key.lower() == "alt":
+                            modifier = Key.alt
+                        elif key.lower() == "shift":
+                            modifier = Key.shift
+                        elif key.lower() == "cmd":
+                            modifier = Key.cmd
+                        elif key.lower() == "super" or key.lower() == "start":
+                            modifier = Key.cmd
                     else:
+                        keys_list.append(self.remap_key(key))  # remap key if needed
+
+        # autofocus on the window
+        if self.plugin.get_option_value("auto_focus"):
+            self.set_focus()
+            time.sleep(1)  # wait for a second
+
+        try:
+            if modifier:
+                with keyboard.pressed(modifier):
+                    for key in keys_list:
                         keyboard.press(key)
                         keyboard.release(key)
-                    time.sleep(0.1)  # small delay between key presses
+                        time.sleep(0.1)
+            else:
+                for key in keys_list:
+                    keyboard.press(key)
+                    keyboard.release(key)
+                    time.sleep(0.1)
 
-                except Exception as e:
-                    error = str(e)
-                    self.log("Error: {}".format(e))
+        except Exception as e:
+            error = str(e)
+            self.log("Error: {}".format(e))
 
         try:
             result = self.get_current(item)

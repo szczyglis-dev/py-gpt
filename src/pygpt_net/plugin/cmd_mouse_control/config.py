@@ -240,13 +240,51 @@ class Config(BaseConfig):
                 {
                     "name": "dx",
                     "type": "int",
-                    "description": "steps to scroll horizontally, positive to the left, negative to the right",
+                    "description": "steps or px to scroll horizontally, positive to the left, negative to the right",
                     "required": True,
                 },
                 {
                     "name": "dy",
                     "type": "int",
-                    "description": "steps to scroll vertically, positive to scroll down, negative to scroll up",
+                    "description": "steps or px to scroll vertically, positive to scroll up, negative to scroll down",
+                    "required": True,
+                },
+                {
+                    "name": "unit",
+                    "type": "str",
+                    "description": "unit of scroll value, enum: pixel|step",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Mouse scroll",
+        )
+        plugin.add_cmd(
+            "mouse_drag",
+            instruction="mouse drag",
+            params=[
+                {
+                    "name": "x",
+                    "type": "int",
+                    "description": "move to initial position X before scrolling",
+                    "required": False,
+                },
+                {
+                    "name": "y",
+                    "type": "int",
+                    "description": "move to initial position Y before scrolling",
+                    "required": False,
+                },
+                {
+                    "name": "dx",
+                    "type": "int",
+                    "description": "px to drag horizontally, positive to the left, negative to the right",
+                    "required": True,
+                },
+                {
+                    "name": "dy",
+                    "type": "int",
+                    "description": "px to drag vertically, positive to scroll down, negative to scroll up",
                     "required": True,
                 },
             ],

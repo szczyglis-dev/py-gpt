@@ -430,3 +430,5 @@ You can change the environment in which the navigation mode operates by using th
 * Linux
 * Windows
 * Mac
+
+**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer Use mode — it is already connected to Computer Use mode "in the background."

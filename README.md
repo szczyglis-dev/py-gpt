@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.70** | build: **2025-07-26** | Python: **>=3.10, <3.13**
+Release: **2.5.71** | build: **2025-07-26** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -799,6 +799,8 @@ You can change the environment in which the navigation mode operates by using th
 - Linux
 - Windows
 - Mac
+
+**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer Use mode—it is already connected to Computer Use mode "in the background."
 
 
 # Context and memory
@@ -4151,6 +4153,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.71 (2025-07-26)**
+
+- Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
+- Added a new remote tool: `Remote MCP` (with configuration in Settings -> Remote Tools).
+- Added a new remote tool: `File Search` (with configuration in Settings -> Remote Tools).
 
 **2.5.70 (2025-07-26)**
 
