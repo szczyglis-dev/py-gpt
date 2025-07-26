@@ -149,7 +149,7 @@ class Responses:
         if (not model.id.startswith("o1")
                 and not model.id.startswith("o3")):  # o1, o3, o4 models do not support tools
 
-            if mode == MODE_COMPUTER:
+            if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
                 if not model.id in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
                     tools.append(self.window.core.gpt.computer.get_tool())
             else:
@@ -209,7 +209,7 @@ class Responses:
             response_kwargs['instructions'] = system_prompt
 
         # http://platform.openai.com/docs/guides/tools-computer-use
-        if mode == MODE_COMPUTER:
+        if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
             response_kwargs['truncation'] = "auto"
             response_kwargs['reasoning'] = {
                 "summary": "concise",
@@ -612,6 +612,9 @@ class Responses:
         allowed = False  # default is not to use responses API
         if model is not None:
             if model.is_gpt():
+                if model.id.startswith("computer-use"):
+                    return True
+
                 # check mode
                 if (mode in self.RESPONSES_ALLOWED_MODES
                         and parent_mode in self.RESPONSES_ALLOWED_MODES
