@@ -3,7 +3,7 @@
     "name": "*",
     "ai_name": "",
     "user_name": "",
-    "prompt": "",
+    "prompt": "You are a helpful assistant.",
     "chat": false,
     "completion": false,
     "img": false,

@@ -80,6 +80,7 @@ class Presets:
         curr_agent_llama = self.build()
         curr_expert = self.build()
         curr_audio = self.build()
+        curr_computer = self.build()
 
         # prepare ids
         id_chat = 'current.chat'
@@ -93,6 +94,7 @@ class Presets:
         id_agent_llama = 'current.agent_llama'
         id_expert = 'current.expert'
         id_audio = 'current.audio'
+        id_computer = 'current.computer'
 
         # set default initial prompt for chat mode
         curr_chat.prompt = self.window.core.prompt.get('default')
@@ -120,6 +122,8 @@ class Presets:
             curr_expert = self.items[id_expert]
         if id_audio in self.items:
             curr_audio = self.items[id_audio]
+        if id_computer in self.items:
+            curr_computer = self.items[id_computer]
 
         # allow usage in specific mode
         curr_chat.chat = True
@@ -133,6 +137,7 @@ class Presets:
         curr_agent_llama.agent_llama = True
         curr_expert.expert = True
         curr_audio.audio = True
+        curr_computer.computer = True
 
         # always apply default name
         curr_chat.name = '*'
@@ -146,6 +151,7 @@ class Presets:
         curr_agent_llama.name = '*'
         curr_expert.name = '*'
         curr_audio.name = '*'
+        curr_computer.name = '*'
 
         # append at first position
         self.items = {
@@ -160,6 +166,7 @@ class Presets:
             id_agent_llama: curr_agent_llama,
             id_expert: curr_expert,
             id_audio: curr_audio,
+            id_computer: curr_computer,
             **self.items
         }
 
