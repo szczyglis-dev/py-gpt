@@ -45,6 +45,7 @@ class StreamWorker(QObject, QRunnable):
         is_image = False
         is_code = False
         force_func_call = False
+        stopped = False
 
         data = {
             "meta": self.ctx.meta,
@@ -59,8 +60,28 @@ class StreamWorker(QObject, QRunnable):
                 for chunk in self.ctx.stream:
                     # if force stop then break
                     if self.window.controller.kernel.stopped():
-                        break
+                        # save current context
+                        if tool_calls:
+                            self.ctx.force_call = force_func_call
+                            self.window.core.debug.info("[chat] Tool calls found, unpacking...")
+                            self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls, append_output=True)
+                        # append images
+                        if is_image:
+                            self.window.core.debug.info("[chat] Image generation call found")
+                            self.ctx.images = [img_path]  # save image path to ctx
+                        self.window.core.ctx.update_item(self.ctx)  # update ctx
+                        stopped = True
                     if error is not None:
+                        # save current context
+                        if tool_calls:
+                            self.ctx.force_call = force_func_call
+                            self.window.core.debug.info("[chat] Tool calls found, unpacking...")
+                            self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls, append_output=True)
+                        # append images
+                        if is_image:
+                            self.window.core.debug.info("[chat] Image generation call found")
+                            self.ctx.images = [img_path]  # save image path to ctx
+                        self.window.core.ctx.update_item(self.ctx)  # update ctx
                         break  # break if error
 
                     etype = None
@@ -219,7 +240,6 @@ class StreamWorker(QObject, QRunnable):
                            if has_calls:
                                force_func_call = True  # force function call if computer use found
 
-
                         # ---------- code interpreter ----------
                         elif etype == "response.code_interpreter_call_code.delta":
                             if not is_code:
@@ -298,7 +318,7 @@ class StreamWorker(QObject, QRunnable):
                         if chunk is not None:
                             response = str(chunk)
 
-                    if response is not None and response != "":
+                    if response is not None and response != "" and not stopped:
                         if begin and response == "":  # prevent empty beginning
                             continue
                         output += response
@@ -330,6 +350,10 @@ class StreamWorker(QObject, QRunnable):
         # update ctx
         self.ctx.output = output
         self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+        self.window.core.ctx.update_item(self.ctx)  # update ctx
+
+        if stopped:
+            return
 
         # if files from container are found, download them and append to ctx
         if files:
