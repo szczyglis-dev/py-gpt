@@ -2135,6 +2135,9 @@ class Patch:
                 if 'cmd_mouse_control' in data['plugins'] \
                         and 'cmd.mouse_scroll' in data['plugins']['cmd_mouse_control']:
                     del data['plugins']['cmd_mouse_control']['cmd.mouse_scroll']
+                if 'cmd_mouse_control' in data['plugins'] \
+                        and 'cmd.keyboard_type' in data['plugins']['cmd_mouse_control']:
+                    del data['plugins']['cmd_mouse_control']['cmd.keyboard_type']
                 updated = True
 
         # update file

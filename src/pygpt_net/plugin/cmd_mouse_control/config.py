@@ -313,19 +313,13 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "keyboard_keys",
-            instruction="press keyboard keys in sequence",
+            instruction="press multiple keyboard keys at once",
             params=[
                 {
                     "name": "keys",
                     "type": "list",
                     "description": "keys to press",
                     "required": True,
-                },
-                {
-                    "name": "modifier",
-                    "type": "str",
-                    "description": "modifier key, enum: shift|ctrl|alt|cmd",
-                    "required": False,
                 },
             ],
             enabled=True,
@@ -345,7 +339,7 @@ class Config(BaseConfig):
                     "name": "modifier",
                     "type": "str",
                     "description": "modifier key, enum: shift|ctrl|alt|cmd",
-                    "required": True,
+                    "required": False,
                 },
             ],
             enabled=True,
