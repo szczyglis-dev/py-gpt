@@ -46,6 +46,7 @@ class StreamWorker(QObject, QRunnable):
         is_code = False
         force_func_call = False
         stopped = False
+        chunk_type = "raw"
 
         data = {
             "meta": self.ctx.meta,
@@ -71,6 +72,9 @@ class StreamWorker(QObject, QRunnable):
                             self.ctx.images = [img_path]  # save image path to ctx
                         self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
+                        if chunk_type not in ["api_chat_responses", "api_chat"]:
+                            # allow for streaming end to store all tool calls in above case
+                            break
                     if error is not None:
                         # save current context
                         if tool_calls:
@@ -83,7 +87,9 @@ class StreamWorker(QObject, QRunnable):
                             self.ctx.images = [img_path]  # save image path to ctx
                         self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
-                        break  # break if error
+                        if chunk_type not in ["api_chat_responses", "api_chat"]:
+                            # allow for streaming end to store all tool calls in above case
+                            break
 
                     etype = None
                     response = None
