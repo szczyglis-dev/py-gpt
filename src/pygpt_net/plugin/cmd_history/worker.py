@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -170,15 +170,15 @@ class Worker(BaseWorker):
         day = None
         if self.has_param(item, "year"):
             tmp_year = self.get_param(item, "year", "")
-            if tmp_year != "":
+            if tmp_year:
                 year = int(tmp_year)
         if self.has_param(item, "month"):
             tmp_month = self.get_param(item, "month", "")
-            if tmp_month != "":
+            if tmp_month:
                 month = int(tmp_month)
         if self.has_param(item, "day"):
             tmp_day = self.get_param(item, "day", "")
-            if tmp_day != "":
+            if tmp_day:
                 day = int(tmp_day)
         result = self.plugin.count_ctx_in_date(year, month, day)
         return self.make_response(item, result)
