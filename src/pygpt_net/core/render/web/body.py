@@ -511,18 +511,9 @@ class Body:
               });
         }
         function scrollToBottom() {
+            window.scrollTo(0, document.body.scrollHeight);
+            prevScroll = document.body.scrollHeight;
             getScrollPosition();  // store using bridge
-            if (scrollTimeout !== null) {
-                return;
-            }
-            if (document.body.scrollHeight > prevScroll) {
-                scrollTimeout = setTimeout(function() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    prevScroll = document.body.scrollHeight;
-                    getScrollPosition();  // store using bridge
-                    scrollTimeout = null;
-                }, 30);
-            }
         }
         function appendToInput(content) {
             const element = document.getElementById('_append_input_');

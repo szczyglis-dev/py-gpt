@@ -239,7 +239,8 @@ class Renderer(BaseRenderer):
         
         :param meta: context meta
         :param ctx: context item
-        """
+        """        
+        self.prev_chunk_replace = False
         try:
             self.get_output_node(meta).page().runJavaScript("beginStream();")
         except Exception as e:
@@ -256,6 +257,7 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param ctx: context item
         """
+        self.prev_chunk_replace = False
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
@@ -857,6 +859,7 @@ class Renderer(BaseRenderer):
         self.pids[pid].files_appended = []
         self.get_output_node_by_pid(pid).reset_current_content()
         self.reset_names_by_pid(pid)
+        self.prev_chunk_replace = False
 
     def clear_input(self):
         """Clear input"""
@@ -871,6 +874,7 @@ class Renderer(BaseRenderer):
 
         :param meta: Context meta
         """
+        self.prev_chunk_replace = False
         self.reset(meta)
 
     def clear_chunks(self, pid):
@@ -914,6 +918,7 @@ class Renderer(BaseRenderer):
 
         :pid: context PID
         """
+        self.prev_chunk_replace = False
         if not self.pids[pid].loaded:
             js = "var element = document.getElementById('_append_output_');"
             js += "if (element) { element.innerHTML = ''; }"
