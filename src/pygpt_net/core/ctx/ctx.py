@@ -97,9 +97,9 @@ class Ctx:
             MODE_AGENT: self.all_modes,
             MODE_EXPERT: self.all_modes,
             MODE_AUDIO: self.all_modes,
-            MODE_AGENT_LLAMA: [MODE_AGENT_LLAMA],
+            MODE_AGENT_LLAMA: self.all_modes,
             MODE_RESEARCH: self.all_modes,
-            MODE_COMPUTER: [MODE_COMPUTER],
+            MODE_COMPUTER: self.all_modes,
         }
         self.current_sys_prompt = ""
         self.groups_loaded = False
