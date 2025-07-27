@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.73 (2025-07-28)
+
+- Stream rendering optimization, reduced CPU usage.
+- Fix: do not automatically add tools to the agent when the inline plugin is enabled but the Tools option is not enabled.
+- Fix: corrected saving of the last context element when the stream is interrupted.
+
 ## 2.5.72 (2025-07-27)
 
 - Improved stop command.

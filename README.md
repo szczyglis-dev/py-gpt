@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.72** | build: **2025-07-27** | Python: **>=3.10, <3.13**
+Release: **2.5.73** | build: **2025-07-28** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4153,6 +4153,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.73 (2025-07-28)**
+
+- Stream rendering optimization, reduced CPU usage.
+- Fix: do not automatically add tools to the agent when the inline plugin is enabled but the Tools option is not enabled.
+- Fix: corrected saving of the last context element when the stream is interrupted.
 
 **2.5.72 (2025-07-27)**
 
