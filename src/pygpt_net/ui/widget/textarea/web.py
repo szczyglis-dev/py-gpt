@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import re
@@ -335,6 +335,15 @@ class Bridge(QObject):
     def __init__(self, window):
         super(Bridge, self).__init__(window)
         self.window = window
+
+    @Slot(str)
+    def log(self, text: str):
+        """
+        Log message from JS
+
+        :param text: text
+        """
+        print(f"JS log: {text}")
 
     @Slot(str)
     def copy_text(self, text: str):
