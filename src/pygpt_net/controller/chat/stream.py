@@ -47,7 +47,7 @@ class StreamWorker(QObject, QRunnable):
         force_func_call = False
         stopped = False
         chunk_type = "raw"
-
+        response = None
         data = {
             "meta": self.ctx.meta,
             "ctx": self.ctx
@@ -60,7 +60,7 @@ class StreamWorker(QObject, QRunnable):
                 tool_calls = []
                 for chunk in self.ctx.stream:
                     # if force stop then break
-                    if self.window.controller.kernel.stopped():
+                    if self.window.controller.kernel.stopped() and not stopped:
                         # save current context
                         if tool_calls:
                             self.ctx.force_call = force_func_call
@@ -70,11 +70,13 @@ class StreamWorker(QObject, QRunnable):
                         if is_image:
                             self.window.core.debug.info("[chat] Image generation call found")
                             self.ctx.images = [img_path]  # save image path to ctx
+                        self.ctx.output = output
+                        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+                        self.ctx.msg_id = None  # reset message ID
                         self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
-                        if chunk_type not in ["api_chat_responses", "api_chat"]:
-                            # allow for streaming end to store all tool calls in above case
-                            break
+                        self.end.emit(self.ctx)
+                        break
                     if error is not None:
                         # save current context
                         if tool_calls:
@@ -85,15 +87,16 @@ class StreamWorker(QObject, QRunnable):
                         if is_image:
                             self.window.core.debug.info("[chat] Image generation call found")
                             self.ctx.images = [img_path]  # save image path to ctx
+                        self.ctx.output = output
+                        self.ctx.msg_id = None  # reset message ID
+                        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
                         self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
-                        if chunk_type not in ["api_chat_responses", "api_chat"]:
-                            # allow for streaming end to store all tool calls in above case
-                            break
+                        self.end.emit(self.ctx)
+                        break
 
                     etype = None
                     response = None
-                    chunk_type = "raw"
 
                     if self.ctx.use_responses_api:
                         if hasattr(chunk, 'type'):  # streaming event type
@@ -118,6 +121,8 @@ class StreamWorker(QObject, QRunnable):
                         elif (hasattr(chunk, 'delta')
                               and chunk.delta is not None):
                             chunk_type = "llama_chat"
+                        else:
+                            chunk_type = "raw"
 
                     # OpenAI chat completion
                     if chunk_type == "api_chat":
@@ -356,22 +361,21 @@ class StreamWorker(QObject, QRunnable):
             error = e
 
         # update ctx
-        self.ctx.output = output
-        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
-        self.window.core.ctx.update_item(self.ctx)  # update ctx
+        if not stopped:
+            self.ctx.output = output
+            self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+            self.window.core.ctx.update_item(self.ctx)  # update ctx
 
-        if stopped:
-            return
+            # if files from container are found, download them and append to ctx
+            if files:
+                self.window.core.debug.info("[chat] Container files found, downloading...")
+                try:
+                    self.window.core.gpt.container.download_files(self.ctx, files)
+                except Exception as e:
+                    self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
-        # if files from container are found, download them and append to ctx
-        if files:
-            self.window.core.debug.info("[chat] Container files found, downloading...")
-            try:
-                self.window.core.gpt.container.download_files(self.ctx, files)
-            except Exception as e:
-                self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
+            self.end.emit(self.ctx)
 
-        self.end.emit(self.ctx)
         if error:
             self.errorOccurred.emit(error)
 
