@@ -5,6 +5,7 @@
 - Stream rendering optimization, reduced CPU usage.
 - Fix: do not automatically add tools to the agent when the inline plugin is enabled but the Tools option is not enabled.
 - Fix: corrected saving of the last context element when the stream is interrupted.
+- Fix: unlock response regeneration after stopped event.
 
 ## 2.5.72 (2025-07-27)
 

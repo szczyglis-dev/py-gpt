@@ -123,6 +123,7 @@ class Extra:
 
     def edit_submit(self):
         """Submit edit"""
+        self.window.controller.kernel.resume()
         item_id = self.window.controller.ctx.edit_item_id
         meta_id = self.window.controller.ctx.edit_meta_id
         current_meta_id = self.window.core.ctx.get_current()
@@ -172,6 +173,7 @@ class Extra:
         :param item_id: ctx item id
         :param force: Force regenerate
         """
+        self.window.controller.kernel.resume()
         if not force:
             self.window.ui.dialogs.confirm(
                 type='ctx.replay_item',
@@ -210,6 +212,7 @@ class Extra:
 
         :param item_id: ctx item id
         """
+        self.window.controller.kernel.resume()
         item = self.window.core.ctx.get_item_by_id(item_id)
         if item is not None:
             if self.audio_play_id is None or self.audio_play_id != item_id:
@@ -235,6 +238,7 @@ class Extra:
         :param item_id: ctx item id
         :param force: Force join
         """
+        self.window.controller.kernel.resume()
         if not force:
             self.window.ui.dialogs.confirm(
                 type='ctx.join_item',
