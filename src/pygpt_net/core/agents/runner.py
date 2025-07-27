@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -106,7 +106,7 @@ class Runner:
                     history.insert(0, msg)
 
             # disable tools if cmd is not enabled
-            if not self.window.core.command.is_cmd():
+            if not self.window.core.command.is_cmd(inline=False):
                 tools = []
                 plugin_tools = []
                 plugin_specs = []

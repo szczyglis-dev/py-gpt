@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -660,10 +660,11 @@ class Command:
         # otherwise check config
         return self.window.core.config.get('func_call.native', False)
 
-    def is_cmd(self):
+    def is_cmd(self, inline: bool = True) -> bool:
         """
         Check if tool execute is enabled
 
+        :param inline: check if inline plugin is enabled
         :return: True if command is enabled
         """
         # check if cmd is enabled in config
@@ -671,7 +672,7 @@ class Command:
             return True
 
         # check if cmd inline plugin is enabled
-        if self.window.controller.plugins.is_type_enabled("cmd.inline"):
+        if inline and self.window.controller.plugins.is_type_enabled("cmd.inline"):
             return True
 
         return False
