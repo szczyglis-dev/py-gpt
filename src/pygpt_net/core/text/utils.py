@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.07 01:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import re
@@ -89,6 +89,7 @@ def has_unclosed_code_tag(text: str) -> bool:
     """
     if text is None:
         return False
-    if re.search(r'```(?!.*```)', text):
+    code_blocks = re.findall(r'```', text)
+    if len(code_blocks) % 2 != 0:
         return True
     return False
