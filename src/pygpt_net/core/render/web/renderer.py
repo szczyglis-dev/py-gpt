@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import json
@@ -46,6 +46,7 @@ class Renderer(BaseRenderer):
         self.helpers = Helpers(window)
         self.parser = Parser(window)
         self.pids = {}  # per node data
+        self.prev_chunk_replace = False
 
     def prepare(self):
         """
@@ -191,6 +192,7 @@ class Renderer(BaseRenderer):
         self.init(pid)
         self.reset_names(meta)
         self.tool_output_end()  # reset tools
+        self.prev_chunk_replace = False
 
     def end(
             self,
@@ -238,7 +240,10 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param ctx: context item
         """
-        pass
+        try:
+            self.get_output_node(meta).page().runJavaScript("beginStream();")
+        except Exception as e:
+            pass
 
     def stream_end(
             self,
@@ -258,6 +263,10 @@ class Renderer(BaseRenderer):
             if self.pids[pid].item is not None:
                 self.append_context_item(meta, self.pids[pid].item)
                 self.pids[pid].item = None
+        try:
+            self.get_output_node(meta).page().runJavaScript("endStream();")
+        except Exception as e:
+            pass
 
     def append_context(
             self,
@@ -439,6 +448,8 @@ class Renderer(BaseRenderer):
             self.pids[pid].buffer = ""  # reset buffer
             self.pids[pid].is_cmd = False  # reset command flag
             self.clear_chunks_output(pid)
+            self.prev_chunk_replace = False
+
         self.pids[pid].buffer += raw_chunk
 
         """
@@ -452,14 +463,44 @@ class Renderer(BaseRenderer):
         """
 
         # parse chunks
-        to_append = self.pids[pid].buffer
+        buffer = self.pids[pid].buffer
         if has_unclosed_code_tag(self.pids[pid].buffer):
-            to_append += "\n```"  # fix for code block without closing ```
-        html = self.parser.parse(to_append)
-        escaped_chunk = json.dumps(html)
+            buffer += "\n```"  # fix for code block without closing ```
+        html = self.parser.parse(buffer)
+        is_code_block = html.endswith("</code></pre></div>") or html.endswith("</code></pre></div><br/>") or html.endswith("</code></pre></div><br>")
+        is_newline = "\n" in raw_chunk or buffer.endswith("\n") or is_code_block
+        replace = "false"
+        if is_newline:
+            replace = "true"
+            if is_code_block:
+                # don't replace if it is a code block
+                if "\n" not in raw_chunk:
+                    # if there is no newline in raw_chunk, then don't replace
+                    replace = "false"
+            if replace == "true":
+                html += "<br/>"  # add line break at the end
+
+        # if prev replace and current code block then add \n to chunk
+        code_block_arg = "false"
+        if is_code_block:
+            code_block_arg = "true"
+        if not is_code_block:
+            raw_chunk = raw_chunk.replace("\n", "<br/>")
+        else:
+            if self.prev_chunk_replace and not has_unclosed_code_tag(raw_chunk):
+                # if previous chunk was replaced and current is code block, then add \n to chunk
+                raw_chunk = "\n" + raw_chunk  # add newline to chunk
+        escaped_chunk = json.dumps(raw_chunk)
+        escaped_buffer = json.dumps(html)
+
+        if replace == "true":
+            self.prev_chunk_replace = True
+        else:
+            self.prev_chunk_replace = False
+
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"replaceOutput('{self.pids[pid].name_bot}', {escaped_chunk});")
+                f"appendStream('{self.pids[pid].name_bot}', {escaped_buffer}, {escaped_chunk}, {replace}, {code_block_arg});")
         except Exception as e:
             pass
 

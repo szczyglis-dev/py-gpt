@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import os
@@ -442,7 +442,13 @@ class Body:
         new QWebChannel(qt.webChannelTransport, function (channel) {
             bridge = channel.objects.bridge;
         });
-        var collapsed_idx = [];
+        let collapsed_idx = [];
+        let domOutputStream = document.getElementById('_append_output_');
+        let domOutput = document.getElementById('_output_');
+        let domInput = document.getElementById('_input_');
+        let domLastCodeBlock = null;
+        let htmlBuffer = "";
+        
         history.scrollRestoration = "manual";
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'f') {
@@ -459,6 +465,11 @@ class Body:
                 window.location.href = 'bridge://focus';
             }
         });
+        function log(text) {
+            if (bridge) {
+                bridge.log(text);
+            }
+        }
         function prepare() {        
             collapsed_idx = [];  // clear collapsed code
         }
@@ -473,11 +484,13 @@ class Body:
             });
             return doc.documentElement.outerHTML;
         }
-        function highlightCode() {
+        function highlightCode(withMath = true) {
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
             });
-            renderMath();         
+            if (withMath) {
+                renderMath();
+            }  
             restoreCollapsedCode();   
         }
         function renderMath() {
@@ -600,8 +613,117 @@ class Body:
             highlightCode();
             scrollToBottom();
         }
+        function getStreamContainer() {
+            let element;
+            if (domOutputStream) {
+                element = domOutputStream;
+            } else {            
+                element = document.getElementById('_append_output_');
+                if (element) {
+                    domOutputStream = element;
+                }
+            }  
+            return element;
+        }        
+        function clearStream() {
+            domLastCodeBlock = null;
+            domOutputStream = null;
+            const element = getStreamContainer();
+            let msg;
+            if (element) {
+                let box = element.querySelector('.msg-box');
+                let msg;
+                if (!box) {
+                    box = document.createElement('div');
+                    box.classList.add('msg-box');
+                    box.classList.add('msg-bot');
+                    const name = document.createElement('div');
+                    name.classList.add('name-header');
+                    name.classList.add('name-bot');
+                    name.textContent = bot_name;
+                    msg = document.createElement('div');
+                    msg.classList.add('msg');
+                    box.appendChild(name);
+                    box.appendChild(msg);
+                    element.appendChild(box);
+                } else {
+                    msg = box.querySelector('.msg');
+                }
+                if (msg) {
+                    msg.innerHTML = ''; // clear previous content
+                }
+            }
+        }
+        function beginStream() {
+            clearOutput();
+        }
+        function endStream() {
+            clearOutput();
+        }
+        function appendStream(bot_name, content, chunk, replace = false, is_code_block = false) {
+            const element = getStreamContainer();
+            doHighlight = true;
+            doMath = true;
+            let msg;
+            if (element) {
+                let box = element.querySelector('.msg-box');
+                let msg;
+                if (!box) {
+                    box = document.createElement('div');
+                    box.classList.add('msg-box');
+                    box.classList.add('msg-bot');
+                    const name = document.createElement('div');
+                    name.classList.add('name-header');
+                    name.classList.add('name-bot');
+                    name.textContent = bot_name;
+                    msg = document.createElement('div');
+                    msg.classList.add('msg');
+                    box.appendChild(name);
+                    box.appendChild(msg);
+                    element.appendChild(box);
+                } else {
+                    msg = box.querySelector('.msg');
+                }
+                if (msg) {
+                    if (replace) {
+                        msg.innerHTML = sanitize(content);
+                        domLastCodeBlock = null; // reset last code block
+                    } else {
+                        if (is_code_block) {
+                            let lastCodeBlock;
+                            if (domLastCodeBlock) {
+                                lastCodeBlock = domLastCodeBlock;
+                            } else {
+                                lastCodeBlock = msg.querySelector('pre code:last-of-type');
+                            }
+                            if (lastCodeBlock) {
+                                // append to last code block
+                                lastCodeBlock.innerHTML += chunk;
+                                domLastCodeBlock = lastCodeBlock;
+                                doHighlight = false;
+                            } else {
+                                // if no code block, append chunk as normal text
+                                msg.innerHTML += chunk; // append chunk
+                                domLastCodeBlock = null; // reset last code block
+                            }
+                            doMath = false; // disable math rendering for code blocks
+                        } else {
+                            domLastCodeBlock = null; // reset last code block
+                            msg.innerHTML += chunk; // append chunk
+                            doHighlight = false;
+                        }
+                    }
+                }
+            }
+            if (replace) {
+                if (doHighlight) {
+                    highlightCode(doMath);  // with or without math
+                }
+                scrollToBottom();
+            }    
+        }
         function replaceOutput(bot_name, content) {
-            const element = document.getElementById('_append_output_');
+            const element = getStreamContainer();
             if (element) {
                 let box = element.querySelector('.msg-box');
                 let msg;
@@ -758,6 +880,7 @@ class Body:
             }
         }
         function clearOutput() {
+            domLastCodeBlock = null;
             const element = document.getElementById('_append_output_');
             if (element) {
                 element.textContent = '';

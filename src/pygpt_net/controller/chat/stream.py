@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.28 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -18,6 +18,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types import MODE_ASSISTANT
+from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -60,39 +61,13 @@ class StreamWorker(QObject, QRunnable):
                 tool_calls = []
                 for chunk in self.ctx.stream:
                     # if force stop then break
-                    if self.window.controller.kernel.stopped() and not stopped:
-                        # save current context
-                        if tool_calls:
-                            self.ctx.force_call = force_func_call
-                            self.window.core.debug.info("[chat] Tool calls found, unpacking...")
-                            self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls, append_output=True)
-                        # append images
-                        if is_image:
-                            self.window.core.debug.info("[chat] Image generation call found")
-                            self.ctx.images = [img_path]  # save image path to ctx
-                        self.ctx.output = output
-                        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+                    if self.window.controller.kernel.stopped():
                         self.ctx.msg_id = None  # reset message ID
-                        self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
-                        self.end.emit(self.ctx)
                         break
                     if error is not None:
-                        # save current context
-                        if tool_calls:
-                            self.ctx.force_call = force_func_call
-                            self.window.core.debug.info("[chat] Tool calls found, unpacking...")
-                            self.window.core.command.unpack_tool_calls_chunks(self.ctx, tool_calls, append_output=True)
-                        # append images
-                        if is_image:
-                            self.window.core.debug.info("[chat] Image generation call found")
-                            self.ctx.images = [img_path]  # save image path to ctx
-                        self.ctx.output = output
                         self.ctx.msg_id = None  # reset message ID
-                        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
-                        self.window.core.ctx.update_item(self.ctx)  # update ctx
                         stopped = True
-                        self.end.emit(self.ctx)
                         break
 
                     etype = None
@@ -360,22 +335,26 @@ class StreamWorker(QObject, QRunnable):
         except Exception as e:
             error = e
 
+
+        # fix unclosed code block
+        if has_unclosed_code_tag(output):
+            output += "\n```"
+
         # update ctx
-        if not stopped:
-            self.ctx.output = output
-            self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
-            self.window.core.ctx.update_item(self.ctx)  # update ctx
+        self.ctx.output = output
+        self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
+        self.window.core.ctx.update_item(self.ctx)  # update ctx
 
-            # if files from container are found, download them and append to ctx
-            if files:
-                self.window.core.debug.info("[chat] Container files found, downloading...")
-                try:
-                    self.window.core.gpt.container.download_files(self.ctx, files)
-                except Exception as e:
-                    self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
+        # if files from container are found, download them and append to ctx
+        if files and not stopped:
+            self.window.core.debug.info("[chat] Container files found, downloading...")
+            try:
+                self.window.core.gpt.container.download_files(self.ctx, files)
+            except Exception as e:
+                self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
-            self.end.emit(self.ctx)
-
+        # handle end
+        self.end.emit(self.ctx)
         if error:
             self.errorOccurred.emit(error)
 
