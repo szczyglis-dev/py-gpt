@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.74 (2025-07-28)
+
+- Fix: mouse buttons handling in Computer use mode.
+- Added double click handler.
+
 ## 2.5.73 (2025-07-28)
 
 - Stream rendering optimization, reduced CPU usage.

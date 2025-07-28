@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.73** | build: **2025-07-28** | Python: **>=3.10, <3.13**
+Release: **2.5.74** | build: **2025-07-28** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4153,6 +4153,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.74 (2025-07-28)**
+
+- Fix: mouse buttons handling in Computer use mode.
+- Added double click handler.
 
 **2.5.73 (2025-07-28)**
 
