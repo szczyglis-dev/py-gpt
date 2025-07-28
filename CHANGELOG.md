@@ -3,7 +3,7 @@
 ## 2.5.73 (2025-07-28)
 
 - Stream rendering optimization, reduced CPU usage.
-- Improved auto-scroll in streaming.
+- Fix: < and > rendering in math formulas.
 - Fix: do not automatically add tools to the agent when the inline plugin is enabled but the Tools option is not enabled.
 - Fix: corrected saving of the last context element when the stream is interrupted.
 - Fix: unlock response regeneration after stopped event.

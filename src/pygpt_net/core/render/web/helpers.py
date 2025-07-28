@@ -30,6 +30,7 @@ class Helpers:
         :param text:
         :return: replaced text
         """
+        # tool tags
         pattern = r"&lt;tool&gt;(.*?)&lt;/tool&gt;"
         def repl(match):
             code = match.group(1)
@@ -38,7 +39,17 @@ class Helpers:
             code = code.replace("&gt;", ">")
             escaped_code = html.escape(code)
             return f'<p class="cmd">{escaped_code}</p>'
-        return re.sub(pattern, repl, text, flags=re.DOTALL)
+        text = re.sub(pattern, repl, text, flags=re.DOTALL)
+
+        # fix math formula
+        pattern = r"\\\((.*?)\\\)"
+        def repl_math(match):
+            code = match.group(1)
+            code = code.replace("&lt;", "<")
+            code = code.replace("&gt;", ">")
+            return f"\\({code}\\)"
+        text = re.sub(pattern, repl_math, text, flags=re.DOTALL)
+        return text
 
     def pre_format_text(self, text: str) -> str:
         """
