@@ -44,6 +44,9 @@ p {{
     margin-top: 5px;
     margin-bottom: 5px;
 }}
+.msg p:first-of-type {{
+   margin-top: 0px;
+}}
 
 /* images */
 .image {{
