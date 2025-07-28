@@ -263,38 +263,40 @@ code {{
     cursor: pointer;
 }}
 .extra-src-img-box .title {{
-    width: 320px;
+    max-width: 150px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     display: block;
     text-align: center;
     padding: 0;
-    margin: 0;
+    margin: auto;
     padding-top: 10px;
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.75rem;
+    width: auto;
 }}
 .extra-src-img-box .img-outer {{
     display: flex;
     flex-direction: column;
+    width: auto;
 }}
 .extra-src-img-box .img-wrapper {{
     position: relative;
     overflow: hidden;
-    border: 1px solid #000;
-    background: #000;
-    width: 320px;
-    height: 280px;
+    border: none;
+    background: transparent;
+    max-width: 250px;
+    height: 150px;
     margin: 0;
     margin-bottom: 0px !important;
     border-radius: 5px;
-    -webkit-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
-    -moz-box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
-    box-shadow: 8px 8px 22px -16px rgba(0, 0, 0, 1);
+    width: auto;
 }}
 .extra-src-img-box .img-wrapper:hover {{
-    border: 1px solid gray;
+    cursor: pointer;
+    border: none;
+    filter: brightness(105%);
 }}
 .extra-src-img-box img {{
     margin-bottom: 2px;
@@ -302,7 +304,7 @@ code {{
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }}
 
 /* common */

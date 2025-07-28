@@ -268,36 +268,39 @@ code {{
     cursor: pointer;
 }}
 .extra-src-img-box .title {{
-    width: 250px;
+    max-width: 150px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     display: block;
     text-align: center;
     padding: 0;
-    margin: 0;
+    margin: auto;
     padding-top: 10px;
     display: block;
     font-size: 0.75rem;
+    width: auto;
 }}
 .extra-src-img-box .img-outer {{
     display: flex;
     flex-direction: column;
+    width: auto;
 }}
 .extra-src-img-box .img-wrapper {{
     position: relative;
     overflow: hidden;
     border: none;
-    background: #000;
-    width: 250px;
-    height: 200px;
+    background: transparent;
+    max-width: 250px;
+    height: 150px;
     margin: 0;
     margin-bottom: 0px !important;
     border-radius: 5px;
+    width: auto;
 }}
 .extra-src-img-box .img-wrapper:hover {{
     cursor: pointer;
-         border: none;
+    border: none;
     filter: brightness(105%);
 }}
 .extra-src-img-box img {{

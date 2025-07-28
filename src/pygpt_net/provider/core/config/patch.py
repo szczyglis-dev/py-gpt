@@ -2140,6 +2140,16 @@ class Patch:
                     del data['plugins']['cmd_mouse_control']['cmd.keyboard_type']
                 updated = True
 
+            # < 2.5.73
+            if old < parse_version("2.5.73"):
+                print("Migrating config from < 2.5.73...")
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:
