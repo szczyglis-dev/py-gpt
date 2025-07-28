@@ -183,9 +183,7 @@ code {{
     width: fit-content;
     min-width: 10px;
     max-width: 75%;
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 10px;
     margin-top: 10px;
     margin-left: auto;
     margin-bottom: 5px;
