@@ -41,11 +41,11 @@ a:hover {{
     text-decoration: underline;
 }}
 p {{ 
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 0px;
+    margin-bottom:0px;
 }}
-.msg p:first-of-type {{
-   margin-top: 0px;
+.msg {{
+   margin-top: 5px;
 }}
 
 /* images */
