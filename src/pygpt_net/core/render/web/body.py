@@ -685,7 +685,7 @@ class Body:
                             if (domLastCodeBlock) {
                                 lastCodeBlock = domLastCodeBlock;
                             } else {
-                                lastCodeBlock = msg.querySelector('pre code:last-of-type');
+                                lastCodeBlock = msg.querySelector('pre code:last');
                             }
                             if (lastCodeBlock) {
                                 // append to last code block
