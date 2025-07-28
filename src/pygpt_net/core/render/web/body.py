@@ -688,12 +688,10 @@ class Body:
                                 // find last code block in the message
                                 const msgBlocks = msg.querySelectorAll('pre');
                                 if (msgBlocks.length > 0) {
-                                    log("last code block not found, using last pre element");
                                     lastCodeBlock = msgBlocks[msgBlocks.length - 1].querySelector('code');
                                 }
                             }
                             if (lastCodeBlock) {
-                                log("last code block found, appending chunk");
                                 // append to last code block
                                 lastCodeBlock.innerHTML += chunk;
                                 domLastCodeBlock = lastCodeBlock;
