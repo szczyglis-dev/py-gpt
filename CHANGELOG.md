@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.75 (2025-07-28)
+
+- Fix: context append in LlamaIndex agents.
+
 ## 2.5.74 (2025-07-28)
 
 - Fix: mouse buttons handling in Computer use mode.
