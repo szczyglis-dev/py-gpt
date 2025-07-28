@@ -115,6 +115,27 @@ class Computer:
                         "x": x,
                         "y": y,
                         "click": button,
+                        "num_clicks": 1,
+                    })
+                }
+            })
+            has_calls = True
+
+        # mouse double click
+        elif action.type in ["double_click", "dblclick", "dbl_click"]:
+            x = action.x
+            y = action.y
+            tool_calls.append({
+                "id": id,
+                "call_id": call_id,
+                "type": "computer_call",
+                "function": {
+                    "name": "mouse_move",
+                    "arguments": json.dumps({
+                        "x": x,
+                        "y": y,
+                        "click": "left",  # default to left click
+                        "num_clicks": 2,
                     })
                 }
             })

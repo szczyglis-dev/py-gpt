@@ -175,6 +175,12 @@ class Config(BaseConfig):
                     "description": "button to click after moving the mouse, enum: left|middle|right",
                     "required": False,
                 },
+                {
+                    "name": "num_clicks",
+                    "type": "int",
+                    "description": "number of clicks, e.g. use 2 to double-click",
+                    "required": False,
+                },
             ],
             enabled=True,
             description="Enable: set mouse position to X,Y",

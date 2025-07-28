@@ -157,6 +157,7 @@ class Worker(BaseWorker):
         """
         error = None
         click = None
+        num_clicks = 1
         x = 0
         y = 0
         if self.has_param(item, "x"):
@@ -170,6 +171,8 @@ class Worker(BaseWorker):
 
         if self.has_param(item, "click"):
             click = self.get_param(item, "click")
+        if self.has_param(item, "num_clicks"):
+            num_clicks = int(self.get_param(item, "num_clicks"))
         try:
             mouse = MouseController()
             mouse.position = (x, y)
@@ -177,7 +180,10 @@ class Worker(BaseWorker):
                 time.sleep(0.5)  # wait for a moment before clicking
                 self.cmd_mouse_click({
                     "cmd": "mouse_click",
-                    "button": click,
+                    "params": {
+                        "button": click,
+                        "num_clicks": num_clicks,
+                    }
                 })
         except Exception as e:
             error = str(e)
