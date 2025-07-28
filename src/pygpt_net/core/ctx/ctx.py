@@ -82,6 +82,7 @@ class Ctx:
             MODE_LLAMA_INDEX,
             MODE_AGENT,
             MODE_EXPERT,
+            MODE_AGENT_LLAMA,
             MODE_AUDIO,
             MODE_RESEARCH,
             MODE_COMPUTER,
