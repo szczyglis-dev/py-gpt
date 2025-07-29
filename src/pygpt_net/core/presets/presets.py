@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,6 +17,7 @@ from packaging.version import Version
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -79,6 +80,7 @@ class Presets:
         curr_llama = self.build()
         curr_agent = self.build()
         curr_agent_llama = self.build()
+        curr_agent_openai = self.build()
         curr_expert = self.build()
         curr_audio = self.build()
         curr_computer = self.build()
@@ -93,6 +95,7 @@ class Presets:
         id_llama = 'current.llama_index'
         id_agent = 'current.agent'
         id_agent_llama = 'current.agent_llama'
+        id_agent_openai = 'current.agent_openai'
         id_expert = 'current.expert'
         id_audio = 'current.audio'
         id_computer = 'current.computer'
@@ -119,6 +122,8 @@ class Presets:
             curr_agent = self.items[id_agent]
         if id_agent_llama in self.items:
             curr_agent_llama = self.items[id_agent_llama]
+        if id_agent_openai in self.items:
+            curr_agent_openai = self.items[id_agent_openai]
         if id_expert in self.items:
             curr_expert = self.items[id_expert]
         if id_audio in self.items:
@@ -136,6 +141,7 @@ class Presets:
         curr_llama.llama_index = True
         curr_agent.agent = True
         curr_agent_llama.agent_llama = True
+        curr_agent_openai.agent_openai = True
         curr_expert.expert = True
         curr_audio.audio = True
         curr_computer.computer = True
@@ -150,6 +156,7 @@ class Presets:
         curr_llama.name = '*'
         curr_agent.name = '*'
         curr_agent_llama.name = '*'
+        curr_agent_openai.name = '*'
         curr_expert.name = '*'
         curr_audio.name = '*'
         curr_computer.name = '*'
@@ -165,6 +172,7 @@ class Presets:
             id_llama: curr_llama,
             id_agent: curr_agent,
             id_agent_llama: curr_agent_llama,
+            id_agent_openai: curr_agent_openai,
             id_expert: curr_expert,
             id_audio: curr_audio,
             id_computer: curr_computer,
@@ -238,6 +246,8 @@ class Presets:
             return MODE_AGENT
         if preset.agent_llama:
             return MODE_AGENT_LLAMA
+        if preset.agent_openai:
+            return MODE_AGENT_OPENAI
         if preset.expert:
             return MODE_EXPERT
         if preset.audio:
@@ -315,6 +325,7 @@ class Presets:
                     or (mode == MODE_LLAMA_INDEX and self.items[id].llama_index) \
                     or (mode == MODE_AGENT and self.items[id].agent) \
                     or (mode == MODE_AGENT_LLAMA and self.items[id].agent_llama) \
+                    or (mode == MODE_AGENT_OPENAI and self.items[id].agent_openai) \
                     or (mode == MODE_EXPERT and self.items[id].expert) \
                     or (mode == MODE_RESEARCH and self.items[id].research) \
                     or (mode == MODE_COMPUTER and self.items[id].computer) \

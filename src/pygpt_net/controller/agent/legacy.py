@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -14,6 +14,7 @@ from typing import Optional, List, Dict, Any
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -97,6 +98,7 @@ class Legacy:
         if mode in [
             MODE_AGENT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
         ]:
             iterations = int(self.window.core.config.get("agent.iterations"))
         elif self.is_inline():

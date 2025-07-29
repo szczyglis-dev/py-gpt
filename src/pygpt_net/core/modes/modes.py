@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -15,6 +15,7 @@ from pygpt_net.provider.core.mode.json_file import JsonFileProvider
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -43,6 +44,7 @@ class Modes:
         self.all = [
             MODE_AGENT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
             MODE_ASSISTANT,
             MODE_AUDIO,
             MODE_CHAT,

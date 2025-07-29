@@ -59,6 +59,12 @@
             "label": "mode.agent_llama",
             "default": false
         },
+        "agent_openai": {
+            "id": "agent_openai",
+            "name": "Agent (OpenAI)",
+            "label": "mode.agent_openai",
+            "default": false
+        },
         "agent": {
             "id": "agent",
             "name": "Agent (legacy)",

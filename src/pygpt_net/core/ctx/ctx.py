@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -30,6 +30,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.provider.core.ctx.base import BaseProvider
@@ -81,8 +82,9 @@ class Ctx:
             MODE_ASSISTANT,
             MODE_LLAMA_INDEX,
             MODE_AGENT,
-            MODE_EXPERT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
+            MODE_EXPERT,
             MODE_AUDIO,
             MODE_RESEARCH,
             MODE_COMPUTER,
@@ -95,10 +97,11 @@ class Ctx:
             MODE_VISION: self.all_modes,
             MODE_ASSISTANT: [MODE_ASSISTANT],
             MODE_LLAMA_INDEX: self.all_modes,
-            MODE_AGENT: self.all_modes,
             MODE_EXPERT: self.all_modes,
             MODE_AUDIO: self.all_modes,
+            MODE_AGENT: self.all_modes,
             MODE_AGENT_LLAMA: self.all_modes,
+            MODE_AGENT_OPENAI: self.all_modes,
             MODE_RESEARCH: self.all_modes,
             MODE_COMPUTER: self.all_modes,
         }

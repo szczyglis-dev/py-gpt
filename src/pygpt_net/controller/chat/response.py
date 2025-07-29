@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_ASSISTANT,
     MODE_CHAT,
 )
@@ -217,7 +218,7 @@ class Response:
         self.window.core.ctx.update_item(ctx)
 
         # update ctx meta
-        if mode == MODE_AGENT_LLAMA and ctx.meta is not None:
+        if mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI] and ctx.meta is not None:
             self.window.core.ctx.replace(ctx.meta)
             self.window.core.ctx.save(ctx.meta.id)
             # update preset if exists

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 import asyncio
 import json
@@ -20,6 +20,7 @@ from llama_index.core.tools import QueryEngineTool
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
@@ -897,7 +898,7 @@ class Chat:
         :param msg: message
         """
         # disabled logging for thread safety
-        if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
+        if self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
             return
         is_log = False
         if self.window.core.config.has("log.llama") \

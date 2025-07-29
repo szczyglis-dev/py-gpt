@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -18,6 +18,8 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_COMPUTER,
+    MODE_AGENT_OPENAI,
+    MODE_COMPLETION,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
@@ -58,6 +60,10 @@ class Mode:
             self.window.ui.nodes['preset.agents.label'].setVisible(True)
             self.window.ui.nodes['preset.experts.label'].setVisible(False)
             self.window.ui.nodes['preset.presets.label'].setVisible(False)
+        elif mode == MODE_AGENT_OPENAI:
+            self.window.ui.nodes['preset.agents.label'].setVisible(True)
+            self.window.ui.nodes['preset.experts.label'].setVisible(False)
+            self.window.ui.nodes['preset.presets.label'].setVisible(False)
         elif mode == MODE_EXPERT:
             self.window.ui.nodes['preset.agents.label'].setVisible(False)
             self.window.ui.nodes['preset.experts.label'].setVisible(True)
@@ -67,9 +73,28 @@ class Mode:
             self.window.ui.nodes['preset.experts.label'].setVisible(False)
             self.window.ui.nodes['preset.presets.label'].setVisible(True)
 
+        # presets: experts
+        if mode == MODE_EXPERT:
+            self.window.ui.nodes['preset.editor.description'].setVisible(True)
+            self.window.ui.nodes['preset.editor.remote_tools'].setVisible(True)
+        else:
+            self.window.ui.nodes['preset.editor.description'].setVisible(False)
+            self.window.ui.nodes['preset.editor.remote_tools'].setVisible(False)
+
+        if mode == MODE_COMPLETION:
+            self.window.ui.nodes['preset.editor.ai_name'].setVisible(True)
+            self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
+        else:
+            self.window.ui.nodes['preset.editor.ai_name'].setVisible(False)
+            self.window.ui.nodes['preset.editor.user_name'].setVisible(False)
+
+        if mode == MODE_AGENT_OPENAI:
+            self.window.ui.nodes['preset.editor.agent_provider_openai'].setVisible(True)
+        else:
+            self.window.ui.nodes['preset.editor.agent_provider_openai'].setVisible(False)
+
         # presets: editor
         if mode == MODE_AGENT:
-            self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
@@ -80,7 +105,6 @@ class Mode:
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(False)
         elif mode == MODE_AGENT_LLAMA:
-            self.window.ui.nodes['preset.editor.user_name'].setVisible(False)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
@@ -90,8 +114,17 @@ class Mode:
             self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
             self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(True)
+        elif mode == MODE_AGENT_OPENAI:
+            self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
+            self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.functions'].setVisible(False)
+            self.window.ui.nodes['preset.editor.modes'].setVisible(False)
+            self.window.ui.nodes['preset.editor.experts'].setVisible(True)
+            self.window.ui.nodes["preset.prompt.label"].setText(trans("preset.prompt.agent_llama"))
+            self.window.ui.nodes['preset.tool.function.label.all'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.assistant'].setVisible(False)
+            self.window.ui.nodes['preset.tool.function.label.agent_llama'].setVisible(True)
         else:
-            self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(True)
@@ -138,7 +171,7 @@ class Mode:
             self.window.ui.nodes['agent.options'].setVisible(False)
 
         # agent llama options
-        if mode in [MODE_AGENT_LLAMA]:
+        if mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
             self.window.ui.nodes['agent_llama.options'].setVisible(True)
         else:
             self.window.ui.nodes['agent_llama.options'].setVisible(False)

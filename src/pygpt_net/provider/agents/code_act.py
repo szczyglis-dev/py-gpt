@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -16,6 +16,7 @@ from .codeact_agent_custom import DEFAULT_CODE_ACT_PROMPT, CodeActAgent as Agent
 
 from pygpt_net.core.types import (
     AGENT_MODE_WORKFLOW,
+    AGENT_TYPE_LLAMA,
 )
 from .base import BaseAgent
 
@@ -24,6 +25,7 @@ class CodeActAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(CodeActAgent, self).__init__(*args, **kwargs)
         self.id = "code_act"
+        self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_WORKFLOW
         self.name = "CodeAct (Workflow)"
 

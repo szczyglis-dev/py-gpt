@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
@@ -47,6 +47,7 @@ class Renderer(BaseRenderer):
         self.parser = Parser(window)
         self.pids = {}  # per node data
         self.prev_chunk_replace = False
+        self.prev_chunk_newline = False
 
     def prepare(self):
         """
@@ -471,8 +472,15 @@ class Renderer(BaseRenderer):
         html = self.parser.parse(buffer)
         is_code_block = html.endswith("</code></pre></div>") or html.endswith("</code></pre></div><br/>") or html.endswith("</code></pre></div><br>")
         is_newline = "\n" in raw_chunk or buffer.endswith("\n") or is_code_block
+        force_replace = False
+        if self.prev_chunk_newline:
+            force_replace = True
+        if "\n" in raw_chunk:
+            self.prev_chunk_newline = True
+        else:
+            self.prev_chunk_newline = False
         replace = "false"
-        if is_newline:
+        if is_newline or force_replace:
             replace = "true"
             if is_code_block:
                 # don't replace if it is a code block
@@ -480,7 +488,10 @@ class Renderer(BaseRenderer):
                     # if there is no newline in raw_chunk, then don't replace
                     replace = "false"
             if replace == "true":
-                html += "<br/>"  # add line break at the end
+                pass
+                #html += "<br/>"  # add line break at the end
+
+       # print('[' + raw_chunk + ']', '[' + html + ']', replace)
 
         # if prev replace and current code block then add \n to chunk
         code_block_arg = "false"
@@ -488,6 +499,7 @@ class Renderer(BaseRenderer):
             code_block_arg = "true"
         if not is_code_block:
             raw_chunk = raw_chunk.replace("\n", "<br/>")
+            pass
         else:
             if self.prev_chunk_replace and not has_unclosed_code_tag(raw_chunk):
                 # if previous chunk was replaced and current is code block, then add \n to chunk

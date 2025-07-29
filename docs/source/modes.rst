@@ -375,6 +375,38 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 .. image:: images/v2_agent_settings.png
    :width: 800
 
+Agents (OpenAI)
+---------------
+
+**Added in: 2.5.76** - currently in beta.
+
+The mode operates on the ``openai-agents`` library integrated into the application:
+
+https://github.com/openai/openai-agents-python
+
+It allows running agents for OpenAI models and models compatible with the OpenAI.
+
+In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the ``openai_agents_experts`` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
+
+**Agent types:**
+
+- ``openai_agents_simple`` - runs a single agent.
+- ``openai_agents_experts`` - uses attached experts as sub-agents.
+
+More types will be available in the future.
+
+In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
+
+Remote tools for experts can be selected separately for each expert in the preset configuration.
+
+Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
+
+**Limitations:**
+
+- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
+
+- Ollama models are not supported in this mode.
+
 Experts (Co-op, co-operation mode)
 ----------------------------------
 

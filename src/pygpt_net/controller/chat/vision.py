@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_LANGCHAIN,
@@ -37,6 +38,7 @@ class Vision:
             MODE_LLAMA_INDEX,
             MODE_AGENT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
             MODE_RESEARCH,
         ]
 
@@ -65,7 +67,7 @@ class Vision:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
-        if mode in [MODE_AGENT, MODE_AGENT_LLAMA]:
+        if mode in [MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
             return  # disallow change in agent modes
         if mode == MODE_CHAT and MODE_VISION in model_data.mode:
             return  # abort if vision is already allowed

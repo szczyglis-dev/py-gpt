@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 08:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -67,15 +67,19 @@ class Provider:
         """
         return self.get_ids()
 
-    def get_choices(self) -> List[dict]:
+    def get_choices(self, type: str = None) -> List[dict]:
         """
         Get agent providers choices
 
+        :param type: filter by agent type (optional)
         :return: list of agent providers choices
         """
         choices = []
         for id in self.get_ids():
             agent = self.get(id)
+            if type is not None:
+                if agent.type != type:
+                    continue
             choices.append({id: agent.name})
 
         # sort by name

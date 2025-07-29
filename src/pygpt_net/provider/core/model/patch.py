@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
 
-from pygpt_net.core.types import MODE_RESEARCH
+from pygpt_net.core.types import MODE_RESEARCH, MODE_CHAT, MODE_AGENT_OPENAI, MODE_COMPUTER, MODE_EXPERT
 
 
 class Patch:
@@ -687,6 +687,17 @@ class Patch:
             # < 2.5.71 <--- computer-use-preview
             if old < parse_version("2.5.71"):
                 print("Migrating models from < 2.5.71...")
+                updated = True
+
+            # < 2.5.76 <--- add MODE_AGENT_OPENAI
+            if old < parse_version("2.5.76"):
+                print("Migrating models from < 2.5.76...")
+                for id in data:
+                    model = data[id]
+                    if (MODE_CHAT in model.mode or MODE_COMPUTER in model.mode) and MODE_AGENT_OPENAI not in model.mode:
+                        model.mode.append(MODE_AGENT_OPENAI)
+                    if MODE_COMPUTER in model.mode and MODE_AGENT_OPENAI not in model.mode:
+                        model.mode.append(MODE_EXPERT)
                 updated = True
 
         # update file

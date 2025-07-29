@@ -207,7 +207,7 @@ def test_get_experts_agent_branch(fake_window):
     fake_window.core.presets.get_by_uuid.return_value = expert_obj
     experts = Experts(window=fake_window)
     result = experts.get_experts()
-    assert result == {"expA": "Expert A"}
+    assert result == {"expA": expert_obj}
 
 
 def test_get_experts_expert_branch(fake_window):
@@ -239,11 +239,14 @@ def test_get_experts_expert_branch(fake_window):
     experts = Experts(window=fake_window)
     result = experts.get_experts()
     # only "expB" should be returned.
-    assert result == {"expB": "Expert B"}
+    assert result == {"expB": expert_enabled}
 
 
 def test_get_expert_name_by_id(fake_window):
-    expert_dict = {"expX": "Expert X"}
+    expert = PresetItem()
+    expert.enabled = True
+    expert.name = "Expert X"
+    expert_dict = {"expX": expert}
     experts = Experts(window=fake_window)
     # override get_experts to return our dummy dict.
     experts.get_experts = MagicMock(return_value=expert_dict)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.25 02:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import fnmatch
@@ -733,7 +733,11 @@ class Worker(BaseWorker):
                 self.log("Path not provided")
                 return self.make_response(item, "Path not provided")
 
-            path = self.prepare_path(item["params"]['path'])
+            # prepare path
+            p = item["params"]['path']
+            if isinstance(p, list):
+                p = p[0]  # take first path if list provided
+            path = self.prepare_path(p)
             self.msg = "Indexing path: {}".format(path)
             self.log(self.msg)
             if os.path.exists(path):

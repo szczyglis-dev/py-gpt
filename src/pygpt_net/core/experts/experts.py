@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
@@ -102,7 +102,7 @@ class Experts:
         """
         return self.window.core.presets.get_by_id(MODE_EXPERT, id)
 
-    def get_experts(self) -> Dict[str, str]:
+    def get_experts(self) -> Dict[str, PresetItem]:
         """
         Get experts names with keys
 
@@ -121,7 +121,7 @@ class Experts:
                         expert = self.window.core.presets.get_by_uuid(uuid)
                         if expert is not None:
                             id = expert.filename
-                            experts[id] = expert.name
+                            experts[id] = expert
         # mode: expert
         else:
             for k in presets:
@@ -129,7 +129,7 @@ class Experts:
                     continue
                 if not presets[k].enabled:  # skip disabled experts
                     continue
-                experts[k] = presets[k].name
+                experts[k] = presets[k]
         return experts
 
     def get_expert_name_by_id(self, id: str) -> str:
@@ -141,7 +141,7 @@ class Experts:
         """
         experts = self.get_experts()
         if id in experts:
-            return experts[id]
+            return experts[id].name
 
     def count_experts(self, uuid: str) -> int:
         """
@@ -171,9 +171,11 @@ class Experts:
         for k in experts:
             if k.startswith("current."):  # skip current presets
                 continue
-            experts_list.append(" - " + str(k) + ": " + str(experts[k]))
-        prompt = prompt.replace("{presets}", "\n".join(experts_list))
-        return prompt
+            if experts[k].description.strip() == "":
+                experts_list.append(" - " + str(k) + ": " + str(experts[k].name))
+            else:
+                experts_list.append(" - " + str(k) + ": " + str(experts[k].name) + " (" + experts[k].description + ")")
+        return prompt.replace("{presets}", "\n".join(experts_list))
 
     def extract_calls(self, ctx: CtxItem) -> Dict[str, str]:
         """
@@ -685,6 +687,7 @@ class ExpertWorker(QObject, QRunnable):
                     tools_outputs=tools_outputs,
                     max_tokens=max_tokens,
                     is_expert_call=True,  # mark as expert call
+                    preset=expert,
                 )
                 extra = {}
                 if use_index:
@@ -741,7 +744,8 @@ class ExpertWorker(QObject, QRunnable):
                     external_functions=functions,
                     tools_outputs=tools_outputs,
                     max_tokens=max_tokens,
-                    is_expert_call=True,  # mark as expert call,
+                    is_expert_call=True,  # mark as expert call
+                    preset=expert,
                     force_sync=True,  # force sync call, no async bridge call
                     request=True, # use normal request instead of quick call
                 )

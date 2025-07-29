@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from .common import Common
@@ -17,7 +17,7 @@ from .llama import Llama
 class Agent:
     def __init__(self, window=None):
         """
-        Agent controller
+        Agents controller
 
         :param window: Window instance
         """
@@ -41,3 +41,4 @@ class Agent:
         """Force stop all agents"""
         self.legacy.on_stop()
         self.llama.on_stop()
+        self.openai.on_stop()

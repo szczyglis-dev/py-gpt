@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -119,6 +119,21 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
+
+    def handle_call(self, item: dict):
+        """
+        Handle call command
+        This method is used to handle a single command call, typically from the agent
+
+        :param item: command item to execute
+        :return:
+        """
+        item["params"]["no_screenshot"] = True  # do not take screenshot for single command call
+        worker = Worker()
+        worker.from_defaults(self)
+        worker.cmds = [item]
+        worker.ctx = CtxItem()
+        worker.run()  # sync
 
     @Slot(list, object, dict)
     def handle_finished_more(self, responses: list, ctx: CtxItem = None, extra_data: dict = None):

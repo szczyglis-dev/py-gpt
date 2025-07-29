@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -18,6 +18,7 @@ from llama_index.core.agent.react_multimodal.step import (
 
 from pygpt_net.core.types import (
     MODE_VISION,
+    AGENT_TYPE_LLAMA,
 )
 
 from pygpt_net.core.types import (
@@ -29,6 +30,7 @@ class ReactAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(ReactAgent, self).__init__(*args, **kwargs)
         self.id = "react"
+        self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_STEP
         self.name = "ReAct"
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -447,6 +447,7 @@ class Body:
         let domOutput = document.getElementById('_output_');
         let domInput = document.getElementById('_input_');
         let domLastCodeBlock = null;
+        let domLastParagraphBlock = null;
         let htmlBuffer = "";
         
         history.scrollRestoration = "manual";
@@ -617,6 +618,7 @@ class Body:
             return element;
         }        
         function clearStream() {
+            domLastParagraphBlock = null;
             domLastCodeBlock = null;
             domOutputStream = null;
             const element = getStreamContainer();
@@ -679,6 +681,7 @@ class Body:
                     if (replace) {
                         msg.innerHTML = sanitize(content);
                         domLastCodeBlock = null; // reset last code block
+                        domLastParagraphBlock = null; // reset last paragraph block
                     } else {
                         if (is_code_block) {
                             let lastCodeBlock;
@@ -704,7 +707,27 @@ class Body:
                             doMath = false; // disable math rendering for code blocks
                         } else {
                             domLastCodeBlock = null; // reset last code block
-                            msg.innerHTML += chunk; // append chunk
+                            if (msg.innerHTML.trim().endsWith('</p>')) {
+                                let lastParagraphBlock;
+                                if (domLastParagraphBlock) {
+                                    lastParagraphBlock = domLastParagraphBlock;
+                                } else {
+                                    const blocksParagraph = msg.querySelectorAll('p');
+                                    if (blocksParagraph.length > 0) {
+                                        lastParagraphBlock = blocksParagraph[blocksParagraph.length - 1];
+                                    }
+                                }
+                                if (lastParagraphBlock) {
+                                    domLastParagraphBlock = lastParagraphBlock; // store last paragraph block
+                                    lastParagraphBlock.innerHTML += chunk; // append to last paragraph
+                                } else {
+                                    domLastParagraphBlock = null; // reset last paragraph block
+                                    msg.innerHTML += chunk; // append chunk
+                                }                                        
+                            } else {
+                                domLastParagraphBlock = null; // reset last paragraph block
+                                msg.innerHTML += chunk; // append chunk
+                            }
                             doHighlight = false;
                         }
                     }
@@ -876,6 +899,7 @@ class Body:
         }
         function clearOutput() {
             domLastCodeBlock = null;
+            domLastParagraphBlock = null;
             const element = document.getElementById('_append_output_');
             if (element) {
                 element.textContent = '';

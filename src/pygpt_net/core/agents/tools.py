@@ -6,14 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
 import os
 import re
 from typing import List, Dict, Any
+from pydantic import BaseModel, create_model
+from inspect import Signature, Parameter
+from functools import wraps
 
+from agents import (
+    FunctionTool as OpenAIFunctionTool,
+    RunContextWrapper,
+    function_tool
+)
 from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
@@ -97,16 +105,16 @@ class Tools:
         """
         tools = []
         functions = self.window.core.command.get_functions(force=force)
-        for func in functions:
+        for item in functions:
             try:
-                name = func['name']
+                name = item['name']
                 if name in self.cmd_blacklist:
                     continue  # skip blacklisted commands
 
-                description = func['desc']
-                schema = json.loads(func['params'])  # from JSON to dict
+                description = item['desc']
+                schema = json.loads(item['params'])  # from JSON to dict
 
-                def make_func(name):
+                def make_func(name, description):
                     def func(**kwargs):
                         self.log("[Plugin] Tool call: " + name + " " + str(kwargs))
                         cmd = {
@@ -119,9 +127,11 @@ class Tools:
                         )
                         return str(response)  # return response as string
 
+                    func.__name__ = name
+                    func.__doc__ = description
                     return func
 
-                func = make_func(name)
+                func = make_func(name, description)
                 metadata = PluginToolMetadata(
                     name=name,
                     description=description,
@@ -130,6 +140,50 @@ class Tools:
                 tool = FunctionTool(
                     fn=func,
                     metadata=metadata,
+                )
+                tools.append(tool)
+            except Exception as e:
+                print(e)
+        return tools
+
+    def get_function_tools(
+            self,
+            ctx: CtxItem,
+            verbose: bool = False,
+            force: bool = False
+    ) -> list:
+        """
+        Parse plugin functions and return as OpenAI FunctionTool instances
+
+        :param ctx: CtxItem
+        :param verbose: verbose mode
+        :param force: force to get functions even if not needed
+        :return: List of OpenAIFunctionTool instances
+        """
+        tools = []
+        functions = self.window.core.command.get_functions(force=force)
+        blacklist = []
+        for item in functions:
+            try:
+                name = item['name']
+                if name in self.cmd_blacklist or name in blacklist:
+                    continue
+                description = item['desc']
+
+                async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
+                    name = run_ctx.tool_name
+                    print("[Plugin] Tool call: " + name + " with args: " + str(args))
+                    cmd = {
+                        "cmd": name,
+                        "params": json.loads(args)  # args should be a JSON string
+                    }
+                    return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+
+                tool = OpenAIFunctionTool(
+                    name=name,
+                    description=description,
+                    params_json_schema=json.loads(item['params']),
+                    on_invoke_tool=run_function,
                 )
                 tools.append(tool)
             except Exception as e:
@@ -153,16 +207,16 @@ class Tools:
         """
         tools = {}
         functions = self.window.core.command.get_functions(force=force)
-        for func in functions:
+        for item in functions:
             try:
-                name = func['name']
+                name = item['name']
                 if name in self.cmd_blacklist:
                     continue  # skip blacklisted commands
 
-                description = func['desc']
-                schema = json.loads(func['params'])  # from JSON to dict
+                description = item['desc']
+                schema = json.loads(item['params'])  # from JSON to dict
 
-                def make_func(name):
+                def make_func(name, description):
                     def func(**kwargs):
                         self.log("[Plugin] Tool call: " + name + " " + str(kwargs))
                         cmd = {
@@ -175,9 +229,11 @@ class Tools:
                         )
                         return str(response)  # return response as string
 
+                    func.__name__ = name
+                    func.__doc__ = description
                     return func
 
-                func = make_func(name)
+                func = make_func(name, description)
                 tools[name] = func
             except Exception as e:
                 print(e)

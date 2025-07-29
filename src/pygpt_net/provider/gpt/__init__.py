@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -31,6 +31,7 @@ from .completion import Completion
 from .computer import Computer
 from .container import Container
 from .image import Image
+from .remote_tools import RemoteTools
 from .responses import Responses
 from .store import Store
 from .summarizer import Summarizer
@@ -54,6 +55,7 @@ class Gpt:
         self.container = Container(window)
         self.computer = Computer(window)
         self.image = Image(window)
+        self.remote_tools = RemoteTools(window)
         self.responses = Responses(window)
         self.store = Store(window)
         self.summarizer = Summarizer(window)
@@ -94,13 +96,14 @@ class Gpt:
         tools_outputs = context.tools_outputs
         max_tokens = context.max_tokens  # max output tokens
         is_expert_call = context.is_expert_call
+        preset = context.preset  # PresetItem, used for expert calls
 
         ctx = context.ctx
         ai_name = ctx.output_name
         thread_id = ctx.thread  # from ctx
 
         # --- Responses API ----
-        use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call)
+        use_responses_api = self.responses.is_enabled(model, mode, parent_mode, is_expert_call, preset)
         ctx.use_responses_api = use_responses_api  # set in context
 
         # get model id

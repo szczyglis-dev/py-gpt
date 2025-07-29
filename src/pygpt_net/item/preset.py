@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
@@ -29,6 +29,7 @@ class PresetItem:
         self.llama_index = False
         self.agent = False
         self.agent_llama = False
+        self.agent_openai = False
         self.expert = False
         self.audio = False
         self.research = False
@@ -40,11 +41,14 @@ class PresetItem:
         self.experts = []  # agent mode
         self.idx = None
         self.agent_provider = None
+        self.agent_provider_openai = None
         self.assistant_id = ""
+        self.description = ""
         self.enabled = True
         self.tools = {
             "function": [],
         }
+        self.remote_tools = []
 
     def get_id(self) -> str:
         return self.filename
@@ -65,6 +69,7 @@ class PresetItem:
             "llama_index": self.llama_index,
             "agent": self.agent,
             "agent_llama": self.agent_llama,
+            "agent_openai": self.agent_openai,
             "expert": self.expert,
             "audio": self.audio,
             "research": self.research,
@@ -76,8 +81,11 @@ class PresetItem:
             "experts": self.experts,
             "idx": self.idx,
             "agent_provider": self.agent_provider,
+            "agent_provider_openai": self.agent_provider_openai,
             "assistant_id": self.assistant_id,
             "enabled": self.enabled,
+            "description": self.description,
+            "remote_tools": self.remote_tools,
         }
 
     def from_dict(self, data):
@@ -109,6 +117,8 @@ class PresetItem:
             self.agent = data["agent"]
         if "agent_llama" in data:
             self.agent_llama = data["agent_llama"]
+        if "agent_openai" in data:
+            self.agent_openai = data["agent_openai"]
         if "expert" in data:
             self.expert = data["expert"]
         if "audio" in data:
@@ -131,10 +141,16 @@ class PresetItem:
             self.idx = data["idx"]
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
+        if "agent_provider_openai" in data:
+            self.agent_provider_openai = data["agent_provider_openai"]
         if "assistant_id" in data:
             self.assistant_id = data["assistant_id"]
         if "enabled" in data:
             self.enabled = data["enabled"]
+        if "description" in data:
+            self.description = data["description"]
+        if "remote_tools" in data:
+            self.remote_tools = data["remote_tools"]
         return self
 
     def add_function(self, name: str, parameters: str, desc: str):

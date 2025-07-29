@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -16,6 +16,7 @@ from typing import Any, Optional, Dict
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -59,6 +60,11 @@ class Editor:
                 "type": "text",
                 "label": "preset.user_name",
             },
+            "description": {
+                "type": "textarea",
+                "label": "preset.description",
+                "placeholder": "preset.description.desc",
+            },
             MODE_IMAGE: {
                 "type": "bool",
                 "label": "preset.img",
@@ -91,6 +97,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.agent",
             },
+            MODE_AGENT_OPENAI: {
+                "type": "bool",
+                "label": "preset.agent_openai",
+            },
             MODE_AUDIO: {
                 "type": "bool",
                 "label": "preset.audio",
@@ -116,6 +126,11 @@ class Editor:
                 "type": "combo",
                 "use": "models",
             },
+            "remote_tools": {
+                "label": "toolbox.remote_tools.label",
+                "type": "bool_list",
+                "use": "remote_tools_openai",
+            },
             "temperature": {
                 "type": "float",
                 "slider": True,
@@ -140,7 +155,13 @@ class Editor:
                 "type": "combo",
                 "label": "preset.agent_provider",
                 "description": "preset.agent_provider.desc",
-                "use": "agent_provider",
+                "use": "agent_provider_llama",
+            },
+            "agent_provider_openai": {
+                "type": "combo",
+                "label": "preset.agent_provider",
+                "description": "preset.agent_provider.desc",
+                "use": "agent_provider_openai",
             },
             "assistant_id": {
                 "type": "text",
@@ -165,6 +186,7 @@ class Editor:
         self.hidden_by_mode = {  # hidden fields by mode
             MODE_CHAT: ["idx"],
             MODE_AGENT_LLAMA: ["temperature"],
+            MODE_AGENT_OPENAI: ["temperature"],
         }
         self.id = "preset"
         self.current = None
@@ -209,6 +231,9 @@ class Editor:
         # update after agents register
         self.window.ui.config[self.id]['agent_provider'].set_keys(
             self.window.controller.config.placeholder.apply_by_id('agent_provider')
+        )
+        self.window.ui.config[self.id]['agent_provider_openai'].set_keys(
+            self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
         )
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
@@ -309,6 +334,8 @@ class Editor:
                 data.agent = True
             elif mode == MODE_AGENT_LLAMA:
                 data.agent_llama = True
+            elif mode == MODE_AGENT_OPENAI:
+                data.agent_openai = True
             elif mode == MODE_AUDIO:
                 data.audio = True
             elif mode == MODE_RESEARCH:
@@ -383,6 +410,8 @@ class Editor:
             MODE_LLAMA_INDEX,
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT,
+            MODE_AGENT_OPENAI,
             MODE_AUDIO,
             MODE_COMPUTER,
         ]
@@ -447,8 +476,13 @@ class Editor:
         self.assign_data(id)
 
         # if agent, assign experts and select only agent mode
-        if self.window.core.config.get('mode') == MODE_AGENT:
+        curr_mode = self.window.core.config.get('mode')
+        if curr_mode == MODE_AGENT:
             self.window.core.presets.items[id].mode = [MODE_AGENT]
+        elif curr_mode == MODE_AGENT_LLAMA:
+            self.window.core.presets.items[id].mode = [MODE_AGENT_LLAMA]
+        elif curr_mode == MODE_AGENT_OPENAI:
+            self.window.core.presets.items[id].mode = [MODE_AGENT_OPENAI]
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')

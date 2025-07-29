@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 02:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -163,7 +164,7 @@ class Plugin(BasePlugin):
                         "inline": True, # force inline mode
                     }
                     sync = False
-                    if self.window.core.config.get("mode") == MODE_AGENT_LLAMA:
+                    if self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
                         sync = True
                     self.window.core.gpt.image.generate(bridge_context, extra, sync)  # force inline mode, async call
             except Exception as e:

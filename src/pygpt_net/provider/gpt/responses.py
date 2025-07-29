@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import base64
 import json
 import time
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -20,21 +20,18 @@ from pygpt_net.core.types import (
     MODE_AUDIO,
     MODE_RESEARCH,
     MODE_AGENT,
+    MODE_AGENT_OPENAI,
+    MODE_AGENT_LLAMA,
     MODE_EXPERT,
     MODE_COMPUTER,
     OPENAI_DISABLE_TOOLS,
-    OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER,
-    OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE,
-    OPENAI_REMOTE_TOOL_DISABLE_IMAGE,
-    OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH,
-    OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH,
-    OPENAI_REMOTE_TOOL_DISABLE_MCP,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 from pygpt_net.item.attachment import AttachmentItem
+from pygpt_net.item.preset import PresetItem
 
 
 class Responses:
@@ -44,6 +41,8 @@ class Responses:
         MODE_CHAT,
         MODE_RESEARCH,
         MODE_AGENT,
+        MODE_AGENT_LLAMA,
+        MODE_AGENT_OPENAI,
         MODE_EXPERT,
         MODE_COMPUTER,
     ]
@@ -85,6 +84,7 @@ class Responses:
         attachments = context.attachments
         multimodal_ctx = context.multimodal_ctx
         is_expert_call = context.is_expert_call
+        preset = context.preset
 
         ctx = context.ctx
         if ctx is None:
@@ -122,79 +122,29 @@ class Responses:
         response_kwargs = {}
 
         # tools / functions
-        tools = []
-        if functions is not None and isinstance(functions, list):
-            for function in functions:
-                if str(function['name']).strip() == '' or function['name'] is None:
-                    continue
-                params = {}
-                if function['params'] is not None and function['params'] != "":
-                    params = json.loads(function['params'])  # unpack JSON from string
-                tools.append({
-                    "type": "function",
-                    "name": function['name'],
-                    "parameters": params,
-                    "description": function['desc'],
-                })
+        tools = self.window.core.gpt.tools.prepare_responses_api(model, functions)
 
         # extra arguments, o3 only
         if model.extra and "reasoning_effort" in model.extra:
             response_kwargs['reasoning'] = {}
             response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
 
+        # append remote tools
+        tools = self.window.core.gpt.remote_tools.append_to_tools(
+            mode=mode,
+            model=model,
+            stream=stream,
+            is_expert_call= is_expert_call,
+            tools= tools,
+            preset=preset,
+        )
+
+        # tool calls are not supported for some models
         if model.id in OPENAI_DISABLE_TOOLS:
-            tools = []  # disable tools for specific models
+            tools = []  # force disable
 
-        # extend tools with external tools
-        if (not model.id.startswith("o1")
-                and not model.id.startswith("o3")):  # o1, o3, o4 models do not support tools
-
-            if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE:
-                    tools.append(self.window.core.gpt.computer.get_tool())
-            else:
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
-                    if self.window.core.config.get("remote_tools.web_search", False):
-                        tools.append({"type": "web_search_preview"})
-
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER:
-                    if self.window.core.config.get("remote_tools.code_interpreter", False):
-                        tools.append({
-                            "type": "code_interpreter",
-                            "container": {
-                                "type": "auto"
-                            }
-                        })
-
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_IMAGE:
-                    if self.window.core.config.get("remote_tools.image", False):
-                        tool = {"type": "image_generation"}
-                        if stream:
-                            tool["partial_images"] = 1  # required for streaming
-                        tools.append(tool)
-
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH:
-                    if self.window.core.config.get("remote_tools.file_search", False):
-                        vector_store_ids = self.window.core.config.get("remote_tools.file_search.args", "")
-                        if vector_store_ids:
-                            vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
-                            tools.append({
-                                "type": "file_search",
-                                "vector_store_ids": vector_store_ids,
-                            })
-
-                if not model.id in OPENAI_REMOTE_TOOL_DISABLE_MCP:
-                    if self.window.core.config.get("remote_tools.mcp", False):
-                        mcp_tool = self.window.core.config.get("remote_tools.mcp.args", "")
-                        if mcp_tool:
-                            mcp_tool = json.loads(mcp_tool)
-                            tools.append(mcp_tool)
-
-        # tool calls are not supported for o1-mini and o1-preview
-        if (model.id is not None
-                and model.id not in ["o1-mini", "o1-preview"]):
-            if len(tools) > 0:
-                response_kwargs['tools'] = tools
+        if len(tools) > 0:
+            response_kwargs['tools'] = tools
 
         # attach previous response ID if available
         if is_expert_call:
@@ -514,7 +464,9 @@ class Responses:
             image_base64 = image_data[0]
             with open(img_path, "wb") as f:
                 f.write(base64.b64decode(image_base64))
-            ctx.images = [img_path]
+            if not isinstance(ctx.images, list):
+                ctx.images = []
+            ctx.images += [img_path]
 
         for output in response.output:
             # code interpreter call
@@ -620,12 +572,79 @@ class Responses:
             except Exception as e:
                 self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
 
+
+    def unpack_agent_response(self, result, ctx: CtxItem) -> Tuple[str, str]:
+        """
+        Unpack agent response and set context
+
+        :param result: Agent response result
+        :param ctx: CtxItem - context item to set the response data
+        :return: Final output string, response ID
+        """
+        files = []
+        final_output = result.final_output
+        response_id = result.last_response_id
+
+        for item in result.new_items:
+            if (
+                    item.type == "tool_call_item"
+                    and item.raw_item.type == "image_generation_call"
+                    and (img_result := item.raw_item.result)
+            ):
+                img_path = self.window.core.image.gen_unique_path(ctx)
+                with open(img_path, "wb") as f:
+                    f.write(base64.b64decode(img_result))
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                ctx.images += [img_path]
+            elif (
+                    item.type == "tool_call_item"
+                    and item.raw_item.type == "code_interpreter_call"
+            ):
+                code_response = ("\n\n**Code interpreter**\n```python\n"
+                                 + item.raw_item.code
+                                 + "\n\n```\n-----------\n"
+                                 + final_output.strip())
+                final_output = code_response
+            elif (
+                    item.type == "message_output_item"
+                    and item.raw_item.type == "message"
+                    and item.raw_item.content
+            ):
+                for content in item.raw_item.content:
+                    if content.annotations:
+                        for annotation in content.annotations:
+                            # url citation
+                            if annotation.type == "url_citation":
+                                if ctx.urls is None:
+                                    ctx.urls = []
+                                ctx.urls.append(annotation.url)
+                            # container file citation
+                            elif annotation.type == "container_file_citation":
+                                container_id = annotation.container_id
+                                file_id = annotation.file_id
+                                files.append({
+                                    "container_id": container_id,
+                                    "file_id": file_id,
+                                })
+
+        # if files from container are found, download them and append to ctx
+        if files:
+            self.window.core.debug.info("[chat] Container files found, downloading...")
+            try:
+                self.window.core.gpt.container.download_files(ctx, files)
+            except Exception as e:
+                self.window.core.debug.error(f"[chat] Error downloading container files: {e}")
+
+        return final_output, response_id
+
     def is_enabled(
             self,
             model: ModelItem,
             mode: str,
             parent_mode: str = None,
-            is_expert_call: bool = False
+            is_expert_call: bool = False,
+            preset: Optional[PresetItem] = None,
     ) -> bool:
         """
         Check if responses API is allowed for the given model and mode
@@ -634,6 +653,7 @@ class Responses:
         :param mode:
         :param parent_mode:
         :param is_expert_call:
+        :param preset: PresetItem, used for expert calls
         :return: True if responses API is allowed, False otherwise
         """
         if mode == MODE_COMPUTER:
@@ -667,5 +687,9 @@ class Responses:
                             allowed = True
                         else:
                             allowed = False
+                            if preset:
+                                # check if any remote tools enabled
+                                if len(preset.remote_tools) > 0:
+                                    allowed = True  # force enable
         return allowed
 

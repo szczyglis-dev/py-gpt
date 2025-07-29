@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
@@ -30,6 +30,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.provider.core.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
@@ -195,6 +196,7 @@ class JsonFileProvider(BaseProvider):
             MODE_LLAMA_INDEX: item.llama_index,
             MODE_AGENT: item.agent,
             MODE_AGENT_LLAMA: item.agent_llama,
+            MODE_AGENT_OPENAI: item.agent_openai,
             MODE_EXPERT: item.expert,
             MODE_AUDIO: item.audio,
             MODE_RESEARCH: item.research,
@@ -206,8 +208,11 @@ class JsonFileProvider(BaseProvider):
             'experts': item.experts,
             'idx': item.idx,
             'agent_provider': item.agent_provider,
+            'agent_provider_openai': item.agent_provider_openai,
             'assistant_id': item.assistant_id,
             'enabled': item.enabled,
+            'description': item.description,
+            'remote_tools': item.remote_tools,
         }
 
     @staticmethod
@@ -236,6 +241,8 @@ class JsonFileProvider(BaseProvider):
             item.agent = data[MODE_AGENT]
         if MODE_AGENT_LLAMA in data:
             item.agent_llama = data[MODE_AGENT_LLAMA]
+        if MODE_AGENT_OPENAI in data:
+            item.agent_openai = data[MODE_AGENT_OPENAI]
         if MODE_EXPERT in data:
             item.expert = data[MODE_EXPERT]
         if MODE_AUDIO in data:
@@ -269,10 +276,16 @@ class JsonFileProvider(BaseProvider):
             item.idx = data['idx']
         if 'agent_provider' in data:
             item.agent_provider = data['agent_provider']
+        if 'agent_provider_openai' in data:
+            item.agent_provider_openai = data['agent_provider_openai']
         if 'assistant_id' in data:
             item.assistant_id = data['assistant_id']
         if 'enabled' in data:
             item.enabled = data['enabled']
+        if 'description' in data:
+            item.description = data['description']
+        if 'remote_tools' in data:
+            item.remote_tools = data['remote_tools']
 
         # get version
         if '__meta__' in data and 'version' in data['__meta__']:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -31,6 +31,7 @@ from pygpt_net.core.types import (
     AGENT_MODE_PLAN,
     AGENT_MODE_STEP,
     AGENT_MODE_WORKFLOW,
+    AGENT_MODE_OPENAI,
 )
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
@@ -84,6 +85,7 @@ class Runner:
             system_prompt = context.system_prompt
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             tools = self.window.core.agents.tools.prepare(context, extra, force=True)
+            function_tools = self.window.core.agents.tools.get_function_tools(context.ctx, extra, force=True)
             plugin_tools = self.window.core.agents.tools.get_plugin_tools(context, extra, force=True)
             plugin_specs = self.window.core.agents.tools.get_plugin_specs(context, extra, force=True)
             retriever_tool = self.window.core.agents.tools.get_retriever_tool(context, extra)
@@ -95,8 +97,10 @@ class Runner:
 
             # append system prompt
             if id not in [
-                "openai_assistant",
-                "code_act",
+                "openai_agent_base",  # openai-agents
+                "openai_agent_experts",  # openai-agents
+                "openai_assistant", # llama-index
+                "code_act", # llama-index
             ]:
                 if system_prompt:
                     msg = ChatMessage(
@@ -111,29 +115,31 @@ class Runner:
                 plugin_tools = []
                 plugin_specs = []
 
-            provider = None
-            agent = None
+            agent_kwargs = {
+                "context": context,
+                "tools": tools,
+                "function_tools": function_tools,
+                "plugin_tools": plugin_tools,
+                "plugin_specs": plugin_specs,
+                "retriever_tool": retriever_tool,
+                "llm": llm,
+                "model": model,
+                "chat_history": history,
+                "max_iterations": max_steps,
+                "verbose": verbose,
+                "system_prompt": system_prompt,
+                "are_commands": self.window.core.config.get("cmd"),
+                "workdir": workdir,
+                "preset": context.preset if context else None,
+            }
+
             if self.window.core.agents.provider.has(id):
-                kwargs = {
-                    "context": context,
-                    "tools": tools,
-                    "plugin_tools": plugin_tools,
-                    "plugin_specs": plugin_specs,
-                    "retriever_tool": retriever_tool,
-                    "llm": llm,
-                    "chat_history": history,
-                    "max_iterations": max_steps,
-                    "verbose": verbose,
-                    "system_prompt": system_prompt,
-                    "are_commands": self.window.core.config.get("cmd"),
-                    "workdir": workdir,
-                }
                 provider = self.window.core.agents.provider.get(id)
-                agent = provider.get_agent(self.window, kwargs)
+                agent = provider.get_agent(self.window, agent_kwargs)
+                agent_run = provider.run
                 if verbose:
                     print("Using Agent: " + str(id) + ", model: " + str(model.id))
-
-            if agent is None:
+            else:
                 raise Exception("Agent not found: " + str(id))
 
             # run agent
@@ -156,6 +162,11 @@ class Runner:
                 kwargs["history"] = history
                 kwargs["llm"] = llm
                 return asyncio.run(self.run_workflow(**kwargs))
+            elif mode == AGENT_MODE_OPENAI:
+                kwargs["run"] = agent_run  # callable
+                kwargs["agent_kwargs"] = agent_kwargs  # as dict
+                kwargs["stream"] = self.window.core.config.get("stream", False) # from global
+                return asyncio.run(self.run_openai(**kwargs))
 
         except Exception as err:
             self.window.core.debug.error(err)
@@ -283,6 +294,112 @@ class Runner:
         response_ctx.set_output(prev_output)  # append from stream
         response_ctx.extra["agent_output"] = True  # mark as output response
         response_ctx.extra["agent_finish"] = True  # mark as finished
+
+        if ctx.agent_final_response:  # only if not empty
+            response_ctx.extra["output"] = ctx.agent_final_response
+
+        # if there are tool outputs, img, files, append it to the response context
+        if ctx.use_agent_final_response:
+            self.window.core.agents.tools.append_tool_outputs(response_ctx)
+        else:
+            self.window.core.agents.tools.extract_tool_outputs(response_ctx)
+        self.end_stream(response_ctx, signals)
+
+        # send response
+        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+        self.set_idle(signals)
+        return True
+
+    async def run_openai(
+            self,
+            agent: Any,
+            agent_kwargs: Dict[str, Any],
+            run: callable,
+            ctx: CtxItem,
+            prompt: str,
+            signals: BridgeSignals,
+            verbose: bool = False,
+            history: List[CtxItem] = None,
+            stream: bool = False,
+    ) -> bool:
+        """
+        Run OpenAI agents
+
+        :param agent: Agent instance
+        :param agent_kwargs: Agent kwargs
+        :param run: OpenAI runner callable
+        :param ctx: Input context
+        :param prompt: input text
+        :param signals: BridgeSignals
+        :param verbose: verbose mode
+        :param history: chat history
+        :param stream: use streaming
+        :return: True if success
+        """
+        if self.is_stopped():
+            return True  # abort if stopped
+        self.set_busy(signals)
+
+        # append input to messages
+        context = agent_kwargs.get("context", BridgeContext())
+        attachments = context.attachments if context else []
+        history, previous_response_id = self.window.core.agents.memory.prepare_openai(context)
+        msg = self.window.core.gpt.vision.build_agent_input(prompt, attachments)  # build content with attachments
+        self.window.core.gpt.vision.append_images(ctx)  # append images to ctx if provided
+        history = history + msg
+
+        # callbacks
+        def on_step(ctx: CtxItem, begin: bool = False):
+            """
+            Callback for step events
+            :param ctx: CtxItem
+            :param begin: whether this is the first step
+            """
+            self.send_stream(ctx, signals, begin)
+
+        def on_stop(ctx: CtxItem):
+            """
+            Callback for stop events
+            :param ctx: CtxItem
+            """
+            self.set_idle(signals)
+            self.end_stream(ctx, signals)
+
+        def on_error(error: Any):
+            """
+            Callback for error events
+            :param error: Exception raised during processing
+            """
+            self.set_idle(signals)
+            self.window.core.debug.error(error)
+            self.error = error
+
+        run_kwargs = {
+            "window": self.window,
+            "agent_kwargs": agent_kwargs,
+            "previous_response_id": previous_response_id,
+            "messages": history,
+            "ctx": ctx,
+            "stream": stream,
+            "stopped": self.is_stopped,
+            "on_step": on_step,
+            "on_stop": on_stop,
+            "on_error": on_error,
+        }
+        if previous_response_id:
+            run_kwargs["previous_response_id"] = previous_response_id
+
+        # run agent
+        output, response_id = await run(**run_kwargs)
+
+        # handle result
+        response_ctx = self.add_ctx(ctx, with_tool_outputs=True)
+        response_ctx.set_input(prompt)
+        response_ctx.set_output(output)
+        response_ctx.set_agent_final_response(output)  # always set to further use
+        response_ctx.extra["agent_output"] = True  # mark as output response
+        response_ctx.extra["agent_finish"] = True  # mark as finished
+        response_ctx.msg_id = response_id  # set response id for OpenAI
 
         if ctx.agent_final_response:  # only if not empty
             response_ctx.extra["output"] = ctx.agent_final_response
@@ -913,8 +1030,13 @@ class Runner:
         ctx = context.ctx
         self.send_response(ctx, signals, KernelEvent.APPEND_BEGIN)  # lock input, show stop btn
         history = context.history
-        prompt = self.window.core.agents.observer.evaluation.get_prompt(history)
         tools = self.window.core.agents.observer.evaluation.get_tools()
+        mode = self.window.core.config.get('agent.llama.loop.mode', "score")
+        prompt = ""
+        if mode == "score":
+            prompt = self.window.core.agents.observer.evaluation.get_prompt_score(history)
+        elif mode == "complete":
+            prompt = self.window.core.agents.observer.evaluation.get_prompt_complete(history)
 
         # evaluate
         self.set_busy(signals)
@@ -1018,6 +1140,7 @@ class Runner:
         ctx.images = from_ctx.images  # copy from parent if appended from plugins
         ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
         ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
+        ctx.files = from_ctx.files  # copy from parent if appended from plugins
         ctx.live = True
 
         if with_tool_outputs:

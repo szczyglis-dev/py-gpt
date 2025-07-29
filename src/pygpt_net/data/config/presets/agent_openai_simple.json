@@ -1,0 +1,39 @@
+{
+    "uuid": "fdcbb5ea-1286-47a3-9470-586c4124fb7c",
+    "name": "Simple agent",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "You are a helpful assistant.",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_simple",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "",
+    "agent_provider_openai": "openai_agent_base",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "__meta__": {
+        "version": "2.5.76",
+        "app.version": "2.5.76",
+        "updated_at": "2025-07-29T02:28:37"
+    }
+}

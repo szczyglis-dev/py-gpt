@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 16:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_AUDIO,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
@@ -59,6 +60,7 @@ class Plugin(BasePlugin):
             MODE_VISION,
             MODE_AGENT,
             MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
             MODE_LLAMA_INDEX,
             MODE_LANGCHAIN,
             MODE_AUDIO,
@@ -119,7 +121,7 @@ class Plugin(BasePlugin):
 
         elif name == Event.UI_ATTACHMENTS:
             mode = data["mode"]
-            if mode in [MODE_AGENT, MODE_AGENT_LLAMA] and not self.window.core.config.get("cmd"):
+            if mode in [MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI] and not self.window.core.config.get("cmd"):
                 pass
             else:
                 data['value'] = True  # allow render attachments UI elements

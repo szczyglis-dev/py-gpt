@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 22:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
+
+from pygpt_net.utils import trans
 
 
 class OptionTextarea(QTextEdit):
@@ -52,6 +54,8 @@ class OptionTextarea(QTextEdit):
                 self.context_options = self.option["context_options"]
             if "read_only" in self.option and self.option["read_only"]:
                 self.setReadOnly(True)
+            if "placeholder" in self.option:
+                self.setPlaceholderText(trans(self.option["placeholder"]))
 
     def contextMenuEvent(self, event):
         """

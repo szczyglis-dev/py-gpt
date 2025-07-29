@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.75** | build: **2025-07-28** | Python: **>=3.10, <3.13**
+Release: **2.5.76** | build: **2025-07-30** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -748,6 +748,39 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 ```Settings / Agents and experts / Index to use```
 
 ![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_agent_settings.png)
+
+
+## Agents (OpenAI)
+
+**Added in: 2.5.76** - currently in beta.
+
+The mode operates on the `openai-agents` library integrated into the application:
+
+https://github.com/openai/openai-agents-python
+
+It allows running agents for OpenAI models and models compatible with the OpenAI API.
+
+In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the `openai_agents_experts` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
+
+**Agent types:**
+
+- `openai_agents_simple` - runs a single agent.
+- `openai_agents_experts` - uses attached experts as sub-agents.
+
+More types will be available in the future.
+
+In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
+
+Remote tools for experts can be selected separately for each expert in the preset configuration.
+
+Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
+
+**Limitations:**
+
+- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
+
+- Ollama models are not supported in this mode.
+
 
 ##  Experts (co-op, co-operation mode)
 
@@ -4153,6 +4186,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.76 (2025-07-30)**
+
+- Added a new mode: Agents (OpenAI) and integrated `openai-agents` into the app (beta).
 
 **2.5.75 (2025-07-28)**
 

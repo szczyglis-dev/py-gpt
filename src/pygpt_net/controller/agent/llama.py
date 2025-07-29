@@ -38,12 +38,21 @@ class Llama:
                 "value": 75,
                 "multiplier": 1,
             },
+            "agent.llama.loop.mode": {
+                "type": "combo",
+                "label": "agent.llama.loop.mode",
+                "keys": [
+                    {"complete": trans("toolbox.agent.llama.loop.mode.complete")},
+                    {"score": trans("toolbox.agent.llama.loop.mode.score")},
+                ],
+            },
         }
 
     def setup(self):
         """Setup agent controller"""
         # register hooks
         self.window.ui.add_hook("update.global.agent.llama.loop.score", self.hook_update)
+        self.window.ui.add_hook("update.global.agent.llama.loop.mode", self.hook_update)
         self.reload()  # restore config
 
     def reload(self):
@@ -60,6 +69,13 @@ class Llama:
             key="agent.llama.loop.score",
             option=self.options["agent.llama.loop.score"],
             value=self.window.core.config.get('agent.llama.loop.score'),
+        )
+        # loop score mode
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="agent.llama.loop.mode",
+            option=self.options["agent.llama.loop.mode"],
+            value=self.window.core.config.get('agent.llama.loop.mode'),
         )
 
     def reset_eval_step(self):
@@ -153,5 +169,9 @@ class Llama:
             return
         if key == 'agent.llama.loop.score':
             self.window.core.config.set(key, int(value))
+            self.window.core.config.save()
+            self.update()
+        elif key == 'agent.llama.loop.mode':
+            self.window.core.config.set(key, value)
             self.window.core.config.save()
             self.update()

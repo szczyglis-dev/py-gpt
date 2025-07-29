@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -85,7 +86,10 @@ class Preset(BaseConfigDialog):
             if fields[key]["type"] in ['text', 'int', 'float']:
                 options[key] = self.add_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'textarea':
+                if key == "description":
+                    widgets[key].setMinimumHeight(50)
                 options[key] = self.add_row_option(widgets[key], fields[key])
+
             elif fields[key]["type"] == 'bool':
                 widgets[key].setMaximumHeight(38)
                 options[key] = self.add_raw_option(widgets[key], fields[key])
@@ -93,6 +97,8 @@ class Preset(BaseConfigDialog):
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'combo':
                 options[key] = self.add_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'bool_list':
+                options[key] = self.add_row_option(widgets[key], fields[key])
 
         self.window.ui.nodes['preset.tool.function.label'].setVisible(False)  # hide label
 
@@ -113,6 +119,7 @@ class Preset(BaseConfigDialog):
             # MODE_LANGCHAIN,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
+            MODE_AGENT_OPENAI,
             MODE_EXPERT,
             MODE_COMPUTER,
         ]
@@ -163,9 +170,26 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.agent_llama'].setLayout(agent_layout)
         self.window.ui.nodes['preset.editor.agent_llama'].setContentsMargins(20, 0, 0, 30)
 
-        # prompt
+        # desc and prompt
+        ''''
+        self.window.ui.nodes['preset.editor.description'] = QWidget()
+        self.window.ui.nodes['preset.editor.description'].setLayout(options['description'])
+        self.window.ui.nodes['preset.editor.description'].setContentsMargins(0, 5, 0, 5)
+
+        
+        self.window.ui.nodes['preset.editor.remote_tools'] = QWidget()
+        self.window.ui.nodes['preset.editor.remote_tools'].setLayout(options['remote_tools'])
+        self.window.ui.nodes['preset.editor.remote_tools'].setContentsMargins(0, 0, 0, 0)
+        '''
+
+        prompt_layout = QVBoxLayout()
+        prompt_layout.setContentsMargins(0, 0, 0, 5)
+        #prompt_layout.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
+       # prompt_layout.addWidget(self.window.ui.nodes['preset.editor.description'])
+        prompt_layout.addLayout(options['prompt'])
+
         widget_prompt = QWidget()
-        widget_prompt.setLayout(options["prompt"])
+        widget_prompt.setLayout(prompt_layout)
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # left column
@@ -176,6 +200,9 @@ class Preset(BaseConfigDialog):
             "user_name",
             "model",
             "temperature",
+            "agent_provider_openai",
+            "remote_tools",
+            "description",
         ]
         for key in left_keys:
             self.window.ui.nodes['preset.editor.' + key] = QWidget()

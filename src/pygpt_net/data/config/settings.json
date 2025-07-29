@@ -1095,6 +1095,19 @@
         "step": 1,
         "advanced": false
     },
+    "prompt.agent.llama.eval.complete": {
+        "section": "prompts",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.prompt.agent.llama.eval.complete",
+        "description": "settings.prompt.agent.llama.eval.complete.desc",
+        "value": "",
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "prompt.agent.instruction": {
         "section": "prompts",
         "type": "textarea",

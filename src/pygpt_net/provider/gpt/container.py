@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 00:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -113,7 +113,9 @@ class Container:
         # append to ctx
         if downloaded_files:
             downloaded_files = self.window.core.filesystem.make_local_list(downloaded_files)
-            ctx.files = downloaded_files
+            if not isinstance(ctx.files, list):
+                ctx.files = []
+            ctx.files += downloaded_files
             images = []
             for path in downloaded_files:
                 ext = os.path.splitext(path)[1].lower().lstrip(".")
@@ -121,6 +123,8 @@ class Container:
                     if path not in images:
                         images.append(path)
             if images:
-                ctx.images = images
+                if not isinstance(ctx.images, list):
+                    ctx.images = []
+                ctx.images += images
 
         return downloaded_files

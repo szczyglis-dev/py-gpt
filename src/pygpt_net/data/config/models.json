@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.5.75",
-        "app.version": "2.5.75",
-        "updated_at": "2025-07-28T01:31:35"
+        "version": "2.5.76",
+        "app.version": "2.5.76",
+        "updated_at": "2025-07-29T02:19:30"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
@@ -13,7 +13,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -28,8 +29,12 @@
             "ctx": 32768,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -45,7 +50,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -77,8 +83,13 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -93,7 +104,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -113,8 +125,13 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "anthropic",
@@ -129,7 +146,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -149,8 +167,13 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "anthropic",
@@ -165,7 +188,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -185,8 +209,13 @@
             "ctx": 200000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "anthropic",
@@ -201,7 +230,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -221,8 +251,13 @@
             "ctx": 200000,
             "tokens": 32000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "anthropic",
@@ -237,7 +272,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -257,8 +293,13 @@
             "ctx": 200000,
             "tokens": 32000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "anthropic",
@@ -272,7 +313,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -287,8 +329,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -299,7 +345,8 @@
             "name": "codex-mini-latest",
             "mode": [
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -331,8 +378,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -342,7 +394,9 @@
             "id": "computer-use-preview",
             "name": "computer-use-preview",
             "mode": [
-                "computer"
+                "computer",
+                "agent_openai",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -374,8 +428,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -394,8 +453,12 @@
             "ctx": 0,
             "tokens": 0,
             "default": false,
-            "input": ["image"],
-            "output": ["image"],
+            "input": [
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -414,8 +477,12 @@
             "ctx": 0,
             "tokens": 0,
             "default": false,
-            "input": ["image"],
-            "output": ["image"],
+            "input": [
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -429,7 +496,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -449,8 +517,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -464,7 +536,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -484,8 +557,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -499,7 +576,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -519,8 +597,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -534,7 +616,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -554,8 +637,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -569,7 +656,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -589,8 +677,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -604,7 +696,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -624,8 +717,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -639,7 +736,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -659,8 +757,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -674,7 +776,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -699,8 +802,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
@@ -714,7 +821,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -739,8 +847,12 @@
             "ctx": 64000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
@@ -755,7 +867,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -775,8 +888,15 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image", "audio", "video"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "google",
@@ -791,7 +911,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -811,8 +932,15 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image", "audio", "video"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "google",
@@ -827,7 +955,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -847,8 +976,15 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image", "audio", "video"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "google",
@@ -863,7 +999,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -883,8 +1020,15 @@
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
-            "input": ["text", "image", "audio", "video"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "google",
@@ -899,7 +1043,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -919,8 +1064,15 @@
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
-            "input": ["text", "image", "audio", "video"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image",
+                "audio",
+                "video"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "google",
@@ -935,7 +1087,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -967,8 +1120,12 @@
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -982,7 +1139,8 @@
                 "assistant",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1014,8 +1172,12 @@
             "ctx": 16385,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1030,7 +1192,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1062,8 +1225,12 @@
             "ctx": 16385,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1082,8 +1249,12 @@
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1098,7 +1269,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1130,8 +1302,12 @@
             "ctx": 8192,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1146,7 +1322,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1178,8 +1355,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1194,7 +1375,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1226,8 +1408,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1242,7 +1428,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1274,8 +1461,12 @@
             "ctx": 32768,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1291,7 +1482,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1323,8 +1515,13 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1340,7 +1537,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1372,8 +1570,13 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1388,7 +1591,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1420,8 +1624,13 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1434,7 +1643,8 @@
                 "chat",
                 "vision",
                 "agent",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [],
@@ -1443,8 +1653,13 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1460,7 +1675,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1492,8 +1708,13 @@
             "ctx": 1047576,
             "tokens": 32768,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1509,7 +1730,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1541,8 +1763,13 @@
             "ctx": 1047576,
             "tokens": 32768,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1558,7 +1785,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1590,8 +1818,13 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": true,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1607,7 +1840,8 @@
                 "vision",
                 "agent",
                 "expert",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1639,8 +1873,13 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1682,8 +1921,14 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "audio"],
-            "output": ["text", "audio"],
+            "input": [
+                "text",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1699,7 +1944,8 @@
                 "vision",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1731,8 +1977,13 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1774,8 +2025,14 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "audio"],
-            "output": ["text", "audio"],
+            "input": [
+                "text",
+                "audio"
+            ],
+            "output": [
+                "text",
+                "audio"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -1794,167 +2051,15 @@
             "ctx": 0,
             "tokens": 0,
             "default": true,
-            "input": ["image"],
-            "output": ["image"],
+            "input": [
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
-        },
-        "grok-3": {
-            "id": "grok-3",
-            "name": "grok-3",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
-            "ctx": 131072,
-            "tokens": 16384,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "x_ai",
-            "tool_calls": true
-        },
-        "grok-3-fast": {
-            "id": "grok-3-fast",
-            "name": "grok-3-fast",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3-fast",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
-            "ctx": 131072,
-            "tokens": 16384,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "x_ai",
-            "tool_calls": true
-        },
-        "grok-3-mini": {
-            "id": "grok-3-mini",
-            "name": "grok-3-mini",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
-            "ctx": 131072,
-            "tokens": 16384,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "x_ai",
-            "tool_calls": true
-        },
-        "grok-3-mini-fast": {
-            "id": "grok-3-mini-fast",
-            "name": "grok-3-mini-fast",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3-mini-fast",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
-            "ctx": 131072,
-            "tokens": 16384,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "x_ai",
             "tool_calls": true
         },
         "grok-2-vision": {
@@ -1962,7 +2067,8 @@
             "name": "grok-2-vision",
             "mode": [
                 "chat",
-                "vision"
+                "vision",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -1986,8 +2092,189 @@
             "ctx": 32768,
             "tokens": 16384,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-3": {
+            "id": "grok-3",
+            "name": "grok-3",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-3-fast": {
+            "id": "grok-3-fast",
+            "name": "grok-3-fast",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-3-mini": {
+            "id": "grok-3-mini",
+            "name": "grok-3-mini",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "tool_calls": true
+        },
+        "grok-3-mini-fast": {
+            "id": "grok-3-mini-fast",
+            "name": "grok-3-mini-fast",
+            "mode": [
+                "chat",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "grok-3-mini-fast",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key_xai}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint_xai}"
+                    }
+                ]
+            },
+            "ctx": 131072,
+            "tokens": 16384,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "x_ai",
@@ -2001,7 +2288,8 @@
                 "llama_index",
                 "agent",
                 "agent_llama",
-                "expert"
+                "expert",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2025,8 +2313,12 @@
             "ctx": 256000,
             "tokens": 16384,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "x_ai",
@@ -2040,7 +2332,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2055,8 +2348,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2070,7 +2367,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2085,8 +2383,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2100,7 +2402,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2115,8 +2418,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2130,7 +2437,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2145,8 +2453,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2160,7 +2472,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2175,8 +2488,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2190,7 +2507,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2205,8 +2523,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2220,7 +2542,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2235,8 +2558,12 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2250,7 +2577,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2265,8 +2593,13 @@
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2281,7 +2614,8 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2313,8 +2647,13 @@
             "ctx": 128000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2328,7 +2667,8 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2360,8 +2700,12 @@
             "ctx": 128000,
             "tokens": 65536,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2375,7 +2719,8 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2407,8 +2752,12 @@
             "ctx": 128000,
             "tokens": 65536,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2423,7 +2772,8 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2455,8 +2805,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2471,7 +2826,8 @@
                 "agent",
                 "expert",
                 "llama_index",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2503,203 +2859,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-high": {
-            "id": "o3-mini",
-            "name": "o3-mini (high)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama"
+            "input": [
+                "text",
+                "image"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-low": {
-            "id": "o3-mini",
-            "name": "o3-mini (low)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama"
+            "output": [
+                "text"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-medium": {
-            "id": "o3-mini",
-            "name": "o3-mini (medium)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": ["text"],
-            "output": ["text"],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-pro": {
-            "id": "o3-pro",
-            "name": "o3-pro",
-            "mode": [
-                "chat",
-                "vision",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2710,7 +2876,8 @@
             "name": "o3-deep-research",
             "mode": [
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2742,8 +2909,229 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "o3-mini-high": {
+            "id": "o3-mini",
+            "name": "o3-mini (high)",
+            "mode": [
+                "chat",
+                "agent",
+                "expert",
+                "llama_index",
+                "agent_llama",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "high"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "o3-mini-low": {
+            "id": "o3-mini",
+            "name": "o3-mini (low)",
+            "mode": [
+                "chat",
+                "agent",
+                "expert",
+                "llama_index",
+                "agent_llama",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "low"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "o3-mini-medium": {
+            "id": "o3-mini",
+            "name": "o3-mini (medium)",
+            "mode": [
+                "chat",
+                "agent",
+                "expert",
+                "llama_index",
+                "agent_llama",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o3-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {
+                "reasoning_effort": "medium"
+            },
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "o3-pro": {
+            "id": "o3-pro",
+            "name": "o3-pro",
+            "mode": [
+                "chat",
+                "vision",
+                "agent",
+                "expert",
+                "llama_index",
+                "agent_llama",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "o3-pro",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 200000,
+            "tokens": 100000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2757,7 +3145,8 @@
                 "llama_index",
                 "agent",
                 "expert",
-                "agent_llama"
+                "agent_llama",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2789,8 +3178,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2801,7 +3195,8 @@
             "name": "o4-mini-deep-research",
             "mode": [
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2833,8 +3228,13 @@
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
-            "input": ["text", "image"],
-            "output": ["text"],
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "openai",
@@ -2848,7 +3248,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2863,8 +3264,12 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2878,7 +3283,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2893,8 +3299,12 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2908,7 +3318,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2923,8 +3334,12 @@
             "ctx": 40000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2938,7 +3353,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2953,8 +3369,12 @@
             "ctx": 40000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2968,7 +3388,8 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat"
+                "chat",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -2983,8 +3404,12 @@
             "ctx": 32000,
             "tokens": 4096,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "ollama",
@@ -2999,7 +3424,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3023,8 +3449,12 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",
@@ -3039,7 +3469,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3063,8 +3494,12 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",
@@ -3079,7 +3514,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3103,8 +3539,12 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",
@@ -3119,7 +3559,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3143,8 +3584,12 @@
             "ctx": 200000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",
@@ -3159,7 +3604,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3183,8 +3629,12 @@
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",
@@ -3199,7 +3649,8 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "research"
+                "research",
+                "agent_openai"
             ],
             "llama_index": {
                 "args": [
@@ -3223,8 +3674,12 @@
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
-            "input": ["text"],
-            "output": ["text"],
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
             "extra": {},
             "imported": false,
             "provider": "perplexity",

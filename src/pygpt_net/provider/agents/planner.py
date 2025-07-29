@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
 from pygpt_net.core.types import (
     AGENT_MODE_PLAN,
+    AGENT_TYPE_LLAMA,
 )
 from llama_index.core.agent import (
     StructuredPlannerAgent,
@@ -26,6 +27,7 @@ class PlannerAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(PlannerAgent, self).__init__(*args, **kwargs)
         self.id = "planner"
+        self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_PLAN
         self.name = "Planner (sub-tasks)"
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 19:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -15,6 +15,8 @@ from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
+    AGENT_TYPE_OPENAI,
+    AGENT_TYPE_LLAMA,
 )
 from pygpt_net.utils import trans
 
@@ -110,6 +112,12 @@ class Placeholder:
             return self.get_agent_modes()
         elif id == "agent_provider":
             return self.get_agent_providers()
+        elif id == "agent_provider_llama":
+            return self.get_agent_providers_llama()
+        elif id == "agent_provider_openai":
+            return self.get_agent_providers_openai()
+        elif id == "remote_tools_openai":
+            return self.get_remote_tools_openai()
         elif id == "syntax_styles":
             return self.get_syntax_styles()
         elif id == "styles":
@@ -207,11 +215,35 @@ class Placeholder:
 
     def get_agent_providers(self) -> List[Dict[str, str]]:
         """
-        Get Llama-index agent provider placeholders list
+        Get all agent provider placeholders list
 
         :return: placeholders list
         """
         return self.window.core.agents.provider.get_choices()
+
+    def get_agent_providers_llama(self) -> List[Dict[str, str]]:
+        """
+        Get Llama-index agent provider placeholders list
+
+        :return: placeholders list
+        """
+        return self.window.core.agents.provider.get_choices(AGENT_TYPE_LLAMA)
+
+    def get_agent_providers_openai(self) -> List[Dict[str, str]]:
+        """
+        Get OpenAI agent provider placeholders list
+
+        :return: placeholders list
+        """
+        return self.window.core.agents.provider.get_choices(AGENT_TYPE_OPENAI)
+
+    def get_remote_tools_openai(self) -> List[Dict[str, str]]:
+        """
+        Get OpenAI remote tools placeholders list
+
+        :return: placeholders list
+        """
+        return self.window.core.gpt.remote_tools.get_choices()
 
     def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """

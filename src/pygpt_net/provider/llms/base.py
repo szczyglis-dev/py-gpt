@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -181,5 +181,21 @@ class BaseLLM:
         :param window: window instance
         :param config: config keyword arguments list
         :return: provider instance
+        """
+        pass
+
+    def get_openai_agent_provider(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
+        """
+        Return agent provider instance for OpenAI agents
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: agent provider instance
         """
         pass

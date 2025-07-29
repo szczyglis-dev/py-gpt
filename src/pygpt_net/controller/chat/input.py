@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 21:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,7 @@ from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
     MODE_IMAGE,
@@ -112,9 +113,9 @@ class Input:
 
         # agent modes
         if mode == MODE_AGENT:
-            self.window.controller.agent.legacy.on_user_send(text)  # begin legacy agent flow
-        elif mode == MODE_AGENT_LLAMA:
-            self.window.controller.agent.llama.on_user_send(text)  # begin llama agent flow
+            self.window.controller.agent.legacy.on_user_send(text)  # begin Legacy (autonomous) agent flow
+        elif mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
+            self.window.controller.agent.llama.on_user_send(text)  # begin LlamaIndex adn OpenAI agent flow
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {

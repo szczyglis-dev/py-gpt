@@ -1,3 +1,7 @@
+2.5.76 (2025-07-30)
+
+- Added a new mode: Agents (OpenAI) and integrated `openai-agents` into the app (beta).
+
 2.5.75 (2025-07-28)
 
 - Fix: context append in LlamaIndex agents.

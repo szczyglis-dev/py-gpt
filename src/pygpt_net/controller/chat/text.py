@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -14,6 +14,7 @@ from typing import Optional
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_AUDIO,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
@@ -76,7 +77,6 @@ class Text:
         model = self.window.core.config.get('model')
         model_data = self.window.core.models.get(model)
         stream_mode = self.window.core.config.get('stream')
-        agent_provider = self.window.core.config.get('agent.llama.provider')
         agent_idx = self.window.core.config.get('agent.llama.idx')
         sys_prompt = self.window.core.config.get('prompt')
         sys_prompt_raw = sys_prompt  # store raw prompt (without addons)
@@ -85,6 +85,12 @@ class Text:
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
         idx_mode = self.window.core.config.get('llama.idx.mode')
+
+        # agent provider
+        if mode == MODE_AGENT_LLAMA:
+            agent_provider = self.window.core.config.get('agent.llama.provider')
+        elif mode == MODE_AGENT_OPENAI:
+            agent_provider = self.window.core.config.get('agent.openai.provider')
 
         # o1 models: disable stream mode
         if mode in [MODE_AGENT_LLAMA, MODE_AUDIO]:
@@ -242,13 +248,14 @@ class Text:
                 tools_outputs=tools_outputs,  # if not empty then will submit outputs to assistant
                 max_tokens=max_tokens,  # max output tokens
                 multimodal_ctx=multimodal_ctx,  # multimodal context
+                preset=self.window.controller.presets.get_current(),  # current preset
             )
             extra = {
                 'mode': mode,
                 'reply': reply,
                 'internal': internal,
             }
-            if mode == MODE_AGENT_LLAMA:
+            if mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]:
                 extra['agent_idx'] = agent_idx
                 extra['agent_provider'] = agent_provider
 

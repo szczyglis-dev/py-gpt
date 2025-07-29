@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -15,6 +15,7 @@ from llama_index.agent.openai import OpenAIAssistantAgent as Agent
 
 from pygpt_net.core.types import (
     AGENT_MODE_ASSISTANT,
+    AGENT_TYPE_LLAMA,
 )
 from pygpt_net.core.bridge.context import BridgeContext
 from .base import BaseAgent
@@ -24,6 +25,7 @@ class OpenAIAssistantAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super(OpenAIAssistantAgent, self).__init__(*args, **kwargs)
         self.id = "openai_assistant"
+        self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_ASSISTANT
         self.name = "OpenAI Assistant"
 

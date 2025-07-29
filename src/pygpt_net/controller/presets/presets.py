@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import re
@@ -343,6 +343,7 @@ class Presets:
         self.window.core.config.set('ai_name', preset.ai_name)
         self.window.core.config.set('user_name', preset.user_name)
         self.window.core.config.set('agent.llama.provider', preset.agent_provider)
+        self.window.core.config.set('agent.openai.provider', preset.agent_provider_openai)
         self.window.core.config.set('agent.llama.idx', preset.idx)
 
     def update_current(self):
@@ -359,6 +360,7 @@ class Presets:
                 self.window.core.config.set('prompt', preset.prompt)
                 self.window.core.config.set('temperature', preset.temperature)
                 self.window.core.config.set('agent.llama.provider', preset.agent_provider)
+                self.window.core.config.set('agent.openai.provider', preset.agent_provider_openai)
                 self.window.core.config.set('agent.llama.idx', preset.idx)
                 return
 

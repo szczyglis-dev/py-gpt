@@ -61,6 +61,9 @@ class Stack:
 
         :param context: ReplyContext
         """
+        if context is None:
+            return
+
         # expert call
         if context.type == ReplyContext.EXPERT_CALL:
             self.window.core.experts.call(

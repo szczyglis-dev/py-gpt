@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -69,6 +69,8 @@ from pygpt_net.provider.agents.planner import PlannerAgent
 from pygpt_net.provider.agents.react import ReactAgent
 from pygpt_net.provider.agents.react_workflow import ReactWorkflowAgent
 from pygpt_net.provider.agents.code_act import CodeActAgent
+from pygpt_net.provider.agents.openai_agents.agent import Agent as OpenAIAgentsBase
+from pygpt_net.provider.agents.openai_agents.agent_with_experts import Agent as OpenAIAgentsExperts
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -397,13 +399,15 @@ def run(**kwargs):
         for store in vector_stores:
             launcher.add_vector_store(store)
 
-    # register base llama-index agents
-    launcher.add_agent(OpenAIAgent())
-    launcher.add_agent(OpenAIAssistantAgent())
-    launcher.add_agent(PlannerAgent())
-    launcher.add_agent(ReactAgent())
-    launcher.add_agent(ReactWorkflowAgent())
-    launcher.add_agent(CodeActAgent())
+    # register base agents
+    launcher.add_agent(OpenAIAgent())  # llama-index
+    launcher.add_agent(OpenAIAssistantAgent())  # llama-index
+    launcher.add_agent(PlannerAgent())  # llama-index
+    launcher.add_agent(ReactAgent())  # llama-index
+    launcher.add_agent(ReactWorkflowAgent())  # llama-index
+    launcher.add_agent(CodeActAgent())  # llama-index
+    launcher.add_agent(OpenAIAgentsBase())  # openai-agents
+    launcher.add_agent(OpenAIAgentsExperts())  # openai-agents
 
     # register custom agents
     agents = kwargs.get('agents', None)

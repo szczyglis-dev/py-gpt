@@ -2150,6 +2150,18 @@ class Patch:
                 self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
+            # < 2.5.76
+            if old < parse_version("2.5.76"):
+                print("Migrating config from < 2.5.76.")
+                if "agent.llama.loop.mode" not in data:
+                    data["agent.llama.loop.mode"] = self.window.core.config.get_base(
+                        'agent.llama.loop.mode')
+                if "prompt.agent.llama.eval.complete" not in data:
+                    data["prompt.agent.llama.eval.complete"] = self.window.core.config.get_base(
+                        'prompt.agent.llama.eval.complete')
+                data["prompt.agent.llama.eval"] = self.window.core.config.get_base(
+                    'prompt.agent.llama.eval')
+
         # update file
         migrated = False
         if updated:

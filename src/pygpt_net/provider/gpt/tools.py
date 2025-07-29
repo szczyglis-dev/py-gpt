@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 06:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import json
@@ -29,7 +29,7 @@ class Tools:
             functions: list
     ) -> list:
         """
-        Prepare tools for the model
+        Prepare tools for the model (ChatCompletions API)
 
         :param model: Model item
         :param functions: List of functions
@@ -60,9 +60,32 @@ class Tools:
                         "description": function['desc'],
                     }
                 })
+        return tools
 
-        if (model.id is not None
-                and model.id in ["o1-mini", "o1-preview"]):
-            tools = []  # tools are not supported for o1-mini and o1-preview
+    def prepare_responses_api(
+            self,
+            model: ModelItem,
+            functions: list
+    ) -> list:
+        """
+        Prepare tools for the model (Responses API)
 
+        :param model: Model item
+        :param functions: List of functions
+        :return: List of tools
+        """
+        tools = []
+        if functions is not None and isinstance(functions, list):
+            for function in functions:
+                if str(function['name']).strip() == '' or function['name'] is None:
+                    continue
+                params = {}
+                if function['params'] is not None and function['params'] != "":
+                    params = json.loads(function['params'])  # unpack JSON from string
+                tools.append({
+                    "type": "function",
+                    "name": function['name'],
+                    "parameters": params,
+                    "description": function['desc'],
+                })
         return tools

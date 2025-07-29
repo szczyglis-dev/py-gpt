@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.07.30 00:00:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,7 @@ class Patch:
         is_agent_assistant = False
         is_agent_code_act = False
         is_agent_react_workflow = False
+        is_agent_openai = False
         is_computer = False
 
         for k in self.window.core.presets.items:
@@ -163,6 +164,7 @@ class Patch:
                         updated = True
                         is_agent_react_workflow = True  # prevent multiple copies
 
+                # < 2.5.71
                 if old < parse_version("2.5.71"):
                     if 'current.computer' not in self.window.core.presets.items and not is_computer:
                         print("Migrating preset file from < 2.5.71...")
@@ -173,6 +175,25 @@ class Patch:
                         updated = True
                         is_computer = True  # prevent multiple copies
                         print("Patched file: {}.".format(dst))
+
+                # < 2.5.76
+                if old < parse_version("2.5.76"):
+                    if 'current.agent_openai' not in self.window.core.presets.items and not is_agent_openai:
+                        print("Migrating preset file from < 2.5.76...")
+                        files = [
+                            'current.agent_openai.json',
+                            'agent_openai_simple.json',
+                            'agent_openai_expert.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+
+                        updated = True
+                        is_agent_openai = True  # prevent multiple copies
 
             # update file
             if updated:
