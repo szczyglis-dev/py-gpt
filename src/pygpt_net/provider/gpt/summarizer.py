@@ -35,9 +35,14 @@ class Summarizer:
         system_prompt = self.window.core.prompt.get('ctx.auto_summary.system')
         truncated_input = str(ctx.input)[:max_chars] + '...' if len(str(ctx.input)) > max_chars else str(ctx.input)
         truncated_output = str(ctx.output)[:max_chars] + '...' if len(str(ctx.output)) > max_chars else str(ctx.output)
-        text = (self.window.core.prompt.get('ctx.auto_summary.user').
-                replace("{input}", truncated_input).
-                replace("{output}", truncated_output))
+        if truncated_output and truncated_output != "None":
+            text = (self.window.core.prompt.get('ctx.auto_summary.user').
+                    replace("{input}", truncated_input).
+                    replace("{output}", truncated_output))
+        else:
+            text = (self.window.core.prompt.get('ctx.auto_summary.user').
+                    replace("{input}", truncated_input).
+                    replace("{output}", "..."))
 
         # custom model for auto summary
         if self.window.core.config.get('ctx.auto_summary.model') is not None \
