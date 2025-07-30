@@ -375,8 +375,8 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 .. image:: images/v2_agent_settings.png
    :width: 800
 
-Agents (OpenAI)
----------------
+Agent (OpenAI)
+--------------
 
 **Added in: 2.5.76** - currently in beta.
 
