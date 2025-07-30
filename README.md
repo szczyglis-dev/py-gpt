@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.76** | build: **2025-07-30** | Python: **>=3.10, <3.13**
+Release: **2.5.77** | build: **2025-07-30** | Python: **>=3.10, <3.13**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -42,7 +42,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer Use, Agents and Autonomous Mode.
+- 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer use, Agents and Autonomous Mode.
 - Supports multiple models: `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity Sonar`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -704,11 +704,45 @@ You can run the agent in autonomous mode, in a loop, and with evaluation of the 
 
 Setting the expected (required) score to `0%` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
 
+You can choose between two methods of evaluation:
+
+- By the percentage of tasks completed
+- By the accuracy (score) of the final response
+
 You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps `. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
-You can change the prompt used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
+You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
-Unavailable in CodeAct agent.
+## Agent (OpenAI)
+
+**Added in: 2.5.76** - currently in beta.
+
+The mode operates on the `openai-agents` library integrated into the application:
+
+https://github.com/openai/openai-agents-python
+
+It allows running agents for OpenAI models and models compatible with the OpenAI API.
+
+In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the `openai_agents_experts` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
+
+**Agent types:**
+
+- `openai_agents_simple` - runs a single agent.
+- `openai_agents_experts` - uses attached experts as sub-agents.
+
+More types will be available in the future.
+
+In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
+
+Remote tools for experts can be selected separately for each expert in the preset configuration.
+
+Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
+
+**Limitations:**
+
+- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
+
+- Ollama models are not supported in this mode.
 
 ##  Agent (Autonomous) 
 
@@ -750,41 +784,7 @@ If you want to use the LlamaIndex mode when running the agent, you can also spec
 ![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_agent_settings.png)
 
 
-## Agent (OpenAI)
-
-**Added in: 2.5.76** - currently in beta.
-
-The mode operates on the `openai-agents` library integrated into the application:
-
-https://github.com/openai/openai-agents-python
-
-It allows running agents for OpenAI models and models compatible with the OpenAI API.
-
-In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the `openai_agents_experts` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
-
-**Agent types:**
-
-- `openai_agents_simple` - runs a single agent.
-- `openai_agents_experts` - uses attached experts as sub-agents.
-
-More types will be available in the future.
-
-In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
-
-Remote tools for experts can be selected separately for each expert in the preset configuration.
-
-Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
-
-**Limitations:**
-
-- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
-
-- Ollama models are not supported in this mode.
-
-
 ##  Experts (co-op, co-operation mode)
-
-**This mode is experimental.**
 
 Expert mode allows for the creation of experts (using presets) and then consulting them during a conversation. In this mode, a primary base context is created for conducting the conversation. From within this context, the model can make requests to an expert to perform a task and return the results to the main thread. When an expert is called in the background, a separate context is created for them with their own memory. This means that each expert, during the life of one main context, also has access to their own memory via their separate, isolated context.
 
@@ -812,7 +812,7 @@ You can also ask for a list of active experts at any time:
 Give me a list of active experts.
 ```
 
-##  Computer Use
+##  Computer use
 
 **2.5.71**: Currently in beta.
 
@@ -833,7 +833,7 @@ You can change the environment in which the navigation mode operates by using th
 - Windows
 - Mac
 
-**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer Use mode—it is already connected to Computer Use mode "in the background."
+**Tip:** DO NOT enable the `Mouse and Keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
 
 
 # Context and memory
@@ -3086,7 +3086,9 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Context: auto-summary (user message)`: User message for context auto-summary. Placeholders: {input}, {output}
 
-- `Agent: evaluation prompt in loop (LlamaIndex)`: Prompt used for evaluating the response in Agents (LlamaIndex) mode.
+- `Agent: evaluation prompt in loop (LlamaIndex) - % complete`: Prompt used for evaluating (by % complete) the response in Agents (LlamaIndex/OpenAI) mode.
+
+- `Agent: evaluation prompt in loop (LlamaIndex) - % score`: Prompt used for evaluating (by % score) the response in Agents (LlamaIndex/OpenAI) mode.
 
 - `Agent: system instruction (Legacy)`: Prompt to instruct how to handle autonomous mode.
 
@@ -4187,9 +4189,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.5.77 (2025-07-30)**
+
+- Fix: history prepare in Agent (OpenAI) mode.
+- Agent response evaluation splitted into two modes: by the percentage of task completion and by accuracy.
+
 **2.5.76 (2025-07-30)**
 
-- Added a new mode: Agents (OpenAI) and integrated `openai-agents` into the app (beta).
+- Added a new mode: Agent (OpenAI) and integrated `openai-agents` into the app (beta).
 
 **2.5.75 (2025-07-28)**
 
@@ -4214,7 +4221,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.5.71 (2025-07-27)**
 
-- Added a new working mode: `Computer Use` for autonomous navigation in the user's environment (beta; utilizes the `Computer Use` remote tool and the model `computer-use-preview`).
+- Added a new working mode: `Computer use` for autonomous navigation in the user's environment (beta; utilizes the `Computer use` remote tool and the model `computer-use-preview`).
 - Added a new remote tool: `Remote MCP` (with configuration in Settings -> Remote Tools).
 - Added a new remote tool: `File Search` (with configuration in Settings -> Remote Tools).
 - Added a new option `Always continue...` to Agent (autonomous) plugin settings.

@@ -1,6 +1,11 @@
+2.5.77 (2025-07-30)
+
+- Fix: history prepare in Agent (OpenAI) mode.
+- Agent response evaluation splitted into two modes: by the percentage of task completion and by accuracy.
+
 2.5.76 (2025-07-30)
 
-- Added a new mode: Agents (OpenAI) and integrated `openai-agents` into the app (beta).
+- Added a new mode: Agent (OpenAI) and integrated `openai-agents` into the app (beta).
 
 2.5.75 (2025-07-28)
 
@@ -25,7 +30,7 @@
 
 2.5.71 (2025-07-27)
 
-- Added a new working mode: Computer Use for autonomous navigation in the user's environment (beta; utilizes the Computer Use remote tool and the model computer-use-preview).
+- Added a new working mode: Computer use for autonomous navigation in the user's environment (beta; utilizes the Computer use remote tool and the model computer-use-preview).
 - Added a new remote tool: Remote MCP (with configuration in Settings -> Remote Tools).
 - Added a new remote tool: File Search (with configuration in Settings -> Remote Tools).
 - Added a new option Always continue... to Agent (autonomous) plugin settings.

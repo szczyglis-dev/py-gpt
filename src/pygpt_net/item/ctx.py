@@ -357,6 +357,15 @@ class CtxItem:
             pass
         return ""
 
+    def print(self):
+        """Print context item"""
+        print("\n----------------------------")
+        print("[" + str(self.id) + "]")
+        print("Input:", self.input)
+        print("Output:", self.output)
+        print("Extra:", self.extra)
+        print("\n-----------------------------")
+
     def __str__(self):
         """To string"""
         return self.dump(True)

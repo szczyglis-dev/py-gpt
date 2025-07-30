@@ -169,7 +169,9 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Context: auto-summary (user message)``: User message for context auto-summary. Placeholders: {input}, {output}
 
-* ``Agent: evaluation prompt in loop (LlamaIndex)``: Prompt used for evaluating the response in Agents (LlamaIndex) mode.
+* ``Agent: evaluation prompt in loop (LlamaIndex) - % complete``: Prompt used for evaluating (by % complete) the response in Agents (LlamaIndex/OpenAI) mode.
+
+* ``Agent: evaluation prompt in loop (LlamaIndex) - % score``: Prompt used for evaluating (by % score) the response in Agents (LlamaIndex/OpenAI) mode.
 
 * ``Agent: system instruction (Legacy)``: Prompt to instruct how to handle autonomous mode.
 
