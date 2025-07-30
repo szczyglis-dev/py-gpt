@@ -1,20 +1,19 @@
 {
     "__meta__": {
-        "version": "2.5.80",
-        "app.version": "2.5.80",
-        "updated_at": "2025-07-30T02:19:30"
+        "version": "2.5.81",
+        "app.version": "2.5.81",
+        "updated_at": "2025-07-30T23:07:35"
     },
     "items": {
         "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M": {
             "id": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
             "name": "bielik-11b-v2.3",
             "mode": [
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "expert",
                 "chat",
-                "agent_openai"
+                "llama_index",
+                "agent_llama",
+                "agent",
+                "expert"
             ],
             "llama_index": {
                 "args": [
@@ -313,8 +312,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -394,9 +392,8 @@
             "id": "computer-use-preview",
             "name": "computer-use-preview",
             "mode": [
-                "computer",
                 "agent_openai",
-                "expert"
+                "computer"
             ],
             "llama_index": {
                 "args": [
@@ -496,8 +493,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -536,8 +532,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -576,8 +571,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -616,8 +610,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -656,8 +649,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -696,8 +688,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -736,8 +727,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2332,8 +2322,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2367,8 +2356,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2402,8 +2390,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2437,8 +2424,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2472,8 +2458,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2507,8 +2492,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2542,8 +2526,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -2577,8 +2560,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -3248,8 +3230,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -3283,8 +3264,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -3318,8 +3298,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -3353,8 +3332,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [
@@ -3388,8 +3366,7 @@
                 "agent",
                 "agent_llama",
                 "expert",
-                "chat",
-                "agent_openai"
+                "chat"
             ],
             "llama_index": {
                 "args": [

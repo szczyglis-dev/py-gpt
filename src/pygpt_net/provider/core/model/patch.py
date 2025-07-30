@@ -700,6 +700,16 @@ class Patch:
                         model.mode.append(MODE_EXPERT)
                 updated = True
 
+            # < 2.5.81 <--- remove MODE_AGENT_OPENAI from unsupported models
+            if old < parse_version("2.5.81"):
+                print("Migrating models from < 2.5.81...")
+                for id in data:
+                    model = data[id]
+                    if model.provider in ["ollama", "mistral_ai"]:
+                        if "agent_openai" in model.mode:
+                            model.mode.remove("agent_openai")
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
