@@ -11,7 +11,7 @@
 
 from typing import Dict, Any
 
-from llama_index.core.agent import ReActAgent as Agent
+from llama_index.core.agent.workflow import ReActAgent as Agent
 from llama_index.core.agent.react_multimodal.step import (
     MultimodalReActAgentWorker,
 )
@@ -20,19 +20,19 @@ from pygpt_net.core.types import (
     MODE_VISION,
     AGENT_TYPE_LLAMA,
 )
-
 from pygpt_net.core.types import (
-    AGENT_MODE_STEP,
+    AGENT_MODE_WORKFLOW
 )
-from .base import BaseAgent
 
-class ReactAgent(BaseAgent):
+from ..base import BaseAgent
+
+class ReactWorkflowAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
-        super(ReactAgent, self).__init__(*args, **kwargs)
-        self.id = "react"
+        super(ReactWorkflowAgent, self).__init__(*args, **kwargs)
+        self.id = "react_workflow"
         self.type = AGENT_TYPE_LLAMA
-        self.mode = AGENT_MODE_STEP
-        self.name = "ReAct"
+        self.mode = AGENT_MODE_WORKFLOW
+        self.name = "ReAct (Workflow)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """
@@ -65,7 +65,7 @@ class ReactAgent(BaseAgent):
             )
             return step_engine.as_agent()
         """
-        return Agent.from_tools(
+        return Agent(
             tools=tools,
             llm=llm,
             chat_history=chat_history,

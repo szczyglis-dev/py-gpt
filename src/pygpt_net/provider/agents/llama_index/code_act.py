@@ -18,7 +18,7 @@ from pygpt_net.core.types import (
     AGENT_MODE_WORKFLOW,
     AGENT_TYPE_LLAMA,
 )
-from .base import BaseAgent
+from ..base import BaseAgent
 
 class CodeActAgent(BaseAgent):
 

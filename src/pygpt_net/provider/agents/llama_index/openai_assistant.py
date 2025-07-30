@@ -18,7 +18,8 @@ from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
 )
 from pygpt_net.core.bridge.context import BridgeContext
-from .base import BaseAgent
+
+from ..base import BaseAgent
 
 
 class OpenAIAssistantAgent(BaseAgent):

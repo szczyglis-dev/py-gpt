@@ -63,14 +63,14 @@ from pygpt_net.plugin.agent import Plugin as AgentPlugin
 from pygpt_net.plugin.mailer import Plugin as MailerPlugin
 
 # agents (Llama-index)
-from pygpt_net.provider.agents.openai import OpenAIAgent
-from pygpt_net.provider.agents.openai_assistant import OpenAIAssistantAgent
-from pygpt_net.provider.agents.planner import PlannerAgent
-from pygpt_net.provider.agents.react import ReactAgent
-from pygpt_net.provider.agents.react_workflow import ReactWorkflowAgent
-from pygpt_net.provider.agents.code_act import CodeActAgent
-from pygpt_net.provider.agents.openai_agents.agent import Agent as OpenAIAgentsBase
-from pygpt_net.provider.agents.openai_agents.agent_with_experts import Agent as OpenAIAgentsExperts
+from pygpt_net.provider.agents.llama_index.openai import OpenAIAgent
+from pygpt_net.provider.agents.llama_index.openai_assistant import OpenAIAssistantAgent
+from pygpt_net.provider.agents.llama_index.planner import PlannerAgent
+from pygpt_net.provider.agents.llama_index.react import ReactAgent
+from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
+from pygpt_net.provider.agents.llama_index.code_act import CodeActAgent
+from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentsBase
+from pygpt_net.provider.agents.openai.agent_with_experts import Agent as OpenAIAgentsExperts
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM

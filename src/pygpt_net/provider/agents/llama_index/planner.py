@@ -21,7 +21,7 @@ from llama_index.core.agent import (
     ReActAgentWorker,
 )
 
-from .base import BaseAgent
+from ..base import BaseAgent
 
 class PlannerAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
