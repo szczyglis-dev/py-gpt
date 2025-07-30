@@ -75,7 +75,7 @@ class Memory:
                         if item.final_output is not None and item.final_output != "":
                             messages.append(ChatMessage(
                                 role=MessageRole.USER,
-                                content=item.final_input
+                                content=item.final_output
                             ))
 
         return messages
