@@ -132,7 +132,7 @@ class Memory:
                         if item.final_output is not None and item.final_output != "":
                             messages.append({
                                 "role": "assistant",
-                                "content": item.final_input,
+                                "content": item.final_output,
                             })
 
                 # previous response id
