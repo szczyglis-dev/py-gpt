@@ -230,7 +230,7 @@ class Editor:
         """Setup preset editor"""
         # update after agents register
         self.window.ui.config[self.id]['agent_provider'].set_keys(
-            self.window.controller.config.placeholder.apply_by_id('agent_provider')
+            self.window.controller.config.placeholder.apply_by_id('agent_provider_llama')
         )
         self.window.ui.config[self.id]['agent_provider_openai'].set_keys(
             self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
