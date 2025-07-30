@@ -2,7 +2,8 @@
 
 ## 2.5.78 (2025-07-30)
 
-- Fix: history prepare in Agent (LlamaIndex) mode.
+- Added support for Python 3.13.
+- Fixed history prepare in Agent (LlamaIndex) mode.
 
 ## 2.5.77 (2025-07-30)
 

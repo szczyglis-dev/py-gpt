@@ -17,7 +17,6 @@ from pinecone import Pinecone, ServerlessSpec
 
 from llama_index.core import StorageContext
 from llama_index.core.indices.base import BaseIndex
-from llama_index.vector_stores.pinecone import PineconeVectorStore
 
 from pygpt_net.utils import parse_args
 from .base import BaseStore
@@ -103,13 +102,14 @@ class PinecodeProvider(BaseStore):
             base_kwargs["api_key"] = kwargs_additional["api_key"]
         return Pinecone(**base_kwargs)  # api_key argument is required
 
-    def get_store(self, id: str) -> PineconeVectorStore:
+    def get_store(self, id: str):
         """
         Get Pinecone store
 
         :param id: index name
         :return: PineconeVectorStore client
         """
+        from llama_index.vector_stores.pinecone import PineconeVectorStore
         pc = self.get_client()
         name = id
         kwargs = parse_args(
