@@ -549,6 +549,7 @@ class Editor:
 
         preset = self.window.core.presets.items[id]
         preset.from_dict(data_dict)
+        preset.filename = id
         preset.tools = {
             'function': [],  # functions are assigned separately (below)
         }
