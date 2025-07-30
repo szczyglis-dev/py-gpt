@@ -9,7 +9,7 @@
 project = 'PyGPT'
 copyright = '2025, pygpt.net'
 author = 'szczyglis-dev, Marcin Szczygliński'
-release = '2.5.80'
+release = '2.5.81'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

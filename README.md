@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.80** | build: **2025-07-30** | Python: **>=3.10, <3.14**
+Release: **2.5.81** | build: **2025-07-31** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4188,6 +4188,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.81 (2025-07-31)**
+
+- Disabled remote tools by default in non-OpenAI providers in Agent (OpenAI) mode.
+- Removed unsupported models from Agent (OpenAI) mode.
 
 **2.5.80 (2025-07-30)**
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.81 (2025-07-31)
+
+- Disabled remote tools by default in non-OpenAI providers in Agent (OpenAI) mode.
+- Removed unsupported models from Agent (OpenAI) mode.
+
 ## 2.5.80 (2025-07-30)
 
 - Improved the stop command in Agent mode: added saving of current output on break.
