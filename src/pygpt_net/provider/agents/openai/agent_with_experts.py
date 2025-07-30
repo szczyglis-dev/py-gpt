@@ -153,6 +153,7 @@ class Agent(BaseAgent):
         verbose = agent_kwargs.get("verbose", False)
         context = agent_kwargs.get("context", BridgeContext())
         tools = agent_kwargs.get("function_tools", [])
+        max_steps = agent_kwargs.get("max_iterations", 10)
         preset = context.preset if context else None
 
         # prepare experts as agents
@@ -182,6 +183,7 @@ class Agent(BaseAgent):
 
         kwargs = {
             "input": messages,
+            "max_turns": int(max_steps),
         }
         if model.provider != "openai":
             custom_provider = get_custom_model_provider(window, model)

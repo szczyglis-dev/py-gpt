@@ -111,9 +111,11 @@ class Agent(BaseAgent):
         verbose = agent_kwargs.get("verbose", False)
         agent = self.get_agent(window, agent_kwargs)
         context = agent_kwargs.get("context", BridgeContext())
+        max_steps = agent_kwargs.get("max_iterations", 10)
         preset = context.preset if context else None
         kwargs = {
             "input": messages,
+            "max_turns": int(max_steps),
         }
         if model.provider != "openai":
             custom_provider = get_custom_model_provider(window, model)
