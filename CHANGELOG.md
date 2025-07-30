@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.79 (2025-07-30)
+
+- Added prevent text break on input send when the cursor is inside the text.
+- Fix: updating expert IDs on preset save.
+- Added notification if no agent is selected.
+- Disabled FFmpeg warnings.
+
 ## 2.5.78 (2025-07-30)
 
 - Added support for Python 3.13.

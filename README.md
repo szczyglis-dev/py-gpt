@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.78** | build: **2025-07-30** | Python: **>=3.10, <3.14**
+Release: **2.5.79** | build: **2025-07-30** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4188,6 +4188,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.79 (2025-07-30)**
+
+- Added prevent text break on input send when the cursor is inside the text.
+- Fix: updating expert IDs on preset save.
+- Added notification if no agent is selected.
+- Disabled FFmpeg warnings.
 
 **2.5.78 (2025-07-30)**
 
