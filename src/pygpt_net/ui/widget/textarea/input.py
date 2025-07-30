@@ -136,7 +136,7 @@ class ChatInput(QTextEdit):
 
         :param event: key event
         """
-        super(ChatInput, self).keyPressEvent(event)
+        handled = False
         if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
             mode = self.window.core.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
@@ -144,15 +144,21 @@ class ChatInput(QTextEdit):
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == QtCore.Qt.ShiftModifier or modifiers == QtCore.Qt.ControlModifier:
                         self.window.controller.chat.input.send_input()
+                        handled = True
                 else:  # Enter
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers != QtCore.Qt.ShiftModifier and modifiers != QtCore.Qt.ControlModifier:
                         self.window.controller.chat.input.send_input()
+                        handled = True
                 self.setFocus()
 
         # cancel edit
         elif event.key() == Qt.Key_Escape and self.window.controller.ctx.extra.is_editing():
             self.window.controller.ctx.extra.edit_cancel()
+            handled = True
+
+        if not handled:
+            super(ChatInput, self).keyPressEvent(event)
 
     def wheelEvent(self, event):
         """
