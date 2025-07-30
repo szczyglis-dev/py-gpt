@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.79** | build: **2025-07-30** | Python: **>=3.10, <3.14**
+Release: **2.5.80** | build: **2025-07-30** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4188,6 +4188,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.80 (2025-07-30)**
+
+- Improved the stop command in Agent mode: added saving of current output on break.
+- Fixed the experts providers list in Agent (LlamaIndex): now only Llama providers are displayed.
+- Added max_turns configuration to Agent (OpenAI), shared with Agents -> Max steps configuration option value.
 
 **2.5.79 (2025-07-30)**
 

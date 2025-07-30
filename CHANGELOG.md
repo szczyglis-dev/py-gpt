@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.80 (2025-07-30)
+
+- Improved the stop command in Agent mode: added saving of current output on break.
+- Fixed the experts providers list in Agent (LlamaIndex): now only Llama providers are displayed.
+- Added max_turns configuration to Agent (OpenAI), shared with Agents -> Max steps configuration option value.
+
 ## 2.5.79 (2025-07-30)
 
 - Added prevent text break on input send when the cursor is inside the text.
