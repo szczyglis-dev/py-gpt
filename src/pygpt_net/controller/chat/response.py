@@ -163,10 +163,11 @@ class Response:
         :param context: BridgeContext
         :param extra: Extra data
         """
+        ctx = context.ctx
         if self.window.controller.kernel.stopped():
+            self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
             return
 
-        ctx = context.ctx
         # at first, handle previous context (user input) if not handled yet
         prev_ctx = ctx.prev_ctx
         stream = False

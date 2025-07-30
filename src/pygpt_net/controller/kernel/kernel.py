@@ -49,6 +49,10 @@ class Kernel(QObject):
         self.last_stack = []
         self.status = ""
         self.state = self.STATE_IDLE
+        self.not_stop_on_events = [
+            KernelEvent.APPEND_DATA, 
+            KernelEvent.INPUT_USER,
+        ]
 
     def init(self):
         """Init kernel"""
@@ -65,7 +69,7 @@ class Kernel(QObject):
 
         :param event: kernel event
         """
-        if self.stopped() and event.name != KernelEvent.INPUT_USER:
+        if self.stopped() and event.name not in self.not_stop_on_events:
             return
 
         self.window.dispatch(event)  # return event to handle()
@@ -76,7 +80,7 @@ class Kernel(QObject):
 
         :param event: kernel event
         """
-        if self.stopped() and event.name != KernelEvent.INPUT_USER:
+        if self.stopped() and event.name not in self.not_stop_on_events:
             return
 
         self.store(event)  # store event in stack
@@ -161,7 +165,7 @@ class Kernel(QObject):
         :param event: kernel event
         :return: response
         """
-        if self.stopped():
+        if self.stopped() and event.name not in self.not_stop_on_events:
             return
 
         if event.name in [
@@ -252,7 +256,7 @@ class Kernel(QObject):
         :param extra: extra data
         :param event: kernel event
         """
-        if self.stopped():
+        if self.stopped() and event.name not in self.not_stop_on_events:
             return
 
         if event.name == KernelEvent.RESPONSE_OK:
