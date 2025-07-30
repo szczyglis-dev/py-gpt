@@ -431,7 +431,7 @@ class PythonInput(QTextEdit):
 
         :param event: key event
         """
-        super(PythonInput, self).keyPressEvent(event)
+        handled = False
         if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
             mode = self.window.core.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
@@ -439,11 +439,15 @@ class PythonInput(QTextEdit):
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == QtCore.Qt.ShiftModifier:
                         self.tool.send_input(self.widget)
+                        handled = True
                 else:  # Enter
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers != QtCore.Qt.ShiftModifier:
                         self.tool.send_input(self.widget)
+                        handled = True
                 self.setFocus()
+        if not handled:
+            super(PythonInput, self).keyPressEvent(event)
 
     def wheelEvent(self, event):
         """
