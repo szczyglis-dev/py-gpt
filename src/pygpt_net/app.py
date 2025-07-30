@@ -15,6 +15,7 @@ import io
 
 # disable warnings
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg=false"
 
 _original_open = builtins.open
 
