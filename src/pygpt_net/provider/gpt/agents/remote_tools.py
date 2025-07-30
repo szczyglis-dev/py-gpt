@@ -40,6 +40,9 @@ def is_computer_tool(
         preset: PresetItem,
         is_expert_call: bool,
 ):
+    if not model.is_gpt():
+        return False
+
     if not is_expert_call:
         # from global config if not expert call
         return model.id.startswith("computer-use")
@@ -65,6 +68,9 @@ def get_remote_tools(
     :param window: Window instance
     """
     tools = []
+
+    if not model.is_gpt():
+        return []
 
     def on_safety_check(data):
         """
