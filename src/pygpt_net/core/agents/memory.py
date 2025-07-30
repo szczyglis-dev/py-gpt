@@ -74,7 +74,7 @@ class Memory:
                     if item.extra.get("agent_output", False):
                         if item.final_output is not None and item.final_output != "":
                             messages.append(ChatMessage(
-                                role=MessageRole.USER,
+                                role=MessageRole.ASSISTANT,
                                 content=item.final_output
                             ))
 
