@@ -77,6 +77,14 @@ class Input:
                 self.window.controller.agent.common.display_infinity_loop_confirm()
                 return
 
+            # check for agent is selected
+            if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+                preset = self.window.controller.presets.get_current()
+                if not preset or preset.name == "*":
+                    self.window.ui.dialogs.alert(
+                        trans("dialog.agent.not_selected"))
+                    return
+
             # check ollama model
             model = self.window.core.config.get('model')
             if model:
