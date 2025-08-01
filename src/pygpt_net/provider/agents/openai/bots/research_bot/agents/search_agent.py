@@ -34,15 +34,19 @@ def get_search_agent(
     kwargs = {
         "name": "SearchAgent",
         "instructions": config["prompt"],
-        "model_settings": ModelSettings(tool_choice="required"),
     }
     kwargs.update(tool_kwargs)  # update kwargs with tools
 
     if config["allow_remote_tools"]:
         if not window.core.config.get("remote_tools.web_search", False):
-            if config["model"].is_gpt() and not config["model"].id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH:
+            if (config["model"].is_gpt()
+                    and not config["model"].id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH
+                    and not config["model"].id.startswith("computer-use")):
                 if "tools" not in kwargs:
                     kwargs["tools"] = []
                 kwargs["tools"].append(WebSearchTool())
+
+    if config["allow_local_tools"] or config["allow_remote_tools"]:
+        kwargs["model_settings"] = ModelSettings(tool_choice="required")
 
     return Agent(**kwargs)
