@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.82 (2025-08-01)
+
+- Added a new OpenAI agents: researcher, planner, feedback.
+
 ## 2.5.81 (2025-07-31)
 
 - Disabled remote tools by default in non-OpenAI providers in Agent (OpenAI) mode.
