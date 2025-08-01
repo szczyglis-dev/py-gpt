@@ -54,6 +54,14 @@ class StreamHandler:
         self.files_handled = False
         self.code_block = False
 
+    def to_buffer(self, text: str):
+        """
+        Append text to buffer
+
+        :param text: str - text to append
+        """
+        self.buffer += text
+
     def handle(self, event, ctx: CtxItem, flush: bool = True) -> Tuple[str, str]:
         """
         Unpack agent response and set context

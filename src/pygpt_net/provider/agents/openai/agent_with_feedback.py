@@ -253,13 +253,14 @@ class Agent(BaseAgent):
                     info += "\n\n**Response is good enough, exiting.**\n"
                     ctx.stream = info
                     bridge.on_step(ctx, False)
+                    final_output += info
                     break
 
                 info += "\n\n**Re-running with feedback**\n\n" + f"Feedback: {result.feedback}\n___\n"
                 ctx.stream = info
                 bridge.on_step(ctx, False)
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
-                final_output += info
+                handler.to_buffer(info)
 
         return final_output, response_id
 
