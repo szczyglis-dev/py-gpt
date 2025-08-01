@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import time
@@ -190,7 +190,7 @@ class Bridge:
         :param extra: extra data
         :return: response content
         """
-        if self.window.controller.kernel.stopped():
+        if self.window.controller.kernel.stopped() and not context.force:
             return ""
 
         self.window.core.debug.info("[bridge] Call...")

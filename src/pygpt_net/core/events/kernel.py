@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -34,6 +34,7 @@ class KernelEvent(BaseEvent):
     APPEND_DATA = "kernel.append.data"
     APPEND_END = "kernel.append.end"
     CALL = "kernel.call"
+    FORCE_CALL = "kernel.force_call"
     REQUEST = "kernel.request"
     REQUEST_CALL = "kernel.request_call"
     REQUEST_NEXT = "kernel.request.next"

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 16:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -833,14 +833,15 @@ class Ctx:
         self.window.core.config.set('ctx.records.filter.labels', labels)
         self.update(reload=True, all=False)
 
-    def prepare_name(self, ctx: CtxItem):
+    def prepare_name(self, ctx: CtxItem, force: bool = False):
         """
         Handle context name (summarize first input and output)
 
         :param ctx: CtxItem
+        :param force: force update
         """
         # if ctx is not initialized yet then summarize
-        if not self.window.core.ctx.is_initialized():
+        if not self.window.core.ctx.is_initialized() or force:
             self.summarizer.summarize(
                 self.window.core.ctx.get_current(),
                 ctx,

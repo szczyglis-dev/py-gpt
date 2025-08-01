@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.25 22:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import KernelEvent
@@ -59,8 +59,9 @@ class Summarizer:
             model=model,
             max_tokens=500,
             temperature=0.0,
+            force=True,  # even if kernel stopped!
         )
-        event = KernelEvent(KernelEvent.CALL, {
+        event = KernelEvent(KernelEvent.FORCE_CALL, {
             'context': bridge_context,
             'extra': {},
             'response': None,

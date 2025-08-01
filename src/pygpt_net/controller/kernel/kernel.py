@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -52,6 +52,7 @@ class Kernel(QObject):
         self.not_stop_on_events = [
             KernelEvent.APPEND_DATA, 
             KernelEvent.INPUT_USER,
+            KernelEvent.FORCE_CALL,
         ]
 
     def init(self):
@@ -107,6 +108,7 @@ class Kernel(QObject):
             KernelEvent.AGENT_CONTINUE,
             KernelEvent.AGENT_CALL,
             KernelEvent.CALL,
+            KernelEvent.FORCE_CALL,
             KernelEvent.LIVE_APPEND,
             KernelEvent.LIVE_CLEAR,
         ]:
@@ -190,7 +192,10 @@ class Kernel(QObject):
             KernelEvent.AGENT_CALL,
         ]:
             return self.stack.add(context.reply_context)  # to reply stack
-        elif event.name == KernelEvent.CALL:
+        elif event.name in [
+            KernelEvent.CALL,
+            KernelEvent.FORCE_CALL,
+        ]:
             return self.call(context, extra, event)
 
     def call(
@@ -207,18 +212,18 @@ class Kernel(QObject):
         :param event: kernel event
         :return: response
         """
-        if self.stopped():
+        if self.stopped() and event.name not in self.not_stop_on_events:
             return
 
         if event.name == KernelEvent.REQUEST:
-            #loop = asyncio.get_event_loop()
             asyncio.create_task(self.window.core.bridge.request(context, extra))
             return True
-            #return self.window.core.bridge.request(context, extra)
-            #return asyncio.gather(self.window.core.bridge.request(context, extra))
         elif event.name == KernelEvent.REQUEST_NEXT:
             return self.window.core.bridge.request_next(context, extra)
-        elif event.name == KernelEvent.CALL:
+        elif event.name in [
+            KernelEvent.CALL,
+            KernelEvent.FORCE_CALL,
+        ]:
             return self.window.core.bridge.call(context, extra)
 
     def reply(

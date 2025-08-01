@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import json
@@ -47,6 +47,7 @@ class BridgeContext:
         self.force_sync = kwargs.get("force_sync", False)  # Force sync flag
         self.request = kwargs.get("request", False)  # Use normal request instead of quick call
         self.preset = kwargs.get("preset", None)  # PresetItem
+        self.force = kwargs.get("force", False)  # Force mode flag
 
         # check types
         if self.ctx is not None and not isinstance(self.ctx, CtxItem):

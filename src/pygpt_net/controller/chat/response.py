@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
 
+from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
@@ -165,7 +166,11 @@ class Response:
         """
         ctx = context.ctx
         if self.window.controller.kernel.stopped():
+            output = ctx.output
+            if output and has_unclosed_code_tag(output):
+                ctx.output += "\n```"
             self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
+            self.window.controller.ctx.prepare_name(ctx)  # summarize if not yet
             return
 
         # at first, handle previous context (user input) if not handled yet
