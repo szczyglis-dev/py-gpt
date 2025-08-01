@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
+from PySide6.QtGui import QFontMetrics
 
 from pygpt_net.utils import trans
 
@@ -40,6 +41,18 @@ class NoScrollCombo(SeparatorComboBox):
 
     def wheelEvent(self, event):
         event.ignore()  # disable mouse wheel
+
+    def showPopup(self):
+        max_width = 0
+        font_metrics = QFontMetrics(self.font())
+        for i in range(self.count()):
+            text = self.itemText(i)
+            width = font_metrics.horizontalAdvance(text)
+            max_width = max(max_width, width)
+        extra_margin = 80
+        max_width += extra_margin
+        self.view().setMinimumWidth(max_width)
+        super().showPopup()
 
 
 class OptionCombo(QWidget):
