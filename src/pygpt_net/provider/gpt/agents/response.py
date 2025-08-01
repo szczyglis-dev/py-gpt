@@ -49,9 +49,9 @@ class StreamHandler:
     def reset(self):
         # self.buffer = ""
         self.response_id = None
-        self.files = []
+        # self.files = []
         self.finished = False
-        self.files_handled = False
+        # self.files_handled = False
         self.code_block = False
 
     def to_buffer(self, text: str):
