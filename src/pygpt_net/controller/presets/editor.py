@@ -403,6 +403,60 @@ class Editor:
                             value=value,
                         )
 
+    def load_extra_defaults_current(self):
+        """
+        Load extra options defaults on mode change
+
+        :return: None
+        """
+        if not self.tab_options_idx:
+            return
+
+        if not self.current:
+            return
+
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_AGENT_OPENAI:
+            return
+
+        preset = self.window.core.presets.get_by_uuid(self.current)
+        if not preset:
+            return
+        current_provider_id = preset.agent_provider_openai if preset else None
+
+        # load defaults for all tabs
+        for id in self.tab_options_idx:
+            # skip current provider
+            if current_provider_id and id == current_provider_id:
+                continue
+            agent = self.window.core.agents.provider.get(id)
+            if not agent:
+                continue
+            option_tabs = agent.get_options()
+            for option_tab_id in option_tabs:
+                option_key = "agent." + id + "." + option_tab_id
+                if option_key not in self.window.ui.config:
+                    continue
+                extra_options = option_tabs[option_tab_id]['options']
+                for key in extra_options:
+                    value = extra_options[key].get('default', None)
+                    if value is not None:
+                        # check current, apply only if current is empty
+                        current_value = self.window.controller.config.get_value(
+                            parent_id=option_key,
+                            key=key,
+                            option=extra_options[key],
+                        )
+                        if current_value is not None and current_value != "":
+                            continue
+
+                        self.window.controller.config.apply_value(
+                            parent_id=option_key,
+                            key=key,
+                            option=extra_options[key],
+                            value=value,
+                        )
+
     def append_extra_options(self, preset: PresetItem):
         """
         Get extra options for preset editor
@@ -565,6 +619,7 @@ class Editor:
         elif key == "agent_provider_openai":
             self.toggle_extra_options_by_provider()
             self.append_default_prompt()
+            self.load_extra_defaults_current()
 
     def edit(self, idx: Optional[int] = None):
         """
