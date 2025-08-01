@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.5.83 (2025-08-01)
+
+- Improved streaming in Agent (OpenAI) mode.
+- Improved loading of default options in presets.
+- Added context summary event if the kernel stopped.
+- Implemented dynamic width for opened combo boxes.
+
 ## 2.5.82 (2025-08-01)
 
 - Added a new OpenAI agents: researcher, planner, feedback.

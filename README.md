@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.82** | build: **2025-08-01** | Python: **>=3.10, <3.14**
+Release: **2.5.83** | build: **2025-08-01** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4203,6 +4203,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.83 (2025-08-01)**
+
+- Improved streaming in Agent (OpenAI) mode.
+- Improved loading of default options in presets.
+- Added context summary event if the kernel stopped.
+- Implemented dynamic width for opened combo boxes.
 
 **2.5.82 (2025-08-01)**
 
