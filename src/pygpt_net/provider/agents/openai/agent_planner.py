@@ -325,7 +325,7 @@ class Agent(BaseAgent):
                 print("Re-running with feedback")
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
         else:
-            final_output = result.plan
+            final_output = result.plan + "\n___\n"
             handler = StreamHandler(window, bridge, final_output)
             while True:
                 kwargs["input"] = input_items
