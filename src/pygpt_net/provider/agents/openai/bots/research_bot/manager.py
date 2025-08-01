@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 # Based on OpenAI examples: https://github.com/openai/openai-agents-python/blob/main/examples
 from __future__ import annotations
 
 import asyncio
 import time
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from agents import Runner, custom_span
 
@@ -35,9 +35,9 @@ class ResearchManager:
             ctx: CtxItem,
             bridge: ConnectionContext,
             stream: bool,
-            planner_config: Dict[str, str],
-            search_config: Dict[str, str],
-            writer_config: Dict[str, str],
+            planner_config: Dict[str, Any],
+            search_config: Dict[str, Any],
+            writer_config: Dict[str, Any],
             history: List[Dict] = None,
     ) -> None:
         self.window = window
@@ -101,9 +101,15 @@ class ResearchManager:
             tools=self.tools,
             config=self.planner_config,
         )
+        kwargs = {
+            "input": messages,
+        }
+        if self.planner_config["run_kwargs"]:
+            kwargs.update(self.planner_config["run_kwargs"])
+
         result = await Runner.run(
             agent,
-            messages,
+            **kwargs
         )
         self.send_stream(f"Will perform {len(result.final_output.searches)} searches\n")
         return result.final_output_as(WebSearchPlan)
@@ -142,10 +148,16 @@ class ResearchManager:
             tools=self.tools,
             config=self.search_config,
         )
+        kwargs = {
+            "input": input,
+        }
+        if self.search_config["run_kwargs"]:
+            kwargs.update(self.search_config["run_kwargs"])
+
         try:
             result = await Runner.run(
                 agent,
-                input,
+                **kwargs
             )
             return str(result.final_output)
         except Exception:
@@ -167,9 +179,15 @@ class ResearchManager:
             tools=self.tools,
             config=self.writer_config,
         )
+        kwargs = {
+            "input": input,
+        }
+        if self.writer_config["run_kwargs"]:
+            kwargs.update(self.writer_config["run_kwargs"])
+
         result = Runner.run_streamed(
             agent,
-            input,
+            **kwargs,
         )
         update_messages = [
             "Thinking about report...",

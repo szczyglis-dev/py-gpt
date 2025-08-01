@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple, Union
@@ -145,6 +145,23 @@ class Agent(BaseAgent):
             self.get_option(preset, "search", "model")
         )
 
+        # prepare provider config
+        model_kwargs = {}
+        model_search_kwargs = {}
+        model_planner_kwargs = {}
+
+        if model.provider != "openai":
+            custom_provider = get_custom_model_provider(window, model)
+            model_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
+
+        if model_search.provider != "openai":
+            custom_provider = get_custom_model_provider(window, model_search)
+            model_search_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
+
+        if model_planner.provider != "openai":
+            custom_provider = get_custom_model_provider(window, model_planner)
+            model_planner_kwargs["run_config"] = RunConfig(model_provider=custom_provider)
+
         bot = ResearchManager(
             window=window,
             ctx=ctx,
@@ -157,33 +174,27 @@ class Agent(BaseAgent):
                 "model": model_planner,
                 "allow_local_tools": self.get_option(preset, "planner", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "planner", "allow_remote_tools"),
+                "run_kwargs": model_planner_kwargs,
             },
             search_config={
                 "prompt": self.get_option(preset, "search", "prompt"),
                 "model": model_search,
                 "allow_local_tools": self.get_option(preset, "search", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "search", "allow_remote_tools"),
+                "run_kwargs": model_search_kwargs,
             },
             writer_config={
                 "prompt": prompt,
                 "model": model,
                 "allow_local_tools": self.get_option(preset, "writer", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "writer", "allow_remote_tools"),
+                "run_kwargs": model_kwargs,
             },
             history=messages if messages else [],
         )
 
-        kwargs = {
-            "input": messages,
-            "max_turns": int(max_steps),
-        }
-        if model.provider != "openai":
-            custom_provider = get_custom_model_provider(window, model)
-            kwargs["run_config"] = RunConfig(model_provider=custom_provider)
-        else:
+        if model.provider == "openai":
             set_openai_env(window)
-            if previous_response_id:
-                kwargs["previous_response_id"] = previous_response_id
 
         if not stream:
             final_output = await bot.run(query)
