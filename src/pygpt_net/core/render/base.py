@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -227,6 +227,19 @@ class BaseRenderer:
         :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
+        """
+        pass
+
+    def next_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+    ):
+        """
+        Flush current stream and start with new chunks
+        
+        :param meta: context meta
+        :param ctx: context item
         """
         pass
 

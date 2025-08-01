@@ -34,7 +34,7 @@
     "extra": {
         "openai_agent_feedback": {
             "base": {
-                "prompt": "You are an expert in writing Python code. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
+                "prompt": "You generate a very short story outline based on the user's input. If there is any feedback provided, use it to improve the outline.",
                 "allow_local_tools": false,
                 "allow_remote_tools": false
             },

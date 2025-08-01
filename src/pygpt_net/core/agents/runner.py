@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -366,6 +366,16 @@ class Runner:
             self.set_idle(signals)
             self.end_stream(ctx, signals)
 
+        def on_next(ctx: CtxItem, wait: bool = False):
+            """
+            Callback for next events
+
+            Flush current output to before buffer and clear current buffer
+            :param ctx: CtxItem
+            :param wait: if True, flush current output to before buffer and clear current buffer
+            """
+            self.next_stream(ctx, signals)
+
         def on_error(error: Any):
             """
             Callback for error events
@@ -380,6 +390,7 @@ class Runner:
             on_step=on_step,
             on_stop=on_stop,
             on_error=on_error,
+            on_next=on_next,
         )
         run_kwargs = {
             "window": self.window,
@@ -1194,6 +1205,22 @@ class Runner:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.STREAM_END, data)
+        signals.response.emit(event)
+
+    def next_stream(self, ctx: CtxItem, signals: BridgeSignals):
+        """
+        End of stream in chat window (BridgeSignals)
+
+        :param ctx: CtxItem
+        :param signals: BridgeSignals
+        """
+        if signals is None:
+            return
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        event = RenderEvent(RenderEvent.STREAM_NEXT, data)
         signals.response.emit(event)
 
     def send_response(

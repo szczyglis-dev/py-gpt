@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -225,8 +225,8 @@ class Agent(BaseAgent):
                 print("Re-running with feedback")
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
         else:
+            handler = StreamHandler(window, bridge)
             while True:
-                handler = StreamHandler(window, bridge, final_output)
                 kwargs["input"] = input_items
                 result = Runner.run_streamed(
                     agent,
@@ -237,10 +237,9 @@ class Agent(BaseAgent):
                     if bridge.stopped():
                         bridge.on_stop(ctx)
                         break
-                    final_output, response_id = handler.handle(event, ctx, flush=False)
+                    final_output, response_id = handler.handle(event, ctx)
 
-                ctx.stream = final_output
-                bridge.on_step(ctx)
+                bridge.on_next(ctx)
                 if bridge.stopped():
                     bridge.on_stop(ctx)
                     break
@@ -256,7 +255,7 @@ class Agent(BaseAgent):
                     bridge.on_step(ctx, False)
                     break
 
-                info += "\n\n**Re-running with feedback**\n\n" + f"Feedback: {result.feedback}\n\n"
+                info += "\n\n**Re-running with feedback**\n\n" + f"Feedback: {result.feedback}\n___\n"
                 ctx.stream = info
                 bridge.on_step(ctx, False)
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})

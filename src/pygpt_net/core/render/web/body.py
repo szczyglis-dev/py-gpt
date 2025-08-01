@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import os
@@ -553,6 +553,7 @@ class Body:
             scrollToBottom();
         }
         function appendNode(content) {
+            clearStreamBefore();
             prevScroll = 0;
             const element = document.getElementById('_nodes_');
             if (element) {
@@ -768,6 +769,54 @@ class Body:
             highlightCode();
             scrollToBottom();
         }
+        function nextStream() {
+            // Clear the current stream output and copy it to the before output
+            // 1. copy current output from _append_output_ to _append_output_before_
+            // 2. clear _append_output_
+            const element = document.getElementById('_append_output_');
+            const elementBefore = document.getElementById('_append_output_before_');
+            if (element && elementBefore) {
+                elementBefore.innerHTML += element.innerHTML; // append current content
+                element.innerHTML = ''; // clear current output
+                domLastCodeBlock = null; // reset last code block
+                domLastParagraphBlock = null; // reset last paragraph block
+                scrollToBottom();
+            }
+        }
+        function clearStreamBefore() {
+            const element = document.getElementById('_append_output_before_');
+            if (element) {
+                element.innerHTML = ''; // clear previous content
+            }
+        }
+        function replaceOutput(bot_name, content) {        
+            const element = getStreamContainer();
+            if (element) {
+                let box = element.querySelector('.msg-box');
+                let msg;
+                if (!box) {
+                    box = document.createElement('div');
+                    box.classList.add('msg-box');
+                    box.classList.add('msg-bot');
+                    const name = document.createElement('div');
+                    name.classList.add('name-header');
+                    name.classList.add('name-bot');
+                    name.textContent = bot_name;
+                    msg = document.createElement('div');
+                    msg.classList.add('msg');
+                    box.appendChild(name);
+                    box.appendChild(msg);
+                    element.appendChild(box);
+                } else {
+                    msg = box.querySelector('.msg');
+                }
+                if (msg) {
+                    msg.innerHTML = sanitize(content);
+                }
+            }
+            highlightCode();
+            scrollToBottom();
+        }
         function appendToolOutput(content) {
             hideToolOutputLoader();
             enableToolOutput();
@@ -885,6 +934,7 @@ class Body:
         }
         function clearNodes() {
             prevScroll = 0;
+            clearStreamBefore();
             const element = document.getElementById('_nodes_');
             if (element) {
                 element.textContent = '';
@@ -898,6 +948,7 @@ class Body:
             }
         }
         function clearOutput() {
+            clearStreamBefore();
             domLastCodeBlock = null;
             domLastParagraphBlock = null;
             const element = document.getElementById('_append_output_');
@@ -1151,6 +1202,7 @@ class Body:
         <div id="container">
             <div id="_nodes_" class="nodes empty_list"></div>
             <div id="_append_input_" class="append_input"></div>
+            <div id="_append_output_before_" class="append_output"></div>
             <div id="_append_output_" class="append_output"></div>            
             <div id="_append_live_" class="append_live hidden"></div>
             <div id="_footer_" class="footer"></div>

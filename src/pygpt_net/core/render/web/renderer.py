@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 import json
@@ -515,6 +515,29 @@ class Renderer(BaseRenderer):
         try:
             self.get_output_node(meta).page().runJavaScript(
                 f"appendStream('{self.pids[pid].name_bot}', {escaped_buffer}, {escaped_chunk}, {replace}, {code_block_arg});")
+        except Exception as e:
+            pass
+
+    def next_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+    ):
+        """
+        Flush current stream and start with new chunks
+
+        :param meta: context meta
+        :param ctx: context item
+        """
+        pid = self.get_or_create_pid(meta)
+        self.pids[pid].item = ctx
+        self.pids[pid].buffer = ""  # always reset buffer
+        self.update_names(meta, ctx)
+        self.prev_chunk_replace = False
+        self.prev_chunk_newline = False
+        try:
+            self.get_output_node(meta).page().runJavaScript(
+                f"nextStream();")
         except Exception as e:
             pass
 

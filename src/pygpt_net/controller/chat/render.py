@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 01:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -87,6 +87,8 @@ class Render:
             self.stream_begin(meta, ctx)
         elif name == RenderEvent.STREAM_APPEND:
             self.append_chunk(meta, ctx, chunk, begin)
+        elif name == RenderEvent.STREAM_NEXT:
+            self.next_chunk(meta, ctx)
         elif name == RenderEvent.STREAM_END:
             self.stream_end(meta, ctx)
 
@@ -398,6 +400,20 @@ class Render:
         :param begin: if it is the beginning of the stream
         """
         self.instance().append_chunk(meta, ctx, text_chunk, begin)
+        self.update()
+
+    def next_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+    ):
+        """
+        Flush current stream and start with new chunks
+        
+        :param meta: context meta
+        :param ctx: context item
+        """
+        self.instance().next_chunk(meta, ctx)
         self.update()
 
     def on_enable_edit(self, live: bool = True):

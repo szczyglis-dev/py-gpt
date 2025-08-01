@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.08.01 19:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -25,6 +25,7 @@ class RenderEvent(BaseEvent):
     STREAM_BEGIN = "render.stream.begin"
     STREAM_APPEND = "render.stream.append"
     STREAM_END = "render.stream.end"
+    STREAM_NEXT = "render.stream.next"
 
     CLEAR = "render.clear"
     CLEAR_ALL = "render.clear.all"
