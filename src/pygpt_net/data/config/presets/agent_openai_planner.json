@@ -46,7 +46,7 @@
             },
             "feedback": {
                 "model": "gpt-4o",
-                "prompt": "You evaluate a result and decide if it's good enough. If it's not good enough, you provide feedback on what needs to be improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the result is good enough - do not go for perfection, but ensure all tasks are completed",
+                "prompt": "You evaluate a result and decide if it's good enough. If it's not good enough, you provide feedback on what needs to be improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the result is good enough - do not go for perfection, but ensure all tasks are completed.",
                 "allow_local_tools": false,
                 "allow_remote_tools": false
             }

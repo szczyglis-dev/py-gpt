@@ -45,7 +45,7 @@ class EvaluationFeedback:
 class Agent(BaseAgent):
 
     PROMPT = (
-        "You generate a response based on the user's input. "
+        "Handoff to the appropriate agent based on the task."
         "If there is any feedback provided, use it to improve the response."
     )
 

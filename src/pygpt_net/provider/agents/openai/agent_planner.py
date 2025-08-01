@@ -78,7 +78,7 @@ class Agent(BaseAgent):
     PROMPT = (
         "Prepare a comprehensive and detailed response to the question based on the action plan. "
         "Follow each step outlined in the plan. "
-        "If any feedback is provided, use it to improve the response.."
+        "If any feedback is provided, use it to improve the response."
     )
 
     PROMPT_FEEDBACK = (
