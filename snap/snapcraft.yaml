@@ -55,6 +55,7 @@ parts:
       find $SNAPCRAFT_PART_INSTALL -name "onnxruntime_pybind11_state.cpython-310-${SNAPCRAFT_ARCH_TRIPLET}.so" -exec execstack --clear-execstack {} \;
       cp -r $SNAPCRAFT_PART_SRC/snaprun.sh $SNAPCRAFT_PART_INSTALL/
       cp -r $SNAPCRAFT_PART_SRC/src $SNAPCRAFT_PART_INSTALL/
+      chmod -R 755 $SNAPCRAFT_PART_INSTALL/src/pygpt_net/provider/agents/openai/bots/research_bot/
       python3 -m nltk.downloader -d $SNAPCRAFT_PART_INSTALL/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache stopwords punkt
 
 layout:
