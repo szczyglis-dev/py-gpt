@@ -225,8 +225,8 @@ class Agent(BaseAgent):
                 print("Re-running with feedback")
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
         else:
-            handler = StreamHandler(window, bridge)
             while True:
+                handler = StreamHandler(window, bridge, final_output)
                 kwargs["input"] = input_items
                 result = Runner.run_streamed(
                     agent,
@@ -237,8 +237,10 @@ class Agent(BaseAgent):
                     if bridge.stopped():
                         bridge.on_stop(ctx)
                         break
-                    final_output, response_id = handler.handle(event, ctx)
+                    final_output, response_id = handler.handle(event, ctx, flush=False)
 
+                ctx.stream = final_output
+                bridge.on_step(ctx)
                 if bridge.stopped():
                     bridge.on_stop(ctx)
                     break
@@ -247,17 +249,18 @@ class Agent(BaseAgent):
                 evaluator_result = await Runner.run(evaluator, input_items)
                 result: EvaluationFeedback = evaluator_result.final_output
 
-                ctx.stream = f"\n___\n**Evaluator score: {result.score}**\n\n"
-                bridge.on_step(ctx, False)
-
+                info = f"\n___\n**Evaluator score: {result.score}**\n\n"
                 if result.score == "pass":
-                    ctx.stream = "\n\n**Response is good enough, exiting.**\n"
+                    info += "\n\n**Response is good enough, exiting.**\n"
+                    ctx.stream = info
                     bridge.on_step(ctx, False)
                     break
 
-                ctx.stream = f"\n**Re-running with feedback...**\n\n{result.feedback}\n___\n"
+                info += "\n\n**Re-running with feedback**\n\n" + f"Feedback: {result.feedback}\n\n"
+                ctx.stream = info
                 bridge.on_step(ctx, False)
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
+                final_output += info
 
         return final_output, response_id
 

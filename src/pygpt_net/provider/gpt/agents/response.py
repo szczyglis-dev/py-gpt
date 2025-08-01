@@ -54,12 +54,13 @@ class StreamHandler:
         self.files_handled = False
         self.code_block = False
 
-    def handle(self, event, ctx: CtxItem) -> Tuple[str, str]:
+    def handle(self, event, ctx: CtxItem, flush: bool = True) -> Tuple[str, str]:
         """
         Unpack agent response and set context
 
         :param event: Event - event containing response data
         :param ctx: CtxItem - context item to set the response data
+        :param flush: bool - whether to flush the output
         :return: Final output string, response ID
         """
         img_path = self.window.core.image.gen_unique_path(ctx)
@@ -78,14 +79,16 @@ class StreamHandler:
             if self.code_block:
                 ctx.stream = "\n```\n" + ctx.stream
                 self.code_block = False
-            self.bridge.on_step(ctx, self.begin)
+            if flush:
+                self.bridge.on_step(ctx, self.begin)
             self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemAddedEvent):
             if event.data.item.type == "code_interpreter_call":
                 self.code_block = True
                 ctx.stream = "\n\n**Code interpreter**\n```python\n"
-                self.bridge.on_step(ctx, self.begin)
+                if flush:
+                    self.bridge.on_step(ctx, self.begin)
                 self.buffer += ctx.stream
                 self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemDoneEvent):
@@ -97,7 +100,8 @@ class StreamHandler:
                 is_image = True
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCodeInterpreterCallCodeDeltaEvent):
             ctx.stream = event.data.delta
-            self.bridge.on_step(ctx, self.begin)
+            if flush:
+                self.bridge.on_step(ctx, self.begin)
             self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCompletedEvent):
@@ -123,7 +127,8 @@ class StreamHandler:
                     if self.code_block:
                         ctx.stream = "\n```\n"
                         self.code_block = False
-                    self.bridge.on_step(ctx, self.begin)
+                    if flush:
+                        self.bridge.on_step(ctx, self.begin)
                     self.buffer += ctx.stream
                     self.begin = False
 
@@ -133,7 +138,8 @@ class StreamHandler:
         elif event.type == "run_item_stream_event":
             if isinstance(event.item, HandoffOutputItem):
                 ctx.stream = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
-                self.bridge.on_step(ctx, self.begin)
+                if flush:
+                    self.bridge.on_step(ctx, self.begin)
                 self.buffer += ctx.stream
                 self.begin = False
 

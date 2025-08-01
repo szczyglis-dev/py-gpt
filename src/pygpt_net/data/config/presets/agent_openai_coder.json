@@ -34,7 +34,7 @@
     "extra": {
         "openai_agent_feedback": {
             "base": {
-                "prompt": "You are an expert in coding. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
+                "prompt": "You are senior programmer and expert in coding. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
                 "allow_local_tools": false,
                 "allow_remote_tools": false
             },
