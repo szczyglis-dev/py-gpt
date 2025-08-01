@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import base64
@@ -19,6 +19,7 @@ from agents import (
     Button,
 )
 
+from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.item.ctx import CtxItem
 from .utils import (
     create_response,
@@ -235,10 +236,7 @@ class Agent:
         acknowledge_safety_check_callback: Callable = lambda: False,
         ctx: CtxItem = None,
         stream: bool = False,
-        stopped: callable = None,
-        on_step: callable = None,
-        on_stop: callable = None,
-        on_error: callable = None,
+        bridge: ConnectionContext = None,
     ):
         self.model = model
         self.computer = computer
@@ -247,10 +245,7 @@ class Agent:
         self.acknowledge_safety_check_callback = acknowledge_safety_check_callback  # TODO: implement safety_checks
         self.ctx = ctx
         self.stream = stream
-        self.stopped = stopped if stopped else lambda: False
-        self.on_stop = on_stop if on_stop else lambda ctx: None
-        self.on_step = on_step if on_step else lambda ctx, begin: None
-        self.on_error = on_error if on_error else lambda e: print(f"Error: {e}")
+        self.bridge = bridge
         self.begin = True
 
         if computer:
@@ -280,9 +275,9 @@ class Agent:
         :param item: The item to handle, which can be a message, function call, or computer call.
         :return: A list of new items to be processed.
         """
-        if self.stopped():
-            if self.on_stop:
-                self.on_stop(self.ctx)
+        if self.bridge.stopped():
+            if self.bridge.on_stop:
+                self.bridge.on_stop(self.ctx)
             return []
 
         self.ctx.stream = ""
@@ -293,7 +288,7 @@ class Agent:
 
             if self.stream:
                 self.ctx.stream = item["content"][0]["text"]
-                self.on_step(self.ctx, self.begin)
+                self.bridge.on_step(self.ctx, self.begin)
 
         if item["type"] == "function_call":
             name, args = item["name"], json.loads(item["arguments"])
@@ -357,9 +352,9 @@ class Agent:
         while new_items[-1].get("role") != "assistant" if new_items else True:
 
             # if kernel stopped then break the loop
-            if self.stopped():
-                if self.on_stop:
-                    self.on_stop(self.ctx)
+            if self.bridge.stopped():
+                if self.bridge.on_stop:
+                    self.bridge.on_stop(self.ctx)
                 break
 
             self.debug_print([sanitize_message(msg) for msg in input + new_items])
@@ -374,7 +369,7 @@ class Agent:
 
             if "output" not in response and self.debug:
                 print(response)
-                self.on_error(str(response))
+                self.bridge.on_error(str(response))
                 break
             else:
                 new_items += response["output"]

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
-from typing import List
+from typing import List, Dict
 
 from pygpt_net.provider.agents.base import BaseAgent
 
@@ -49,6 +49,14 @@ class Provider:
         :return: agent provider
         """
         return self.agents[id]
+
+    def all(self) -> Dict[str, BaseAgent]:
+        """
+        Get all agents
+
+        :return: dict of agent providers
+        """
+        return self.agents
 
     def register(self, id: str, agent):
         """

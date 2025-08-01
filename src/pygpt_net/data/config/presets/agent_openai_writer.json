@@ -1,0 +1,54 @@
+{
+    "uuid": "51e62cfa-5967-4cc1-97f3-40fd9bc9a4c7",
+    "name": "Writer with Feedback",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_writer",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "agent_provider_openai": "openai_agent_feedback",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_feedback": {
+            "base": {
+                "prompt": "You are an expert in writing Python code. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "feedback": {
+                "model": "gpt-4o",
+                "prompt": "You evaluate a story outline and decide if it's good enough. \nIf it's not good enough, you provide feedback on what needs to be improved. \nNever give it a pass on the first try. After 5 attempts, you can give it a pass if the story outline is good enough - do not go for perfection.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.5.81",
+        "app.version": "2.5.81",
+        "updated_at": "2025-08-01T04:40:49"
+    }
+}

@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import threading
+
+from PySide6.QtCore import Qt
 
 from pygpt_net.ui.dialog.about import About
 from pygpt_net.ui.dialog.applog import AppLog
@@ -222,6 +224,10 @@ class Dialogs:
         if id not in self.window.ui.dialog:
             return
         self.window.ui.dialog[id].resize(width, height)
+        self.window.ui.dialog[id].setSizeGripEnabled(True)
+        self.window.ui.dialog[id].setWindowFlags(
+            self.window.ui.dialog[id].windowFlags() | Qt.WindowMaximizeButtonHint
+        )
         qr = self.window.ui.dialog[id].frameGeometry()
         cp = self.window.screen().availableGeometry().center()
         qr.moveCenter(cp)

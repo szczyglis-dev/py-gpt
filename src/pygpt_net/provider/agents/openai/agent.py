@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple
@@ -18,6 +18,7 @@ from agents import (
     ModelSettings,
 )
 
+from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_MODE_OPENAI,
@@ -28,7 +29,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
-from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_computer_tool
+from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_computer_tool, append_tools
 from pygpt_net.provider.gpt.agents.computer import Agent as ComputerAgent, LocalComputer
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
@@ -40,7 +41,7 @@ class Agent(BaseAgent):
         self.id = "openai_agent_base"
         self.type = AGENT_TYPE_OPENAI
         self.mode = AGENT_MODE_OPENAI
-        self.name = "OpenAI Agents: simple"
+        self.name = "Simple agent"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """
@@ -56,25 +57,20 @@ class Agent(BaseAgent):
         agent_name = preset.name if preset else "Agent"
         model = kwargs.get("model", ModelItem())
         tools = kwargs.get("function_tools", [])
-
-        # append remote tools if available
-        tool_kwargs = {
-            "window": window,
-            "model": model,
-            "preset": preset,
-            "is_expert_call": False,
-        }
-        remote_tools = get_remote_tools(**tool_kwargs)
-        all_tools = remote_tools + tools
-
         kwargs = {
             "name": agent_name,
             "instructions": system_prompt,
             "model": model.id,
-            "tools": all_tools,
         }
-        if is_computer_tool(**tool_kwargs):
-            kwargs["model_settings"] = ModelSettings(truncation="auto")
+        tool_kwargs = append_tools(
+            tools=tools,
+            window=window,
+            model=model,
+            preset=preset,
+            allow_local_tools=True,
+            allow_remote_tools=True,
+        )
+        kwargs.update(tool_kwargs)  # update kwargs with tools
         return OpenAIAgent(**kwargs)
 
     async def run(
@@ -85,10 +81,7 @@ class Agent(BaseAgent):
             messages: list = None,
             ctx: CtxItem = None,
             stream: bool = False,
-            stopped: callable = None,
-            on_step: callable = None,
-            on_stop: callable = None,
-            on_error: callable = None,
+            bridge: ConnectionContext = None,
     ) -> Tuple[str, str]:
         """
         Run agent (async)
@@ -99,10 +92,7 @@ class Agent(BaseAgent):
         :param messages: Conversation messages
         :param ctx: Context item
         :param stream: Whether to stream output
-        :param stopped: Callback for stop event received from the user
-        :param on_step: Callback for each step
-        :param on_stop: Callback for stopping the process
-        :param on_error: Callback for error handling
+        :param bridge: Connection context for agent operations
         :return: Final output and response ID
         """
         final_output = ""
@@ -131,7 +121,6 @@ class Agent(BaseAgent):
             "preset": preset,
             "is_expert_call": False,
         }
-
         # call computer agent if computer tool is enabled
         if is_computer_tool(**tool_kwargs):
             computer = LocalComputer(window)
@@ -139,10 +128,7 @@ class Agent(BaseAgent):
                 computer=computer,
                 ctx=ctx,
                 stream=stream,
-                stopped=stopped,
-                on_step=on_step,
-                on_stop=on_stop,
-                on_error=on_error,
+                bridge=bridge,
             )
             items = messages
             output_items, response_id = agent.run(
@@ -170,10 +156,10 @@ class Agent(BaseAgent):
                     agent,
                     **kwargs
                 )
-                handler = StreamHandler(window, on_step)
+                handler = StreamHandler(window, bridge)
                 async for event in result.stream_events():
-                    if stopped():
-                        on_stop(ctx)
+                    if bridge.stopped():
+                        bridge.on_stop(ctx)
                         break
                     final_output, response_id = handler.handle(event, ctx)
 

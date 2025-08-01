@@ -1,0 +1,54 @@
+{
+    "uuid": "0ca8455c-3a38-46a1-bb55-866c711d7581",
+    "name": "Coder",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_coder",
+    "model": "o3-mini-high",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "agent_provider_openai": "openai_agent_feedback",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_feedback": {
+            "base": {
+                "prompt": "You are an expert in coding. Use markdown for code blocks. If there is any feedback provided, use it to improve the code.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "feedback": {
+                "model": "o3-mini-low",
+                "prompt": "You evaluate a code and decide if it's correct. If it's not correct, you provide feedback on what needs to be fixed and improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the code is good enough. You can use tools for checking the code, running tests, etc.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.5.81",
+        "app.version": "2.5.81",
+        "updated_at": "2025-08-01T04:41:49"
+    }
+}

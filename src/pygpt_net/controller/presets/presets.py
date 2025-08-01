@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import re
@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_CHAT,
     MODE_EXPERT,
+    MODE_AGENT_OPENAI,
 )
 from pygpt_net.controller.presets.editor import Editor
 from pygpt_net.core.events import AppEvent
@@ -42,6 +43,29 @@ class Presets:
     def setup(self):
         """Setup presets"""
         self.editor.setup()
+
+    def on_changed(self):
+        """Handle change event"""
+        pass
+
+    def is_bot(self) -> bool:
+        """
+        Check if current preset is bot
+
+        :return: True if bot
+        """
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_AGENT_OPENAI:
+            return False
+        preset = self.window.core.config.get('preset')
+        if preset and preset != "*":
+            preset_data = self.window.core.presets.get_by_id(mode, preset)
+            if preset_data:
+                if preset_data.agent_openai:
+                    if (preset_data.agent_provider_openai
+                            and preset_data.agent_provider_openai.startswith("openai_agent_bot")):
+                        return True
+        return False
 
     def select(self, idx: int):
         """
@@ -435,6 +459,7 @@ class Presets:
         self.select_current()  # select current preset on list
         if no_scroll:
             self.window.ui.nodes['preset.presets'].restore_scroll_position()
+        self.on_changed()
 
 
     def update_list(self):
@@ -669,6 +694,7 @@ class Presets:
         :param id: preset ID
         """
         self.selected = [id] if id is not None else []
+        self.on_changed()
 
     def clear_selected(self):
         """Clear selected list"""

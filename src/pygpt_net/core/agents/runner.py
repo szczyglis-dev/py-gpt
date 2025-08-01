@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -36,6 +36,7 @@ from pygpt_net.core.types import (
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+from .bridge import ConnectionContext
 
 
 class Runner:
@@ -374,6 +375,12 @@ class Runner:
             self.window.core.debug.error(error)
             self.error = error
 
+        bridge = ConnectionContext(
+            stopped=self.is_stopped,
+            on_step=on_step,
+            on_stop=on_stop,
+            on_error=on_error,
+        )
         run_kwargs = {
             "window": self.window,
             "agent_kwargs": agent_kwargs,
@@ -381,10 +388,7 @@ class Runner:
             "messages": history,
             "ctx": ctx,
             "stream": stream,
-            "stopped": self.is_stopped,
-            "on_step": on_step,
-            "on_stop": on_stop,
-            "on_error": on_error,
+            "bridge": bridge,
         }
         if previous_response_id:
             run_kwargs["previous_response_id"] = previous_response_id

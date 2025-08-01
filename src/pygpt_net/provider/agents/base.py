@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, Tuple
 
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.preset import PresetItem
 
 
 class BaseAgent:
@@ -43,6 +44,14 @@ class BaseAgent:
         """
         pass
 
+    def get_options(self) -> dict:
+        """
+        Return Agent options
+
+        :return: Agent options
+        """
+        return {}
+
     async def run(
             self,
             window,
@@ -51,10 +60,7 @@ class BaseAgent:
             messages: list = None,
             ctx: CtxItem = None,
             stream: bool = False,
-            stopped: callable = None,
-            on_step: callable = None,
-            on_stop: callable = None,
-            on_error: callable = None,
+            bridge = None,
     ) -> Tuple[str, str]:
         """
         Run agent (async)
@@ -65,10 +71,56 @@ class BaseAgent:
         :param messages: Conversation messages
         :param ctx: Context item
         :param stream: Whether to stream output
-        :param stopped: Callback for stop event received from the user
-        :param on_step: Callback for each step
-        :param on_stop: Callback for stopping the process
-        :param on_error: Callback for error handling
+        :param bridge: Connection context for agent operations
         :return: Final output and response ID
         """
         pass
+
+    def get_option(self, preset: PresetItem, section: str, key: str) -> Any:
+        """
+        Get specific option from preset
+
+        :param preset: Preset item
+        :param section: Section name
+        :param key: Option key
+        :return: Option value
+        """
+        extra = preset.extra
+        if not isinstance(extra, dict) or self.id not in extra:
+            return self.get_default(section, key)
+        options = extra[self.id]
+        if section not in options:
+            return self.get_default(section, key)
+        if key not in options[section]:
+            return self.get_default(section, key)
+        option = options[section][key]
+        if option is None:
+            return self.get_default(section, key)
+        return option
+
+
+    def get_default(self, section: str, key: str) -> Any:
+        """
+        Get default option value
+
+        :param section: Section name
+        :param key: Option key
+        :return: Default option value
+        """
+        options = self.get_options()
+        if section not in options:
+            return
+        if key not in options[section]['options']:
+            return
+        return options[section]['options'][key].get('default', None)
+
+    def get_default_prompt(self) -> str:
+        """
+        Get default prompt for the agent
+
+        :return: Default prompt string
+        """
+        options = self.get_options()
+        if '__prompt__' in options:
+            return options['__prompt__']
+        return ""

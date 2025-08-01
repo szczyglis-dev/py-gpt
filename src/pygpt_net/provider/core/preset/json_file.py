@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import json
@@ -213,6 +213,7 @@ class JsonFileProvider(BaseProvider):
             'enabled': item.enabled,
             'description': item.description,
             'remote_tools': item.remote_tools,
+            'extra': item.extra,
         }
 
     @staticmethod
@@ -286,6 +287,8 @@ class JsonFileProvider(BaseProvider):
             item.description = data['description']
         if 'remote_tools' in data:
             item.remote_tools = data['remote_tools']
+        if 'extra' in data:
+            item.extra = data['extra']
 
         # get version
         if '__meta__' in data and 'version' in data['__meta__']:

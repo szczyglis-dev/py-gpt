@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 from typing import Any, Optional, Dict
+
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -43,6 +45,8 @@ class Editor:
         """
         self.window = window
         self.experts = Experts(window)
+        self.built = False
+        self.tab_options_idx = {}
         self.options = {
             "filename": {
                 "type": "text",
@@ -142,7 +146,7 @@ class Editor:
             },
             "prompt": {
                 "type": "textarea",
-                "label": "preset.prompt",
+                "label": "",
                 "context_options": ["prompt.template.paste"],
             },
             "idx": {
@@ -229,14 +233,18 @@ class Editor:
     def setup(self):
         """Setup preset editor"""
         # update after agents register
+        self.append_extra_config()
         self.window.ui.config[self.id]['agent_provider'].set_keys(
             self.window.controller.config.placeholder.apply_by_id('agent_provider_llama')
         )
         self.window.ui.config[self.id]['agent_provider_openai'].set_keys(
             self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
         )
+
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
+        self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
+
         # register functions dictionary
         parent = "preset"
         key = "tool.function"
@@ -244,6 +252,284 @@ class Editor:
             key,
             parent,
             self.get_option(key),
+        )
+
+    def toggle_extra_options(self):
+        """
+        Toggle extra options in preset editor
+
+        :return: None
+        """
+        if not self.tab_options_idx:
+            return
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_AGENT_OPENAI:
+            # show base prompt
+            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+            # hide all tabs
+            for id in self.tab_options_idx:
+                for tab_idx in self.tab_options_idx[id]:
+                    if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
+                        self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+            return
+        else:
+            # hide all tabs
+            for id in self.tab_options_idx:
+                for tab_idx in self.tab_options_idx[id]:
+                    if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
+                        self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+
+            self.toggle_extra_options_by_provider()
+
+    def toggle_extra_options_by_provider(self):
+        """
+        Toggle extra options in preset editor by provider
+
+        :return: None
+        """
+        if not self.tab_options_idx:
+            # show base prompt
+            self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+            return
+        mode = self.window.core.config.get('mode')
+        if mode == MODE_AGENT_OPENAI:
+            current_provider = self.window.controller.config.get_value(
+                parent_id=self.id,
+                key="agent_provider_openai",
+                option=self.options["agent_provider_openai"],
+            )
+            if current_provider is None or current_provider == "":
+                # show base prompt
+                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+                return
+
+            # show all tabs for current provider
+            for id in self.tab_options_idx:
+
+                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, False)
+
+                if id != current_provider:
+                    for tab_idx in self.tab_options_idx[id]:
+                        if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
+                            self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, False)
+                else:
+                    for tab_idx in self.tab_options_idx[id]:
+                        if self.window.ui.tabs['preset.editor.extra'].count() >= tab_idx:
+                            self.window.ui.tabs['preset.editor.extra'].setTabVisible(tab_idx, True)
+
+            # show base prompt if no custom options in current agent
+            agent = self.window.core.agents.provider.get(current_provider)
+            if not agent:
+                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+                return
+            option_tabs = agent.get_options()
+            if not option_tabs or len(option_tabs) == 0:
+                self.window.ui.tabs['preset.editor.extra'].setTabVisible(0, True)
+
+    def load_extra_options(self, preset: PresetItem):
+        """
+        Load extra options for preset editor
+
+        :param preset: preset item
+        """
+        if preset.agent_provider_openai is None or preset.agent_provider_openai == "":
+            return
+
+        # update options in UI
+        id = preset.agent_provider_openai
+        agent = self.window.core.agents.provider.get(id)
+        if not agent:
+            return
+        if not preset.extra or id not in preset.extra:
+            return
+        data_dict = preset.extra[id]
+        option_tabs = agent.get_options()
+        for option_tab_id in data_dict:
+            option_key = "agent." + preset.agent_provider_openai + "." + option_tab_id
+            if option_key not in self.window.ui.config:
+                continue
+            extra_options = option_tabs.get(option_tab_id, {}).get('options', {})
+            for key in extra_options:
+                value = data_dict[option_tab_id].get(key, None)
+                if value is not None:
+                    self.window.controller.config.apply_value(
+                        parent_id=option_key,
+                        key=key,
+                        option=extra_options[key],
+                        value=value,
+                    )
+                else:
+                    # from defaults
+                    if "default" not in extra_options[key]:
+                        continue
+                    self.window.controller.config.apply_value(
+                        parent_id=option_key,
+                        key=key,
+                        option=extra_options[key],
+                        value=extra_options[key].get('default', None),
+                    )
+
+    def load_extra_defaults(self):
+        """
+        Load extra options defaults for preset editor
+
+        :return: None
+        """
+        if not self.tab_options_idx:
+            return
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_AGENT_OPENAI:
+            return
+
+        # load defaults for all tabs
+        for id in self.tab_options_idx:
+            agent = self.window.core.agents.provider.get(id)
+            if not agent:
+                continue
+            option_tabs = agent.get_options()
+            for option_tab_id in option_tabs:
+                option_key = "agent." + id + "." + option_tab_id
+                if option_key not in self.window.ui.config:
+                    continue
+                extra_options = option_tabs[option_tab_id]['options']
+                for key in extra_options:
+                    value = extra_options[key].get('default', None)
+                    if value is not None:
+                        self.window.controller.config.apply_value(
+                            parent_id=option_key,
+                            key=key,
+                            option=extra_options[key],
+                            value=value,
+                        )
+
+    def append_extra_options(self, preset: PresetItem):
+        """
+        Get extra options for preset editor
+
+        :param id: preset id
+        :param preset: preset item
+        """
+        exclude_ids = [
+            "__prompt__",
+        ]
+        id = preset.agent_provider_openai
+        options = {}
+        agent = self.window.core.agents.provider.get(id)
+        if not agent:
+            return options
+        option_tabs = agent.get_options()
+        if not option_tabs:
+            return options
+        data_dict = {}
+        for option_tab_id in option_tabs:
+            if option_tab_id in exclude_ids:
+                continue
+            option_key = "agent." + id + "." + option_tab_id
+            if option_key not in self.window.ui.config:
+                continue
+            if option_tab_id not in data_dict:
+                data_dict[option_tab_id] = {}
+            extra_options = option_tabs[option_tab_id]['options']
+            for key in extra_options:
+                data_dict[option_tab_id][key] = self.window.controller.config.get_value(
+                    parent_id=option_key,
+                    key=key,
+                    option=extra_options[key],
+                )
+        if preset.extra is None:
+            preset.extra = {}
+        preset.extra[id] = data_dict
+
+    def append_extra_config(self):
+        """
+        Build extra configuration for the preset editor dialog
+        """
+        if self.built:
+            return
+
+        exclude_ids = [
+            "__prompt__",
+        ]
+        agents = self.window.core.agents.provider.all()
+        tabs = self.window.ui.tabs['preset.editor.extra']
+        tab_idx = 1
+        for id in agents:
+            agent = agents[id]
+            option_tabs = agent.get_options()
+            if not option_tabs:
+                continue
+
+            # append tabs
+            for option_tab_id in option_tabs:
+                if option_tab_id in exclude_ids:
+                    continue
+
+                option = option_tabs[option_tab_id]
+                title = option.get('label', '')
+                config_id = "agent." + id + "." + option_tab_id
+                widgets, options = self.window.ui.dialogs.preset.build_option_widgets(config_id, option['options'])
+                layout = QVBoxLayout()
+                layout.setContentsMargins(0, 10, 0, 10)
+
+                checkboxLayout = QHBoxLayout()
+                for key in options:
+                    opt_layout = options[key]
+                    if option['options'][key]['type'] == 'bool':
+                        # checkbox
+                        checkboxLayout.addLayout(opt_layout)
+                    else:
+                        layout.addLayout(opt_layout)
+                layout.addLayout(checkboxLayout)
+
+                # as tab
+                tab_widget = QWidget()
+                tab_widget.setLayout(layout)
+                tabs.addTab(tab_widget, title)
+
+                # store mapping: agent id -> [tab index]
+                if id not in self.tab_options_idx:
+                    self.tab_options_idx[id] = []
+                if tab_idx not in self.tab_options_idx[id]:
+                    self.tab_options_idx[id].append(tab_idx)
+                tab_idx += 1
+
+        self.built = True
+
+    def append_default_prompt(self):
+        """
+        Append default prompt to the preset editor
+
+        :return: None
+        """
+        mode = self.window.core.config.get('mode')
+        if mode != MODE_AGENT_OPENAI:
+            return
+
+        # get current provider
+        current_provider = self.window.controller.config.get_value(
+            parent_id=self.id,
+            key="agent_provider_openai",
+            option=self.options["agent_provider_openai"],
+        )
+        if current_provider is None or current_provider == "":
+            return
+
+        # get agent by provider
+        agent = self.window.core.agents.provider.get(current_provider)
+        if not agent:
+            return
+
+        # get default prompt
+        default_prompt = agent.get_default_prompt()
+        if default_prompt is None or default_prompt == "":
+            return
+
+        # set default prompt to the prompt field
+        self.window.controller.config.apply_value(
+            parent_id=self.id,
+            key="prompt",
+            option=self.options["prompt"],
+            value=default_prompt,
         )
 
     def hook_update(
@@ -265,11 +551,19 @@ class Editor:
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
+            pass
+            '''
             self.window.core.config.set('prompt', value)
             if mode == MODE_ASSISTANT:
                 self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
+            '''
+
+        # show/hide extra options
+        elif key == "agent_provider_openai":
+            self.toggle_extra_options_by_provider()
+            self.append_default_prompt()
 
     def edit(self, idx: Optional[int] = None):
         """
@@ -294,11 +588,16 @@ class Editor:
         data.name = ""
         data.filename = ""
 
+        if id is None:
+            self.experts.update_list()
+
         if id is not None and id != "":
             if id in self.window.core.presets.items:
                 data = self.window.core.presets.items[id]
                 data.filename = id
                 self.current = data.uuid
+        else:
+            self.load_extra_defaults()
 
         if data.name is None:
             data.name = ""
@@ -355,6 +654,11 @@ class Editor:
             options,
         )
 
+        # load extra options
+        self.load_extra_options(data)
+
+        self.toggle_extra_options()
+
         # update experts list, after ID loaded
         self.experts.update_list()
 
@@ -383,6 +687,9 @@ class Editor:
             self.window.ui.config[self.id]['model'].set_value(current_model)
         self.window.ui.config[self.id]['name'].setFocus()
         self.show_hide_by_mode()
+        self.toggle_extra_options_by_provider()
+        if id is None:
+            self.append_default_prompt()
 
     def save(
             self,
@@ -519,6 +826,13 @@ class Editor:
         # switch to editing preset, if new
         if is_new:
             self.window.controller.presets.set(mode, id)
+            self.window.controller.presets.select_model()
+        else:
+            # switch to model if current preset
+            current_preset = self.window.core.config.get('preset')
+            if current_preset is not None and current_preset == id:
+                self.window.controller.presets.set(mode, current_preset)
+                self.window.controller.presets.select_model()
 
         # update presets list
         no_scroll = False
@@ -583,6 +897,9 @@ class Editor:
             preset.tools['function'] = functions
         else:
             preset.tools['function'] = []
+
+        # extra options
+        self.append_extra_options(preset)
 
     def to_current(self, preset: PresetItem):
         """

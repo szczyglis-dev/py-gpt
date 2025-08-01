@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import json
@@ -18,6 +18,7 @@ from agents import (
     FileSearchTool,
     ComputerTool,
     HostedMCPTool,
+    ModelSettings,
 )
 
 from pygpt_net.core.types import (
@@ -53,6 +54,49 @@ def is_computer_tool(
                           preset_remote_tool.strip()]
             return "computer_use" in tools_list and model.id.startswith("computer-use")
 
+
+def append_tools(
+        tools: list,
+        window,
+        model: ModelItem,
+        preset: PresetItem,
+        allow_local_tools: bool = True,
+        allow_remote_tools: bool = True,
+        is_expert_call: bool = False,
+):
+    """
+    Append tools to the kwargs based on the model and preset configuration.
+
+    :param tools: Local tools to append
+    :param window: Window instance
+    :param model: ModelItem instance
+    :param preset: PresetItem instance
+    :param allow_local_tools: Allow local tools to be appended
+    :param allow_remote_tools: Allow remote tools to be appended
+    :param is_expert_call: Flag indicating if it's an expert call
+    :return: kwargs dictionary with tools and model settings
+    """
+    kwargs = {}
+    remote_tools = []
+    if not allow_local_tools:
+        tools = []
+
+    if allow_remote_tools:
+        tool_kwargs = {
+            "window": window,
+            "model": model,
+            "preset": preset,
+            "is_expert_call": is_expert_call,
+        }
+        remote_tools = get_remote_tools(**tool_kwargs)
+        if is_computer_tool(**tool_kwargs):
+            kwargs["model_settings"] = ModelSettings(truncation="auto")
+
+    all_tools = remote_tools + tools
+    if all_tools:
+        kwargs["tools"] = all_tools
+    return kwargs
+
 def get_remote_tools(
         window,
         model: ModelItem,
@@ -71,6 +115,9 @@ def get_remote_tools(
 
     if not model.is_gpt():
         return []
+
+    if model.id.startswith("o1") or model.id.startswith("o3"):
+        return tools
 
     def on_safety_check(data):
         """

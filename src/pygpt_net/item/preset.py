@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import json
@@ -49,6 +49,7 @@ class PresetItem:
             "function": [],
         }
         self.remote_tools = []
+        self.extra = {}
 
     def get_id(self) -> str:
         return self.filename
@@ -86,6 +87,7 @@ class PresetItem:
             "enabled": self.enabled,
             "description": self.description,
             "remote_tools": self.remote_tools,
+            "extra": self.extra,
         }
 
     def from_dict(self, data):
@@ -151,6 +153,8 @@ class PresetItem:
             self.description = data["description"]
         if "remote_tools" in data:
             self.remote_tools = data["remote_tools"]
+        if "extra" in data:
+            self.extra = data["extra"]
         return self
 
     def add_function(self, name: str, parameters: str, desc: str):

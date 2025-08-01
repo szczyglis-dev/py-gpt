@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, QTabWidget
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -84,14 +84,19 @@ class Preset(BaseConfigDialog):
         options = {}
         for key in widgets:
             if fields[key]["type"] in ['text', 'int', 'float']:
+                # if key != "prompt":  # built separately
                 options[key] = self.add_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'textarea':
+                if key == "prompt":
+                    widgets[key].setMinimumHeight(100)
+                    continue
                 if key == "description":
                     widgets[key].setMinimumHeight(50)
+                else:
+                    widgets[key].setMinimumHeight(100)
                 options[key] = self.add_row_option(widgets[key], fields[key])
-
             elif fields[key]["type"] == 'bool':
-                widgets[key].setMaximumHeight(38)
+                # widgets[key].setMaximumHeight(38)
                 options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
@@ -108,32 +113,55 @@ class Preset(BaseConfigDialog):
             options[key].setContentsMargins(0, 0, 0, 0)
 
         # modes
-        mode_keys = [
+        mode_keys_left = [
             MODE_CHAT,
-            MODE_LLAMA_INDEX,            
-            MODE_AUDIO,            
+            MODE_LLAMA_INDEX,
+            MODE_AUDIO,
             MODE_RESEARCH,
+        ]
+        mode_keys_middle = [
             MODE_COMPLETION,
             MODE_IMAGE,
             MODE_VISION,
-            # MODE_LANGCHAIN,
-            MODE_AGENT_LLAMA,
-            MODE_AGENT,
-            MODE_AGENT_OPENAI,
-            MODE_EXPERT,
             MODE_COMPUTER,
         ]
-        rows_mode = QVBoxLayout()
-        rows_mode.addStretch()
-        rows_mode.setContentsMargins(0, 0, 0, 0)
-        for key in mode_keys:
-            rows_mode.addLayout(options[key])
+        mode_keys_right = [
+            MODE_AGENT_LLAMA,
+            MODE_AGENT_OPENAI,
+            MODE_AGENT,
+            MODE_EXPERT,
+        ]
+
+        rows_mode_left = QVBoxLayout()
+        rows_mode_left.setContentsMargins(0, 0, 0, 0)
+        for key in mode_keys_left:
+            rows_mode_left.addLayout(options[key])
+        rows_mode_left.addStretch()
+
+        rows_mode_middle = QVBoxLayout()
+        rows_mode_middle.setContentsMargins(0, 0, 0, 0)
+        for key in mode_keys_middle:
+            rows_mode_middle.addLayout(options[key])
+        rows_mode_middle.addStretch()
+
+        rows_mode_right = QVBoxLayout()
+        rows_mode_right.setContentsMargins(0, 0, 0, 0)
+        for key in mode_keys_right:
+            rows_mode_right.addLayout(options[key])
+        rows_mode_right.addStretch()
+
+        rows_mode = QHBoxLayout()
+        rows_mode.addLayout(rows_mode_left)
+        rows_mode.addLayout(rows_mode_middle)
+        rows_mode.addLayout(rows_mode_right)
+        rows_mode.setAlignment(Qt.AlignTop)
+        rows_mode.addStretch(1)
 
         # modes
         self.window.ui.nodes['preset.editor.modes'] = QWidget()
         self.window.ui.nodes['preset.editor.modes'].setLayout(rows_mode)
         self.window.ui.nodes['preset.editor.modes'].setContentsMargins(0, 0, 0, 0)
-        self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
+       # self.window.ui.nodes['preset.editor.modes'].setMaximumWidth(300)
 
         # functions label
         self.window.ui.nodes['preset.tool.function.label.all'] = HelpLabel(
@@ -171,26 +199,32 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.agent_llama'].setContentsMargins(20, 0, 0, 30)
 
         # desc and prompt
-        ''''
+
         self.window.ui.nodes['preset.editor.description'] = QWidget()
         self.window.ui.nodes['preset.editor.description'].setLayout(options['description'])
         self.window.ui.nodes['preset.editor.description'].setContentsMargins(0, 5, 0, 5)
-
-        
+        ''''        
         self.window.ui.nodes['preset.editor.remote_tools'] = QWidget()
         self.window.ui.nodes['preset.editor.remote_tools'].setLayout(options['remote_tools'])
         self.window.ui.nodes['preset.editor.remote_tools'].setContentsMargins(0, 0, 0, 0)
         '''
 
+        # prompt + extra options
         prompt_layout = QVBoxLayout()
-        prompt_layout.setContentsMargins(0, 0, 0, 5)
-        #prompt_layout.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
-       # prompt_layout.addWidget(self.window.ui.nodes['preset.editor.description'])
-        prompt_layout.addLayout(options['prompt'])
+        prompt_layout.addWidget(widgets['prompt'])
+        prompt_layout.setContentsMargins(0, 10, 0, 10)
+        footer_layout = self.prepare_extra_config(prompt_layout)
+
+        prompt_layout = QVBoxLayout()
+        prompt_layout.setContentsMargins(0, 0, 0, 0)
+        # prompt_layout.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
+        prompt_layout.addWidget(self.window.ui.nodes['preset.editor.description'])
+        prompt_layout.addLayout(footer_layout)
 
         widget_prompt = QWidget()
         widget_prompt.setLayout(prompt_layout)
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        widget_prompt.setMinimumHeight(300)
 
         # left column
         left_keys = [
@@ -202,7 +236,6 @@ class Preset(BaseConfigDialog):
             "temperature",
             "agent_provider_openai",
             "remote_tools",
-            "description",
         ]
         for key in left_keys:
             self.window.ui.nodes['preset.editor.' + key] = QWidget()
@@ -210,11 +243,16 @@ class Preset(BaseConfigDialog):
             self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
             rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
 
+        self.window.ui.nodes['preset.editor.remote_tools'].setMinimumHeight(140)
+
         rows.setContentsMargins(0, 0, 0, 0)
-        rows.addStretch()
+        rows.addStretch(1)
+        rows.setAlignment(Qt.AlignTop)
+
 
         widget_base = QWidget()
         widget_base.setLayout(rows)
+        widget_base.setMinimumWidth(300)
 
         func_tip_layout = QVBoxLayout()
         func_tip_layout.addWidget(self.window.ui.nodes['preset.tool.function.label.all'])
@@ -234,8 +272,8 @@ class Preset(BaseConfigDialog):
         func_rows.setContentsMargins(0, 0, 0, 0)
         func_widget = QWidget()
         func_widget.setLayout(func_rows)
-        func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        #func_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        #self.window.ui.nodes['preset.editor.functions'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main = QHBoxLayout()
@@ -252,16 +290,80 @@ class Preset(BaseConfigDialog):
         self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
         self.window.ui.splitters['editor.presets'].setStretchFactor(0, 1)
         self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
+        #self.window.ui.splitters['editor.presets'].setChildrenCollapsible(False)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['editor.presets'])
         layout.addLayout(footer)
 
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
+        self.window.ui.dialog['editor.' + self.dialog_id].setSizeGripEnabled(True)
+        self.window.ui.dialog['editor.' + self.dialog_id].setWindowFlags(
+            self.window.ui.dialog['editor.' + self.dialog_id].windowFlags() | Qt.WindowMaximizeButtonHint
+        )
         self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
         self.window.ui.dialog['editor.' + self.dialog_id].setWindowTitle(trans('dialog.preset'))
         self.window.ui.dialog['editor.' + self.dialog_id].on_close_callback = self.on_close
 
+
+    def prepare_extra_config(self, prompt_layout):
+        """
+        Build extra configuration for the preset editor dialog
+
+        :param prompt_layout: Layout for the prompt editor
+        """
+        prompt_layout.setContentsMargins(0, 10, 0, 10)
+        prompt_widget = QWidget()
+        prompt_widget.setLayout(prompt_layout)
+        self.window.ui.tabs['preset.editor.extra'] = QTabWidget()
+        self.window.ui.nodes['preset.editor.extra'] = {}
+        self.window.ui.tabs['preset.editor.extra'].addTab(
+            prompt_widget,
+            trans("preset.prompt"),
+        )
+        self.window.ui.tabs['preset.editor.extra'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window.ui.tabs['preset.editor.extra'].setMinimumHeight(150)
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.tabs['preset.editor.extra'])
+        return layout
+
+
+    def build_option_widgets(self, id: str, fields: dict) -> tuple:
+        """
+        Build option widgets for the preset editor dialog
+
+        :param id: Agent config unique id
+        :param fields: Dictionary of options
+        :return: tuple of widgets and options (layouts)
+        """
+        if id not in self.window.ui.config:
+            self.window.ui.config[id] = {}
+
+        widgets = self.build_widgets(id, fields)  # from base config dialog
+
+        # apply settings widgets
+        for key in widgets:
+            self.window.ui.config[id][key] = widgets[key]
+
+        # apply widgets to layouts
+        options = {}
+        for key in widgets:
+            if fields[key]["type"] in ['text', 'int', 'float']:
+                options[key] = self.add_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'textarea':
+                widgets[key].setMinimumHeight(100)
+                options[key] = self.add_row_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'bool':
+                widgets[key].setMaximumHeight(38)
+                options[key] = self.add_raw_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'dict':
+                options[key] = self.add_row_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'combo':
+                options[key] = self.add_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'bool_list':
+                options[key] = self.add_row_option(widgets[key], fields[key])
+
+        return widgets, options
 
     # on close
     def on_close(self):

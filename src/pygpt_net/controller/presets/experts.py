@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -70,6 +70,9 @@ class Experts:
                     continue
                 experts[expert_uuid] = expert
             self.window.ui.nodes['preset.editor.experts'].update_selected(experts)  # update selected
+        else:
+            # clear selected list if no agent is selected
+            self.window.ui.nodes['preset.editor.experts'].update_selected({})
 
     def change_available(self):
         """Change selected expert"""

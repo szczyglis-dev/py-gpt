@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,7 @@ class Patch:
         is_agent_react_workflow = False
         is_agent_openai = False
         is_computer = False
+        is_bot = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -194,6 +195,25 @@ class Patch:
 
                         updated = True
                         is_agent_openai = True  # prevent multiple copies
+
+                # < 2.5.82
+                if old < parse_version("2.5.82"):
+                    if 'bot_research' not in self.window.core.presets.items and not is_bot:
+                        print("Migrating preset file from < 2.5.82...")
+                        files = [
+                            'agent_openai_coder.json',
+                            'agent_openai_planner.json',
+                            'agent_openai_researcher.json',
+                            'agent_openai_writer.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+                        updated = True
+                        is_bot = True  # prevent multiple copies
 
             # update file
             if updated:

@@ -6,14 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import base64
 from typing import Tuple
 
-from agents import HandoffOutputItem
+from agents import HandoffOutputItem, ReasoningItem
 
+from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.item.ctx import CtxItem
 
 from openai.types.responses import (
@@ -26,11 +27,27 @@ from openai.types.responses import (
 )
 
 class StreamHandler:
-    def __init__(self, window, on_step: callable):
+    def __init__(
+            self,
+            window,
+            bridge: ConnectionContext = None,
+            message: str = None,
+    ):
         self.window = window
-        self.on_step = on_step
+        self.bridge = bridge
         self.buffer = ""
         self.begin = True
+        self.response_id = None
+        self.files = []
+        self.finished = False
+        self.files_handled = False
+        self.code_block = False
+        if message:
+            self.buffer = message
+            self.begin = False
+
+    def reset(self):
+        # self.buffer = ""
         self.response_id = None
         self.files = []
         self.finished = False
@@ -47,21 +64,28 @@ class StreamHandler:
         """
         img_path = self.window.core.image.gen_unique_path(ctx)
         is_image = False
-        if event.type == "raw_response_event" and isinstance(event.data, ResponseCreatedEvent):
+        if isinstance(event, ReasoningItem):
+            print(
+                f"\033[33m{event.summary[0].text}\033[0m", end="", flush=True
+            )  # Yellow for reasoning
+            #ctx.stream = event.summary[0].text
+            #self.on_step(ctx, self.begin)
+            #self.begin = False
+        elif event.type == "raw_response_event" and isinstance(event.data, ResponseCreatedEvent):
             self.response_id = event.data.response.id
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
             ctx.stream = event.data.delta
             if self.code_block:
                 ctx.stream = "\n```\n" + ctx.stream
                 self.code_block = False
-            self.on_step(ctx, self.begin)
+            self.bridge.on_step(ctx, self.begin)
             self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemAddedEvent):
             if event.data.item.type == "code_interpreter_call":
                 self.code_block = True
                 ctx.stream = "\n\n**Code interpreter**\n```python\n"
-                self.on_step(ctx, self.begin)
+                self.bridge.on_step(ctx, self.begin)
                 self.buffer += ctx.stream
                 self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemDoneEvent):
@@ -73,7 +97,7 @@ class StreamHandler:
                 is_image = True
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCodeInterpreterCallCodeDeltaEvent):
             ctx.stream = event.data.delta
-            self.on_step(ctx, self.begin)
+            self.bridge.on_step(ctx, self.begin)
             self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCompletedEvent):
@@ -99,7 +123,7 @@ class StreamHandler:
                     if self.code_block:
                         ctx.stream = "\n```\n"
                         self.code_block = False
-                    self.on_step(ctx, self.begin)
+                    self.bridge.on_step(ctx, self.begin)
                     self.buffer += ctx.stream
                     self.begin = False
 
@@ -109,7 +133,7 @@ class StreamHandler:
         elif event.type == "run_item_stream_event":
             if isinstance(event.item, HandoffOutputItem):
                 ctx.stream = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
-                self.on_step(ctx, self.begin)
+                self.bridge.on_step(ctx, self.begin)
                 self.buffer += ctx.stream
                 self.begin = False
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.11 05:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -102,9 +102,10 @@ class BaseDialog(QDialog):
         if isinstance(item, dict) and "size" in item and "pos" in item:
             width, height = item["size"]
             x, y = item["pos"]
-            width = min(width, available_geometry.width())
-            height = min(height, available_geometry.height())
+            width = min(width, available_geometry.width()) - 20
+            height = min(height, available_geometry.height()) - 20
             size = QSize(width, height)
+
             # adjust position
             x = max(min(x, available_geometry.right() - width), available_geometry.left())
             y = max(min(y, available_geometry.bottom() - height), available_geometry.top())

@@ -727,16 +727,31 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 
 **Agent types:**
 
-- `openai_agents_simple` - runs a single agent.
-- `openai_agents_experts` - uses attached experts as sub-agents.
+- `Agent with experts` - uses attached experts as sub-agents
+- `Agent with experts + feedback` - uses attached experts as sub-agents + feedback agent in a loop
+- `Agent with feedback` - single agent + feedback agent in a loop
+- `Planner` - planner agent, 3 sub-agents inside: planner, base agent + feedback
+- `Research bot` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
+- `Simple agent` - a single agent.
 
 More types will be available in the future.
+
+There are also predefined presets added as examples:
+
+- `Coder`
+- `Experts agent`
+- `Planner`
+- `Researcher`
+- `Simple agent`
+- `Writer with Feedback`
 
 In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
 
 Remote tools for experts can be selected separately for each expert in the preset configuration.
 
 Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
+
+In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
 
 **Limitations:**
 

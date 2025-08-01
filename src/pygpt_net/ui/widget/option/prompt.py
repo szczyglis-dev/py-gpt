@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.08 22:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTextEdit
@@ -77,10 +77,12 @@ class PromptTextarea(QTextEdit):
         if self.window.controller.mode.locked:
             return
 
+        '''
         self.window.controller.config.input.on_update(
             self.window.ui.nodes['preset.prompt'].parent_id,
             self.window.ui.nodes['preset.prompt'].id,
             self.window.ui.nodes['preset.prompt'].option,
             self.window.ui.nodes['preset.prompt'].toPlainText(),
         )
+        '''
         self.window.controller.ui.update_tokens()

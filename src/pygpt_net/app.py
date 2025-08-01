@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 import os
@@ -72,13 +72,17 @@ from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAg
 from pygpt_net.provider.agents.llama_index.code_act import CodeActAgent
 from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentsBase
 from pygpt_net.provider.agents.openai.agent_with_experts import Agent as OpenAIAgentsExperts
+from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent as OpenAIAgentsExpertsFeedback
+from pygpt_net.provider.agents.openai.agent_with_feedback import Agent as OpenAIAgentFeedback
+from pygpt_net.provider.agents.openai.bot_researcher import Agent as OpenAIAgentBotResearcher
+from pygpt_net.provider.agents.openai.agent_planner import Agent as OpenAIAgentPlanner
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.deepseek_api import DeepseekApiLLM
 from pygpt_net.provider.llms.google import GoogleLLM
-from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
+# from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
 from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
 from pygpt_net.provider.llms.local import LocalLLM
 from pygpt_net.provider.llms.mistral import MistralAILLM
@@ -158,13 +162,14 @@ def run(**kwargs):
     PyGPT can be extended with:
 
     - Custom plugins
-    - Custom LLM wrappers
+    - Custom LLM providers
     - Custom vector store providers
     - Custom data loaders
     - Custom audio input providers
     - Custom audio output providers
     - Custom web search engine providers
     - Custom tools
+    - Custom agents
 
     - You can pass custom plugin instances, LLM wrappers, vector store providers and more to the launcher.
     - This is useful if you want to extend PyGPT with your own plugins, vector storage, LLMs, or other data providers.
@@ -222,6 +227,7 @@ def run(**kwargs):
         from audio_output import CustomAudioOutput
         from web import CustomWebSearch
         from tools import CustomTool
+        from agents import CustomAgent
 
         plugins = [
             CustomPlugin(),
@@ -409,6 +415,10 @@ def run(**kwargs):
     launcher.add_agent(CodeActAgent())  # llama-index
     launcher.add_agent(OpenAIAgentsBase())  # openai-agents
     launcher.add_agent(OpenAIAgentsExperts())  # openai-agents
+    launcher.add_agent(OpenAIAgentFeedback())  # openai-agents
+    launcher.add_agent(OpenAIAgentPlanner())  # openai-agents
+    launcher.add_agent(OpenAIAgentBotResearcher())  # openai-agents
+    launcher.add_agent(OpenAIAgentsExpertsFeedback())  # openai-agents
 
     # register custom agents
     agents = kwargs.get('agents', None)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.08.01 03:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -115,13 +115,18 @@ class Llama:
 
     def on_finish(self, ctx: CtxItem):
         """
-        Finish agent run
+        On finished agent run
 
         :param ctx: CtxItem
         """
         if not self.window.core.config.get("agent.llama.loop.enabled"):
             self.on_end()
             return  # abort if loop is disabled
+
+        # disable if bot
+        if self.window.controller.presets.is_bot():
+            self.on_end()
+            return  # abort if bot
 
         # check if not stopped
         if self.window.controller.kernel.stopped():

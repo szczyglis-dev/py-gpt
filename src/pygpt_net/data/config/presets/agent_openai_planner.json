@@ -1,0 +1,60 @@
+{
+    "uuid": "4c28cdfe-d108-4cd3-8a6f-d6bd5225e357",
+    "name": "Planner",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_planner",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "agent_provider_openai": "openai_agent_planner",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_planner": {
+            "base": {
+                "prompt": "Prepare a comprehensive and detailed response to the question based on the action plan. Follow each step outlined in the plan. If any feedback is provided, use it to improve the response.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "planner": {
+                "model": "o3-mini-high",
+                "prompt": "Make a plan of task execution for the query by dividing a task into smaller steps. Do not provide any solutions here. The plan should only contain a list of steps as instructions for someone else to follow. Prepare a plan in the language in which the query was made. Format the plan using markdown.\n\nExample:\n\n----------------\n\n**Sub-task 1: <name>**\n\n- Description: <subtask description>\n- Expected output: <expected output>\n- Dependencies: []\n- Required Tools: []\n\n**Sub-task 2: <name>**\n\n- Description: <subtask description>\n- Expected output: <expected output>\n- Dependencies: [<subtask's 1 name>]\n- Required Tools: [WebSearch]\n\n[...]",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "feedback": {
+                "model": "gpt-4o",
+                "prompt": "You evaluate a result and decide if it's good enough. If it's not good enough, you provide feedback on what needs to be improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the result is good enough - do not go for perfection, but ensure all tasks are completed",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.5.81",
+        "app.version": "2.5.81",
+        "updated_at": "2025-08-01T04:41:38"
+    }
+}
