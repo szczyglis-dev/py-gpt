@@ -369,3 +369,4 @@ class Preset(BaseConfigDialog):
     def on_close(self):
         """Close event callback"""
         self.window.controller.presets.select_current(no_scroll=True)
+        self.window.controller.presets.editor.opened = False

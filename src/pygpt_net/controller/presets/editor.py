@@ -47,6 +47,7 @@ class Editor:
         self.experts = Experts(window)
         self.built = False
         self.tab_options_idx = {}
+        self.opened = False
         self.options = {
             "filename": {
                 "type": "text",
@@ -584,6 +585,7 @@ class Editor:
 
         :param id: preset id (filename)
         """
+        self.opened = True
         data = PresetItem()
         data.name = ""
         data.filename = ""
@@ -839,6 +841,7 @@ class Editor:
         if not is_new:
             no_scroll = True
         self.window.controller.presets.refresh(no_scroll=no_scroll)
+        self.opened = False
 
     def assign_data(self, id: str):
         """
