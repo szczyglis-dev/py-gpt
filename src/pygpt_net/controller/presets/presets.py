@@ -86,7 +86,8 @@ class Presets:
         self.window.dispatch(AppEvent(AppEvent.PRESET_SELECTED))  # app event
         self.set_selected(idx)
         if self.window.controller.presets.editor.opened:
-            self.editor.init(preset_id)
+            if self.window.controller.presets.editor.current != preset_id:
+                self.editor.init(preset_id)
 
     def get_current(self) -> Optional[PresetItem]:
         """
@@ -327,7 +328,8 @@ class Presets:
             if no_scroll:
                 self.window.ui.nodes['preset.presets'].restore_scroll_position()
             if self.window.controller.presets.editor.opened:
-                self.editor.init(preset_id)
+                if self.window.controller.presets.editor.current != preset_id:
+                    self.editor.init(preset_id)
 
     def select_default(self):
         """Set default preset"""
@@ -347,7 +349,8 @@ class Presets:
                 # or set default preset
                 self.window.core.config.set('preset', self.window.core.presets.get_default(mode))
             if self.window.controller.presets.editor.opened:
-                self.editor.init(preset_id)
+                if self.window.controller.presets.editor.current != preset_id:
+                    self.editor.init(preset_id)
 
     def update_data(self):
         """Update preset data"""
