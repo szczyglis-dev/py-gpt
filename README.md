@@ -4246,6 +4246,7 @@ may consume additional tokens that are not displayed in the main window.
 **2.5.85 (2025-08-02)**
 
 - Added importer for models from providers in Config -> Models -> Import... - #127
+- Fix: options save in models editor.
 
 **2.5.84 (2025-08-02)**
 
