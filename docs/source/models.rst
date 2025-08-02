@@ -149,7 +149,7 @@ You can add more models by editing the models list.
 
 **Real-time importer**
 
-You can also import models in real-time from a running Ollama instance using the ``Config -> Models -> Import from Ollama`` tool.
+You can also import models in real-time from a running Ollama instance using the ``Config -> Models -> Import...`` tool.
 
 **Custom Ollama endpoint**
 

@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import copy
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QSplitter, QSizePolicy
 
@@ -30,6 +30,7 @@ from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
 
+import pygpt_net.icons_rc
 
 class Models:
     def __init__(self, window=None):
@@ -48,7 +49,7 @@ class Models:
         :param idx: current model tab index
         """
         self.window.ui.nodes['models.editor.btn.new'] = \
-            QPushButton(trans("dialog.models.editor.btn.new"))
+            QPushButton(QIcon(":/icons/add.svg"), trans("dialog.models.editor.btn.new"))
         self.window.ui.nodes['models.editor.btn.defaults.user'] = \
             QPushButton(trans("dialog.models.editor.btn.defaults.user"))
         self.window.ui.nodes['models.editor.btn.defaults.app'] = \

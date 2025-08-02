@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -49,13 +49,14 @@ class Config:
                                                        trans("menu.config.models.edit"), self.window)
         self.window.ui.menu['config.models.edit'].triggered.connect(
             lambda: self.window.controller.model.editor.toggle_editor())
-        self.window.ui.menu['config.models.import.ollama'] = QAction(QIcon(":/icons/reload.svg"),
-                                                            trans("menu.config.models.import.ollama"), self.window)
-        self.window.ui.menu['config.models.import.ollama'].triggered.connect(
+        self.window.ui.menu['config.models.import.provider'] = QAction(QIcon(":/icons/reload.svg"),
+                                                                     trans("menu.config.models.import.provider"),
+                                                                     self.window)
+        self.window.ui.menu['config.models.import.provider'].triggered.connect(
             lambda: self.window.controller.model.importer.toggle_editor())
 
         self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.edit'])
-        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.import.ollama'])
+        self.window.ui.menu['config.models'].addAction(self.window.ui.menu['config.models.import.provider'])
 
 
         css_dir = os.path.join(self.window.core.config.path, 'css')

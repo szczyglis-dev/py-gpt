@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
+from typing import List, Dict
 
 from llama_index.llms.anthropic import Anthropic
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
@@ -51,3 +52,26 @@ class AnthropicLLM(BaseLLM):
         if "model" not in args:
             args["model"] = model.id
         return Anthropic(**args)
+
+    def get_models(
+            self,
+            window,
+    ) -> List[Dict]:
+        """
+        Return list of models for the provider
+
+        :param window: window instance
+        :return: list of models
+        """
+        items = []
+        import anthropic
+        api_key = window.core.config.get('api_key_anthropic', "")
+        client = anthropic.Anthropic(api_key=api_key)
+        models_list = client.models.list()
+        if models_list.data:
+            for item in models_list.data:
+                items.append({
+                    "id": item.id,
+                    "name": item.id,
+                })
+        return items

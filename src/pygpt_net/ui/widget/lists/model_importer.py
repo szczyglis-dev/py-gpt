@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -108,7 +108,7 @@ class ModelImporter(QWidget):
             self.window.ui.models[id].insertRow(i)
             name = data[n].id
             if data[n].name != data[n].id:
-                name += f" --> {data[n].name}"
+                name += f" ({data[n].name})"
             index = self.window.ui.models[id].index(i, 0)
             tooltip = data[n].id
             self.window.ui.models[id].setData(index, tooltip, QtCore.Qt.ToolTipRole)

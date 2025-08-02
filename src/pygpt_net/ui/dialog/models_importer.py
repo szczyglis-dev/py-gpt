@@ -6,14 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.24 02:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 from PySide6 import QtCore
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QLabel
 
 from pygpt_net.ui.widget.lists.model_importer import ModelImporter
 from pygpt_net.ui.widget.dialog.model_importer import ModelImporterOllamaDialog
+from pygpt_net.ui.widget.option.combo import NoScrollCombo, OptionCombo
 from pygpt_net.utils import trans
+
+import pygpt_net.icons_rc
 
 
 class ModelsImporter:
@@ -36,7 +40,7 @@ class ModelsImporter:
         self.window.ui.nodes['models.importer.editor'] = ModelImporter(self.window)
 
         self.window.ui.nodes['models.importer.btn.refresh'] = \
-            QPushButton(trans("dialog.models.importer.btn.refresh"))
+            QPushButton(QIcon(":/icons/reload.svg"), trans("dialog.models.importer.btn.refresh"))
         self.window.ui.nodes['models.importer.btn.cancel'] = \
             QPushButton(trans("dialog.models.importer.btn.cancel"))
         self.window.ui.nodes['models.importer.btn.save'] = \
@@ -60,15 +64,28 @@ class ModelsImporter:
         footer.addWidget(self.window.ui.nodes['models.importer.btn.cancel'])
         footer.addWidget(self.window.ui.nodes['models.importer.btn.save'])
 
-        self.window.ui.nodes["models.importer.url"] = QLabel("S")
+        option = self.window.controller.model.importer.get_providers_option()
+        if "models.importer" not in self.window.ui.config:
+            self.window.ui.config["models.importer"] = {}
+        self.window.ui.config["models.importer"]["provider"] = OptionCombo(
+            window=self.window,
+            parent_id="models.importer",
+            id="provider",
+            option=option,
+        )
+        self.window.ui.nodes["models.importer.url"] = QLabel("")
         self.window.ui.nodes["models.importer.url"].setAlignment(QtCore.Qt.AlignRight)
         self.window.ui.nodes["models.importer.url"].setContentsMargins(10, 10, 10, 10)
 
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(self.window.ui.config["models.importer"]["provider"])
+        top_layout.addWidget(self.window.ui.nodes["models.importer.url"])
+
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.window.ui.nodes["models.importer.url"])
+        main_layout.addLayout(top_layout)  # top bar with provider and URL
         main_layout.addWidget(self.window.ui.nodes['models.importer.editor'])
 
-        self.window.ui.nodes["models.importer.status"] = QLabel("S")
+        self.window.ui.nodes["models.importer.status"] = QLabel("")
         self.window.ui.nodes["models.importer.status"].setAlignment(QtCore.Qt.AlignCenter)
         self.window.ui.nodes["models.importer.status"].setContentsMargins(10, 10, 10, 10)
 

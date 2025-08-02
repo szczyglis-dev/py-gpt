@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any, List
@@ -65,10 +65,11 @@ class Completion:
         )
 
         # check if max tokens not exceeded
-        available_tokens = model.ctx - self.input_tokens
-        if max_tokens > 0:
-            if available_tokens < max_tokens:
-                max_tokens = available_tokens
+        if model.ctx > 0:
+            available_tokens = model.ctx - self.input_tokens
+            if max_tokens > 0:
+                if available_tokens < max_tokens:
+                    max_tokens = available_tokens
 
         # prepare stop word if user_name is set
         stop = ""
@@ -129,7 +130,7 @@ class Completion:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')
 
         # fit to max model ctx tokens
-        if max_ctx_tokens > model.ctx:
+        if max_ctx_tokens > model.ctx and model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

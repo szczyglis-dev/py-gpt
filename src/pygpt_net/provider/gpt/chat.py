@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import json
@@ -84,7 +84,7 @@ class Chat:
             model.id,
         )
         # check if max tokens not exceeded
-        if max_tokens > 0:
+        if max_tokens > 0 and int(model.ctx) > 0:
             if msg_tokens + int(max_tokens) > model.ctx:
                 max_tokens = model.ctx - msg_tokens - 1
                 if max_tokens < 0:
@@ -120,7 +120,7 @@ class Chat:
             response_kwargs['tools'] = tools
 
         if max_tokens > 0:
-            if not model.id.startswith("o1") and not model.id.startswith("o3"):
+            if model.id is None or (not model.id.startswith("o1") and not model.id.startswith("o3")):
                 response_kwargs['max_tokens'] = max_tokens
             else:
                 response_kwargs['max_completion_tokens'] = max_tokens
@@ -188,7 +188,7 @@ class Chat:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')  # max context window
 
         # fit to max model tokens
-        if max_ctx_tokens > model.ctx:
+        if max_ctx_tokens > model.ctx and model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

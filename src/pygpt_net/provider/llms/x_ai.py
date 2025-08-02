@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 16:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -109,3 +109,24 @@ class xAILLM(BaseLLM):
         :return: Embedding provider instance
         """
         pass
+
+    def get_models(
+            self,
+            window,
+    ) -> List[Dict]:
+        """
+        Return list of models for the provider
+
+        :param window: window instance
+        :return: list of models
+        """
+        items = []
+        client = self.get_client(window)
+        models_list = client.models.list()
+        if models_list.data:
+            for item in models_list.data:
+                items.append({
+                    "id": item.id,
+                    "name": item.id,
+                })
+        return items

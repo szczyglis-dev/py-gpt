@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 19:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
 
-from pygpt_net.ui.widget.option.combo import SeparatorComboBox
+from pygpt_net.ui.widget.option.combo import SeparatorComboBox, NoScrollCombo
+
 
 class BaseListCombo(QWidget):
     def __init__(self, window=None, id: str = None):
@@ -28,7 +29,7 @@ class BaseListCombo(QWidget):
         self.keys = []
         self.title = ""
         self.real_time = False
-        self.combo = SeparatorComboBox()
+        self.combo = NoScrollCombo()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.current_id = None
         self.initialized = False

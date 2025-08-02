@@ -107,7 +107,7 @@ class Vision:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')
 
         # fit to max model tokens
-        if max_ctx_tokens > model.ctx:
+        if max_ctx_tokens > model.ctx and model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

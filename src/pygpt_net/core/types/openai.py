@@ -16,24 +16,30 @@ OPENAI_DISABLE_TOOLS = [
     "o3-deep-research",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_IMAGE = [
+    "gpt-3.5-turbo",
     "o4-mini-deep-research",
     "o3-deep-research",
     "codex-mini-latest",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER = [
+    "gpt-3.5-turbo",
     "codex-mini-latest",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH = [
+    "gpt-3.5-turbo",
     "codex-mini-latest",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE = [
+    "gpt-3.5-turbo",
     "o4-mini-deep-research",
     "o3-deep-research",
     "codex-mini-latest",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH = [
+    "gpt-3.5-turbo",
     "codex-mini-latest",
 ]
 OPENAI_REMOTE_TOOL_DISABLE_MCP = [
+    "gpt-3.5-turbo",
     "codex-mini-latest",
 ]

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -716,7 +716,8 @@ class Patch:
             self.window.core.models.items = data
             self.window.core.models.save()
 
-            # also patch any missing models
-            self.window.core.models.patch_missing()
+            # also patch any missing models, only if models file is older than 2.5.84
+            if old < parse_version("2.5.84"):
+                self.window.core.models.patch_missing()
 
         return updated

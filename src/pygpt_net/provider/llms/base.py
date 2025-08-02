@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -18,7 +18,7 @@ from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLL
 
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
+    MODE_LLAMA_INDEX, MODE_CHAT,
 )
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
@@ -199,3 +199,29 @@ class BaseLLM:
         :return: agent provider instance
         """
         pass
+
+    def get_models(
+            self,
+            window,
+    ) -> List[Dict]:
+        """
+        Return list of models for the provider
+
+        :param window: window instance
+        :return: list of models
+        """
+        return []
+
+    def get_client(self, window):
+        """
+        Return client for current provider
+
+        :param window: Window instance
+        :return: Client instance for the provider
+        """
+        model = ModelItem()
+        model.provider = self.id
+        return window.core.gpt.get_client(
+            mode=MODE_CHAT,
+            model=model,
+        )

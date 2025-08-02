@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -51,6 +51,7 @@ def test_send(mock_window_conf):
     chat.window.core.gpt.get_client = MagicMock(return_value=client)
 
     model = ModelItem()
+    model.ctx = 2048
     bridge_context = BridgeContext(
         prompt='test_prompt',
         model=model,

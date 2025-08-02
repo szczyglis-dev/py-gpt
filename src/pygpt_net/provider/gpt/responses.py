@@ -112,7 +112,7 @@ class Responses:
             model.id,
         )
         # check if max tokens not exceeded
-        if max_tokens > 0:
+        if max_tokens > 0 and model.ctx > 0:
             if msg_tokens + int(max_tokens) > model.ctx:
                 max_tokens = model.ctx - msg_tokens - 1
                 if max_tokens < 0:
@@ -227,7 +227,7 @@ class Responses:
         max_ctx_tokens = self.window.core.config.get('max_total_tokens')  # max context window
 
         # fit to max model tokens
-        if max_ctx_tokens > model.ctx:
+        if max_ctx_tokens > model.ctx and model.ctx > 0:
             max_ctx_tokens = model.ctx
 
         # input tokens: reset

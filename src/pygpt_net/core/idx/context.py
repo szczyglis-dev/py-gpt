@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.11 01:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import os
@@ -71,7 +71,7 @@ class Context:
         model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model tokens
-        if max_tokens > model_ctx:
+        if max_tokens > 0 and max_tokens > model_ctx > 0:
             max_tokens = model_ctx
 
         if self.window.core.config.get('use_context'):

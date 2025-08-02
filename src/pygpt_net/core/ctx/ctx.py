@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.02 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -1016,7 +1016,7 @@ class Ctx:
         for item in reversed(history_items):
             num = self.window.core.tokens.from_ctx(item, mode, model)  # get num tokens for input and output
             tokens += num
-            if tokens > max_tokens:
+            if tokens > max_tokens > 0:
                 break
             context_tokens += num
             i += 1
@@ -1052,7 +1052,7 @@ class Ctx:
                 is_first = False
                 continue
             tokens += self.window.core.tokens.from_ctx(item, mode, model)
-            if tokens > max_tokens:
+            if 0 < max_tokens < tokens:
                 break
             items.append(item)
 
