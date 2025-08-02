@@ -284,6 +284,8 @@ class Models:
         model = ModelItem()
         model.id = id
         model.name = "New model"
+        model.input = ["text"]
+        model.output = ["text"]
         if append:
             self.items[id] = model
         return model

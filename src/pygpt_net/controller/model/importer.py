@@ -510,6 +510,7 @@ class Importer:
         self.pending = {}
         self.removed = {}
         if added:
+            self.window.core.models.sort_items()
             self.window.core.models.save()
             self.set_status(trans('models.importer.status.imported'))
 
