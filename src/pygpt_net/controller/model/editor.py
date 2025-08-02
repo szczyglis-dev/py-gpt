@@ -191,10 +191,12 @@ class Editor:
     def undo(self):
         """Undo last changes in models editor"""
         if self.previous is not None:
+            self.locked = True
             self.window.core.models.items = copy.deepcopy(self.previous)
             self.window.core.models.save()
             self.reload_items()
             self.init()
+            self.locked = False
 
     def close(self):
         """Close models editor dialog"""
@@ -233,6 +235,7 @@ class Editor:
 
         :param persist: persist to file and close dialog
         """
+        self.locked = True
         options = copy.deepcopy(self.get_options())  # copy options
         data_dict = {}
         for key in options:
@@ -267,6 +270,7 @@ class Editor:
         # dispatch on update event
         event = Event(Event.MODELS_CHANGED)
         self.window.dispatch(event, all=True)
+        self.locked = False
 
     def reload_items(self):
         """Reload items"""
@@ -309,6 +313,7 @@ class Editor:
         :param idx: model idx
         :param force: force delete
         """
+        self.locked = True
         model = self.get_model_by_tab_idx(idx)
         if not force:
             self.window.ui.dialogs.confirm(
@@ -323,6 +328,7 @@ class Editor:
         if self.current == model:
             self.current = None
         self.init()
+        self.locked = False
 
     def load_defaults_user(self, force: bool = False):
         """
@@ -354,6 +360,7 @@ class Editor:
             )
             return
 
+        self.locked = True
         # restore default models (from app base models)
         self.window.core.models.restore_default()  # all models restore
         self.window.core.models.save()
@@ -367,6 +374,7 @@ class Editor:
             trans('dialog.models.editor.defaults.app.result')
         )
         self.previous = copy.deepcopy(self.window.core.models.items)
+        self.locked = False
 
     def set_by_tab(self, idx: int):
         """
