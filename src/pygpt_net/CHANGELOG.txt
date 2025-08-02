@@ -1,3 +1,7 @@
+2.5.84 (2025-08-02)
+
+- Added a new OpenAI agent mode: Evolve. You can find its description in the documentation under the section Modes -> Agent (OpenAI).
+
 2.5.83 (2025-08-01)
 
 - Improved streaming in Agent (OpenAI) mode.

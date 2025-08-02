@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.83** | build: **2025-08-01** | Python: **>=3.10, <3.14**
+Release: **2.5.84** | build: **2025-08-02** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4242,6 +4242,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.84 (2025-08-02)**
+
+- Added a new OpenAI agent mode: Evolve. You can find its description in the documentation under the section Modes -> Agent (OpenAI).
 
 **2.5.83 (2025-08-01)**
 
