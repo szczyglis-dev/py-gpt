@@ -235,7 +235,6 @@ class Editor:
 
         :param persist: persist to file and close dialog
         """
-        self.locked = True
         options = copy.deepcopy(self.get_options())  # copy options
         data_dict = {}
         for key in options:
@@ -270,7 +269,6 @@ class Editor:
         # dispatch on update event
         event = Event(Event.MODELS_CHANGED)
         self.window.dispatch(event, all=True)
-        self.locked = False
 
     def reload_items(self):
         """Reload items"""
