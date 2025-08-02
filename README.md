@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.84** | build: **2025-08-02** | Python: **>=3.10, <3.14**
+Release: **2.5.85** | build: **2025-08-02** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4242,6 +4242,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.85 (2025-08-02)**
+
+- Added importer for models from providers in Config -> Models -> Import... - #127
 
 **2.5.84 (2025-08-02)**
 
