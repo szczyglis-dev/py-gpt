@@ -377,8 +377,8 @@ class Agent(BaseAgent):
                             bridge.on_stop(ctx)
                             break
                         final_output, response_id = handler.handle(event, ctx, buffer=False)
-
-                bridge.on_next(ctx)
+                    bridge.on_next(ctx)
+                
                 choose_items = copy.deepcopy(input_items)
                 choose_query = self.make_choose_query(results)
                 choose_items.append(choose_query)
