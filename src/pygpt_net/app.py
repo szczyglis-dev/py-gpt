@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.02 03:00:00                  #
 # ================================================== #
 
 import os
@@ -76,6 +76,7 @@ from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent a
 from pygpt_net.provider.agents.openai.agent_with_feedback import Agent as OpenAIAgentFeedback
 from pygpt_net.provider.agents.openai.bot_researcher import Agent as OpenAIAgentBotResearcher
 from pygpt_net.provider.agents.openai.agent_planner import Agent as OpenAIAgentPlanner
+from pygpt_net.provider.agents.openai.evolve import Agent as OpenAIAgentsEvolve
 
 # LLM wrapper providers (langchain, llama-index, embeddings)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -419,6 +420,7 @@ def run(**kwargs):
     launcher.add_agent(OpenAIAgentPlanner())  # openai-agents
     launcher.add_agent(OpenAIAgentBotResearcher())  # openai-agents
     launcher.add_agent(OpenAIAgentsExpertsFeedback())  # openai-agents
+    launcher.add_agent(OpenAIAgentsEvolve())  # openai-agents
 
     # register custom agents
     agents = kwargs.get('agents', None)

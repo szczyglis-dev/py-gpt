@@ -351,6 +351,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 * ``Planner`` - planner agent, 3 sub-agents inside: planner, base agent + feedback
 * ``Research bot`` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
 * ``Simple agent`` - a single agent.
+* ``Evolve`` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
 
 More types will be available in the future.
 
@@ -371,11 +372,56 @@ Local tools (from plugins) are available for agents and experts according to the
 
 In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
 
+**Description of how different types of agents work:**
+
+Below is a pattern for how different types of agents work. You can use these patterns to create agents for different tasks by modifying the appropriate prompts in the preset for the specific task.
+
+**Simple Agent**
+
+* The agent completes its task and then stops working.
+
+**Agent with Feedback**
+
+* The first agent answers a question.
+* The second agent (feedback) evaluates the answer and, if necessary, goes back to the first agent to enforce corrections.
+* The cycle repeats until the feedback agent is satisfied with the evaluation.
+
+**Agent with Experts**
+
+* The agent completes the assigned task on its own or delegates it to the most suitable expert (another agent).
+
+**Agent with Experts + Feedback**
+
+* The first agent answers a question or delegates it to the most suitable expert.
+* The second agent (feedback) evaluates and, if necessary, goes back to the first agent to enforce corrections.
+* The cycle repeats until the feedback agent is satisfied with the evaluation.
+
+**Research Bot**
+
+* The first agent (planner) prepares a list of phrases to search.
+* The second agent (search) finds information based on the phrases and creates a summary.
+* The third agent (writer) prepares a report based on the summary.
+
+**Planner**
+
+* The first agent (planner) breaks down a task into sub-tasks and sends the list to the second agent.
+* The second agent performs the task based on the prepared task list.
+* The third agent, responsible for feedback, evaluates, requests corrections if needed, and sends the request back to the first agent. The cycle repeats.
+
+**Evolve**
+
+* You select the number of agents (parents) to operate in each generation (iteration).
+* Each agent prepares a separate answer to a question.
+* The best agent (producing the best answer) in a generation is selected by the next agent (chooser).
+* Another agent (feedback) verifies the best answer and suggests improvements.
+* A request for improving the best answer is sent to a new pair of agents (new parents).
+* From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
+
 **Limitations:**
 
-- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
+* When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
-- Ollama models are not supported in this mode.
+* Ollama models are not supported in this mode.
 
 
 Agent (Autonomous)

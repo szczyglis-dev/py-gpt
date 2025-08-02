@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.02 03:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -374,6 +374,8 @@ class Runner:
             :param ctx: CtxItem
             :param wait: if True, flush current output to before buffer and clear current buffer
             """
+            ctx.stream = "\n"
+            self.send_stream(ctx, signals, False)
             self.next_stream(ctx, signals)
 
         def on_error(error: Any):

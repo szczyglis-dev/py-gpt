@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.02 03:00:00                  #
 # ================================================== #
 
 import base64
@@ -62,13 +62,20 @@ class StreamHandler:
         """
         self.buffer += text
 
-    def handle(self, event, ctx: CtxItem, flush: bool = True) -> Tuple[str, str]:
+    def handle(
+            self,
+            event,
+            ctx: CtxItem,
+            flush: bool = True,
+            buffer: bool = True
+    ) -> Tuple[str, str]:
         """
         Unpack agent response and set context
 
         :param event: Event - event containing response data
         :param ctx: CtxItem - context item to set the response data
         :param flush: bool - whether to flush the output
+        :param buffer: bool - whether to buffer the output
         :return: Final output string, response ID
         """
         img_path = self.window.core.image.gen_unique_path(ctx)
@@ -89,7 +96,8 @@ class StreamHandler:
                 self.code_block = False
             if flush:
                 self.bridge.on_step(ctx, self.begin)
-            self.buffer += ctx.stream
+            if buffer:
+                self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemAddedEvent):
             if event.data.item.type == "code_interpreter_call":
@@ -97,7 +105,8 @@ class StreamHandler:
                 ctx.stream = "\n\n**Code interpreter**\n```python\n"
                 if flush:
                     self.bridge.on_step(ctx, self.begin)
-                self.buffer += ctx.stream
+                if buffer:
+                    self.buffer += ctx.stream
                 self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseOutputItemDoneEvent):
             if event.data.item.type == "image_generation_call":
@@ -110,7 +119,8 @@ class StreamHandler:
             ctx.stream = event.data.delta
             if flush:
                 self.bridge.on_step(ctx, self.begin)
-            self.buffer += ctx.stream
+            if buffer:
+                self.buffer += ctx.stream
             self.begin = False
         elif event.type == "raw_response_event" and isinstance(event.data, ResponseCompletedEvent):
             for item in event.data.response.output:
@@ -137,7 +147,8 @@ class StreamHandler:
                         self.code_block = False
                     if flush:
                         self.bridge.on_step(ctx, self.begin)
-                    self.buffer += ctx.stream
+                    if buffer:
+                        self.buffer += ctx.stream
                     self.begin = False
 
 
@@ -148,7 +159,8 @@ class StreamHandler:
                 ctx.stream = f"\n\n**Handoff to: {event.item.target_agent.name}**\n\n"
                 if flush:
                     self.bridge.on_step(ctx, self.begin)
-                self.buffer += ctx.stream
+                if buffer:
+                    self.buffer += ctx.stream
                 self.begin = False
 
         # append images
