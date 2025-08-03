@@ -173,10 +173,24 @@ class Tools:
                     }
                     return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
 
+                schema = json.loads(item['params'])  # from JSON to dict
+                # fix schema for OpenAI FunctionTool
+                if "properties" in schema:
+                    for property_name, property_value in schema["properties"].items():
+                        if "enum" in property_value:
+                            del property_value["enum"]  # remove enum for OpenAI FunctionTool
+                        if property_value["type"] == "object":
+                            if "properties" not in property_value:
+                                property_value["properties"] = {}
+                            if "required" not in property_value:
+                                property_value["required"] = []
+                            if "additionalProperties" not in property_value:
+                                property_value["additionalProperties"] = False
+                schema["additionalProperties"] = False
                 tool = OpenAIFunctionTool(
                     name=name,
                     description=description,
-                    params_json_schema=json.loads(item['params']),
+                    params_json_schema=schema,
                     on_invoke_tool=run_function,
                 )
                 tools.append(tool)

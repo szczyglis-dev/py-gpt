@@ -4247,6 +4247,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Optimized CPU and memory usage.
 - OpenAI vector stores tool added to Tools menu.
+- Fixed schema parsing for tools in Agent (OpenAI) mode.
 - Fixed multi-threading when uploading to remote vector store.
 - Fixed Urls open in Snap.
 

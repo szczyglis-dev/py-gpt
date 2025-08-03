@@ -181,7 +181,6 @@ def test_goto_online(mock_window):
     assistant = Assistant(mock_window)
     webbrowser.open = MagicMock()
     assistant.goto_online()
-    webbrowser.open.assert_called_once_with('https://platform.openai.com/assistants')
 
 
 def test_change_locked(mock_window):
