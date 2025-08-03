@@ -57,6 +57,15 @@ class Tools:
 
         # ------------------------------------------------- #
 
+        # OpenAI vector stores
+        self.window.ui.menu['menu.tools'].addSeparator()
+        self.window.ui.menu['menu.tools.openai.stores'] = QAction(QIcon(":/icons/db.svg"),
+                                                                    trans("dialog.assistant.store"), self.window)
+        self.window.ui.menu['menu.tools'].addAction(self.window.ui.menu['menu.tools.openai.stores'])
+        self.window.ui.menu['menu.tools.openai.stores'].triggered.connect(
+            lambda: self.window.controller.assistant.store.toggle_editor()
+        )
+
         # Docker images rebuild:
 
         # IPython container
