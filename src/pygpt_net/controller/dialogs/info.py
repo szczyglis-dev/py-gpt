@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 13:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
-import webbrowser
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
 
 
 class Info:
@@ -61,45 +62,54 @@ class Info:
         # update menu
         self.update_menu()
 
+    def open_url(self, url: str):
+        """
+        Open URL in the default web browser
+
+        :param url: URL to open
+        """
+        if url:
+            QDesktopServices.openUrl(QUrl(url))
+
     def goto_website(self):
         """Open project website"""
-        webbrowser.open(self.window.meta['website'])
+        self.open_url(self.window.meta['website'])
 
     def goto_docs(self):
         """Open docs"""
-        webbrowser.open(self.window.meta['docs'])
+        self.open_url(self.window.meta['docs'])
 
     def goto_pypi(self):
         """Open PyPi"""
-        webbrowser.open(self.window.meta['pypi'])
+        self.open_url(self.window.meta['pypi'])
 
     def goto_github(self):
         """Open GitHub page"""
-        webbrowser.open(self.window.meta['github'])
+        self.open_url(self.window.meta['github'])
 
     def goto_snap(self):
         """Open Snapcraft page"""
-        webbrowser.open(self.window.meta['snap'])
+        self.open_url(self.window.meta['snap'])
 
     def goto_ms_store(self):
         """Open MS Store page"""
-        webbrowser.open(self.window.meta['ms_store'])
+        self.open_url(self.window.meta['ms_store'])
 
     def goto_update(self):
         """Open update URL"""
-        webbrowser.open(self.window.meta['website'])
+        self.open_url(self.window.meta['update'])
 
     def goto_donate(self):
         """Open donate page"""
-        webbrowser.open(self.window.meta['donate'])
+        self.open_url(self.window.meta['donate'])
 
     def goto_discord(self):
         """Open discord page"""
-        webbrowser.open(self.window.meta['discord'])
+        self.open_url(self.window.meta['discord'])
 
     def goto_report(self):
         """Open report a bug page"""
-        webbrowser.open(self.window.meta['report'])
+        self.open_url(self.window.meta['report'])
 
     def donate(self, id: str):
         """
@@ -108,11 +118,11 @@ class Info:
         :param id: donate id
         """
         if id == 'coffee':
-            webbrowser.open(self.window.meta['donate_coffee'])
+            self.open_url(self.window.meta['donate_coffee'])
         elif id == 'paypal':
-            webbrowser.open(self.window.meta['donate_paypal'])
+            self.open_url(self.window.meta['donate_paypal'])
         elif id == 'github':
-            webbrowser.open(self.window.meta['donate_github'])
+            self.open_url(self.window.meta['donate_github'])
 
     def update_menu(self):
         """Update info menu"""

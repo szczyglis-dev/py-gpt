@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 17:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 import os
-import webbrowser
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QPixmap, QDesktopServices
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
 from pygpt_net.ui.widget.element.labels import TitleLabel, CmdLabel
@@ -126,7 +125,7 @@ class UpdateDialog(BaseDialog):
         """
         Download file
         """
-        webbrowser.open(self.download_link)
+        self.window.controller.dialogs.info.open_url(self.download_link)
 
     def set_data(
             self,

@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QTimer, QRect, Signal
-from PySide6.QtGui import QCursor, QAction, QIcon
+from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl
+from PySide6.QtGui import QCursor, QAction, QIcon, QDesktopServices
 from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
-import webbrowser
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -61,7 +60,10 @@ class UrlLabel(QLabel):
         self.setText(text)
 
     def mousePressEvent(self, event):
-        webbrowser.open(self.url)
+        if self.window:
+            self.window.controller.dialogs.info.open_url(self.url)
+        else:
+            QDesktopServices.openUrl(QUrl(self.url))
 
 
 class CmdLabel(QLineEdit):
