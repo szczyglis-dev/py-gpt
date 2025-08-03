@@ -369,7 +369,7 @@ class Kernel(QObject):
         :param event: event
         """
         # last 30 events
-        if len(self.last_stack) > 30:
+        if len(self.last_stack) > 10:
             self.last_stack.pop(0)
         ts = time.strftime("%H:%M:%S: ", time.localtime())
         self.last_stack.append(ts + event.name)

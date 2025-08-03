@@ -80,6 +80,7 @@ class Parser:
         try:
             text = self.prepare_paths(text.strip())
             html = self.md.convert(text)
+            self.md.reset()
             soup = BeautifulSoup(html, 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             # if self.window.core.config.get("ctx.convert_lists"):
@@ -102,6 +103,7 @@ class Parser:
         self.init()
         try:
             soup = BeautifulSoup(self.md.convert(text.strip()), 'html.parser')
+            self.md.reset()
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
             self.highlight_code_blocks(soup)  # parse code blocks
