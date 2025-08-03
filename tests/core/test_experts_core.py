@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 03:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 import json
@@ -493,7 +493,7 @@ def test_call_agent_success(fake_window):
     provider = MagicMock()
     provider.get_agent.return_value = MagicMock()
     fake_window.core.agents.provider.get.return_value = provider
-    fake_window.core.agents.runner.run_plan_once.return_value = response_ctx
+    fake_window.core.agents.runner.llama_plan.run_once.return_value = response_ctx
     worker = ExpertWorker(window=fake_window, master_ctx=CtxItem(), expert_id="expA", query="agent query")
     result = worker.call_agent(
         context=BridgeContext(),
@@ -513,7 +513,7 @@ def test_call_agent_no_response(fake_window):
     provider = MagicMock()
     provider.get_agent.return_value = MagicMock()
     fake_window.core.agents.provider.get.return_value = provider
-    fake_window.core.agents.runner.run_plan_once.return_value = None
+    fake_window.core.agents.runner.llama_plan.run_once.return_value = None
     worker = ExpertWorker(window=fake_window, master_ctx=CtxItem(), expert_id="expA", query="agent query")
     result = worker.call_agent(
         context=BridgeContext(),

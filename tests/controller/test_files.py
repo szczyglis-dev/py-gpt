@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 19:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
-# 
+
 import os
 from unittest.mock import MagicMock, call, patch
 
@@ -42,6 +42,7 @@ def test_update_name(mock_window):
     """Test update name"""
     files = Files(mock_window)
     os.rename = MagicMock()
+    os.path.exists = MagicMock(return_value=False)
     mock_window.update_status = MagicMock()
     files.update_name('test', 'test2')
     os.rename.assert_called_once_with('test', os.path.join(os.path.dirname('test'), 'test2'))

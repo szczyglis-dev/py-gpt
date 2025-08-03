@@ -191,6 +191,17 @@ class Config:
 
         return path
 
+    def get_workdir_prefix(self) -> str:
+        """
+        Return workdir path (sandboxed or user dir)
+
+        :return: workdir path
+        """
+        workdir = self.get_user_dir('data')
+        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
+            workdir = "/data"
+        return workdir
+
     def get_app_path(self) -> str:
         """
         Return app data path
@@ -353,6 +364,9 @@ class Config:
         :param key: key
         :return: True if exists
         """
+        if self.data is None:
+            return False
+
         if key in self.data:
             return True
         return False

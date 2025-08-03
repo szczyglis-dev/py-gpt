@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 import json
@@ -864,7 +864,7 @@ class ExpertWorker(QObject, QRunnable):
         }
         provider = self.window.core.agents.provider.get("planner")
         agent = provider.get_agent(self.window, kwargs)
-        response_ctx = self.window.core.agents.runner.run_plan_once(
+        response_ctx = self.window.core.agents.runner.llama_plan.run_once(
             agent=agent,
             ctx=ctx,
             prompt=query,

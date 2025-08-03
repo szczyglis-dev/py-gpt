@@ -10,17 +10,11 @@
 # ================================================== #
 
 import json
-import os
-import re
 from typing import List, Dict, Any
-from pydantic import BaseModel, create_model
-from inspect import Signature, Parameter
-from functools import wraps
 
 from agents import (
     FunctionTool as OpenAIFunctionTool,
     RunContextWrapper,
-    function_tool
 )
 from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
@@ -387,9 +381,9 @@ class Tools:
 
         :return: last tool output
         """
-        if self.window.core.agents.tools.last_tool_output is None:
+        if self.last_tool_output is None:
             return {}
-        return self.window.core.agents.tools.last_tool_output
+        return self.last_tool_output
 
     def has_last_tool_output(self) -> bool:
         """
@@ -397,11 +391,11 @@ class Tools:
 
         :return: True if last tool output exists, False otherwise
         """
-        return self.window.core.agents.tools.last_tool_output is not None
+        return self.last_tool_output is not None
 
     def clear_last_tool_output(self):
         """Clear last tool output"""
-        self.window.core.agents.tools.last_tool_output = None
+        self.last_tool_output = None
 
     def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
         """

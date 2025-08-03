@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -232,5 +232,5 @@ class Evaluation:
         :param instruction: instruction
         :param score: score
         """
-        self.window.core.agents.runner.next_instruction = instruction
-        self.window.core.agents.runner.prev_score = score
+        self.window.core.agents.runner.loop.next_instruction = instruction
+        self.window.core.agents.runner.loop.prev_score = score

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -88,7 +88,7 @@ class BridgeWorker(QObject, QRunnable):
 
             # Loop: next step
             elif self.mode == "loop_next":  # virtual mode
-                result = self.window.core.agents.runner.run_next(
+                result = self.window.core.agents.runner.loop.run_next(
                     context=self.context,
                     extra=self.extra,
                     signals=self.signals,

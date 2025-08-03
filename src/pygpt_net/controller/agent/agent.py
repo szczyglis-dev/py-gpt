@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 from .common import Common
@@ -41,4 +41,3 @@ class Agent:
         """Force stop all agents"""
         self.legacy.on_stop()
         self.llama.on_stop()
-        self.openai.on_stop()
