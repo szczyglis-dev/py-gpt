@@ -180,7 +180,7 @@ class Agent(BaseAgent):
             ctx: CtxItem = None,
             stream: bool = False,
             bridge: ConnectionContext = None,
-    ) -> Tuple[str, str]:
+    ) -> Tuple[CtxItem, str, str]:
         """
         Run agent (async)
 
@@ -191,7 +191,7 @@ class Agent(BaseAgent):
         :param ctx: Context item
         :param stream: Whether to stream output
         :param bridge: Connection context for handling stop and step events
-        :return: Final output and response ID
+        :return: Current ctx, final output, last response ID
         """
         final_output = ""
         response_id = None
@@ -325,7 +325,7 @@ class Agent(BaseAgent):
                 input_items.append({"content": f"Feedback: {result.feedback}", "role": "user"})
                 handler.to_buffer(info)
 
-        return final_output, response_id
+        return ctx, final_output, response_id
 
 
     def get_options(self) -> Dict[str, Any]:

@@ -110,7 +110,7 @@ class Agent(BaseAgent):
             ctx: CtxItem = None,
             stream: bool = False,
             bridge: ConnectionContext = None,
-    ) -> Tuple[str, Union[str, None]]:
+    ) -> Tuple[CtxItem, str, Union[str, None]]:
         """
         Run agent (async)
 
@@ -121,7 +121,7 @@ class Agent(BaseAgent):
         :param ctx: Context item
         :param stream: Whether to stream output
         :param bridge: Connection context for agent operations
-        :return: Final output and response ID
+        :return: Current ctx, final output, last response ID
         """
         response_id = None
         model = agent_kwargs.get("model", ModelItem())
@@ -201,7 +201,7 @@ class Agent(BaseAgent):
         else:
             final_output = await bot.run(query)
 
-        return final_output, response_id
+        return ctx, final_output, response_id
 
 
     def get_options(self) -> Dict[str, Any]:

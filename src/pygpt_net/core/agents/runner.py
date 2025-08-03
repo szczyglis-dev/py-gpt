@@ -350,9 +350,13 @@ class Runner:
         history = history + msg
 
         # callbacks
-        def on_step(ctx: CtxItem, begin: bool = False):
+        def on_step(
+                ctx: CtxItem,
+                begin: bool = False
+        ):
             """
-            Callback for step events
+            Callback called on each step
+
             :param ctx: CtxItem
             :param begin: whether this is the first step
             """
@@ -361,16 +365,21 @@ class Runner:
         def on_stop(ctx: CtxItem):
             """
             Callback for stop events
+
             :param ctx: CtxItem
             """
             self.set_idle(signals)
             self.end_stream(ctx, signals)
 
-        def on_next(ctx: CtxItem, wait: bool = False):
+        def on_next(
+                ctx: CtxItem,
+                wait: bool = False
+        ):
             """
-            Callback for next events
+            Callback for next step
 
             Flush current output to before buffer and clear current buffer
+
             :param ctx: CtxItem
             :param wait: if True, flush current output to before buffer and clear current buffer
             """
@@ -378,21 +387,57 @@ class Runner:
             self.send_stream(ctx, signals, False)
             self.next_stream(ctx, signals)
 
+        def on_next_ctx(
+                ctx: CtxItem,
+                input: str,
+                output: str,
+                response_id: str
+        ) -> CtxItem:
+            """
+            Callback for next context in cycle
+
+            :param ctx: CtxItem
+            :param input: input text
+            :param output: output text
+            :param response_id: response id for OpenAI
+            :return: CtxItem - the next context item in the cycle
+            """
+            # finish current stream
+            ctx.stream = "\n"
+            self.send_stream(ctx, signals, False)
+            self.end_stream(ctx, signals)
+
+            # send current response
+            # TODO: disable evaluation for now in chat response controller
+            response_ctx = self.make_response(ctx, input, output, response_id)
+            response_ctx.partial = True  # do not finish and evaluate yet
+            self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+
+            # create and return next context item
+            next_ctx = self.add_next_ctx(ctx)
+            next_ctx.set_input(input)
+            self.window.core.ctx.set_last_item(next_ctx)
+            self.window.core.ctx.add(next_ctx)
+            return next_ctx
+
         def on_error(error: Any):
             """
-            Callback for error events
+            Callback for error occurred during processing
+
             :param error: Exception raised during processing
             """
             self.set_idle(signals)
             self.window.core.debug.error(error)
             self.error = error
 
+        # callbacks
         bridge = ConnectionContext(
             stopped=self.is_stopped,
             on_step=on_step,
             on_stop=on_stop,
             on_error=on_error,
             on_next=on_next,
+            on_next_ctx=on_next_ctx,
         )
         run_kwargs = {
             "window": self.window,
@@ -407,11 +452,34 @@ class Runner:
             run_kwargs["previous_response_id"] = previous_response_id
 
         # run agent
-        output, response_id = await run(**run_kwargs)
+        ctx, output, response_id = await run(**run_kwargs)
 
-        # handle result
+        # prepare response
+        response_ctx = self.make_response(ctx, prompt, output, response_id)
+
+        # send response
+        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
+        self.set_idle(signals)
+        return True
+
+    def make_response(
+            self,
+            ctx: CtxItem,
+            input: str,
+            output: str,
+            response_id: str
+    ) -> CtxItem:
+        """
+        Create a response context item with the given input and output.
+
+        :param ctx: CtxItem - the context item to use as a base
+        :param input: Input text for the response
+        :param output: Output text for the response
+        :param response_id: Response ID for OpenAI
+        :return: CtxItem - the response context item with input, output, and extra data
+        """
         response_ctx = self.add_ctx(ctx, with_tool_outputs=True)
-        response_ctx.set_input(prompt)
+        response_ctx.set_input(input)
         response_ctx.set_output(output)
         response_ctx.set_agent_final_response(output)  # always set to further use
         response_ctx.extra["agent_output"] = True  # mark as output response
@@ -426,12 +494,8 @@ class Runner:
             self.window.core.agents.tools.append_tool_outputs(response_ctx)
         else:
             self.window.core.agents.tools.extract_tool_outputs(response_ctx)
-        self.end_stream(response_ctx, signals)
 
-        # send response
-        self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)
-        self.set_idle(signals)
-        return True
+        return response_ctx
 
     def run_steps(
             self,
@@ -1141,11 +1205,11 @@ class Runner:
             with_tool_outputs: bool = False
     ) -> CtxItem:
         """
-        Add context item
+        Prepare response context item
 
         :param from_ctx: CtxItem (parent, source)
         :param with_tool_outputs: True if tool outputs should be copied
-        :return: CtxItem
+        :return: CtxItem with copied data from parent context item
         """
         ctx = CtxItem()
         ctx.meta = from_ctx.meta
@@ -1166,6 +1230,28 @@ class Runner:
             ctx.results = copy.deepcopy(from_ctx.results)
             if "tool_output" in from_ctx.extra:
                 ctx.extra["tool_output"] = copy.deepcopy(from_ctx.extra["tool_output"])
+        return ctx
+
+    def add_next_ctx(
+            self,
+            from_ctx: CtxItem,
+    ) -> CtxItem:
+        """
+        Prepare next context item (used for new context in the cycle)
+
+        :param from_ctx: CtxItem (parent, source)
+        :return: CtxItem with copied data from parent context item
+        """
+        ctx = CtxItem()
+        ctx.meta = from_ctx.meta
+        ctx.mode = from_ctx.mode
+        ctx.model = from_ctx.model
+        ctx.prev_ctx = from_ctx
+        # ctx.images = from_ctx.images  # copy from parent if appended from plugins
+        # ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
+        # ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins
+        # ctx.files = from_ctx.files  # copy from parent if appended from plugins
+        ctx.extra = from_ctx.extra.copy()  # copy extra data
         return ctx
 
     def send_stream(

@@ -61,7 +61,7 @@ class BaseAgent:
             ctx: CtxItem = None,
             stream: bool = False,
             bridge = None,
-    ) -> Tuple[str, str]:
+    ) -> Tuple[CtxItem, str, str]:
         """
         Run agent (async)
 
@@ -72,7 +72,7 @@ class BaseAgent:
         :param ctx: Context item
         :param stream: Whether to stream output
         :param bridge: Connection context for agent operations
-        :return: Final output and response ID
+        :return: Current ctx, final output, last response ID
         """
         pass
 

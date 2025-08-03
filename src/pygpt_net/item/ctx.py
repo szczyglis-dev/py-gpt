@@ -89,6 +89,7 @@ class CtxItem:
         self.bag = None
         self.live_output = ""
         self.force_call = False  # force call even if command is not present
+        self.partial = False  # not final output, used in cycle next ctx, force wait for final output, do not eval, etc
 
 
     @property
