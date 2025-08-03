@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 OPENAI_DISABLE_TOOLS = [
@@ -17,6 +17,7 @@ OPENAI_DISABLE_TOOLS = [
 ]
 OPENAI_REMOTE_TOOL_DISABLE_IMAGE = [
     "gpt-3.5-turbo",
+    "o4-mini",
     "o4-mini-deep-research",
     "o3-deep-research",
     "codex-mini-latest",
@@ -31,6 +32,7 @@ OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH = [
 ]
 OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE = [
     "gpt-3.5-turbo",
+    "o4-mini",
     "o4-mini-deep-research",
     "o3-deep-research",
     "codex-mini-latest",
