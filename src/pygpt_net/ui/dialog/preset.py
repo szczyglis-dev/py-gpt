@@ -183,7 +183,6 @@ class Preset(BaseConfigDialog):
 
         # agents - llama index
         agent_keys = [
-            "agent_provider",
             "idx",
             "assistant_id",
         ]
@@ -234,6 +233,7 @@ class Preset(BaseConfigDialog):
             "user_name",
             "model",
             "temperature",
+            "agent_provider",
             "agent_provider_openai",
             "remote_tools",
         ]

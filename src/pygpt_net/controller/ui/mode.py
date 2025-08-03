@@ -97,6 +97,7 @@ class Mode:
         if mode == MODE_AGENT:
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.nodes['preset.editor.experts'].setVisible(True)
@@ -108,6 +109,7 @@ class Mode:
         elif mode == MODE_AGENT_LLAMA:
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(True)
+            self.window.ui.nodes['preset.editor.agent_provider'].setVisible(True)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.nodes['preset.editor.experts'].setVisible(False)
@@ -119,6 +121,7 @@ class Mode:
         elif mode == MODE_AGENT_OPENAI:
             self.window.ui.nodes['preset.editor.temperature'].setVisible(False)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(False)
             self.window.ui.nodes['preset.editor.experts'].setVisible(True)
@@ -130,6 +133,7 @@ class Mode:
         else:
             self.window.ui.nodes['preset.editor.temperature'].setVisible(True)
             self.window.ui.nodes['preset.editor.agent_llama'].setVisible(False)
+            self.window.ui.nodes['preset.editor.agent_provider'].setVisible(False)
             self.window.ui.nodes['preset.editor.functions'].setVisible(False)
             self.window.ui.nodes['preset.editor.modes'].setVisible(True)
             self.window.ui.nodes['preset.editor.experts'].setVisible(False)
