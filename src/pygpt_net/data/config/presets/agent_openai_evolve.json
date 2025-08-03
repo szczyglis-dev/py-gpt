@@ -1,0 +1,62 @@
+{
+    "uuid": "bfc1005f-7c86-488f-ad74-024724b4a50e",
+    "name": "Evolve",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_evolve",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "agent_provider_openai": "openai_agent_evolve",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_evolve": {
+            "base": {
+                "num_parents": 2,
+                "max_generations": 10,
+                "prompt": "You generate a response based on the user's input. If there is any feedback provided, use it to improve the response.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "chooser": {
+                "model": "gpt-4o",
+                "prompt": "I will give you a list of different answers to the given question. From the provided list, choose the best and most accurate answer and return the number of that answer to me, without any explanation, just the number of the answer.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "feedback": {
+                "model": "gpt-4o",
+                "prompt": "You evaluate a result and decide if it's good enough. If it's not good enough, you provide feedback on what needs to be improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the result is good enough - do not go for perfection.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.5.85",
+        "app.version": "2.5.85",
+        "updated_at": "2025-08-04T00:19:53"
+    }
+}

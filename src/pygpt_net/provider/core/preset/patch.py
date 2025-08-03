@@ -36,6 +36,7 @@ class Patch:
         is_agent_openai = False
         is_computer = False
         is_bot = False
+        is_evolve = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -198,7 +199,7 @@ class Patch:
 
                 # < 2.5.82
                 if old < parse_version("2.5.82"):
-                    if 'bot_research' not in self.window.core.presets.items and not is_bot:
+                    if 'agent_openai_researcher' not in self.window.core.presets.items and not is_bot:
                         print("Migrating preset file from < 2.5.82...")
                         files = [
                             'agent_openai_coder.json',
@@ -214,6 +215,22 @@ class Patch:
                             print("Patched file: {}.".format(dst))
                         updated = True
                         is_bot = True  # prevent multiple copies
+
+                # < 2.5.86
+                if old < parse_version("2.5.86"):
+                    if 'agent_openai_evolve' not in self.window.core.presets.items and not is_evolve:
+                        print("Migrating preset file from < 2.5.86...")
+                        files = [
+                            'agent_openai_evolve.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+                        updated = True
+                        is_evolve = True  # prevent multiple copies
 
             # update file
             if updated:
