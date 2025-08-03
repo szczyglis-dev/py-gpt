@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.30 16:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 import os
@@ -14,14 +14,16 @@ import os
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 
-class Importer:
+class Importer(QObject):
     def __init__(self, window=None):
         """
         Importer core
 
         :param window: Window instance
         """
+        super(Importer, self).__init__()
         self.window = window
+        self.worker = None
 
     @Slot(str, object)
     def handle_error(self, mode: str, err: any):
@@ -92,27 +94,27 @@ class Importer:
 
     def import_assistants(self):
         """Import assistants"""
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "assistants"
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "assistants"
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def import_vector_stores(self):
         """Import vector stores"""
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "vector_stores"
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "vector_stores"
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def truncate_vector_stores(self):
         """Truncate vector stores"""
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "truncate_vector_stores"
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "truncate_vector_stores"
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def truncate_files(self, store_id: str = None):
         """
@@ -120,12 +122,12 @@ class Importer:
 
         :param store_id: store ID
         """
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "truncate_files"
-        worker.store_id = store_id
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "truncate_files"
+        self.worker.store_id = store_id
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def upload_files(self, store_id: str, files: list = None):
         """
@@ -134,21 +136,23 @@ class Importer:
         :param store_id: store ID
         :param files: files
         """
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "upload_files"
-        worker.store_id = store_id
-        worker.files = files
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        print("Uploading files: {}".format(files))
+        print("Store ID: {}".format(store_id))
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "upload_files"
+        self.worker.store_id = store_id
+        self.worker.files = files
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def refresh_vector_stores(self):
         """Refresh vector stores"""
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "refresh_vector_stores"
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "refresh_vector_stores"
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def import_files(self, store_id: str = None):
         """
@@ -156,12 +160,12 @@ class Importer:
 
         :param store_id: store ID
         """
-        worker = ImportWorker()
-        worker.window = self.window
-        worker.mode = "import_files"
-        worker.store_id = store_id
-        self.connect_signals(worker)
-        self.window.threadpool.start(worker)
+        self.worker = ImportWorker()
+        self.worker.window = self.window
+        self.worker.mode = "import_files"
+        self.worker.store_id = store_id
+        self.connect_signals(self.worker)
+        self.window.threadpool.start(self.worker)
 
     def connect_signals(self, worker):
         """
@@ -183,10 +187,11 @@ class ImportWorkerSignals(QObject):
     log = Signal(str, str)  # mode, message
 
 
-class ImportWorker(QRunnable):
+class ImportWorker(QObject, QRunnable):
     """Import worker"""
     def __init__(self, *args, **kwargs):
-        super(ImportWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = ImportWorkerSignals()
         self.window = None
         self.mode = "assistants"
@@ -370,7 +375,10 @@ class ImportWorker(QRunnable):
                             self.signals.status.emit("upload_files", msg)
                             self.log(msg)
                             num = num + 1
+                    else:
+                        print("Failed to upload file: {}".format(os.path.basename(file)))
                 except Exception as e:
+                    print(e)
                     self.window.core.debug.log(e)
                     self.signals.status.emit("upload_files", "Failed to upload file: {}".format(os.path.basename(file)))
             if not silent:

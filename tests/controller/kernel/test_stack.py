@@ -10,7 +10,7 @@
 # ================================================== #
 import pytest
 from unittest.mock import MagicMock
-from PySide6.QtWidgets import QApplication
+from qasync import QApplication
 
 from pygpt_net.controller.kernel.stack import Stack
 from pygpt_net.core.ctx.reply import ReplyContext

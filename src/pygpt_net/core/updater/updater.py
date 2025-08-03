@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -466,9 +466,10 @@ class UpdaterSignals(QObject):
     version_changed = Signal(str, str, str, str, str)
 
 
-class UpdaterWorker(QRunnable):
+class UpdaterWorker(QObject, QRunnable):
     def __init__(self, *args, **kwargs):
-        super(UpdaterWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = UpdaterSignals()
         self.args = args
         self.kwargs = kwargs

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.20 21:00:00                  #
+# Updated Date: 2025.08.03 14:00:00                  #
 # ================================================== #
 
 from openai import AssistantEventHandler
@@ -18,7 +18,7 @@ from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
-class AssistantsWorker:
+class AssistantsWorker(QObject):
     CHUNK_TYPE_MSG = 1  # last chunk = message
     CHUNK_TYPE_TOOL = 0  # last chunk = tool
 
@@ -28,6 +28,7 @@ class AssistantsWorker:
 
         :param window: Window instance
         """
+        super().__init__()
         self.window = window
         self.tool_output = ""
         self.last_chunk_type = self.CHUNK_TYPE_MSG  # msg or tool
@@ -523,10 +524,11 @@ class WorkerSignals(QObject):
     stream_run_step_done = Signal(object, object, int)  # ctx, run_step, step idx
 
 
-class Worker(QRunnable):
+class Worker(QObject, QRunnable):
     """Assistants worker"""
     def __init__(self, *args, **kwargs):
-        super(Worker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = WorkerSignals()
         self.window = None
         self.mode = None
