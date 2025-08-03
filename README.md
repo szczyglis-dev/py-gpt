@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.85** | build: **2025-08-02** | Python: **>=3.10, <3.14**
+Release: **2.5.86** | build: **2025-08-04** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4242,6 +4242,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.86 (2025-08-04)**
+
+- Optimized CPU and memory usage.
+- OpenAI vector stores tool added to Tools menu.
+- Fixed multi-threading when uploading to remote vector store.
+- Fixed Urls open in Snap.
 
 **2.5.85 (2025-08-02)**
 
