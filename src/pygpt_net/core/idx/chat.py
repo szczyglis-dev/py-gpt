@@ -258,7 +258,7 @@ class Chat:
         # retrieve additional context from index if tools enabled
         additional_ctx = None
         if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
-            if use_index and cmd_enabled:
+            if use_index and cmd_enabled and not ctx.internal:
                 response = self.query_retrieval(
                     query=query,
                     idx=idx,
