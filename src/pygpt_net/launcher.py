@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.13 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -15,6 +15,7 @@ from qasync import QEventLoop
 import os
 import sys
 import argparse
+import signal
 from logging import ERROR, WARNING, INFO, DEBUG
 
 from PySide6 import QtCore
@@ -123,6 +124,20 @@ class Launcher:
         asyncio.set_event_loop(self.loop)
         self.window = MainWindow(self.app, args=args)
         self.shortcut_filter = GlobalShortcutFilter(self.window)
+
+    def handle_signal(self, signal_number, frame):
+        """
+        Handle termination signal (SIGTERM, SIGINT)
+        This method is called when the application receives a termination signal.
+
+        :param signal_number: int, signal number (SIGTERM, SIGINT)
+        :param frame: current stack frame (not used)
+        """
+        print(f"[SIG] Received signal: {signal_number}")
+        if self.window:
+            print("Shutting down...")
+            self.window.close()
+
 
     def add_plugin(self, plugin: BasePlugin):
         """
@@ -274,6 +289,9 @@ class Launcher:
         self.window.controller.after_setup()
         self.window.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
         self.window.setup_global_shortcuts()
+        self.window.core.debug.mem("INIT")  # debug memory usage
+        signal.signal(signal.SIGTERM, self.handle_signal)
+        signal.signal(signal.SIGINT, self.handle_signal)
         with self.loop:
             self.loop.run_forever()
         #sys.exit(self.app.exec())

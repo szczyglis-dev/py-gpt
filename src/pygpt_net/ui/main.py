@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -271,7 +271,17 @@ class MainWindow(QMainWindow, QtStyleTools):
             event.ignore()
             self.hide()
             return
+        self.shutdown()
+        event.accept()
 
+    def shutdown(self):
+        """
+        Shutdown the application gracefully
+        This method is called when the application is closing.
+        """
+        if self.is_closing:
+            print("Application is already closing.")
+            return
         self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to all...")
@@ -301,7 +311,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Exiting...")
         print("")
         print("Have a nice day! :)")
-        event.accept()
 
     def changeEvent(self, event):
         """

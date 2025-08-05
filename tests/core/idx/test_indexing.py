@@ -41,9 +41,12 @@ def test_get_documents(mock_window):
     docs = [doc]
     reader = MagicMock()
     reader.load_data = MagicMock(return_value=docs)
+
+    loader = MagicMock()
+    loader.get = MagicMock(return_value=reader)
     loaders = {
         "file": {
-            "pdf": reader,
+            "pdf": loader,
         }
     }
     idx.loaders = loaders
