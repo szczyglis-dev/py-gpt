@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.87** | build: **2025-08-05** | Python: **>=3.10, <3.14**
+Release: **2.5.88** | build: **2025-08-06** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4242,6 +4242,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.88 (2025-08-06)**
+
+- Optimized the process of unloading tabs from memory.
+- Reduced initial RAM usage on launch.
+- Added a handler for the SIGTERM signal.
 
 **2.5.87 (2025-08-05)**
 

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.88 (2025-08-06)
+
+- Optimized the process of unloading tabs from memory.
+- Reduced initial RAM usage on launch.
+- Added a handler for the SIGTERM signal.
+
 ## 2.5.87 (2025-08-05)
 
 - Optimized memory cleanup.
