@@ -183,7 +183,6 @@ def test_handle_input(kernel, fake_window):
     kernel.halt = False
     kernel.handle(event)
     assert event.data.get("response") == "input_sent"
-    assert any(KernelEvent.INPUT_USER in s for s in kernel.last_stack)
 
 def test_handle_queue_request(kernel, fake_window, monkeypatch):
     ctx = DummyContext()
@@ -336,13 +335,6 @@ def test_resume_and_stopped(kernel):
     kernel.resume()
     assert kernel.halt is False
     assert kernel.stopped() is False
-
-def test_store(kernel):
-    initial = len(kernel.last_stack)
-    event = DummyEvent("test_event")
-    kernel.store(event)
-    assert len(kernel.last_stack) == initial + 1
-    assert "test_event" in kernel.last_stack[-1]
 
 def test_async_allowed(kernel, fake_window):
     ctx = DummyContext(agent_call=False)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 import base64
@@ -368,14 +368,13 @@ class Responses:
                                                 messages = [msg]  # replace messages with tool output
                                                 break
 
-                # --- previous message ID ---
-                if (item.msg_id
-                        and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
-
-                    if is_expert_call:
-                        self.prev_internal_response_id = item.msg_id
-                    else:
-                        self.prev_response_id = item.msg_id  # previous response ID to use in current input
+                    # --- previous message ID ---
+                    if (item.msg_id and is_last_item
+                            and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
+                        if is_expert_call:
+                            self.prev_internal_response_id = item.msg_id
+                        else:
+                            self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output

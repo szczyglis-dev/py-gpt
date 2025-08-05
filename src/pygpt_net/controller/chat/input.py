@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 import os
@@ -56,6 +56,8 @@ class Input:
 
         :param force: force send
         """
+        # self.window.core.debug.mem("BEGIN")  # debug memory usage
+
         self.window.controller.agent.experts.unlock()  # unlock experts
         self.window.controller.agent.llama.reset_eval_step()  # reset evaluation steps
         self.window.controller.ui.tabs.switch_to_first_chat()  # switch to first active chat tab

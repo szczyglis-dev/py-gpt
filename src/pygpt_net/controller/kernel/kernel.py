@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -368,6 +368,7 @@ class Kernel(QObject):
 
         :param event: event
         """
+        return
         # last 30 events
         if len(self.last_stack) > 10:
             self.last_stack.pop(0)

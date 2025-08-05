@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 import os
@@ -88,7 +88,10 @@ class Parser:
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
             self.highlight_code_blocks(soup)  # parse code blocks
             self.format_images(soup)  # add width to img tags
-            return str(soup)
+            result = str(soup)
+            soup.clear(decompose=True)  # clear soup to free memory
+            del soup  # delete soup instance
+            return result
         except Exception as e:
             pass
         return text

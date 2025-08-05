@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRunnable, Slot, QObject, Signal
@@ -23,6 +23,13 @@ class Worker(QObject, QRunnable):
     @Slot()
     def run(self):
         self.fn(*self.args, **self.kwargs)
+        self.cleanup()
+
+    def cleanup(self):
+        self.fn = None
+        self.args = None
+        self.kwargs = None
+        self.deleteLater()
 
 
 class WorkerSignals(QObject):

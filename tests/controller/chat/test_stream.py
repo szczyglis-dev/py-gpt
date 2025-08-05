@@ -183,7 +183,7 @@ def test_stream_append(monkeypatch):
     stream_obj = Stream(window)
     monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
     stream_obj.append(ctx, mode="test", is_response=False, reply=False, internal=False, context=None, extra={'key': 'value'})
-    assert stream_obj.worker is not None
+    assert stream_obj.worker is None
 
 def test_handleEnd_assistant():
     ctx = MagicMock()

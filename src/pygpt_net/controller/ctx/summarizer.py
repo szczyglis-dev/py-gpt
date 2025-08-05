@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 16:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -62,6 +62,7 @@ class Summarizer:
         title = window.core.gpt.summarizer.summary_ctx(ctx)
         if title:
             updated_signal.emit(id, ctx, title)
+            updated_signal.disconnect()
 
     def start_worker(
             self,
@@ -107,4 +108,5 @@ class Summarizer:
             refresh=refresh,
         )
         self.window.controller.chat.common.focus_input()  # restore focus
+        self.worker = None
 

@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.24 01:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
-
+import gc
 import os
 import sys
 import threading
@@ -18,6 +18,8 @@ import logging
 
 from pathlib import Path
 from typing import Any, Tuple
+
+import psutil
 
 from pygpt_net.config import Config
 from pygpt_net.core.types.console import Color
@@ -329,6 +331,49 @@ class Debug:
         :param v: value
         """
         self.window.controller.dialogs.debug.add(id, k, v)
+
+    def print_memory_usage(self, label=""):
+        """
+        Print memory usage of the current process
+
+        :param label: label for memory usage
+        """
+        process = psutil.Process(os.getpid())
+        mem_mb = process.memory_info().rss / (1024 * 1024)
+        print(f"{label} Memory Usage: {mem_mb:.2f} MB")
+
+    def mem(self, label: str = ""):
+        """
+        Print memory usage and collect garbage
+
+        :param label: label for memory usage
+        """
+        print("------------------------------------")
+        print(f"{Color.BOLD}{label} Memory Usage{Color.ENDC}")
+        print("------------------------------------")
+
+        self.print_memory_usage(label)
+
+        from pympler import asizeof  # pip install pympler
+
+        total_bytes = asizeof.asizeof(self.window.controller.chat.render.web_renderer.pids)
+        total_mb = total_bytes / (1024 * 1024)
+        print(f"PIDS: {total_mb:.4f} MB")
+
+        total_bytes = asizeof.asizeof(self.window.core.ctx.meta)
+        total_mb = total_bytes / (1024 * 1024)
+        print(f"CTX META: {total_mb:.4f} MB")
+
+        total_bytes = asizeof.asizeof(self.window.core.ctx.get_items())
+        total_mb = total_bytes / (1024 * 1024)
+        print(f"CTX ITEMS: {total_mb:.4f} MB")
+
+        unreachable_objects = gc.collect()
+        print(f"[GC] Unreachable: {unreachable_objects}")
+        """
+        all_objects = gc.get_objects()
+        print(f"[GC] Tracked: {len(all_objects)}")
+        """
 
     def pause(self, *args):
         """

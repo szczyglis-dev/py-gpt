@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.21 19:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
+import gc
 from typing import Any, Optional
 
 from pygpt_net.core.bridge import BridgeContext
@@ -292,6 +293,9 @@ class Output:
             self.window.controller.kernel.stack.handle()  # handle reply
             event = RenderEvent(RenderEvent.RELOAD)
             self.window.dispatch(event)  # reload chat window
+
+        # self.window.core.debug.mem("END")  # debug memory usage
+        gc.collect()
 
     def log(self, data: Any):
         """

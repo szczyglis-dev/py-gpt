@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 import time
@@ -129,16 +129,16 @@ class Bridge:
                 self.window.core.debug.debug(str(debug))
 
         self.apply_rate_limit()  # apply RPM limit
-        self.last_context = context  # store last context for call (debug)
+        # self.last_context = context  # store last context for call (debug)
 
         if extra is None:
             extra = {}
 
         # async worker
-        self.worker = self.get_worker()
-        self.worker.context = context
-        self.worker.extra = extra
-        self.worker.mode = mode
+        worker = self.get_worker()
+        worker.context = context
+        worker.extra = extra
+        worker.mode = mode
 
         # some modes must be called synchronously
         if mode in self.sync_modes or force_sync:
@@ -148,7 +148,7 @@ class Bridge:
 
         # async call
         self.window.core.debug.info("[bridge] Starting worker (async)...")
-        self.window.threadpool.start(self.worker)
+        self.window.threadpool.start(worker)
         return True
 
     def request_next(
@@ -169,13 +169,13 @@ class Bridge:
             extra = {}
 
         # async worker
-        self.worker = self.get_worker()
-        self.worker.context = context
-        self.worker.extra = extra
-        self.worker.mode = "loop_next"
+        worker = self.get_worker()
+        worker.context = context
+        worker.extra = extra
+        worker.mode = "loop_next"
 
         # async call
-        self.window.threadpool.start(self.worker)
+        self.window.threadpool.start(worker)
         return True
 
     def call(
@@ -200,7 +200,7 @@ class Bridge:
                 self.window.core.debug.debug(str(debug))
 
         # --- DEBUG ONLY ---
-        self.last_context_quick = context  # store last context for quick call (debug)
+        # self.last_context_quick = context  # store last context for quick call (debug)
 
         if context.model is not None:
             # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call

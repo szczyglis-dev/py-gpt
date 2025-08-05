@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -82,6 +82,7 @@ class BridgeWorker(QObject, QRunnable):
                     signals=self.signals,
                 )
                 if result:
+                    self.cleanup()
                     return  # don't emit any signals (handled in agent runner, step by step)
                 else:
                     self.extra["error"] = str(self.window.core.agents.runner.get_error())
@@ -112,6 +113,7 @@ class BridgeWorker(QObject, QRunnable):
                     'extra': self.extra,
                 })
                 self.signals.response.emit(event)
+                self.cleanup()
                 return
 
         # send response to main thread
@@ -122,6 +124,22 @@ class BridgeWorker(QObject, QRunnable):
                 'extra': self.extra,
             })
             self.signals.response.emit(event)
+
+        self.cleanup()
+
+    def cleanup(self):
+        try:
+            if self.signals:
+                self.signals.response.disconnect()
+        except Exception:
+            pass
+
+        self.window = None
+        self.context = None
+        self.extra = None
+        self.args = None
+        self.kwargs = None
+        self.deleteLater()
 
     def handle_post_prompt_async(self):
         """Handle post prompt async event"""

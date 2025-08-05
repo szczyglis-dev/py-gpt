@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.05 00:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -61,6 +61,7 @@ class Gpt:
         self.summarizer = Summarizer(window)
         self.tools = Tools(window)
         self.vision = Vision(window)
+        self.client = None
 
     def get_client(
             self,
@@ -75,8 +76,12 @@ class Gpt:
         :return: OpenAI client
         """
         # update client args by mode and model
+        if self.client:
+            self.client.close()
+            self.client = None
         args = self.window.core.models.prepare_client_args(mode, model)
-        return OpenAI(**args)
+        self.client = OpenAI(**args)
+        return self.client
 
     def call(self, context: BridgeContext, extra: dict = None) -> bool:
         """
