@@ -289,9 +289,9 @@ class Launcher:
         self.window.controller.after_setup()
         self.window.dispatch(AppEvent(AppEvent.APP_STARTED))  # app event
         self.window.setup_global_shortcuts()
-        self.window.core.debug.mem("INIT")  # debug memory usage
+        # self.window.core.debug.mem("INIT")  # debug memory usage
         signal.signal(signal.SIGTERM, self.handle_signal)
         signal.signal(signal.SIGINT, self.handle_signal)
         with self.loop:
             self.loop.run_forever()
-        #sys.exit(self.app.exec())
+        # sys.exit(self.app.exec())

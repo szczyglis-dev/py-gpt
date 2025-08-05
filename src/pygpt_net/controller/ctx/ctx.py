@@ -314,7 +314,7 @@ class Ctx:
         # switch to new context if non-chat tab
         self.select(meta.id)
 
-        self.window.core.debug.mem("NEW")  # debug memory usage
+        # self.window.core.debug.mem("NEW")  # debug memory usage
         return meta
 
     def add(self, ctx: CtxItem):
