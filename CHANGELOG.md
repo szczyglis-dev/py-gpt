@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.87 (2025-08-05)
+
+- Optimized memory cleanup.
+
 ## 2.5.86 (2025-08-04)
 
 - Optimized CPU and memory usage.
