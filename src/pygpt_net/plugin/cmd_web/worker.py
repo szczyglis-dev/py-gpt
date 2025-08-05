@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.15 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import json
@@ -293,7 +293,7 @@ class Worker(BaseWorker):
         url = ""
         if self.has_param(item, "url"):
             url = self.get_param(item, "url")  # from default param
-        if "url" in args:
+        if isinstance(args, dict) and "url" in args:
             url = args["url"]  # override from args
 
         if not url:
