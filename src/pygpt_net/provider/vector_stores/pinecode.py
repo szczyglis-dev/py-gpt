@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import datetime
 import os.path
 from typing import Optional
-
-from pinecone import Pinecone, ServerlessSpec
 
 from llama_index.core import StorageContext
 from llama_index.core.indices.base import BaseIndex
@@ -42,6 +40,7 @@ class PinecodeProvider(BaseStore):
 
         :param id: index name
         """
+        from pinecone import ServerlessSpec
         # spec kwargs
         spec_kwargs = {
             "cloud": "aws",
@@ -86,12 +85,13 @@ class PinecodeProvider(BaseStore):
             os.makedirs(path)
             self.store(id)
 
-    def get_client(self) -> Pinecone:
+    def get_client(self):
         """
         Get Pinecone client
 
         :return: Pinecone client
         """
+        from pinecone import Pinecone, ServerlessSpec
         base_kwargs = {
             "api_key": "",
         }

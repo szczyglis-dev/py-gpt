@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 from typing import List, Dict
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
 )
-from llama_index.llms.deepseek import DeepSeek
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.provider.llms.base import BaseLLM
@@ -41,6 +40,7 @@ class DeepseekApiLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
+        from llama_index.llms.deepseek import DeepSeek
         args = self.parse_args(model.llama_index, window)
         return DeepSeek(**args)
 

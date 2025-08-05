@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 02:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import time
-
-import numpy as np
 import wave
 
 from PySide6.QtMultimedia import QAudioFormat, QMediaDevices, QAudioSource
@@ -206,6 +204,8 @@ class Capture:
 
     def process_audio_input(self):
         """Process incoming audio data"""
+        import numpy as np
+
         # add seconds to stop timer
         data = self.audio_io_device.readAll()
         if data.isEmpty():
@@ -298,6 +298,7 @@ class Capture:
 
         :param sample_format: QAudioFormat.SampleFormat
         """
+        import numpy as np
         if sample_format == QAudioFormat.SampleFormat.UInt8:
             return np.uint8
         elif sample_format == QAudioFormat.SampleFormat.Int16:

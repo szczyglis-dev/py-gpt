@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import json
@@ -18,10 +18,8 @@ from typing import Optional, List, Dict
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI as LlamaOpenAI
-from llama_index.llms.openai import OpenAIResponses as LlamaOpenAIResponses
+
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal as LlamaOpenAIMultiModal
-from llama_index.embeddings.openai import OpenAIEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -92,6 +90,8 @@ class OpenAILLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
+        from llama_index.llms.openai import OpenAI as LlamaOpenAI
+        from llama_index.llms.openai import OpenAIResponses as LlamaOpenAIResponses
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -142,6 +142,7 @@ class OpenAILLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
+        from llama_index.embeddings.openai import OpenAIEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({

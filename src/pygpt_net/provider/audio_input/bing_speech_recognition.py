@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
-
-import speech_recognition as sr
 
 from .base import BaseProvider
 from pygpt_net.utils import parse_args
@@ -62,6 +60,7 @@ class BingSpeechRecognition(BaseProvider):
         :param path: path to audio file to transcribe
         :return: transcribed text
         """
+        import speech_recognition as sr
         args = {}
         additional_args = parse_args(self.plugin.get_option_value('bing_args'))
         if additional_args:

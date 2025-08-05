@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 from typing import List, Dict
 
-from llama_index.llms.anthropic import Anthropic
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
@@ -48,6 +47,7 @@ class AnthropicLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
+        from llama_index.llms.anthropic import Anthropic
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -64,9 +64,9 @@ class AnthropicLLM(BaseLLM):
         :return: list of models
         """
         items = []
-        import anthropic
+        from llama_index.llms.anthropic import Anthropic
         api_key = window.core.config.get('api_key_anthropic', "")
-        client = anthropic.Anthropic(api_key=api_key)
+        client = Anthropic(api_key=api_key)
         models_list = client.models.list()
         if models_list.data:
             for item in models_list.data:

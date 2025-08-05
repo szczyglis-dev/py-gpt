@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,7 +15,6 @@ from typing import Optional
 
 from llama_index.core import StorageContext
 from llama_index.core.indices.base import BaseIndex
-from llama_index.vector_stores.redis import RedisVectorStore
 
 from pygpt_net.utils import parse_args
 from .base import BaseStore
@@ -46,13 +45,14 @@ class RedisProvider(BaseStore):
             os.makedirs(path)
             self.store(id)
 
-    def get_store(self, id: str) -> RedisVectorStore:
+    def get_store(self, id: str):
         """
         Get Redis vector store
 
         :param id: index name
         :return: RedisVectorStore instance
         """
+        from llama_index.vector_stores.redis import RedisVectorStore
         defaults = {
             "index_name": id,
         }

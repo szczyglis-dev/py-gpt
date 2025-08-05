@@ -6,17 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 00:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
-import os
 from typing import Optional, Any
-
-import docker
+import os
 import io
 import tarfile
-
-from docker.errors import DockerException
 
 class Docker:
     def __init__(self, plugin = None):
@@ -73,11 +69,12 @@ class Docker:
 
         :return: True if the image exists.
         """
+        import docker.errors as errors
         client = self.get_docker_client()
         try:
             client.images.get(self.get_image_name())
             return True
-        except docker.errors.ImageNotFound as e:
+        except errors.ImageNotFound as e:
             print(e)
             return False
 
@@ -104,12 +101,13 @@ class Docker:
         except FileExistsError:
             pass
 
-    def get_docker_client(self) -> docker.DockerClient:
+    def get_docker_client(self):
         """
         Get the Docker client.
 
         :return: Docker client.
         """
+        import docker
         return docker.from_env()
 
     def end(self, all: bool = False):
@@ -127,12 +125,13 @@ class Docker:
 
         :param name: Container name.
         """
+        import docker.errors as errors
         client = self.get_docker_client()
         try:
             container = client.containers.get(name)
             container.stop()
             container.remove()
-        except docker.errors.NotFound:
+        except errors.NotFound:
             self.log(f"Container '{name}' not found.")
 
     def create_container(self, name: str):
@@ -141,6 +140,7 @@ class Docker:
 
         :param name: Container name.
         """
+        import docker.errors as errors
         client = self.get_docker_client()
         image_name = self.get_image_name()
         entrypoint = self.get_entrypoint()
@@ -165,7 +165,7 @@ class Docker:
                     command=entrypoint,
                 )
                 container.start()
-        except docker.errors.NotFound:
+        except errors.NotFound:
             print(f"Container '{name}' not found. Creating a new one.")
             container = client.containers.create(
                 image=image_name,
@@ -186,6 +186,7 @@ class Docker:
 
         :param name: Container name.
         """
+        import docker.errors as errors
         client = self.get_docker_client()
         image_name = self.get_image_name()
         entrypoint = self.get_entrypoint()
@@ -268,7 +269,7 @@ class Docker:
                 else:
                     print(f"Container '{name}' started successfully.")
 
-        except docker.errors.NotFound:
+        except errors.NotFound:
             print(f"Container '{name}' not found. Creating a new one.")
             container = client.containers.create(
                 image=image_name,
@@ -384,6 +385,8 @@ class Docker:
 
         :return: True if installed
         """
+        import docker
+        from docker.errors import DockerException
         try:
             if self.client is None:
                 client = docker.from_env()

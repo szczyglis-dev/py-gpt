@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.30 20:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -64,9 +64,8 @@ class Indexing:
         if "file" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "file"))  # set reader arguments
             try:
-                reader = loader.get()  # get data reader instance
                 for ext in extensions:
-                    self.loaders["file"][ext] = reader  # set reader instance, by file extension
+                    self.loaders["file"][ext] = loader  # set reader instance, by file extension
             except ImportError as e:
                 msg = "Error while registering data loader: " + loader.id + " - " + str(e)
                 self.window.core.debug.log(msg)
@@ -75,8 +74,7 @@ class Indexing:
         if "web" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "web"))  # set reader arguments
             try:
-                reader = loader.get()  # get data reader instance
-                self.loaders["web"][loader.id] = reader # set reader instance, by id
+                self.loaders["web"][loader.id] = loader # set reader instance, by id
                 if loader.instructions:
                     for item in loader.instructions:
                         cmd = list(item.keys())[0]
@@ -131,7 +129,7 @@ class Indexing:
         """
         if loader in self.data_providers:
             self.data_providers[loader].set_args(args)
-            reader = self.data_providers[loader].get()  # get data reader instance
+            reader = self.data_providers[loader]  # get data reader instance
             self.loaders["web"][loader] = reader  # update reader instance
 
             # update in config
@@ -340,7 +338,7 @@ class Indexing:
             if ext in self.loaders["file"]:
                 if not silent:
                     self.window.core.idx.log("Using loader for: {}".format(ext))
-                reader = self.loaders["file"][ext]
+                reader = self.loaders["file"][ext].get()  # get data reader instance
 
                 # use custom loader method if available
                 if hasattr(reader, "load_data_custom") and loader_kwargs:
@@ -432,7 +430,7 @@ class Indexing:
             args = self.data_providers[type].prepare_args(**extra_args)
 
             # get documents from external resource
-            documents = self.loaders["web"][type].load_data(
+            documents = self.loaders["web"][type].get().load_data(
                 **args
             )
         except Exception as e:
@@ -831,7 +829,7 @@ class Indexing:
 
         try:
             # remove old content from index if already indexed
-            loader = self.loaders["web"][type]
+            loader = self.loaders["web"][type].get()
 
             # additional keyword arguments for data loader
             if extra_args is None:

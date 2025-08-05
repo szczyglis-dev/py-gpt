@@ -6,14 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import os.path
 from typing import Optional
-
-import chromadb
-from chromadb.config import Settings
 
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core import StorageContext
@@ -43,6 +40,8 @@ class ChromaProvider(BaseStore):
         :param id: index name
         :return: database instance
         """
+        import chromadb
+        from chromadb.config import Settings
         path = self.get_path(id)
         return chromadb.PersistentClient(
             path=path, 

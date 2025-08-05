@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 21:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Signal, QObject, QRunnable, Slot
@@ -37,4 +37,5 @@ class AttachmentWorker(QRunnable):
         except Exception as e:
             if self.signals is not None:
                 self.signals.error.emit(e)
+            self.window.core.debug.error(e)
             print("Attachment indexing error", e)

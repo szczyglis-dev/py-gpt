@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
 
-from .hub.yt.base import YoutubeTranscriptReader
 from .base import BaseLoader
 
 
@@ -54,6 +53,7 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
+        from .hub.yt.base import YoutubeTranscriptReader
         args = self.get_args()
         return YoutubeTranscriptReader(**args)
 

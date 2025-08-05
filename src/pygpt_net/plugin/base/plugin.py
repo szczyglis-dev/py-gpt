@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 00:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -486,7 +486,7 @@ class BasePlugin(QObject):
                     ctx.extra_ctx = ""
                 if ctx.extra_ctx != "":
                     ctx.extra_ctx += "\n\n"
-                ctx.extra_ctx += response["context"]  # allow more context data
+                ctx.extra_ctx += str(response["context"])  # allow more context data
                 response["result"] = "OK"
             else:
                 del response["context"]

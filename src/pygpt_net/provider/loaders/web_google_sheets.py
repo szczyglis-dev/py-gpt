@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import json
 
 from llama_index.core.readers.base import BaseReader
 
-from .hub.google.sheets import GoogleSheetsReader
 from .base import BaseLoader
 
 
@@ -54,6 +53,7 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
+        from .hub.google.sheets import GoogleSheetsReader
         args = self.get_args()
         return GoogleSheetsReader(**args)
 

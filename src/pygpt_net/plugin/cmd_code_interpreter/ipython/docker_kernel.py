@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
+
 import base64
 import os
 import json
@@ -18,7 +19,6 @@ import docker
 import io
 import tarfile
 
-from jupyter_client import BlockingKernelClient
 from docker.errors import DockerException
 
 class DockerKernel:
@@ -132,6 +132,7 @@ class DockerKernel:
         :param force: Force reinitialization.
         :param auto_init: Automatically initialize the kernel if not initialized after error.
         """
+        from jupyter_client import BlockingKernelClient
         if self.initialized and not force:
             return
 
@@ -463,6 +464,7 @@ class DockerKernel:
 
     def restart_kernel(self) -> bool:
         """Restart kernel"""
+        from jupyter_client import BlockingKernelClient
         if self.restarting:
             self.log("Kernel is already restarting.")
             return False

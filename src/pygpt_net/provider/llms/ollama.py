@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import os
@@ -14,11 +14,8 @@ from typing import Optional, List, Dict
 
 # from langchain_community.chat_models import ChatOllama
 
-from .ollama_custom import Ollama
-
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.embeddings.ollama import OllamaEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -86,6 +83,7 @@ class OllamaLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
+        from .ollama_custom import Ollama
         nest_asyncio.apply()
         args = self.parse_args(model.llama_index, window)
         if "request_timeout" not in args:
@@ -111,6 +109,7 @@ class OllamaLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
+        from llama_index.embeddings.ollama import OllamaEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({

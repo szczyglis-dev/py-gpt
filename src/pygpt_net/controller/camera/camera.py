@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 00:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import time
 from typing import Any
-
-import cv2
 
 from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QImage, QPixmap, Qt
@@ -160,6 +158,7 @@ class Camera(QObject):
 
         :param flip_colors: True if flip colors
         """
+        import cv2
         if self.frame is None:
             return None
         if flip_colors:
@@ -174,6 +173,7 @@ class Camera(QObject):
         :param switch: true if switch to attachments tab (tmp: disabled)
         :return: True if success
         """
+        import cv2
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
             self.window.controller.attachment.clear(True, auto=True)
@@ -231,6 +231,7 @@ class Camera(QObject):
 
         :return: Path to saved frame
         """
+        import cv2
         # capture frame
         before_enabled = self.is_enabled()
         if not self.thread_started:

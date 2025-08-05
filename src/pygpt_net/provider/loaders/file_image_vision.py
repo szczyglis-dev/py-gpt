@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
 
-from .hub.image_vision.base import ImageVisionLLMReader
 from .base import BaseLoader
 
 
@@ -46,6 +45,7 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
+        from .hub.image_vision.base import ImageVisionLLMReader
         args = self.get_args()
         args["window"] = self.window  # pass window instance
         if self.window is not None:

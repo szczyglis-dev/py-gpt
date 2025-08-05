@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 20:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
+
 import base64
 import re
 import time
-
-from jupyter_client import KernelManager
 
 class LocalKernel:
 
@@ -61,6 +60,7 @@ class LocalKernel:
 
         :param force: Force reinitialization.
         """
+        from jupyter_client import KernelManager
         if self.initialized and not force:
             return
         self.manager = KernelManager()

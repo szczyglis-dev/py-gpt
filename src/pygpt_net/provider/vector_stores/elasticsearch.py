@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.16 01:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -15,7 +15,6 @@ from typing import Optional
 
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core import StorageContext
-from llama_index.vector_stores.elasticsearch import ElasticsearchStore
 
 from pygpt_net.utils import parse_args
 from .base import BaseStore
@@ -46,13 +45,14 @@ class ElasticsearchProvider(BaseStore):
             os.makedirs(path)
             self.store(id)
 
-    def get_es_client(self, id: str) -> ElasticsearchStore:
+    def get_es_client(self, id: str):
         """
         Get Elasticsearch client
 
         :param id: index name
         :return: Elasticsearch client
         """
+        from llama_index.vector_stores.elasticsearch import ElasticsearchStore
         defaults = {
             "index_name": id,
         }

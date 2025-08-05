@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 12:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import os
-import cv2
 import time
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -59,6 +58,7 @@ class CaptureWorker(QRunnable):
     def setup_camera(self):
         """Initialize camera"""
         try:
+            import cv2
             # get params from global config
             self.capture = cv2.VideoCapture(self.window.core.config.get('vision.capture.idx'))
             if not self.capture or not self.capture.isOpened():
@@ -80,6 +80,7 @@ class CaptureWorker(QRunnable):
         fps_interval = 1.0 / target_fps
         self.allow_finish = True
         try:
+            import cv2
             if not self.initialized:
                 self.setup_camera()
                 self.signals.started.emit()

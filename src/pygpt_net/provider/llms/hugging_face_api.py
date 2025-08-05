@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.09 22:00:00                  #
+# Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
 import os
@@ -15,8 +15,6 @@ from typing import Optional, List, Dict
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
 )
-from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
-from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding as HuggingFaceAPIEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 
@@ -45,6 +43,7 @@ class HuggingFaceApiLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
+        from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
         args = self.parse_args(model.llama_index, window)
         if "model" not in args:
             args["model"] = model.id
@@ -62,6 +61,7 @@ class HuggingFaceApiLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
+        from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding as HuggingFaceAPIEmbedding
         args = {}
         if config is not None:
             args = self.parse_args({
