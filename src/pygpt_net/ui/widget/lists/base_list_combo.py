@@ -25,13 +25,11 @@ class BaseListCombo(QWidget):
         super(BaseListCombo, self).__init__(window)
         self.window = window
         self.id = id
-        self.value = None
+        self.current_id = None
         self.keys = []
-        self.title = ""
         self.real_time = False
         self.combo = NoScrollCombo()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
-        self.current_id = None
         self.initialized = False
         self.locked = False
 
@@ -47,14 +45,15 @@ class BaseListCombo(QWidget):
 
     def update(self):
         """Prepare items"""
-        if type(self.keys) is list:
+        self.combo.clear()  # Clear combo before updating with new items
+        if isinstance(self.keys, list):
             for item in self.keys:
-                if type(item) is dict:
+                if isinstance(item, dict):
                     for key, value in item.items():
                         self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item, item)
-        elif type(self.keys) is dict:
+        elif isinstance(self.keys, dict):
             for key, value in self.keys.items():
                 if key.startswith("separator::"):
                     self.combo.addSeparator(value)
@@ -108,8 +107,7 @@ class BaseListCombo(QWidget):
         """
         self.locked = True
         self.keys = keys
-        self.combo.clear()
-        self.update()
+        self.update()  # Auto-clear handled in update
         self.locked = False
 
     def on_combo_change(self, index):

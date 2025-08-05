@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -75,13 +75,35 @@ class Container:
             output_plain.setVisible(False)
             output_html.setVisible(True)
 
+        # add refs
+        tab.add_ref(output_plain)
+        tab.add_ref(output_html)
+        tab.on_delete = self.cleanup  # set cleanup handler
+
         # build layout
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid])
         layout.addWidget(self.window.ui.nodes['output'][tab.pid])
         layout.setContentsMargins(0, 0, 0, 0)
-        widget = self.window.core.tabs.from_layout(layout)
-        return widget
+        return self.window.core.tabs.from_layout(layout)
+
+    def cleanup(self, tab: Tab):
+        """
+        Clean up on delete
+
+        :param tab: Tab
+        """
+        if tab.pid in self.window.ui.nodes['output_plain']:
+            self.window.ui.nodes['output_plain'][tab.pid].on_delete()  # clean up
+            self.window.ui.nodes['output_plain'][tab.pid] = None
+            del self.window.ui.nodes['output_plain'][tab.pid]
+        if tab.pid in self.window.ui.nodes['output']:
+            self.window.ui.nodes['output'][tab.pid].on_delete()  # clean up
+            self.window.ui.nodes['output'][tab.pid] = None
+            del self.window.ui.nodes['output'][tab.pid]
+
+        self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data from renderer registry
+        self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping
 
     def get_active_pid(self) -> int:
         """

@@ -199,9 +199,10 @@ class Debug:
         try:
             # string message
             if isinstance(message, str):
-                logger.log(level, message)
-                if self.has_level(level) and console:
-                    print(message)
+                if self.has_level(level):
+                    logger.log(level, message)
+                    if console:
+                        print(message)
 
             # exception
             elif isinstance(message, Exception):
@@ -215,15 +216,16 @@ class Debug:
 
             # other messages
             else:
-                logger.log(level, message)
-                if self.has_level(level) and console:
-                    print(message)
+                if self.has_level(level):
+                    logger.log(level, message)
+                    if console:
+                        print(message)
         except Exception as e:
             pass
 
         try:
             # send to logger window
-            if self.window is not None:
+            if self.has_level(level) and self.window is not None:
                 # append thread ID
                 thread_suffix = ""
                 if not threading.current_thread() is threading.main_thread():

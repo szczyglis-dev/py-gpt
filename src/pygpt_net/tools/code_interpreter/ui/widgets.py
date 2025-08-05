@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -44,6 +44,27 @@ class ToolWidget:
         self.label_output = None  # output label
         self.label_history = None  # history label
         self.is_dialog = False
+
+    def on_delete(self):
+        """On delete"""
+        if self.tool:
+            self.tool.signals.update.disconnect(self.set_output)
+            self.tool.signals.update_history.disconnect(self.set_history)
+            self.tool.signals.clear_history.disconnect(self.clear_history)
+            self.tool.signals.clear_output.disconnect(self.clear_output)
+            self.tool.signals.begin_output.disconnect(self.begin_output)
+            self.tool.signals.end_output.disconnect(self.end_output)
+            self.tool.signals.restore_nodes.disconnect(self.restore_nodes)
+            self.tool.signals.focus_input.disconnect(self.set_focus)
+            self.tool.signals.append_input.disconnect(self.append_to_input)
+            self.tool.signals.update_input.disconnect(self.set_input)
+            self.tool.signals.set_checkbox_all.disconnect(self.set_checkbox_all)
+            self.tool.signals.set_checkbox_auto_clear.disconnect(self.set_checkbox_auto_clear)
+            self.tool.signals.set_checkbox_ipython.disconnect(self.set_checkbox_ipython)
+            self.tool.signals.toggle_all_visible.disconnect(self.toggle_all_visible)
+            self.tool.signals.reload_view.disconnect(self.reload)
+        if self.output:
+            self.output.on_delete()
 
     def on_open(self):
         """On open"""

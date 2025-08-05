@@ -114,31 +114,32 @@ class Presets:
         :param data: Data to update
         """
         mode = self.window.core.config.get('mode')
-
-        # store previous selection
         self.window.ui.nodes[self.id].backup_selection()
-        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
-        i = 0
-        for n in data:
-            self.window.ui.models[self.id].insertRow(i)
-            name = data[n].name
 
-            # show disabled in expert mode
-            if mode == MODE_EXPERT and not n.startswith("current.") and data[n].enabled:
+        new_model = self.create_model(self.window)
+        self.window.ui.models[self.id] = new_model
+        self.window.ui.nodes[self.id].setModel(new_model)
+
+        i = 0
+        for key in data:
+            new_model.insertRow(i)
+
+            name = data[key].name
+            if mode == MODE_EXPERT and not key.startswith("current.") and data[key].enabled:
                 name = "[x] " + name
             elif mode == MODE_AGENT:
-                num_experts = self.window.core.experts.count_experts(n)
+                num_experts = self.window.core.experts.count_experts(key)
                 if num_experts > 0:
-                    name = name + " (" + str(num_experts) + " experts)"
+                    name = f"{name} ({num_experts} experts)"
 
-            prompt = str(data[n].prompt)
+            prompt = str(data[key].prompt)
             if len(prompt) > 80:
-                prompt = prompt[:80] + '...'  # truncate to max 8 chars
+                prompt = prompt[:80] + '...'
             tooltip = prompt
-            index = self.window.ui.models[self.id].index(i, 0)
-            self.window.ui.models[self.id].setData(index, tooltip, QtCore.Qt.ToolTipRole)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
+
+            index = new_model.index(i, 0)
+            new_model.setData(index, tooltip, QtCore.Qt.ToolTipRole)
+            new_model.setData(index, name)
             i += 1
 
-        # restore previous selection
         self.window.ui.nodes[self.id].restore_selection()

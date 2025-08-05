@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import time
+import weakref
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
@@ -129,7 +130,7 @@ class Bridge:
                 self.window.core.debug.debug(str(debug))
 
         self.apply_rate_limit()  # apply RPM limit
-        # self.last_context = context  # store last context for call (debug)
+        self.last_context = weakref.ref(context)  # store last context for call (debug)
 
         if extra is None:
             extra = {}
@@ -200,7 +201,7 @@ class Bridge:
                 self.window.core.debug.debug(str(debug))
 
         # --- DEBUG ONLY ---
-        # self.last_context_quick = context  # store last context for quick call (debug)
+        self.last_context_quick = weakref.ref(context)  # store last context for quick call (debug)
 
         if context.model is not None:
             # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call

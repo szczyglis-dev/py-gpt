@@ -606,14 +606,11 @@ class Editor:
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
-            pass
-            '''
             self.window.core.config.set('prompt', value)
             if mode == MODE_ASSISTANT:
                 self.window.controller.assistant.from_global()  # update current assistant, never called!!!!!
             else:
                 self.window.controller.presets.from_global()  # update current preset
-            '''
 
         # show/hide extra options
         elif key == "agent_provider_openai":

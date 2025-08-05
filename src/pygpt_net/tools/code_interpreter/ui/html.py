@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 02:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import json
@@ -111,6 +111,33 @@ class HtmlOutput(QWebEngineView):
         self.is_dialog = False
         self.nodes = []  # code blocks
 
+    def on_delete(self):
+        """Clean up on delete"""
+        if self.finder:
+            self.finder.disconnect()  # disconnect finder
+            self.finder = None  # delete finder
+
+        self.tab = None  # clear tab reference
+
+        # delete page
+        page = self.page()
+        if page:
+            if hasattr(page, 'bridge'):
+                page.bridge.deleteLater()
+            if hasattr(page, 'channel'):
+                page.channel.deleteLater()
+            if hasattr(page, 'signals') and page.signals:
+                page.signals.deleteLater()
+            page.deleteLater()  # delete page
+
+        # disconnect signals
+        self.loadFinished.disconnect(self.on_page_loaded)
+        self.customContextMenuRequested.disconnect(self.on_context_menu)
+        self.signals.save_as.disconnect(self.window.controller.chat.render.handle_save_as)
+        self.signals.audio_read.disconnect(self.window.controller.chat.render.handle_audio_read)
+
+        self.deleteLater()  # delete widget
+
     def init(self, force: bool = False):
         """
         Initialize HTML output
@@ -127,6 +154,8 @@ class HtmlOutput(QWebEngineView):
     def reload_css(self):
         """Reload CSS - all, global"""
         to_json = json.dumps(self.body.prepare_styles())
+        if not self.page():
+            return
         self.page().runJavaScript(
             "if (typeof window.updateCSS !== 'undefined') updateCSS({});".format(to_json))
         if self.window.core.config.get('render.blocks'):
@@ -224,6 +253,8 @@ class HtmlOutput(QWebEngineView):
         """
         self.init()
         self.nodes = []
+        if not self.page():
+            return
         self.page().runJavaScript(
             f"clearOutput();")
         self.insert_nodes(nodes)
@@ -244,6 +275,8 @@ class HtmlOutput(QWebEngineView):
 
     def scroll_to_bottom(self):
         """Scroll to bottom of the output"""
+        if not self.page():
+            return
         self.page().runJavaScript(
             f"scrollToBottom();")
 
@@ -253,6 +286,8 @@ class HtmlOutput(QWebEngineView):
 
         :param node: CodeBlock instance
         """
+        if not self.page():
+            return
         escaped_chunk = json.dumps(node.content)
         self.page().runJavaScript(
             f"insertOutput({escaped_chunk}, '{node.type}');")
@@ -272,6 +307,8 @@ class HtmlOutput(QWebEngineView):
         """
         self.init()
         self.nodes.append(CodeBlock("", type))
+        if not self.page():
+            return
         self.page().runJavaScript(
             f"beginOutput('{type}');")
 
@@ -294,6 +331,8 @@ class HtmlOutput(QWebEngineView):
             if self.nodes and isinstance(self.nodes[-1], CodeBlock):
                 self.nodes[-1].files.extend(ctx.files)
 
+        if not self.page():
+            return
         self.page().runJavaScript(
             f"endOutput('{type}');")
 
@@ -322,6 +361,8 @@ class HtmlOutput(QWebEngineView):
                 return  # wait for page to load
             self.init()
             escaped_chunk = json.dumps(content)
+            if not self.page():
+                return
             self.page().runJavaScript(
                 f"replaceOutput({escaped_chunk});")
         except Exception as e:
@@ -342,6 +383,8 @@ class HtmlOutput(QWebEngineView):
                 return  # wait for page to load
             self.init()
             escaped_chunk = json.dumps(content)
+            if not self.page():
+                return
             self.page().runJavaScript(
                 f"replaceOutput({escaped_chunk});")
         except Exception as e:
@@ -367,6 +410,8 @@ class HtmlOutput(QWebEngineView):
                 return  # wait for page to load
             self.init()
             escaped_chunk = json.dumps(content)
+            if not self.page():
+                return
             self.page().runJavaScript(
                 f"appendToOutput({escaped_chunk});")
         except Exception as e:
@@ -381,6 +426,8 @@ class HtmlOutput(QWebEngineView):
             if not self.loaded:
                 return  # wait for page to load
             self.init()
+            if not self.page():
+                return
             self.page().runJavaScript(
                 f"clearOutput();")
         except Exception as e:
@@ -471,6 +518,8 @@ class HtmlOutput(QWebEngineView):
     def update_zoom(self):
         """Update zoom from config"""
         if self.window.core.config.has("zoom"):
+            if not self.page():
+                return
             self.page().setZoomFactor(self.window.core.config.get("zoom"))
 
     def get_zoom_value(self) -> float:
@@ -519,18 +568,26 @@ class HtmlOutput(QWebEngineView):
 
         :return: selected text
         """
+        if not self.page():
+            return ""
         return self.page().selectedText()
 
     def copy_selected_text(self):
         """Copy selected text"""
+        if not self.page():
+            return
         self.page().triggerAction(QWebEnginePage.Copy)
 
     def select_all_text(self):
         """Select all text"""
+        if not self.page():
+            return
         self.page().triggerAction(QWebEnginePage.SelectAll)
 
     def unselect_text(self):
         """Unselect text"""
+        if not self.page():
+            return
         self.page().triggerAction(QWebEnginePage.Unselect)
 
     def find_open(self):

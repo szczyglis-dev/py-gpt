@@ -77,13 +77,18 @@ class CtxList:
 
     def update(self, id, data):
         """
-        Update ctx list
+        Update ctx list – nowa wersja tworzy nowy model,
+        dzięki czemu stary model oraz jego elementy mogą
+        zostać poprawnie zwolnione przez garbage collector.
 
         :param id: ID of the list
         :param data: Data to update
         """
         self.window.ui.nodes[id].backup_selection()
-        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+
+        new_model = self.create_model(self.window)
+        self.window.ui.models[id] = new_model
+        self.window.ui.nodes[id].setModel(new_model)
 
         if self.window.core.config.get("ctx.records.folders.top"):
             self.update_items_pinned(id, data)

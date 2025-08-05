@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import copy
 import re
+import weakref
 from typing import Optional, Tuple
 
 from pygpt_net.core.bridge.context import BridgeContext
@@ -46,7 +47,7 @@ class Helpers:
         ctx.current = True  # mark as current context item
         ctx.mode = from_ctx.mode
         ctx.model = from_ctx.model
-        ctx.prev_ctx = from_ctx
+        ctx.prev_ctx = weakref.ref(from_ctx)
         ctx.images = from_ctx.images  # copy from parent if appended from plugins
         ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
         ctx.attachments = from_ctx.attachments  # copy from parent if appended from plugins
@@ -75,7 +76,7 @@ class Helpers:
         ctx.meta = from_ctx.meta
         ctx.mode = from_ctx.mode
         ctx.model = from_ctx.model
-        ctx.prev_ctx = from_ctx
+        ctx.prev_ctx = weakref.ref(from_ctx)
         # ctx.images = from_ctx.images  # copy from parent if appended from plugins
         # ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
         # ctx.attachments = from_ctx.attachments # copy from parent if appended from plugins

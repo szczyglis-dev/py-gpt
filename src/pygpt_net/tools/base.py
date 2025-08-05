@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 01:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QAction
@@ -120,3 +120,36 @@ class BaseTool(QObject):
         :return: dict with language mappings
         """
         return {}
+
+
+class TabWidget(QWidget):
+    """Base tab tool widget"""
+    def __init__(self, parent: QWidget = None):
+        """
+        Initialize tab tool widget
+
+        :param parent: Parent widget
+        """
+        super(TabWidget, self).__init__(parent)
+        self.window = None  # Window instance
+        self.tool = None  # Tool instance
+        self.setObjectName("TabWidget")  # Set object name for styling
+
+    def from_tool(self, tool: Any):
+        """
+        Set tool instance
+
+        :param tool: Tool instance
+        """
+        self.tool = tool
+        self.window = tool.window if tool else None
+
+    def setup(self):
+        """Setup tab tool widget"""
+        layout = self.tool.setup(all=False)
+        self.setLayout(layout)
+
+    def on_delete(self):
+        """Cleanup on delete"""
+        if self.tool and hasattr(self.tool, 'on_delete'):
+            self.tool.on_delete()

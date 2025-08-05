@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.20 06:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -32,6 +32,10 @@ class Finder:
         self.timer.timeout.connect(self.find_execute)
         self.delay = 100
         self.search_text = ""
+
+    def disconnect(self):
+        """Disconnect all refs"""
+        self.textarea = None
 
     def assign(self, textarea):
         """

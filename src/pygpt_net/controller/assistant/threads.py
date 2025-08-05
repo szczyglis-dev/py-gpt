@@ -62,6 +62,8 @@ class Threads(QObject):
         ctx.from_previous()  # append previous result if exists
         self.window.core.ctx.update_item(ctx)
         self.window.controller.chat.output.handle(ctx, 'assistant', stream)
+        if ctx.meta and not ctx.meta.initialized:
+            self.window.controller.ctx.summarizer.summarize(ctx)
         if stream:
             return  # handled in: self.handle_output_message_after_stream() after stream:handleEvent
 

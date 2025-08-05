@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import re
@@ -36,6 +36,14 @@ class Tool:
         self.menu_bar = None
         self.menu = {}
         self.actions = {}  # menu actions
+
+    def as_tab(self) -> ToolWidget:
+        """
+        Return tool as tab
+
+        :return: ToolWidget
+        """
+        return self.widget
 
     def setup_menu(self) -> QMenuBar:
         """

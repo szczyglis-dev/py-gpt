@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import re
@@ -57,6 +57,33 @@ class ChatWebOutput(QWebEngineView):
         new_page = CustomWebEnginePage(self.window, self)
         self.setPage(new_page)
         old_page.deleteLater()
+
+    def on_delete(self):
+        """Clean up on delete"""
+        if self.finder:
+            self.finder.disconnect()  # disconnect finder
+            self.finder = None  # delete finder
+
+        self.tab = None  # clear tab reference
+
+        # delete page
+        page = self.page()
+        if page:
+            if hasattr(page, 'bridge'):
+                page.bridge.deleteLater()
+            if hasattr(page, 'channel'):
+                page.channel.deleteLater()
+            if hasattr(page, 'signals') and page.signals:
+                page.signals.deleteLater()
+            page.deleteLater()  # delete page
+
+        # disconnect signals
+        self.loadFinished.disconnect(self.on_page_loaded)
+        self.customContextMenuRequested.disconnect(self.on_context_menu)
+        self.signals.save_as.disconnect(self.window.controller.chat.render.handle_save_as)
+        self.signals.audio_read.disconnect(self.window.controller.chat.render.handle_audio_read)
+
+        self.deleteLater()  # delete widget
 
     def eventFilter(self, source, event):
         """

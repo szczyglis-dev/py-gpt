@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 23:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import uuid
@@ -278,22 +278,7 @@ class Tabs:
         if tab is None:
             return
 
-        # if tab is chat, then remove webview from memory
-        if tab.type == Tab.TAB_CHAT:
-            if tab.pid in self.window.ui.nodes['output_plain']:
-                self.window.ui.nodes['output_plain'][tab.pid].clear()  # clear plain output
-                self.window.ui.nodes['output_plain'][tab.pid].deleteLater()  # delete plain output widget
-                self.window.ui.nodes['output_plain'][tab.pid] = None
-                del self.window.ui.nodes['output_plain'][tab.pid]
-            if tab.pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][tab.pid].finder = None  # delete finder
-                self.window.ui.nodes['output'][tab.pid].page().deleteLater()  # delete output widget
-                self.window.ui.nodes['output'][tab.pid].deleteLater()  # delete output widget
-                self.window.ui.nodes['output'][tab.pid] = None
-                del self.window.ui.nodes['output'][tab.pid]
-            self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data
-            self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping
-
+        tab.cleanup() # unload assigned data from memory
         column_idx = tab.column_idx
         self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
         del self.pids[pid]
@@ -888,6 +873,7 @@ class Tabs:
         tab_widget = TabBody(self.window)
         tab_widget.append(widget)
         tab_widget.setLayout(layout)
+        tab_widget.add_ref(widget)  # add reference to widget
         return tab_widget
 
     def from_layout(self, layout: QLayout) -> TabBody:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.19 02:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal
@@ -34,6 +34,14 @@ class ToolWidget:
         self.edit = None  # canvas edit
         self.btn_edit = None  # edit checkbox
 
+    def on_delete(self):
+        """On delete"""
+        if self.tool:
+            self.tool.signals.update.disconnect(self.set_output)
+            self.tool.signals.reload.disconnect(self.load_output)
+        if self.output:
+            self.output.on_delete()
+
     def set_tab(self, tab):
         """
         Set tab
@@ -43,10 +51,11 @@ class ToolWidget:
         self.output.set_tab(tab)
         self.edit.set_tab(tab)
 
-    def setup(self) -> QVBoxLayout:
+    def setup(self, all: bool = True) -> QVBoxLayout:
         """
         Setup widget body
 
+        :param all: If True, setup all widgets
         :return: QVBoxLayout
         """
         self.output = CanvasOutput(self.window)

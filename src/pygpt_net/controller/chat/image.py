@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.16 15:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 import os
+import weakref
 from typing import Optional, List
 
 from PySide6.QtCore import Slot
@@ -63,7 +64,8 @@ class Image:
         ctx.current = True  # mark as current context item
         ctx.meta = self.window.core.ctx.get_current_meta()  # CtxMeta (owner object)
         ctx.set_input(text, self.window.core.config.get('user_name'))
-        ctx.prev_ctx = prev_ctx  # store previous context item
+        if prev_ctx:
+            ctx.prev_ctx = weakref.ref(prev_ctx)  # store previous context item
         ctx.live = True
 
         # event: context before

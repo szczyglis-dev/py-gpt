@@ -37,8 +37,7 @@ class PromptTextarea(QTextEdit):
         self.title = ""
         self.update_ui = True
         self.setAcceptRichText(False)
-        self.textChanged.connect(
-            lambda: self.on_prompt_changed())
+        self.textChanged.connect(self.on_prompt_changed)
 
         # init from option data
         if self.option is not None:
@@ -77,12 +76,11 @@ class PromptTextarea(QTextEdit):
         if self.window.controller.mode.locked:
             return
 
-        '''
         self.window.controller.config.input.on_update(
             self.window.ui.nodes['preset.prompt'].parent_id,
             self.window.ui.nodes['preset.prompt'].id,
             self.window.ui.nodes['preset.prompt'].option,
             self.window.ui.nodes['preset.prompt'].toPlainText(),
         )
-        '''
+        #self.window.core.config.set('prompt', self.toPlainText().strip())
         self.window.controller.ui.update_tokens()

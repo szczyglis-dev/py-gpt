@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 17:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class Tab:
@@ -24,29 +24,96 @@ class Tab:
     TAB_TOOL_CALENDAR = 4
     TAB_TOOL = 100
 
-    def __init__(self):
+    def __init__(
+            self,
+            uuid: Optional[str] = None,
+            pid: Optional[int] = None,
+            idx: Optional[int] = 0,
+            type: Optional[int] = TAB_CHAT,
+            title: Optional[str] = "",
+            icon: Optional[str] = None,
+            tooltip: Optional[str] = None,
+            data_id: Optional[str] = None,
+            new_idx: Optional[int] = None,
+            custom_name: Optional[bool] = False,
+            child: Optional[Any] = None,
+            parent: Optional[Any] = None,
+            column_idx: Optional[int] = 0,
+            tool_id: Optional[str] = None,
+            on_delete: Optional[callable] = None
+    ):
         """
         Tab data
+
+        :param uuid: Unique identifier
+        :param pid: Process ID
+        :param idx: Index of the tab
+        :param type: Type of the tab, one of the TAB_* constants
+        :param title: Title of the tab
+        :param icon: Icon for the tab
+        :param tooltip: Tooltip for the tab
+        :param data_id: Data identifier for the tab content (meta_id, notepad_id, etc.)
+        :param new_idx: New index for the tab, used when reordering
+        :param custom_name: True if tab has custom name, False otherwise
+        :param child: Child widget (TabBody)
+        :param parent: Parent output column (OutputColumn)
+        :param column_idx: Index of the column this tab belongs to
+        :param tool_id: Tool identifier if this tab is a tool tab
+        :param on_delete: Callback function for delete event
         """
-        self.uuid = None
-        self.pid = None
-        self.idx = 0
-        self.type = 0
-        self.title = ""
-        self.icon = None
-        self.tooltip = None
-        self.data_id = None
-        self.new_idx = None
-        self.custom_name = False
-        self.child = None
-        self.parent = None
-        self.column_idx = 0
-        self.tool_id = None
-        self.loaded = False
+        self.uuid = uuid
+        self.pid = pid
+        self.idx = idx
+        self.type = type
+        self.title = title
+        self.icon = icon
+        self.tooltip = tooltip
+        self.data_id = data_id
+        self.new_idx = new_idx
+        self.custom_name = custom_name
+        self.child = child  # TabBody
+        self.parent = parent # OutputColumn
+        self.column_idx = column_idx  # index of the column this tab belongs to
+        self.tool_id = tool_id
+        self.loaded = False  # True if tab is loaded, False if not
+        self.on_delete = on_delete  # callback for delete event
+        self.refs = []  # list of references to widgets in this tab
 
         dt = datetime.now()
         self.created_at = dt
         self.updated_at = dt
+
+    def cleanup(self):
+        """Clean up on delete"""
+        try:
+            if self.on_delete:
+                self.on_delete(self)
+            self.delete_refs()
+        except Exception as e:
+            print(f"Error during tab cleanup: {e}")
+
+    def add_ref(self, ref: Any) -> None:
+        """
+        Add reference to widget in this tab
+
+        :param ref: widget reference
+        """
+        if ref not in self.refs:
+            self.refs.append(ref)
+
+    def delete_refs(self) -> None:
+        """
+        Delete all references to widgets in this tab
+        """
+        # cleanup children
+        if self.child:
+            self.child.cleanup()
+
+        # cleanup parent
+        for ref in self.refs:
+            if ref and hasattr(ref, 'deleteLater'):
+                ref.deleteLater()
+        del self.refs[:]
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -60,6 +127,7 @@ class Tab:
             "idx": self.idx,
             "type": self.type,
             "title": self.title,
+            "loaded": self.loaded,
             "icon": self.icon,
             "tooltip": self.tooltip,
             "data_id": self.data_id,
@@ -71,6 +139,7 @@ class Tab:
             "updated_at": str(self.updated_at),
             "column_idx": self.column_idx,
             "tool_id": self.tool_id,
+            "refs": [str(ref) for ref in self.refs],  # references to widgets
         }
 
     def __str__(self) -> str:

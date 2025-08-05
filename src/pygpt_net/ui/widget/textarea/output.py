@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -41,6 +41,19 @@ class ChatOutput(QTextBrowser):
         self.tab = None
         self.installEventFilter(self)
         self.setProperty('class', 'layout-output-plain')
+
+    def on_delete(self):
+        """Clean up on delete"""
+        if self.finder:
+            self.finder.disconnect()  # disconnect finder
+            self.finder = None  # delete finder
+
+        self.tab = None  # clear tab reference
+        self.clear()
+
+        # disconnect signals
+        self.anchorClicked.disconnect(self.open_external_link)
+        self.deleteLater()  # delete widget
 
     def eventFilter(self, source, event):
         """
@@ -124,7 +137,8 @@ class ChatOutput(QTextBrowser):
 
     def on_update(self):
         """On content update"""
-        self.finder.clear()  # clear finder
+        if self.finder:
+            self.finder.clear()  # clear finder
 
     def keyPressEvent(self, e):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 16:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import json
@@ -19,7 +19,7 @@ from PySide6.QtGui import QTextCursor, QAction, QIcon
 from PySide6.QtWidgets import QWidget
 
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, TabWidget
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
 from pygpt_net.core.events import Event, KernelEvent, BaseEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
@@ -745,10 +745,10 @@ class CodeInterpreter(BaseTool):
         :return: Tab widget instance
         """
         tool = Tool(window=self.window, tool=self)  # dialog
-        tool.widget.set_is_dialog(False)
-        layout = tool.widget.setup(all=False)
-        widget = QWidget()
-        widget.setLayout(layout)
+        tool_widget = tool.as_tab()  # ToolWidget
+        widget = TabWidget()
+        widget.from_tool(tool_widget)
+        widget.setup()
         self.load_history()
         self.load_output()
         tool.set_tab(tab)

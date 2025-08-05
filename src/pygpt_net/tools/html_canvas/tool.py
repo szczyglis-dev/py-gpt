@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 16:00:00                  #
+# Updated Date: 2025.08.05 21:00:00                  #
 # ================================================== #
 
 import os
@@ -18,7 +18,7 @@ from PySide6.QtWidgets import QFileDialog, QWidget
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, TabWidget
 from pygpt_net.utils import trans
 
 from .ui.dialogs import Tool
@@ -306,12 +306,14 @@ class HtmlCanvas(BaseTool):
         :param tab: Parent Tab instance
         :return: Tab widget instance
         """
-        canvas = Tool(window=self.window, tool=self)
-        layout = canvas.widget.setup()
-        widget = QWidget()
-        widget.setLayout(layout)
-        canvas.set_tab(tab)
+
+        tool = Tool(window=self.window, tool=self)  # dialog
+        tool_widget = tool.as_tab()  # ToolWidget
+        widget = TabWidget()
+        widget.from_tool(tool_widget)
+        widget.setup()
         self.load_output()
+        tool.set_tab(tab)
         return widget
 
     def setup_dialogs(self):
