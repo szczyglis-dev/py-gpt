@@ -97,7 +97,25 @@ class Notepad:
             if not tab.title:
                 tab.title = title
         child = self.window.core.tabs.from_widget(self.window.ui.notepad[data_id])
+        child.on_delete = self.on_delete  # cleanup callback
         return child, idx, data_id
+
+    def on_delete(self, body: TabBody):
+        """
+        On delete notepad tab
+
+        :param body: TabBody instance
+        """
+        tab = body.owner
+        if not tab.owner:
+            return
+        if tab.type != Tab.TAB_NOTEPAD:
+            return
+        idx = tab.data_id
+        if idx in self.window.ui.notepad:
+            self.window.ui.notepad[idx].on_delete()
+            del self.window.ui.notepad[idx]
+        self.update()
 
     def load(self):
         """Load all notepads contents"""

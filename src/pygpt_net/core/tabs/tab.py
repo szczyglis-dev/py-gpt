@@ -90,7 +90,9 @@ class Tab:
                 self.on_delete(self)
             self.delete_refs()
         except Exception as e:
-            print(f"Error during tab cleanup: {e}")
+            pass
+            # print(f"Error during tab cleanup:")
+            # print(e)
 
     def add_ref(self, ref: Any) -> None:
         """

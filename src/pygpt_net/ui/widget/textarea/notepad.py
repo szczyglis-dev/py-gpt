@@ -76,7 +76,11 @@ class NotepadWidget(QWidget):
         """On destroy"""
         # unregister finder from memory
         self.window.controller.finder.unset(self.textarea.finder)
-
+    def on_delete(self):
+        """On delete"""
+        self.tab = None  # clear tab reference
+        self.textarea.on_delete()  # delete textarea
+        self.deleteLater()
 
 class NotepadOutput(QTextEdit):
     def __init__(self, window=None):
@@ -104,6 +108,13 @@ class NotepadOutput(QTextEdit):
         metrics = QFontMetrics(self.font())
         space_width = metrics.horizontalAdvance(" ")
         self.setTabStopDistance(4 * space_width)
+
+    def on_delete(self):
+        """On delete"""
+        if self.finder:
+            self.finder.disconnect()  # disconnect finder
+            self.finder = None  # delete finder
+        self.deleteLater()
 
     def showEvent(self, event):
         super().showEvent(event)
