@@ -287,7 +287,7 @@ class Ctx:
         data = {
             "meta": meta,
         }
-        event = RenderEvent(RenderEvent.CLEAR, data)
+        event = RenderEvent(RenderEvent.FRESH, data)
         self.window.dispatch(event)
 
         if not force:  # only if real click on new context button
@@ -405,6 +405,11 @@ class Ctx:
 
         # reset appended data / prepare new ctx
         if meta is not None:
+            data = {
+                "meta": meta,
+            }
+            event = RenderEvent(RenderEvent.FRESH, data)
+            self.window.dispatch(event)
             data = {
                 "meta": meta,
             }

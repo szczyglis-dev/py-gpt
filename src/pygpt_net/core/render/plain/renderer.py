@@ -43,6 +43,15 @@ class Renderer(BaseRenderer):
         """
         self.pids = {}
 
+    def fresh(self, meta: CtxMeta):
+        """
+        Fresh renderer
+
+        :param meta: context PID
+        """
+        self.reset(meta)
+        self.clear_output(meta)
+
     def get_pid(self, meta: CtxMeta):
         """
         Get PID for context meta

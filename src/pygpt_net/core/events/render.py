@@ -21,6 +21,7 @@ class RenderEvent(BaseEvent):
     RELOAD = "render.reload"
     RESET = "render.reset"
     PREPARE = "render.prepare"
+    FRESH = "render.fresh"
 
     STREAM_BEGIN = "render.stream.begin"
     STREAM_APPEND = "render.stream.append"

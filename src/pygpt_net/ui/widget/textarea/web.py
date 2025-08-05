@@ -50,6 +50,14 @@ class ChatWebOutput(QWebEngineView):
         self.tab = None
         self.setProperty('class', 'layout-output-web')
 
+    def resetPage(self):
+        """Reset current page (clear memory)"""
+        self.setUpdatesEnabled(False)
+        old_page = self.page()
+        new_page = CustomWebEnginePage(self.window, self)
+        self.setPage(new_page)
+        old_page.deleteLater()
+
     def eventFilter(self, source, event):
         """
         Focus event filter

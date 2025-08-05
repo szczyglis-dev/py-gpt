@@ -98,6 +98,8 @@ class Render:
             self.on_theme_change()
         elif name == RenderEvent.ON_LOAD:
             self.on_load(meta)
+        elif name == RenderEvent.FRESH:
+            self.fresh(meta)
         elif name == RenderEvent.ON_TS_ENABLE:
             self.on_enable_timestamp(live=initialized)
         elif name == RenderEvent.ON_TS_DISABLE:
@@ -302,6 +304,17 @@ class Render:
         self.instance().on_load(meta)
         self.update()
         self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
+
+    def fresh(
+            self,
+            meta: Optional[CtxMeta] = None
+    ):
+        """
+        On load (meta)
+
+        :param meta: context meta
+        """
+        self.instance().fresh(meta)
 
     def reset(
             self,
