@@ -38,10 +38,13 @@ class Bag:
 
         :param items: ctx items
         """
+        self.clear_items()
         self.items = items
 
     def clear_items(self):
         """Clear items"""
+        for item in self.items:
+            del item
         self.items = []
 
     def count_items(self) -> int:

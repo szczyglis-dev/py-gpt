@@ -184,22 +184,6 @@ def test_handle_input(kernel, fake_window):
     kernel.handle(event)
     assert event.data.get("response") == "input_sent"
 
-def test_handle_queue_request(kernel, fake_window, monkeypatch):
-    ctx = DummyContext()
-    extra = {"info": "test"}
-    event = DummyEvent(KernelEvent.REQUEST, {"context": ctx, "extra": extra})
-    kernel.halt = False
-    original_create_task = asyncio.create_task
-    called = False
-    def fake_create_task(coro):
-        nonlocal called
-        called = True
-        return
-    monkeypatch.setattr(asyncio, "create_task", fake_create_task)
-    kernel.handle(event)
-    assert event.data.get("response") is True
-    assert called is True
-
 def test_handle_queue_request_next(kernel, fake_window):
     ctx = DummyContext()
     extra = {"info": "next"}

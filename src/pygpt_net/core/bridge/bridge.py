@@ -44,7 +44,7 @@ class Bridge:
         ]
         self.worker = None
 
-    async def request(
+    def request(
             self,
             context: BridgeContext,
             extra: Optional[Dict[str, Any]] = None
@@ -143,7 +143,7 @@ class Bridge:
         # some modes must be called synchronously
         if mode in self.sync_modes or force_sync:
             self.window.core.debug.info("[bridge] Starting worker (sync)...")
-            self.worker.run()
+            worker.run()
             return True
 
         # async call

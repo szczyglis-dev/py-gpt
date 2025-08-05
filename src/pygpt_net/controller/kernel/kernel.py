@@ -216,8 +216,7 @@ class Kernel(QObject):
             return
 
         if event.name == KernelEvent.REQUEST:
-            asyncio.create_task(self.window.core.bridge.request(context, extra))
-            return True
+            return self.window.core.bridge.request(context, extra)
         elif event.name == KernelEvent.REQUEST_NEXT:
             return self.window.core.bridge.request_next(context, extra)
         elif event.name in [

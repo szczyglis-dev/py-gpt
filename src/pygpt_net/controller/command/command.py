@@ -11,7 +11,7 @@
 
 import json
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
@@ -127,6 +127,7 @@ class Command:
                     break
                 window.core.dispatcher.apply(id, event, is_async=True)
         finished_signal.emit(event)
+        finished_signal.disconnect()  # disconnect signal to avoid memory leaks
 
     def is_stop(self) -> bool:
         """
@@ -144,6 +145,7 @@ class Command:
         """
         self.window.core.debug.info(data)
 
+    @Slot(object)
     def handle_finished(self, event: Event):
         """
         Handle command execution finish (response from sync execution)

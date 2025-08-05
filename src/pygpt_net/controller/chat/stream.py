@@ -342,8 +342,13 @@ class StreamWorker(QObject, QRunnable):
         if has_unclosed_code_tag(output):
             output += "\n```"
 
-        # update ctx
+        if generator and hasattr(generator, 'close'):
+            try:
+                generator.close()  # close generator if it has close method
+            except Exception as e:
+                pass
         del generator
+
         self.ctx.output = output
         self.ctx.set_tokens(self.ctx.input_tokens, output_tokens)
         self.window.core.ctx.update_item(self.ctx)  # update ctx
@@ -429,13 +434,13 @@ class Stream:
         self.context = context
         self.extra = extra if extra is not None else {}
 
-        self.worker = StreamWorker(ctx, self.window)
-        self.worker.eventReady.connect(self.handleEvent)
-        self.worker.errorOccurred.connect(self.handleError)
-        self.worker.end.connect(self.handleEnd)
+        worker = StreamWorker(ctx, self.window)
+        worker.eventReady.connect(self.handleEvent)
+        worker.errorOccurred.connect(self.handleError)
+        worker.end.connect(self.handleEnd)
 
         self.window.core.debug.info("[chat] Stream begin...")
-        self.window.threadpool.start(self.worker)
+        self.window.threadpool.start(worker)
 
     @Slot(object)
     def handleEnd(self, ctx: CtxItem):
@@ -471,7 +476,6 @@ class Stream:
                     reply=self.reply,
                     internal=self.internal
                 )
-        self.worker = None
 
     def handleEvent(self, event):
         """
