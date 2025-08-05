@@ -42,6 +42,7 @@ class Tab:
         self.parent = None
         self.column_idx = 0
         self.tool_id = None
+        self.loaded = False
 
         dt = datetime.now()
         self.created_at = dt

@@ -277,6 +277,23 @@ class Tabs:
         tab = self.get_tab_by_pid(pid)
         if tab is None:
             return
+
+        # if tab is chat, then remove webview from memory
+        if tab.type == Tab.TAB_CHAT:
+            if tab.pid in self.window.ui.nodes['output_plain']:
+                self.window.ui.nodes['output_plain'][tab.pid].clear()  # clear plain output
+                self.window.ui.nodes['output_plain'][tab.pid].deleteLater()  # delete plain output widget
+                self.window.ui.nodes['output_plain'][tab.pid] = None
+                del self.window.ui.nodes['output_plain'][tab.pid]
+            if tab.pid in self.window.ui.nodes['output']:
+                self.window.ui.nodes['output'][tab.pid].finder = None  # delete finder
+                self.window.ui.nodes['output'][tab.pid].page().deleteLater()  # delete output widget
+                self.window.ui.nodes['output'][tab.pid].deleteLater()  # delete output widget
+                self.window.ui.nodes['output'][tab.pid] = None
+                del self.window.ui.nodes['output'][tab.pid]
+            self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data
+            self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping
+
         column_idx = tab.column_idx
         self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
         del self.pids[pid]

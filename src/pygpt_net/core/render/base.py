@@ -474,3 +474,9 @@ class BaseRenderer:
         :param ctx: context item
         """
         pass
+
+    def remove_pid(self, pid: int):
+        """
+        Remove PID from renderer
+        """
+        pass

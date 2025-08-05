@@ -177,7 +177,8 @@ class WebFinder:
     def reset_highlights(self):
         """Reset all highlights."""
         parent = self.parent()
-        parent.findText("")
+        if parent:
+            parent.findText("")
 
     def find_next(self):
         """Find the next occurrence relative to the current match index"""

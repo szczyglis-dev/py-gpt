@@ -245,7 +245,8 @@ class ChatWebOutput(QWebEngineView):
 
     def on_update(self):
         """On content update"""
-        self.finder.clear()  # clear finder
+        if self.finder:
+            self.finder.clear()  # clear finder
 
     def focusInEvent(self, e):
         """

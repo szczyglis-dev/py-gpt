@@ -81,13 +81,19 @@ class Common:
         if plain:
             self.window.ui.nodes['output.timestamp'].setVisible(True)
             for pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].setVisible(False)
-                self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                try:
+                    self.window.ui.nodes['output'][pid].setVisible(False)
+                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                except Exception as e:
+                    pass
         else:
             self.window.ui.nodes['output.timestamp'].setVisible(False)
             for pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].setVisible(True)
-                self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                try:
+                    self.window.ui.nodes['output'][pid].setVisible(True)
+                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                except Exception as e:
+                    pass
 
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)  # switch renderer if needed

@@ -51,7 +51,10 @@ class Markdown:
         """Apply CSS to renderers"""
         if 'output' in self.window.ui.nodes:
             for pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
+                try:
+                    self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
+                except Exception as e:
+                    pass
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
         self.window.dispatch(event)  # per current engine
 

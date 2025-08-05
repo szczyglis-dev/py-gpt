@@ -35,7 +35,10 @@ class Nodes:
             self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.toolbox'))
         elif type == 'font.chat.output':
             for pid in self.window.ui.nodes[key]:
-                self.window.ui.nodes[key][pid].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+                try:
+                    self.window.ui.nodes[key][pid].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+                except Exception as e:
+                    pass
         elif type == 'font.chat.input':
             self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.input'))
         elif type == 'font.ctx.list':
@@ -114,8 +117,11 @@ class Nodes:
 
         # plain text/markdown
         for pid in self.window.ui.nodes['output_plain']:
-            self.window.ui.nodes['output_plain'][pid].value = size
-            self.window.ui.nodes['output_plain'][pid].update()
+            try:
+                self.window.ui.nodes['output_plain'][pid].value = size
+                self.window.ui.nodes['output_plain'][pid].update()
+            except Exception as e:
+                pass
 
         # ------------------------
 
@@ -123,8 +129,11 @@ class Nodes:
         if self.window.controller.chat.render.get_engine() == 'web':
             zoom = self.window.core.config.get('zoom')
             for pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].value = zoom
-                self.window.ui.nodes['output'][pid].update_zoom()
+                try:
+                    self.window.ui.nodes['output'][pid].value = zoom
+                    self.window.ui.nodes['output'][pid].update_zoom()
+                except Exception as e:
+                    pass
             event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
             self.window.dispatch(event)
 

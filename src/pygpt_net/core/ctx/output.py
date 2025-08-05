@@ -245,3 +245,19 @@ class Output:
         for node in self.window.ui.nodes['output_plain'].values():
             nodes.append(node)
         return nodes
+
+    def remove_pid(self, pid: int):
+        """
+        Remove PID from mapping
+
+        :param pid: PID
+        """
+        self.init()
+        for col_idx in self.mapping:
+            if pid in self.mapping[col_idx]:
+                del self.mapping[col_idx][pid]
+                break
+        if pid in self.last_pids:
+            del self.last_pids[pid]
+        if pid == self.last_pid:
+            self.last_pid = 0

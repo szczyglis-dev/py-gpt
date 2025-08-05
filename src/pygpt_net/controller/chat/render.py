@@ -568,6 +568,16 @@ class Render:
         self.instance().clear_all()
         self.update()
 
+    def remove_pid(self, pid: int):
+        """
+        Remove PID from renderer
+
+        :param pid: PID to remove
+        """
+        self.plaintext_renderer.remove_pid(pid)
+        self.markdown_renderer.remove_pid(pid)
+        self.web_renderer.remove_pid(pid)
+
     def tool_output_append(
             self,
             meta: CtxMeta,
@@ -640,17 +650,23 @@ class Render:
             self.window.controller.theme.markdown.clear()
             self.window.ui.nodes['output.timestamp'].setVisible(True)
             for pid in self.window.ui.nodes['output_plain']:
-                if self.window.ui.nodes['output_plain'][pid] is not None:
-                    self.window.ui.nodes['output'][pid].setVisible(False)
-                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                try:
+                    if self.window.ui.nodes['output_plain'][pid] is not None:
+                        self.window.ui.nodes['output'][pid].setVisible(False)
+                        self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                except Exception as e:
+                    pass
         else:
             self.window.ui.nodes['output.timestamp'].setVisible(False)
             self.window.controller.ctx.refresh()  # TODO: move to on_switch
             self.window.controller.theme.markdown.update(force=True)
             for pid in self.window.ui.nodes['output']:
-                if self.window.ui.nodes['output'][pid] is not None:
-                    self.window.ui.nodes['output'][pid].setVisible(True)
-                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                try:
+                    if self.window.ui.nodes['output'][pid] is not None:
+                        self.window.ui.nodes['output'][pid].setVisible(True)
+                        self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                except Exception as e:
+                    pass
 
     def instance(self) -> BaseRenderer:
         """

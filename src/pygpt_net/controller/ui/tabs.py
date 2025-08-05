@@ -139,13 +139,15 @@ class Tabs:
     def reload_after(self):
         """Reload tabs after"""
         for pid in self.window.ui.nodes['output']:
-            if self.window.core.config.get("render.plain") is True:
-                self.window.ui.nodes['output_plain'][pid].setVisible(True)
-                self.window.ui.nodes['output'][pid].setVisible(False)
-            else:
-                self.window.ui.nodes['output_plain'][pid].setVisible(False)
-                self.window.ui.nodes['output'][pid].setVisible(True)
-        #self.switch_tab(Tab.TAB_CHAT)
+            try:
+                if self.window.core.config.get("render.plain") is True:
+                    self.window.ui.nodes['output_plain'][pid].setVisible(True)
+                    self.window.ui.nodes['output'][pid].setVisible(False)
+                else:
+                    self.window.ui.nodes['output_plain'][pid].setVisible(False)
+                    self.window.ui.nodes['output'][pid].setVisible(True)
+            except Exception as e:
+                pass
         self.debug()
 
     def on_tab_changed(
@@ -302,6 +304,14 @@ class Tabs:
         tab = self.window.core.tabs.get_tab_by_index(self.current, self.column_idx)
         if tab is None:
             return
+
+        # redraw second tab if not loaded yet
+        if tab.type == Tab.TAB_CHAT and self.column_idx == 1 and not tab.loaded:
+            meta = self.window.core.ctx.get_meta_by_id(tab.data_id)
+            if meta is not None:
+                self.window.controller.ctx.load(meta.id)
+            tab.loaded = True
+
         current_ctx = self.window.core.ctx.get_current()
         if (current_ctx is not None and current_ctx != tab.data_id) or current_ctx is None:
             if tab.type == Tab.TAB_CHAT:
