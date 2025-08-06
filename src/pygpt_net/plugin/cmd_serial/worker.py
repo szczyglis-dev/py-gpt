@@ -72,6 +72,12 @@ class Worker(BaseWorker):
         if self.msg is not None:
             self.status(self.msg)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_serial_send(self, item: dict) -> dict:
         """
         Send command to USB port

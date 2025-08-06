@@ -100,6 +100,21 @@ class IndexWorker(QObject, QRunnable):
         except Exception as e:
             self.window.core.debug.error(e)
             self.signals.error.emit(e)
+        finally:
+            if self.signals is not None:
+                self.signals.finished.disconnect()
+                self.signals.error.disconnect()
+            self.window = None
+            self.content = None
+            self.loader = None
+            self.params = None
+            self.config = None
+            self.replace = None
+            self.recursive = None
+            self.from_ts = 0
+            self.idx = None
+            self.type = None
+            self.deleteLater()
 
     def log(self, msg: str):
         """

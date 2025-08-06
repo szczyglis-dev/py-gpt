@@ -154,6 +154,12 @@ class Worker(BaseWorker):
         if self.msg is not None:
             self.status(self.msg)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_save_file(self, item: dict) -> dict:
         """
         Save file

@@ -503,3 +503,19 @@ class UpdaterWorker(QObject, QRunnable):
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to check for updates")
+
+        finally:
+            # cleanup
+            self.cleanup()
+
+    def cleanup(self):
+        """
+        Clean up worker
+        """
+        self.window = None
+        self.checker = None
+        self.signals.version_changed.disconnect()
+        self.signals = None
+        self.args = None
+        self.kwargs = None
+        self.deleteLater()  # delete worker instance

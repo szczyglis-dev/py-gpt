@@ -14,12 +14,8 @@ import os
 import json
 import re
 import time
-
-import docker
 import io
 import tarfile
-
-from docker.errors import DockerException
 
 class DockerKernel:
 
@@ -96,6 +92,7 @@ class DockerKernel:
 
     def is_image(self):
         """Check if the Docker image for the IPython kernel exists."""
+        import docker.errors
         client = self.get_docker_client()
         try:
             client.images.get(self.get_image_name())
@@ -174,12 +171,13 @@ class DockerKernel:
         except FileExistsError:
             pass
 
-    def get_docker_client(self) -> docker.DockerClient:
+    def get_docker_client(self):
         """
         Get the Docker client.
 
         :return: Docker client.
         """
+        import docker
         return docker.from_env()
 
     def prepare_conn(self):
@@ -242,6 +240,7 @@ class DockerKernel:
 
         :param name: Container name.
         """
+        import docker.errors
         client = self.get_docker_client()
         try:
             container = client.containers.get(name)
@@ -257,6 +256,7 @@ class DockerKernel:
         :param name: Container name.
         :return: True if the container was started successfully, False otherwise.
         """
+        import docker.errors
         client = self.get_docker_client()
         ports = self.get_ports()
         # at first, check for image
@@ -298,6 +298,7 @@ class DockerKernel:
 
         :param name: Container name.
         """
+        import docker.errors
         client = self.get_docker_client()
         try:
             client.containers.get(name)
@@ -313,6 +314,7 @@ class DockerKernel:
 
         :param name: Container name.
         """
+        import docker.errors
         client = self.get_docker_client()
         try:
             container = client.containers.get(name)
@@ -505,6 +507,8 @@ class DockerKernel:
 
         :return: True if installed
         """
+        import docker
+        from docker.errors import DockerException
         try:
             if self.client is None:
                 client = docker.from_env()

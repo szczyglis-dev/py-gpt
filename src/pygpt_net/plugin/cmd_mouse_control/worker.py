@@ -105,6 +105,12 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             self.reply_more(responses)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_wait(self, item: dict) -> dict:
         """
         Wait

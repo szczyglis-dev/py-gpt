@@ -60,6 +60,12 @@ class Worker(BaseWorker):
         if msg is not None:
             self.status(msg)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_get_context(self, item: dict) -> dict:
         """
         Get context for given query

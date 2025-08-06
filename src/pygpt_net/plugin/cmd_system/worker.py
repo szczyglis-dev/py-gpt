@@ -61,6 +61,12 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             self.reply_more(responses)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_sys_exec(self, item: dict) -> dict:
         """
         Execute system command

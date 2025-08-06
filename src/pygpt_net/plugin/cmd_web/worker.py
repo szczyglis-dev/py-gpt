@@ -86,6 +86,12 @@ class Worker(BaseWorker):
             self.log(self.msg)
             self.status(self.msg)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_web_search(self, item: dict) -> dict:
         """
         Web search command

@@ -50,6 +50,16 @@ class Worker(BaseWorker):
                 self.play()
         except Exception as e:
             self.error(e)
+        finally:
+            self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.p = None
+        self.stream = None
+        self.is_stopped = True
+        self.event = None
+        self.cleanup()
 
     def generate(self):
         """Generate and play audio file"""

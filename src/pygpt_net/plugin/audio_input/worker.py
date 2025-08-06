@@ -40,7 +40,6 @@ class Worker(BaseWorker):
     @Slot()
     def run(self):
         """Run worker."""
-
         # from file
         if self.transcribe:
             self.handle_file()
@@ -51,6 +50,12 @@ class Worker(BaseWorker):
                 self.handle_advanced()
             else:
                 self.handle_simple()
+
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
 
     def handle_file(self):
         """Handle file"""
@@ -293,8 +298,9 @@ class ControlWorker(BaseWorker):
                 # handle transcript
                 if transcript is not None and transcript.strip() != '':
                     self.response(transcript)
-
         except Exception as e:
             self.error(e)
             self.stopped()
             self.status('Error: {}'.format(e))
+        finally:
+            self.cleanup()

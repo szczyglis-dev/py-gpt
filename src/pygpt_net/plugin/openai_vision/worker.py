@@ -67,6 +67,16 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             self.reply_more(responses)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        try:
+            self.signals.screenshot.disconnect()
+        except Exception as e:
+            pass
+        self.cleanup()
+
     def cmd_camera_capture(self, item: dict) -> dict:
         """
         Capture image from camera

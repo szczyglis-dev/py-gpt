@@ -822,6 +822,20 @@ class ExpertWorker(QObject, QRunnable):
         finally:
             self.signals.finished.emit()
 
+            # cleanup
+            self.window = None
+            self.master_ctx = None
+            self.expert_id = None
+            self.query = None
+            self.signals.finished.disconnect()  # disconnect finished signal
+            self.signals.response.disconnect()  # disconnect response signal
+            self.signals.error.disconnect()  # disconnect error signal
+            self.signals.event.disconnect()
+            self.signals.output.disconnect()
+            self.signals.lock_input.disconnect()
+            self.signals.cmd.disconnect()
+            self.deleteLater()  # delete worker instance
+
     def call_agent(
             self,
             context: BridgeContext,

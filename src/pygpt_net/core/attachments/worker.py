@@ -17,9 +17,10 @@ class WorkerSignals(QObject):
     error = Signal(object)
 
 
-class AttachmentWorker(QRunnable):
+class AttachmentWorker(QObject, QRunnable):
     def __init__(self, *args, **kwargs):
-        super(AttachmentWorker, self).__init__()
+        QObject.__init__(self)
+        QRunnable.__init__(self)
         self.signals = WorkerSignals()
         self.args = args
         self.kwargs = kwargs
@@ -39,3 +40,11 @@ class AttachmentWorker(QRunnable):
                 self.signals.error.emit(e)
             self.window.core.debug.error(e)
             print("Attachment indexing error", e)
+        finally:
+            if self.signals is not None:
+                self.signals.success.disconnect()
+                self.signals.error.disconnect()
+            self.window = None
+            self.meta = None
+            self.mode = None
+            self.deleteLater()

@@ -107,6 +107,23 @@ class Worker(BaseWorker):
         if len(responses) > 0:
             self.reply_more(responses)
 
+        # cleanup
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        # cleanup
+        try:
+            self.signals.output.disconnect()
+            self.signals.output_begin.disconnect()
+            self.signals.output_end.disconnect()
+            self.signals.html_output.disconnect()
+            self.signals.ipython_output.disconnect()
+            self.signals.clear.disconnect()
+        except Exception as e:
+            pass
+        self.cleanup()
+
     def cmd_ipython_execute_new(self, item: dict) -> dict:
         """
         Execute code in IPython interpreter (new kernel)

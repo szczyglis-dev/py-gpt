@@ -76,6 +76,12 @@ class Worker(BaseWorker):
         if msg is not None:
             self.status(msg)
 
+        self.on_destroy()
+
+    def on_destroy(self):
+        """Handle destroyed event."""
+        self.cleanup()
+
     def cmd_get_ctx_list_in_date_range(self, item: dict) -> dict:
         """
         Get context list in date range
