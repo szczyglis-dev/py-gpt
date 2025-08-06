@@ -169,6 +169,7 @@ class Response:
             output = ctx.output
             if output and has_unclosed_code_tag(output):
                 ctx.output += "\n```"
+            ctx.msg_id = None
             self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
             self.window.controller.ctx.prepare_name(ctx)  # summarize if not yet
             return
