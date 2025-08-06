@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
-import asyncio
 import threading
 import time
 from typing import Any, Dict, Optional, Union, List
@@ -289,7 +288,7 @@ class Kernel(QObject):
         """Terminate kernel"""
         self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
         self.stop(exit=True)
-        self.window.ui.hide_loading()
+        # self.window.ui.hide_loading()
         self.window.controller.plugins.destroy()
 
     def stop(self, exit: bool = False):

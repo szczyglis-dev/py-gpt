@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.10 19:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -199,7 +199,7 @@ class Output:
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
 
-        self.window.ui.nodes['anim.loading'] = Loading()
+        self.window.ui.nodes['anim.loading'] = QWidget()
         self.window.ui.nodes['anim.loading'].hide()
 
         grid = QGridLayout()
