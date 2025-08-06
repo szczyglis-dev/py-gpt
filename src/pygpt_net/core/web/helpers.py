@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.15 01:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import os
@@ -15,7 +15,6 @@ from typing import Optional, List, Dict, Tuple, Union
 
 import requests
 
-from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 
@@ -124,6 +123,7 @@ class Helpers:
         :param url: URL to get image from
         :return: image URL
         """
+        from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -173,6 +173,7 @@ class Helpers:
         :param url: URL to get links from
         :return: links list
         """
+        from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
         links = []
@@ -204,6 +205,7 @@ class Helpers:
         :param url: URL to get images from
         :return: images list
         """
+        from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
         images = []

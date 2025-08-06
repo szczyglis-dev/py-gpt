@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.28 00:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import re
-
-from bs4 import BeautifulSoup
 
 
 def output_html2text(html: str) -> str:
@@ -21,6 +19,7 @@ def output_html2text(html: str) -> str:
     :param html: HTML content
     :return: Plain text
     """
+    from bs4 import BeautifulSoup
     if html == "":
         return ""
     try:
@@ -67,6 +66,7 @@ def output_clean_html(html: str) -> str:
     :param html: HTML content
     :return: HTML content
     """
+    from bs4 import BeautifulSoup
     try:
         soup = BeautifulSoup(html, 'html.parser')
         # remove copy to clipboard from code blocks
