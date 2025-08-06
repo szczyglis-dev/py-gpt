@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,6 +16,78 @@ import time
 
 
 class CtxItem:
+
+    __slots__ = [
+        'id',
+        'meta',
+        'meta_id',
+        'external_id',
+        'stream',
+        'cmds',
+        'cmds_before',
+        'results',
+        'urls',
+        'urls_before',
+        'images',
+        'images_before',
+        'files',
+        'files_before',
+        'attachments',
+        'attachments_before',
+        'additional_ctx',
+        'reply',
+        'input',
+        'output',
+        'mode',
+        'model',
+        'thread',
+        'msg_id',
+        'run_id',
+        'input_name',
+        'output_name',
+        'input_timestamp',
+        'output_timestamp',
+        'hidden_input',
+        'hidden_output',
+        'input_tokens',
+        'output_tokens',
+        'total_tokens',
+        'extra',
+        'extra_ctx',
+        'current',
+        'internal',
+        'is_vision',
+        'is_audio',
+        'idx',
+        'first',
+        'live',
+        'agent_call',
+        'agent_final_response',
+        'use_agent_final_response',
+        'stream_agent_output',
+        'tool_calls',
+        'index_meta',
+        'doc_ids',
+        'prev_ctx',
+        'stopped',
+        'sub_calls',
+        'sub_call',
+        'sub_reply',
+        'sub_tool_call',
+        'hidden',
+        'use_responses_api',
+        'pid',
+        'audio_id',
+        'audio_output',
+        'audio_expires_ts',
+        'response',
+        'async_disabled',
+        'bag',
+        'live_output',
+        'force_call',
+        'partial'
+    ]
+
     def __init__(self, mode=None):
         """
         Context item
@@ -373,6 +445,40 @@ class CtxItem:
 
 
 class CtxMeta:
+
+    __slots__ = [
+        'id',
+        'external_id',
+        'uuid',
+        'name',
+        'date',
+        'created',
+        'updated',
+        'indexed',
+        'mode',
+        'model',
+        'last_mode',
+        'last_model',
+        'thread',
+        'assistant',
+        'preset',
+        'run',
+        'status',
+        'extra',
+        'initialized',
+        'deleted',
+        'important',
+        'archived',
+        'label',
+        'indexes',
+        'additional_ctx',
+        'group',
+        'group_id',
+        'root_id',
+        'parent_id',
+        'owner_uuid'
+    ]
+
     def __init__(self, id=None):
         """
         Context meta data
@@ -564,6 +670,18 @@ class CtxMeta:
         return self.dump()
 
 class CtxGroup:
+
+    __slots__ = [
+        'id',
+        'uuid',
+        'name',
+        'items',
+        'created',
+        'updated',
+        'additional_ctx',
+        'count'
+    ]
+
     def __init__(self, id=None, name=None):
         """
         Context group

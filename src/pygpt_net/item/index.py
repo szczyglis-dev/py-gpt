@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 17:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import json
 
 
 class IndexItem:
+
+    __slots__ = ['id', 'name', 'store', 'items']
+
     def __init__(self):
         """
         Index item

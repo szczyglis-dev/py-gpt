@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import json
@@ -20,6 +20,24 @@ from pygpt_net.core.types import (
 )
 
 class ModelItem:
+
+    __slots__ = [
+        'id',
+        'name',
+        'mode',
+        'langchain',
+        'llama_index',
+        'multimodal',
+        'input',
+        'output',
+        'ctx',
+        'tokens',
+        'default',
+        'imported',
+        'provider',
+        'tool_calls',
+        'extra'
+    ]
 
     OPENAI_COMPATIBLE = [
         "anthropic",

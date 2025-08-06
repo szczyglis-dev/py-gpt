@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import json
@@ -14,6 +14,43 @@ import uuid
 
 
 class PresetItem:
+
+    __slots__ = [
+        'uuid',
+        'name',
+        'ai_name',
+        'user_name',
+        'prompt',
+        'chat',
+        'completion',
+        'img',
+        'vision',
+        'langchain',
+        'assistant',
+        'llama_index',
+        'agent',
+        'agent_llama',
+        'agent_openai',
+        'expert',
+        'audio',
+        'research',
+        'computer',
+        'temperature',
+        'filename',
+        'model',
+        'version',
+        'experts',
+        'idx',
+        'agent_provider',
+        'agent_provider_openai',
+        'assistant_id',
+        'description',
+        'enabled',
+        'tools',
+        'remote_tools',
+        'extra'
+    ]
+
     def __init__(self):
         self.uuid = None
         self.name = "*"

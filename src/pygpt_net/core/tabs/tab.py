@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -23,6 +23,28 @@ class Tab:
     TAB_TOOL_PAINTER = 3
     TAB_TOOL_CALENDAR = 4
     TAB_TOOL = 100
+
+    __slots__ = [
+        'uuid',
+        'pid',
+        'idx',
+        'type',
+        'title',
+        'icon',
+        'tooltip',
+        'data_id',
+        'new_idx',
+        'custom_name',
+        'child',
+        'parent',
+        'column_idx',
+        'tool_id',
+        'loaded',
+        'on_delete',
+        'refs',
+        'created_at',
+        'updated_at'
+    ]
 
     def __init__(
             self,
