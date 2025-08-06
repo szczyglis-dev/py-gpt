@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.23 00:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
+
+from functools import partial
 
 from PySide6.QtGui import QAction, QIcon, QResizeEvent, Qt
 from PySide6.QtWidgets import QMenu
@@ -83,6 +85,9 @@ class AttachmentCtxList(BaseList):
 
         :param event: context menu event
         """
+        def ignore_trigger(func, arg, *args, **kwargs):
+            func(arg)
+
         actions = {}
 
         item = self.indexAt(event.pos())
@@ -98,22 +103,16 @@ class AttachmentCtxList(BaseList):
             has_dest = self.window.controller.chat.attachment.has_dest_by_idx(idx)
 
         actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
-        actions['open'].triggered.connect(
-            lambda: self.action_open(event)
-        )
+        actions['open'].triggered.connect(partial(ignore_trigger, self.action_open, event))
+
         actions['open_dir_src'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_dir_src'), self)
-        actions['open_dir_src'].triggered.connect(
-            lambda: self.action_open_dir_src(event)
-        )
+        actions['open_dir_src'].triggered.connect(partial(ignore_trigger, self.action_open_dir_src, event))
+
         actions['open_dir_dest'] = QAction(QIcon(":/icons/folder.svg"), trans('action.open_dir_storage'), self)
-        actions['open_dir_dest'].triggered.connect(
-            lambda: self.action_open_dir_dest(event)
-        )
+        actions['open_dir_dest'].triggered.connect(partial(ignore_trigger, self.action_open_dir_dest, event))
 
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
-        actions['delete'].triggered.connect(
-            lambda: self.action_delete(event)
-        )
+        actions['delete'].triggered.connect(partial(ignore_trigger, self.action_delete, event))
 
         menu = QMenu(self)
         if has_file:

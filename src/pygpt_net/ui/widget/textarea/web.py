@@ -6,17 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
 
 import re
+from functools import partial
 
-from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
+from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.core.events import RenderEvent, ControlEvent
@@ -52,6 +52,10 @@ class ChatWebOutput(QWebEngineView):
 
     def resetPage(self):
         """Reset current page (clear memory)"""
+        self.plain = ""
+        self.html_content = ""
+        profile = QWebEngineProfile.defaultProfile()
+        profile.clearHttpCache()
         self.setUpdatesEnabled(False)
         old_page = self.page()
         new_page = CustomWebEnginePage(self.window, self)
@@ -165,7 +169,7 @@ class ChatWebOutput(QWebEngineView):
             # audio read
             action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
             action.triggered.connect(
-                lambda: self.signals.audio_read.emit(selected_text)
+                partial(self.signals.audio_read.emit, selected_text)
             )
             menu.addAction(action)
 
@@ -176,7 +180,7 @@ class ChatWebOutput(QWebEngineView):
             # save as (selected)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(selected_text, 'txt')
+                partial(self.signals.save_as.emit, selected_text, 'txt')
             )
             menu.addAction(action)
         else:
@@ -188,14 +192,14 @@ class ChatWebOutput(QWebEngineView):
             # save as (all) - plain
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
+                partial(self.signals.save_as.emit,re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
             )
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
+                partial(self.signals.save_as.emit, re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
             )
             menu.addAction(action)
 

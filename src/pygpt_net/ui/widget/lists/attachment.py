@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 02:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
+
+from functools import partial
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QResizeEvent, QImage
@@ -87,6 +89,10 @@ class AttachmentList(BaseList):
 
         :param event: context menu event
         """
+
+        def ignore_trigger(func, arg, *args, **kwargs):
+            func(arg)
+
         mode = self.window.core.config.get('mode')
         item = self.indexAt(event.pos())
         idx = item.row()
@@ -98,42 +104,36 @@ class AttachmentList(BaseList):
             attachment = self.window.controller.attachment.get_by_idx(mode, idx)
             if attachment:
                 path = attachment.path
-            preview_actions = []
             if self.window.core.filesystem.actions.has_preview(path):
                 preview_actions = self.window.core.filesystem.actions.get_preview(self, path)
 
         actions = {}
         actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
-        actions['open'].triggered.connect(
-            lambda: self.action_open(event))
+        actions['open'].triggered.connect(partial(ignore_trigger, self.action_open, event))
 
         actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
-        actions['open_dir'].triggered.connect(
-            lambda: self.action_open_dir(event))
+        actions['open_dir'].triggered.connect(partial(ignore_trigger, self.action_open_dir, event))
 
         actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
-        actions['rename'].triggered.connect(
-            lambda: self.action_rename(event))
+        actions['rename'].triggered.connect(partial(ignore_trigger, self.action_rename, event))
 
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
-        actions['delete'].triggered.connect(
-            lambda: self.action_delete(event))
+        actions['delete'].triggered.connect(partial(ignore_trigger, self.action_delete, event))
 
         menu = QMenu(self)
         if attachment and attachment.type == AttachmentItem.TYPE_FILE:
             if idx >= 0 and preview_actions:
-                for action in preview_actions:
-                    menu.addAction(action)
+                for preview_action in preview_actions:
+                    menu.addAction(preview_action)
 
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
-            if idx >= 0:
-                if self.window.core.filesystem.actions.has_use(path):
-                    use_actions = self.window.core.filesystem.actions.get_use(self, path)
-                    use_menu = QMenu(trans('action.use'), self)
-                    for action in use_actions:
-                        use_menu.addAction(action)
-                    menu.addMenu(use_menu)
+            if idx >= 0 and self.window.core.filesystem.actions.has_use(path):
+                use_actions = self.window.core.filesystem.actions.get_use(self, path)
+                use_menu = QMenu(trans('action.use'), self)
+                for use_action in use_actions:
+                    use_menu.addAction(use_action)
+                menu.addMenu(use_menu)
 
             menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])

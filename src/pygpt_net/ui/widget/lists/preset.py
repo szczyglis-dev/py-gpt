@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.06 19:00:00                  #
 # ================================================== #
+
+from functools import partial
 
 from PySide6.QtCore import QPoint, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, Qt
@@ -68,39 +70,40 @@ class PresetList(BaseList):
             if preset_id in self.window.core.presets.items:
                 preset = self.window.core.presets.items[preset_id]
 
+        def ignore_trigger(func, item, *args, **kwargs):
+            func(item)
+
         actions = {}
 
         actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
-        actions['edit'].triggered.connect(
-            lambda checked=False, item=item: self.action_edit(item))
+        actions['edit'].triggered.connect(partial(ignore_trigger, self.action_edit, item))
 
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('preset.action.duplicate'), self)
-        actions['duplicate'].triggered.connect(
-            lambda checked=False, item=item: self.action_duplicate(item))
+        actions['duplicate'].triggered.connect(partial(ignore_trigger, self.action_duplicate, item))
 
         if self.window.controller.presets.is_current(idx):
             actions['restore'] = QAction(QIcon(":/icons/undo.svg"), trans('dialog.editor.btn.defaults'), self)
-            actions['restore'].triggered.connect(
-                lambda checked=False, item=item: self.action_restore(item))
+            actions['restore'].triggered.connect(partial(ignore_trigger, self.action_restore, item))
         else:
             actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
-            actions['delete'].triggered.connect(
-                lambda checked=False, item=item: self.action_delete(item))
+            actions['delete'].triggered.connect(partial(ignore_trigger, self.action_delete, item))
 
         menu = QMenu(self)
         menu.addAction(actions['edit'])
+
         if mode == MODE_EXPERT:
             if not preset.filename.startswith("current."):
                 if not preset.enabled:
                     actions['enable'] = QAction(QIcon(":/icons/check.svg"), trans('preset.action.enable'), self)
                     actions['enable'].triggered.connect(
-                        lambda checked=False, item=item: self.action_enable(item))
+                        partial(ignore_trigger, self.action_enable, item))
                     menu.addAction(actions['enable'])
                 else:
                     actions['disable'] = QAction(QIcon(":/icons/close.svg"), trans('preset.action.disable'), self)
                     actions['disable'].triggered.connect(
-                        lambda checked=False, item=item: self.action_disable(item))
+                        partial(ignore_trigger, self.action_disable, item))
                     menu.addAction(actions['disable'])
+
         if self.window.controller.presets.is_current(idx):
             actions['edit'].setEnabled(False)
             menu.addAction(actions['restore'])
