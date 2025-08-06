@@ -34,7 +34,7 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="D87AD712-BB2B-4911-999A-6D43C8D1FBDE">
+    <Component Id="ApplicationComponent" Guid="5F42266B-5B63-4D8F-8F67-EA1E1594C16C">
       <File Id="PygptExe" Source="$(var.SourceDir)\pygpt.exe" KeyPath="yes">
         <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
         <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
