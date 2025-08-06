@@ -119,6 +119,8 @@ class Memory:
             )
             # extract only input and output messages, skip step messages
             for item in items:
+                # count if last item
+                is_last_item = item == items[-1] if items else False
                 if item.extra is not None and type(item.extra) == dict:
                     # agent input
                     if item.extra.get("agent_input", False):
@@ -136,7 +138,7 @@ class Memory:
                             })
 
                 # previous response id
-                if item.msg_id is not None:
+                if is_last_item and item.msg_id is not None:
                     previous_response_id = item.msg_id
 
         return messages, previous_response_id
