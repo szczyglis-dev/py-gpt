@@ -304,6 +304,7 @@ code {{
 }}
 .empty_list {{
 }}
+
 .spinner {{
   display: inline-block;
   animation: spin 2s linear infinite;
@@ -344,4 +345,38 @@ think {{
     background: #0d1117;
     padding: 10px;
     font-size: 0.9rem;
+}}
+
+/* loader */
+.loader-global {{
+   text-align: center;
+   margin-top: 2rem;
+   margin-bottom: 2rem;
+}}
+.lds-ring {{
+   opacity: 0.75;
+}}
+.loader-global .lds-ring {{
+  width: 40px;
+  height: 40px;
+}}
+.loader-global .lds-ring div {{
+  width: 32px;
+  height: 32px;
+  border-width: 5px;
+}}
+.append_live {{
+  font-size: 0.8rem;
+}}
+.hidden {{
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}}
+
+.visible {{
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
 }}

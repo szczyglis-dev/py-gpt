@@ -226,3 +226,6 @@ QTextEdit,
 QLineEdit {{
  border: none;
 }}
+QComboBox::item:checked {{
+  font-weight: bold;
+}}

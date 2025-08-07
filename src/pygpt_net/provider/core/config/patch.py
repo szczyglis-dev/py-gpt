@@ -2174,6 +2174,16 @@ class Patch:
                 if "audio.output.device" not in data:
                     data["audio.output.device"] = "0"
 
+            # < 2.5.90
+            if old < parse_version("2.5.90"):
+                print("Migrating config from < 2.5.90...")
+                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:

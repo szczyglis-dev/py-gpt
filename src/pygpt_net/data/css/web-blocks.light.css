@@ -80,3 +80,8 @@ code {{
     text-decoration: none;
     color: #000 !important;
 }}
+/* loader */
+.lds-ring {{
+   color: #000;
+   opacity:0.5;
+}}
