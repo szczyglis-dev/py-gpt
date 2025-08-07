@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.12 19:00:00                  #
+# Updated Date: 2025.08.07 02:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -53,6 +53,19 @@ class Model:
         # update all layout
         self.window.controller.ui.update()
         self.window.dispatch(AppEvent(AppEvent.MODEL_SELECTED))  # app event
+
+        # update model in preset
+        preset = self.window.core.config.get('preset')
+        if preset and preset != "*":
+            preset_data = self.window.core.presets.get_by_id(mode, preset)
+            if preset_data:
+                preset_data.model = model
+                self.window.core.presets.save(preset)
+
+        # update model in current ctx meta
+        self.window.core.ctx.model = model
+        self.window.core.ctx.last_model = model
+        self.window.core.ctx.update_model_in_current(model)
 
     def next(self):
         """Select next model"""

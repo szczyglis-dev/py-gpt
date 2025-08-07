@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.07 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -1414,6 +1414,18 @@ class Ctx:
         if id not in self.groups:
             return None
         return self.groups[id]
+
+    def update_model_in_current(self, model):
+        """
+        Update model in current context
+
+        :param model: model name
+        """
+        if self.current is None:
+            return
+        if self.current in self.meta:
+            self.meta[self.current].last_model = model
+            self.save(self.current)
 
     def remove_group(
             self,
