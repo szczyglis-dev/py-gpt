@@ -1305,7 +1305,7 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },
+    },    
     "audio.input.backend": {
         "section": "audio",
         "type": "combo",
@@ -1313,7 +1313,8 @@
         "label": "settings.audio.input.backend",
         "description": "settings.audio.input.backend.desc",
         "value": 0,
-        "advanced": false
+        "advanced": false,        
+        "tab": "device"
     },
     "audio.input.device": {
         "section": "audio",
@@ -1322,7 +1323,8 @@
         "label": "settings.audio.input.device",
         "description": "settings.audio.input.device.desc",
         "value": 0,
-        "advanced": false
+        "advanced": false,        
+        "tab": "device"
     },
     "audio.output.backend": {
         "section": "audio",
@@ -1331,7 +1333,8 @@
         "label": "settings.audio.output.backend",
         "description": "settings.audio.output.backend.desc",
         "value": 0,
-        "advanced": false
+        "advanced": false,        
+        "tab": "device"
     },
     "audio.output.device": {
         "section": "audio",
@@ -1340,7 +1343,8 @@
         "label": "settings.audio.output.device",
         "description": "settings.audio.output.device.desc",
         "value": 0,
-        "advanced": false
+        "advanced": false,        
+        "tab": "device"
     },
     "audio.input.channels": {
         "section": "audio",
@@ -1353,7 +1357,8 @@
         "max": 4,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,        
+        "tab": "device"
     },
     "audio.input.rate": {
         "section": "audio",
@@ -1366,8 +1371,9 @@
         "max": 256000,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
-    },
+        "advanced": false,        
+        "tab": "device"
+    },    
     "audio.input.stop_interval": {
         "section": "audio",
         "type": "int",
@@ -1379,7 +1385,8 @@
         "max": 120,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,        
+        "tab": "options"
     },
     "audio.input.timeout": {
         "section": "audio",
@@ -1391,7 +1398,8 @@
         "min": 0,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,        
+        "tab": "options"
     },
     "audio.input.timeout.continuous": {
         "section": "audio",
@@ -1403,7 +1411,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,        
+        "tab": "options"
     },
     "remote_tools.web_search": {
         "section": "remote_tools",
