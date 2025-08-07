@@ -43,5 +43,19 @@ class ChatMain:
         self.window.ui.splitters['main.output'].addWidget(input)
         self.window.ui.splitters['main.output'].setStretchFactor(0, 9)  # Output widget stretch factor
         self.window.ui.splitters['main.output'].setStretchFactor(1, 1)  # Input widget stretch factor
+        self.window.ui.splitters['main.output'].splitterMoved.connect(self.on_splitter_moved)
+        self.window.controller.ui.splitter_output_size_input = self.window.ui.splitters['main.output'].sizes()
 
         return self.window.ui.splitters['main.output']
+
+    def on_splitter_moved(self, pos, index):
+        """
+        Store the size of the output splitter when it is moved
+        """
+        if "input" not in self.window.ui.tabs:
+            return
+        idx = self.window.ui.tabs['input'].currentIndex()
+        if idx != 0:
+            self.window.controller.ui.splitter_output_size_files = self.window.ui.splitters['main.output'].sizes()
+        else:
+            self.window.controller.ui.splitter_output_size_input = self.window.ui.splitters['main.output'].sizes()

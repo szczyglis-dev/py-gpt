@@ -42,6 +42,8 @@ class UI:
             7: {'label': 'label.color.violet', 'color': QColor(238, 130, 238), 'font': QColor(255, 255, 255)},
         }
         self.stop_action = None
+        self.splitter_output_size_input = None
+        self.splitter_output_size_files = None
 
     def setup(self):
         """Setup UI"""

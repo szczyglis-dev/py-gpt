@@ -45,6 +45,7 @@ class Input:
         self.min_height_files_tab = 120
         self.min_height_input_tab = 80
         self.min_height_input = 50
+        self.prev_input_splitter_value = 0
 
     def setup(self) -> QWidget:
         """
@@ -267,6 +268,10 @@ class Input:
         if idx == 0:
             self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
             self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
+            if self.window.controller.ui.splitter_output_size_input:
+                self.window.ui.splitters['main.output'].setSizes(self.window.controller.ui.splitter_output_size_input)
         else:
+            if self.window.controller.ui.splitter_output_size_files:
+                self.window.ui.splitters['main.output'].setSizes(self.window.controller.ui.splitter_output_size_files)
             self.window.ui.nodes['input'].setMinimumHeight(self.min_height_files_tab)
-            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_files_tab + 60)
+            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_files_tab + 90)
