@@ -226,7 +226,7 @@ class Output:
                 self.window.controller.chat.common.unlock_input()  # unlock input
 
         # handle ctx name (generate title from summary if not initialized)
-        if not reply and not internal:  # don't call if reply or internal mode
+        if not ctx.meta or not ctx.meta.initialized:  # don't call if reply or internal mode
             if self.window.core.config.get('ctx.auto_summary'):
                 self.log("Calling for prepare context name...")
                 self.window.controller.ctx.prepare_name(ctx)  # async
@@ -295,7 +295,7 @@ class Output:
             self.window.dispatch(event)  # reload chat window
 
         # self.window.core.debug.mem("END")  # debug memory usage
-        gc.collect()
+        # gc.collect()
 
     def log(self, data: Any):
         """
