@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.20 23:00:00                  #
+# Updated Date: 2025.08.07 18:00:00                  #
 # ================================================== #
 
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from PySide6.QtCore import QTimer
 
@@ -178,6 +178,7 @@ class Tabs:
 
         prev_tab = self.current
         prev_column = self.column_idx
+
         self.current = idx
         self.column_idx = column_idx
         self.window.controller.ui.mode.update()
@@ -287,6 +288,38 @@ class Tabs:
         """
         return self.window.core.tabs.get_min_idx_by_type(type, self.column_idx)
 
+    def get_prev_idx_from(self, idx: int) -> Tuple[int, bool]:
+        """
+        Get previous tab index from given index
+
+        :param idx: tab index
+        :return: tuple of previous index and boolean indicating if it exists
+        """
+        return self.window.core.tabs.get_prev_idx_from(idx, self.column_idx)
+
+    def get_next_idx_from(self, idx: int) -> Tuple[int, bool]:
+        """
+        Get next tab index from given index
+
+        :param idx: tab index
+        :return: tuple of next index and boolean indicating if it exists
+        """
+        return self.window.core.tabs.get_next_idx_from(idx, self.column_idx)
+
+    def get_after_close_idx(self, idx: int) -> int:
+        """
+        Get tab index after closing the given index
+
+        :param idx: tab index
+        :return: previous tab index if exists, otherwise None
+        """
+        prev_idx, exists = self.get_prev_idx_from(idx)
+        if exists:
+            return prev_idx
+        next_idx, exists = self.get_next_idx_from(idx)
+        if exists:
+            return next_idx
+
     def on_column_changed(self):
         """Column changed event"""
         if self.locked:
@@ -381,7 +414,21 @@ class Tabs:
         """
         if self.locked:
             return
+
+        previous_current = self.current
+        idx_after = None  # <--- next tab index after close to switch to
+        if previous_current != idx and self.column_idx == column_idx:
+            idx_after = previous_current
+            if idx_after > idx:
+                idx_after -= 1  # if current is after closed tab, idx will be shifted
+
+        if idx_after is None:
+            idx_after = self.get_after_close_idx(idx)  # find next tab index after close
+
         self.window.core.tabs.remove_tab_by_idx(idx, column_idx)
+        if idx_after is not None:
+            self.switch_tab_by_idx(idx_after, column_idx)
+
         self.on_changed()
         self.update_current()
         self.debug()
@@ -639,7 +686,10 @@ class Tabs:
 
         :param column_idx: column index
         """
-        idx = self.get_current_idx(column_idx)
+        # append at the end of column
+        idx = self.window.core.tabs.get_max_idx_by_column(column_idx)
+        if idx == -1:
+            idx = 0
         self.append(
             type=Tab.TAB_CHAT,
             tool_id=None,

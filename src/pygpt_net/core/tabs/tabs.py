@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2025.08.07 18:00:00                  #
 # ================================================== #
 
 import uuid
@@ -446,6 +446,66 @@ class Tabs:
                 exists = True
                 column_idx = tab.column_idx
         return min, column_idx, exists
+
+    def get_prev_idx_from(self, idx: int, column_idx: int = 0) -> Tuple[int, bool]:
+        """
+        Get previous index from the specified index
+
+        :param idx: Tab index
+        :param column_idx: Column index
+        :return: Previous index and exists flag
+        """
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if idx < 1:
+            return -1, False
+        prev_idx = idx - 1
+        if prev_idx < 0 or prev_idx >= tabs.count():
+            return -1, False
+        tab = self.get_tab_by_index(prev_idx, column_idx)
+        if tab is None:
+            return -1, False
+        if tab.column_idx != column_idx:
+            return -1, False
+        return prev_idx, True
+
+    def get_next_idx_from(self, idx: int, column_idx: int = 0) -> Tuple[int, bool]:
+        """
+        Get next index from the specified index
+
+        :param idx: Tab index
+        :param column_idx: Column index
+        :return: Next index and exists flag
+        """
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if idx < 0 or idx >= tabs.count():
+            return -1, False
+        next_idx = idx + 1
+        if next_idx < 0 or next_idx >= tabs.count():
+            return -1, False
+        tab = self.get_tab_by_index(next_idx, column_idx)
+        if tab is None:
+            return -1, False
+        if tab.column_idx != column_idx:
+            return -1, False
+        return next_idx, True
+
+    def get_max_idx_by_column(self, column_idx: int = 0) -> int:
+        """
+        Get max index in column
+
+        :param column_idx: Column index
+        :return: Max index
+        """
+        tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+        if tabs.count() == 0:
+            return -1
+        max_idx = -1
+        for idx in range(tabs.count()):
+            tab = self.get_tab_by_index(idx, column_idx)
+            if tab is not None and tab.column_idx == column_idx:
+                if tab.idx > max_idx:
+                    max_idx = tab.idx
+        return max_idx
 
     def update(self):
         """Update tabs data (pids) from UI (all columns)"""
