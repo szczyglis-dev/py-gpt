@@ -40,22 +40,6 @@ class BaseWorker(QObject, QRunnable):
         self.kwargs = None
         self.cmds = None
         self.ctx = None
-        if self.signals:
-            try:
-                if hasattr(self.signals, "finished"):
-                    self.signals.finished.disconnect()
-                if hasattr(self.signals, "finished_more"):
-                    self.signals.finished_more.disconnect()
-                if hasattr(self.signals, "log"):
-                    self.signals.log.disconnect()
-                if hasattr(self.signals, "debug"):
-                    self.signals.debug.disconnect()
-                if hasattr(self.signals, "status"):
-                    self.signals.status.disconnect()
-                if hasattr(self.signals, "error"):
-                    self.signals.error.disconnect()
-            except Exception as e:
-                pass
         self.deleteLater()  # delete worker instance
 
     def debug(self, msg: str):
