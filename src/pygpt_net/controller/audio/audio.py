@@ -12,6 +12,8 @@
 import os
 from typing import Optional
 
+from qasync import QApplication
+
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event, BaseEvent
 from pygpt_net.item.ctx import CtxItem
@@ -351,6 +353,7 @@ class Audio:
         :param text: text to play
         """
         self.window.update_status(trans("status.audio.start"))
+        QApplication.processEvents()  # process events to update UI
 
     def on_play(self, event: str):
         """
