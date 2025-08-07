@@ -468,7 +468,7 @@ class NativeBackend(QObject):
                 print(f"Error loading mp3 file: {e}")
                 return
 
-            base_dir = os.path.dirname(audio_file) if os.path.dirname(audio_file) else "."
+            base_dir = self.window.core.config.get_user_path()
             base_name = os.path.splitext(os.path.basename(audio_file))[0]
             wav_file = os.path.join(base_dir, "_" + base_name + ".wav")
             try:
