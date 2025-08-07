@@ -44,6 +44,14 @@ class NativeBackend(QObject):
         self.playback_timer = None
         self.audio_output = None
 
+        # Get configuration values (use defaults if unavailable)
+        if self.window is not None and hasattr(self.window, "core"):
+            self.channels = int(self.window.core.config.get('audio.input.channels', 1))
+            self.rate = int(self.window.core.config.get('audio.input.rate', 44100))
+        else:
+            self.channels = 1
+            self.rate = 44100
+
     def init(self):
         """
         Initialize audio input backend.
@@ -178,7 +186,7 @@ class NativeBackend(QObject):
 
     def check_audio_input(self) -> bool:
         """
-        Check if default audio input device is working using native PySide mechanizmy.
+        Check if default audio input device is working using native PySide.
 
         :return: True if working
         """
@@ -190,10 +198,10 @@ class NativeBackend(QObject):
             print("No audio input devices found.")
             return False
 
-        device = devices[0]
+        device = self.selected_device if self.selected_device else devices[0]
         audio_format = QAudioFormat()
-        audio_format.setSampleRate(44100)
-        audio_format.setChannelCount(1)
+        audio_format.setSampleRate(self.rate)
+        audio_format.setChannelCount(self.channels)
         audio_format.setSampleFormat(QAudioFormat.SampleFormat.Int16)
 
         if not device.isFormatSupported(audio_format):
@@ -220,8 +228,12 @@ class NativeBackend(QObject):
             self.selected_device = None
             print("No audio input devices found.")
         else:
-            # set the first device as default
-            self.selected_device = self.devices[0]
+            current = int(self.window.core.config.get('audio.input.device', 0))
+            if current < 0 or current >= len(self.devices):
+                # if current device is not valid, set the first device as default
+                print(f"Invalid audio input device index {current}, using the first device.")
+                current = 0
+            self.selected_device = self.devices[current]
 
     def device_changed(self, index: int):
         """
@@ -271,6 +283,12 @@ class NativeBackend(QObject):
         if not audio_input_device.isFormatSupported(audio_format):
             print("Requested format not supported, using nearest format.")
             audio_format = audio_input_device.preferredFormat()
+            if audio_format.channelCount() > 2:
+                audio_format.setChannelCount(2)
+            if audio_format.sampleRate() > 44100:
+                audio_format.setSampleRate(44100)
+            if audio_format.bytesPerSample() > 2:
+                audio_format.setSampleFormat(QAudioFormat.SampleFormat.Int16)
 
         # Store the actual format being used
         self.actual_audio_format = audio_format
