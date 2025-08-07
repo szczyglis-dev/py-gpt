@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 03:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,9 @@ import io
 # disable warnings
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg=false"
+
+# enable debug logging
+# os.environ["QT_LOGGING_RULES"] = "*.debug=true"
 
 _original_open = builtins.open
 
