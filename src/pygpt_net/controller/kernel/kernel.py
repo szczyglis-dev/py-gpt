@@ -52,6 +52,7 @@ class Kernel(QObject):
             KernelEvent.APPEND_DATA, 
             KernelEvent.INPUT_USER,
             KernelEvent.FORCE_CALL,
+            KernelEvent.STATUS,
         ]
 
     def init(self):

@@ -6,18 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
+import os
 import time
 from typing import List, Tuple
 
 from PySide6.QtCore import QTimer, QObject
+from pydub import AudioSegment
 
 
 class NativeBackend(QObject):
 
     MIN_FRAMES = 25  # minimum frames to start transcription
+    AUTO_CONVERT_TO_WAV = False  # automatically convert to WAV format
 
     def __init__(self, window=None):
         """
@@ -42,7 +45,10 @@ class NativeBackend(QObject):
         self.stop_callback = None
         self.player = None
         self.playback_timer = None
+        self.volume_timer = None
         self.audio_output = None
+        self.envelope = []
+        self.chunk_ms = 10
 
         # Get configuration values (use defaults if unavailable)
         if self.window is not None and hasattr(self.window, "core"):
@@ -457,8 +463,6 @@ class NativeBackend(QObject):
         :param signals: Signals to emit on playback
         :return: True if started
         """
-        import os
-        from pydub import AudioSegment
         from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices
         from PySide6.QtCore import QUrl, QTimer
         if signals is not None:
@@ -476,41 +480,56 @@ class NativeBackend(QObject):
             selected_device = devices[num_device] if num_device < len(devices) else devices[0]
             self.audio_output.setDevice(selected_device)
 
-        self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
-
-        if audio_file.lower().endswith('.mp3'):
-            try:
-                mp3_audio = AudioSegment.from_mp3(audio_file)
-            except Exception as e:
-                print(f"Error loading mp3 file: {e}")
-                return
-
-            base_dir = self.window.core.config.get_user_path()
-            base_name = os.path.splitext(os.path.basename(audio_file))[0]
-            wav_file = os.path.join(base_dir, "_" + base_name + ".wav")
-            try:
-                mp3_audio.export(wav_file, format="wav")
-            except Exception as e:
-                print(f"Error exporting wav file: {e}")
-                return
-
-            self.player.setSource(QUrl.fromLocalFile(wav_file))
-        else:
-            self.player.setSource(QUrl.fromLocalFile(audio_file))
-
-        self.player.play()
-        self.playback_timer = QTimer()
-        self.playback_timer.setInterval(100)
+        if self.AUTO_CONVERT_TO_WAV:
+            if audio_file.lower().endswith('.mp3'):
+                tmp_dir = self.window.core.audio.get_cache_dir()
+                base_name = os.path.splitext(os.path.basename(audio_file))[0]
+                dst_file = os.path.join(tmp_dir, "_" + base_name + ".wav")
+                wav_file = self.window.core.audio.mp3_to_wav(audio_file, dst_file)
+                if wav_file:
+                    audio_file = wav_file
 
         def check_stop():
             if stopped():
                 self.player.stop()
-                self.playback_timer.stop()
+                self.stop_timers()
+                signals.volume_changed.emit(0)
+            else:
+                if self.player:
+                    if self.player.playbackState() == QMediaPlayer.StoppedState:
+                        self.player.stop()
+                        self.stop_timers()
+                        signals.volume_changed.emit(0)
 
+        self.envelope = self.calculate_envelope(audio_file, self.chunk_ms)
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
+        self.player.setSource(QUrl.fromLocalFile(audio_file))
+        self.player.play()
+
+        self.playback_timer = QTimer()
+        self.playback_timer.setInterval(100)
         self.playback_timer.timeout.connect(check_stop)
+        self.volume_timer = QTimer(self)
+        self.volume_timer.setInterval(10)  # every 100 ms
+        self.volume_timer.timeout.connect(
+            lambda: self.update_volume(signals)
+        )
+
         self.playback_timer.start()
+        self.volume_timer.start()
         signals.volume_changed.emit(0)
+
+    def stop_timers(self):
+        """
+        Stop playback timers.
+        """
+        if self.playback_timer is not None:
+            self.playback_timer.stop()
+            self.playback_timer = None
+        if self.volume_timer is not None:
+            self.volume_timer.stop()
+            self.volume_timer = None
 
     def play(
             self,
@@ -542,6 +561,49 @@ class NativeBackend(QObject):
             if self.playback_timer is not None:
                 self.playback_timer.stop()
         return False
+
+    def calculate_envelope(
+            self,
+            audio_file: str,
+            chunk_ms: int = 100
+    ) -> list:
+        """
+        Calculate the volume envelope of an audio file.
+
+        :param audio_file: Path to the audio file
+        :param chunk_ms: Size of each chunk in milliseconds
+        """
+        import numpy as np
+        audio = AudioSegment.from_file(audio_file)
+        max_amplitude = 32767
+        envelope = []
+
+        for ms in range(0, len(audio), chunk_ms):
+            chunk = audio[ms:ms + chunk_ms]
+            rms = chunk.rms
+            if rms > 0:
+                db = 20 * np.log10(rms / max_amplitude)
+            else:
+                db = -60
+            db = max(-60, min(0, db))
+            volume = ((db + 60) / 60) * 100
+            envelope.append(volume)
+
+        return envelope
+
+    def update_volume(self, signals=None):
+        """
+        Update the volume based on the current position in the audio file.
+
+        :param signals: Signals object to emit volume changed event.
+        """
+        pos = self.player.position()
+        index = int(pos / self.chunk_ms)
+        if index < len(self.envelope):
+            volume = self.envelope[index]
+        else:
+            volume = 0
+        signals.volume_changed.emit(volume)
 
     def get_input_devices(self) -> List[Tuple[int, str]]:
         """

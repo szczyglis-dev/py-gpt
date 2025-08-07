@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -176,6 +176,19 @@ class Plugin(BasePlugin):
             if not ctx.audio_read_allowed():
                 return  # abort if audio read is not allowed (commands, results, etc.)
 
+        # cache ctx
+        cache_enabled = self.window.core.config.get("audio.cache.enabled", False)
+        if cache_enabled and not cache_file:
+            # gen cache file path if exists
+            tmp_cache_file, is_cached = self.window.core.audio.prepare_cache_path(text)
+            if is_cached:
+                event = Event(Event.AUDIO_PLAYBACK, ctx=ctx)
+                event.data = {"audio_file": tmp_cache_file}
+                return self.on_playback(ctx, event)  # playback cached audio file
+            else:
+                if tmp_cache_file:
+                    cache_file = tmp_cache_file  # store cache file
+
         try:
             if text is not None and len(text) > 0:
                 self.stop_audio()
@@ -215,6 +228,7 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param event: Event
         """
+        name = event.name
         try:
             self.stop_audio()
 
@@ -228,6 +242,9 @@ class Plugin(BasePlugin):
             worker.signals.error_playback.connect(self.handle_playback_error)
             worker.signals.stop.connect(self.handle_stop)
             worker.signals.volume_changed.connect(self.handle_volume)
+
+            if name == Event.AUDIO_READ_TEXT:
+                self.window.controller.audio.on_begin("")
 
             backend = self.window.core.config.get("audio.output.backend", "native")
             if backend == "native":

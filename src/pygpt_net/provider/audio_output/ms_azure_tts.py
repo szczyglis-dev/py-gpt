@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 19:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 import os
@@ -111,7 +111,7 @@ class MSAzureTextToSpeech(BaseProvider):
         if response.status_code == 200:
             with open(path, "wb") as file:
                 file.write(response.content)
-            return path
+            return str(path)
 
     def is_configured(self) -> bool:
         """

@@ -55,13 +55,21 @@ class JsonFileProvider(BaseProvider):
                 shutil.copyfile(src, dst)
                 print("RECOVERY: Restored config file from base config: {}".format(src))
 
-        # data/tmp directory
+        # data tmp
         tmp_dir = os.path.join(self.window.core.config.get_user_dir('data'), 'tmp')
         if not os.path.exists(tmp_dir):
             try:
                 os.makedirs(tmp_dir, exist_ok=True)
             except Exception as e:
-                print("WARNING: Cannot create ``{}`` temp directory: {}".format(tmp_dir, e))
+                print("WARNING: Cannot create ``{}`` data temp directory: {}".format(tmp_dir, e))
+
+        # base tmp
+        tmp_dir = os.path.join(self.window.core.config.get_user_path(), 'tmp')
+        if not os.path.exists(tmp_dir):
+            try:
+                os.makedirs(tmp_dir, exist_ok=True)
+            except Exception as e:
+                print("WARNING: Cannot create ``{}`` base temp directory: {}".format(tmp_dir, e))
 
     def get_version(self) -> Optional[str]:
         """

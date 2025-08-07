@@ -1374,6 +1374,16 @@
         "advanced": false,        
         "tab": "device"
     },    
+    "audio.cache.enabled": {
+        "section": "audio",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.audio.cache.enabled",
+        "description": "settings.audio.cache.enabled.desc",
+        "value": true,
+        "advanced": false,        
+        "tab": "options"
+    },
     "audio.input.stop_interval": {
         "section": "audio",
         "type": "int",

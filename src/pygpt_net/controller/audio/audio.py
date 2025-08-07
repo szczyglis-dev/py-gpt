@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.17 13:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 import os
@@ -291,7 +291,7 @@ class Audio:
 
         if use_cache:
             lang = self.window.core.config.get("lang")
-            cache_dir = os.path.join(self.window.core.config.get_user_path(), "cache", "audio", lang)
+            cache_dir = os.path.join(self.window.core.audio.get_cache_dir(), lang)
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir, exist_ok=True)
             cache_file = os.path.join(str(cache_dir), event.name + ".wav")
@@ -318,7 +318,7 @@ class Audio:
             )
             return
 
-        cache_dir = os.path.join(self.window.core.config.get_user_path(), "cache", "audio")
+        cache_dir = self.window.core.audio.get_cache_dir()
         if os.path.exists(cache_dir):
             import shutil
             shutil.rmtree(cache_dir)
@@ -352,7 +352,10 @@ class Audio:
 
         :param text: text to play
         """
-        self.window.update_status(trans("status.audio.start"))
+        if text:
+            self.window.update_status(trans("status.audio.start"))
+        else:
+            self.window.update_status("")
         QApplication.processEvents()  # process events to update UI
 
     def on_play(self, event: str):

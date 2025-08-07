@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 import os
@@ -107,7 +107,7 @@ class ElevenLabsTextToSpeech(BaseProvider):
             for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 if chunk:
                     f.write(chunk)
-        return path
+        return str(path)
 
     def is_configured(self) -> bool:
         """

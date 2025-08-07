@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -231,8 +231,7 @@ class Voice(QObject):
             self.switch_btn_stop()
 
             # stop audio output if playing
-            if self.window.controller.audio.is_playing():
-                self.window.controller.audio.stop_output()
+            self.window.controller.audio.stop_output()
 
             # set audio volume bar
             self.window.core.audio.capture.set_bar(

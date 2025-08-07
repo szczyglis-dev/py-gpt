@@ -6,9 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
+import hashlib
+import os
 import re
 from typing import Union, Optional, Tuple, List
 
@@ -21,6 +23,9 @@ from .whisper import Whisper
 
 
 class Audio:
+
+    CACHE_FORMAT = "mp3"  # default cache format
+
     def __init__(self, window=None):
         """
         Audio input/output core
@@ -173,3 +178,63 @@ class Audio:
         :return: Error
         """
         return self.last_error
+
+    def prepare_cache_path(self, content: str) -> Tuple[Union[str, None], bool]:
+        """
+        Prepare unique cache file name for given content
+
+        :param content: text content to generate cache file name
+        :return: cache file path or None if content is empty
+        """
+        exists = False
+        if not content:
+            return None, exists
+        sha1sum = hashlib.sha1(content.encode('utf-8')).hexdigest()
+        filename = f"{sha1sum}." + self.CACHE_FORMAT
+        tmp_dir = self.get_cache_dir()
+        path = os.path.join(tmp_dir, filename)
+        if os.path.exists(path):
+            exists = True
+        return str(path), exists
+
+    def get_cache_dir(self) -> str:
+        """
+        Get cache directory for audio files
+
+        :return: audio cache directory path
+        """
+        dir = self.window.core.config.get_user_dir("tmp")
+        tmp_dir = os.path.join(dir, "audio_cache")
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir, exist_ok=True)
+        return tmp_dir
+
+    def mp3_to_wav(
+            self,
+            src_file: str,
+            dst_file: Optional[str] = None
+    ) -> Union[str, None]:
+        """
+        Convert MP3 file to WAV format
+
+        :param src_file: Path to the source MP3 file
+        :param dst_file: Optional path for the destination WAV file.
+        :return: Path to the converted WAV file or None if conversion fails.
+        """
+        from pydub import AudioSegment
+        try:
+            mp3_audio = AudioSegment.from_mp3(src_file)
+        except Exception as e:
+            print(f"Error loading mp3 file: {e}")
+            print("Please install ffmpeg to handle mp3 files: https://ffmpeg.org/")
+            return
+        if dst_file is None:
+            dir = os.path.dirname(src_file)
+            filename = os.path.splitext(os.path.basename(src_file))[0] + ".wav"
+            dst_file = os.path.join(dir, filename)
+        try:
+            mp3_audio.export(dst_file, format="wav")
+            return str(dst_file)
+        except Exception as e:
+            print(f"Error exporting wav file: {e}")
+            return

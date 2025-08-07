@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 18:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 import os
@@ -79,7 +79,7 @@ class OpenAITextToSpeech(BaseProvider):
             input=text,
         )
         response.stream_to_file(path)
-        return path
+        return str(path)
 
     def is_configured(self) -> bool:
         """

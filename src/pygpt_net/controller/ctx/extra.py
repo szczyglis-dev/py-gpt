@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -220,12 +220,7 @@ class Extra:
                 self.window.controller.audio.read_text(item.output)
                 self.audio_play_id = item_id
             elif self.audio_play_id == item_id:
-                if not self.window.controller.audio.is_playing():
-                    self.window.controller.audio.read_text(item.output)
-                else:
-                    self.window.controller.audio.stop_output()
-                    self.window.controller.audio.on_stop()
-                    self.audio_play_id = None
+                self.window.controller.audio.read_text(item.output)
 
     def join_item(
             self,

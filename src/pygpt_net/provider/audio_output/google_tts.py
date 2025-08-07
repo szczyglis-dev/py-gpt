@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2025.08.07 22:00:00                  #
 # ================================================== #
 import json
 import os
@@ -108,7 +108,7 @@ class GoogleTextToSpeech(BaseProvider):
         content = json.loads(r.content)
         with open(path, "wb") as file:
             file.write(content.get("audioContent"))
-        return path
+        return str(path)
 
     def is_configured(self) -> bool:
         """
