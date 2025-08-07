@@ -217,8 +217,6 @@ class Audio:
 
         :param max_files: Maximum number of cache files to keep.
         """
-        max_files = max_files - 1  # Reserve one file for the current cache
-        max_files = max(1, max_files)  # Ensure at least one file is kept
         tmp_dir = self.get_cache_dir()
         files = [os.path.join(tmp_dir, f) for f in os.listdir(tmp_dir) if f.endswith('.' + self.CACHE_FORMAT)]
         files.sort(key=os.path.getmtime, reverse=True)
