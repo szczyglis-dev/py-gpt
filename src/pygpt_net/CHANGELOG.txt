@@ -1,3 +1,9 @@
+2.5.90 (2025-08-07)
+
+- Fix: Initialize context summary if a conversation starts with a tool call.
+- Fix: Store splitter positions even if the object is deleted from memory.
+- Update: CSS improvements.
+
 2.5.89 (2025-08-07)
 
 - Added audio output device selection in Config -> Audio - issue #117

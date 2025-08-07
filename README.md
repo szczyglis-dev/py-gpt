@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.89** | build: **2025-08-07** | Python: **>=3.10, <3.14**
+Release: **2.5.90** | build: **2025-08-07** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4248,6 +4248,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.90 (2025-08-07)**
+
+- Fix: Initialize context summary if a conversation starts with a tool call.
+- Fix: Store splitter positions even if the object is deleted from memory.
+- Update: CSS improvements.
 
 **2.5.89 (2025-08-07)**
 
