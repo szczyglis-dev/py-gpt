@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -102,7 +102,7 @@ class Notepad:
         if notepad.idx not in self.items:
             return False
 
-        notepad.updated_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        notepad.updated = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         self.items[notepad.idx] = notepad
         self.save(notepad.idx)
         return True
