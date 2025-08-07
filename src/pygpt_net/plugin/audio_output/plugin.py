@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 03:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -194,12 +194,16 @@ class Plugin(BasePlugin):
                 worker.signals.stop.connect(self.handle_stop)
                 worker.signals.volume_changed.connect(self.handle_volume)
 
-                worker.run_async()
-                self.worker = worker
-
                 # only for manual reading
                 if name == Event.AUDIO_READ_TEXT:
-                    self.window.controller.audio.on_begin(self.worker.text)
+                    self.window.controller.audio.on_begin(worker.text)
+
+                backend = self.window.core.config.get("audio.output.backend", "native")
+                if backend == "native":
+                    worker.generate()
+                else:
+                    worker.run_async()
+                self.worker = worker
 
         except Exception as e:
             self.error(e)
@@ -225,7 +229,12 @@ class Plugin(BasePlugin):
             worker.signals.stop.connect(self.handle_stop)
             worker.signals.volume_changed.connect(self.handle_volume)
 
-            worker.run_async()
+            backend = self.window.core.config.get("audio.output.backend", "native")
+            if backend == "native":
+                worker.play()
+            else:
+                worker.run_async()
+
             self.worker = worker
 
         except Exception as e:
@@ -265,6 +274,7 @@ class Plugin(BasePlugin):
         """
         if self.worker is not None:
             self.worker.stop()
+        self.window.core.audio.output.stop(signals=None)
         self.handle_volume(0.0)
 
     @Slot(object)

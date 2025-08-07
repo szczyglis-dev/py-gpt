@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.01.18 23:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import os
@@ -74,12 +74,12 @@ class Simple:
                 return
 
         # enable continuous mode if notepad tab is active
-        self.plugin.window.core.audio.capture.stop_callback = self.on_stop
+        self.plugin.window.core.audio.capture.set_repeat_callback(self.on_stop)
         continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
         if continuous_enabled and self.plugin.window.controller.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD:
-            self.plugin.window.core.audio.capture.loop = True  # set loop
+            self.plugin.window.core.audio.capture.set_loop(True)  # set loop
         else:
-            self.plugin.window.core.audio.capture.loop = False
+            self.plugin.window.core.audio.capture.set_loop(False)
 
         try:
             # stop audio output if playing
@@ -148,8 +148,7 @@ class Simple:
                 return
 
             if self.plugin.window.core.audio.capture.has_frames():
-                frames = self.plugin.window.core.audio.capture.get_frames()
-                if len(frames) < self.MIN_FRAMES:
+                if not self.plugin.window.core.audio.capture.has_min_frames():
                     self.plugin.window.update_status(trans("status.audio.too_short"))
                     self.plugin.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return
@@ -157,7 +156,6 @@ class Simple:
                 self.plugin.handle_thread(True)  # handle transcription in simple mode
         else:
             self.plugin.window.update_status("")
-
 
     def on_stop(self):
         """Handle auto-transcribe"""

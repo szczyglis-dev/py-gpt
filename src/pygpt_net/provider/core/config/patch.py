@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.26 18:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -2161,6 +2161,18 @@ class Patch:
                         'prompt.agent.llama.eval.complete')
                 data["prompt.agent.llama.eval"] = self.window.core.config.get_base(
                     'prompt.agent.llama.eval')
+
+            # < 2.5.89
+            if old < parse_version("2.5.89"):
+                print("Migrating config from < 2.5.89.")
+                if "audio.input.backend" not in data:
+                    data["audio.input.backend"] = "native"
+                if "audio.output.backend" not in data:
+                    data["audio.output.backend"] = "native"
+                if "audio.input.device" not in data:
+                    data["audio.input.device"] = "0"
+                if "audio.output.device" not in data:
+                    data["audio.output.device"] = "0"
 
         # update file
         migrated = False

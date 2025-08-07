@@ -1306,12 +1306,39 @@
         "step": 1,
         "advanced": false
     },
+    "audio.input.backend": {
+        "section": "audio",
+        "type": "combo",
+        "use": "audio_input_backend",
+        "label": "settings.audio.input.backend",
+        "description": "settings.audio.input.backend.desc",
+        "value": 0,
+        "advanced": false
+    },
     "audio.input.device": {
         "section": "audio",
         "type": "combo",
         "use": "audio_input_devices",
         "label": "settings.audio.input.device",
         "description": "settings.audio.input.device.desc",
+        "value": 0,
+        "advanced": false
+    },
+    "audio.output.backend": {
+        "section": "audio",
+        "type": "combo",
+        "use": "audio_output_backend",
+        "label": "settings.audio.output.backend",
+        "description": "settings.audio.output.backend.desc",
+        "value": 0,
+        "advanced": false
+    },
+    "audio.output.device": {
+        "section": "audio",
+        "type": "combo",
+        "use": "audio_output_devices",
+        "label": "settings.audio.output.device",
+        "description": "settings.audio.output.device.desc",
         "value": 0,
         "advanced": false
     },

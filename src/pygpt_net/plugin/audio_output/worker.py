@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import time
-import wave
-import io
 
 from PySide6.QtCore import Slot, Signal
 
@@ -85,95 +83,12 @@ class Worker(BaseWorker):
         :param audio_file: audio file path
         """
         try:
-            import pyaudio
-            import numpy as np
-            from pydub import AudioSegment
-            self.signals.playback.emit(self.event)
-            audio = AudioSegment.from_file(audio_file)
-            audio = audio.set_frame_rate(44100)  # resample to 44.1 kHz
-            wav_io = io.BytesIO()
-            audio.export(wav_io, format='wav')
-            wav_io.seek(0)
-            wf = wave.open(wav_io, 'rb')
-            self.p = pyaudio.PyAudio()
-            self.stream = self.p.open(format=self.p.get_format_from_width(wf.getsampwidth()),
-                                      channels=wf.getnchannels(),
-                                      rate=wf.getframerate(),
-                                      output=True)
-
-            sample_width = wf.getsampwidth()
-            format = self.p.get_format_from_width(sample_width)
-
-            if format == pyaudio.paInt8:
-                dtype = np.int8
-                max_value = 2 ** 7 - 1  # 127
-                offset = 0
-            elif format == pyaudio.paInt16:
-                dtype = np.int16
-                max_value = 2 ** 15 - 1  # 32767
-                offset = 0
-            elif format == pyaudio.paInt32:
-                dtype = np.int32
-                max_value = 2 ** 31 - 1  # 2147483647
-                offset = 0
-            elif format == pyaudio.paUInt8:
-                dtype = np.uint8
-                max_value = 2 ** 8 - 1  # 255
-                offset = 128  # center unsigned data
-            else:
-                raise ValueError(f"Unsupported format: {format}")
-
-            chunk_size = 512
-            data = wf.readframes(chunk_size)
-
-            while data != b'' and not self.is_stopped:
-                self.stream.write(data)
-
-                audio_data = np.frombuffer(data, dtype=dtype)
-                if len(audio_data) > 0:
-                    audio_data = audio_data.astype(np.float32)
-                    if dtype == np.uint8:
-                        audio_data -= offset
-
-                    # compute RMS
-                    rms = np.sqrt(np.mean(audio_data ** 2))
-
-                    if rms > 0:
-                        # RMS to decibels
-                        db = 20 * np.log10(rms / max_value)
-
-                        # define minimum and maximum dB levels
-                        min_db = -60  # adjust as needed
-                        max_db = 0
-
-                        # clamp the db value to the range [min_db, max_db]
-                        if db < min_db:
-                            db = min_db
-                        elif db > max_db:
-                            db = max_db
-
-                        # map decibel value to volume percentage
-                        volume_percentage = ((db - min_db) / (max_db - min_db)) * 100
-                    else:
-                        volume_percentage = 0
-
-                    # emit volume signal
-                    self.signals.volume_changed.emit(volume_percentage)
-                else:
-                    # if empty audio_data
-                    self.signals.volume_changed.emit(0)
-
-                data = wf.readframes(chunk_size)
-
-            # close the stream
-            if self.stream is not None:
-                if self.stream.is_active():
-                    self.stream.stop_stream()
-                self.stream.close()
-            if self.p is not None:
-                self.p.terminate()
-            wf.close()
-            self.signals.volume_changed.emit(0)
+            self.plugin.window.core.audio.output.play(
+                audio_file=audio_file,
+                event_name=self.event,
+                stopped=self.stopped,
+                signals=self.signals
+            )
         except Exception as e:
             self.signals.volume_changed.emit(0)
             self.signals.error_playback.emit(e)
@@ -207,3 +122,11 @@ class Worker(BaseWorker):
     def stop(self):
         """Send stop signal to main thread"""
         self.is_stopped = True
+
+    def stopped(self) -> bool:
+        """
+        Check if playback is stopped
+
+        :return: True if stopped
+        """
+        return self.is_stopped

@@ -6,19 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import re
 from typing import Union, Optional, Tuple, List
 
-from PySide6.QtMultimedia import QMediaDevices
-from bs4 import UnicodeDammit
-
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
 
 from .capture import Capture
+from .output import Output
 from .whisper import Whisper
 
 
@@ -31,10 +29,11 @@ class Audio:
         """
         self.window = window
         self.capture = Capture(window)
+        self.output = Output(window)
         self.whisper = Whisper(window)
         self.providers = {
-            "input": {},
-            "output": {},
+            "input": {},  # audio transcription providers
+            "output": {}, # speech synthesis providers
         }
         self.last_error = None
 
@@ -44,37 +43,55 @@ class Audio:
 
         :return devices list: [(id, name)]
         """
-        devices = QMediaDevices.audioInputs()
-        devices_list = []
-        for index, device in enumerate(devices):
-            dammit = UnicodeDammit(device.description())
-            devices_list.append((index, dammit.unicode_markup))
-        return devices_list
+        return self.capture.get_input_devices()
 
-    def is_device_compatible(self, device_index: int) -> bool:
+    def get_output_devices(self) -> List[Tuple[int, str]]:
         """
-        Check if device is compatible
+        Get output devices
 
-        :param device_index: device index
-        :return: True if compatible
+        :return devices list: [(id, name)]
         """
-        import pyaudio
-        rate = int(self.window.core.config.get('audio.input.rate', 44100))
-        channels = int(self.window.core.config.get('audio.input.channels', 1))
-        p = pyaudio.PyAudio()
-        info = p.get_device_info_by_index(device_index)
-        try:
-            p.is_format_supported(
-                rate=rate,
-                input_device=info['index'],
-                input_channels=channels,
-                input_format=pyaudio.paInt16)
-            supported = True
-        except ValueError as e:
-            self.last_error = str(e)
-            supported = False
-        p.terminate()
-        return supported
+        return self.output.get_output_devices()
+
+    def get_input_backends(self) -> List[Tuple[str, str]]:
+        """
+        Get input backends
+
+        :return backends list: [(id, name)]
+        """
+        choices = []
+        choices.append(("native", "Native / QtMultimedia"))
+        choices.append(("pyaudio", "PyAudio"))
+        choices.append(("pygame", "PyGame"))
+        return choices
+
+    def get_output_backends(self) -> List[Tuple[str, str]]:
+        """
+        Get output backends
+
+        :return backends list: [(id, name)]
+        """
+        choices = []
+        choices.append(("native", "Native / QtMultimedia"))
+        choices.append(("pyaudio", "PyAudio"))
+        # choices.append(("pygame", "PyGame"))
+        return choices
+
+    def get_default_input_device(self) -> Tuple[int, str]:
+        """
+        Get default input device
+
+        :return: (id, name)
+        """
+        return self.capture.get_default_input_device()
+
+    def get_default_output_device(self) -> Tuple[int, str]:
+        """
+        Get default output device
+
+        :return: (id, name)
+        """
+        return self.output.get_default_output_device()
 
     def is_registered(self, id: str, type: str = "output") -> bool:
         """

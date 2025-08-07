@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -136,6 +136,12 @@ class Placeholder:
             return self.get_voice_control_actions()
         elif id == "audio_input_devices":
             return self.get_audio_input_devices()
+        elif id == "audio_output_devices":
+            return self.get_audio_output_devices()
+        elif id == "audio_input_backend":
+            return self.get_audio_input_backend()
+        elif id == "audio_output_backend":
+            return self.get_audio_output_backend()
         elif id == "audio_tts_whisper_voices":
             return self.get_audio_tts_whisper_voices()
         else:
@@ -163,6 +169,42 @@ class Placeholder:
         data = []
         for device in devices:
             data.append({str(device[0]): device[1]})
+        return data
+
+    def get_audio_output_devices(self) -> List[Dict[str, str]]:
+        """
+        Get audio output devices list
+
+        :return: placeholders list
+        """
+        devices = self.window.core.audio.get_output_devices()
+        data = []
+        for device in devices:
+            data.append({str(device[0]): device[1]})
+        return data
+
+    def get_audio_input_backend(self) -> List[Dict[str, str]]:
+        """
+        Get audio input backends list
+
+        :return: placeholders list
+        """
+        items = self.window.core.audio.get_input_backends()
+        data = []
+        for item in items:
+            data.append({str(item[0]): item[1]})
+        return data
+
+    def get_audio_output_backend(self) -> List[Dict[str, str]]:
+        """
+        Get audio output backends list
+
+        :return: placeholders list
+        """
+        items = self.window.core.audio.get_output_backends()
+        data = []
+        for item in items:
+            data.append({str(item[0]): item[1]})
         return data
 
     def get_langchain_providers(self) -> List[Dict[str, str]]:

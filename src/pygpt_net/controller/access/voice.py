@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict, Any
@@ -290,8 +290,7 @@ class Voice:
                 return
 
             if self.window.core.audio.capture.has_frames():
-                frames = self.window.core.audio.capture.get_frames()
-                if len(frames) < self.MIN_FRAMES:
+                if not self.window.core.audio.capture.has_min_frames():
                     self.window.update_status(trans("status.audio.too_short"))
                     self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
                     return

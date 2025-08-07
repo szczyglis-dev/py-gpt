@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import copy
@@ -67,6 +67,8 @@ class Editor:
         self.window.ui.add_hook("update.config.render.code_syntax", self.hook_update)
         self.window.ui.add_hook("update.config.theme.style", self.hook_update)
         self.window.ui.add_hook("update.config.llama.idx.chat.agent.render.all", self.hook_update)
+        self.window.ui.add_hook("update.config.audio.input.backend", self.hook_update)
+        self.window.ui.add_hook("update.config.audio.output.backend", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -334,6 +336,38 @@ class Editor:
         elif key == "debug":
             self.window.core.config.set(key, value)
             self.window.controller.debug.toggle_menu()
+
+        # audio devices
+        elif key == "audio.input.backend":
+            self.window.core.config.set(key, value)
+            items = self.window.controller.config.placeholder.get_audio_input_devices()
+            option = self.options.get("audio.input.device", {})
+            default_id, _ = self.window.core.audio.get_default_input_device()
+            if default_id is None:
+                default_id = 0
+            self.window.controller.config.update_list(option, "config", "audio.input.device", items)
+            self.window.controller.config.apply_value(
+                parent_id='config',
+                key='audio.input.device',
+                option=option,
+                value=str(default_id)  # default device,
+            )
+            self.window.core.config.set("audio.input.device", str(default_id))  # reset to default device
+        elif key == "audio.output.backend":
+            self.window.core.config.set(key, value)
+            items = self.window.controller.config.placeholder.get_audio_output_devices()
+            option = self.options.get("audio.output.device", {})
+            default_id, _ = self.window.core.audio.get_default_output_device()
+            if default_id is None:
+                default_id = 0
+            self.window.controller.config.update_list(option, "config", "audio.output.device", items)
+            self.window.controller.config.apply_value(
+                parent_id='config',
+                key='audio.output.device',
+                option=option,
+                value=str(default_id)  # default device,
+            )
+            self.window.core.config.set("audio.output.device", str(default_id))  # reset to default device
 
     def toggle_collapsed(
             self,
