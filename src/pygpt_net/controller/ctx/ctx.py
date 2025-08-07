@@ -263,8 +263,6 @@ class Ctx:
         :param force: force context creation
         :param group_id: group ID
         """
-        gc.collect() # collect garbage to free memory
-
         # lock if generating response is in progress
         if not force and self.context_change_locked():
             return

@@ -13,7 +13,7 @@ from typing import Optional, List, Dict, Any
 
 import os
 
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer, Slot, QObject
 from qasync import QApplication
 
 from pygpt_net.item.ctx import CtxItem
@@ -22,7 +22,7 @@ from pygpt_net.core.events import ControlEvent, AppEvent
 from pygpt_net.utils import trans
 
 
-class Voice:
+class Voice(QObject):
 
     MIN_FRAMES = 25  # minimum frames to start transcription
     PLAY_DELAY = 500  # ms, delay before playing audio event
@@ -33,6 +33,7 @@ class Voice:
 
         :param window: Window instance
         """
+        super().__init__()
         self.window = window
         self.is_recording = False
         self.timer = None
@@ -212,6 +213,7 @@ class Voice:
 
     def start_recording(self):
         """Start recording"""
+        self.window.controller.kernel.resume()
         # display snap warning if not displayed yet
         if (not self.window.core.config.get("audio.input.snap", False)
                 or not self.window.core.config.has("audio.input.snap")):
