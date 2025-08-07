@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -27,15 +27,15 @@ from pygpt_net.core.events import AppEvent
 from pygpt_net.core.access.shortcuts import GlobalShortcutFilter
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
-from pygpt_net.provider.agents.base import BaseAgent
 from pygpt_net.tools import BaseTool
 from pygpt_net.ui.main import MainWindow
 from pygpt_net.plugin.base.plugin import BasePlugin
+from pygpt_net.provider.agents.base import BaseAgent
+from pygpt_net.provider.audio_input.base import BaseProvider as BaseAudioInput
+from pygpt_net.provider.audio_output.base import BaseProvider as BaseAudioOutput
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.provider.vector_stores.base import BaseStore
-from pygpt_net.provider.audio_input.base import BaseProvider as BaseAudioInput
-from pygpt_net.provider.audio_output.base import BaseProvider as BaseAudioOutput
 from pygpt_net.provider.web.base import BaseProvider as BaseWeb
 
 
