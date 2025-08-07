@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.90** | build: **2025-08-07** | Python: **>=3.10, <3.14**
+Release: **2.5.91** | build: **2025-08-08** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4251,6 +4251,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.91 (2025-08-08)**
+
+- Added GPT-5.
+- Added audio cache - #118.
 
 **2.5.90 (2025-08-07)**
 

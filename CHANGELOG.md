@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.91 (2025-08-08)
+
+- Added GPT-5.
+- Added audio cache - #118.
+
 ## 2.5.90 (2025-08-07)
 
 - Fix: Initialize context summary if a conversation starts with a tool call.
