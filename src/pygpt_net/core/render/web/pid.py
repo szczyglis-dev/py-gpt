@@ -14,28 +14,6 @@ from pygpt_net.utils import trans
 
 class PidData:
 
-    __slots__ = [
-        'pid',                # Process ID
-        'meta',               # CtxMeta instance
-        'images_appended',    # Images appended to the PID
-        'urls_appended',      # URLs appended to ctx
-        'files_appended',     # Files appended to ctx
-        'buffer',             # Stream buffer
-        'live_buffer',        # Live stream buffer
-        'is_cmd',             # Is command result
-        'html',               # HTML buffer
-        'document',           # Document content
-        'initialized',        # Is initialized
-        'loaded',             # Is page loaded
-        'item',               # Current item
-        'use_buffer',         # Use HTML buffer flag
-        'name_user',          # User name
-        'name_bot',           # Bot name
-        'last_time_called',   # Last time called timestamp
-        'cooldown',           # Cooldown for parsing chunks
-        'throttling_min_chars'  # Min chars to activate cooldown
-    ]
-
     def __init__(self, pid, meta=None):
         """Pid Data"""
         self.pid = pid

@@ -14,8 +14,6 @@ import json
 
 class IndexItem:
 
-    __slots__ = ['id', 'name', 'store', 'items']
-
     def __init__(self):
         """
         Index item

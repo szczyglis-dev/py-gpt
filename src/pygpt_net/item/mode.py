@@ -12,8 +12,6 @@
 
 class ModeItem:
 
-    __slots__ = ['id', 'name', 'label']
-
     def __init__(self):
         self.id = None
         self.name = ""

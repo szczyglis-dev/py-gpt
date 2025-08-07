@@ -15,41 +15,6 @@ import uuid
 
 class PresetItem:
 
-    __slots__ = [
-        'uuid',
-        'name',
-        'ai_name',
-        'user_name',
-        'prompt',
-        'chat',
-        'completion',
-        'img',
-        'vision',
-        'langchain',
-        'assistant',
-        'llama_index',
-        'agent',
-        'agent_llama',
-        'agent_openai',
-        'expert',
-        'audio',
-        'research',
-        'computer',
-        'temperature',
-        'filename',
-        'model',
-        'version',
-        'experts',
-        'idx',
-        'agent_provider',
-        'agent_provider_openai',
-        'assistant_id',
-        'description',
-        'enabled',
-        'tools',
-        'remote_tools',
-        'extra'
-    ]
 
     def __init__(self):
         self.uuid = None

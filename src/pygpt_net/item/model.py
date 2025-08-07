@@ -21,24 +21,6 @@ from pygpt_net.core.types import (
 
 class ModelItem:
 
-    __slots__ = [
-        'id',
-        'name',
-        'mode',
-        'langchain',
-        'llama_index',
-        'multimodal',
-        'input',
-        'output',
-        'ctx',
-        'tokens',
-        'default',
-        'imported',
-        'provider',
-        'tool_calls',
-        'extra'
-    ]
-
     OPENAI_COMPATIBLE = [
         "anthropic",
         "openai",

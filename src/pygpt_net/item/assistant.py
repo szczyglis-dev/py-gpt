@@ -17,19 +17,6 @@ from pygpt_net.item.attachment import AttachmentItem
 
 class AssistantItem:
 
-    __slots__ = [
-        'id',
-        'name',
-        'description',
-        'instructions',
-        'model',
-        'meta',
-        'files',
-        'attachments',
-        'vector_store',
-        'tools'
-    ]
-
     def __init__(self):
         """Assistant item"""
         self.id = None

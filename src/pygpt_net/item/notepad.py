@@ -15,18 +15,6 @@ import time
 
 class NotepadItem:
 
-    __slots__ = [
-        'id',
-        'uuid',
-        'idx',
-        'title',
-        'content',
-        'deleted',
-        'created',
-        'updated',
-        'initialized'
-    ]
-
     def __init__(self):
         self.id = 0
         self.uuid = None

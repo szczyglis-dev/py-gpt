@@ -24,28 +24,6 @@ class Tab:
     TAB_TOOL_CALENDAR = 4
     TAB_TOOL = 100
 
-    __slots__ = [
-        'uuid',
-        'pid',
-        'idx',
-        'type',
-        'title',
-        'icon',
-        'tooltip',
-        'data_id',
-        'new_idx',
-        'custom_name',
-        'child',
-        'parent',
-        'column_idx',
-        'tool_id',
-        'loaded',
-        'on_delete',
-        'refs',
-        'created_at',
-        'updated_at'
-    ]
-
     def __init__(
             self,
             uuid: Optional[str] = None,

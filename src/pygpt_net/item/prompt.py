@@ -14,8 +14,6 @@ import json
 
 class PromptItem:
 
-    __slots__ = ['id', 'name', 'content']
-
     def __init__(self):
         """
         Prompt item

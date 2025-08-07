@@ -11,16 +11,6 @@
 
 class PidData:
 
-    __slots__ = [
-        'pid',                # Process ID
-        'meta',               # CtxMeta instance
-        'images_appended',    # Images appended to the process
-        'urls_appended',      # URLs appended to ctx
-        'files_appended',     # Files appended to ctx
-        'buffer',             # Buffer for data
-        'is_cmd'              # Flag indicating if it's a command
-    ]
-
     def __init__(self, pid, meta=None):
         """Pid Data"""
         self.pid = pid

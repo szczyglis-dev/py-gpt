@@ -16,23 +16,6 @@ import time
 
 class CalendarNoteItem:
 
-    __slots__ = [
-        'id',
-        'uuid',
-        'idx',
-        'year',
-        'month',
-        'day',
-        'status',
-        'title',
-        'content',
-        'deleted',
-        'created',
-        'updated',
-        'important',
-        'initialized'
-    ]
-
     def __init__(self):
         self.id = 0
         self.uuid = None

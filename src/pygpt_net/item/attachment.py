@@ -17,22 +17,6 @@ class AttachmentItem:
     TYPE_FILE = 'file'
     TYPE_URL = 'url'
 
-    __slots__ = [
-        'name',
-        'id',
-        'uuid',
-        'path',
-        'remote',
-        'vector_store_ids',
-        'meta_id',
-        'ctx',
-        'consumed',
-        'size',
-        'send',
-        'type',
-        'extra'
-    ]
-
     def __init__(self):
         """
         Attachment item

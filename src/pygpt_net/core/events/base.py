@@ -16,16 +16,6 @@ from pygpt_net.item.ctx import CtxItem
 
 class BaseEvent:
 
-    __slots__ = [
-        'id',         # Event ID
-        'name',       # Event name
-        'data',       # Event data
-        'ctx',        # Context instance
-        'stop',       # Stop propagation flag
-        'internal',   # Internal event flag
-        'call_id'     # Call ID for tracking
-    ]
-
     def __init__(
             self,
             name: Optional[str] = None,
