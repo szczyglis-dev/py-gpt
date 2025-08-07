@@ -118,15 +118,26 @@ class IconLabel(QLabel):
         self.setProperty('class', 'label-chat-status')
         self.setContentsMargins(0, 0, 0, 0)
         self.setMouseTracking(True)
+
         self.original_pixmap = None
         self.hover_pixmap = None
         self.set_icon(icon)
+
+    def sizeHint(self):
+        if self.original_pixmap and not self.original_pixmap.isNull():
+            return self.original_pixmap.size()
+        return super().sizeHint()
+
+    def minimumSizeHint(self):
+        if self.original_pixmap and not self.original_pixmap.isNull():
+            return self.original_pixmap.size()
+        return super().minimumSizeHint()
 
     def set_icon(self, icon: str):
         icon_obj = QIcon(icon)
         self.original_pixmap = icon_obj.pixmap(16, 16)
         if self.original_pixmap.isNull():
-            pass
+            return
         self.setPixmap(self.original_pixmap)
 
     def create_hover_icon(self, pixmap: QPixmap) -> QPixmap:
@@ -134,6 +145,7 @@ class IconLabel(QLabel):
             return pixmap
 
         recolored = QPixmap(pixmap.size())
+        recolored.setDevicePixelRatio(pixmap.devicePixelRatio())
         recolored.fill(Qt.transparent)
 
         painter = QPainter(recolored)
@@ -170,3 +182,4 @@ class IconLabel(QLabel):
 
     def mousePressEvent(self, event):
         self.clicked.emit()
+        super().mousePressEvent(event)
