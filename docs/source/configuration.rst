@@ -209,7 +209,13 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Audio**
 
+* ``Audio Input Backend``: Selects the backend for audio input (Native/QtMultimedia, PyAudio, PyGame)
+
 * ``Audio Input Device``: Selects the audio device for Microphone input.
+
+* ``Audio Output Backend``: Selects the backend for audio input (Native/QtMultimedia, PyAudio)
+
+* ``Audio Output Device``: Selects the audio device for audio output.
 
 * ``Channels``: Input channels, default: 1
 

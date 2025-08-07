@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.88** | build: **2025-08-06** | Python: **>=3.10, <3.14**
+Release: **2.5.89** | build: **2025-08-07** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3178,7 +3178,13 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 **Audio**
 
+- `Audio Input Backend`: Selects the backend for audio input (Native/QtMultimedia, PyAudio, PyGame)
+
 - `Audio Input Device`: Selects the audio device for Microphone input.
+
+- `Audio Output Backend`: Selects the backend for audio input (Native/QtMultimedia, PyAudio)
+
+- `Audio Output Device`: Selects the audio device for audio output.
 
 - `Channels`: Input channels, default: 1
 
@@ -4242,6 +4248,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.89 (2025-08-07)**
+
+- Added audio output device selection in Config -> Audio - issue #117
+- Added audio input and output backend selections in Config -> Audio.
 
 **2.5.88 (2025-08-06)**
 

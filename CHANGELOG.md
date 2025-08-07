@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.5.89 (2025-08-07)
+
+- Added audio output device selection in Config -> Audio - issue #117
+- Added audio input and output backend selections in Config -> Audio.
+
 ## 2.5.88 (2025-08-06)
 
 - Optimized the process of unloading tabs from memory.
