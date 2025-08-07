@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.07 03:00:00                  #
 # ================================================== #
-
+import gc
 from typing import Optional, List
 
 from PySide6.QtCore import QModelIndex, QTimer
@@ -263,6 +263,8 @@ class Ctx:
         :param force: force context creation
         :param group_id: group ID
         """
+        gc.collect() # collect garbage to free memory
+
         # lock if generating response is in progress
         if not force and self.context_change_locked():
             return
