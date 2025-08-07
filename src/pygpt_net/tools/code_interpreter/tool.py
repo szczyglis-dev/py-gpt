@@ -94,34 +94,46 @@ class CodeInterpreter(BaseTool):
 
     def set_initial_size(self):
         """Set default sizes"""
+        # --------------------------------------------------------
+        # INFO: object may be deleted before this method is called
+        # --------------------------------------------------------
         def set_initial_splitter_height():
-            total_height = self.window.ui.splitters['interpreter'].size().height()
-            if total_height > 0:
-                size_output = int(total_height * 0.85)
-                size_input = total_height - size_output
-                self.window.ui.splitters['interpreter'].setSizes([size_output, size_input])
-            else:
-                QTimer.singleShot(0, set_initial_splitter_height)
+            try:
+                total_height = self.window.ui.splitters['interpreter'].size().height()
+                if total_height > 0:
+                    size_output = int(total_height * 0.85)
+                    size_input = total_height - size_output
+                    self.window.ui.splitters['interpreter'].setSizes([size_output, size_input])
+                else:
+                    QTimer.singleShot(0, set_initial_splitter_height)
+            except Exception as e:
+                pass
         QTimer.singleShot(0, set_initial_splitter_height)
 
         def set_initial_splitter_dialog_height():
-            total_height = self.window.ui.splitters['interpreter_dialog'].size().height()
-            if total_height > 0:
-                size_output = int(total_height * 0.85)
-                size_input = total_height - size_output
-                self.window.ui.splitters['interpreter_dialog'].setSizes([size_output, size_input])
-            else:
-                QTimer.singleShot(0, set_initial_splitter_dialog_height)
+            try:
+                total_height = self.window.ui.splitters['interpreter_dialog'].size().height()
+                if total_height > 0:
+                    size_output = int(total_height * 0.85)
+                    size_input = total_height - size_output
+                    self.window.ui.splitters['interpreter_dialog'].setSizes([size_output, size_input])
+                else:
+                    QTimer.singleShot(0, set_initial_splitter_dialog_height)
+            except Exception as e:
+                pass
         QTimer.singleShot(0, set_initial_splitter_dialog_height)
 
         def set_initial_splitter_width():
-            total_width = self.window.ui.splitters['interpreter.columns'].size().width()
-            if total_width > 0:
-                size_output = int(total_width * 0.85)
-                size_history = total_width - size_output
-                self.window.ui.splitters['interpreter.columns'].setSizes([size_output, size_history])
-            else:
-                QTimer.singleShot(0, set_initial_splitter_width)
+            try:
+                total_width = self.window.ui.splitters['interpreter.columns'].size().width()
+                if total_width > 0:
+                    size_output = int(total_width * 0.85)
+                    size_history = total_width - size_output
+                    self.window.ui.splitters['interpreter.columns'].setSizes([size_output, size_history])
+                else:
+                    QTimer.singleShot(0, set_initial_splitter_width)
+            except Exception as e:
+                pass
         QTimer.singleShot(0, set_initial_splitter_width)
 
     def handle_ipython_output(self, line: str):

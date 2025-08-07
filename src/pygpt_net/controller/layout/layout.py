@@ -112,8 +112,11 @@ class Layout:
             # do not save main splitter state if notepad was not opened yet
             if splitter == "calendar" and not self.window.controller.notepad.opened_once:
                 continue
-            if splitter in self.window.ui.splitters:
-                data[splitter] = self.window.ui.splitters[splitter].sizes()
+            try:
+                if splitter in self.window.ui.splitters:
+                    data[splitter] = self.window.ui.splitters[splitter].sizes()
+            except Exception as e:
+                pass
         self.window.core.config.set('layout.splitters', data)
 
     def splitters_restore(self):
@@ -151,8 +154,11 @@ class Layout:
 
         # notepads
         for id in self.window.ui.notepad:
-            scroll_id = "notepad." + str(id)
-            data[scroll_id] = self.window.ui.notepad[id].textarea.verticalScrollBar().value()
+            try:
+                scroll_id = "notepad." + str(id)
+                data[scroll_id] = self.window.ui.notepad[id].textarea.verticalScrollBar().value()
+            except Exception as e:
+                pass
         self.window.core.config.set('layout.scroll', data)
 
     def scroll_restore(self):
