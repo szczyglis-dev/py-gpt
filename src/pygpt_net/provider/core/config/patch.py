@@ -2189,6 +2189,14 @@ class Patch:
                 print("Migrating config from < 2.5.91...")
                 if "audio.cache.enabled" not in data:
                     data["audio.cache.enabled"] = True
+                updated = True
+
+            # < 2.5.92
+            if old < parse_version("2.5.92"):
+                print("Migrating config from < 2.5.92...")
+                if "audio.cache.max_files" not in data:
+                    data["audio.cache.max_files"] = 1000
+                updated = True
 
         # update file
         migrated = False

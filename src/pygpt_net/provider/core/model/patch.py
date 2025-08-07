@@ -719,6 +719,7 @@ class Patch:
                     data["gpt-5-mini"] = base_data["gpt-5-mini"]
                 if "gpt-5-nano" not in data:
                     data["gpt-5-nano"] = base_data["gpt-5-nano"]
+                updated = True
 
         # update file
         if updated:

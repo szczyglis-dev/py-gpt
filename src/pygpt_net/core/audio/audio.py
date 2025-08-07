@@ -204,10 +204,29 @@ class Audio:
         :return: audio cache directory path
         """
         dir = self.window.core.config.get_user_dir("tmp")
+        if not os.path.exists(dir):
+            os.makedirs(dir, exist_ok=True)
         tmp_dir = os.path.join(dir, "audio_cache")
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir, exist_ok=True)
         return tmp_dir
+
+    def delete_old_cache(self, max_files: int = 10):
+        """
+        Delete old cache files, keeping only the most recent ones.
+
+        :param max_files: Maximum number of cache files to keep.
+        """
+        max_files = max_files - 1  # Reserve one file for the current cache
+        max_files = max(1, max_files)  # Ensure at least one file is kept
+        tmp_dir = self.get_cache_dir()
+        files = [os.path.join(tmp_dir, f) for f in os.listdir(tmp_dir) if f.endswith('.' + self.CACHE_FORMAT)]
+        files.sort(key=os.path.getmtime, reverse=True)
+        for file in files[max_files:]:
+            try:
+                os.remove(file)
+            except Exception as e:
+                print(f"Error deleting cache file {file}: {e}")
 
     def mp3_to_wav(
             self,

@@ -178,16 +178,21 @@ class Plugin(BasePlugin):
 
         # cache ctx
         cache_enabled = self.window.core.config.get("audio.cache.enabled", False)
-        if cache_enabled and not cache_file:
-            # gen cache file path if exists
-            tmp_cache_file, is_cached = self.window.core.audio.prepare_cache_path(text)
-            if is_cached:
-                event = Event(Event.AUDIO_PLAYBACK, ctx=ctx)
-                event.data = {"audio_file": tmp_cache_file}
-                return self.on_playback(ctx, event)  # playback cached audio file
-            else:
-                if tmp_cache_file:
-                    cache_file = tmp_cache_file  # store cache file
+        max_files = int(self.window.core.config.get("audio.cache.max_files", 10))
+        if cache_enabled:
+            # delete old if max
+            if max_files > 0:
+                self.window.core.audio.delete_old_cache(max_files)
+            if not cache_file:
+                # gen cache file path if exists
+                tmp_cache_file, is_cached = self.window.core.audio.prepare_cache_path(text)
+                if is_cached:
+                    event = Event(Event.AUDIO_PLAYBACK, ctx=ctx)
+                    event.data = {"audio_file": tmp_cache_file}
+                    return self.on_playback(ctx, event)  # playback cached audio file
+                else:
+                    if tmp_cache_file:
+                        cache_file = tmp_cache_file  # store cache file
 
         try:
             if text is not None and len(text) > 0:

@@ -95,6 +95,7 @@
   "attachments_send_clear": true,
   "attachments_capture_clear": true,
   "audio.cache.enabled": true,
+  "audio.cache.max_files": 1000,
   "audio.input.backend": "native",
   "audio.input.channels": 1,
   "audio.input.continuous": false,

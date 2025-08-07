@@ -221,6 +221,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Sampling Rate``: Sampling rate, default: 44100
 
+* ``Use cache``: Use cache for generating audio files.
+
+* ``Max files to store``: Max files to store on disk for audio cache.
+
 **Indexes / LlamaIndex**
 
 **General**

@@ -1373,17 +1373,7 @@
         "step": 1,
         "advanced": false,        
         "tab": "device"
-    },    
-    "audio.cache.enabled": {
-        "section": "audio",
-        "type": "bool",
-        "slider": true,
-        "label": "settings.audio.cache.enabled",
-        "description": "settings.audio.cache.enabled.desc",
-        "value": true,
-        "advanced": false,        
-        "tab": "options"
-    },
+    }, 
     "audio.input.stop_interval": {
         "section": "audio",
         "type": "int",
@@ -1423,6 +1413,28 @@
         "step": null,
         "advanced": false,        
         "tab": "options"
+    },
+    "audio.cache.enabled": {
+        "section": "audio",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.audio.cache.enabled",
+        "description": "settings.audio.cache.enabled.desc",
+        "value": true,
+        "advanced": false,        
+        "tab": "cache"
+    },
+    "audio.cache.max_files": {
+        "section": "audio",
+        "type": "int",
+        "slider": false,
+        "label": "settings.audio.cache.max_files",
+        "description": "settings.audio.cache.max_files.desc",
+        "min": 0,
+        "multiplier": 1,
+        "value": 1000,
+        "advanced": false,        
+        "tab": "cache"
     },
     "remote_tools.web_search": {
         "section": "remote_tools",

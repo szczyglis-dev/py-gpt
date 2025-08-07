@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.91** | build: **2025-08-08** | Python: **>=3.10, <3.14**
+Release: **2.5.92** | build: **2025-08-08** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -3193,6 +3193,10 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 - `Sampling Rate`: Sampling rate, default: 44100
 
+- `Use cache`: Use cache for generating audio files.
+
+- `Max files to store`: Max files to store on disk for audio cache.
+
 **Indexes / LlamaIndex**
 
 **General**
@@ -4251,6 +4255,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.92 (2025-08-08)**
+
+- Added max files to store config option in Audio -> Cache.
 
 **2.5.91 (2025-08-08)**
 

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.92 (2025-08-08)
+
+- Added max files to store config option in Audio -> Cache.
+
 ## 2.5.91 (2025-08-08)
 
 - Added GPT-5.
