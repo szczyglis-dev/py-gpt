@@ -14,7 +14,7 @@ Release: **2.5.90** | build: **2025-08-07** | Python: **>=3.10, <3.14**
 
 ## Overview
 
-**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `o1`, `o3`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini`, `Anthropic Claude`, `Perplexity Sonar`, and `xAI Grok`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `gpt-5`, `o1`, `o3`, `gpt-4o`, `gpt-4`, `gpt-4 Vision`, and `gpt-3.5`, through the `OpenAI API`. By utilizing `LlamaIndex`, the application also supports alternative LLMs, like those available on `HuggingFace`, locally available models via `Ollama` (like `Llama 3`,`Mistral`, `DeepSeek V3/R1` or `Bielik`), `Google Gemini`, `Anthropic Claude`, `Perplexity Sonar`, and `xAI Grok`.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `gpt-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
@@ -43,7 +43,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 12 modes of operation: Chat, Chat with Files, Chat with Audio, Research (Perplexity), Completion, Image generation, Vision, Assistants, Experts, Computer use, Agents and Autonomous Mode.
-- Supports multiple models: `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity Sonar`, `Bielik`, etc.
+- Supports multiple models: `gpt-5`, `o1`, `o3`, `GPT-4o`, `GPT-4`, `GPT-3.5`, and any model accessible through `LlamaIndex` and `Ollama` such as `Llama 3`, `Mistral`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity Sonar`, `Bielik`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -1079,6 +1079,9 @@ PyGPT has built-in support for models (as of 2025-07-26):
 - `gpt-4o-2024-11-20` (OpenAI)
 - `gpt-4o-audio-preview` (OpenAI)
 - `gpt-4o-mini` (OpenAI)
+- `gpt-5` (OpenAI)
+- `gpt-5-mini` (OpenAI)
+- `gpt-5-nano` (OpenAI)
 - `gpt-image-1` (OpenAI)
 - `grok-2-vision` (xAI)
 - `grok-3` (xAI)

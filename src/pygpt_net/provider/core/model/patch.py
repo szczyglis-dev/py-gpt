@@ -710,6 +710,16 @@ class Patch:
                             model.mode.remove("agent_openai")
                 updated = True
 
+            # <  2.5.91  <--- update names to models IDs
+            if old < parse_version("2.5.91"):
+                print("Migrating models from < 2.5.91...")
+                if "gpt-5" not in data:
+                    data["gpt-5"] = base_data["gpt-5"]
+                if "gpt-5-mini" not in data:
+                    data["gpt-5-mini"] = base_data["gpt-5-mini"]
+                if "gpt-5-nano" not in data:
+                    data["gpt-5-nano"] = base_data["gpt-5-nano"]
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

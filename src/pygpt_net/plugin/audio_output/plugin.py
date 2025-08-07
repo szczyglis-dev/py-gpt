@@ -228,7 +228,6 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param event: Event
         """
-        name = event.name
         try:
             self.stop_audio()
 
@@ -243,8 +242,7 @@ class Plugin(BasePlugin):
             worker.signals.stop.connect(self.handle_stop)
             worker.signals.volume_changed.connect(self.handle_volume)
 
-            if name == Event.AUDIO_READ_TEXT:
-                self.window.controller.audio.on_begin("")
+            self.window.controller.audio.on_begin("")
 
             backend = self.window.core.config.get("audio.output.backend", "native")
             if backend == "native":

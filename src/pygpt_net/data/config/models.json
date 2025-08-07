@@ -2028,6 +2028,171 @@
             "provider": "openai",
             "tool_calls": true
         },
+        "gpt-5": {
+            "id": "gpt-5",
+            "name": "gpt-5",
+            "mode": [
+                "chat",
+                "assistant",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": true,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "gpt-5-mini": {
+            "id": "gpt-5-mini",
+            "name": "gpt-5-mini",
+            "mode": [
+                "chat",
+                "assistant",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5-mini",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": true,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
+        "gpt-5-nano": {
+            "id": "gpt-5-nano",
+            "name": "gpt-5-nano",
+            "mode": [
+                "chat",
+                "assistant",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai"
+            ],
+            "llama_index": {
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-5-nano",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    },
+                    {
+                        "name": "OPENAI_API_BASE",
+                        "value": "{api_endpoint}"
+                    },
+                    {
+                        "name": "AZURE_OPENAI_ENDPOINT",
+                        "value": "{api_azure_endpoint}"
+                    },
+                    {
+                        "name": "OPENAI_API_VERSION",
+                        "value": "{api_azure_version}"
+                    }
+                ]
+            },
+            "ctx": 400000,
+            "tokens": 128000,
+            "default": true,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "tool_calls": true
+        },
         "gpt-image-1": {
             "id": "gpt-image-1",
             "name": "gpt-image-1",
