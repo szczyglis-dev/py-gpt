@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.07 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -70,35 +70,35 @@ class Output:
         :return: QHBoxLayout
         """
         # video capture icon
-        self.window.ui.nodes['icon.video.capture'] = IconLabel(":/icons/webcam.svg")
+        self.window.ui.nodes['icon.video.capture'] = IconLabel(":/icons/webcam.svg", window=self.window)
         self.window.ui.nodes['icon.video.capture'].setToolTip(trans("icon.video.capture"))
         self.window.ui.nodes['icon.video.capture'].clicked.connect(
             lambda:self.window.controller.camera.toggle_capture()
         )
 
         # audio output icon
-        self.window.ui.nodes['icon.audio.output'] = IconLabel(":/icons/volume.svg")
+        self.window.ui.nodes['icon.audio.output'] = IconLabel(":/icons/volume.svg", window=self.window)
         self.window.ui.nodes['icon.audio.output'].setToolTip(trans("icon.audio.output"))
         self.window.ui.nodes['icon.audio.output'].clicked.connect(
             lambda: self.window.controller.plugins.toggle('audio_output')
         )
 
         # audio input icon
-        self.window.ui.nodes['icon.audio.input'] = IconLabel(":/icons/mic.svg")
+        self.window.ui.nodes['icon.audio.input'] = IconLabel(":/icons/mic.svg", window=self.window)
         self.window.ui.nodes['icon.audio.input'].setToolTip(trans("icon.audio.input"))
         self.window.ui.nodes['icon.audio.input'].clicked.connect(
             lambda: self.window.controller.plugins.toggle('audio_input')
         )
 
         # interpreter icon
-        self.window.ui.nodes['icon.interpreter'] = IconLabel(":/icons/code.svg")
+        self.window.ui.nodes['icon.interpreter'] = IconLabel(":/icons/code.svg", window=self.window)
         self.window.ui.nodes['icon.interpreter'].setToolTip("Python Code Interpreter")
         self.window.ui.nodes['icon.interpreter'].clicked.connect(
             lambda: self.window.tools.get("interpreter").toggle()
         )
 
         # indexer icon
-        self.window.ui.nodes['icon.indexer'] = IconLabel(":/icons/db.svg")
+        self.window.ui.nodes['icon.indexer'] = IconLabel(":/icons/db.svg", window=self.window)
         self.window.ui.nodes['icon.indexer'].setToolTip("Indexer")
         self.window.ui.nodes['icon.indexer'].clicked.connect(
             lambda: self.window.tools.get("indexer").toggle()

@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.07 19:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl
-from PySide6.QtGui import QCursor, QAction, QIcon, QDesktopServices
+from PySide6.QtCore import Qt, QTimer, QRect, Signal, QUrl, QEvent
+from PySide6.QtGui import QCursor, QAction, QIcon, QDesktopServices, QPainter, QPixmap, QColor
 from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
 
 from pygpt_net.utils import trans
@@ -117,10 +117,56 @@ class IconLabel(QLabel):
         self.setAlignment(Qt.AlignRight)
         self.setProperty('class', 'label-chat-status')
         self.setContentsMargins(0, 0, 0, 0)
+        self.setMouseTracking(True)
+        self.original_pixmap = None
+        self.hover_pixmap = None
         self.set_icon(icon)
 
     def set_icon(self, icon: str):
-        self.setPixmap(QIcon(icon).pixmap(16, 16))
+        icon_obj = QIcon(icon)
+        self.original_pixmap = icon_obj.pixmap(16, 16)
+        if self.original_pixmap.isNull():
+            pass
+        self.setPixmap(self.original_pixmap)
+
+    def create_hover_icon(self, pixmap: QPixmap) -> QPixmap:
+        if pixmap.isNull():
+            return pixmap
+
+        recolored = QPixmap(pixmap.size())
+        recolored.fill(Qt.transparent)
+
+        painter = QPainter(recolored)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+
+        is_dark = False
+        if self.window and self.window.core and self.window.core.config:
+            theme = self.window.core.config.get("theme", "default")
+            if theme.startswith("dark"):
+                is_dark = True
+
+        if is_dark:
+            painter.fillRect(recolored.rect(), QColor("#c4c4c4"))
+        else:
+            painter.fillRect(recolored.rect(), QColor("#000000"))
+        painter.end()
+
+        return recolored
+
+    def enterEvent(self, event: QEvent):
+        self.setCursor(Qt.PointingHandCursor)
+        self.hover_pixmap = self.create_hover_icon(self.original_pixmap)
+        if self.hover_pixmap is not None and not self.hover_pixmap.isNull():
+            self.setPixmap(self.hover_pixmap)
+        else:
+            self.setPixmap(self.original_pixmap)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event: QEvent):
+        self.unsetCursor()
+        self.setPixmap(self.original_pixmap)
+        super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         self.clicked.emit()
