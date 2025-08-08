@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2025.08.08 21:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Dict, Union
@@ -65,7 +65,8 @@ class Slider:
                 value = option["max"]
 
             # update connected input field
-            self.window.ui.config[parent_id][key].input.setText(str(value))
+            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
+                self.window.ui.config[parent_id][key].input.setText(str(value))
 
         slider_value = round(float(value) * multiplier, 0)
 
@@ -83,12 +84,15 @@ class Slider:
                 slider_value = option["min"] * multiplier
             elif "max" in option and slider_value > option["max"] * multiplier:
                 slider_value = option["max"] * multiplier
-            self.window.ui.config[parent_id][key].slider.setValue(slider_value)
+
+            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
+                self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
         # from value
         else:
-            self.window.ui.config[parent_id][key].input.setText(str(value))
-            self.window.ui.config[parent_id][key].slider.setValue(slider_value)
+            if parent_id in self.window.ui.config and key in self.window.ui.config[parent_id]:
+                self.window.ui.config[parent_id][key].input.setText(str(value))
+                self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
     def on_update(
             self,

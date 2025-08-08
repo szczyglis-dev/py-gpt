@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.08 21:00:00                  #
 # ================================================== #
 
 import re
@@ -297,7 +297,7 @@ class CustomWebEnginePage(QWebEnginePage):
         self.parent = parent
         self.signals = WebEnginePageSignals()
         self.findTextFinished.connect(self.on_find_finished)
-        self.contentsSizeChanged.connect(self.on_view_changed)
+        self.zoomFactorChanged.connect(self.on_view_changed)
         self.selectionChanged.connect(self.on_selection_changed)
         self.settings().setAttribute(
             QWebEngineSettings.LocalContentCanAccessFileUrls, True
@@ -308,6 +308,7 @@ class CustomWebEnginePage(QWebEnginePage):
         self.settings().setFontFamily(QWebEngineSettings.StandardFont, 'Lato')
         self.settings().setFontFamily(QWebEngineSettings.FixedFont, 'Monaspace Neon')
         self.settings().setFontFamily(QWebEngineSettings.SerifFont, 'Monaspace Neon')
+
         if self.window.core.config.has("zoom"):
             self.setZoomFactor(self.window.core.config.get("zoom"))
 
