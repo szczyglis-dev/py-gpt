@@ -380,3 +380,17 @@ think {{
   visibility: visible;
   transition: opacity 0.5s ease, visibility 0.5s ease;
 }}
+
+.tips {{
+ opacity: 0;
+ transition: opacity 1s ease-in-out;
+ text-align: center;
+ font-size: 0.8rem;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 75vh;
+}}
+.tips.visible {{
+ opacity: 1;
+}}

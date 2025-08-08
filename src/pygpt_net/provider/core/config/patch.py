@@ -2203,6 +2203,17 @@ class Patch:
                 print("Migrating config from < 2.5.94...")
                 if "api_endpoint_hugging_face" not in data:
                     data["api_endpoint_hugging_face"] = "https://router.huggingface.co/v1"
+
+                # tips
+                self.window.core.updater.patch_css('web-chatgpt.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
         # update file

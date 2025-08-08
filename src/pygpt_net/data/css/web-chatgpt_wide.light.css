@@ -82,3 +82,7 @@ code {{
 .append_live {{
   color: gray;
 }}
+
+.tips p {{
+ color: #6e6e6e;
+}}

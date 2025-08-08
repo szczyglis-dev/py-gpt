@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
 
 import os
+import random
 from typing import Optional, List, Dict
 
 from pygpt_net.core.events import Event
@@ -23,6 +24,8 @@ import pygpt_net.css_rc
 import pygpt_net.fonts_rc
 
 class Body:
+
+    NUM_TIPS = 13
 
     def __init__(self, window=None):
         """
@@ -402,12 +405,28 @@ class Body:
             html += "</div>"
         return html
 
+    def get_all_tips(self) -> str:
+        """
+        Generuje listę wszystkich tipów jako elementy HTML,
+        tasuje je i zwraca jako string JSON.
+        """
+        if not self.window.core.config.get("layout.tooltips", False):
+            return "[]"
+        tips_list = []
+        for i in range(1, self.NUM_TIPS + 1):
+            tip_html = "<p><b>" + trans("output.tips.prefix") + "</b>: " + trans("output.tips." + str(i)) + "</p>"
+            tips_list.append(tip_html)
+        random.shuffle(tips_list)
+        import json
+        return json.dumps(tips_list)
+
     def get_html(self, pid: int) -> str:
         """
         Build webview HTML code
 
         :return: HTML code
         """
+        tips_json = self.get_all_tips()
         classes = []
         classes_str = ""
         style = self.window.core.config.get("theme.style", "blocks")
@@ -449,6 +468,8 @@ class Body:
             let domLastCodeBlock = null;
             let domLastParagraphBlock = null;
             let htmlBuffer = "";
+            let tips = """ + tips_json + """;
+            let tips_hidden = false;
         
             history.scrollRestoration = "manual";
             document.addEventListener('keydown', function(event) {
@@ -473,6 +494,7 @@ class Body:
             }
             function prepare() {        
                 collapsed_idx = [];  // clear collapsed code
+                hideTips();
             }
             function sanitize(content) {
                 var parser = new DOMParser();
@@ -493,6 +515,37 @@ class Body:
                     renderMath();
                 }  
                 restoreCollapsedCode();   
+            }
+            function hideTips() {
+                if (tips_hidden) return;
+                document.getElementById('tips').style.display = 'none';
+                tips_hidden = true;
+            }
+            function showTips() {
+                if (tips_hidden) return;
+                if (tips.length === 0) return;
+                document.getElementById('tips').style.display = 'block';
+                tips_hidden = false;
+            }    
+            function cycleTips() {
+                if (tips_hidden) return;
+                if (tips.length === 0) return;
+                let tipContainer = document.getElementById('tips');
+                let currentTip = 0;
+                function showNextTip() {
+                    if (tips_hidden) return;
+                    tipContainer.innerHTML = tips[currentTip];
+                    tipContainer.classList.add('visible');    
+                    setTimeout(function() {
+                        if (tips_hidden) return;
+                        tipContainer.classList.remove('visible');
+                        setTimeout(function(){
+                            currentTip = (currentTip + 1) % tips.length;
+                            showNextTip();
+                        }, 1000);
+                    }, 10000);
+                }
+                showNextTip();
             }
             function renderMath() {
                   const scripts = document.querySelectorAll('script[type^="math/tex"]');
@@ -525,6 +578,7 @@ class Body:
                 scrollToBottom();
             }
             function appendToOutput(bot_name, content) {
+                hideTips();
                 const element = document.getElementById('_append_output_');
                 if (element) {
                     let box = element.querySelector('.msg-box');
@@ -564,6 +618,7 @@ class Body:
                 scrollToBottom();
             }
             function appendExtra(id, content) {
+                hideTips();
                 prevScroll = 0;
                 const element = document.getElementById('msg-bot-' + id);
                 if (element) {
@@ -619,6 +674,7 @@ class Body:
                 return element;
             }        
             function clearStream() {
+                hideTips();
                 domLastParagraphBlock = null;
                 domLastCodeBlock = null;
                 domOutputStream = null;
@@ -649,12 +705,14 @@ class Body:
                 }
             }
             function beginStream() {
+                hideTips();
                 clearOutput();
             }
             function endStream() {
                 clearOutput();
             }
             function appendStream(bot_name, content, chunk, replace = false, is_code_block = false) {
+                hideTips();
                 const element = getStreamContainer();
                 doHighlight = true;
                 doMath = true;
@@ -742,6 +800,7 @@ class Body:
                 }    
             }
             function replaceOutput(bot_name, content) {
+                hideTips();
                 const element = getStreamContainer();
                 if (element) {
                     let box = element.querySelector('.msg-box');
@@ -770,6 +829,7 @@ class Body:
                 scrollToBottom();
             }
             function nextStream() {
+                hideTips();
                 // Clear the current stream output and copy it to the before output
                 // 1. copy current output from _append_output_ to _append_output_before_
                 // 2. clear _append_output_
@@ -784,12 +844,14 @@ class Body:
                 }
             }
             function clearStreamBefore() {
+                hideTips();
                 const element = document.getElementById('_append_output_before_');
                 if (element) {
                     element.innerHTML = ''; // clear previous content
                 }
             }
-            function replaceOutput(bot_name, content) {        
+            function replaceOutput(bot_name, content) {     
+                hideTips();   
                 const element = getStreamContainer();
                 if (element) {
                     let box = element.querySelector('.msg-box');
@@ -1074,6 +1136,7 @@ class Body:
                 prevScroll = parseInt(pos);
             }  
             function showLoading() {
+                hideTips();
                 const el = document.getElementById('_loader_');
                 if (el) {
                     if (el.classList.contains('hidden')) {
@@ -1196,6 +1259,7 @@ class Body:
                     }
                 });
             });
+            setTimeout(cycleTips, 4000);
             </script>
         </head>
         <body """ + classes_str + """>
@@ -1209,6 +1273,7 @@ class Body:
             <div id="_loader_" class="loader-global hidden">
                 <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
             </div>
+            <div id="tips" class="tips"></div>
         </div>
         </body>
         </html>
