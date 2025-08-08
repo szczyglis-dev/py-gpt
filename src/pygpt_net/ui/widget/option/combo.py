@@ -121,6 +121,8 @@ class OptionCombo(QWidget):
 
         :param value: value
         """
+        if not value:
+            return
         index = self.combo.findData(value)
         if index != -1:
             self.combo.setCurrentIndex(index)
