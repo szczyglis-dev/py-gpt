@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.92** | build: **2025-08-08** | Python: **>=3.10, <3.14**
+Release: **2.5.93** | build: **2025-08-08** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4255,6 +4255,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.93 (2025-08-08)**
+
+- Added a new tool: Translate - in menu Tools - feature #123.
 
 **2.5.92 (2025-08-08)**
 

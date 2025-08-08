@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QObject, Signal
-from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QFontMetrics
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QTextEdit, QWidget, QSplitter, QPushButton, QLabel
 
 from pygpt_net.core.text.finder import Finder
@@ -289,6 +289,7 @@ class TextColumn(QWidget):
         self.layout.addWidget(self.btn_translate)
         self.setLayout(self.layout)
 
+
 class TextareaField(QTextEdit):
     def __init__(self, window=None, id=None):
         """
@@ -301,7 +302,7 @@ class TextareaField(QTextEdit):
         self.id = id  # assigned in setup
         self.setReadOnly(False)
         self.acceptRichText = False  # disable rich text
-        self.value = self.window.core.config.data['font_size']
+        self.value = 12
         self.max_font_size = 42
         self.min_font_size = 8
         self.setProperty('class', 'translator-textarea')
@@ -310,6 +311,11 @@ class TextareaField(QTextEdit):
         self.tab = None
         self.finder = Finder(window, self)
         self.installEventFilter(self)
+
+        # tabulation
+        metrics = QFontMetrics(self.font())
+        space_width = metrics.horizontalAdvance(" ")
+        self.setTabStopDistance(4 * space_width)
 
     def set_tab(self, tab):
         """
@@ -352,8 +358,12 @@ class TextareaField(QTextEdit):
             action.triggered.connect(self.audio_read_selection)
             menu.addAction(action)
 
-            # copy to (without current notepad)
-            excluded = ["translator_left", "translator_right"]
+            # copy to (without current)
+            excluded = []
+            if self.id == "left":
+                excluded = ["translator_left"]
+            elif self.id == "right":
+                excluded = ["translator_right"]
             copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text, excluded=excluded)
             menu.addMenu(copy_to_menu)
 
@@ -415,6 +425,14 @@ class TextareaField(QTextEdit):
             self.finder.clear(restore=True, to_end=False)
             super(TextareaField, self).keyPressEvent(e)
 
+    def update_stylesheet(self, data: str):
+        """
+        Update stylesheet
+
+        :param data: stylesheet CSS
+        """
+        self.setStyleSheet(self.default_stylesheet + data)
+
     def wheelEvent(self, event):
         """
         Wheel event: set font size
@@ -429,16 +447,8 @@ class TextareaField(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            size_str = f"{self.value}px"
+            self.update_stylesheet(f"font-size: {size_str};")
             event.accept()
         else:
             super(TextareaField, self).wheelEvent(event)

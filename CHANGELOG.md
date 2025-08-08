@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.93 (2025-08-08)
+
+- Added a new tool: Translate - in menu Tools - feature #123.
+
 ## 2.5.92 (2025-08-08)
 
 - Added max files to store config option in Audio -> Cache.

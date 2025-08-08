@@ -52,11 +52,16 @@ class Tool:
         # create menu bar
         self.menu_bar = QMenuBar()
         self.menu["file"] = self.menu_bar.addMenu(trans("menu.file"))
+        self.actions["file.open"] = QAction(QIcon(":/icons/folder.svg"), trans("tool.html_canvas.menu.file.open"))
+        self.actions["file.open"].triggered.connect(
+            lambda: self.tool.open_file()
+        )
         self.actions["file.clear"] = QAction(QIcon(":/icons/close.svg"), trans("translators.menu.file.clear"))
         self.actions["file.clear"].triggered.connect(
             lambda: self.tool.clear()
         )
         # add actions
+        self.menu["file"].addAction(self.actions["file.open"])
         self.menu["file"].addAction(self.actions["file.clear"])
         return self.menu_bar
 

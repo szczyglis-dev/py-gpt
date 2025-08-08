@@ -237,6 +237,21 @@ class Translator(BaseTool):
         """
         return self.dialog_id
 
+    def open_file(self):
+        """Open file dialog"""
+        last_dir = self.window.core.config.get_last_used_dir()
+        dialog = QFileDialog(self.window)
+        dialog.setDirectory(last_dir)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.setAcceptMode(QFileDialog.AcceptOpen)
+        if dialog.exec():
+            path = dialog.selectedFiles()[0]
+            try:
+                content, _ = self.window.core.idx.indexing.read_text_content(path)
+                self.replace_content("left", content)
+            except Exception as e:
+                self.window.core.logger.error(f"Error reading file {path}: {e}")
+
     def set_output(self, output: str):
         """
         Set output HTML
