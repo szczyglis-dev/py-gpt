@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.08 23:00:00                  #
 # ================================================== #
 import gc
 from typing import Optional, List
@@ -15,7 +15,7 @@ from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 from .common import Common
 from .summarizer import Summarizer
@@ -283,12 +283,7 @@ class Ctx:
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
 
-        # render reset
-        data = {
-            "meta": meta,
-        }
-        event = RenderEvent(RenderEvent.FRESH, data)
-        self.window.dispatch(event)
+        self.fresh_output(meta)  # render reset
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
@@ -407,16 +402,7 @@ class Ctx:
 
         # reset appended data / prepare new ctx
         if meta is not None:
-            data = {
-                "meta": meta,
-            }
-            event = RenderEvent(RenderEvent.FRESH, data)
-            self.window.dispatch(event)
-            data = {
-                "meta": meta,
-            }
-            event = RenderEvent(RenderEvent.ON_LOAD, data)
-            self.window.dispatch(event)
+            self.fresh_output(meta)  # render reset
 
         self.reload_config()
 
@@ -1244,3 +1230,22 @@ class Ctx:
     def clear_selected(self):
         """Clear selected list"""
         self.selected = []
+
+
+    def fresh_output(self, meta: CtxMeta):
+        """
+        Fresh output for new context
+
+        :param meta: CtxItem
+        """
+        # render reset
+        data = {
+            "meta": meta,
+        }
+        event = RenderEvent(RenderEvent.FRESH, data)
+        self.window.dispatch(event)
+        data = {
+            "meta": meta,
+        }
+        event = RenderEvent(RenderEvent.ON_LOAD, data)
+        self.window.dispatch(event)

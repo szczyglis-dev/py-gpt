@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 18:00:00                  #
+# Updated Date: 2025.08.08 23:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -614,7 +614,7 @@ class Tabs:
         :param name: new title
         :param close: close dialog
         """
-        self.window.core.tabs.update_title(idx, name)
+        self.window.core.tabs.update_title(idx, name, name)
         if close:
             self.window.ui.dialog['rename'].close()
         self.debug()
