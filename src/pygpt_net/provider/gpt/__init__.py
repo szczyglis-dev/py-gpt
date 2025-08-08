@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.08 05:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -267,12 +267,12 @@ class Gpt:
                 })
         messages.append({"role": "user", "content": prompt})
         additional_kwargs = {}
-        if max_tokens > 0:
-            additional_kwargs["max_tokens"] = max_tokens
+        # if max_tokens > 0:
+            # additional_kwargs["max_tokens"] = max_tokens
 
         # tools / functions
         tools = self.window.core.gpt.tools.prepare(model, functions)
-        if len(tools) > 0:
+        if len(tools) > 0 and "disable_tools" not in extra:
             additional_kwargs["tools"] = tools
         
         try:

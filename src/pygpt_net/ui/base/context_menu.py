@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.12 04:00:00                  #
+# Updated Date: 2025.08.08 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QMenu
@@ -76,6 +76,23 @@ class ContextMenu:
                 action = QAction(QIcon(":/icons/code.svg"), trans('text.context_menu.copy_to.python.input'), parent)
                 action.triggered.connect(
                     lambda: self.window.tools.get("interpreter").append_to_input(selected_text))
+                menu.addAction(action)
+
+        # translator
+        if 'translator' not in excluded:
+            menu.addSeparator()
+            if 'translator_left' not in excluded:
+                action = QAction(QIcon(":/icons/text.svg"), trans('text.context_menu.copy_to.translator_left'),
+                                 parent)
+                action.triggered.connect(
+                    lambda: self.window.tools.get("translator").append_content("left", selected_text))
+                menu.addAction(action)
+
+            if 'translator_right' not in excluded:
+                action = QAction(QIcon(":/icons/text.svg"), trans('text.context_menu.copy_to.translator_right'),
+                                 parent)
+                action.triggered.connect(
+                    lambda: self.window.tools.get("translator").append_content("right", selected_text))
                 menu.addAction(action)
 
         return menu

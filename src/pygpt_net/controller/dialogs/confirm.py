@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 17:00:00                  #
+# Updated Date: 2025.08.08 05:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -85,6 +85,14 @@ class Confirm:
         # html canvas
         elif type == 'html_canvas.clear':
             self.window.tools.get("html_canvas").clear(force=True)
+
+        # translator
+        elif type == 'translator.clear':
+            self.window.tools.get("translator").clear(force=True)
+        elif type == 'translator.clear.left':
+            self.window.tools.get("translator").clear_left(force=True)
+        elif type == 'translator.clear.right':
+            self.window.tools.get("translator").clear_right(force=True)
 
         # audio transcribe
         elif type == 'audio.transcribe':

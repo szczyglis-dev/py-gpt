@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.08 05:00:00                  #
 # ================================================== #
 
 import os
@@ -161,6 +161,7 @@ from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
 from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
 from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
 from pygpt_net.tools.html_canvas import HtmlCanvas as HtmlCanvasTool
+from pygpt_net.tools.translator import Translator as TranslatorTool
 
 def run(**kwargs):
     """
@@ -444,6 +445,7 @@ def run(**kwargs):
     launcher.add_tool(AudioTranscriberTool())
     launcher.add_tool(CodeInterpreterTool())
     launcher.add_tool(HtmlCanvasTool())
+    launcher.add_tool(TranslatorTool())
 
     # register custom tools
     tools = kwargs.get('tools', None)

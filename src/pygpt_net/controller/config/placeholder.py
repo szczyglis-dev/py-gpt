@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.08 05:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -86,6 +86,8 @@ class Placeholder:
             return self.get_modes(params)
         elif id == "models":
             return self.get_models(params)
+        elif id == "languages":
+            return self.get_languages()
         elif id == "multimodal":
             return self.get_multimodal(params)
         elif id == "langchain_providers":
@@ -455,6 +457,14 @@ class Placeholder:
             name = trans(f"mode.{id}")
             data.append({id: name})
         return data
+
+    def get_languages(self) -> List[Dict[str, str]]:
+        """
+        Get world languages list
+
+        :return: Languages placeholders list
+        """
+        return self.window.core.text.get_language_choices()
 
     def get_idx(self, params: dict = None) -> List[Dict[str, str]]:
         """
