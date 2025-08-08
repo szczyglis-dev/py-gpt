@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.19 00:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -527,6 +527,11 @@ class Models:
                 args["api_key"] = self.window.core.config.get('api_key_mistral', "")
                 args["base_url"] = self.window.core.config.get('api_endpoint_mistral', "")
                 self.window.core.debug.info("[api] Using client: Mistral AI API")
+            # HuggingFace Router
+            elif model.provider == "huggingface_router":
+                args["api_key"] = self.window.core.config.get('api_key_hugging_face', "")
+                args["base_url"] = self.window.core.config.get('api_endpoint_hugging_face', "")
+                self.window.core.debug.info("[api] Using client: HuggingFace Router API")
             else:
                 self.window.core.debug.info("[api] Using client: OpenAI (default)")
 
