@@ -149,9 +149,6 @@ class Image:
             string += "[{}]({})".format(basename, path) + "\n"
             i += 1
 
-        if self.window.core.config.get('img_dialog_open'):
-            self.window.tools.get("viewer").open_images(paths)  # use viewer tool
-
         if not self.window.core.config.get('img_raw'):
             string += "\nPrompt: "
             string += prompt

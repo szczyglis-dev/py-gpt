@@ -183,7 +183,6 @@
   "font_size.toolbox": 12,
   "func_call.native": true,
   "frequency_penalty": 0.0,
-  "img_dialog_open": false,
   "img_prompt_model": "gpt-4o",
   "img_raw": true,
   "img_resolution": "1792x1024",

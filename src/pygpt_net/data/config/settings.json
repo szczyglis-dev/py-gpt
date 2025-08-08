@@ -1247,18 +1247,6 @@
             {"standard": "[DALL-E 2] standard"}
         ]
     },
-    "img_dialog_open": {
-        "section": "images",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.img_dialog_open",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "img_prompt_model": {
         "section": "images",
         "type": "combo",
@@ -1968,7 +1956,7 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false,
-        "tab": "llama"
+        "tab": "general"
     },
     "agent.mode": {
         "section": "agent",

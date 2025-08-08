@@ -44,8 +44,6 @@ class Image:
         row_two.addWidget(self.window.ui.nodes['dialog.image.pixmap'][3])
 
         state = False
-        if self.window.core.config.has('img_dialog_open'):
-            state = bool(self.window.core.config.get('img_dialog_open'))
         self.window.ui.nodes['dialog.image.open.toggle'] = QCheckBox(trans('settings.img_dialog_open'), self.window)
         self.window.ui.nodes['dialog.image.open.toggle'].setChecked(state)
         self.window.ui.nodes['dialog.image.open.toggle'].clicked.connect(
@@ -67,7 +65,3 @@ class Image:
             value = True
         else:
             value = False
-        self.window.core.config.set('img_dialog_open', value)
-
-        # update checkbox in config dialog
-        self.window.controller.config.checkbox.apply('config', 'img_dialog_open', {'value': value})

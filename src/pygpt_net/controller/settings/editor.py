@@ -60,7 +60,6 @@ class Editor:
         self.window.ui.add_hook("update.config.ctx.records.folders.top", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
-        self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
         self.window.ui.add_hook("update.config.access.voice_control", self.hook_update)
         self.window.ui.add_hook("update.config.debug", self.hook_update)
         self.window.ui.add_hook("update.config.notepad.num", self.hook_update)
@@ -326,11 +325,6 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.theme.reload()
             self.window.controller.theme.menu.update_density()
-
-        # toggle image dialog auto-open
-        elif key == "img_dialog_open":
-            self.window.core.config.set(key, value)
-            self.window.ui.nodes['dialog.image.open.toggle'].setChecked(value)
 
         # debug: menu
         elif key == "debug":
