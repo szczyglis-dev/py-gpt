@@ -1051,38 +1051,32 @@ PyGPT has built-in support for models (as of 2025-07-26):
 - `deepseek-r1:1.5b` (Ollama)
 - `deepseek-r1:14b` (Ollama)
 - `deepseek-r1:32b` (Ollama)
-- `deepseek-r1:670b` (Ollama)
 - `deepseek-r1:7b` (Ollama)
-- `deepseek-r1:671b` (Ollama)
 - `deepseek-reasoner` (DeepSeek)
-- `deepseek-v3:671b` (Ollama)
 - `gemini-1.5-flash` (Google)
 - `gemini-1.5-pro` (Google)
 - `gemini-2.0-flash-exp` (Google)
 - `gemini-2.5-flash` (Google)
 - `gemini-2.5-pro` (Google)
 - `gpt-3.5-turbo` (OpenAI)
-- `gpt-3.5-turbo-1106` (OpenAI)
 - `gpt-3.5-turbo-16k` (OpenAI)
 - `gpt-3.5-turbo-instruct` (OpenAI)
 - `gpt-4` (OpenAI)
-- `gpt-4-0125-preview` (OpenAI)
-- `gpt-4-1106-preview` (OpenAI)
 - `gpt-4-32k` (OpenAI)
 - `gpt-4-turbo` (OpenAI)
-- `gpt-4-turbo-2024-04-09` (OpenAI)
-- `gpt-4-turbo-preview` (OpenAI)
 - `gpt-4-vision-preview` (OpenAI)
 - `gpt-4.1` (OpenAI)
 - `gpt-4.1-mini` (OpenAI)
+- `gpt-4.1-nano` (OpenAI)
 - `gpt-4o` (OpenAI)
-- `gpt-4o-2024-11-20` (OpenAI)
 - `gpt-4o-audio-preview` (OpenAI)
 - `gpt-4o-mini` (OpenAI)
 - `gpt-5` (OpenAI)
 - `gpt-5-mini` (OpenAI)
 - `gpt-5-nano` (OpenAI)
 - `gpt-image-1` (OpenAI)
+- `gpt-oss:20b` (OpenAI - via Ollama and HuggingFace Router)
+- `gpt-oss:120b` (OpenAI - via Ollama and HuggingFace Router)
 - `grok-2-vision` (xAI)
 - `grok-3` (xAI)
 - `grok-3-fast` (xAI)
@@ -1091,21 +1085,19 @@ PyGPT has built-in support for models (as of 2025-07-26):
 - `grok-4` (xAI)
 - `llama2-uncensored` (Ollama)
 - `llama3.1` (Ollama)
-- `llama3.1:405b` (Ollama)
 - `llama3.1:70b` (Ollama)
 - `mistral` (Ollama)
 - `mistral-large` (Ollama)
 - `mistral-small3.1` (Ollama)
 - `o1` (OpenAI)
-- `o3-deep-research` (OpenAI)
 - `o1-mini` (OpenAI)
 - `o1-pro` (OpenAI)
 - `o3` (OpenAI)
+- `o3-deep-research` (OpenAI)
 - `o3-mini` (OpenAI)
 - `o3-pro` (OpenAI)
 - `o4-mini` (OpenAI)
 - `o4-mini-deep-research` (OpenAI)
-- `qwen:7b` (Ollama)
 - `qwen2:7b` (Ollama)
 - `qwen2.5-coder:7b` (Ollama)
 - `qwen3:8b` (Ollama)
@@ -1126,23 +1118,24 @@ You can add your own models. See the section `Extending PyGPT / Adding a new mod
 
 There is built-in support for those LLM providers:
 
-- Anthropic
-- Azure OpenAI
-- Deepseek API
-- Google
-- HuggingFace
-- Local models (OpenAI API compatible)
-- Mistral AI
-- Ollama
-- OpenAI
-- Perplexity
-- xAI
+- `Anthropic`
+- `Azure OpenAI`
+- `Deepseek API`
+- `Google`
+- `HuggingFace API`
+- `HuggingFace Router` (wrapper for OpenAI compatible ChatCompletions)
+- `Local models` (OpenAI API compatible)
+- `Mistral AI`
+- `Ollama`
+- `OpenAI`
+- `Perplexity`
+- `xAI`
 
 ## How to use local or non-GPT models
 
 ### Llama 3, Mistral, DeepSeek, and other local models
 
-How to use locally installed Llama 3 or Mistral models:
+How to use locally installed Llama 3, DeepSeek, Mistral, etc. models:
 
 1) Choose a working mode: `Chat` or `Chat with Files`.
 

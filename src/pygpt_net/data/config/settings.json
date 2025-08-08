@@ -186,6 +186,21 @@
         "advanced": false,
         "tab": "HuggingFace"
     },
+    "api_endpoint_hugging_face": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_hugging_face",
+        "description": "settings.api_endpoint_hugging_face.desc",
+        "value": "https://router.huggingface.co/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "HuggingFace"
+    },
     "api_key_deepseek": {
         "section": "api_keys",
         "type": "text",

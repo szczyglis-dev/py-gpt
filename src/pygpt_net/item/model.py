@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
 
 import json
@@ -17,21 +17,10 @@ from pygpt_net.core.types import (
     MULTIMODAL_IMAGE,
     MODE_AUDIO,
     MULTIMODAL_AUDIO,
+    OPENAI_COMPATIBLE_PROVIDERS,
 )
 
 class ModelItem:
-
-    OPENAI_COMPATIBLE = [
-        "anthropic",
-        "openai",
-        "azure_openai",
-        "google",
-        "local_ai",
-        "mistral_ai",
-        "perplexity",
-        "deepseek_api",
-        "x_ai",
-    ]
 
     def __init__(self, id=None):
         """
@@ -236,7 +225,7 @@ class ModelItem:
 
         :return: True if OpenAI compatible
         """
-        return self.provider in self.OPENAI_COMPATIBLE
+        return self.provider in OPENAI_COMPATIBLE_PROVIDERS
 
     def is_gpt(self) -> bool:
         """
@@ -244,6 +233,9 @@ class ModelItem:
 
         :return: True if OpenAI Responses API compatible
         """
+        if self.id.startswith("gpt-oss"):
+            return False
+
         if (self.id.startswith("gpt-")
                 or self.id.startswith("chatgpt")
                 or self.id.startswith("o1")

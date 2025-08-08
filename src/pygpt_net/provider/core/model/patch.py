@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -736,6 +736,21 @@ class Patch:
                     data["gpt-5-mini-high"] = base_data["gpt-5-mini-high"]
                 if "gpt-5-nano-high" not in data:
                     data["gpt-5-nano-high"] = base_data["gpt-5-nano-high"]
+                updated = True
+
+            # <  2.5.94  <--- gpt-oss
+            if old < parse_version("2.5.94"):
+                print("Migrating models from < 2.5.94...")
+                if "gpt-oss-20b" not in data:
+                    data["gpt-oss-20b"] = base_data["gpt-oss-20b"]
+                if "gpt-oss-120b" not in data:
+                    data["gpt-oss-120b"] = base_data["gpt-oss-120b"]
+                if "gpt-oss-20b-huggingface-router" not in data:
+                    data["gpt-oss-20b-huggingface-router"] = base_data["gpt-oss-20b-huggingface-router"]
+                if "gpt-oss-120b-huggingface-router" not in data:
+                    data["gpt-oss-120b-huggingface-router"] = base_data["gpt-oss-120b-huggingface-router"]
+                if "gpt-4.1-nano" not in data:
+                    data["gpt-4.1-nano"] = base_data["gpt-4.1-nano"]
                 updated = True
 
         # update file

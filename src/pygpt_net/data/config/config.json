@@ -71,6 +71,7 @@
   "api_endpoint_xai": "https://api.x.ai/v1",
   "api_endpoint_anthropic": "https://api.anthropic.com/v1",
   "api_endpoint_mistral": "https://api.mistral.ai/v1",
+  "api_endpoint_hugging_face": "https://router.huggingface.co/v1",
   "api_key": "",
   "api_key_google": "",
   "api_key_anthropic": "",

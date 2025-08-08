@@ -6,8 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
+
+OPENAI_COMPATIBLE_PROVIDERS = [
+    "anthropic",
+    "openai",
+    "azure_openai",
+    "google",
+    "huggingface_router",
+    "local_ai",
+    "mistral_ai",
+    "perplexity",
+    "deepseek_api",
+    "x_ai",
+]
 
 OPENAI_DISABLE_TOOLS = [
     "o1-mini",

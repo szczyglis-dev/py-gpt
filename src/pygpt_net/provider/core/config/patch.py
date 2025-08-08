@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 22:00:00                  #
+# Updated Date: 2025.08.08 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -2196,6 +2196,13 @@ class Patch:
                 print("Migrating config from < 2.5.92...")
                 if "audio.cache.max_files" not in data:
                     data["audio.cache.max_files"] = 1000
+                updated = True
+
+            # < 2.5.94
+            if old < parse_version("2.5.94"):
+                print("Migrating config from < 2.5.94...")
+                if "api_endpoint_hugging_face" not in data:
+                    data["api_endpoint_hugging_face"] = "https://router.huggingface.co/v1"
                 updated = True
 
         # update file
