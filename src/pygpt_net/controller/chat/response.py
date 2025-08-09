@@ -19,7 +19,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
 )
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import RenderEvent, KernelEvent
+from pygpt_net.core.events import RenderEvent, KernelEvent, AppEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -172,6 +172,10 @@ class Response:
             ctx.msg_id = None
             self.window.core.ctx.add(ctx)  # store context to prevent current output from being lost
             self.window.controller.ctx.prepare_name(ctx)  # summarize if not yet
+
+            # finish render
+            self.window.dispatch(AppEvent(AppEvent.CTX_END))  # app event
+            self.window.dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
             return
 
         # at first, handle previous context (user input) if not handled yet
