@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.09 15:00:00                  #
 # ================================================== #
 import json
 import os
@@ -131,8 +131,10 @@ class Translator(BaseTool):
         worker.kwargs['id'] = id
         worker.kwargs['model'] = model_data
         worker.kwargs['text'] = text
+        worker.kwargs['from_lang_code'] = source_lang
         worker.kwargs['from_lang'] = from_lang
         worker.kwargs['to_lang'] = to_lang
+        worker.kwargs['to_lang_code'] = target_lang
         worker.kwargs['window'] = self.window
         worker.kwargs['updated_signal'] = worker.signals.updated
         self.window.threadpool.start(worker)
@@ -153,7 +155,9 @@ class Translator(BaseTool):
             window,
             id: str,
             model: ModelItem,
+            from_lang_code: str,
             from_lang: str,
+            to_lang_code: str,
             to_lang: str,
             text: str,
             updated_signal: Signal,
@@ -164,12 +168,14 @@ class Translator(BaseTool):
         :param window: Main window instance
         :param id: ID of the column
         :param model: Translation model
+        :param from_lang_code: Source language code
         :param from_lang: Source language code
+        :param to_lang_code: Target language code
         :param to_lang: Target language code
         :param text: Text to translate
         :param updated_signal: Signal to emit on update
         """
-        if from_lang == '--- AUTO DETECT ---':
+        if from_lang_code == '-':
             sys_prompt = """
             Translate provided text to {to_lang}. 
             In your response, return only the raw, translated text, without any comments or other insertions. 
@@ -368,6 +374,7 @@ class Translator(BaseTool):
             self.load_config()
             self.window.ui.dialogs.open(self.dialog_id, width=800, height=600)
             self.update()
+            self.signals.on_load.emit()
 
     def close(self):
         """Close HTML canvas dialog"""

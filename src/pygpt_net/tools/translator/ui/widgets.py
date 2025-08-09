@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.09 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QObject, Signal
@@ -17,6 +17,7 @@ from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.option.combo import OptionCombo
 
 import pygpt_net.icons_rc
+from pygpt_net.ui.widget.textarea.search_input import SearchInput
 from pygpt_net.utils import trans
 
 class ToolWidget:
@@ -103,9 +104,17 @@ class ToolWidget:
         self.tool.signals.replace.connect(self.replace_content)
         self.tool.signals.append.connect(self.append_content)
         self.tool.signals.set_status.connect(self.set_status)
+        self.tool.signals.on_load.connect(self.on_load)
 
         self.initialized = True  # mark as initialized
         return layout
+
+    def on_load(self):
+        """
+        On dialog load (focus on left column)
+        """
+        if self.left_column:
+            self.left_column.on_load()
 
     @Slot(str)
     def set_status(self, message: str):
@@ -241,6 +250,12 @@ class TextColumn(QWidget):
         self.setContentsMargins(0, 0, 0, 0)
         self.setProperty('class', 'translator-column')
 
+        self.lang_input = SearchInput(window)  # search input for languages
+        self.lang_input.setPlaceholderText(trans("translator.search.placeholder"))
+        self.lang_input.on_clear = self.on_clear
+        self.lang_input.on_search = self.on_search
+        self.lang_input.setMinimumWidth(200)  # set max width for search input
+
         option = {
             "type": "combo",
             "label": "menu.tools.translator.language",
@@ -258,6 +273,7 @@ class TextColumn(QWidget):
             self.window.controller.config.placeholder.apply_by_id('languages')
         )
         self.lang_select.set_value("en") # default language
+        self.lang_select.setMinimumWidth(200)
         if self.id == "left":
             self.lang_select.set_value("-") # auto-detect
 
@@ -265,10 +281,11 @@ class TextColumn(QWidget):
         self.textarea.setTabChangesFocus(True)
         self.textarea.setReadOnly(False)
 
-        lang_label = QLabel(trans("translator.label.lang"))
         lang_layout = QHBoxLayout()
-        lang_layout.addWidget(lang_label)
+        lang_layout.addWidget(self.lang_input)
         lang_layout.addWidget(self.lang_select)
+        lang_layout.setContentsMargins(0, 0, 0, 0)
+
         lang_widget = QWidget()
         lang_widget.setLayout(lang_layout)
 
@@ -288,6 +305,30 @@ class TextColumn(QWidget):
         self.layout.addWidget(self.textarea, 1)
         self.layout.addWidget(self.btn_translate)
         self.setLayout(self.layout)
+
+    def on_load(self):
+        """
+        Load content from the tool
+        """
+        if self.textarea:
+            self.textarea.setFocus()
+
+    def on_search(self, search_text: str):
+        """
+        Search languages based on the input text
+
+        :param search_text: Text to search in languages
+        """
+        key = self.window.core.text.find_lang_id_by_search_string(search_text)
+        if key:
+            self.lang_select.set_value(key)
+
+    def on_clear(self):
+        """
+        Clear search input
+        """
+        self.lang_input.clear()
+        self.on_search("")
 
 
 class TextareaField(QTextEdit):
@@ -481,3 +522,4 @@ class ToolSignals(QObject):
     append = Signal(str, str)  # append to column content: id, content
     translate = Signal(str, str, str, str, str)  # translate content: id, model, text, src_lang, dst_lang
     set_status = Signal(str)  # set status message
+    on_load = Signal()  # on load (focus on right column)
