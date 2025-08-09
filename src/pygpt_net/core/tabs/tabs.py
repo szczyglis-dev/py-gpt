@@ -435,7 +435,7 @@ class Tabs:
         :return: Min index
         """
         min = 999999
-        column_idx = None
+        column_idx = None  # TODO: fix this!!!!!!!!!
         exists = False
         for pid in self.pids:
             tab = self.pids[pid]
@@ -660,7 +660,10 @@ class Tabs:
         old_tabs.removeTab(tab.idx)
         new_column = self.window.ui.layout.get_column_by_idx(column_idx)
         new_tabs = new_column.get_tabs()
-        tab.idx = new_tabs.addTab(tab.child, QIcon(tab.icon), tab.title)
+        icon = QIcon()  # for test purposes only
+        if isinstance(tab.icon, str):
+            icon = QIcon(tab.icon)
+        tab.idx = new_tabs.addTab(tab.child, icon, tab.title)
         tab.parent = new_column
         tab.column_idx = column_idx
         self.update()
