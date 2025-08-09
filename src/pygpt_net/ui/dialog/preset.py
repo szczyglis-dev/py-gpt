@@ -436,6 +436,7 @@ class AvatarWidget(QWidget):
         buttons_layout.setContentsMargins(0, 10, 0, 0)
 
         main_layout.addLayout(buttons_layout)
+        main_layout.setContentsMargins(0, 10, 0, 0)
         main_layout.addStretch()
 
     def open_file_dialog(self):

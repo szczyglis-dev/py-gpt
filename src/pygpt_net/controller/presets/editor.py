@@ -69,6 +69,7 @@ class Editor:
             "ai_personalize": {
                 "type": "bool",
                 "label": "preset.ai_personalize",
+                "description": "preset.ai_personalize.desc",
             },
             "user_name": {
                 "type": "text",
