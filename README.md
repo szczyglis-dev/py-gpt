@@ -734,6 +734,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 - `Research bot` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
 - `Simple agent` - a single agent.
 - `Evolve` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
+- `B2B` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
 
 More types will be available in the future.
 
@@ -745,6 +746,7 @@ There are also predefined presets added as examples:
 - `Researcher`
 - `Simple agent`
 - `Writer with Feedback`
+- `2 bots`
 
 In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
 
@@ -791,6 +793,12 @@ Below is a pattern for how different types of agents work. You can use these pat
 - Another agent (feedback) verifies the best answer and suggests improvements.
 - A request for improving the best answer is sent to a new pair of agents (new parents).
 - From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
+
+**B2B**
+- A human provides a topic for discussion.
+- Bot 1 generates a response and sends it to Bot 2.
+- Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
+- The human can interrupt the loop at any time and update the entire discussion.
 
 **Limitations:**
 

@@ -1,0 +1,54 @@
+{
+    "uuid": "b81f8fd3-34b9-466b-9555-908b281f67da",
+    "name": "2 bots",
+    "ai_name": "",
+    "user_name": "",
+    "prompt": "",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "vision": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "temperature": 1.0,
+    "filename": "agent_openai_b2b",
+    "model": "gpt-4o",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "code_act",
+    "agent_provider_openai": "openai_agent_b2b",
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {
+        "openai_agent_b2b": {
+            "bot_1": {
+                "prompt": "You're an advanced AI assistant and an expert in every field. Imagine that I am also such an AI assistant and converse with me in an expert manner. As two assistants, let's brainstorm and arrive at some advanced solutions.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            },
+            "bot_2": {
+                "model": "gpt-4o",
+                "prompt": "You're an advanced AI assistant and an expert in every field. Imagine that I am also such an AI assistant and converse with me in an expert manner. As two assistants, let's brainstorm and arrive at some advanced solutions.",
+                "allow_local_tools": false,
+                "allow_remote_tools": false
+            }
+        }
+    },
+    "__meta__": {
+        "version": "2.5.94",
+        "app.version": "2.5.94",
+        "updated_at": "2025-08-09T02:10:32"
+    }
+}

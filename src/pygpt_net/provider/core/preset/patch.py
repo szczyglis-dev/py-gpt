@@ -37,6 +37,7 @@ class Patch:
         is_computer = False
         is_bot = False
         is_evolve = False
+        is_b2b = False
 
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
@@ -231,6 +232,22 @@ class Patch:
                             print("Patched file: {}.".format(dst))
                         updated = True
                         is_evolve = True  # prevent multiple copies
+
+                # < 2.5.94
+                if old < parse_version("2.5.94"):
+                    if 'agent_openai_b2b' not in self.window.core.presets.items and not is_b2b:
+                        print("Migrating preset file from < 2.5.94...")
+                        files = [
+                            'agent_openai_b2b.json',
+                        ]
+                        for file in files:
+                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
+                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
+                                               'presets', file)
+                            shutil.copyfile(src, dst)
+                            print("Patched file: {}.".format(dst))
+                        updated = True
+                        is_b2b = True  # prevent multiple copies
 
             # update file
             if updated:
