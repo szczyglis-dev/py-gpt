@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 02:00:00                  #
+# Updated Date: 2025.08.09 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -429,6 +429,8 @@ class Ctx:
         if meta is None:
             self.window.core.debug.log("Error creating new ctx")
             return
+        preset = self.window.core.config.get('preset')
+        meta.preset = preset
         self.meta[meta.id] = meta
         self.tmp_meta = meta
         self.current = meta.id
@@ -436,7 +438,7 @@ class Ctx:
         self.assistant = None
         self.mode = self.window.core.config.get('mode')
         self.model = self.window.core.config.get('model')
-        self.preset = self.window.core.config.get('preset')
+        self.preset = preset
         self.clear_items()
         self.save(meta.id)
 
