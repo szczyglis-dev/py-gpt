@@ -102,8 +102,10 @@ class Text:
                 stream_mode = False
 
         # create ctx item
+        meta = self.window.core.ctx.get_current_meta()
+        meta.preset = self.window.core.config.get('preset')  # current preset
         ctx = CtxItem()
-        ctx.meta = self.window.core.ctx.get_current_meta()  # CtxMeta (owner object)
+        ctx.meta = meta  # CtxMeta (owner object)
         ctx.internal = internal
         ctx.current = True  # mark as current context item
         ctx.mode = mode  # store current selected mode (not inline changed)
