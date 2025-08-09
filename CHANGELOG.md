@@ -5,6 +5,7 @@
 - Added user info personalization in Config -> Personalization, where you can provide information about yourself to the model.
 - Added presets personalization with configurable AI names and avatars.
 - Added a search field in the Translator tool.
+- Fixed <> tags replacement in code blocks.
 
 ## 2.5.94 (2025-08-09)
 

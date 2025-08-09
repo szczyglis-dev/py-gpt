@@ -497,15 +497,7 @@ class Body:
                 hideTips();
             }
             function sanitize(content) {
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(content, "text/html");
-                var codeElements = doc.querySelectorAll('code, pre');
-                codeElements.forEach(function(element) {
-                    var html = element.outerHTML;
-                    var newHtml = html.replace(/&amp;lt;/g, '<').replace(/&amp;gt;/g, '>');
-                    element.outerHTML = newHtml;
-                });
-                return doc.documentElement.outerHTML;
+                return content.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
             }
             function highlightCode(withMath = true) {
                 document.querySelectorAll('pre code').forEach(el => {
