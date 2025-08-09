@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.94** | build: **2025-08-09** | Python: **>=3.10, <3.14**
+Release: **2.5.95** | build: **2025-08-09** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4262,6 +4262,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.95 (2025-08-09)**
+
+- Added user info personalization in Config -> Personalization, where you can provide information about yourself to the model.
+- Added presets personalization with configurable AI names and avatars.
+- Added a search field in the Translator tool.
 
 **2.5.94 (2025-08-09)**
 

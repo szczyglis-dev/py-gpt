@@ -1,3 +1,9 @@
+2.5.95 (2025-08-09)
+
+- Added user info personalization in Config -> Personalization, where you can provide information about yourself to the model.
+- Added presets personalization with configurable AI names and avatars.
+- Added a search field in the Translator tool.
+
 2.5.94 (2025-08-09)
 
 - Added a new LLM provider: HuggingFace Router.
