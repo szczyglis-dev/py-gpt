@@ -1259,7 +1259,7 @@ class Body:
                     }
                 });
             });
-            setTimeout(cycleTips, 10000);
+            setTimeout(cycleTips, 20000);
             </script>
         </head>
         <body """ + classes_str + """>
