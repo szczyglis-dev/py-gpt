@@ -65,8 +65,15 @@ class Helpers:
         # replace HTML tags
         text = text.replace("<think>", "{{{{think}}}}")
         text = text.replace("</think>", "{{{{/think}}}}")
-        text = text.replace("<", "&lt;")
-        text = text.replace(">", "&gt;")
+        # text = text.replace("<", "&lt;")
+        # text = text.replace(">", "&gt;")
+        text = re.sub(
+            r'(\\\[.*?\\\])|(<)|(>)',
+            lambda m: m.group(1) if m.group(1)
+            else "&lt;" if m.group(2)
+            else "&gt;",
+            text, flags=re.DOTALL
+        )  # leave math formula tags
         text = text.replace("{{{{think}}}}", "<think>")
         text = text.replace("{{{{/think}}}}", "</think>")
         text = text.replace("<think>\n", "<think>")
