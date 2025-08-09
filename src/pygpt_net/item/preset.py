@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 19:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 import json
@@ -20,6 +20,8 @@ class PresetItem:
         self.uuid = None
         self.name = "*"
         self.ai_name = ""
+        self.ai_avatar = ""
+        self.ai_personalize = False
         self.user_name = ""
         self.prompt = ""
         self.chat = False
@@ -61,6 +63,8 @@ class PresetItem:
             "uuid": str(self.uuid),
             "name": self.name,
             "ai_name": self.ai_name,
+            "ai_avatar": self.ai_avatar,
+            "ai_personalize": self.ai_personalize,
             "user_name": self.user_name,
             "prompt": self.prompt,
             "chat": self.chat,
@@ -99,6 +103,10 @@ class PresetItem:
             self.name = data["name"]
         if "ai_name" in data:
             self.ai_name = data["ai_name"]
+        if "ai_avatar" in data:
+            self.ai_avatar = data["ai_avatar"]
+        if "ai_personalize" in data:
+            self.ai_personalize = data["ai_personalize"]
         if "user_name" in data:
             self.user_name = data["user_name"]
         if "prompt" in data:

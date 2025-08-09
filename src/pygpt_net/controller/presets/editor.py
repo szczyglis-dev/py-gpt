@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 import datetime
 import os
+import shutil
 from typing import Any, Optional, Dict
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout
@@ -60,6 +61,14 @@ class Editor:
             "ai_name": {
                 "type": "text",
                 "label": "preset.ai_name",
+            },
+            "ai_avatar": {
+                "type": "text",
+                "label": "preset.ai_avatar",
+            },
+            "ai_personalize": {
+                "type": "bool",
+                "label": "preset.ai_personalize",
             },
             "user_name": {
                 "type": "text",
@@ -716,6 +725,9 @@ class Editor:
         # update experts list, after ID loaded
         self.experts.update_list()
 
+        # setup avatar config
+        self.update_avatar_config(data)
+
         # restore functions
         if data.has_functions():
             functions = data.get_functions()
@@ -956,6 +968,9 @@ class Editor:
         # extra options
         self.append_extra_options(preset)
 
+        # avatar update
+        self.update_avatar_config(preset)
+
     def to_current(self, preset: PresetItem):
         """
         Update preset field from editor
@@ -1018,3 +1033,94 @@ class Editor:
                     preset.ai_name = value
                     self.window.core.config.set('ai_name', preset.ai_name)
                 self.window.core.presets.save(preset_id)
+
+
+    def upload_avatar(self, file_path: str):
+        """
+        Update avatar config for preset
+
+        :param file_path: path to the avatar file
+        """
+        preset = self.window.core.presets.get_by_uuid(self.current)
+        if not preset:
+            return
+        presets_dir = self.window.core.config.get_user_dir("presets")
+        avatars_dir = os.path.join(presets_dir, "avatars")
+        if not os.path.exists(avatars_dir):
+            os.makedirs(avatars_dir, exist_ok=True)
+        file_ext = os.path.splitext(file_path)[1]
+        store_name = preset.filename + "_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + file_ext
+        avatar_path = os.path.join(avatars_dir, store_name)
+
+        # copy avatar to avatars directory
+        if os.path.exists(avatar_path):
+            os.remove(avatar_path)
+        if os.path.exists(file_path):
+            shutil.copy(file_path, avatar_path)
+            preset.ai_avatar = store_name
+            self.window.controller.config.apply_value(
+                parent_id=self.id,
+                key="ai_avatar",
+                option=self.options["ai_avatar"],
+                value=store_name,
+            )
+            self.window.ui.nodes['preset.editor.avatar'].load_avatar(avatar_path)
+            self.window.ui.nodes['preset.editor.avatar'].enable_remove_button(True)
+        return avatar_path
+
+    def update_avatar_config(self, preset: PresetItem):
+        """
+        Update avatar config for preset
+
+        :param preset: preset item
+        """
+        avatar_path = preset.ai_avatar
+        if avatar_path:
+            file_path = os.path.join(
+                self.window.core.config.get_user_dir("presets"),
+                "avatars",
+                avatar_path,
+            )
+            if not os.path.exists(file_path):
+                self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
+                print("Avatar file does not exist:", file_path)
+                return
+            self.window.ui.nodes['preset.editor.avatar'].load_avatar(file_path)
+            self.window.ui.nodes['preset.editor.avatar'].enable_remove_button(True)
+        else:
+            self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
+
+    def remove_avatar(self, force: bool = False):
+        """
+        Remove avatar from preset editor
+
+        :param force: force remove avatar
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='preset.avatar.delete',
+                id="",
+                msg=trans('confirm.preset.avatar.delete'),
+            )
+            return
+        preset = self.window.core.presets.get_by_uuid(self.current)
+        if preset:
+            current = preset.ai_avatar
+            if current:
+                presets_dir = self.window.core.config.get_user_dir("presets")
+                avatars_dir = os.path.join(presets_dir, "avatars")
+                avatar_path = os.path.join(avatars_dir, current)
+                if os.path.exists(avatar_path):
+                    os.remove(avatar_path)
+                    print("Avatar removed:", avatar_path)
+            preset.ai_avatar = ""
+
+        self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
+        self.window.controller.config.apply_value(
+            parent_id=self.id,
+            key="ai_avatar",
+            option=self.options["ai_avatar"],
+            value="",
+        )
+        # update preset item
+

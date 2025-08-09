@@ -205,8 +205,20 @@ code {{
 .msg-box:last-child {{
     margin-bottom: 20px !important;
 }}
-.msg-box .name-header {{
-    display: none;
+.msg-box .name-header.name-bot {{
+    display: block;
+    margin-left: -20px;
+    margin-bottom: 1rem;
+    color: #cfcfcf;
+}}
+.msg-box .name-header.name-bot .avatar {{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: inline;
+    vertical-align: middle;
+    object-fit: cover;
+    margin-right: 10px;
 }}
 .msg-extra {{
     margin-top: 10px;
@@ -410,4 +422,9 @@ think {{
 }}
 .tips.visible {{
  opacity: 1;
+}}
+
+
+.name-user {{
+  display: none;
 }}

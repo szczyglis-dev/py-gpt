@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -82,10 +82,8 @@ class Mode:
             self.window.ui.nodes['preset.editor.remote_tools'].setVisible(False)
 
         if mode == MODE_COMPLETION:
-            self.window.ui.nodes['preset.editor.ai_name'].setVisible(True)
             self.window.ui.nodes['preset.editor.user_name'].setVisible(True)
         else:
-            self.window.ui.nodes['preset.editor.ai_name'].setVisible(False)
             self.window.ui.nodes['preset.editor.user_name'].setVisible(False)
 
         if mode == MODE_AGENT_OPENAI:

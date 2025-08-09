@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -293,6 +293,17 @@ class Presets:
         presets = self.get_by_mode(mode)
         if id in presets:
             return presets[id]
+        return None
+
+    def get(self, id: str) -> Optional[PresetItem]:
+        """
+        Return preset by ID
+
+        :param id: preset ID
+        :return: preset item
+        """
+        if id in self.items:
+            return self.items[id]
         return None
 
     def get_by_uuid(self, uuid: str) -> Optional[PresetItem]:

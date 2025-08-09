@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 19:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 import json
@@ -452,6 +452,7 @@ class Renderer(BaseRenderer):
                 self.pids[pid].buffer = ""  # always reset buffer
             return
 
+        name_header = self.get_name_header(ctx)
         self.update_names(meta, ctx)
         raw_chunk = str(text_chunk)
         raw_chunk = raw_chunk.replace("<", "&lt;")
@@ -521,6 +522,7 @@ class Renderer(BaseRenderer):
                 raw_chunk = "\n" + raw_chunk  # add newline to chunk
         escaped_chunk = json.dumps(raw_chunk)
         escaped_buffer = json.dumps(html)
+        name_header = json.dumps(name_header)
 
         if replace == "true":
             self.prev_chunk_replace = True
@@ -529,7 +531,7 @@ class Renderer(BaseRenderer):
 
         try:
             self.get_output_node(meta).page().runJavaScript(
-                f"appendStream('{self.pids[pid].name_bot}', {escaped_buffer}, {escaped_chunk}, {replace}, {code_block_arg});")
+                f"appendStream({name_header}, {escaped_buffer}, {escaped_chunk}, {replace}, {code_block_arg});")
         except Exception as e:
             pass
 
@@ -1209,9 +1211,10 @@ class Renderer(BaseRenderer):
         if self.is_debug():
             debug = self.append_debug(ctx, pid, "output")
 
+        name_header = self.get_name_header(ctx)
         html = (
             '<div class="msg-box msg-bot" id="{msg_id}">'
-            '<div class="name-header name-bot">{name_bot}</div>'
+            + name_header +
             '<div class="msg">'
             '{html}'
             '<div class="msg-tool-extra">{tool_extra}</div>'
@@ -1233,6 +1236,44 @@ class Renderer(BaseRenderer):
         )
 
         return html
+
+    def get_name_header(self, ctx: CtxItem) -> str:
+        """
+        Get name header for the bot
+
+        :param ctx: CtxItem instance
+        :return: HTML name header
+        """
+        meta = ctx.meta
+        if meta is None:
+            return ""
+        preset_id = meta.preset
+        if preset_id is None or preset_id == "":
+            return ""
+        preset = self.window.core.presets.get(preset_id)
+        if preset is None:
+            return ""
+        if not preset.ai_personalize:
+            return ""
+
+        output_name = ""
+        avatar_html = ""
+        if preset.ai_name:
+            output_name = preset.ai_name
+        if preset.ai_avatar:
+            presets_dir = self.window.core.config.get_user_dir("presets")
+            avatars_dir = os.path.join(presets_dir, "avatars")
+            avatar_path = os.path.join(avatars_dir, preset.ai_avatar)
+            if os.path.exists(avatar_path):
+                if self.window.core.platforms.is_windows():
+                    prefix = 'file:///'
+                else:
+                    prefix = 'file://'
+                avatar_html = "<img src=\"" +prefix + avatar_path + "\" class=\"avatar\"> "
+
+        if not output_name and not avatar_html:
+            return ""
+        return "<div class=\"name-header name-bot\">" +avatar_html + output_name + "</div>"
 
     def flush_output(
             self,

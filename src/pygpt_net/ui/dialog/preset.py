@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, QTabWidget
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
+    QTabWidget, QLineEdit, QFileDialog
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -229,13 +230,17 @@ class Preset(BaseConfigDialog):
         left_keys = [
             "filename",
             "name",
-            "ai_name",
-            "user_name",
             "model",
             "temperature",
             "agent_provider",
             "agent_provider_openai",
             "remote_tools",
+        ]
+        personalize_keys = [
+            "ai_name",
+            "user_name",
+            "ai_avatar",
+            "ai_personalize",
         ]
         for key in left_keys:
             self.window.ui.nodes['preset.editor.' + key] = QWidget()
@@ -243,13 +248,30 @@ class Preset(BaseConfigDialog):
             self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
             rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
 
+        # personalize
+        personalize_rows = QVBoxLayout()
+        for key in personalize_keys:
+            self.window.ui.nodes['preset.editor.' + key] = QWidget()
+            self.window.ui.nodes['preset.editor.' + key].setLayout(options[key])
+            self.window.ui.nodes['preset.editor.' + key].setContentsMargins(0, 0, 0, 0)
+            personalize_rows.addWidget(self.window.ui.nodes['preset.editor.' + key])
+
+        self.window.ui.nodes['preset.editor.ai_avatar'].setVisible(False)
+
+        # warning label
+        warn_label = HelpLabel(trans("preset.personalize.warning"))
+
+        # avatar
+        self.window.ui.nodes['preset.editor.avatar'] = AvatarWidget(self.window)
+        personalize_rows.addWidget(self.window.ui.nodes['preset.editor.avatar'])
+        personalize_rows.addStretch(1)
+        personalize_rows.addWidget(warn_label)
+
         self.window.ui.nodes['preset.editor.remote_tools'].setMinimumHeight(140)
 
         rows.setContentsMargins(0, 0, 0, 0)
         rows.addStretch(1)
         rows.setAlignment(Qt.AlignTop)
-
-
         widget_base = QWidget()
         widget_base.setLayout(rows)
         widget_base.setMinimumWidth(300)
@@ -280,7 +302,6 @@ class Preset(BaseConfigDialog):
         main.addWidget(widget_base)
         main.addWidget(func_widget)
         main.addWidget(self.window.ui.nodes['preset.editor.modes'])
-        main.setContentsMargins(0, 0, 0, 0)
 
         widget_main = QWidget()
         widget_main.setLayout(main)
@@ -292,8 +313,15 @@ class Preset(BaseConfigDialog):
         self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
         #self.window.ui.splitters['editor.presets'].setChildrenCollapsible(False)
 
+        widget_personalize = QWidget()
+        widget_personalize.setLayout(personalize_rows)
+
+        tabs = QTabWidget()
+        tabs.addTab(self.window.ui.splitters['editor.presets'], trans("preset.tab.general"))
+        tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
+
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.splitters['editor.presets'])
+        layout.addWidget(tabs)
         layout.addLayout(footer)
 
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
@@ -370,3 +398,92 @@ class Preset(BaseConfigDialog):
         """Close event callback"""
         self.window.controller.presets.select_current(no_scroll=True)
         self.window.controller.presets.editor.opened = False
+
+
+class AvatarWidget(QWidget):
+    def __init__(self, window=None):
+        super().__init__(window)
+        self.window = window
+        self.avatar_preview = None
+        self.choose_button = None
+        self.remove_button = None
+        self.path_line_edit = None
+        self.init_ui()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        current_avatar_label = QLabel(trans("preset.personalize.avatar.current"))
+        main_layout.addWidget(current_avatar_label)
+
+        self.avatar_preview = QLabel(self)
+        self.avatar_preview.setFixedSize(200, 200)
+        self.avatar_preview.setStyleSheet("border: 1px solid gray;")
+        self.avatar_preview.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.avatar_preview)
+
+        buttons_layout = QHBoxLayout()
+
+        self.choose_button = QPushButton(trans("preset.personalize.avatar.choose"), self)
+        self.choose_button.clicked.connect(self.open_file_dialog)
+        buttons_layout.addWidget(self.choose_button)
+
+        self.remove_button = QPushButton(trans("preset.personalize.avatar.remove"), self)
+        self.remove_button.clicked.connect(self.window.controller.presets.editor.remove_avatar)
+        self.remove_button.setEnabled(False)
+        buttons_layout.addWidget(self.remove_button)
+        buttons_layout.setContentsMargins(0, 10, 0, 0)
+
+        main_layout.addLayout(buttons_layout)
+        main_layout.addStretch()
+
+    def open_file_dialog(self):
+        file_name, _ = QFileDialog.getOpenFileName(
+            self, trans("preset.personalize.avatar.choose.title"), "", "Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp)"
+        )
+        if file_name:
+            self.window.controller.presets.editor.upload_avatar(file_name)
+
+    def load_avatar(self, file_path):
+        from PySide6.QtGui import QPixmap
+        pixmap = QPixmap(file_path)
+        if not pixmap.isNull():
+            cover_pix = self.get_cover_pixmap(pixmap, self.avatar_preview.width(), self.avatar_preview.height())
+            self.avatar_preview.setPixmap(cover_pix)
+        self.remove_button.setEnabled(True)
+
+    def enable_remove_button(self, enabled: bool = True):
+        """
+        Enable or disable the remove button based on the presence of an avatar.
+
+        :param enabled: True to enable, False to disable
+        """
+        self.remove_button.setEnabled(enabled)
+
+    def disable_remove_button(self):
+        """
+        Disable the remove button.
+        """
+        self.enable_remove_button(False)
+
+    def get_cover_pixmap(self, pixmap, target_width, target_height):
+        """
+        Scale and crop the pixmap to fit the target dimensions while maintaining aspect ratio.
+
+        :param pixmap: Original pixmap
+        :param target_width: Target width for the avatar preview
+        :param target_height: Target height for the avatar preview
+        """
+        factor = max(target_width / pixmap.width(), target_height / pixmap.height())
+        new_width = int(pixmap.width() * factor)
+        new_height = int(pixmap.height() * factor)
+        scaled_pix = pixmap.scaled(new_width, new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        x = (scaled_pix.width() - target_width) // 2
+        y = (scaled_pix.height() - target_height) // 2
+        cropped_pix = scaled_pix.copy(x, y, target_width, target_height)
+        return cropped_pix
+
+    def remove_avatar(self):
+        self.avatar_preview.clear()
+        self.remove_button.setEnabled(False)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 05:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -93,6 +93,9 @@ class Confirm:
             self.window.tools.get("translator").clear_left(force=True)
         elif type == 'translator.clear.right':
             self.window.tools.get("translator").clear_right(force=True)
+
+        elif type == "preset.avatar.delete":
+            self.window.controller.presets.editor.remove_avatar(True)
 
         # audio transcribe
         elif type == 'audio.transcribe':

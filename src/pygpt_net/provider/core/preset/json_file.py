@@ -185,6 +185,8 @@ class JsonFileProvider(BaseProvider):
             'uuid': item.uuid,
             'name': item.name,
             'ai_name': item.ai_name,
+            'ai_avatar': item.ai_avatar,
+            'ai_personalize': item.ai_personalize,
             'user_name': item.user_name,
             'prompt': item.prompt,
             MODE_CHAT: item.chat,
@@ -259,6 +261,10 @@ class JsonFileProvider(BaseProvider):
             item.name = data['name']
         if 'ai_name' in data:
             item.ai_name = data['ai_name']
+        if 'ai_avatar' in data:
+            item.ai_avatar = data['ai_avatar']
+        if 'ai_personalize' in data:
+            item.ai_personalize = data['ai_personalize']
         if 'user_name' in data:
             item.user_name = data['user_name']
         if 'prompt' in data:

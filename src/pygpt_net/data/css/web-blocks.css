@@ -178,9 +178,20 @@ code {{
 .msg-box:first-child {{
     margin-top: 0px;
 }}
-.msg-box .name-header {{
+.msg-box .name-header.name-bot {{
     display: block;
-    font-size: 0.8rem;
+    margin-left: -20px;
+    margin-bottom: 1rem;
+    color: #cfcfcf;
+}}
+.msg-box .name-header.name-bot .avatar {{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: inline;
+    vertical-align: middle;
+    object-fit: cover;
+    margin-right: 10px;
 }}
 .msg-box .name-header::before {{
     content: '';
