@@ -49,6 +49,7 @@ class Editor:
         self.built = False
         self.tab_options_idx = {}
         self.opened = False
+        self.tmp_avatar = None
         self.options = {
             "filename": {
                 "type": "text",
@@ -849,6 +850,14 @@ class Editor:
         # assign data from fields to preset object in items
         self.assign_data(id)
 
+        if is_new:
+            # assign tmp avatar
+            if self.tmp_avatar is not None:
+                self.window.core.presets.items[id].ai_avatar = self.tmp_avatar
+                self.tmp_avatar = None
+        else:
+            self.tmp_avatar = None
+
         # if agent, assign experts and select only agent mode
         curr_mode = self.window.core.config.get('mode')
         if curr_mode == MODE_AGENT:
@@ -1035,7 +1044,6 @@ class Editor:
                     self.window.core.config.set('ai_name', preset.ai_name)
                 self.window.core.presets.save(preset_id)
 
-
     def upload_avatar(self, file_path: str):
         """
         Update avatar config for preset
@@ -1043,14 +1051,13 @@ class Editor:
         :param file_path: path to the avatar file
         """
         preset = self.window.core.presets.get_by_uuid(self.current)
-        if not preset:
-            return
         presets_dir = self.window.core.config.get_user_dir("presets")
         avatars_dir = os.path.join(presets_dir, "avatars")
+        preset_name = "_" if preset is None else preset.filename
         if not os.path.exists(avatars_dir):
             os.makedirs(avatars_dir, exist_ok=True)
         file_ext = os.path.splitext(file_path)[1]
-        store_name = preset.filename + "_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + file_ext
+        store_name = preset_name + "_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + file_ext
         avatar_path = os.path.join(avatars_dir, store_name)
 
         # copy avatar to avatars directory
@@ -1058,7 +1065,10 @@ class Editor:
             os.remove(avatar_path)
         if os.path.exists(file_path):
             shutil.copy(file_path, avatar_path)
-            preset.ai_avatar = store_name
+            if preset:
+                preset.ai_avatar = store_name
+            else:
+                self.tmp_avatar = store_name
             self.window.controller.config.apply_value(
                 parent_id=self.id,
                 key="ai_avatar",
@@ -1113,8 +1123,9 @@ class Editor:
                 avatar_path = os.path.join(avatars_dir, current)
                 if os.path.exists(avatar_path):
                     os.remove(avatar_path)
-                    print("Avatar removed:", avatar_path)
             preset.ai_avatar = ""
+        else:
+            self.tmp_avatar = None
 
         self.window.ui.nodes['preset.editor.avatar'].remove_avatar()
         self.window.controller.config.apply_value(
@@ -1123,5 +1134,3 @@ class Editor:
             option=self.options["ai_avatar"],
             value="",
         )
-        # update preset item
-
