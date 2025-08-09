@@ -420,6 +420,7 @@ Below is a pattern for how different types of agents work. You can use these pat
 * From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
 
 **B2B**
+
 * A human provides a topic for discussion.
 * Bot 1 generates a response and sends it to Bot 2.
 * Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
