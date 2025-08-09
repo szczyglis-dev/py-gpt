@@ -2182,7 +2182,7 @@
             "tool_calls": true
         },
         "gpt-oss-120b-huggingface-router": {
-            "id": "openai/gpt-oss-20b:novita",
+            "id": "openai/gpt-oss-120b:novita",
             "name": "gpt-oss:120b",
             "mode": [
                 "llama_index",
