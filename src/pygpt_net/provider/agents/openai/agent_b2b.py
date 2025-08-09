@@ -9,14 +9,12 @@
 # Updated Date: 2025.08.09 01:00:00                  #
 # ================================================== #
 import copy
-from dataclasses import dataclass
-from typing import Dict, Any, Tuple, Literal, Union
+from typing import Dict, Any, Tuple, Union
 
 from agents import (
     Agent as OpenAIAgent,
     Runner,
     RunConfig,
-    ModelSettings,
     TResponseInputItem,
 )
 
@@ -32,15 +30,10 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
 from pygpt_net.provider.gpt.agents.client import get_custom_model_provider, set_openai_env
-from pygpt_net.provider.gpt.agents.remote_tools import get_remote_tools, is_computer_tool, append_tools
+from pygpt_net.provider.gpt.agents.remote_tools import append_tools
 from pygpt_net.provider.gpt.agents.response import StreamHandler
 
 from ..base import BaseAgent
-
-@dataclass
-class EvaluationFeedback:
-    feedback: str
-    score: Literal["pass", "needs_improvement", "fail"]
 
 class Agent(BaseAgent):
 
@@ -73,13 +66,12 @@ class Agent(BaseAgent):
         """
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
-        agent_name = preset.name if preset else "Agent"
         model = kwargs.get("model", ModelItem())
         tools = kwargs.get("function_tools", [])
         id = kwargs.get("bot_id", 1)
         option_key = f"bot_{id}"
         kwargs = {
-            "name": agent_name,
+            "name": "Bot {}".format(id),
             "instructions": self.get_option(preset, option_key, "prompt"),
             "model": model.id,
         }
@@ -153,6 +145,15 @@ class Agent(BaseAgent):
             previous_response_id: Union[str, None],
             kwargs: Dict[str, Any]
     ):
+        """
+        Prepare model configuration for the agent
+
+        :param model: ModelItem instance
+        :param window: Window instance
+        :param previous_response_id: ID of the previous response (if any)
+        :param kwargs: Additional keyword arguments for the model configuration
+        :return: Prepared keyword arguments for the model
+        """
         if model.provider != "openai":
             custom_provider = get_custom_model_provider(window, model)
             kwargs["run_config"] = RunConfig(model_provider=custom_provider)
@@ -198,6 +199,7 @@ class Agent(BaseAgent):
         bot_1_kwargs["bot_id"] = 1
         bot_1 = self.get_agent(window, agent_kwargs)
 
+        model_2 = model
         bot_2_kwargs = copy.deepcopy(agent_kwargs)
         model_name_2 = self.get_option(preset, "bot_2", "model")
         if model_name_2:
