@@ -11,7 +11,7 @@
 
 import uuid
 from datetime import datetime
-from typing import Optional, Any, Dict, Tuple
+from typing import Optional, Any, Dict, Tuple, Union
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
@@ -452,7 +452,7 @@ class Tabs:
             current: Tab,
             type: int,
             column_idx: int = 0
-    ) -> Tuple[int, int, bool]:
+    ) -> Tuple[int, Union[int, None], bool]:
         """
         Get the closest index by type
 
@@ -461,6 +461,8 @@ class Tabs:
         :param column_idx: Column index
         :return: Min index
         """
+        if current is None:
+            return -1, None, False
         curr_idx = current.idx
         idx = -1
         found_column_idx = None

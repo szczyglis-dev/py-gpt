@@ -866,11 +866,13 @@ class Tabs:
 
             # find the closest tab in current column (on left side)
             current = self.get_current_tab()
-            idx, column_idx, exists = self.window.core.tabs.get_closest_idx_by_type_exists(
-                current,
-                type,
-                self.column_idx
-            )
+            exists = False
+            if current:
+                idx, column_idx, exists = self.window.core.tabs.get_closest_idx_by_type_exists(
+                    current,
+                    type,
+                    self.column_idx
+                )
             if exists:
                 tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             else:
