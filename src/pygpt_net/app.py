@@ -16,7 +16,7 @@ import platform
 
 # disable warnings
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
-os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg=false"
+os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg=false;qt.qpa.fonts=false"
 
 if platform.system() == 'Windows':
     # fix ffmpeg bug: [SWR] Output channel layout "" is invalid or unsupported.
