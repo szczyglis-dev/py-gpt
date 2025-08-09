@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.23 15:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event
@@ -148,6 +148,15 @@ class Prompt:
         })
         self.window.dispatch(event)
         sys_prompt = event.data['value']
+
+        # append personalized about
+        about = self.window.core.config.get("personalize.about", "")
+        modes = self.window.core.config.get("personalize.modes", "")
+        if modes:
+            modes_list = modes.split(',')
+            if mode in modes_list:
+                if about:
+                    sys_prompt += f"\n\n{about}\n\n"
 
         # event: post prompt (post-handle system prompt)
         event = Event(Event.POST_PROMPT, {

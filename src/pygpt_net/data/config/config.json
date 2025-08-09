@@ -289,6 +289,8 @@
   "painter.brush.mode": "brush",
   "painter.brush.size": 3,
   "painter.canvas.size": "1280x720",
+  "personalize.about": "",
+  "personalize.modes": "chat",
   "plugins": {},
   "plugins_enabled": {
     "agent": false,

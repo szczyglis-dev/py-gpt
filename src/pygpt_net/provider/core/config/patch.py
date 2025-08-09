@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 19:00:00                  #
+# Updated Date: 2025.08.09 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -2214,6 +2214,15 @@ class Patch:
                 self.window.core.updater.patch_css('web-blocks.css', True)  # force replace file
                 self.window.core.updater.patch_css('web-blocks.light.css', True)  # force replace file
                 self.window.core.updater.patch_css('web-blocks.dark.css', True)  # force replace file
+                updated = True
+
+            # < 2.5.95
+            if old < parse_version("2.5.95"):
+                print("Migrating config from < 2.5.95...")
+                if "personalize.about" not in data:
+                    data["personalize.about"] = ""
+                if "personalize.modes" not in data:
+                    data["personalize.modes"] = "chat"
                 updated = True
 
         # update file

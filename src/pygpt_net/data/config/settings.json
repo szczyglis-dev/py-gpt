@@ -2372,5 +2372,32 @@
         "multiplier": null,
         "step": null,
         "advanced": false
-    }
+    },
+    "personalize.about": {
+        "section": "personalize",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.personalize.about",
+        "description": "settings.personalize.about.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "personalize.modes": {
+        "section": "personalize",
+        "type": "bool_list",
+        "use": "modes",
+        "slider": false,
+        "label": "settings.personalize.modes",
+        "description": "settings.personalize.modes.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    } 
 }

@@ -41,6 +41,9 @@
     "access": {
         "label": "settings.section.access"
     },
+    "personalize": {
+        "label": "settings.section.personalize"
+    },
     "updates": {
         "label": "settings.section.updates"
     },

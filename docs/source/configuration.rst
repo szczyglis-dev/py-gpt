@@ -347,6 +347,12 @@ Enable/disable remote tools, like Web Search or Image generation to use in OpenA
 
 * ``Voice control actions blacklist``: Disable actions in voice control; add actions to the blacklist to prevent execution through voice commands.
 
+**Personalize**
+
+* ``About You``: Provide information about yourself, e.g., "My name is... I'm 30 years old, I'm interested in..." This will be included in the model's system prompt. **WARNING:** Please do not use AI as a "friend". Real-life friendship is better than using an AI as a friendship replacement. DO NOT become emotionally involved in interactions with an AI.
+
+* ``Enable in Modes``: Select the modes where the personalized "about" prompt will be used.
+
 **Updates**
 
 * ``Check for updates on start``: Enables checking for updates on start. Default: True.
