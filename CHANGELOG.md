@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.5.94 (2025-08-09)
+
+- Added a new LLM provider: HuggingFace Router.
+- Introduced a new model: gpt-oss (OpenAI open-source model available in HuggingFace and Ollama).
+- Added a new agent mode in OpenAI Agents: Bot 2 Bot.
+- Fixed: Storing the last used context ID when empty.
+- Fixed: Reloading items when an agent run is stopped.
+
 ## 2.5.93 (2025-08-08)
 
 - Added a new tool: Translate - in menu Tools - feature #123.
