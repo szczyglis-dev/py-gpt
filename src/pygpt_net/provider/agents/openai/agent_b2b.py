@@ -119,7 +119,10 @@ class Agent(BaseAgent):
                         "content": content,
                     }
             elif item.get("role") == "user":
-                content = item.get("content", "")
+                if isinstance(item.get("content"), str):
+                    content = item.get("content", "")
+                else:
+                    content = item["content"][0].get("text", "")
                 item = {
                     "role": "assistant",
                     "content": [
