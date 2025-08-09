@@ -228,7 +228,7 @@ class BaseConfigDialog:
         desc = trans(text)
         label = QLabel(desc)
         label.setWordWrap(True)
-        label.setMaximumHeight(40)
+        label.setMaximumHeight(80)
         label.setStyleSheet("font-size: 10px;")
         return label
 
