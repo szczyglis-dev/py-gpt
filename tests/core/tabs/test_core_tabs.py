@@ -351,8 +351,6 @@ def test_get_min_idx_by_type(tabs_instance):
     min_idx = tabs_instance.get_min_idx_by_type(2, 0)
     assert min_idx == 1
 
-"""""
-TODO: fix this!!!!!!!!!
 def test_get_min_idx_by_type_exists(tabs_instance):
     fake_tab = MagicMock()
     fake_tab.type = 2
@@ -363,7 +361,6 @@ def test_get_min_idx_by_type_exists(tabs_instance):
     assert min_idx == 4
     assert col_idx == 0
     assert exists is True
-"""
 
 def test_get_prev_next_idx_from(tabs_instance, fake_window):
     tabs = fake_window.ui.layout.get_tabs_by_idx(0)

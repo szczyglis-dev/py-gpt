@@ -435,7 +435,7 @@ class Tabs:
         :return: Min index
         """
         min = 999999
-        column_idx = None  # TODO: fix this!!!!!!!!!
+        found_column_idx = None
         exists = False
         for pid in self.pids:
             tab = self.pids[pid]
@@ -444,8 +444,38 @@ class Tabs:
                     and tab.idx < min):
                 min = tab.idx
                 exists = True
-                column_idx = tab.column_idx
-        return min, column_idx, exists
+                found_column_idx = tab.column_idx
+        return min, found_column_idx, exists
+
+    def get_closest_idx_by_type_exists(
+            self,
+            current: Tab,
+            type: int,
+            column_idx: int = 0
+    ) -> Tuple[int, int, bool]:
+        """
+        Get the closest index by type
+
+        :param current: Current tab
+        :param type: Tab type
+        :param column_idx: Column index
+        :return: Min index
+        """
+        curr_idx = current.idx
+        idx = -1
+        found_column_idx = None
+        exists = False
+        for pid in self.pids:
+            tab = self.pids[pid]
+            if (tab.type == type
+                    and tab.column_idx == column_idx
+                    and tab.idx < curr_idx
+                    and tab.idx > idx):
+                idx = tab.idx
+                exists = True
+                found_column_idx = tab.column_idx
+
+        return idx, found_column_idx, exists
 
     def get_prev_idx_from(self, idx: int, column_idx: int = 0) -> Tuple[int, bool]:
         """

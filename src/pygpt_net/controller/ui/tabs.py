@@ -861,51 +861,67 @@ class Tabs:
         :param title: new tab name (optional, for chat tab)
         :param meta: context meta (optional, for chat tab)
         """
-        # first try to focus current tab
+        # try to focus tab
         if self.get_current_type() != type:
-            # first, check in second column
-            second_column_idx = 1 if self.column_idx == 0 else 0
-            # get current tab from second column
-            tabs = self.window.ui.layout.get_tabs_by_idx(second_column_idx)
-            second_tabs_idx = tabs.currentIndex()
-            second_tab = self.window.core.tabs.get_tab_by_index(second_tabs_idx, second_column_idx)
-            if second_tab is not None and second_tab.type == type:
-                # switch to second column
-                self.on_column_focus(second_column_idx)
-                tabs.setCurrentIndex(second_tabs_idx)
-                if meta:
-                    QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
-                self.debug()
-                return
 
-            idx, column_idx, exists = self.window.core.tabs.get_min_idx_by_type_exists(type)
+            # find the closest tab in current column (on left side)
+            current = self.get_current_tab()
+            idx, column_idx, exists = self.window.core.tabs.get_closest_idx_by_type_exists(
+                current,
+                type,
+                self.column_idx
+            )
             if exists:
-                tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
-                if tabs and idx:
-                    tabs.setCurrentIndex(idx)
-                    self.debug()
-                    return
+                tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             else:
-                # if current is not type, find first tab
+                # if not exists in current col, then find first idx in any column
                 tab = self.window.core.tabs.get_first_by_type(type)
-                if tab:
-                    tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
-                    if tabs:
-                        idx = tab.idx
-                        if data_id is not None:
-                            tab.data_id = data_id
-                            if title is not None:
-                                self.update_title_current(title)
-                        else:
-                            self.on_column_focus(tab.column_idx)
-                        if meta is not None:
-                            self.on_column_focus(tab.column_idx)
-                            self.window.controller.ctx.load(meta.id)
-                            QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
-                            self.on_column_focus(tab.column_idx)
-                        tabs.setCurrentIndex(idx)
+
+            if tab:
+                # if tab is found in current column, switch to it
+                tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+                if tabs:
+                    idx = tab.idx
+                    if data_id is not None:
+                        tab.data_id = data_id
+                        if title is not None:
+                            self.update_title_current(title)
+                    else:
+                        self.on_column_focus(tab.column_idx)
+                    if meta is not None:
+                        self.on_column_focus(tab.column_idx)
+                        self.window.controller.ctx.load(meta.id)
+                        QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+                        self.on_column_focus(tab.column_idx)
+                    tabs.setCurrentIndex(idx)
+            else:
+                # if not found in current column, then check in second column
+                second_column_idx = 1 if self.column_idx == 0 else 0
+                # get current tab from second column
+                tabs = self.window.ui.layout.get_tabs_by_idx(second_column_idx)
+                second_tabs_idx = tabs.currentIndex()
+                second_tab = self.window.core.tabs.get_tab_by_index(second_tabs_idx, second_column_idx)
+                if second_tab is not None and second_tab.type == type:
+                    # switch to second column
+                    self.on_column_focus(second_column_idx)
+                    tabs.setCurrentIndex(second_tabs_idx)
+                    if meta:
+                        QTimer.singleShot(100, lambda: self.window.controller.ctx.load(meta.id))
+
+            # if second and split screen disabled, then enable it
+            if tab and tab.column_idx == 1:
+                if not self.is_split_screen_enabled():
+                    self.enable_split_screen(update_switch=True)
 
         self.debug()
+
+    def is_split_screen_enabled(self) -> bool:
+        """
+        Check if split screen mode is enabled
+
+        :return: True if split screen is enabled, False otherwise
+        """
+        return self.window.core.config.get("layout.split", False)
 
 
     def on_split_screen_changed(self, state: bool):
@@ -914,7 +930,7 @@ class Tabs:
 
         :param state: True if split screen is enabled
         """
-        prev_state = self.window.core.config.get("layout.split", False)
+        prev_state = self.is_split_screen_enabled()
         self.window.core.config.set("layout.split", state)
         if prev_state != state:
             if self.window.ui.nodes['layout.split'].box.isChecked() != state:
@@ -927,7 +943,7 @@ class Tabs:
 
         :param update_switch: True if switch should be updated
         """
-        if self.window.core.config.get("layout.split", False):
+        if self.is_split_screen_enabled():
             return
 
         self.window.ui.splitters['columns'].setSizes([1, 1])
