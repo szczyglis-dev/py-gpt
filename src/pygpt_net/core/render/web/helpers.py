@@ -12,8 +12,16 @@
 import re
 import html
 
-
 class Helpers:
+
+    _RE_HTML_ANGLE_OR_MATH = re.compile(r'(\\\[.*?\\\])|(<)|(>)', flags=re.DOTALL)
+    _RE_WORKDIR_TOKEN = re.compile(r'\(%workdir%([^)]+)\)')
+
+    _PLACEHOLDER_THINK_OPEN = "{{{{think}}}}"
+    _PLACEHOLDER_THINK_CLOSE = "{{{{/think}}}}"
+
+    _RE_TOOL_TAG = re.compile(r"&lt;tool&gt;(.*?)&lt;/tool&gt;", re.DOTALL)
+    _RE_MATH_PARENS = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
 
     def __init__(self, window=None):
         """
@@ -23,6 +31,56 @@ class Helpers:
         """
         self.window = window
 
+    def _html_escape_keep_math(self, m: re.Match) -> str:
+        """
+        Replaces < and > with &lt; / &gt;, leaving \\[ ... \\]
+
+        :param m: regex match object
+        :return: escaped string
+        """
+        g1 = m.group(1)
+        if g1 is not None:
+            return g1  # fragment of formula \[ ... \]
+        return "&lt;" if m.group(2) is not None else "&gt;"
+
+    def _unescape_lt_gt(self, s: str) -> str:
+        """
+        Unescape &lt; and &gt; in a string
+
+        :param s: string to unescape
+        :return: unescaped string
+        """
+        if "&lt;" not in s and "&gt;" not in s:
+            return s
+        if "&lt;" in s:
+            s = s.replace("&lt;", "<")
+        if "&gt;" in s:
+            s = s.replace("&gt;", ">")
+        return s
+
+    def _repl_tool_cmd(self, m: re.Match) -> str:
+        """
+        Replace tool command tags with HTML paragraph
+
+        :param m: regex match object
+        :return: formatted HTML string
+        """
+        code = self._unescape_lt_gt(m.group(1))
+        return f'<p class="cmd">{html.escape(code)}</p>'
+
+    def _repl_math_fix(self, m: re.Match) -> str:
+        """
+        Fix math formula by replacing &lt; and &gt; with < and > inside \( ... \)
+
+        :param m: regex match object
+        :return: formatted math string
+        """
+        inner = m.group(1)
+        if "&lt;" not in inner and "&gt;" not in inner:
+            return m.group(0)
+        inner = inner.replace("&lt;", "<").replace("&gt;", ">")
+        return f"\\({inner}\\)"
+
     def replace_code_tags(self, text: str) -> str:
         """
         Replace cmd code tags
@@ -30,26 +88,17 @@ class Helpers:
         :param text:
         :return: replaced text
         """
-        # tool tags
-        pattern = r"&lt;tool&gt;(.*?)&lt;/tool&gt;"
-        def repl(match):
-            code = match.group(1)
-            # restore tags first
-            code = code.replace("&lt;", "<")
-            code = code.replace("&gt;", ">")
-            escaped_code = html.escape(code)
-            return f'<p class="cmd">{escaped_code}</p>'
-        text = re.sub(pattern, repl, text, flags=re.DOTALL)
+        s = text
 
-        # fix math formula
-        pattern = r"\\\((.*?)\\\)"
-        def repl_math(match):
-            code = match.group(1)
-            code = code.replace("&lt;", "<")
-            code = code.replace("&gt;", ">")
-            return f"\\({code}\\)"
-        text = re.sub(pattern, repl_math, text, flags=re.DOTALL)
-        return text
+        # --- tool tags ---
+        if "&lt;tool&gt;" in s and "&lt;/tool&gt;" in s:
+            s = self._RE_TOOL_TAG.sub(self._repl_tool_cmd, s)
+
+        # --- fix math formula \( ... \) ---
+        if "\\(" in s and "\\)" in s and ("&lt;" in s or "&gt;" in s):
+            s = self._RE_MATH_PARENS.sub(self._repl_math_fix, s)
+
+        return s
 
     def pre_format_text(self, text: str) -> str:
         """
@@ -58,38 +107,26 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
-        text = text.strip()
-        #text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
-        #text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
+        s = text.strip()
+        if "<" in s or ">" in s:
+            had_think = ("<think>" in s) or ("</think>" in s)
+            if had_think:
+                s = s.replace("<think>", self._PLACEHOLDER_THINK_OPEN).replace("</think>", self._PLACEHOLDER_THINK_CLOSE)
 
-        # replace HTML tags
-        text = text.replace("<think>", "{{{{think}}}}")
-        text = text.replace("</think>", "{{{{/think}}}}")
-        # text = text.replace("<", "&lt;")
-        # text = text.replace(">", "&gt;")
-        text = re.sub(
-            r'(\\\[.*?\\\])|(<)|(>)',
-            lambda m: m.group(1) if m.group(1)
-            else "&lt;" if m.group(2)
-            else "&gt;",
-            text, flags=re.DOTALL
-        )  # leave math formula tags
-        text = text.replace("{{{{think}}}}", "<think>")
-        text = text.replace("{{{{/think}}}}", "</think>")
-        text = text.replace("<think>\n", "<think>")
+            s = self._RE_HTML_ANGLE_OR_MATH.sub(self._html_escape_keep_math, s)
+
+            if had_think:
+                s = s.replace(self._PLACEHOLDER_THINK_OPEN, "<think>").replace(self._PLACEHOLDER_THINK_CLOSE, "</think>")
+                if "<think>\n" in s:
+                    s = s.replace("<think>\n", "<think>")
 
         # replace cmd tags
-        text = self.replace_code_tags(text)
+        s = self.replace_code_tags(s)
+        if "%workdir%" in s:
+            prefix = self.window.core.filesystem.get_workdir_prefix()
+            s = self._RE_WORKDIR_TOKEN.sub(lambda m, p=prefix: f'({p}{m.group(1)})', s)
 
-        # replace %workdir% with current workdir
-        local_prefix = self.window.core.filesystem.get_workdir_prefix()
-        safe_local_prefix = local_prefix.replace('\\', '\\\\').replace('\\.', '\\\\.')  # windows fix
-        replacement = f'({safe_local_prefix}\\1)'
-        try:
-            text = re.sub(r'\(%workdir%([^)]+)\)', replacement, text)
-        except Exception as e:
-            pass
-        return text
+        return s
 
     def post_format_text(self, text: str) -> str:
         """
@@ -98,9 +135,11 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
+        s = text
         if self.window.core.config.get("llama.idx.chat.agent.render.all", False):
-            text = text.replace("__agent_begin__", "<div class=\"msg-agent\">").replace("__agent_end__", "</div>")
-        return text.strip()
+            if "__agent_begin__" in s or "__agent_end__" in s:
+                s = s.replace("__agent_begin__", '<div class="msg-agent">').replace("__agent_end__", "</div>")
+        return s.strip()
 
     def format_user_text(self, text: str) -> str:
         """
@@ -109,11 +148,12 @@ class Helpers:
         :param text: text to format
         :return: formatted text
         """
-        text = html.escape(text).replace("\n", "<br>")
-        # append cmd tags if response from command detected
-        if (text.strip().startswith("[") or text.strip().startswith("&gt; [")) and text.strip().endswith("]"):
-            text = '<div class="cmd">&gt; {}</div>'.format(text)
-        return text
+        s = html.escape(text).replace("\n", "<br>")
+
+        trimmed = s.strip()
+        if trimmed.endswith("]") and (trimmed.startswith("[") or trimmed.startswith("&gt; [")):
+            s = f'<div class="cmd">&gt; {s}</div>'
+        return s
 
     def format_cmd_text(self, text: str) -> str:
         """

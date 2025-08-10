@@ -28,8 +28,39 @@ class Parser:
         """
         self.window = window
         self.md = None
-        self.code_blocks = {}
         self.block_idx = 1
+        # self._soup_parser = "lxml"
+        self._soup_parser = "html.parser"
+        self._soup_parser_checked = False
+        self._icon_base = None
+        self._icon_paths = None
+
+    def _make_soup(self, html: str) -> BeautifulSoup:
+        """
+        Create BeautifulSoup instance from HTML string
+
+        :param html: HTML string to parse
+        :return: BeautifulSoup instance
+        """
+        return BeautifulSoup(html, self._soup_parser)
+
+    def _get_icon_paths(self) -> dict:
+        """
+        Get icon paths for the parser
+
+        :return: dictionary of icon paths
+        """
+        app_path = self.window.core.config.get_app_path()
+        if app_path != self._icon_base or not self._icon_paths:
+            join = os.path.join
+            self._icon_paths = {
+                "copy": join(app_path, "data", "icons", "copy.svg"),
+                "preview": join(app_path, "data", "icons", "view.svg"),
+                "run": join(app_path, "data", "icons", "play.svg"),
+                "collapse": join(app_path, "data", "icons", "menu.svg"),
+            }
+            self._icon_base = app_path
+        return self._icon_paths
 
     def init(self):
         """Initialize markdown parser"""
@@ -48,7 +79,6 @@ class Parser:
         """
         Reset parser
         """
-        self.code_blocks = {}
         self.block_idx = 1
 
     def get_code_blocks(self):
@@ -57,7 +87,7 @@ class Parser:
 
         :return: code blocks
         """
-        return self.code_blocks
+        return {}
 
     def prepare_paths(self, text: str) -> str:
         """
@@ -67,7 +97,7 @@ class Parser:
         :return: markdown text with prepared paths
         """
         # Replace sandbox paths with file paths
-        return text.replace("](sandbox:", "](file://")
+        return text.replace("](sandbox:", "](file://") if "](sandbox:" in text else text
 
     def parse(self, text: str) -> str:
         """
@@ -78,23 +108,25 @@ class Parser:
         """
         self.init()
         try:
-            text = self.prepare_paths(text.strip())
+            text = (text or "").strip()
+            if not text:
+                return ""
+
+            text = self.prepare_paths(text)
             html = self.md.convert(text)
             self.md.reset()
-            soup = BeautifulSoup(html, 'html.parser')
-            self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
-            # if self.window.core.config.get("ctx.convert_lists"):
-            #   self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs, DISABLED: 2024-11-03
-            self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
-            self.highlight_code_blocks(soup)  # parse code blocks
-            self.format_images(soup)  # add width to img tags
+
+            soup = self._make_soup(html)
+            self.strip_whitespace_lists(soup)
+            self.strip_whitespace_codeblocks(soup)
+            self.highlight_code_blocks(soup)
+            self.format_images(soup)
+
             result = str(soup)
-            soup.clear(decompose=True)  # clear soup to free memory
-            del soup  # delete soup instance
+            soup.decompose()
             return result
-        except Exception as e:
-            pass
-        return text
+        except Exception:
+            return text
 
     def parse_code(self, text: str) -> str:
         """
@@ -105,12 +137,14 @@ class Parser:
         """
         self.init()
         try:
-            soup = BeautifulSoup(self.md.convert(text.strip()), 'html.parser')
+            soup = self._make_soup(self.md.convert(text.strip()))
             self.md.reset()
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
             self.highlight_code_blocks(soup)  # parse code blocks
-            return str(soup)
+            result = str(soup)
+            soup.decompose()
+            return result
         except Exception as e:
             pass
         return text
@@ -122,8 +156,9 @@ class Parser:
         :param html: html text
         :return: plain text
         """
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = self._make_soup(html)
         text = soup.get_text()
+        soup.decompose()
         return text
 
     def strip_whitespace_codeblocks(self, soup):
@@ -146,178 +181,162 @@ class Parser:
                 if isinstance(item, NavigableString) and item.strip() == '':
                     item.replace_with('')
 
-    def parse_code_blocks(self, soup):
+    def parse_code_blocks(self, soup: BeautifulSoup):
         """
         Add copy code button to code blocks (without syntax highlighting)
 
         :param soup: BeautifulSoup instance
         """
+        t_copy = trans('ctx.extra.copy_code')
+
         for el in soup.find_all('pre'):
-            content = el.get_text(strip=True)
-            self.code_blocks[self.block_idx] = content
+            content = el.get_text()
+            if not content or not content.strip():
+                continue
 
             header = soup.new_tag('p', **{'class': "code-header-wrapper"})
             link_wrapper = soup.new_tag('span')
+
             a = soup.new_tag('a', href=f'extra-code-copy:{self.block_idx}')  # extra action link
             a['class'] = "code-header-copy"
-            a.string = trans('ctx.extra.copy_code')
+            a.string = t_copy
 
-            code = el.find('code')
-            language = code['class'][0] if code.has_attr('class') else ''
+            code_tag = el.find('code')
+            language = ""
+            if code_tag and code_tag.has_attr('class'):
+                classes = code_tag.get('class', [])
+                if classes:
+                    first = classes[0]
+                    if isinstance(first, str):
+                        language = first
+
             if language:
                 lang = soup.new_tag('span', **{'class': "code-header-lang"})
-                lang['class'] = "code-header-lang"
                 lang.string = language.replace('language-', '') + "   "
                 link_wrapper.append(lang)
 
             link_wrapper.append(a)
             header.append(link_wrapper)
-            wrapper = soup.new_tag('div', **{'class': "code-wrapper"})
-            wrapper.append(header)
 
-            # add data-index to wrapper with self.block_idx
+            wrapper = soup.new_tag('div', **{'class': "code-wrapper"})
             wrapper['data-index'] = str(self.block_idx)
 
             new_code = soup.new_tag('code')
             new_pre = soup.new_tag('pre')
             new_code.string = content
             new_pre.append(new_code)
+            wrapper.append(header)
             wrapper.append(new_pre)
-            el.replace_with(wrapper)
 
+            el.replace_with(wrapper)
             self.block_idx += 1
 
-    def highlight_code_blocks(self, soup):
+    def highlight_code_blocks(self, soup: BeautifulSoup):
         """
         Add copy code button to code blocks (with syntax highlighting)
 
         :param soup: BeautifulSoup instance
         """
-        copy_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "copy.svg")
-        preview_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "view.svg")
-        run_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "play.svg")
-        collapse_icon_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "menu.svg")
+        icons = self._get_icon_paths()
 
-        # syntax highlighting style
-        style = self.window.core.config.get("render.code_syntax")
-        if style is None or style == "":
-            style = "default"
+        t_copy = trans('ctx.extra.copy_code')
+        t_collapse = trans('ctx.extra.collapse')
+        t_expand = trans('ctx.extra.expand')
+        t_copied = trans('ctx.extra.copied')
+        t_preview = trans('ctx.extra.preview')
+        t_run = trans('ctx.extra.run')
+
+        style = self.window.core.config.get("render.code_syntax") or "default"
 
         for el in soup.find_all('pre'):
-            content = el.text
-            self.code_blocks[self.block_idx] = content
-
-            # ignore empty
-            if content.strip() == "":
+            content = el.get_text()
+            if not content or not content.strip():
                 continue
 
             header = soup.new_tag('p', **{'class': "code-header-wrapper"})
             link_wrapper = soup.new_tag('span')
 
-            # copy
-            copy = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
-            copy['class'] = "code-header-action code-header-copy"
-            copy_span = soup.new_tag('span')
-            copy_span.string = trans('ctx.extra.copy_code')
-            icon = soup.new_tag('img', src=copy_icon_path, **{'class': "action-img"})
-            copy.insert(0, icon)
-            copy.append(copy_span)
+            code_tag = el.find('code')
+            language = ""
+            if code_tag:
+                classes = code_tag.get('class', [])
+                for cls in classes or []:
+                    if isinstance(cls, str) and cls.startswith('language-'):
+                        language = cls.split('-', 1)[1]
+                        break
 
-            # collapse
-            collapse = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
-            collapse['class'] = "code-header-action code-header-collapse"
-            collapse_span = soup.new_tag('span')
-            collapse_span.string = trans('ctx.extra.collapse')
-            icon = soup.new_tag('img', src=collapse_icon_path, **{'class': "action-img"})
-            collapse.insert(0, icon)
-            collapse.append(collapse_span)
-
-            # Get the class of <code> to determine the language (if available)
-            code = el.find('code')
-            is_output = False
-            language = code['class'][0] if (code and code.has_attr('class') and 'language-' in code['class'][0]) else ''
-
-            # tool output
-            if language == "language-output":
-                language = "language-python"
-                code['class'] = "language-python"
-                is_output = True
+            is_output = (language == "output")
+            if is_output:
+                language = "python"
+                if code_tag is not None:
+                    code_tag['class'] = "language-python"
 
             lang_span = soup.new_tag('span', **{'class': "code-header-lang"})
-            lang_span['class'] = "code-header-lang"
-            if language:  # Strip 'language-' to get the actual language
-                language = language.replace('language-', '')
-                lang_span.string = language + "   "
+            if language:
+                lang_span.string = ("output" if is_output else language) + "   "
             else:
                 lang_span.string = "code "
-
-            # if tool output, change the title to "output"
-            if is_output:
-                lang_span.string = "output"
-
             link_wrapper.append(lang_span)
 
-            # html preview
             if language == 'html':
-                preview = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+                preview = soup.new_tag('a', href=f'empty:{self.block_idx}')
                 preview['class'] = "code-header-action code-header-preview"
-                preview.string = trans('ctx.extra.preview')
-                preview_icon = soup.new_tag('img', src=preview_icon_path, **{'class': "action-img"})
+                preview.string = t_preview
+                preview_icon = soup.new_tag('img', src=icons["preview"], **{'class': "action-img"})
                 preview.insert(0, preview_icon)
                 link_wrapper.append(preview)
-
             elif language == 'python' and not is_output:
-                run = soup.new_tag('a', href=f'empty:{self.block_idx}')  # extra action link
+                run = soup.new_tag('a', href=f'empty:{self.block_idx}')
                 run['class'] = "code-header-action code-header-run"
-                run.string = trans('ctx.extra.run')
-                run_icon = soup.new_tag('img', src=run_icon_path, **{'class': "action-img"})
+                run.string = t_run
+                run_icon = soup.new_tag('img', src=icons["run"], **{'class': "action-img"})
                 run.insert(0, run_icon)
                 link_wrapper.append(run)
+
+            # collapse
+            collapse = soup.new_tag('a', href=f'empty:{self.block_idx}')
+            collapse['class'] = "code-header-action code-header-collapse"
+            collapse_span = soup.new_tag('span')
+            collapse_span.string = t_collapse
+            collapse_icon = soup.new_tag('img', src=icons["collapse"], **{'class': "action-img"})
+            collapse.insert(0, collapse_icon)
+            collapse.append(collapse_span)
+
+            # copy
+            copy = soup.new_tag('a', href=f'empty:{self.block_idx}')
+            copy['class'] = "code-header-action code-header-copy"
+            copy_span = soup.new_tag('span')
+            copy_span.string = t_copy
+            copy_icon = soup.new_tag('img', src=icons["copy"], **{'class': "action-img"})
+            copy.insert(0, copy_icon)
+            copy.append(copy_span)
 
             link_wrapper.append(collapse)
             link_wrapper.append(copy)
             header.append(link_wrapper)
 
-            # Create wrapper to hold both the header and the code block
+            # wrapper
             wrapper = soup.new_tag('div', **{'class': "code-wrapper highlight"})
-            wrapper.append(header)
-
-            # DEPRECATED: Use Pygments to highlight the code block
-            """
-            # Use Pygments to highlight the code block
-            if language:
-                try:
-                    lexer = get_lexer_by_name(language)
-                except Exception:
-                    lexer = get_lexer_by_name("sh")
-            else:
-                lexer = get_lexer_by_name("sh")
-
-            
-            # formatter = HtmlFormatter(style=style, cssclass='source', lineanchors='line')
-            # highlighted_code = highlight(content, lexer, formatter)
-            # Replace the original code block with the highlighted version
-            # new_code = BeautifulSoup(highlighted_code, 'html.parser')
-            # wrapper.append(new_code)
-            # el.replace_with(wrapper)
-            """
+            wrapper['data-index'] = str(self.block_idx)
+            wrapper['data-locale-collapse'] = t_collapse
+            wrapper['data-locale-expand'] = t_expand
+            wrapper['data-locale-copy'] = t_copy
+            wrapper['data-locale-copied'] = t_copied
+            wrapper['data-style'] = style
 
             pre = soup.new_tag('pre')
-            code = soup.new_tag('code')
+            code_new = soup.new_tag('code')
             if language:
-                code['class'] = 'language-' + language
-            code.string = content
-            pre.append(code)
-            wrapper['data-index'] = str(self.block_idx)
-            wrapper['data-locale-collapse'] = trans('ctx.extra.collapse')
-            wrapper['data-locale-expand'] = trans('ctx.extra.expand')
-            wrapper['data-locale-copy'] = trans('ctx.extra.copy_code')
-            wrapper['data-locale-copied'] = trans('ctx.extra.copied')
+                code_new['class'] = 'language-' + language
+            code_new.string = content
+            pre.append(code_new)
+
+            wrapper.append(header)
             wrapper.append(pre)
             el.replace_with(wrapper)
             self.block_idx += 1
 
-    def convert_lists_to_paragraphs(self, soup):
+    def convert_lists_to_paragraphs(self, soup: BeautifulSoup):
         """
         Convert lists to paragraphs
 
@@ -331,7 +350,7 @@ class Parser:
         for element in soup.find_all(['ul', 'ol']):
             element.decompose()
 
-    def convert_list(self, soup, list_element, ordered=False):
+    def convert_list(self, soup: BeautifulSoup, list_element, ordered=False):
         """
         Convert list to paragraphs
 
@@ -347,12 +366,11 @@ class Parser:
             p.string = f"{prefix}{li.get_text().strip()}"
             list_element.insert_before(p)
 
-    def format_images(self, soup):
+    def format_images(self, soup: BeautifulSoup):
         """
         Add width to img tags
 
         :param soup: BeautifulSoup instance
         """
-        images = soup.find_all('img')
-        for index, img in enumerate(images):
+        for img in soup.find_all('img'):
             img['width'] = "400"
