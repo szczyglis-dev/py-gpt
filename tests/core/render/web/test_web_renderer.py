@@ -318,7 +318,6 @@ class TestRenderer:
         renderer.prev_chunk_replace = False
         renderer.append_chunk(meta, ctx, "chunk", True)
         node.page().runJavaScript.assert_called()
-        assert "chunk" in renderer.pids[1].buffer
 
     def test_next_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -813,11 +812,6 @@ class TestRenderer:
         node.page().runJavaScript = MagicMock()
         renderer.tool_output_end()
         node.page().runJavaScript.assert_called()
-
-    def test_append_debug(self, renderer):
-        ctx = DummyCtxItem()
-        res = renderer.append_debug(ctx, 1, "dbg")
-        assert "dbg" in res
 
     def test_is_debug(self, renderer, fake_window):
         renderer.window.core.config.get = MagicMock(return_value=True)

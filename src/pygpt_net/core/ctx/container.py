@@ -44,13 +44,12 @@ class Container:
 
         # web
         if self.window.core.config.get("render.engine") == "web":
-            from pygpt_net.ui.widget.textarea.web import ChatWebOutput, CustomWebEnginePage
+            from pygpt_net.ui.widget.textarea.web import ChatWebOutput
+            
             # build output
             output_html = ChatWebOutput(self.window)
             output_html.set_tab(tab)
-            output_html.setPage(
-                CustomWebEnginePage(self.window, output_html)
-            )
+
             # connect signals
             output_html.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
             output_html.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)

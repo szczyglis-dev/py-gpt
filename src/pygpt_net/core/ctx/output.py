@@ -16,7 +16,6 @@ from pygpt_net.core.tabs.tab import Tab
 
 
 class Output:
-    __slots__ = ("window", "mapping", "last_pids", "last_pid", "initialized")
 
     def __init__(self, window=None):
         """
@@ -302,20 +301,11 @@ class Output:
         :param pid: PID
         """
         self.init()
-
-        removed_meta_id = None
-        removed_col_idx = None
-        for col_idx, col_map in self.mapping.items():
-            if pid in col_map:
-                removed_meta_id = col_map.pop(pid)
-                removed_col_idx = col_idx
+        for col_idx in self.mapping:
+            if pid in self.mapping[col_idx]:
+                del self.mapping[col_idx][pid]
                 break
-
-        if removed_col_idx is not None:
-            lp = self.last_pids.get(removed_col_idx, {})
-            to_del = [mid for mid, p in lp.items() if p == pid]
-            for mid in to_del:
-                del lp[mid]
-
+        if pid in self.last_pids:
+            del self.last_pids[pid]
         if pid == self.last_pid:
             self.last_pid = 0

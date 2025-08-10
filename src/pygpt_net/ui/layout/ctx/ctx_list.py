@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.26 23:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -55,11 +55,9 @@ class CtxList:
 
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
-
         self.window.ui.nodes[id].selectionModel().selectionChanged.connect(
             lambda: self.window.controller.ctx.selection_change()
         )
-
         widget = QWidget()
         widget.setLayout(layout)
         widget.setContentsMargins(0, 0, 0, 0)
@@ -77,27 +75,29 @@ class CtxList:
 
     def update(self, id, data):
         """
-        Update ctx list – nowa wersja tworzy nowy model,
-        dzięki czemu stary model oraz jego elementy mogą
-        zostać poprawnie zwolnione przez garbage collector.
+        Update ctx list
 
         :param id: ID of the list
         :param data: Data to update
         """
-        self.window.ui.nodes[id].backup_selection()
+        node = self.window.ui.nodes[id]
+        node.backup_selection()
 
-        new_model = self.create_model(self.window)
-        self.window.ui.models[id] = new_model
-        self.window.ui.nodes[id].setModel(new_model)
-
-        if self.window.core.config.get("ctx.records.folders.top"):
-            self.update_items_pinned(id, data)
-            self.update_groups(id, data)
-            self.update_items(id, data)
-        else:
-            self.update_items_pinned(id, data)
-            self.update_items(id, data)
-            self.update_groups(id, data)
+        model = self.window.ui.models.get(id)
+        if model is not None:
+            node.setUpdatesEnabled(False)
+            try:
+                model.clear()
+                if self.window.core.config.get("ctx.records.folders.top"):
+                    self.update_items_pinned(id, data)
+                    self.update_groups(id, data)
+                    self.update_items(id, data)
+                else:
+                    self.update_items_pinned(id, data)
+                    self.update_items(id, data)
+                    self.update_groups(id, data)
+            finally:
+                node.setUpdatesEnabled(True)
 
     def update_items(self, id, data):
         """
@@ -108,21 +108,22 @@ class CtxList:
         """
         i = 0
         last_dt_str = None
-        separators = self.window.core.config.get("ctx.records.separators")
-        pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
-        for meta_id in data:
-            if data[meta_id].group_id is None or data[meta_id].group_id == 0:
-                if data[meta_id].important:
-                    continue
-                item = self.build_item(meta_id, data[meta_id], is_group=False)
-                if separators:
-                    if not item.isPinned or pinned_separators:
-                        if i == 0 or last_dt_str != item.dt:
-                            section = self.build_date_section(item.dt, group=False)
-                            if section:
-                                self.window.ui.models[id].appendRow(section)
-                        last_dt_str = item.dt
-                self.window.ui.models[id].appendRow(item)
+        config = self.window.core.config
+        separators = config.get("ctx.records.separators")
+        pinned_separators = config.get("ctx.records.pinned.separators")
+        model = self.window.ui.models[id]
+
+        for meta_id, meta in data.items():
+            gid = meta.group_id
+            if (gid is None or gid == 0) and not meta.important:
+                item = self.build_item(meta_id, meta, is_group=False)
+                if separators and (not item.isPinned or pinned_separators):
+                    if i == 0 or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt, group=False)
+                        if section:
+                            model.appendRow(section)
+                    last_dt_str = item.dt
+                model.appendRow(item)
                 i += 1
 
     def update_items_pinned(self, id, data):
@@ -134,21 +135,22 @@ class CtxList:
         """
         i = 0
         last_dt_str = None
-        separators = self.window.core.config.get("ctx.records.separators")
-        pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
-        for meta_id in data:
-            if data[meta_id].group_id is None or data[meta_id].group_id == 0:
-                if not data[meta_id].important:
-                    continue
-                item = self.build_item(meta_id, data[meta_id], is_group=False)
-                if separators:
-                    if pinned_separators:
-                        if i == 0 or last_dt_str != item.dt:
-                            section = self.build_date_section(item.dt, group=False)
-                            if section:
-                                self.window.ui.models[id].appendRow(section)
-                        last_dt_str = item.dt
-                self.window.ui.models[id].appendRow(item)
+        model = self.window.ui.models[id]
+        config = self.window.core.config
+        separators = config.get("ctx.records.separators")
+        pinned_separators = config.get("ctx.records.pinned.separators")
+
+        for meta_id, meta in data.items():
+            gid = meta.group_id
+            if (gid is None or gid == 0) and meta.important:
+                item = self.build_item(meta_id, meta, is_group=False)
+                if separators and pinned_separators:
+                    if i == 0 or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt, group=False)
+                        if section:
+                            model.appendRow(section)
+                    last_dt_str = item.dt
+                model.appendRow(item)
                 i += 1
 
     def update_groups(self, id, data):
@@ -158,59 +160,72 @@ class CtxList:
         :param id: ID of the list
         :param data: Data to update
         """
-        groups = self.window.core.ctx.get_groups()  # get groups
+        model = self.window.ui.models[id]
+        groups = self.window.core.ctx.get_groups()
+        search_string = self.window.core.ctx.get_search_string()
+        config = self.window.core.config
+        is_group_separators = config.get("ctx.records.groups.separators")
+        is_pinned_separators = config.get("ctx.records.pinned.separators")
+
+        grouped = {}
+        for meta_id, meta in data.items():
+            gid = meta.group_id
+            if gid is not None and gid != 0:
+                grouped.setdefault(gid, []).append((meta_id, meta))
+
+        folder_icon = getattr(self, "_folder_icon", None)
+        if folder_icon is None:
+            from PySide6.QtGui import QIcon
+            folder_icon = self._folder_icon = QIcon(":/icons/folder_filled.svg")
+
+        node = self.window.ui.nodes[id]
+
         for group_id in groups:
             last_dt_str = None
             group = groups[group_id]
-            c = self.count_in_group(group.id, data)
-            if (c == 0 and self.window.core.ctx.get_search_string() is not None
-                    and self.window.core.ctx.get_search_string() != ""):
-                continue  # skip empty groups when searching
+            items_in_group = grouped.get(group.id, [])
+            c = len(items_in_group)
+            if c == 0 and search_string:
+                continue
 
-            suffix = ""
-            if c > 0:
-                suffix = " (" + str(c) + ")"
+            suffix = f" ({c})" if c > 0 else ""
             is_attachment = group.has_additional_ctx()
             group_name = group.name + suffix
-            group_item = GroupItem(QIcon(":/icons/folder_filled.svg"), group_name, group.id)
-            group_item.hasAttachments = group.has_additional_ctx()
+            group_item = GroupItem(folder_icon, group_name, group.id)
+            group_item.hasAttachments = is_attachment
             custom_data = {
                 "is_group": True,
                 "is_attachment": is_attachment,
             }
+
             if is_attachment:
                 files = group.get_attachment_names()
-                num = len(files)
                 files_str = ", ".join(files)
                 if len(files_str) > 40:
                     files_str = files_str[:40] + '...'
-                tooltip_str = trans("attachments.ctx.tooltip.list").format(num=num) + ": " + files_str
+                tooltip_str = trans("attachments.ctx.tooltip.list").format(num=len(files)) + ": " + files_str
                 group_item.setToolTip(tooltip_str)
 
             group_item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
 
             i = 0
-            for meta_id in data:
-                if data[meta_id].group_id != group.id:
-                    continue  # skip not in group
-                item = self.build_item(meta_id, data[meta_id], is_group=True)
-                if self.window.core.config.get("ctx.records.groups.separators"):
-                    if not item.isPinned or self.window.core.config.get("ctx.records.pinned.separators"):
-                        if i == 0 or last_dt_str != item.dt:
-                            section = self.build_date_section(item.dt, group=True)
-                            if section:
-                                group_item.appendRow(section)
-                        last_dt_str = item.dt
+            for meta_id, meta in items_in_group:
+                item = self.build_item(meta_id, meta, is_group=True)
+                if is_group_separators and (not item.isPinned or is_pinned_separators):
+                    if i == 0 or last_dt_str != item.dt:
+                        section = self.build_date_section(item.dt, group=True)
+                        if section:
+                            group_item.appendRow(section)
+                    last_dt_str = item.dt
                 group_item.appendRow(item)
                 i += 1
 
-            self.window.ui.models[id].appendRow(group_item)
+            model.appendRow(group_item)
 
-            # expand group
-            if group.id in self.window.ui.nodes[id].expanded_items:
-                self.window.ui.nodes[id].setExpanded(group_item.index(), True)
-            else:
-                self.window.ui.nodes[id].setExpanded(group_item.index(), False)
+            desired = group.id in node.expanded_items
+            idx = group_item.index()
+            if node.isExpanded(idx) != desired:
+                node.setExpanded(idx, desired)
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
@@ -236,16 +251,10 @@ class CtxList:
         :return: Item
         """
         append_dt = True
-        is_important = False
-        is_attachment = False
-        in_group = False
         label = data.label
-        if data.important:
-            is_important = True
-        if data.has_additional_ctx():
-            is_attachment = True
-        if data.group:
-            in_group = True
+        is_important = data.important
+        is_attachment = data.has_additional_ctx()
+        in_group = bool(data.group)
 
         if is_group:
             if self.window.core.config.get("ctx.records.groups.separators"):
@@ -253,37 +262,31 @@ class CtxList:
         else:
             if self.window.core.config.get("ctx.records.separators"):
                 append_dt = False
+
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name
-        # truncate to max 40 chars
         if len(title) > 80:
             title = title[:80] + '...'
+        clean_title = title.replace("\n", "")
 
-        # append date suffix to title
         if append_dt:
-            name = title.replace("\n", "") + ' (' + dt + ')'
+            name = f"{clean_title} ({dt})"
         else:
-            name = title.replace("\n", "")
+            name = clean_title
 
         mode_str = ''
         if data.last_mode is not None:
-            mode_str = " ({})".format(trans('mode.' + data.last_mode))
-        tooltip_text = "{}: {}{} #{}".format(
-            date_time_str,
-            data.name,
-            mode_str,
-            id,
-        )
+            mode_str = f" ({trans('mode.' + data.last_mode)})"
 
-        # append attachments to tooltip
+        tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
+
         if is_attachment:
             files = data.get_attachment_names()
-            num = len(files)
             files_str = ", ".join(files)
             if len(files_str) > 40:
                 files_str = files_str[:40] + '...'
-            tooltip_str = trans("attachments.ctx.tooltip.list").format(num=num) + ": " + files_str
+            tooltip_str = trans("attachments.ctx.tooltip.list").format(num=len(files)) + ": " + files_str
             tooltip_text += "\n" + tooltip_str
 
         item = Item(name, id)
@@ -311,7 +314,6 @@ class CtxList:
         :return: SectionItem
         """
         item = SectionItem(dt, group=group)
-        # item.setToolTip(dt)
         return item
 
     def convert_date(self, timestamp: int) -> str:

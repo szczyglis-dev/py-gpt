@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 23:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
-import gc
+
 from typing import Optional, List
 
 from PySide6.QtCore import QModelIndex, QTimer
@@ -21,8 +21,7 @@ from .common import Common
 from .summarizer import Summarizer
 from .extra import Extra
 
-from pygpt_net.utils import trans
-from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.utils import trans, mem_clean
 
 
 class Ctx:
@@ -943,11 +942,12 @@ class Ctx:
         :param child_id: int
         :return: QModelIndex
         """
+        finder = self.find_child_index_by_id
         for row in range(root_item.rowCount()):
             item = root_item.child(row)
             if hasattr(item, 'id') and hasattr(item, 'isFolder') and not item.isFolder and item.id == child_id:
                 return item.index()
-            child_index = self.find_child_index_by_id(item, child_id)
+            child_index = finder(item, child_id)
             if child_index.isValid():
                 return child_index
         return QModelIndex()

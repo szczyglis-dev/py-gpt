@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import asyncio
@@ -37,6 +37,9 @@ from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.provider.vector_stores.base import BaseStore
 from pygpt_net.provider.web.base import BaseProvider as BaseWeb
+
+from PySide6.QtGui import QPixmapCache
+QPixmapCache.setCacheLimit(1024)  # ~1 MB
 
 
 class Launcher:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import os
@@ -431,7 +431,7 @@ class Body:
                     hideTips();
                     const element = document.getElementById('_append_output_before_');
                     if (element) {
-                        element.innerHTML = ''; // clear previous content
+                        element.replaceChildren();
                     }
                 }
                 function replaceOutput(bot_name, content) {     
@@ -599,7 +599,7 @@ class Body:
                     domLastParagraphBlock = null;
                     const element = document.getElementById('_append_output_');
                     if (element) {
-                        element.innerHTML = '';
+                        element.replaceChildren();
                     }
                 }
                 function clearLive() {

@@ -52,9 +52,9 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     error_emitted = []
 
     worker = StreamWorker(ctx, window)
-    worker.end.connect(lambda x: end_emitted.append(x))
-    worker.eventReady.connect(lambda x: event_emitted.append(x))
-    worker.errorOccurred.connect(lambda x: error_emitted.append(x))
+    worker.signals.end.connect(lambda x: end_emitted.append(x))
+    worker.signals.eventReady.connect(lambda x: event_emitted.append(x))
+    worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
 
     # Patch helper.
     monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
@@ -99,9 +99,9 @@ def test_stream_worker_run_stopped(monkeypatch):
     error_emitted = []
 
     worker = StreamWorker(ctx, window)
-    worker.end.connect(lambda x: end_emitted.append(x))
-    worker.eventReady.connect(lambda x: event_emitted.append(x))
-    worker.errorOccurred.connect(lambda x: error_emitted.append(x))
+    worker.signals.end.connect(lambda x: end_emitted.append(x))
+    worker.signals.eventReady.connect(lambda x: event_emitted.append(x))
+    worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
 
     monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
     worker.run()
@@ -145,8 +145,8 @@ def test_stream_worker_run_exception(monkeypatch):
     error_emitted = []
 
     worker = StreamWorker(ctx, window)
-    worker.end.connect(lambda x: end_emitted.append(x))
-    worker.errorOccurred.connect(lambda x: error_emitted.append(x))
+    worker.signals.end.connect(lambda x: end_emitted.append(x))
+    worker.signals.errorOccurred.connect(lambda x: error_emitted.append(x))
 
     monkeypatch.setattr("pygpt_net.controller.chat.stream.has_unclosed_code_tag", lambda text: False)
     worker.run()

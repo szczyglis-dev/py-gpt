@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.08 21:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import re
-from functools import partial
 
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent
 from PySide6.QtWebChannel import QWebChannel
@@ -19,75 +18,124 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
-from pygpt_net.core.events import RenderEvent, ControlEvent
+from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, mem_clean
 
 import pygpt_net.icons_rc
-
 
 class ChatWebOutput(QWebEngineView):
     def __init__(self, window=None):
         """
-        HTML output (Webkit)
+        HTML output (WebEngine)
 
-        :param window: main window
+        :param window: Window instance
         """
         super(ChatWebOutput, self).__init__(window)
         self.window = window
         self.finder = WebFinder(window, self)
         self.loadFinished.connect(self.on_page_loaded)
         self.customContextMenuRequested.connect(self.on_context_menu)
-        self.signals = WebEngineSignals()
+        self.signals = WebEngineSignals(self)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.filter = FocusEventFilter(self, self.on_focus)
         self.installEventFilter(self)
+
         self.plain = ""
         self.html_content = ""
         self.meta = None
         self.tab = None
+        self._glwidget = None
+        self._glwidget_filter_installed = False
         self.setProperty('class', 'layout-output-web')
+
+        prof = self.page().profile()
+        try:
+            prof.setOffTheRecord(True)
+        except Exception:
+            pass
+        try:
+            prof.setHttpCacheType(QWebEngineProfile.NoCache)
+            prof.setHttpCacheMaximumSize(0)
+            prof.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        except Exception:
+            pass
+
+        self.setPage(CustomWebEnginePage(self.window, self, profile=prof))
+
+    def _teardown_page(self, page: QWebEnginePage):
+        """
+        Teardown page to clean up resources
+
+        :param page: QWebEnginePage - page to teardown
+        """
+        if not page:
+            return
+
+        try:
+            # detach the channel from the page to break JS<->Python references
+            page.setWebChannel(None)
+        except Exception:
+            pass
+
+        # bridge, channel, and signals have parent=page, so deleteLater of the page will clean them up
+        page.deleteLater()
 
     def resetPage(self):
         """Reset current page (clear memory)"""
+        self.meta = None
         self.plain = ""
         self.html_content = ""
-        profile = QWebEngineProfile.defaultProfile()
-        profile.clearHttpCache()
+
+        try:
+            (self.page().profile() if self.page() else QWebEngineProfile.defaultProfile()).clearHttpCache()
+        except Exception:
+            pass
+
         self.setUpdatesEnabled(False)
         old_page = self.page()
-        new_page = CustomWebEnginePage(self.window, self)
+        prof = old_page.profile() if old_page else QWebEngineProfile.defaultProfile()
+        new_page = CustomWebEnginePage(self.window, self, profile=prof)
+
         self.setPage(new_page)
-        old_page.deleteLater()
+        self._teardown_page(old_page)
+        self.setUpdatesEnabled(True)
+
+        mem_clean()
 
     def on_delete(self):
         """Clean up on delete"""
         if self.finder:
-            self.finder.disconnect()  # disconnect finder
-            self.finder = None  # delete finder
+            try:
+                self.finder.disconnect()
+            except Exception:
+                pass
+            self.finder = None
 
-        self.tab = None  # clear tab reference
+        self.tab = None
+        self.meta = None
 
-        # delete page
+        # remove the page along with the channel and Bridge
         page = self.page()
         if page:
-            if hasattr(page, 'bridge'):
-                page.bridge.deleteLater()
-            if hasattr(page, 'channel'):
-                page.channel.deleteLater()
-            if hasattr(page, 'signals') and page.signals:
-                page.signals.deleteLater()
-            page.deleteLater()  # delete page
+            self._teardown_page(page)
 
-        # disconnect signals
-        self.loadFinished.disconnect(self.on_page_loaded)
-        self.customContextMenuRequested.disconnect(self.on_context_menu)
-        self.signals.save_as.disconnect(self.window.controller.chat.render.handle_save_as)
-        self.signals.audio_read.disconnect(self.window.controller.chat.render.handle_audio_read)
+        # safely unhook signals (may not have been hooked)
+        for sig, slot in (
+            (self.loadFinished, self.on_page_loaded),
+            (self.customContextMenuRequested, self.on_context_menu),
+            (self.signals.save_as, getattr(self.window.controller.chat.render, "handle_save_as", None)),
+            (self.signals.audio_read, getattr(self.window.controller.chat.render, "handle_audio_read", None)),
+        ):
+            if slot:
+                try:
+                    sig.disconnect(slot)
+                except Exception:
+                    pass
 
-        self.deleteLater()  # delete widget
+        self.deleteLater()
 
     def eventFilter(self, source, event):
         """
@@ -110,33 +158,32 @@ class ChatWebOutput(QWebEngineView):
     def on_focus(self, widget):
         """
         On widget clicked
-
-        :param widget: widget
         """
-        self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        if self.tab is not None:
+            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
         self.setFocus()
 
     def set_tab(self, tab):
         """
-        Set tab
+        Set tab for this output
 
-        :param tab: Tab
+        :param tab: Tab instance
         """
         self.tab = tab
 
     def set_meta(self, meta: CtxMeta):
         """
-        Assign ctx meta
+        Set meta for this output
 
-        :param meta: context meta
+        :param meta: CtxMeta instance
         """
         self.meta = meta
 
     def set_plaintext(self, text: str):
         """
-        Set plain text
+        Set plain text content
 
-        :param text: text
+        :param text: str - plain text content
         """
         self.plain = text
 
@@ -144,7 +191,7 @@ class ChatWebOutput(QWebEngineView):
         """
         Set HTML content
 
-        :param html: HTML content
+        :param html: str - HTML content
         """
         self.html_content = "<html>" + html + "</html>"
 
@@ -152,36 +199,30 @@ class ChatWebOutput(QWebEngineView):
         """
         Context menu event
 
-        :param position: position
+        :param position: QPoint - position of the context menu
         """
         menu = QMenu(self)
-        selected_text = ""
-        is_selection = self.page().hasSelection()
-        if is_selection:
-            selected_text = self.get_selected_text()
 
-        if is_selection:
+        has_selection = self.page().hasSelection()
+
+        if has_selection:
             # copy
             action = QAction(QIcon(":/icons/copy.svg"), trans('action.copy'), self)
             action.triggered.connect(self.copy_selected_text)
             menu.addAction(action)
 
-            # audio read
+            # audio read (get text only on click, don't copy immediately)
             action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
-            action.triggered.connect(
-                partial(self.signals.audio_read.emit, selected_text)
-            )
+            action.triggered.connect(lambda: self.signals.audio_read.emit(self.get_selected_text()))
             menu.addAction(action)
 
             # copy to
-            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, selected_text)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(self, self.get_selected_text())
             menu.addMenu(copy_to_menu)
 
-            # save as (selected)
+            # save as (selected) - get selection at the moment of click
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
-            action.triggered.connect(
-                partial(self.signals.save_as.emit, selected_text, 'txt')
-            )
+            action.triggered.connect(lambda: self.signals.save_as.emit(self.get_selected_text(), 'txt'))
             menu.addAction(action)
         else:
             # select all
@@ -189,43 +230,45 @@ class ChatWebOutput(QWebEngineView):
             action.triggered.connect(self.select_all_text)
             menu.addAction(action)
 
-            # save as (all) - plain
+            # save as (all) - plain (lazy normalization only on click)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
-            action.triggered.connect(
-                partial(self.signals.save_as.emit,re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
-            )
+            action.triggered.connect(lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt'))
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
-            action.triggered.connect(
-                partial(self.signals.save_as.emit, re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
-            )
+            action.triggered.connect(lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html'))
             menu.addAction(action)
 
         action = QAction(QIcon(":/icons/search.svg"), trans('text.context_menu.find'), self)
         action.triggered.connect(self.find_open)
-        #action.setShortcut(QKeySequence("Ctrl+F"))
         menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
 
     def update_zoom(self):
         """Update zoom from config"""
-        if self.window.core.config.has("zoom"):
-            self.page().setZoomFactor(self.window.core.config.get("zoom"))
+        try:
+            if self.window.core.config.has("zoom"):
+                p = self.page()
+                if p:
+                    p.setZoomFactor(self.window.core.config.get("zoom"))
+        except Exception:
+            pass
 
     def on_focus_js(self):
         """Focus JavaScript"""
-        self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        if self.tab is not None:
+            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
 
     def get_zoom_value(self) -> float:
         """
-        Get zoom value
+        Get current zoom value
 
-        :return: zoom value
+        :return: zoom factor
         """
-        return self.page().zoomFactor()
+        p = self.page()
+        return p.zoomFactor() if p else 1.0
 
     def reset_current_content(self):
         """Reset current content"""
@@ -234,14 +277,17 @@ class ChatWebOutput(QWebEngineView):
 
     def update_current_content(self):
         """Update current content"""
-        self.page().runJavaScript("document.getElementById('container').outerHTML", 0, self.set_plaintext)
-        self.page().runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
+        p = self.page()
+        if not p:
+            return
+        p.runJavaScript("document.getElementById('container')?.outerHTML ?? ''", 0, self.set_plaintext)
+        p.runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
 
     def on_page_loaded(self, success):
         """
-        On page loaded
+        Page loaded event handler
 
-        :param success: True if loaded successfully
+        :param success: bool - True if page loaded successfully, False otherwise
         """
         if success:
             event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
@@ -251,87 +297,81 @@ class ChatWebOutput(QWebEngineView):
             self.window.dispatch(event)
 
     def get_selected_text(self) -> str:
-        """
-        Get selected text
-
-        :return: selected text
-        """
-        return self.page().selectedText()
+        p = self.page()
+        return p.selectedText() if p else ""
 
     def copy_selected_text(self):
-        """Copy selected text"""
-        self.page().triggerAction(QWebEnginePage.Copy)
+        p = self.page()
+        if p:
+            p.triggerAction(QWebEnginePage.Copy)
 
     def select_all_text(self):
-        """Select all text"""
-        self.page().triggerAction(QWebEnginePage.SelectAll)
+        p = self.page()
+        if p:
+            p.triggerAction(QWebEnginePage.SelectAll)
 
     def unselect_text(self):
-        """Unselect text"""
-        self.page().triggerAction(QWebEnginePage.Unselect)
+        p = self.page()
+        if p:
+            p.triggerAction(QWebEnginePage.Unselect)
 
     def find_open(self):
-        """Open find dialog"""
         self.window.controller.finder.open(self.finder)
 
     def on_update(self):
-        """On content update"""
         if self.finder:
-            self.finder.clear()  # clear finder
+            self.finder.clear()
 
     def focusInEvent(self, e):
-        """
-        Focus in event
-
-        :param e: focus event
-        """
         super(ChatWebOutput, self).focusInEvent(e)
         self.window.controller.finder.focus_in(self.finder)
 
 
 class CustomWebEnginePage(QWebEnginePage):
     """Custom WebEnginePage to handle web events"""
-    def __init__(self, window, parent):
-        super(CustomWebEnginePage, self).__init__(window)
+    def __init__(self, window, view, profile: QWebEngineProfile = None):
+
+        # use the profile if provided, otherwise the default
+        if profile is not None:
+            super(CustomWebEnginePage, self).__init__(profile, view)
+        else:
+            super(CustomWebEnginePage, self).__init__(view)
+
         self.window = window
-        self.parent = parent
-        self.signals = WebEnginePageSignals()
+        self.view = view
+
+        # signals have parent=page (automatic cleanup)
+        self.signals = WebEnginePageSignals(self)
+
         self.findTextFinished.connect(self.on_find_finished)
         self.zoomFactorChanged.connect(self.on_view_changed)
         self.selectionChanged.connect(self.on_selection_changed)
-        self.settings().setAttribute(
-            QWebEngineSettings.LocalContentCanAccessFileUrls, True
-        )
-        self.settings().setAttribute(
-            QWebEngineSettings.LocalContentCanAccessRemoteUrls, True
-        )
-        self.settings().setFontFamily(QWebEngineSettings.StandardFont, 'Lato')
-        self.settings().setFontFamily(QWebEngineSettings.FixedFont, 'Monaspace Neon')
-        self.settings().setFontFamily(QWebEngineSettings.SerifFont, 'Monaspace Neon')
+
+        s = self.settings()
+        s.setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        s.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        s.setFontFamily(QWebEngineSettings.StandardFont, 'Lato')
+        s.setFontFamily(QWebEngineSettings.FixedFont, 'Monaspace Neon')
+        s.setFontFamily(QWebEngineSettings.SerifFont, 'Monaspace Neon')
 
         if self.window.core.config.has("zoom"):
             self.setZoomFactor(self.window.core.config.get("zoom"))
 
         # bridge Python <> JavaScript
-        self.bridge = Bridge(self.window)
+        # KEY: parent=page, -> disappears along with the page
+        self.bridge = Bridge(self.window, parent=self)
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)
 
     def on_find_finished(self, result):
-        """
-        On find text finished
-
-        :param result: Find result
-        """
         current = int(result.activeMatch())
         num = int(result.numberOfMatches())
-        self.parent.finder.current_match_index = current
-        self.parent.finder.matches = num
-        self.parent.finder.on_find_finished()
+        self.view.finder.current_match_index = current
+        self.view.finder.matches = num
+        self.view.finder.on_find_finished()
 
     def on_view_changed(self):
-        """On view changed"""
         zoom = self.zoomFactor()
         self.window.core.config.set("zoom", zoom)
         option = self.window.controller.settings.editor.get_option('zoom')
@@ -343,84 +383,42 @@ class CustomWebEnginePage(QWebEnginePage):
         )
 
     def on_selection_changed(self):
-        """On selection changed"""
         pass
 
-    def acceptNavigationRequest(self, url,  _type, isMainFrame):
-        """
-        On navigation (link click) event
-
-        :param url: URL
-        :param _type: Navigation type
-        :param isMainFrame: True if main frame
-        """
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
             self.window.core.filesystem.url.handle(url)
             return False
-        return super().acceptNavigationRequest(url,  _type, isMainFrame)
+        return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
-        """
-        On JavaScript console message
-
-        :param level: log level
-        :param message: message
-        :param line_number: line number
-        :param source_id: source ID
-        """
         self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
 
 
 class Bridge(QObject):
     """Bridge between Python and JavaScript"""
-    def __init__(self, window):
-        super(Bridge, self).__init__(window)
+    def __init__(self, window, parent=None):
+        super(Bridge, self).__init__(parent)
         self.window = window
 
     @Slot(str)
     def log(self, text: str):
-        """
-        Log message from JS
-
-        :param text: text
-        """
         print(f"JS log: {text}")
 
     @Slot(str)
     def copy_text(self, text: str):
-        """
-        Copy text from web to clipboard
-
-        :param text: text
-        """
         self.window.controller.ctx.extra.copy_code_text(text)
 
     @Slot(str)
     def preview_text(self, text: str):
-        """
-        Preview code
-
-        :param text: text
-        """
         self.window.controller.ctx.extra.preview_code_text(text)
 
     @Slot(str)
     def run_text(self, text: str):
-        """
-        Run code
-
-        :param text: text
-        """
         self.window.controller.ctx.extra.run_code_text(text)
-
 
     @Slot(int)
     def update_scroll_position(self, pos: int):
-        """
-        Update scroll position from web view
-
-        :param pos: scroll position
-        """
         self.window.controller.chat.render.scroll = pos
 
 
@@ -430,4 +428,4 @@ class WebEngineSignals(QObject):
 
 
 class WebEnginePageSignals(QObject):
-    js_message = Signal(int, str, str)  # on Javascript message
+    js_message = Signal(int, str, str)  # on JavaScript message

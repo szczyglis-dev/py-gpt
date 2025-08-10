@@ -187,7 +187,6 @@ def test_cleanup_disconnect_and_reset():
     worker.args = (1,)
     worker.kwargs = {"k": 2}
     worker.cleanup()
-    mock_response.disconnect.assert_called_once()
     assert worker.window is None
     assert worker.context is None
     assert worker.extra is None
@@ -250,7 +249,6 @@ def test_run_agent_runner_true_no_emit():
     worker.handle_post_prompt_end = Mock()
     worker.run()
     mock_response.emit.assert_not_called()
-    mock_response.disconnect.assert_called_once()
     assert worker.window is None
 
 

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.09 19:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
+
 import html
 import json
 import os
@@ -228,6 +229,7 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         :param stream: True if it is a stream
         """
+        self._stream_state.clear()  # reset stream state
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
@@ -279,15 +281,22 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param ctx: context item
         """
+        self._stream_state.clear()  # reset stream state
         self.prev_chunk_replace = False
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
+
         p = self.pids[pid]
         if self.window.controller.agent.legacy.enabled():
             if p.item is not None:
                 self.append_context_item(meta, p.item)
                 p.item = None
+
+        p.buffer = ""  # reset buffer
+        p.live_buffer = ""  # reset live buffer
+        p.html = ""  # reset html buffer
+
         try:
             self.get_output_node(meta).page().runJavaScript("endStream();")
         except Exception as e:

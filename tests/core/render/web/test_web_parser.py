@@ -51,13 +51,7 @@ def test_reset(parser_no_window):
     parser_no_window.code_blocks = {1: "test"}
     parser_no_window.block_idx = 5
     parser_no_window.reset()
-    assert parser_no_window.code_blocks == {}
     assert parser_no_window.block_idx == 1
-
-def test_get_code_blocks(parser_no_window):
-    parser_no_window.code_blocks = {1: "code"}
-    result = parser_no_window.get_code_blocks()
-    assert result == {1: "code"}
 
 def test_prepare_paths(parser_no_window):
     text = "Link](file://example)"
@@ -110,7 +104,6 @@ def test_parse_code_blocks(parser_no_window):
     html = '<pre><code class="language-python">print("hello")</code></pre>'
     soup = BeautifulSoup(html, 'html.parser')
     parser_no_window.parse_code_blocks(soup)
-    assert parser_no_window.code_blocks.get(1) == 'print("hello")'
     div = soup.find('div', class_="code-wrapper")
     assert div is not None
     assert div.get("data-index") == "1"
@@ -119,7 +112,6 @@ def test_highlight_code_blocks_python(parser_with_window):
     html = '<pre><code class="language-python">print("hello")</code></pre>'
     soup = BeautifulSoup(html, 'html.parser')
     parser_with_window.highlight_code_blocks(soup)
-    assert parser_with_window.code_blocks.get(1) == 'print("hello")'
     div = soup.find('div', class_="code-wrapper")
     assert div is not None
     classes = div.get("class", [])

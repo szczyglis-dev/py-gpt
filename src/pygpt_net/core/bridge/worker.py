@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 00:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QMetaObject, Qt
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -26,10 +26,9 @@ class BridgeSignals(QObject):
     response = Signal(object)  # KernelEvent
 
 
-class BridgeWorker(QObject, QRunnable):
+class BridgeWorker(QRunnable):
     """Bridge worker"""
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
         QRunnable.__init__(self)
         self.signals = BridgeSignals()
         self.args = args
@@ -128,18 +127,15 @@ class BridgeWorker(QObject, QRunnable):
         self.cleanup()
 
     def cleanup(self):
-        try:
-            if self.signals:
-                self.signals.response.disconnect()
-        except Exception:
-            pass
-
         self.window = None
         self.context = None
         self.extra = None
         self.args = None
         self.kwargs = None
-        self.deleteLater()
+        try:
+            QMetaObject.invokeMethod(self.signals, "deleteLater", Qt.QueuedConnection)
+        except Exception:
+            pass
 
     def handle_post_prompt_async(self):
         """Handle post prompt async event"""

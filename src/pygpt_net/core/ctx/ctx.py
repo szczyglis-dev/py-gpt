@@ -434,6 +434,7 @@ class Ctx:
         self.meta[meta.id] = meta
         self.tmp_meta = meta
         self.current = meta.id
+        self.last_item = None
         self.thread = None
         self.assistant = None
         self.mode = self.window.core.config.get('mode')

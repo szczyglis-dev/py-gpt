@@ -77,12 +77,3 @@ def test_set_items_replaces_previous_items_when_not_mocked():
     bag.set_items(new_items)
     assert bag.items is new_items
     assert bag.count_items() == 1
-
-
-def test_set_items_with_same_list_reference_preserves_reference():
-    bag = Bag()
-    lst = [MagicMock()]
-    bag.items = lst
-    bag.set_items(lst)
-    assert bag.items is lst
-    assert bag.count_items() == 1

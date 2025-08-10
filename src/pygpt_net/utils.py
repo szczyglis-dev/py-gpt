@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.02.01 02:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import json
@@ -254,3 +254,49 @@ def natsort(l: list) -> list:
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
+
+def mem_clean():
+    """
+    Clean memory by removing unused variables
+    """
+    import sys, gc
+    ok = False
+    try:
+        gc.collect()
+    except Exception:
+        pass
+    try:
+        if sys.platform.startswith("linux"):
+            import ctypes, ctypes.util
+            libc_path = ctypes.util.find_library("c") or "libc.so.6"
+            libc = ctypes.CDLL(libc_path, use_errno=True)
+            if hasattr(libc, "malloc_trim"):
+                libc.malloc_trim.argtypes = [ctypes.c_size_t]
+                libc.malloc_trim.restype = ctypes.c_int
+                ok = bool(libc.malloc_trim(0))
+        elif sys.platform == "win32":
+            import ctypes, ctypes.wintypes
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            psapi = ctypes.WinDLL("psapi", use_last_error=True)
+            GetCurrentProcess = kernel32.GetCurrentProcess
+            GetCurrentProcess.restype = ctypes.wintypes.HANDLE
+            EmptyWorkingSet = psapi.EmptyWorkingSet
+            EmptyWorkingSet.argtypes = [ctypes.wintypes.HANDLE]
+            EmptyWorkingSet.restype = ctypes.wintypes.BOOL
+            hproc = GetCurrentProcess()
+            ok = bool(EmptyWorkingSet(hproc))
+        elif sys.platform == "darwin":
+            import ctypes
+            try:
+                libc = ctypes.CDLL("/usr/lib/libSystem.B.dylib")
+                fn = getattr(libc, "malloc_zone_pressure_relief", None)
+                if fn is not None:
+                    fn.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+                    fn.restype = None
+                    fn(None, 0)
+                    ok = True
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return ok

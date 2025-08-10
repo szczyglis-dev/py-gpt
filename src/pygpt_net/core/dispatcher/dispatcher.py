@@ -23,9 +23,9 @@ from pygpt_net.core.events import (
 class Dispatcher:
     def __init__(self, window=None):
         """
-        Event dispatcher
+        Initialize the Dispatcher with a window context.
 
-        :param window: Window instance
+        :param window: The window context to which the dispatcher will be bound.
         """
         self.window = window
         self.nolog_events = [
@@ -41,99 +41,76 @@ class Dispatcher:
             all: bool = False
     ) -> Tuple[List[str], BaseEvent]:
         """
-        Dispatch event
+        Dispatch an event to the appropriate handlers.
 
-        :param event: event to dispatch
-        :param all: true if dispatch to all plugins (enabled or not)
-        :return: list of affected plugins ids and event object
+        :param event: BaseEvent: The event to dispatch.
+        :param all: bool: If True, dispatch to all plugins regardless of their state.
+        :return: Tuple[List[str], BaseEvent]: A tuple containing a list of affected plugin IDs and the event.
         """
         if not isinstance(event, RenderEvent):
             event.call_id = self.call_id
 
-        if self.is_log(event):
-            self.window.core.debug.info("[event] Dispatch begin: " + str(event.full_name) + " (" + str(event.call_id) + ")")
-            if self.window.core.debug.enabled():
-                self.window.core.debug.debug("[event] Before handle: " + str(event))
+        wnd = self.window
+        core = wnd.core
+        debug = core.debug
+        controller = wnd.controller
+
+        log_event = self.is_log(event)
+        if log_event:
+            debug.info(f"[event] Dispatch begin: {event.full_name} ({event.call_id})")
+            if debug.enabled():
+                debug.debug(f"[event] Before handle: {event}")
 
         if event.stop:
-            self.window.core.debug.info("[event] Skipping... (stopped): " + str(event.name))
+            debug.info(f"[event] Skipping... (stopped): {event.name}")
             return [], event
 
         handled = False
 
-        # kernel events
         if isinstance(event, KernelEvent):
-            # dispatch event to kernel controller
-            if not event.name in [  # those events are sent by kernel
-                KernelEvent.INIT,
-                KernelEvent.RESTART,
-                KernelEvent.STOP,
-                KernelEvent.TERMINATE,
-            ]:
-                self.window.controller.kernel.handle(event)
-            if self.is_log(event):
-                self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
+            kernel_auto = (KernelEvent.INIT, KernelEvent.RESTART, KernelEvent.STOP, KernelEvent.TERMINATE)
+            if event.name not in kernel_auto:
+                controller.kernel.handle(event)
+            if log_event:
+                debug.info(f"[event] Dispatch end: {event.full_name} ({event.call_id})")
             self.call_id += 1
-            if not event.name in [
-                KernelEvent.INIT,
-                KernelEvent.RESTART,
-                KernelEvent.STOP,
-                KernelEvent.TERMINATE,
-            ]:
+            if event.name not in kernel_auto:
                 handled = True
 
-        # render events
         elif isinstance(event, RenderEvent):
-            """
-            # async dispatch event to render controller
-            try:
-                asyncio.get_running_loop()
-                is_async = True
-            except RuntimeError:
-                is_async = False
-            if is_async:
-                task = asyncio.create_task(self.window.controller.chat.render.handle(event))
-                task.add_done_callback(lambda t: self._pending_tasks.remove(t))
-                self._pending_tasks.append(task)
-            else:
-                asyncio.run(self.window.controller.chat.render.handle(event))
-            """
-            # loop = asyncio.get_event_loop()
-            # loop.create_task(self.window.controller.chat.render.handle(event))
-            self.window.controller.chat.render.handle(event)
-            if self.is_log(event):
-                self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
+            controller.chat.render.handle(event)
+            if log_event:
+                debug.info(f"[event] Dispatch end: {event.full_name} ({event.call_id})")
             self.call_id += 1
             handled = True
 
-        # dispatch in tools (all events)
-        self.window.tools.handle(event)
+        wnd.tools.handle(event)
 
-        # if event is handled, skip further processing
         if handled:
             return [], event
 
-        # accessibility events
-        if isinstance(event, ControlEvent) or isinstance(event, AppEvent):
-            # dispatch event to accessibility controller
-            self.window.controller.access.handle(event)
+        if isinstance(event, (ControlEvent, AppEvent)):
+            controller.access.handle(event)
 
-        # dispatch event to plugins
         affected = []
-        for id in list(self.window.core.plugins.plugins.keys()):
-            if self.window.controller.plugins.is_enabled(id) or all:
-                if event.stop:
-                    self.window.core.debug.info("[event] Skipping... (stopped):  " + str(event.name))
-                    break
-                if self.window.core.debug.enabled() and self.is_log(event):
-                    self.window.core.debug.debug("[event] Apply [{}] to plugin: ".format(event.name) + id)
-                self.apply(id, event)
-                affected.append(id)
+        plugins_mgr = core.plugins
+        plugins_dict = plugins_mgr.plugins
+        plugin_ids = tuple(plugins_dict.keys())
 
-        if self.is_log(event):
-            if self.window.core.debug.enabled():
-                self.window.core.debug.debug("[event] After handle: " + str(event))
-            self.window.core.debug.info("[event] Dispatch end: " + str(event.full_name) + " (" + str(event.call_id) + ")")
+        for pid in plugin_ids:
+            if controller.plugins.is_enabled(pid) or all:
+                if event.stop:
+                    debug.info(f"[event] Skipping... (stopped):  {event.name}")
+                    break
+                if log_event and debug.enabled():
+                    debug.debug(f"[event] Apply [{event.name}] to plugin: {pid}")
+                self.apply(pid, event)
+                affected.append(pid)
+
+        if log_event:
+            if debug.enabled():
+                debug.debug(f"[event] After handle: {event}")
+            debug.info(f"[event] Dispatch end: {event.full_name} ({event.call_id})")
 
         self.call_id += 1
         return affected, event
@@ -144,23 +121,26 @@ class Dispatcher:
             event: BaseEvent
     ):
         """
-        Handle event in plugin with provided id
+        Apply an event to a specific plugin by its ID.
 
-        :param id: plugin id
-        :param event: event object
+        :param id: str: The ID of the plugin to which the event should be applied.
+        :param event: BaseEvent: The event to apply to the plugin.
         """
-        if id in self.window.core.plugins.plugins:
-            try:
-                self.window.core.plugins.plugins[id].handle(event)
-            except AttributeError:
-                pass
+        plugins = self.window.core.plugins.plugins
+        plugin = plugins.get(id)
+        if plugin is None:
+            return
+        try:
+            plugin.handle(event)
+        except AttributeError:
+            pass
 
     def is_log(self, event: BaseEvent) -> bool:
         """
-        Check if event can be logged
+        Check if the event should be logged based on its type and configuration.
 
-        :param event: event object
-        :return: true if can be logged
+        :param event: BaseEvent: The event to check.
+        :return: bool: True if the event should be logged, False otherwise.
         """
         if event.name in self.nolog_events:
             return False
@@ -173,8 +153,8 @@ class Dispatcher:
 
     def is_log_display(self) -> bool:
         """
-        Check if logging enabled
+        Check if event logging is enabled in the configuration.
 
-        :return: True logging enabled
+        :return: bool: True if event logging is enabled, False otherwise.
         """
         return self.window.core.config.get("log.events", False)

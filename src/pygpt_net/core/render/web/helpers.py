@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 22:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import re
@@ -70,7 +70,7 @@ class Helpers:
 
     def _repl_math_fix(self, m: re.Match) -> str:
         """
-        Fix math formula by replacing &lt; and &gt; with < and > inside \( ... \)
+        Fix math formula by replacing &lt; and &gt; with < and > inside \\( ... \\)
 
         :param m: regex match object
         :return: formatted math string

@@ -115,6 +115,10 @@ class Presets:
         """
         mode = self.window.core.config.get('mode')
         self.window.ui.nodes[self.id].backup_selection()
+        old_model = self.window.ui.models[self.id]
+        if old_model is not None:
+            old_model.clear()
+            old_model.deleteLater()
 
         new_model = self.create_model(self.window)
         self.window.ui.models[self.id] = new_model

@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.07 03:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
-import gc
 from typing import Any, Optional
 
 from pygpt_net.core.bridge import BridgeContext
@@ -20,6 +19,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import mem_clean
 
 
 class Output:
@@ -294,8 +294,10 @@ class Output:
             event = RenderEvent(RenderEvent.RELOAD)
             self.window.dispatch(event)  # reload chat window
 
+        del ctx.prev_ctx  # clear previous context to free memory
+        mem_clean()
+
         # self.window.core.debug.mem("END")  # debug memory usage
-        # gc.collect()
 
     def log(self, data: Any):
         """

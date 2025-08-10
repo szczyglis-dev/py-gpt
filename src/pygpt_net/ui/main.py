@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.06 01:00:00                  #
+# Updated Date: 2025.08.11 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -60,6 +60,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.update_timer_interval = 300000  # check every 5 minutes
         self.state = self.STATE_IDLE
         self.prevState = None
+        self.is_post_update = False
 
         # load version info
         self.meta = get_app_meta()
@@ -228,9 +229,13 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def post_update(self):
         """Called on post-update (lazy)"""
+        if self.is_post_update:
+            return
+        self.is_post_update = True
         self.controller.debug.on_post_update()
         self.controller.plugins.on_post_update()
         self.tools.on_post_update()
+        self.is_post_update = False
 
     @Slot(str)
     def update_status(self, message: str = ""):

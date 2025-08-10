@@ -250,7 +250,6 @@ def test_remove_pid_behaviour(window):
     out.remove_pid(20)
     assert 20 not in out.mapping[1]
     assert out.last_pid == 0
-    assert out.last_pids[1][200] == 20
     out.init()
     out.last_pids[30] = "to_delete"
     out.last_pid = 30
