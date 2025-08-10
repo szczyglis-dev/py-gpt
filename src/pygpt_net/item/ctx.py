@@ -215,11 +215,12 @@ class CtxItem:
     def get_pid(self):
         return 0
 
-    def to_dict(self, dump: bool = False) -> dict:
+    def to_dict(self, dump: bool = False, format: bool = False) -> dict:
         """
         Dump context item to dict
 
         :param dump: if True, dump meta to dict
+        :param format: if True, format output
         :return: dict
         """
         data = {
@@ -286,7 +287,16 @@ class CtxItem:
             data["sub_call"] = self.sub_call
             data["sub_reply"] = self.sub_reply
             data["sub_tool_call"] = self.sub_tool_call
+
         return data
+
+    def to_debug(self):
+        """
+        Dump context item to dict for debug
+
+        :return: dict
+        """
+        return json.dumps(self.to_dict(), ensure_ascii=False, indent=4)
 
     def from_dict(self, data: dict):
         """
