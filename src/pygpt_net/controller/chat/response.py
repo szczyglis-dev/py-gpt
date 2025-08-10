@@ -181,7 +181,7 @@ class Response:
         # at first, handle previous context (user input) if not handled yet
         prev_ctx = ctx.prev_ctx
         stream = False
-        if prev_ctx.current:
+        if prev_ctx and prev_ctx.current:
             prev_ctx.current = False  # reset previous context
             self.window.core.ctx.update_item(prev_ctx)
             prev_ctx.from_previous()  # append previous result if exists

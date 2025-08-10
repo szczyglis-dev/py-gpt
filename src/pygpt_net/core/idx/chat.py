@@ -870,27 +870,6 @@ class Chat:
                             break
         return metadata
 
-    def parse_metadata(
-            self,
-            metadata: Optional[Dict]
-    ) -> Dict[str, Any]:
-        """
-        Parse metadata
-
-        :param metadata: metadata
-        :return: metadata
-        """
-        if (metadata is None
-                or not isinstance(metadata, dict)
-                or len(metadata) == 0):
-            return {}
-        meta = {}
-        for node in metadata:
-            doc_id = list(node.keys())[0]
-            meta[doc_id] = node[doc_id]
-            break
-        return meta
-
     def log(self, msg: str):
         """
         Log info message

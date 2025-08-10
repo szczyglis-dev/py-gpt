@@ -106,6 +106,7 @@ def test_close_window(mock_window):
 def test_open_config_dir(mock_window):
     """Test open config dir"""
     settings = Settings(mock_window)
+    os.path.exists = MagicMock(return_value=True)
     mock_window.controller.files.open_dir = MagicMock()
     mock_window.core.config.path = 'test'
     settings.open_config_dir()
