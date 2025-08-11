@@ -101,7 +101,7 @@ class ChatWebOutput(QWebEngineView):
 
         self.setPage(new_page)
         self._teardown_page(old_page)
-        self.setUpdatesEnabled(True)
+       # self.setUpdatesEnabled(True)
 
         mem_clean()
 
