@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.5.96** | build: **2025-08-10** | Python: **>=3.10, <3.14**
+Release: **2.5.97** | build: **2025-08-11** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 > 
@@ -4262,6 +4262,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.5.97 (2025-08-11)**
+
+- Fix: attribute error in prev ctx.
 
 **2.5.96 (2025-08-10)**
 

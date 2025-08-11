@@ -294,7 +294,6 @@ class Output:
             event = RenderEvent(RenderEvent.RELOAD)
             self.window.dispatch(event)  # reload chat window
 
-        del ctx.prev_ctx  # clear previous context to free memory
         mem_clean()
 
         # self.window.core.debug.mem("END")  # debug memory usage

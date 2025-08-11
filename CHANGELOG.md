@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.97 (2025-08-11)
+
+- Fix: attribute error in prev ctx.
+
 ## 2.5.96 (2025-08-10)
 
 - Fixed memory leaks.

@@ -76,9 +76,6 @@ class Gpt:
         :return: OpenAI client
         """
         # update client args by mode and model
-        if self.client:
-            self.client.close()
-            self.client = None
         args = self.window.core.models.prepare_client_args(mode, model)
         self.client = OpenAI(**args)
         return self.client

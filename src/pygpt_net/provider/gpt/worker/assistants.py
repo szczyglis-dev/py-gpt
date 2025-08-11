@@ -524,10 +524,9 @@ class WorkerSignals(QObject):
     stream_run_step_done = Signal(object, object, int)  # ctx, run_step, step idx
 
 
-class Worker(QObject, QRunnable):
+class Worker(QRunnable):
     """Assistants worker"""
     def __init__(self, *args, **kwargs):
-        QObject.__init__(self)
         QRunnable.__init__(self)
         self.signals = WorkerSignals()
         self.window = None
