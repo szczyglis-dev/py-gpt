@@ -137,8 +137,10 @@ class OpenAIWorkflow(BaseRunner):
             next_ctx.set_input(input)
             next_ctx.partial = True
             next_ctx.extra["agent_output"] = True  # allow usage in history
+
             if finish:
-                next_ctx.extra["agent_finish"] = True
+                next_ctx.extra["agent_finish"] = True  # mark as finished and ready for evaluation
+                next_ctx.extra["agent_finish_evaluate"] = True  # mark as feedback response (ignored in loop evaluation)
 
             self.send_response(next_ctx, signals, KernelEvent.APPEND_DATA)
             return next_ctx

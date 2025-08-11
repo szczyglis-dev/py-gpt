@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.03 14:00:00                  #
+# Updated Date: 2025.08.12 00:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -162,13 +162,20 @@ class Evaluation:
         Get the final response from the agent
 
         :param history: ctx items
-        :return: final response
+        :return: final response from agent
         """
         output = ""
         for ctx in history:
-            if ctx.extra is not None and "agent_finish" in ctx.extra:
+            if ctx.extra is not None and "agent_finish" in ctx.extra and "agent_finish_evaluate" not in ctx.extra:
                 if ctx.output:
                     output = ctx.output
+
+        # feedback for OpenAI agents
+        if not output:
+            for ctx in history:
+                if ctx.extra is not None and "agent_output" in ctx.extra and "agent_finish_evaluate" not in ctx.extra:
+                    if ctx.output:
+                        output = ctx.output
         return output
 
     def get_prompt_score(self, history: List[CtxItem]) -> str:
