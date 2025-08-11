@@ -53,6 +53,9 @@ class TxtFileProvider(BaseProvider):
         if text is None or text.strip() == "":
             return
 
+        if ts is None:
+            ts = datetime.datetime.now().timestamp()
+
         path = self.window.core.config.get_user_dir('history')
         name = datetime.datetime.fromtimestamp(ts).strftime("%Y_%m_%d") + ".txt"
 
